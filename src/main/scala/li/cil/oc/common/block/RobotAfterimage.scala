@@ -13,6 +13,10 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util._
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3i
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
@@ -23,21 +27,35 @@ class RobotAfterimage extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def isOpaqueCube = false
+  override def isOpaqueCube(state: IBlockState): Boolean = false
 
-  override def isFullCube = false
+  override def isFullCube(state: IBlockState): Boolean = false
 
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos) =
+  override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     findMovingRobot(world, pos) match {
       case Some(robot) => robot.info.createItemStack()
       case _ => null
     }
+
+  override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {
+    findMovingRobot(world, pos) match {
+      case Some(robot) =>
+        val block = robot.getBlockType.asInstanceOf[SimpleBlock]
+        val bounds = block.getBoundingBox(state, world, robot.getPos)
+        val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(vec => {
+          val blockPos = robot.getPos
+          new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
+        })
+        bounds.offset(delta.getX, delta.getY, delta.getZ)
+      case _ => super.getBoundingBox(state, world, pos)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -52,46 +70,29 @@ class RobotAfterimage extends SimpleBlock {
     Rarity.byTier(data.tier)
   }
 
-  override def isAir(world: IBlockAccess, pos: BlockPos) = true
+  override def isAir(state: IBlockState, world: IBlockAccess, pos: BlockPos): Boolean = true
 
   // ----------------------------------------------------------------------- //
 
   override def onBlockAdded(world: World, pos: BlockPos, state: IBlockState) {
-    world.scheduleUpdate(pos, this, math.max((Settings.get.moveDelay * 20).toInt, 1) - 1)
+    world.scheduleUpdate(pos, this, Math.max((Settings.get.moveDelay * 20).toInt, 1) - 1)
   }
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random) {
     world.setBlockToAir(pos)
   }
 
-  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean) = {
+  override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
     findMovingRobot(world, pos) match {
       case Some(robot) if robot.isAnimatingMove && robot.moveFrom.contains(pos) =>
-        robot.proxy.getBlockType.removedByPlayer(world, pos, player, false)
-      case _ => super.removedByPlayer(world, pos, player, willHarvest) // Probably broken by the robot we represent.
+        robot.proxy.getBlockType.removedByPlayer(state, world, pos, player, false)
+      case _ => super.removedByPlayer(state, world, pos, player, willHarvest) // Probably broken by the robot we represent.
     }
   }
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     findMovingRobot(world, pos) match {
-      case Some(robot) =>
-        val block = robot.getBlockType
-        block.setBlockBoundsBasedOnState(world, robot.getPos)
-        val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(vec => {
-          val blockPos = robot.getPos
-          new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
-        })
-        setBlockBounds(new AxisAlignedBB(
-          block.getBlockBoundsMinX, block.getBlockBoundsMinY, block.getBlockBoundsMinZ,
-          block.getBlockBoundsMaxX, block.getBlockBoundsMaxY, block.getBlockBoundsMaxZ).
-          offset(delta.getX, delta.getY, delta.getZ))
-      case _ => // throw new Exception("Robot afterimage without a robot found. This is a bug!")
-    }
-  }
-
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    findMovingRobot(world, pos) match {
-      case Some(robot) => api.Items.get(Constants.BlockName.Robot).block.onBlockActivated(world, robot.getPos, world.getBlockState(robot.getPos), player, side, hitX, hitY, hitZ)
+      case Some(robot) => api.Items.get(Constants.BlockName.Robot).block.onBlockActivated(world, robot.getPos, world.getBlockState(robot.getPos), player, hand, heldItem, side, hitX, hitY, hitZ)
       case _ => world.setBlockToAir(pos)
     }
   }

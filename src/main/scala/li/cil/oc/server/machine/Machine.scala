@@ -40,6 +40,7 @@ import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.Array.canBuildFrom
 import scala.collection.convert.WrapAsJava._
@@ -179,8 +180,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
-    MinecraftServer.getServer.isSinglePlayer || {
-    val config = MinecraftServer.getServer.getConfigurationManager
+    FMLCommonHandler.instance.getMinecraftServerInstance.isSinglePlayer || {
+    val config = FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList
     val entity = config.getPlayerByUsername(player)
     entity != null && config.canSendCommands(entity.getGameProfile)
   }
@@ -376,7 +377,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       throw new Exception("user exists")
     if (name.length > Settings.get.maxUsernameLength)
       throw new Exception("username too long")
-    if (!MinecraftServer.getServer.getConfigurationManager.getAllUsernames.contains(name))
+    if (!FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames.contains(name))
       throw new Exception("player must be online")
 
     _users.synchronized {
@@ -880,7 +881,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     result
   }
 
-  private def isGamePaused = !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
+  private def isGamePaused =  FMLCommonHandler.instance.getMinecraftServerInstance != null && !FMLCommonHandler.instance.getMinecraftServerInstance.isDedicatedServer && (FMLCommonHandler.instance.getMinecraftServerInstance match {
     case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
     case _ => false
   })

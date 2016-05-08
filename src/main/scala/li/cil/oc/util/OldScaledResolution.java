@@ -1,7 +1,7 @@
 package li.cil.oc.util;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 
 public class OldScaledResolution {
     private final int scaledWidth;

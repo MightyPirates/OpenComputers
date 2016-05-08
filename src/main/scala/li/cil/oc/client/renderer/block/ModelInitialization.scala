@@ -10,16 +10,15 @@ import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemMeshDefinition
+import net.minecraft.client.renderer.block.model.IBakedModel
+import net.minecraft.client.renderer.block.model.ModelBakery
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.client.renderer.block.statemap.StateMapperBase
-import net.minecraft.client.resources.model.IBakedModel
-import net.minecraft.client.resources.model.ModelBakery
-import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.util.RegistrySimple
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.registry.RegistrySimple
 import net.minecraftforge.client.event.ModelBakeEvent
-import net.minecraftforge.client.model.IFlexibleBakedModel
-import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -115,7 +114,7 @@ object ModelInitialization {
     for ((id, item) <- itemDelegates) {
       val location = Settings.resourceDomain + ":" + id
       modelMeshes.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
-      ModelBakery.addVariantName(item.parent, location)
+      ModelBakery.registerItemVariants(item.parent, new ResourceLocation(location))
     }
     itemDelegates.clear()
   }
@@ -137,7 +136,7 @@ object ModelInitialization {
 
   @SubscribeEvent
   def onModelBake(e: ModelBakeEvent): Unit = {
-    val registry = e.modelRegistry.asInstanceOf[RegistrySimple[ModelResourceLocation, IBakedModel]]
+    val registry = e.getModelRegistry.asInstanceOf[RegistrySimple[ModelResourceLocation, IBakedModel]]
 
     registry.putObject(CableBlockLocation, CableModel)
     registry.putObject(CableItemLocation, CableModel)
@@ -154,7 +153,7 @@ object ModelInitialization {
       item.bakeModels(e)
     }
 
-    val modelOverrides = Map[String, IFlexibleBakedModel => ISmartBlockModel](
+    val modelOverrides = Map[String, IBakedModel => IBakedModel](
       Constants.BlockName.ScreenTier1 -> (_ => ScreenModel),
       Constants.BlockName.ScreenTier2 -> (_ => ScreenModel),
       Constants.BlockName.ScreenTier3 -> (_ => ScreenModel),
@@ -163,7 +162,7 @@ object ModelInitialization {
 
     registry.getKeys.collect {
       case location: ModelResourceLocation => registry.getObject(location) match {
-        case parent: IFlexibleBakedModel =>
+        case parent: IBakedModel =>
           for ((name, model) <- modelOverrides) {
             val pattern = s"^${Settings.resourceDomain}:$name#.*"
             if (location.toString.matches(pattern)) {

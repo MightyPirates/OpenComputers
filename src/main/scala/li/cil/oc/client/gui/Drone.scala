@@ -134,7 +134,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       val y = guiTop + inventoryY - 1 + (slot / 4) * (selectionSize - 2)
 
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y, zLevel).tex(0, offsetV).endVertex()
       r.pos(x, y + selectionSize, zLevel).tex(0, offsetV + selectionStepV).endVertex()

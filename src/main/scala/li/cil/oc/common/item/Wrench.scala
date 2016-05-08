@@ -10,8 +10,11 @@ import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
 @Injectable.InterfaceList(Array(
@@ -29,21 +32,22 @@ import net.minecraft.world.World
 class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
 
-  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer): Boolean = true
+  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos) && (world.getBlockState(pos).getBlock match {
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
+    if (world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos)) world.getBlockState(pos).getBlock match {
       case block: Block if block.rotateBlock(world, pos, side) =>
-        block.onNeighborBlockChange(world, pos, world.getBlockState(pos), Blocks.air)
-        player.swingItem()
-        !world.isRemote
+        block.onNeighborBlockChange(world, pos, world.getBlockState(pos), Blocks.AIR)
+        player.swingArm(hand)
+        if (!world.isRemote) EnumActionResult.SUCCESS else EnumActionResult.PASS
       case _ =>
-        super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ)
-    })
+        super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+    }
+    else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
   def useWrenchOnBlock(player: EntityPlayer, world: World, pos: BlockPos, simulate: Boolean): Boolean = {
-    if (!simulate) player.swingItem()
+    if (!simulate) player.swingArm(EnumHand.MAIN_HAND)
     true
   }
 
@@ -58,17 +62,17 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   def canWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
 
-  def wrenchUsed(player: EntityPlayer, pos: BlockPos): Unit = player.swingItem()
+  def wrenchUsed(player: EntityPlayer, pos: BlockPos): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   def canWrench(player: EntityPlayer, entity: Entity): Boolean = true
 
-  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
+  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   // CoFH
 
   def isUsable(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Boolean = true
 
-  def toolUsed(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Unit = player.swingItem()
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   // EnderIO
 

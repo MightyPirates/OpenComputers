@@ -42,20 +42,20 @@ class Proxy {
 
     OpenComputers.log.info("Initializing additional OreDict entries.")
 
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
-    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
-    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.PISTON)
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.STICKY_PISTON)
+    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.REDSTONE_TORCH)
+    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ENDER_PEARL)
 
-    tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.iron_ingot, "ingotIron")
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
+    tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.IRON_INGOT, "ingotIron")
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.DIAMOND, "gemDiamond")
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.
-    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.obsidian)
+    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.OBSIDIAN)
 
     // To still allow using normal endstone for crafting drones.
-    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.end_stone)
+    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.END_STONE)
 
     OpenComputers.log.info("Initializing OpenComputers API.")
 

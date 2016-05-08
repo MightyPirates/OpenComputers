@@ -33,11 +33,14 @@ import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
+import net.minecraft.init.SoundEvents
+import net.minecraft.inventory.EntityEquipmentSlot
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fluids._
 import net.minecraftforge.fml.relauncher.Side
@@ -218,7 +221,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         world.getTileEntity(newPosition) == proxy
       if (created) {
         assert(getPos == newPosition)
-        world.setBlockState(oldPosition, net.minecraft.init.Blocks.air.getDefaultState, 1)
+        world.setBlockState(oldPosition, net.minecraft.init.Blocks.AIR.getDefaultState, 1)
         world.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
         assert(world.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
@@ -232,7 +235,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            if (block != Blocks.air && block != blockRobotAfterImage) {
+            if (block != Blocks.AIR && block != blockRobotAfterImage) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
@@ -242,13 +245,13 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
                 val sx = newPosition.getX + 0.5
                 val sy = newPosition.getY + 0.5
                 val sz = newPosition.getZ + 0.5
-                world.playSound(sx, sy, sz, "liquid.water",
+                world.playSound(sx, sy, sz, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS,
                   world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }
-          world.markBlockForUpdate(oldPosition)
-          world.markBlockForUpdate(newPosition)
+          world.notifyBlockUpdate(oldPosition)
+          world.notifyBlockUpdate(newPosition)
         }
         assert(!isInvalid)
       }
@@ -311,9 +314,9 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def getRenderBoundingBox =
     if (getBlockType != null && world != null)
-      getBlockType.getCollisionBoundingBox(world, getPos, world.getBlockState(getPos)).expand(0.5, 0.5, 0.5)
+      getBlockType.getCollisionBoundingBox(world.getBlockState(getPos), world, getPos).expand(0.5, 0.5, 0.5)
     else
-      AxisAlignedBB.fromBounds(0, 0, 0, 1, 1, 1)
+      new AxisAlignedBB(0, 0, 0, 1, 1, 1)
 
   // ----------------------------------------------------------------------- //
 
@@ -341,7 +344,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       if (!appliedToolEnchantments) {
         appliedToolEnchantments = true
         Option(getStackInSlot(0)) match {
-          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
           case _ =>
         }
       }
@@ -523,7 +526,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     if (isServer) {
       if (isToolSlot(slot)) {
-        player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
+        player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
         ServerPacketSender.sendRobotInventory(this, slot, stack)
       }
       if (isUpgradeSlot(slot)) {
@@ -547,7 +550,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     super.onItemRemoved(slot, stack)
     if (isServer) {
       if (isToolSlot(slot)) {
-        player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers)
+        player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
         ServerPacketSender.sendRobotInventory(this, slot, null)
       }
       if (isUpgradeSlot(slot)) {

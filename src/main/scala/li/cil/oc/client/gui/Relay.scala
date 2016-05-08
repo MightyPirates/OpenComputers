@@ -40,7 +40,7 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     val w = tabPosition.getWidth
     val h = tabPosition.getHeight
     val t = Tessellator.getInstance
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
     r.pos(x, y + h, zLevel).tex(0, 1).endVertex()
     r.pos(x + w, y + h, zLevel).tex(1, 1).endVertex()

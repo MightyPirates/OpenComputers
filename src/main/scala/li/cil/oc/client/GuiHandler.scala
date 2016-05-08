@@ -69,23 +69,23 @@ object GuiHandler extends CommonGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItem) match {
+        Delegator.subItem(player.getHeldItemMainhand) match {
           case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id =>
-            new gui.Drive(player.inventory, () => player.getHeldItem)
+            new gui.Drive(player.inventory, () => player.getHeldItemMainhand)
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new gui.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               item.Tablet.get(stack, player).components.collect {
                 case Some(buffer: api.internal.TextBuffer) => buffer
@@ -96,13 +96,13 @@ object GuiHandler extends CommonGuiHandler {
             }
             else null
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
             }
             else null
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               val address = stack.getTagCompound.getString(Settings.namespace + "server")
               val key = stack.getTagCompound.getString(Settings.namespace + "key")

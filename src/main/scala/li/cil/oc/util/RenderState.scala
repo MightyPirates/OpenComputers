@@ -4,6 +4,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.GlStateManager.CullFace
 import net.minecraft.client.renderer.RenderHelper
 import org.lwjgl.opengl._
 import org.lwjgl.util.glu.GLU
@@ -142,7 +143,12 @@ object RenderState {
   }
 
   def cullFace(mode: Int): Unit = {
-    GlStateManager.cullFace(mode)
+    GlStateManager.cullFace(mode match {
+      case GL11.GL_BACK => CullFace.BACK
+      case GL11.GL_FRONT => CullFace.FRONT
+      case GL11.GL_FRONT_AND_BACK => CullFace.FRONT_AND_BACK
+      case _ => CullFace.BACK // WTF?
+    })
     GL11.glCullFace(mode)
   }
 

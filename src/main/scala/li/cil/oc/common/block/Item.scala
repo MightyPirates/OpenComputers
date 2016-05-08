@@ -15,17 +15,18 @@ import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.renderer.color.IItemColor
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.StatCollector
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.translation.I18n
 import net.minecraft.world.World
 
-class Item(value: Block) extends ItemBlock(value) {
+class Item(value: Block) extends ItemBlock(value) with IItemColor {
   setHasSubtypes(true)
 
   private lazy val Cable = api.Items.get(Constants.BlockName.Cable)
@@ -57,7 +58,7 @@ class Item(value: Block) extends ItemBlock(value) {
           ItemCosts.addTooltip(stack, tooltip)
         }
         else {
-          tooltip.add(StatCollector.translateToLocalFormatted(
+          tooltip.add(I18n.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
             KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }
@@ -65,7 +66,7 @@ class Item(value: Block) extends ItemBlock(value) {
     }
   }
 
-  override def getColorFromItemStack(stack: ItemStack, tintIndex: Int) = {
+  override def getColorFromItemstack(stack: ItemStack, tintIndex: Int): Int = {
     val descriptor = api.Items.get(stack)
     if (descriptor == Cable)
       if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else tintIndex
@@ -75,7 +76,7 @@ class Item(value: Block) extends ItemBlock(value) {
       Color.rgbValues(EnumDyeColor.byDyeDamage(stack.getItemDamage))
     else if (DirectTint.contains(descriptor))
       tintIndex
-    else super.getColorFromItemStack(stack, tintIndex)
+    else 0xFFFFFFFF
   }
 
   override def getRarity(stack: ItemStack) = block match {

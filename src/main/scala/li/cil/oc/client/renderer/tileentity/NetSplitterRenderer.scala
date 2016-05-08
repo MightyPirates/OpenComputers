@@ -26,10 +26,10 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplit
       GlStateManager.scale(1.0025, -1.0025, 1.0025)
       GlStateManager.translate(-0.5f, -0.5f, -0.5f)
 
-      bindTexture(TextureMap.locationBlocksTexture)
+      bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
 
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
 
       Textures.Block.bind()
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)

@@ -23,6 +23,10 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util._
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
@@ -39,21 +43,38 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def isOpaqueCube = false
+  override def isOpaqueCube(state: IBlockState): Boolean = false
 
-  override def isFullCube = false
+  override def isFullCube(state: IBlockState): Boolean = false
 
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos) =
+  override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
       case _ => null
     }
+
+  override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {
+    world.getTileEntity(pos) match {
+      case proxy: tileentity.RobotProxy =>
+        val robot = proxy.robot
+        val bounds = new AxisAlignedBB(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
+        if (robot.isAnimatingMove) {
+          val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
+          val blockPos = robot.moveFrom.get
+          val vec = robot.getPos
+          val delta = new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
+          bounds.offset(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
+        }
+        else bounds
+      case _ => super.getBoundingBox(state, world, pos)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -89,7 +110,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
     if (stack.hasTagCompound) {
       if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
         val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
-        val level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
+        val level = Math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
         if (level > 0) {
           tooltip.addAll(Tooltip.get(getUnlocalizedName + "_Level", level))
         }
@@ -156,34 +177,17 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
-  override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3) = {
-    val bounds = getCollisionBoundingBox(world, pos, world.getBlockState(pos))
+  override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d) = {
+    val bounds = getCollisionBoundingBox(state, world, pos)
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
-      case _ => super.collisionRayTrace(world, pos, start, end)
-    }
-  }
-
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
-    world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy =>
-        val robot = proxy.robot
-        val bounds = AxisAlignedBB.fromBounds(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
-        setBlockBounds(if (robot.isAnimatingMove) {
-          val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
-          val blockPos = robot.moveFrom.get
-          val vec = robot.getPos
-          val delta = new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
-          bounds.offset(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
-        }
-        else bounds)
-      case _ => super.setBlockBoundsBasedOnState(world, pos)
+      case _ => super.collisionRayTrace(state, world, pos, start, end)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         // We only send slot changes to nearby players, so if there was no slot
@@ -198,7 +202,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
       }
       true
     }
-    else if (player.getHeldItem == null) {
+    else if (heldItem == null) {
       if (!world.isRemote) {
         world.getTileEntity(pos) match {
           case proxy: tileentity.RobotProxy if !proxy.machine.isRunning && proxy.isUseableByPlayer(player) => proxy.machine.start()
@@ -229,7 +233,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
     }
   }
 
-  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
+  override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
@@ -245,11 +249,11 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
           InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
         }
         robot.moveFrom.foreach(fromPos => if (world.getBlockState(fromPos).getBlock == api.Items.get(Constants.BlockName.RobotAfterimage).block) {
-          world.setBlockState(fromPos, net.minecraft.init.Blocks.air.getDefaultState, 1)
+          world.setBlockState(fromPos, net.minecraft.init.Blocks.AIR.getDefaultState, 1)
         })
       case _ =>
     }
-    super.removedByPlayer(world, pos, player, willHarvest)
+    super.removedByPlayer(state, world, pos, player, willHarvest)
   }
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit =

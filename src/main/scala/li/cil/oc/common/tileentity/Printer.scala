@@ -11,13 +11,13 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.inventory.ISidedInventory
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import _root_.net.minecraft.inventory.ISidedInventory
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.nbt.NBTTagCompound
+import _root_.net.minecraft.util.EnumFacing
+import _root_.net.minecraft.util.math.AxisAlignedBB
+import _root_.net.minecraftforge.fml.relauncher.Side
+import _root_.net.minecraftforge.fml.relauncher.SideOnly
 
 class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with ISidedInventory {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -169,7 +169,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     if (minZ == maxZ) throw new IllegalArgumentException("empty block")
 
     val list = if (state) data.stateOn else data.stateOff
-    list += new PrintData.Shape(AxisAlignedBB.fromBounds(
+    list += new PrintData.Shape(new AxisAlignedBB(
       math.min(minX, maxX),
       math.min(minY, maxY),
       math.min(minZ, maxZ),
@@ -179,7 +179,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       texture, tint)
     isActive = false // Needs committing.
 
-    world.markBlockForUpdate(getPos)
+    world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
 
     result(true)
   }

@@ -46,7 +46,7 @@ trait InputBuffer extends DisplayBuffer {
       val y = bufferY + buffer.renderHeight - 16
 
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y + 16, 0).tex(0, 1).endVertex()
       r.pos(x + 16, y + 16, 0).tex(1, 1).endVertex()

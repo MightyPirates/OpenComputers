@@ -12,9 +12,9 @@ import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -40,7 +40,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   var scale = 1.0
 
   // Projection Y position offset - consider adding X,Z later perhaps
-  var translation = new Vec3(0, 0, 0)
+  var translation = new Vec3d(0, 0, 0)
 
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
@@ -271,7 +271,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val ty = math.max(0, math.min(maxTranslation * 2, args.checkDouble(1)))
     val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
 
-    translation = new Vec3(tx, ty, tz)
+    translation = new Vec3d(tx, ty, tz)
 
     ServerPacketSender.sendHologramOffset(this)
     null
@@ -426,7 +426,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val cz = z + 0.5
     val sh = width / 16 * scale * Sqrt2 // overscale to take into account 45 degree rotation
     val sv = height / 16 * scale * Sqrt2
-    AxisAlignedBB.fromBounds(
+    new AxisAlignedBB(
       cx + (-0.5 + translation.xCoord) * sh,
       cy + translation.yCoord * sv,
       cz + (-0.5 + translation.zCoord) * sh,
@@ -447,7 +447,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val tx = nbt.getDouble(Settings.namespace + "offsetX")
     val ty = nbt.getDouble(Settings.namespace + "offsetY")
     val tz = nbt.getDouble(Settings.namespace + "offsetZ")
-    translation = new Vec3(tx, ty, tz)
+    translation = new Vec3d(tx, ty, tz)
     rotationAngle = nbt.getFloat(Settings.namespace + "rotationAngle")
     rotationX = nbt.getFloat(Settings.namespace + "rotationX")
     rotationY = nbt.getFloat(Settings.namespace + "rotationY")
@@ -491,7 +491,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val tx = nbt.getDouble("offsetX")
     val ty = nbt.getDouble("offsetY")
     val tz = nbt.getDouble("offsetZ")
-    translation = new Vec3(tx, ty, tz)
+    translation = new Vec3d(tx, ty, tz)
     rotationAngle = nbt.getFloat("rotationAngle")
     rotationX = nbt.getFloat("rotationX")
     rotationY = nbt.getFloat("rotationY")

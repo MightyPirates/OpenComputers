@@ -12,16 +12,15 @@ import com.google.common.base.Charsets
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundCategory
 import net.minecraft.client.audio.SoundManager
-import net.minecraft.client.audio.SoundPoolEntry
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.client.FMLClientHandler
+import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import paulscode.sound.SoundSystemConfig
@@ -69,10 +68,14 @@ object Sound {
     }
   }
 
-  private def isGamePaused = MinecraftServer.getServer != null && !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
-    case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
-    case _ => false
-  })
+  private def isGamePaused = {
+    val server = FMLCommonHandler.instance.getMinecraftServerInstance
+    // Check outside of match to avoid client side class access.
+    server != null && !server.isDedicatedServer && (server match {
+      case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
+      case _ => false
+    })
+  }
 
   private def processQueue() {
     if (commandQueue.nonEmpty) {
@@ -112,7 +115,7 @@ object Sound {
 
   @SubscribeEvent
   def onSoundLoad(event: SoundLoadEvent) {
-    manager = event.manager
+    manager = event.getManager
   }
 
   private var hasPreloaded = Settings.get.soundVolume <= 0
@@ -143,7 +146,7 @@ object Sound {
       }
 
       sources.synchronized {
-        updateCallable.foreach(_())
+        updateCallable.foreach(_ ())
         updateCallable = None
       }
     }
@@ -214,8 +217,8 @@ object Sound {
 
     def play(name: String) {
       val resourceName = s"${Settings.resourceDomain}:$name"
-      val sound = Minecraft.getMinecraft.getSoundHandler.getSound(new ResourceLocation(resourceName))
-      val resource = (sound.cloneEntry(): SoundPoolEntry).getSoundPoolEntryLocation
+      val sound = manager.sndHandler.getAccessor(new ResourceLocation(resourceName))
+      val resource = sound.cloneEntry().getSoundAsOggLocation
       if (!initialized) {
         initialized = true
         if (tileEntity != null) soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ, SoundSystemConfig.ATTENUATION_LINEAR, 16)
@@ -246,7 +249,13 @@ object Sound {
           def connect() {
           }
 
-          override def getInputStream = Minecraft.getMinecraft.getResourceManager.getResource(resource).getInputStream
+          override def getInputStream = try {
+            Minecraft.getMinecraft.getResourceManager.getResource(resource).getInputStream
+          } catch {
+            case t: Throwable =>
+              OpenComputers.log.warn(t)
+              null
+          }
         }
       })
     }

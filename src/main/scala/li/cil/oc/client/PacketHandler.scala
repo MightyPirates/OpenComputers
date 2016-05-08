@@ -23,7 +23,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
@@ -32,12 +32,12 @@ import org.lwjgl.input.Keyboard
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
   def onPacket(e: ClientCustomPacketEvent) = {
-    onPacketData(e.manager.getNetHandler, e.packet.payload, Minecraft.getMinecraft.thePlayer)
+    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, Minecraft.getMinecraft.thePlayer)
   }
 
   protected override def world(player: EntityPlayer, dimension: Int) = {
     val world = player.worldObj
-    if (world.provider.getDimensionId == dimension) Some(world)
+    if (world.provider.getDimension == dimension) Some(world)
     else None
   }
 
@@ -109,7 +109,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
-        t.world.markBlockForUpdate(t.position)
+        t.world.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -117,7 +117,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Colored]() match {
       case Some(t) =>
         t.setColor(p.readInt())
-        t.world.markBlockForUpdate(t.position)
+        t.world.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -263,7 +263,7 @@ object PacketHandler extends CommonPacketHandler {
         val x = p.readDouble()
         val y = p.readDouble()
         val z = p.readDouble()
-        t.translation = new Vec3(x, y, z)
+        t.translation = new Vec3d(x, y, z)
       case _ => // Invalid packet.
     }
 
@@ -344,7 +344,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.isInverted = p.readBoolean()
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.markBlockForUpdate(t.getPos)
+        t.world.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
@@ -436,7 +436,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         val mountableIndex = p.readInt()
         t.lastData(mountableIndex) = p.readNBT()
-        t.getWorld.markBlockForUpdate(t.getPos)
+        t.getWorld.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 

@@ -4,8 +4,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.Optional
@@ -17,21 +17,21 @@ import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectio
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode", modid = Mods.IDs.MineFactoryReloaded)
 abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MFR */ {
-  override def canProvidePower = true
+  override def canProvidePower(state: IBlockState): Boolean = true
 
-  override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+  override def canConnectRedstone(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean =
     world.getTileEntity(pos) match {
       case redstone: tileentity.traits.RedstoneAware => redstone.isOutputEnabled
       case _ => false
     }
 
-  override def getStrongPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
-    getWeakPower(world, pos, state, side)
+  override def getStrongPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+    getWeakPower(state, world, pos, side)
 
-  override def getWeakPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
+  override def getWeakPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
     world.getTileEntity(pos) match {
       case redstone: tileentity.traits.RedstoneAware if side != null => math.min(math.max(redstone.output(side.getOpposite), 0), 15)
-      case _ => super.getWeakPower(world, pos, state, side)
+      case _ => super.getWeakPower(state, world, pos, side)
     }
 
   // ----------------------------------------------------------------------- //

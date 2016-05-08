@@ -15,14 +15,15 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.block.Block
-import net.minecraft.block.state.BlockState
+import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
 import net.minecraft.world.World
 
 import scala.reflect.ClassTag
@@ -31,7 +32,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
-  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing)
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
 
@@ -39,7 +40,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   // ----------------------------------------------------------------------- //
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos) =
+  override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     world.getTileEntity(pos) match {
       case mcu: tileentity.Microcontroller => mcu.info.copyItemStack()
       case _ => null
@@ -70,7 +71,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!Wrench.holdsApplicableWrench(player, pos)) {
       if (!player.isSneaking) {
         if (!world.isRemote) {
@@ -83,7 +84,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
         }
         true
       }
-      else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.EEPROM)) {
+      else if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.EEPROM)) {
         if (!world.isRemote) {
           world.getTileEntity(pos) match {
             case mcu: tileentity.Microcontroller =>

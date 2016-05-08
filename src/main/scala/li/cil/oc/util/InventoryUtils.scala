@@ -352,7 +352,7 @@ object InventoryUtils {
         }
       }
       if (stack.stackSize > 0) {
-        player.dropPlayerItemWithRandomChoice(stack, false)
+        player.dropItem(stack, false, false)
       }
     }
   }

@@ -15,12 +15,14 @@ import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.event.RackMountableRenderHandler
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraft.block.Block
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.color.IBlockColor
+import net.minecraft.client.renderer.color.IItemColor
 import net.minecraft.item.Item
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
@@ -29,6 +31,8 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
 import org.lwjgl.opengl.GLContext
+
+import scala.collection.mutable
 
 private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
@@ -50,6 +54,8 @@ private[oc] class Proxy extends CommonProxy {
     OpenComputers.channel.register(client.PacketHandler)
 
     ModelInitialization.init()
+    coloredItems.foreach { case (colored, instance) => Minecraft.getMinecraft.getItemColors.registerItemColorHandler(colored, instance) }
+    coloredBlocks.foreach { case (colored, instance) => Minecraft.getMinecraft.getBlockColors.registerBlockColorHandler(colored, instance) }
 
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
@@ -98,7 +104,22 @@ private[oc] class Proxy extends CommonProxy {
 
   override def registerModel(instance: Delegate, id: String) = ModelInitialization.registerModel(instance, id)
 
-  override def registerModel(instance: Item, id: String) = ModelInitialization.registerModel(instance, id)
+  override def registerModel(instance: Item, id: String) = {
+    ModelInitialization.registerModel(instance, id)
+    instance match {
+      case colored: IItemColor => coloredItems += colored -> instance
+      case _ => // Nope.
+    }
+  }
 
-  override def registerModel(instance: Block, id: String) = ModelInitialization.registerModel(instance, id)
+  override def registerModel(instance: Block, id: String) = {
+    ModelInitialization.registerModel(instance, id)
+    instance match {
+      case colored: IBlockColor => coloredBlocks += colored -> instance
+      case _ => // Nope.
+    }
+  }
+
+  val coloredItems = mutable.ArrayBuffer.empty[(IItemColor, Item)]
+  val coloredBlocks = mutable.ArrayBuffer.empty[(IBlockColor, Block)]
 }

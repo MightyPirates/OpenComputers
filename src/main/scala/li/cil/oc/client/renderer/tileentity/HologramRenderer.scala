@@ -12,6 +12,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.GlStateManager.CullFace
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -133,7 +134,7 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
     else {
       // Camera is outside the hologram.
       GlStateManager.enableCull()
-      GlStateManager.cullFace(GL11.GL_BACK)
+      GlStateManager.cullFace(CullFace.BACK)
     }
 
     // We do two passes here to avoid weird transparency effects: in the first

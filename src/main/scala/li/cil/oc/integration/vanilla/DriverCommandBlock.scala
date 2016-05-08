@@ -12,11 +12,11 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntityCommandBlock
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 object DriverCommandBlock extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityCommandBlock]
@@ -37,14 +37,14 @@ object DriverCommandBlock extends DriverSidedTileEntity {
     @Callback(doc = "function(value:string) -- Set the specified command for the command block.")
     def setCommand(context: Context, args: Arguments): Array[AnyRef] = {
       tileEntity.getCommandBlockLogic.setCommand(args.checkString(0))
-      tileEntity.getWorld.markBlockForUpdate(tileEntity.getPos)
+      tileEntity.getWorld.notifyBlockUpdate(tileEntity.getPos, tileEntity.getWorld.getBlockState(tileEntity.getPos), tileEntity.getWorld.getBlockState(tileEntity.getPos), 3)
       result(true)
     }
 
     @Callback(doc = "function():number -- Execute the currently set command. This has a slight delay to allow the command block to properly update.")
     def executeCommand(context: Context, args: Arguments): Array[AnyRef] = {
       context.pause(0.1)
-      if (!MinecraftServer.getServer.isCommandBlockEnabled) {
+      if (!FMLCommonHandler.instance.getMinecraftServerInstance.isCommandBlockEnabled) {
         result(null, "command blocks are disabled")
       } else {
         val commandSender = tileEntity.getCommandBlockLogic
@@ -56,7 +56,7 @@ object DriverCommandBlock extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.command_block)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.COMMAND_BLOCK)
         classOf[Environment]
       else null
     }

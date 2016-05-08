@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import li.cil.oc.util.ExtendedInventory._
+import net.minecraft.block.state.IBlockState
 
 class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
   def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
@@ -22,8 +23,6 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     if (selectedItemStack == null) agent.selectedSlot
     else inventorySlots.find(getStackInSlot(_) == null).getOrElse(-1)
   }
-
-  override def setCurrentItem(item: Item, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
 
   override def changeCurrentItem(direction: Int) {}
 
@@ -40,25 +39,25 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     }
   }
 
-  override def consumeInventoryItem(item: Item): Boolean = {
-    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
-      stack.stackSize -= 1
-      if (stack.stackSize <= 0) {
-        setInventorySlotContents(slot, null)
-      }
-      return true
-    }
-    false
-  }
+//  override def consumeInventoryItem(item: Item): Boolean = {
+//    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
+//      stack.stackSize -= 1
+//      if (stack.stackSize <= 0) {
+//        setInventorySlotContents(slot, null)
+//      }
+//      return true
+//    }
+//    false
+//  }
 
   override def addItemStackToInventory(stack: ItemStack) = {
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
   }
 
-  override def canHeldItemHarvest(block: Block): Boolean = block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))
+  override def canHarvestBlock(state: IBlockState): Boolean = state.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(state))
 
-  override def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(block))
+  override def getStrVsBlock(state: IBlockState): Float = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(state))
 
   override def writeToNBT(nbt: NBTTagList) = nbt
 
@@ -66,13 +65,9 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def armorItemInSlot(slot: Int) = null
 
-  override def getTotalArmorValue = 0
-
   override def damageArmor(damage: Float) {}
 
   override def dropAllItems() = {}
-
-  override def hasItem(item: Item) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
 
   override def hasItemStack(stack: ItemStack) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 

@@ -14,8 +14,8 @@ import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.potion.Potion
 import net.minecraft.tileentity.TileEntityBeacon
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverBeacon extends DriverSidedTileEntity {
@@ -45,15 +45,16 @@ object DriverBeacon extends DriverSidedTileEntity {
     }
 
     private def getEffectName(id: Int): String = {
-      if (id >= 0 && id < Potion.potionTypes.length && Potion.potionTypes(id) != null)
-        Potion.potionTypes(id).getName
+      val potion = Potion.getPotionById(id)
+      if (potion != null)
+        Potion.getPotionById(id).getName
       else null
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.beacon)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.BEACON)
         classOf[Environment]
       else null
     }

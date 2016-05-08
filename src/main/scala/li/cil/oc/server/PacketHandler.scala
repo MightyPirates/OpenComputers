@@ -14,6 +14,7 @@ import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import net.minecraft.util.EnumHand
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 
@@ -25,13 +26,12 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.DimensionManager
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
   def onPacket(e: ServerCustomPacketEvent) =
-    onPacketData(e.manager.getNetHandler, e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
+    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, e.getHandler.asInstanceOf[NetHandlerPlayServer].playerEntity)
 
   override protected def world(player: EntityPlayer, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))
@@ -95,11 +95,11 @@ object PacketHandler extends CommonPacketHandler {
 
   def onDriveMode(p: PacketParser) = p.player match {
     case player: EntityPlayerMP =>
-      Delegator.subItem(player.getHeldItem) match {
+      Delegator.subItem(player.getHeldItem(EnumHand.MAIN_HAND)) match {
         case Some(drive: FileSystemLike) =>
-          val data = new DriveData(player.getHeldItem)
+          val data = new DriveData(player.getHeldItem(EnumHand.MAIN_HAND))
           data.isUnmanaged = p.readBoolean()
-          data.save(player.getHeldItem)
+          data.save(player.getHeldItem(EnumHand.MAIN_HAND))
         case _ => // Invalid packet.
       }
     case _ => // Invalid packet.
@@ -253,7 +253,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(proxy) => proxy.world.markBlockForUpdate(proxy.getPos)
+      case Some(proxy) => proxy.world.notifyBlockUpdate(proxy.getPos, proxy.world.getBlockState(proxy.getPos), proxy.world.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
     }
 

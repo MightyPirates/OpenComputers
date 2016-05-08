@@ -55,7 +55,7 @@ object CaseRenderer extends TileEntitySpecialRenderer[Case] {
 
   private def renderFrontOverlay(texture: ResourceLocation): Unit = {
     val t = Tessellator.getInstance
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
 
     Textures.Block.bind()
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)

@@ -13,7 +13,7 @@ import net.minecraft.entity.IMerchant
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.DimensionManager
 
 import scala.collection.convert.WrapAsScala._
@@ -140,12 +140,12 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
     host match {
       case Some(entity: Entity) =>
         nbt.setBoolean("hostIsEntity", true)
-        nbt.setInteger("dimensionID", entity.world.provider.getDimensionId)
+        nbt.setInteger("dimensionID", entity.world.provider.getDimension)
         nbt.setLong("hostUUIDLeast", entity.getPersistentID.getLeastSignificantBits)
         nbt.setLong("hostUUIDMost", entity.getPersistentID.getMostSignificantBits)
       case Some(tileEntity: TileEntity) =>
         nbt.setBoolean("hostIsEntity", false)
-        nbt.setInteger("dimensionID", tileEntity.getWorld.provider.getDimensionId)
+        nbt.setInteger("dimensionID", tileEntity.getWorld.provider.getDimension)
         nbt.setInteger("hostX", tileEntity.getPos.getX)
         nbt.setInteger("hostY", tileEntity.getPos.getY)
         nbt.setInteger("hostZ", tileEntity.getPos.getZ)

@@ -39,7 +39,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
       val isHovered = hoverOverride || getHoverState(isMouseOver) == 2
 
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
       if (image != null) {
         val u0 = if (toggled) 0.5 else 0
         val u1 = u0 + (if (canToggle) 0.5 else 1)

@@ -16,8 +16,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.network.INetHandler
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 

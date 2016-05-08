@@ -9,8 +9,13 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.init.SoundEvents
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util._
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -52,7 +57,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   def addCollisionBoxesToList(mask: AxisAlignedBB, list: util.List[AxisAlignedBB], pos: BlockPos = BlockPos.ORIGIN): Unit = {
     if (!noclip) {
       if (shapes.isEmpty) {
-        val unitBounds = AxisAlignedBB.fromBounds(0, 0, 0, 1, 1, 1).offset(pos)
+        val unitBounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(pos)
         if (mask == null || unitBounds.intersectsWith(mask)) {
           list.add(unitBounds)
         }
@@ -67,11 +72,11 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     }
   }
 
-  def rayTrace(start: Vec3, end: Vec3, pos: BlockPos = BlockPos.ORIGIN): MovingObjectPosition = {
+  def rayTrace(start: Vec3d, end: Vec3d, pos: BlockPos = BlockPos.ORIGIN): RayTraceResult = {
     var closestDistance = Double.PositiveInfinity
-    var closest: Option[MovingObjectPosition] = None
+    var closest: Option[RayTraceResult] = None
     if (shapes.isEmpty) {
-      val bounds = AxisAlignedBB.fromBounds(0, 0, 0, 1, 1, 1).offset(pos)
+      val bounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(pos)
       val hit = bounds.calculateIntercept(start, end)
       if (hit != null) {
         val distance = hit.hitVec.distanceTo(start)
@@ -93,7 +98,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
         }
       }
     }
-    closest.map(hit => new MovingObjectPosition(hit.hitVec, hit.sideHit, pos)).orNull
+    closest.map(hit => new RayTraceResult(hit.hitVec, hit.sideHit, pos)).orNull
   }
 
   def activate(): Boolean = {
@@ -109,8 +114,8 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   def toggleState(): Unit = {
     if (canToggle.fold(true)(_.apply())) {
       state = !state
-      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
-      world.markBlockForUpdate(getPos)
+      world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.BLOCKS, 0.3F, if (state) 0.6F else 0.5F, false)
+      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       updateRedstone()
       if (state && data.isButtonMode) {
         val block = api.Items.get(Constants.BlockName.Print).block()
@@ -169,7 +174,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     state = nbt.getBoolean("state")
     updateBounds()
     if (world != null) {
-      world.markBlockForUpdate(getPos)
+      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       if (data.emitLight) world.checkLight(getPos)
     }
   }

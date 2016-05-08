@@ -16,16 +16,17 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
@@ -33,10 +34,10 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Screen(val tier: Int) extends RedstoneAware {
+class Screen(val tier: Int) extends RedstoneAware with IBlockColor {
   ModColoredLights.setLightLevel(this, 5, 5, 5)
 
-  override def createBlockState(): BlockState = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
+  override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
@@ -52,12 +53,12 @@ class Screen(val tier: Int) extends RedstoneAware {
       case _ => state
     }
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
 
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def getRenderColor(state: IBlockState) = Color.rgbValues(Color.byTier(tier))
+  override def colorMultiplier(state: IBlockState, worldIn: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = Color.rgbValues(Color.byTier(tier))
 
   // ----------------------------------------------------------------------- //
 
@@ -83,12 +84,12 @@ class Screen(val tier: Int) extends RedstoneAware {
     }
   }
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, pos, player, side, hitX, hitY, hitZ, force = false)
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ, force = false)
 
-  def rightClick(world: World, pos: BlockPos, player: EntityPlayer,
+  def rightClick(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack,
                  side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
     if (Wrench.holdsApplicableWrench(player, pos) && getValidRotations(world, pos).contains(side) && !force) false
-    else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
+    else if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getTileEntity(pos) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.origin.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
@@ -107,7 +108,7 @@ class Screen(val tier: Int) extends RedstoneAware {
     }
   }
 
-  override def onEntityCollidedWithBlock(world: World, pos: BlockPos, entity: Entity) =
+  override def onEntityCollidedWithBlock(world: World, pos: BlockPos, state: IBlockState, entity: Entity): Unit =
     if (world.isRemote) (entity, world.getTileEntity(pos)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - pos.getX))

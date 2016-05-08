@@ -30,7 +30,7 @@ object ConverterItemStack extends api.driver.Converter {
         output += "size" -> Int.box(stack.stackSize)
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTagCompound)
-        output += "name" -> Item.itemRegistry.getNameForObject(stack.getItem)
+        output += "name" -> Item.REGISTRY.getNameForObject(stack.getItem)
         output += "label" -> stack.getDisplayName
         if (stack.hasTagCompound &&
           stack.getTagCompound.hasKey("display", NBT.TAG_COMPOUND) &&
@@ -43,16 +43,12 @@ object ConverterItemStack extends api.driver.Converter {
 
         val enchantments = mutable.ArrayBuffer.empty[mutable.Map[String, Any]]
         EnchantmentHelper.getEnchantments(stack).collect {
-          case (id, level) if id >= 0 && id < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList(id) != null =>
-            val enchantment = Enchantment.enchantmentsList(id)
+          case (enchantment, level) =>
             val map = mutable.Map[String, Any](
               "name" -> enchantment.getName,
               "label" -> enchantment.getTranslatedName(level),
               "level" -> level
             )
-            if (Settings.get.insertIdsInConverters) {
-              map += "id" -> id
-            }
             enchantments += map
         }
         if (enchantments.nonEmpty) {

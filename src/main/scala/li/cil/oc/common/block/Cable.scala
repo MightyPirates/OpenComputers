@@ -4,17 +4,17 @@ import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
-import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
@@ -24,7 +24,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.reflect.ClassTag
 
-class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] {
+class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] with IBlockColor {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
@@ -33,7 +33,7 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def createBlockState(): BlockState = new ExtendedBlockState(this, Array.empty, Array(property.PropertyTile.Tile))
+  override def createBlockState() = new ExtendedBlockState(this, Array.empty, Array(property.PropertyTile.Tile))
 
   override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
@@ -44,24 +44,26 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def isOpaqueCube = false
+  override def isOpaqueCube(state: IBlockState): Boolean = false
 
-  override def isFullCube = false
+  override def isFullCube(state: IBlockState): Boolean = false
 
-  @SideOnly(Side.CLIENT) override
-  def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) = colorMultiplierOverride.getOrElse(super.colorMultiplier(world, pos, renderPass))
+  @SideOnly(Side.CLIENT)
+  override def colorMultiplier(state: IBlockState, worldIn: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = colorMultiplierOverride.getOrElse(0xFFFFFFFF)
 
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
+  override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   // ----------------------------------------------------------------------- //
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos) =
+  override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer) =
     world.getTileEntity(pos) match {
       case t: tileentity.Cable => t.createItemStack()
       case _ => null
     }
+
+  override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = Cable.bounds(world, pos)
 
   // ----------------------------------------------------------------------- //
 
@@ -70,12 +72,8 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
   // ----------------------------------------------------------------------- //
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
-    world.markBlockForUpdate(pos)
+    world.notifyBlockUpdate(pos, state, state, 3)
     super.onNeighborBlockChange(world, pos, state, neighborBlock)
-  }
-
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit = {
-    setBlockBounds(Cable.bounds(world, pos))
   }
 
   override protected def doCustomInit(tileEntity: tileentity.Cable, player: EntityLivingBase, stack: ItemStack): Unit = {
@@ -113,7 +111,7 @@ object Cable {
           else maxZ += side.getFrontOffsetZ * 0.375
         }
       }
-      AxisAlignedBB.fromBounds(
+      new AxisAlignedBB(
         minX + 0.5, minY + 0.5, minZ + 0.5,
         maxX + 0.5, maxY + 0.5, maxZ + 0.5)
     }).toArray

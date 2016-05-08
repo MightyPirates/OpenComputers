@@ -1,4 +1,5 @@
 {
+    "parent": "block/block",
     "textures": {
         "bottom": "opencomputers:blocks/transposer_top",
         "top": "opencomputers:blocks/transposer_top",

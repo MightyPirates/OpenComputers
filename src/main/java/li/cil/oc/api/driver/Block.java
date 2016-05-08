@@ -1,7 +1,7 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**

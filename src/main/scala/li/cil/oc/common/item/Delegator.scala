@@ -1,7 +1,6 @@
 package li.cil.oc.common.item
 
 import java.util
-import java.util.Random
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
@@ -11,19 +10,21 @@ import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.util.BlockPosition
-import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.WeightedRandomChestContent
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -92,11 +93,11 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => EnumRarity.COMMON
     }
 
-  override def getColorFromItemStack(stack: ItemStack, pass: Int) =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.color(stack, pass)
-      case _ => super.getColorFromItemStack(stack, pass)
-    }
+//  override def getColorFromItemStack(stack: ItemStack, pass: Int) =
+//    Delegator.subItem(stack) match {
+//      case Some(subItem) => subItem.color(stack, pass)
+//      case _ => super.getColorFromItemStack(stack, pass)
+//    }
 
   override def getContainerItem(stack: ItemStack): ItemStack =
     Delegator.subItem(stack) match {
@@ -110,40 +111,38 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.hasContainerItem(stack)
     }
 
-  override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
-
   // ----------------------------------------------------------------------- //
 
-  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer): Boolean =
-    Delegator.subItem(player.getHeldItem) match {
-      case Some(subItem) => subItem.doesSneakBypassUse(BlockPosition(pos, world), player)
-      case _ => super.doesSneakBypassUse(world, pos, player)
+  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.doesSneakBypassUse(world, pos, player)
+      case _ => super.doesSneakBypassUse(stack, world, pos, player)
     }
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
-      case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ)
+      case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
     }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
-      case _ => super.onItemUse(stack, player, world, pos, side, hitX, hitY, hitZ)
+      case Some(subItem) => if (subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)) EnumActionResult.SUCCESS else EnumActionResult.PASS
+      case _ => super.onItemUse(stack, player, world, pos, hand, side, hitX, hitY, hitZ)
     }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer, hand: EnumHand): ActionResult[ItemStack] =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onItemRightClick(stack, world, player)
-      case _ => super.onItemRightClick(stack, world, player)
+      case _ => super.onItemRightClick(stack, world, player, hand)
     }
 
   // ----------------------------------------------------------------------- //
 
-  override def onItemUseFinish(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
+  override def onItemUseFinish(stack: ItemStack, world: World, entity: EntityLivingBase): ItemStack =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFinish(stack, world, player)
-      case _ => super.onItemUseFinish(stack, world, player)
+      case Some(subItem) => subItem.onItemUseFinish(stack, world, entity)
+      case _ => super.onItemUseFinish(stack, world, entity)
     }
 
   override def getItemUseAction(stack: ItemStack): EnumAction =
@@ -158,10 +157,10 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.getMaxItemUseDuration(stack)
     }
 
-  override def onPlayerStoppedUsing(stack: ItemStack, world: World, player: EntityPlayer, duration: Int): Unit =
+  override def onPlayerStoppedUsing(stack: ItemStack, world: World, entity: EntityLivingBase, timeLeft: Int): Unit =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onPlayerStoppedUsing(stack, player, duration)
-      case _ => super.onPlayerStoppedUsing(stack, world, player, duration)
+      case Some(subItem) => subItem.onPlayerStoppedUsing(stack, entity, timeLeft)
+      case _ => super.onPlayerStoppedUsing(stack, world, entity, timeLeft)
     }
 
   def internalGetItemStackDisplayName(stack: ItemStack) = super.getItemStackDisplayName(stack)
@@ -196,12 +195,6 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.showDurabilityBar(stack)
       case _ => super.showDurabilityBar(stack)
-    }
-
-  override def getModel(stack: ItemStack, player: EntityPlayer, useRemaining: Int): ModelResourceLocation =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.getModel(stack, player, useRemaining)
-      case _ => super.getModel(stack, player, useRemaining)
     }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =

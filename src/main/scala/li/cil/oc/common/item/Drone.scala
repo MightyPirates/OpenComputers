@@ -12,7 +12,7 @@ import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
-import net.minecraft.client.resources.model.ModelResourceLocation
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
@@ -30,7 +30,7 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
 
   @SideOnly(Side.CLIENT)
   override def bakeModels(bakeEvent: ModelBakeEvent): Unit = {
-    bakeEvent.modelRegistry.putObject(getModelLocation(createItemStack()), DroneModel)
+    bakeEvent.getModelRegistry.putObject(getModelLocation(createItemStack()), DroneModel)
   }
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {

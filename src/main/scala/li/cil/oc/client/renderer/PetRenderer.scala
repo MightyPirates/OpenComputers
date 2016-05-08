@@ -46,24 +46,24 @@ object PetRenderer {
 
   @SubscribeEvent
   def onPlayerRender(e: RenderPlayerEvent.Pre) {
-    val uuid = e.entityPlayer.getUniqueID.toString
+    val uuid = e.getEntityPlayer.getUniqueID.toString
     if (hidden.contains(uuid) || !entitledPlayers.contains(uuid)) return
     rendering = Some(entitledPlayers(uuid))
 
-    val worldTime = e.entityPlayer.getEntityWorld.getTotalWorldTime
-    val timeJitter = e.entityPlayer.hashCode ^ 0xFF
+    val worldTime = e.getEntityPlayer.getEntityWorld.getTotalWorldTime
+    val timeJitter = e.getEntityPlayer.hashCode ^ 0xFF
     val offset = timeJitter + worldTime / 20.0
-    val hover = (math.sin(timeJitter + (worldTime + e.partialRenderTick) / 20.0) * 0.03).toFloat
+    val hover = (math.sin(timeJitter + (worldTime + e.getPartialRenderTick) / 20.0) * 0.03).toFloat
 
-    val location = petLocations.get(e.entityPlayer, new Callable[PetLocation] {
-      override def call() = new PetLocation(e.entityPlayer)
+    val location = petLocations.get(e.getEntityPlayer, new Callable[PetLocation] {
+      override def call() = new PetLocation(e.getEntityPlayer)
     })
 
     GlStateManager.pushMatrix()
     GlStateManager.pushAttrib()
-    val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
-    val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
-    val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
+    val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.getPartialRenderTick)
+    val playerPos = e.getEntityPlayer.getPositionEyes(e.getPartialRenderTick)
+    val correction = 1.62 - (if (e.getEntityPlayer.isSneaking) 0.125 else 0)
     GlStateManager.translate(
       playerPos.xCoord - localPos.xCoord,
       playerPos.yCoord - localPos.yCoord + correction,
@@ -74,7 +74,7 @@ object PetRenderer {
     GlStateManager.enableRescaleNormal()
     GlStateManager.color(1, 1, 1, 1)
 
-    location.applyInterpolatedTransformations(e.partialRenderTick)
+    location.applyInterpolatedTransformations(e.getPartialRenderTick)
 
     GlStateManager.scale(0.3f, 0.3f, 0.3f)
     GlStateManager.translate(0, hover, 0)

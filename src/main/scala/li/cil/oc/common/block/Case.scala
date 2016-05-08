@@ -3,24 +3,28 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
+import li.cil.oc.api.internal.Colored
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.BlockState
+import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI with IBlockColor {
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta >> 1))
 
@@ -29,7 +33,12 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def getRenderColor(state: IBlockState) = Color.rgbValues(Color.byTier(tier))
+  override def colorMultiplier(state: IBlockState, world: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = {
+    world.getTileEntity(pos) match {
+      case colored: Colored => colored.getColor
+      case _ => Color.rgbValues(Color.byTier(tier))
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -56,7 +65,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking) {
       if (!world.isRemote) world.getTileEntity(pos) match {
         case computer: tileentity.Case if !computer.machine.isRunning && computer.isUseableByPlayer(player) => computer.machine.start()
@@ -64,14 +73,14 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
       }
       true
     }
-    else super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+    else super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
   }
 
-  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean) =
+  override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean =
     world.getTileEntity(pos) match {
       case c: tileentity.Case =>
         if (c.isCreative && (!player.capabilities.isCreativeMode || !c.canInteract(player.getName))) false
-        else c.canInteract(player.getName) && super.removedByPlayer(world, pos, player, willHarvest)
-      case _ => super.removedByPlayer(world, pos, player, willHarvest)
+        else c.canInteract(player.getName) && super.removedByPlayer(state, world, pos, player, willHarvest)
+      case _ => super.removedByPlayer(state, world, pos, player, willHarvest)
     }
 }

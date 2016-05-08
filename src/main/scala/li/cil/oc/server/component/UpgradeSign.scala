@@ -2,8 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
@@ -12,8 +12,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntitySign
-import net.minecraft.util.ChatComponentText
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
@@ -41,8 +41,8 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
           return result(Unit, "not allowed")
         }
 
-        text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).map(new ChatComponentText(_)).copyToArray(sign.signText)
-        host.world.markBlockForUpdate(sign.getPos)
+        text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).map(new TextComponentString(_)).copyToArray(sign.signText)
+        host.world.notifyBlockUpdate(sign.getPos)
         result(sign.signText.map(_.getUnformattedText).mkString("\n"))
       case _ => result(Unit, "no sign")
     }

@@ -7,7 +7,6 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedAABB._
-import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
@@ -16,9 +15,8 @@ import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.Vec3
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.client.event.DrawBlockHighlightEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
@@ -31,21 +29,20 @@ object HighlightRenderer {
   lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
-  def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = if (e.target != null && e.target.getBlockPos != null) {
-    val hitInfo = e.target
-    val world = e.player.getEntityWorld
+  def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = if (e.getTarget != null && e.getTarget.getBlockPos != null) {
+    val hitInfo = e.getTarget
+    val world = e.getPlayer.getEntityWorld
     val blockPos = BlockPosition(hitInfo.getBlockPos, world)
-    if (hitInfo.typeOfHit == MovingObjectType.BLOCK && api.Items.get(e.currentItem) == tablet) {
+    if (hitInfo.typeOfHit == RayTraceResult.Type.BLOCK && api.Items.get(e.getPlayer.getHeldItemMainhand) == tablet) {
       val isAir = world.isAirBlock(blockPos)
       if (!isAir) {
         val block = world.getBlock(blockPos)
-        block.setBlockBoundsBasedOnState(blockPos)
-        val bounds = block.getSelectedBoundingBox(world, hitInfo.getBlockPos).offset(-blockPos.x, -blockPos.y, -blockPos.z)
+        val bounds = block.getSelectedBoundingBox(world.getBlockState(hitInfo.getBlockPos), world, hitInfo.getBlockPos).offset(-blockPos.x, -blockPos.y, -blockPos.z)
         val sideHit = hitInfo.sideHit
-        val playerPos = new Vec3(
-          e.player.prevPosX + (e.player.posX - e.player.prevPosX) * e.partialTicks,
-          e.player.prevPosY + (e.player.posY - e.player.prevPosY) * e.partialTicks,
-          e.player.prevPosZ + (e.player.posZ - e.player.prevPosZ) * e.partialTicks)
+        val playerPos = new Vec3d(
+          e.getPlayer.prevPosX + (e.getPlayer.posX - e.getPlayer.prevPosX) * e.getPartialTicks,
+          e.getPlayer.prevPosY + (e.getPlayer.posY - e.getPlayer.prevPosY) * e.getPartialTicks,
+          e.getPlayer.prevPosZ + (e.getPlayer.posZ - e.getPlayer.prevPosZ) * e.getPartialTicks)
         val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
 
         GlStateManager.pushMatrix()
@@ -66,7 +63,7 @@ object HighlightRenderer {
         }
 
         val t = Tessellator.getInstance()
-        val r = t.getWorldRenderer
+        val r = t.getBuffer
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
         sideHit match {
           case EnumFacing.UP =>
@@ -107,12 +104,12 @@ object HighlightRenderer {
       }
     }
 
-    if (hitInfo.typeOfHit == MovingObjectType.BLOCK) e.player.getEntityWorld.getTileEntity(hitInfo.getBlockPos) match {
+    if (hitInfo.typeOfHit == RayTraceResult.Type.BLOCK) e.getPlayer.getEntityWorld.getTileEntity(hitInfo.getBlockPos) match {
       case print: common.tileentity.Print if print.shapes.nonEmpty =>
-        val pos = new Vec3(
-          e.player.prevPosX + (e.player.posX - e.player.prevPosX) * e.partialTicks,
-          e.player.prevPosY + (e.player.posY - e.player.prevPosY) * e.partialTicks,
-          e.player.prevPosZ + (e.player.posZ - e.player.prevPosZ) * e.partialTicks)
+        val pos = new Vec3d(
+          e.getPlayer.prevPosX + (e.getPlayer.posX - e.getPlayer.prevPosX) * e.getPartialTicks,
+          e.getPlayer.prevPosY + (e.getPlayer.posY - e.getPlayer.prevPosY) * e.getPartialTicks,
+          e.getPlayer.prevPosZ + (e.getPlayer.posZ - e.getPlayer.prevPosZ) * e.getPartialTicks)
         val expansion = 0.002f
 
         // See RenderGlobal.drawSelectionBox.

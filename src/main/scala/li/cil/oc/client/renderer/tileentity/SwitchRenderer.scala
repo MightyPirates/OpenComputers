@@ -28,7 +28,7 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
       GlStateManager.translate(-0.5f, -0.5f, -0.5f)
 
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
 
       Textures.Block.bind()
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)

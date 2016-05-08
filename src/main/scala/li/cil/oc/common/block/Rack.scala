@@ -5,11 +5,12 @@ import li.cil.oc.api.component.RackMountable
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
-import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.BlockPos
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
@@ -18,7 +19,7 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  override def createBlockState(): BlockState = new ExtendedBlockState(this, Array(PropertyRotatable.Facing), Array(property.PropertyTile.Tile))
+  override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Facing), Array(property.PropertyTile.Tile))
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
 
@@ -32,27 +33,27 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
     }).withProperty(PropertyRotatable.Facing, getFacing(world, pos))
   }
 
-  @SideOnly(Side.CLIENT)
-  override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
-    if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
-      case rack: tileentity.Rack =>
-        def brightness(pos: BlockPos) = world.getCombinedLight(pos, world.getBlockState(pos).getBlock.getLightValue(world, pos))
-        val value = brightness(pos.offset(rack.facing))
-        val skyBrightness = (value >> 20) & 15
-        val blockBrightness = (value >> 4) & 15
-        ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
-      case _ => super.getMixedBrightnessForBlock(world, pos)
-    }
-    else super.getMixedBrightnessForBlock(world, pos)
-  }
+//  @SideOnly(Side.CLIENT)
+//  override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
+//    if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
+//      case rack: tileentity.Rack =>
+//        def brightness(pos: BlockPos) = world.getCombinedLight(pos, world.getBlockState(pos).getBlock.getLightValue(world, pos))
+//        val value = brightness(pos.offset(rack.facing))
+//        val skyBrightness = (value >> 20) & 15
+//        val blockBrightness = (value >> 4) & 15
+//        ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
+//      case _ => super.getMixedBrightnessForBlock(world, pos)
+//    }
+//    else super.getMixedBrightnessForBlock(world, pos)
+//  }
 
-  override def isOpaqueCube = false
+  override def isOpaqueCube(state: IBlockState): Boolean = false
 
-  override def isFullCube = false
+  override def isFullCube(state: IBlockState): Boolean = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.SOUTH
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
 
   // ----------------------------------------------------------------------- //
 
@@ -64,7 +65,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(pos) match {
       case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
         case Some(slot) => rack.getMountable(slot) match {
@@ -75,6 +76,6 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
       }
       case _ =>
     }
-    super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+    super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
   }
 }

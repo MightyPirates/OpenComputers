@@ -10,6 +10,9 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.EnumHand
 import net.minecraft.world.World
 
 import scala.collection.mutable
@@ -46,15 +49,15 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
     }
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (!player.isSneaking) {
       // Open the GUI immediately on the client, too, to avoid the player
       // changing the current slot before it actually opens, which can lead to
       // desynchronization of the player inventory.
       player.openGui(OpenComputers, GuiType.Server.id, world, 0, 0, 0)
-      player.swingItem()
+      player.swingArm(EnumHand.MAIN_HAND)
     }
-    stack
+    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
   }
 
 }

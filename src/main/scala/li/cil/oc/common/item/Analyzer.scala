@@ -14,22 +14,23 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.event.entity.player.EntityInteractEvent
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object Analyzer {
   private lazy val analyzer = api.Items.get(Constants.ItemName.Analyzer)
 
   @SubscribeEvent
-  def onInteract(e: EntityInteractEvent): Unit = {
-    val player = e.entityPlayer
-    val held = player.getHeldItem
+  def onInteract(e: PlayerInteractEvent.EntityInteract): Unit = {
+    val player = e.getEntityPlayer
+    val held = player.getHeldItem(e.getHand)
     if (api.Items.get(held) == analyzer) {
-      if (analyze(e.target, player, EnumFacing.DOWN, 0, 0, 0)) {
-        player.swingItem()
+      if (analyze(e.getTarget, player, EnumFacing.DOWN, 0, 0, 0)) {
+        player.swingArm(e.getHand)
         e.setCanceled(true)
       }
     }
@@ -100,7 +101,7 @@ object Analyzer {
 }
 
 class Analyzer(val parent: Delegator) extends traits.Delegate {
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (player.isSneaking && stack.hasTagCompound) {
       stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
       if (stack.getTagCompound.hasNoTags) {

@@ -16,7 +16,6 @@ import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
-import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.Loader
@@ -25,22 +24,21 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).createItemStack(1), 1, 1, Settings.get.lootProbability) {
-  override def generateChestContent(random: Random, newInventory: IInventory) =
-    Loot.randomDisk(random) match {
-      case Some(disk) =>
-        ChestGenHooks.generateStacks(random, disk,
-          minStackSize, maxStackSize)
-      case _ => Array.empty[ItemStack]
-    }
-}
+//class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).item(), api.Items.get(Constants.ItemName.Floppy).createItemStack(1).getItemDamage, 1, 1, Settings.get.lootProbability) {
+//  override def generateChestContent(random: Random, newInventory: IInventory) =
+//    Loot.randomDisk(random) match {
+//      case Some(disk) =>
+//        ChestGenHooks.generateStacks(random, disk, minStackSize, maxStackSize)
+//      case _ => Array.empty[ItemStack]
+//    }
+//}
 
 object Loot {
-  val containers = Array(
-    ChestGenHooks.DUNGEON_CHEST,
-    ChestGenHooks.PYRAMID_DESERT_CHEST,
-    ChestGenHooks.PYRAMID_JUNGLE_CHEST,
-    ChestGenHooks.STRONGHOLD_LIBRARY)
+//  val containers = Array(
+//    ChestGenHooks.DUNGEON_CHEST,
+//    ChestGenHooks.PYRAMID_DESERT_CHEST,
+//    ChestGenHooks.PYRAMID_JUNGLE_CHEST,
+//    ChestGenHooks.STRONGHOLD_LIBRARY)
 
   val factories = mutable.Map.empty[String, Callable[FileSystem]]
 
@@ -82,9 +80,9 @@ object Loot {
   }
 
   def init() {
-    for (container <- containers) {
-      ChestGenHooks.addItem(container, new Loot())
-    }
+//    for (container <- containers) {
+//      ChestGenHooks.addItem(container, new Loot())
+//    }
 
     val list = new java.util.Properties()
     val listStream = getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/loot/loot.properties")
@@ -94,10 +92,10 @@ object Loot {
   }
 
   @SubscribeEvent
-  def initForWorld(e: WorldEvent.Load): Unit = if (!e.world.isRemote && e.world.provider.getDimensionId == 0) {
+  def initForWorld(e: WorldEvent.Load): Unit = if (!e.getWorld.isRemote && e.getWorld.provider.getDimension == 0) {
     worldDisks.clear()
     disksForSampling.clear()
-    if (!e.world.isRemote) {
+    if (!e.getWorld.isRemote) {
       val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")
       if (path.exists && path.isDirectory) {
         val listFile = new io.File(path, "loot.properties")

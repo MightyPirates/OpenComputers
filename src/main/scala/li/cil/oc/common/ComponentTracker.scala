@@ -20,7 +20,7 @@ abstract class ComponentTracker {
   private val worlds = mutable.Map.empty[Int, Cache[String, ManagedEnvironment]]
 
   private def components(world: World) = {
-    worlds.getOrElseUpdate(world.provider.getDimensionId,
+    worlds.getOrElseUpdate(world.provider.getDimension,
       com.google.common.cache.CacheBuilder.newBuilder().
         weakValues().
         asInstanceOf[CacheBuilder[String, ManagedEnvironment]].
@@ -35,7 +35,7 @@ abstract class ComponentTracker {
 
   def remove(world: World, component: ManagedEnvironment) {
     this.synchronized {
-      components(world).invalidateAll(asJavaIterable(components(world).asMap().filter(_._2 == component).map(_._1)))
+      components(world).invalidateAll(asJavaIterable(components(world).asMap().filter(_._2 == component).keys))
       components(world).cleanUp()
     }
   }
@@ -46,7 +46,7 @@ abstract class ComponentTracker {
   }
 
   @SubscribeEvent
-  def onWorldUnload(e: WorldEvent.Unload): Unit = clear(e.world)
+  def onWorldUnload(e: WorldEvent.Unload): Unit = clear(e.getWorld)
 
   protected def clear(world: World): Unit = this.synchronized {
     components(world).invalidateAll()

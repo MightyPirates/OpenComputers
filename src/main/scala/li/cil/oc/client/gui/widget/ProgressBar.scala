@@ -26,7 +26,7 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
 
       Textures.bind(barTexture)
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(tx, ty, owner.windowZ).tex(u0, v0).endVertex()
       r.pos(tx, ty + height, owner.windowZ).tex(u0, v1).endVertex()

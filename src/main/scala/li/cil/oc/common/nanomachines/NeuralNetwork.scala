@@ -1,5 +1,6 @@
 package li.cil.oc.common.nanomachines
 
+import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -9,8 +10,7 @@ import li.cil.oc.api.nanomachines.BehaviorProvider
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.text.TextComponentString
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.StringBuilder
@@ -121,10 +121,10 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
   def print(player: EntityPlayer): Unit = {
     val sb = StringBuilder.newBuilder
     def colored(value: Any, enabled: Boolean) = {
-      if (enabled) sb.append(EnumChatFormatting.GREEN)
-      else sb.append(EnumChatFormatting.RED)
+      if (enabled) sb.append(ChatFormatting.GREEN)
+      else sb.append(ChatFormatting.RED)
       sb.append(value)
-      sb.append(EnumChatFormatting.RESET)
+      sb.append(ChatFormatting.RESET)
     }
     for (behavior <- behaviors) {
       val name = Option(behavior.behavior.getNameHint).getOrElse(behavior.behavior.getClass.getSimpleName)
@@ -148,7 +148,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
         }
       }
       sb.append(")")
-      player.addChatMessage(new ChatComponentText(sb.toString()))
+      player.addChatMessage(new TextComponentString(sb.toString()))
       sb.clear()
     }
   }

@@ -8,7 +8,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
@@ -21,8 +21,7 @@ trait CustomDrops[Tile <: TileEntity] extends SimpleBlock {
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {}
 
-
-  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
+  override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
     if (!world.isRemote) {
       val matcher = tileTag
       world.getTileEntity(pos) match {
@@ -30,7 +29,7 @@ trait CustomDrops[Tile <: TileEntity] extends SimpleBlock {
         case _ =>
       }
     }
-    super.removedByPlayer(world, pos, player, willHarvest)
+    super.removedByPlayer(state, world, pos, player, willHarvest)
   }
 
   override def onBlockPlacedBy(world: World, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: ItemStack): Unit = {

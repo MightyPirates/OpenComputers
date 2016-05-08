@@ -1,14 +1,4 @@
 {
-    "parent": "opencomputers:block/keyboard",
-    "display": {
-        "thirdperson": {
-            "rotation": [ 10, 135, 170 ],
-            "translation": [ 0, 1.5, -2.75 ],
-            "scale": [ 0.375, 0.375, 0.375 ]
-        },
-        "gui": {
-            "rotation": [ 0, 90, 0 ],
-            "translation": [ 0, 4, -4 ]
-        }
-    }
+    "parent": "opencomputers:block/keyboard"
 }
+a

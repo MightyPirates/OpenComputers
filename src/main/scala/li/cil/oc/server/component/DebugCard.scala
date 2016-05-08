@@ -4,11 +4,11 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
@@ -26,13 +26,14 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.IChatComponent
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvent
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.ITextComponent
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
@@ -42,6 +43,7 @@ import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
+import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.ModAPIManager
 
@@ -66,10 +68,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   private lazy val CommandSender = {
     def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
     new CommandSender(host, player match {
-      case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.getPlayerByUsername(name)) match {
-        case Some(playerEntity) => playerEntity
-        case _ => defaultFakePlayer
-      }
+      case Some(name) => Option(FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name)).getOrElse(defaultFakePlayer)
       case _ => defaultFakePlayer
     })
   }
@@ -124,7 +123,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    result(MinecraftServer.getServer.getAllUsernames)
+    result(FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames)
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -145,7 +144,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       CommandSender.prepare()
       var value = 0
       for (command <- commands) {
-        value = MinecraftServer.getServer.getCommandManager.executeCommand(CommandSender, command.toString)
+        value = FMLCommonHandler.instance.getMinecraftServerInstance.getCommandManager.executeCommand(CommandSender, command.toString)
       }
       result(value, CommandSender.messages.orNull)
     }
@@ -255,7 +254,7 @@ object DebugCard {
 
     def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
       checkEnabled()
-      MinecraftServer.getServer.getConfigurationManager.getPlayerByUsername(name) match {
+      FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name) match {
         case player: EntityPlayerMP => f(player)
         case _ => result(Unit, "player is offline")
       }
@@ -268,7 +267,7 @@ object DebugCard {
 
     @Callback(doc = """function():string -- Get the player's game type.""")
     def getGameType(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.theItemInWorldManager.getGameType.getName))
+      withPlayer(player => result(player.interactionManager.getGameType.getName))
 
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
@@ -324,13 +323,13 @@ object DebugCard {
     @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.provider.getDimensionId)
+      result(world.provider.getDimension)
     }
 
     @Callback(doc = """function():string -- Gets the name of the current dimension.""")
     def getDimensionName(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.provider.getDimensionName)
+      result(world.provider.getDimensionType.getName)
     }
 
     @Callback(doc = """function():number -- Gets the seed of the world.""")
@@ -397,7 +396,7 @@ object DebugCard {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val sound = args.checkString(3)
       val range = args.checkInteger(4)
-      world.playSoundEffect(x, y, z, sound, range / 15 + 0.5F, 1.0F)
+      world.playSound(x, y, z, new SoundEvent(new ResourceLocation(sound)), SoundCategory.MASTER, range / 15 + 0.5F, 1.0F, false)
       null
     }
 
@@ -449,7 +448,7 @@ object DebugCard {
             case nbt: NBTTagCompound =>
               tileEntity.readFromNBT(nbt)
               tileEntity.markDirty()
-              world.markBlockForUpdate(blockPos)
+              world.notifyBlockUpdate(blockPos)
               result(true)
             case nbt => result(Unit, s"nbt tag compound expected, got '${NBTBase.NBT_TYPES(nbt.getId)}'")
           }
@@ -505,7 +504,7 @@ object DebugCard {
     @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
     def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val item = Item.itemRegistry.getObject(new ResourceLocation(args.checkString(0)))
+      val item = Item.REGISTRY.getObject(new ResourceLocation(args.checkString(0)))
       if (item == null) {
         throw new IllegalArgumentException("invalid item id")
       }
@@ -576,7 +575,7 @@ object DebugCard {
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setInteger("dimension", world.provider.getDimensionId)
+      nbt.setInteger("dimension", world.provider.getDimension)
     }
   }
 
@@ -595,7 +594,7 @@ object DebugCard {
 
     override def getEntityWorld = host.world
 
-    override def addChatMessage(message: IChatComponent) {
+    override def addChatMessage(message: ITextComponent) {
       messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 
@@ -608,7 +607,7 @@ object DebugCard {
     override def canCommandSenderUseCommand(level: Int, commandName: String) = {
       val profile = underlying.getGameProfile
       val server = underlying.mcServer
-      val config = server.getConfigurationManager
+      val config = server.getPlayerList
       server.isSinglePlayer || (config.canSendCommands(profile) && (config.getOppedPlayers.getEntry(profile) match {
         case entry: UserListOpsEntry => entry.getPermissionLevel >= level
         case _ => server.getOpPermissionLevel >= level

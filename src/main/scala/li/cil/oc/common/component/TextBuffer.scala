@@ -26,6 +26,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumHand
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -560,7 +561,7 @@ object TextBuffer {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
       val blockPos = BlockPosition(t.host)
-      val keep = t.host.world != e.world || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
+      val keep = t.host.world != e.getWorld || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
         ClientComponentTracker.remove(t.host.world, t)
       }
@@ -571,7 +572,7 @@ object TextBuffer {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.host.world != e.world
+      val keep = t.host.world != e.getWorld
       if (!keep) {
         ClientComponentTracker.remove(t.host.world, t)
       }
@@ -752,7 +753,7 @@ object TextBuffer {
     private lazy val Debugger = api.Items.get(Constants.ItemName.Debugger)
 
     private def debug(message: String) {
-      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
+      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItemMainhand) == Debugger) {
         OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
       }
     }
@@ -859,7 +860,7 @@ object TextBuffer {
     }
 
     override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
-      val stack = player.getHeldItem
+      val stack = player.getHeldItem(EnumHand.MAIN_HAND)
       if (stack != null) {
         if (!stack.hasTagCompound) {
           stack.setTagCompound(new NBTTagCompound())

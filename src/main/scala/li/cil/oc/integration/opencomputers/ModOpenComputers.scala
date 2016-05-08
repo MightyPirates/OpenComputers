@@ -45,7 +45,7 @@ import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
@@ -311,7 +311,7 @@ object ModOpenComputers extends ModProxy {
   }
 
   def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
-    player.getHeldItem.getItem match {
+    player.getHeldItemMainhand.getItem match {
       case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
       case _ => false
     }

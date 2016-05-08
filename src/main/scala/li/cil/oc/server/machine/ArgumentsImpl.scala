@@ -220,7 +220,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   }
 
   private def makeStack(name: String, damage: Int, tag: Option[NBTTagCompound]) = {
-    Item.itemRegistry.getObject(new ResourceLocation(name)) match {
+    Item.REGISTRY.getObject(new ResourceLocation(name)) match {
       case item: Item =>
         val stack = new ItemStack(item, 1, damage)
         tag.foreach(stack.setTagCompound)

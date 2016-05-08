@@ -52,21 +52,21 @@ abstract class GuiHandler extends IGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItem) match {
+        Delegator.subItem(player.getHeldItemMainhand) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new container.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound)
               new container.Tablet(player.inventory, item.Tablet.get(stack, player))
             else

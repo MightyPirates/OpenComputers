@@ -14,7 +14,7 @@ class TexturePicker(val parent: Delegator) extends traits.Delegate {
     player.getEntityWorld.getBlock(position) match {
       case block: Block =>
         if (player.getEntityWorld.isRemote) {
-          val model = Minecraft.getMinecraft.getBlockRendererDispatcher.getModelFromBlockState(player.getEntityWorld.getBlockState(position.toBlockPos), player.getEntityWorld, position.toBlockPos)
+          val model = Minecraft.getMinecraft.getBlockRendererDispatcher.getModelForState(player.getEntityWorld.getBlockState(position.toBlockPos))
           if (model != null && model.getParticleTexture != null && model.getParticleTexture.getIconName != null) {
             player.addChatMessage(Localization.Chat.TextureName(model.getParticleTexture.getIconName))
           }

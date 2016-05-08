@@ -19,14 +19,14 @@ object WirelessNetworkDebugRenderer {
     if (Settings.rTreeDebugRenderer) {
       RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
-      val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.context, "theWorld", "field_72769_h", "r").asInstanceOf[World]
-      WirelessNetwork.dimensions.get(world.provider.getDimensionId) match {
+      val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.getContext, "theWorld", "field_72769_h", "r").asInstanceOf[World]
+      WirelessNetwork.dimensions.get(world.provider.getDimension) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft
           val player = mc.thePlayer
-          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks
-          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks
-          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks
+          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
+          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
+          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks
 
           GlStateManager.pushAttrib()
           GlStateManager.pushMatrix()

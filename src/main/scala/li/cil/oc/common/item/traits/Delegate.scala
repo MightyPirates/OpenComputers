@@ -11,12 +11,16 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -40,21 +44,21 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer) = false
+  def doesSneakBypassUse(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = false
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult = EnumActionResult.PASS
 
   def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = ActionResult.newResult(EnumActionResult.PASS, stack)
 
   def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.NONE
 
   def getMaxItemUseDuration(stack: ItemStack) = 0
 
-  def onItemUseFinish(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+  def onItemUseFinish(stack: ItemStack, world: World, player: EntityLivingBase): ItemStack = stack
 
-  def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
+  def onPlayerStoppedUsing(stack: ItemStack, player: EntityLivingBase, duration: Int) {}
 
   def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) {}
 
@@ -110,6 +114,4 @@ trait Delegate {
   def showDurabilityBar(stack: ItemStack) = false
 
   def durability(stack: ItemStack) = 0.0
-
-  def getModel(stack: ItemStack, player: EntityPlayer, useRemaining: Int): ModelResourceLocation = null
 }

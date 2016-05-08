@@ -8,13 +8,13 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.event.ForgeEventFactory
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fml.common.eventhandler.Event.Result
@@ -33,8 +33,9 @@ trait WorldAware {
   }
 
   def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
-    val event = ForgeEventFactory.onPlayerInteract(fakePlayer, Action.RIGHT_CLICK_BLOCK, world, blockPos.toBlockPos, face)
-    !event.isCanceled && event.useBlock != Result.DENY
+    val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, null, blockPos.toBlockPos, face, null)
+    MinecraftForge.EVENT_BUS.post(event)
+    !event.isCanceled && event.getUseBlock != Result.DENY
   }
 
   def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {

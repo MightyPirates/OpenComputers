@@ -24,7 +24,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
-import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
@@ -36,17 +35,17 @@ import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
-import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.MinecraftForge
+import net.minecraft.util.SoundCategory
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.AttachCapabilitiesEvent
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent._
 import net.minecraftforge.fml.common.gameevent.TickEvent
@@ -107,15 +106,17 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
-    if (SideTracker.isServer) pendingServer.synchronized {
-      pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
-        tileEntity.addedToIC2PowerGrid = true
-      })
+  /* TODO IC2
+    @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+    def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
+      if (SideTracker.isServer) pendingServer.synchronized {
+        pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+          MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+          tileEntity.addedToIC2PowerGrid = true
+        })
+      }
     }
-  }
+  */
 
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pendingServer.synchronized {
@@ -229,7 +230,8 @@ object EventHandler {
           ServerPacketSender.sendLootDisks(player)
         })
         // Do update check in local games and for OPs.
-        if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.canSendCommands(player.getGameProfile))) {
+        val server = FMLCommonHandler.instance.getMinecraftServerInstance
+        if (!Mods.VersionChecker.isAvailable && (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile))) {
           Future {
             UpdateCheck.info onSuccess {
               case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))
@@ -252,7 +254,7 @@ object EventHandler {
 
   @SubscribeEvent
   def onBlockBreak(e: BlockEvent.BreakEvent): Unit = {
-    e.world.getTileEntity(e.pos) match {
+    e.getWorld.getTileEntity(e.getPos) match {
       case c: tileentity.Case =>
         if (c.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !c.canInteract(e.getPlayer.getName))) {
           e.setCanceled(true)
@@ -283,7 +285,7 @@ object EventHandler {
 
   @SubscribeEvent
   def onEntityJoinWorld(e: EntityJoinWorldEvent): Unit = {
-    if (Settings.get.giveManualToNewPlayers && !e.world.isRemote) e.entity match {
+    if (Settings.get.giveManualToNewPlayers && !e.getWorld.isRemote) e.getEntity match {
       case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
         val persistedData = PlayerUtils.persistedData(player)
         if (!persistedData.getBoolean(Settings.namespace + "receivedManual")) {
@@ -342,7 +344,7 @@ object EventHandler {
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
           // Presents!
           val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
-          e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
+          e.player.worldObj.playSound(e.player, e.player.posX, e.player.posY, e.player.posZ, SoundEvents.BLOCK_NOTE_PLING, SoundCategory.MASTER, 0.2f, 1f)
           InventoryUtils.addToPlayerInventory(present, e.player)
         }
       case _ => // Nope.
@@ -402,11 +404,11 @@ object EventHandler {
   // disposing networks, where this actually triggered an assert).
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload): Unit = this.synchronized {
-    if (!e.world.isRemote) {
-      e.world.loadedTileEntityList.collect {
+    if (!e.getWorld.isRemote) {
+      e.getWorld.loadedTileEntityList.collect {
         case te: tileentity.traits.TileEntity => te.dispose()
       }
-      e.world.loadedEntityList.collect {
+      e.getWorld.loadedEntityList.collect {
         case host: MachineHost => host.machine.stop()
       }
 
@@ -419,7 +421,7 @@ object EventHandler {
 
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload): Unit = {
-    if (!e.world.isRemote) {
+    if (!e.getWorld.isRemote) {
       e.getChunk.getEntityLists.foreach(_.collect {
         case host: MachineHost => host.machine match {
           case machine: Machine => scheduleClose(machine)

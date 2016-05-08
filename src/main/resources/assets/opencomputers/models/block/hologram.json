@@ -1,4 +1,5 @@
 {
+    "parent": "block/block",
     "textures": {
         "bottom": "opencomputers:blocks/generic_top",
         "side": "opencomputers:blocks/hologram_side",

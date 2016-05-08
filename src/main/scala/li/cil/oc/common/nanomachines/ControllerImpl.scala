@@ -26,6 +26,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionEffect
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsJava._
@@ -34,7 +35,7 @@ import scala.collection.mutable
 
 class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessEndpoint {
   if (isServer) api.Network.joinWirelessNetwork(this)
-  var previousDimension = player.worldObj.provider.getDimensionId
+  var previousDimension = player.worldObj.provider.getDimension
 
   lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
   final val FullSyncInterval = 20 * 60
@@ -170,9 +171,9 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
       player match {
         case playerMP: EntityPlayerMP if playerMP.playerNetServerHandler != null =>
-          player.addPotionEffect(new PotionEffect(Potion.blindness.id, 100))
-          player.addPotionEffect(new PotionEffect(Potion.poison.id, 150))
-          player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 200))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 100))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 150))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 200))
           changeBuffer(-Settings.get.nanomachineReconfigureCost)
 
           hasSentConfiguration = false
@@ -243,10 +244,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       // load is called while the world is still set to the overworld, but
       // no dimension change event is fired if the player actually logged
       // out in another dimension... yay)
-      if (player.worldObj.provider.getDimensionId != previousDimension) {
+      if (player.worldObj.provider.getDimension != previousDimension) {
         api.Network.leaveWirelessNetwork(this, previousDimension)
         api.Network.joinWirelessNetwork(this)
-        previousDimension = player.worldObj.provider.getDimensionId
+        previousDimension = player.worldObj.provider.getDimension
       }
       else {
         api.Network.updateWirelessNetwork(this)

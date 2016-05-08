@@ -10,7 +10,7 @@ import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -114,7 +114,7 @@ object PrintData {
   def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
     var volume = 1f
     if (shapes.nonEmpty) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
-      val bounds = AxisAlignedBB.fromBounds(
+      val bounds = new AxisAlignedBB(
         x * step, y * step, z * step,
         (x + 1) * step, (y + 1) * step, (z + 1) * step)
       if (!shapes.exists(_.bounds.intersectsWith(bounds))) {
@@ -176,7 +176,7 @@ object PrintData {
         val maxX = nbt.getByte("maxX") / 16f
         val maxY = nbt.getByte("maxY") / 16f
         val maxZ = nbt.getByte("maxZ") / 16f
-        AxisAlignedBB.fromBounds(minX, minY, minZ, maxX, maxY, maxZ)
+        new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ)
       }
       else {
         val bounds = nbt.getByteArray("bounds").padTo(6, 0.toByte)
@@ -186,7 +186,7 @@ object PrintData {
         val maxX = bounds(3) / 16f
         val maxY = bounds(4) / 16f
         val maxZ = bounds(5) / 16f
-        AxisAlignedBB.fromBounds(minX, minY, minZ, maxX, maxY, maxZ)
+        new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ)
       }
     val texture = nbt.getString("texture")
     val tint = if (nbt.hasKey("tint")) Option(nbt.getInteger("tint")) else None

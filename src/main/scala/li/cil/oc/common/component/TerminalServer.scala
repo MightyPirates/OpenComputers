@@ -47,7 +47,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     val keyboard = api.Driver.driverFor(keyboardItem, getClass).createEnvironment(keyboardItem, this).asInstanceOf[api.internal.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.internal.Keyboard, player: EntityPlayer) = {
-        val stack = player.getHeldItem
+        val stack = player.getHeldItemMainhand
         Delegator.subItem(stack) match {
           case Some(t: item.Terminal) if stack.hasTagCompound => sidedKeys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
           case _ => false
@@ -118,7 +118,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
   override def onActivate(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    val stack = player.getHeldItem
+    val stack = player.getHeldItemMainhand
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Terminal)) {
       if (!world.isRemote) {
         val key = UUID.randomUUID().toString

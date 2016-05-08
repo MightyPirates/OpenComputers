@@ -70,7 +70,7 @@ object SaveHandler {
 
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
-    val dimension = world.provider.getDimensionId
+    val dimension = world.provider.getDimension
     val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
@@ -174,7 +174,7 @@ object SaveHandler {
   @SubscribeEvent
   def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
     val path = statePath
-    val dimension = e.world.provider.getDimensionId
+    val dimension = e.getWorld.provider.getDimension
     val chunk = e.getChunk.getChunkCoordIntPair
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
@@ -205,7 +205,7 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
-    if (!e.world.isRemote) {
+    if (!e.getWorld.isRemote) {
       // Touch all externally saved data when loading, to avoid it getting
       // deleted in the next save (because the now - save time will usually
       // be larger than the time out after loading a world again).
@@ -227,7 +227,7 @@ object SaveHandler {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
-      saveData.get(e.world.provider.getDimensionId) match {
+      saveData.get(e.getWorld.provider.getDimension) match {
         case Some(chunks) => chunks.clear()
         case _ =>
       }

@@ -1,4 +1,5 @@
 {
+    "parent": "block/block",
     "textures": {
         "down": "opencomputers:blocks/case_top",
         "up": "opencomputers:blocks/case_top",

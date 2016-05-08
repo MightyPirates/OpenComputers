@@ -30,7 +30,7 @@ object NanomachinesHandler {
   object Client {
     @SubscribeEvent
     def onRenderGameOverlay(e: RenderGameOverlayEvent.Post): Unit = {
-      if (e.`type` == RenderGameOverlayEvent.ElementType.TEXT) {
+      if (e.getType == RenderGameOverlayEvent.ElementType.TEXT) {
         val mc = Minecraft.getMinecraft
         api.Nanomachines.getController(mc.thePlayer) match {
           case controller: Controller =>
@@ -64,7 +64,7 @@ object NanomachinesHandler {
       val sx = 1f / tw
       val sy = 1f / th
       val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
+      val r = t.getBuffer
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y + h, 0).tex(0, h * sy).endVertex()
       r.pos(x + w, y + h, 0).tex(w * sx, h * sy).endVertex()
@@ -85,7 +85,7 @@ object NanomachinesHandler {
 
     @SubscribeEvent
     def onLivingUpdate(e: LivingEvent.LivingUpdateEvent): Unit = {
-      e.entity match {
+      e.getEntity match {
         case player: EntityPlayer => api.Nanomachines.getController(player) match {
           case controller: ControllerImpl =>
             if (controller.player eq player) {
@@ -112,7 +112,7 @@ object NanomachinesHandler {
     @SubscribeEvent
     def onPlayerSave(e: PlayerEvent.SaveToFile): Unit = {
       val file = e.getPlayerFile("ocnm")
-      api.Nanomachines.getController(e.entityPlayer) match {
+      api.Nanomachines.getController(e.getEntityPlayer) match {
         case controller: ControllerImpl =>
           try {
             val nbt = new NBTTagCompound()
@@ -136,7 +136,7 @@ object NanomachinesHandler {
     def onPlayerLoad(e: PlayerEvent.LoadFromFile): Unit = {
       val file = e.getPlayerFile("ocnm")
       if (file.exists()) {
-        api.Nanomachines.getController(e.entityPlayer) match {
+        api.Nanomachines.getController(e.getEntityPlayer) match {
           case controller: ControllerImpl =>
             try {
               val fis = new FileInputStream(file)

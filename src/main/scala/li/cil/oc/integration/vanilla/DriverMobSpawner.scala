@@ -13,8 +13,8 @@ import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityMobSpawner
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverMobSpawner extends DriverSidedTileEntity {
@@ -36,7 +36,7 @@ object DriverMobSpawner extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.mob_spawner)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
         classOf[Environment]
       else null
     }

@@ -1,4 +1,5 @@
 {
+    "parent": "block/block",
     "textures": {
         "all": "opencomputers:blocks/keyboard",
         "particle": "opencomputers:blocks/generic_top"

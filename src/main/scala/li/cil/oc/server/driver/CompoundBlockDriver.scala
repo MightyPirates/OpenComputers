@@ -8,8 +8,8 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 // TODO Remove blocks in OC 1.7.
@@ -53,7 +53,7 @@ class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock], val blocks:
     try {
       val block = world.getBlockState(pos).getBlock
       val stack = if (Item.getItemFromBlock(block) != null) {
-        Some(new ItemStack(block, 1, block.getDamageValue(world, pos)))
+        Some(new ItemStack(block, 1, block.damageDropped(world.getBlockState(pos))))
       }
       else None
       if (stack.isDefined) {

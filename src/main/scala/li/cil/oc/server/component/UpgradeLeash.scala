@@ -39,7 +39,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
     val bounds = nearBounds.union(farBounds)
-    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.allowLeashing()) match {
+    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
       case Some(entity) =>
         entity.setLeashedToEntity(host, true)
         leashedEntities += entity.getUniqueID

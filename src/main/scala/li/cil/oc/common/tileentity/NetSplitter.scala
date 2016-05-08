@@ -5,8 +5,10 @@ import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import net.minecraft.init.SoundEvents
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -37,11 +39,11 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
       node.remove()
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
-      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+      world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f, false)
       world.notifyNeighborsOfStateChange(getPos, getBlockType)
     }
     else {
-      world.markBlockForUpdate(getPos)
+      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
     }
   }
 
@@ -72,10 +74,10 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.in", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+        world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f, false)
       }
       else {
-        world.markBlockForUpdate(getPos)
+        world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       }
     }
   }

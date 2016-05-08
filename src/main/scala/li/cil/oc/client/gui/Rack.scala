@@ -265,7 +265,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     val u1 = u0 + w / 256f
     val v1 = v0 + h / 256f
     val t = Tessellator.getInstance()
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
     r.pos(x, y, windowZ).tex(u0, v0).endVertex()
     r.pos(x, y + h, windowZ).tex(u0, v1).endVertex()

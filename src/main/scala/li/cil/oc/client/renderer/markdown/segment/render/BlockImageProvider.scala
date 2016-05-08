@@ -15,7 +15,7 @@ object BlockImageProvider extends ImageProvider {
     val splitIndex = data.lastIndexOf('@')
     val (name, optMeta) = if (splitIndex > 0) data.splitAt(splitIndex) else (data, "")
     val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
-    Block.blockRegistry.getObject(new ResourceLocation(name)) match {
+    Block.REGISTRY.getObject(new ResourceLocation(name)) match {
       case block: Block if Item.getItemFromBlock(block) != null => new ItemStackImageRenderer(Array(new ItemStack(block, 1, meta)))
       case _ => new TextureImageRenderer(Textures.GUI.ManualMissingItem) with InteractiveImageRenderer {
         override def getTooltip(tooltip: String): String = "oc:gui.Manual.Warning.BlockMissing"

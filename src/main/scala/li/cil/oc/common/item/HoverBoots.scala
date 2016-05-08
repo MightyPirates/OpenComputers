@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
+import net.minecraft.inventory.EntityEquipmentSlot
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
@@ -20,7 +21,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with traits.SimpleItem with traits.Chargeable {
+class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEquipmentSlot.FEET) with traits.SimpleItem with traits.Chargeable {
   setNoRepair()
 
   override def getRarity(stack: ItemStack): EnumRarity = EnumRarity.UNCOMMON
@@ -59,32 +60,23 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
   }
 
   @SideOnly(Side.CLIENT)
-  override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int): ModelBiped = {
-    if (armorSlot == 4 - armorType) {
-      HoverBootRenderer.lightColor = if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
-      HoverBootRenderer
-    }
-    else super.getArmorModel(entityLiving, itemStack, armorSlot)
-  }
-
-  @SideOnly(Side.CLIENT)
-  override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int, _default: ModelBiped): ModelBiped = {
-    if (armorSlot == 4 - armorType) {
+  override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: EntityEquipmentSlot, _default: ModelBiped): ModelBiped = {
+    if (armorSlot == armorType) {
       HoverBootRenderer.lightColor = if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
       HoverBootRenderer
     }
     else super.getArmorModel(entityLiving, itemStack, armorSlot, _default)
   }
 
-  override def getArmorTexture(stack: ItemStack, entity: Entity, slot: Int, subType: String): String = {
+  override def getArmorTexture(stack: ItemStack, entity: Entity, slot: EntityEquipmentSlot, subType: String): String = {
     if (entity.worldObj.isRemote) HoverBootRenderer.texture.toString
     else null
   }
 
   override def onArmorTick(world: World, player: EntityPlayer, stack: ItemStack): Unit = {
     super.onArmorTick(world, player, stack)
-    if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
-      player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId, 20, 1))
+    if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.getPotionFromResourceLocation("slowness")) == null && getCharge(stack) == 0) {
+      player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 20, 1))
     }
   }
 
@@ -92,7 +84,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     if (entity != null && entity.worldObj != null && !entity.worldObj.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
       val pos = entity.getPosition
       val state = entity.worldObj.getBlockState(pos)
-      if (state.getBlock == Blocks.cauldron) {
+      if (state.getBlock == Blocks.CAULDRON) {
         val level = state.getValue(BlockCauldron.LEVEL).toInt
         if (level > 0) {
           ItemColorizer.removeColor(entity.getEntityItem)
@@ -104,12 +96,12 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     super.onEntityItemUpdate(entity)
   }
 
-  override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
-    if (pass == 1) {
-      return if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
-    }
-    super.getColorFromItemStack(itemStack, pass)
-  }
+//  override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
+//    if (pass == 1) {
+//      return if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+//    }
+//    super.getColorFromItemStack(itemStack, pass)
+//  }
 
   override def showDurabilityBar(stack: ItemStack): Boolean = true
 

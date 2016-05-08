@@ -45,7 +45,7 @@ trait RedstoneVanilla extends RedstoneSignaller {
     val blockPos = BlockPosition(redstone).offset(side)
     if (redstone.world.blockExists(blockPos)) {
       val block = redstone.world.getBlock(blockPos)
-      if (block.hasComparatorInputOverride) {
+      if (block.hasComparatorInputOverride(redstone.world.getBlockState(blockPos.toBlockPos))) {
         val comparatorOverride = block.getComparatorInputOverride(blockPos, side.getOpposite)
         return result(comparatorOverride)
       }

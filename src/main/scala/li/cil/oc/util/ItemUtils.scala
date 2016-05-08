@@ -79,15 +79,15 @@ object ItemUtils {
       !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
     def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.stackSize
     def isInputBlacklisted(stack: ItemStack) = stack.getItem match {
-      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.blockRegistry.getNameForObject(item.getBlock))
-      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.itemRegistry.getNameForObject(item))
+      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.REGISTRY.getNameForObject(item.getBlock))
+      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.REGISTRY.getNameForObject(item))
       case _ => false
     }
 
-    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
+    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.
       filter(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack)).collect {
         case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
-        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
+        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems, getOutputSize(recipe))
         case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
         case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
       }.collectFirst {

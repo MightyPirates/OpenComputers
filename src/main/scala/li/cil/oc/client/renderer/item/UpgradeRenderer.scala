@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.item.ItemStack
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.math.AxisAlignedBB
 import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer {
@@ -61,14 +61,14 @@ object UpgradeRenderer {
     }
   }
 
-  private val bounds = AxisAlignedBB.fromBounds(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
+  private val bounds = new AxisAlignedBB(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   private def drawSimpleBlock(mountPoint: MountPoint, frontOffset: Float = 0) {
     GlStateManager.rotate(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
     GlStateManager.translate(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
 
     val t = Tessellator.getInstance()
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL)
 
     // Front.

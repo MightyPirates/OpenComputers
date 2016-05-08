@@ -17,9 +17,9 @@ import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 
@@ -118,7 +118,7 @@ object PacketSender {
               pb.writeTileEntity(t)
             case _ =>
               pb.writeBoolean(false)
-              pb.writeInt(event.getWorld.provider.getDimensionId)
+              pb.writeInt(event.getWorld.provider.getDimension)
               pb.writeDouble(event.getX)
               pb.writeDouble(event.getY)
               pb.writeDouble(event.getZ)
@@ -147,7 +147,7 @@ object PacketSender {
           pb.writeTileEntity(t)
         case _ =>
           pb.writeBoolean(false)
-          pb.writeInt(event.getWorld.provider.getDimensionId)
+          pb.writeInt(event.getWorld.provider.getDimension)
           pb.writeDouble(event.getX)
           pb.writeDouble(event.getY)
           pb.writeDouble(event.getZ)
@@ -341,7 +341,7 @@ object PacketSender {
   def sendParticleEffect(position: BlockPosition, particleType: EnumParticleTypes, count: Int, velocity: Double, direction: Option[EnumFacing] = None): Unit = if (count > 0) {
     val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
 
-    pb.writeInt(position.world.get.provider.getDimensionId)
+    pb.writeInt(position.world.get.provider.getDimension)
     pb.writeInt(position.x)
     pb.writeInt(position.y)
     pb.writeInt(position.z)
@@ -464,7 +464,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
-    pb.writeInt(t.world.provider.getDimensionId)
+    pb.writeInt(t.world.provider.getDimension)
     pb.writeInt(position.getX)
     pb.writeInt(position.getY)
     pb.writeInt(position.getZ)
@@ -687,7 +687,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.Sound)
 
     val blockPos = BlockPosition(x, y, z)
-    pb.writeInt(world.provider.getDimensionId)
+    pb.writeInt(world.provider.getDimension)
     pb.writeInt(blockPos.x)
     pb.writeInt(blockPos.y)
     pb.writeInt(blockPos.z)
@@ -701,7 +701,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.SoundPattern)
 
     val blockPos = BlockPosition(x, y, z)
-    pb.writeInt(world.provider.getDimensionId)
+    pb.writeInt(world.provider.getDimension)
     pb.writeInt(blockPos.x)
     pb.writeInt(blockPos.y)
     pb.writeInt(blockPos.z)

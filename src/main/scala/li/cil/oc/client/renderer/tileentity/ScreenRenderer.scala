@@ -121,7 +121,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
   private def drawOverlay() = if (screen.facing == EnumFacing.UP || screen.facing == EnumFacing.DOWN) {
     // Show up vector overlay when holding same screen block.
-    val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
+    val stack = Minecraft.getMinecraft.thePlayer.getHeldItemMainhand
     if (stack != null) {
       if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
         GlStateManager.pushMatrix()
@@ -130,7 +130,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
         GlStateManager.translate(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
 
         val t = Tessellator.getInstance
-        val r = t.getWorldRenderer
+        val r = t.getBuffer
 
         Textures.Block.bind()
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)

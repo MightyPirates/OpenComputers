@@ -124,7 +124,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   def doneMoving(): Unit = {
     moving = false
     Network.joinOrCreateNetwork(this)
-    world.markBlockForUpdate(getPos)
+    world.notifyBlockUpdate(getPos)
   }
 
   // ----------------------------------------------------------------------- //

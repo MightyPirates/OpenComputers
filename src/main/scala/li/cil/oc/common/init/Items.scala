@@ -57,8 +57,15 @@ object Items extends ItemAPI {
       instance match {
         case simple: SimpleBlock =>
           instance.setUnlocalizedName("oc." + id)
-          GameRegistry.registerBlock(simple, classOf[common.block.Item], id)
+          instance.setRegistryName(id)
+          GameRegistry.register(instance)
           OpenComputers.proxy.registerModel(instance, id)
+
+          val item = new common.block.Item(instance)
+          item.setUnlocalizedName("oc." + id)
+          item.setRegistryName(id)
+          GameRegistry.register(item)
+          OpenComputers.proxy.registerModel(item, id)
         case _ =>
       }
       descriptors += id -> new ItemInfo {

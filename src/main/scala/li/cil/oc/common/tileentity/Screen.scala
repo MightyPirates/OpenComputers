@@ -13,8 +13,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -329,8 +329,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val ox = x + (if (spos.x < 0) 1 else 0)
         val oy = y + (if (spos.y < 0) 1 else 0)
         val oz = z + (if (spos.z < 0) 1 else 0)
-        val btmp = AxisAlignedBB.fromBounds(ox, oy, oz, ox + spos.x, oy + spos.y, oz + spos.z)
-        val b = AxisAlignedBB.fromBounds(
+        val btmp = new AxisAlignedBB(ox, oy, oz, ox + spos.x, oy + spos.y, oz + spos.z)
+        val b = new AxisAlignedBB(
           math.min(btmp.minX, btmp.maxX), math.min(btmp.minY, btmp.maxY), math.min(btmp.minZ, btmp.maxZ),
           math.max(btmp.minX, btmp.maxX), math.max(btmp.minY, btmp.maxY), math.max(btmp.minZ, btmp.maxZ))
         cachedBounds = Some(b)

@@ -9,9 +9,9 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity
-import net.minecraft.util.BlockPos
+import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.util.ITickable
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -41,8 +41,8 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
   }
 
   def updateEntity() {
-    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world, getPos) > 0) {
-      world.markBlockForUpdate(getPos)
+    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world.getBlockState(getPos), world, getPos) > 0) {
+      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
     }
   }
 
@@ -103,16 +103,16 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
     // See comment on savingForClients variable.
     SaveHandler.savingForClients = true
     try {
-    try writeToNBTForClient(nbt) catch {
-      case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
-    }
-    if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(getPos, -1, nbt)
+      try writeToNBTForClient(nbt) catch {
+        case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
+      }
+      if (nbt.hasNoTags) null else new SPacketUpdateTileEntity(getPos, -1, nbt)
     } finally {
       SaveHandler.savingForClients = false
-  }
+    }
   }
 
-  override def onDataPacket(manager: NetworkManager, packet: S35PacketUpdateTileEntity) {
+  override def onDataPacket(manager: NetworkManager, packet: SPacketUpdateTileEntity) {
     try readFromNBTForClient(packet.getNbtCompound) catch {
       case e: Throwable => OpenComputers.log.warn("There was a problem reading a TileEntity description packet. Please report this if you see it!", e)
     }

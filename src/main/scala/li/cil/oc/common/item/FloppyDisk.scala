@@ -2,12 +2,14 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Constants
 import li.cil.oc.Settings
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
+import net.minecraft.client.renderer.block.model.ModelBakery
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.client.resources.model.ModelBakery
-import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -36,9 +38,9 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
   override def registerModelLocations(): Unit = {
     for (dyeName <- Color.dyes) {
       val location = modelLocationFromDyeName(dyeName)
-      ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
+      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
     }
   }
 
-  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
+  override def doesSneakBypassUse(world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 }

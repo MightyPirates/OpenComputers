@@ -26,6 +26,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
 
 class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends prefab.ManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable {
   // Stored for filling data packet when queried.
@@ -150,7 +151,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   override def onActivate(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     if (player.isSneaking) {
       val isDiskInDrive = getStackInSlot(0) != null
-      val isHoldingDisk = isItemValidForSlot(0, player.getHeldItem)
+      val isHoldingDisk = isItemValidForSlot(0, player.getHeldItem(EnumHand.MAIN_HAND))
       if (isDiskInDrive) {
         if (!rack.world.isRemote) {
           InventoryUtils.dropSlot(BlockPosition(rack), this, 0, 1, Option(rack.facing))

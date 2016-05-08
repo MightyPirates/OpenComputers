@@ -18,12 +18,13 @@ import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-abstract class SimpleBlock(material: Material = Material.iron) extends BlockContainer(material) {
+abstract class SimpleBlock(material: Material = Material.IRON) extends BlockContainer(material) {
   setHardness(2f)
   setResistance(5)
   setCreativeTab(CreativeTab)
@@ -32,78 +33,37 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   protected val validRotations_ = Array(EnumFacing.UP, EnumFacing.DOWN)
 
-  protected val bounds = new ThreadLocal[AxisAlignedBB]() {
-    override def initialValue() = new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ)
-  }
-
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 
   override def createNewTileEntity(world: World, meta: Int): TileEntity = null
 
-  // ----------------------------------------------------------------------- //
-  // Synchronized block size, because threading...
-  //
-  // These functions can mess things up badly in single player if not
-  // synchronized because the bounds fields are in an instance stored in the
-  // static block list... which is used by both server and client thread.
-  //
-  // Also, final getBlockBoundsMin/MaxX/Y/Z(), really?
-  // ----------------------------------------------------------------------- //
-
-  protected def setBlockBounds(bounds: AxisAlignedBB): Unit = {
-    this.bounds.set(bounds)
-    setBlockBounds(
-      bounds.minX.toFloat,
-      bounds.minY.toFloat,
-      bounds.minZ.toFloat,
-      bounds.maxX.toFloat,
-      bounds.maxY.toFloat,
-      bounds.maxZ.toFloat)
-  }
-
-  override def getCollisionBoundingBox(world: World, pos: BlockPos, state: IBlockState) = {
-    setBlockBoundsBasedOnState(world, pos)
-    new AxisAlignedBB(
-      pos.getX + bounds.get.minX, pos.getY + bounds.get.minY, pos.getZ + bounds.get.minZ,
-      pos.getX + bounds.get.maxX, pos.getY + bounds.get.maxY, pos.getZ + bounds.get.maxZ)
-  }
-
   @SideOnly(Side.CLIENT)
-  override def getSelectedBoundingBox(world: World, pos: BlockPos): AxisAlignedBB = {
-    new AxisAlignedBB(
-      pos.getX + bounds.get.minX, pos.getY + bounds.get.minY, pos.getZ + bounds.get.minZ,
-      pos.getX + bounds.get.maxX, pos.getY + bounds.get.maxY, pos.getZ + bounds.get.maxZ)
+  override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = {
+    val bounds = getBoundingBox(state, world, pos)
+    (side == EnumFacing.DOWN && bounds.minY > 0) ||
+      (side == EnumFacing.UP && bounds.maxY < 1) ||
+      (side == EnumFacing.NORTH && bounds.minZ > 0) ||
+      (side == EnumFacing.SOUTH && bounds.maxZ < 1) ||
+      (side == EnumFacing.WEST && bounds.minX > 0) ||
+      (side == EnumFacing.EAST && bounds.maxX < 1) ||
+      isOpaqueCube(state)
   }
-
-  @SideOnly(Side.CLIENT)
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
-    (side == EnumFacing.DOWN && bounds.get.minY > 0) ||
-      (side == EnumFacing.UP && bounds.get.maxY < 1) ||
-      (side == EnumFacing.NORTH && bounds.get.minZ > 0) ||
-      (side == EnumFacing.SOUTH && bounds.get.maxZ < 1) ||
-      (side == EnumFacing.WEST && bounds.get.minX > 0) ||
-      (side == EnumFacing.EAST && bounds.get.maxX < 1) ||
-      !world.getBlockState(pos).getBlock.isOpaqueCube
 
   // ----------------------------------------------------------------------- //
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def getRenderType = 3
+  override def getRenderType(state: IBlockState): EnumBlockRenderType = EnumBlockRenderType.MODEL
 
-  @SideOnly(Side.CLIENT)
-  override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =
-    world.getTileEntity(pos) match {
-      case colored: Colored => colored.getColor
-      case _ => getRenderColor(world.getBlockState(pos))
-    }
+//  @SideOnly(Side.CLIENT)
+//  override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =
+//    world.getTileEntity(pos) match {
+//      case colored: Colored => colored.getColor
+//      case _ => super.colorMultiplier(world, pos, renderPass)
+//    }
 
   @SideOnly(Side.CLIENT)
   def preItemRender(metadata: Int) {}
-
-  final override def setBlockBoundsForItemRender() = setBlockBoundsForItemRender(0)
-
-  def setBlockBoundsForItemRender(metadata: Int) = super.setBlockBoundsForItemRender()
 
   // ----------------------------------------------------------------------- //
   // ItemBlock
@@ -160,15 +120,15 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   // Block
   // ----------------------------------------------------------------------- //
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = true
 
   override def canHarvestBlock(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = true
 
   override def getHarvestTool(state: IBlockState): String = null
 
-  override def canBeReplacedByLeaves(world: IBlockAccess, pos: BlockPos) = false
+  override def canBeReplacedByLeaves(state: IBlockState, world: IBlockAccess, pos: BlockPos): Boolean = false
 
-  override def canCreatureSpawn(world: IBlockAccess, pos: BlockPos, `type`: SpawnPlacementType) = false
+  override def canCreatureSpawn(state: IBlockState, world: IBlockAccess, pos: BlockPos, `type`: SpawnPlacementType): Boolean = false
 
   override def getValidRotations(world: World, pos: BlockPos) = validRotations_
 
@@ -185,7 +145,7 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   override def rotateBlock(world: World, pos: BlockPos, axis: EnumFacing) =
     world.getTileEntity(pos) match {
       case rotatable: tileentity.traits.Rotatable if rotatable.rotate(axis) =>
-        world.markBlockForUpdate(pos)
+        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3)
         true
       case _ => false
     }
@@ -194,7 +154,7 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
     world.getTileEntity(pos) match {
       case colored: Colored if colored.getColor != Color.rgbValues(color) =>
         colored.setColor(Color.rgbValues(color))
-        world.markBlockForUpdate(pos)
+        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3)
         true // Blame Vexatos.
       case _ => super.recolorBlock(world, pos, side, color)
     }
@@ -202,17 +162,17 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   // ----------------------------------------------------------------------- //
 
   // NOTE: must not be final for immibis microblocks to work.
-  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     world.getTileEntity(pos) match {
-      case colored: Colored if Color.isDye(player.getHeldItem) =>
-        colored.setColor(Color.rgbValues(Color.dyeColor(player.getHeldItem)))
-        world.markBlockForUpdate(pos)
+      case colored: Colored if Color.isDye(heldItem) =>
+        colored.setColor(Color.rgbValues(Color.dyeColor(heldItem)))
+        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3)
         if (!player.capabilities.isCreativeMode && colored.consumesDye) {
-          player.getHeldItem.splitStack(1)
+          heldItem.splitStack(1)
         }
         true
-      case _ => localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+      case _ => localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
     }
 
-  def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = false
+  def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = false
 }

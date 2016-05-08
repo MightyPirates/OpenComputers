@@ -41,7 +41,7 @@ object ExtendedRecipe {
   private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
   private lazy val print = api.Items.get(Constants.BlockName.Print)
   private lazy val disabled = {
-    val stack = new ItemStack(Blocks.dirt)
+    val stack = new ItemStack(Blocks.DIRT)
     val tag = new NBTTagCompound()
     tag.setNewCompoundTag("display", _.setNewTagList("Lore", "Autocrafting of this item is disabled to avoid exploits."))
     stack.setTagCompound(tag)
@@ -52,7 +52,7 @@ object ExtendedRecipe {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (stack <- getItems(inventory)) {
-          if (stack.getItem == net.minecraft.init.Items.filled_map) {
+          if (stack.getItem == net.minecraft.init.Items.FILLED_MAP) {
             // Store information of the map used for crafting in the result.
             val nbt = driver.dataTag(craftedStack)
             nbt.setNewCompoundTag(Settings.namespace + "map", stack.writeToNBT)
@@ -118,14 +118,14 @@ object ExtendedRecipe {
 
       // Then apply new data.
       val beaconBlocks = Array(
-        new ItemStack(net.minecraft.init.Blocks.iron_block),
-        new ItemStack(net.minecraft.init.Blocks.gold_block),
-        new ItemStack(net.minecraft.init.Blocks.emerald_block),
-        new ItemStack(net.minecraft.init.Blocks.diamond_block)
+        new ItemStack(net.minecraft.init.Blocks.IRON_BLOCK),
+        new ItemStack(net.minecraft.init.Blocks.GOLD_BLOCK),
+        new ItemStack(net.minecraft.init.Blocks.EMERALD_BLOCK),
+        new ItemStack(net.minecraft.init.Blocks.DIAMOND_BLOCK)
       )
 
-      val glowstoneDust = new ItemStack(net.minecraft.init.Items.glowstone_dust)
-      val glowstone = new ItemStack(net.minecraft.init.Blocks.glowstone)
+      val glowstoneDust = new ItemStack(net.minecraft.init.Items.GLOWSTONE_DUST)
+      val glowstone = new ItemStack(net.minecraft.init.Blocks.GLOWSTONE)
       for (stack <- inputs) {
         if (beaconBlocks.exists(_.isItemEqual(stack))) {
           if (data.isBeaconBase) {

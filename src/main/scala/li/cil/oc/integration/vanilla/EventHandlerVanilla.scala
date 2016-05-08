@@ -37,9 +37,9 @@ object EventHandlerVanilla {
       val index = (rx - e.minX) + ((rz - e.minZ) + (ry - e.minY) * d) * w
       if (world.isBlockLoaded(pos) && !world.isAirBlock(pos)) {
         val block = world.getBlockState(pos).getBlock
-        if (block != Blocks.air && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.toBlockPos))) {
+        if (block != Blocks.AIR && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.toBlockPos))) {
           val distance = math.sqrt(rx * rx + ry * ry + rz * rz).toFloat
-          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + block.getBlockHardness(world, pos)
+          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + block.getBlockHardness(world.getBlockState(pos), world, pos)
         }
         else e.data(index) = 0
       }
@@ -55,8 +55,8 @@ object EventHandlerVanilla {
     val blockState = world.getBlockState(e.pos)
     val block = blockState.getBlock
 
-    e.data += "name" -> Block.blockRegistry.getNameForObject(block)
-    e.data += "hardness" -> Float.box(block.getBlockHardness(world, e.pos))
+    e.data += "name" -> Block.REGISTRY.getNameForObject(block)
+    e.data += "hardness" -> Float.box(block.getBlockHardness(world.getBlockState(e.pos), world, e.pos))
     e.data += "harvestLevel" -> Int.box(block.getHarvestLevel(blockState))
     e.data += "harvestTool" -> block.getHarvestTool(blockState)
     e.data += "color" -> Int.box(block.getMapColor(blockState).colorValue)
@@ -65,16 +65,16 @@ object EventHandlerVanilla {
       e.data += "id" -> Int.box(Block.getIdFromBlock(block))
     }
 
-    if (block.isInstanceOf[BlockCrops] || block == Blocks.melon_stem || block == Blocks.pumpkin_stem || block == Blocks.carrots || block == Blocks.potatoes) {
+    if (block.isInstanceOf[BlockCrops] || block == Blocks.MELON_STEM || block == Blocks.PUMPKIN_STEM || block == Blocks.CARROTS || block == Blocks.POTATOES) {
       e.data += "growth" -> Float.box((block.getMetaFromState(blockState) / 7f) max 0 min 1)
     }
-    if (block == Blocks.cocoa) {
+    if (block == Blocks.COCOA) {
       e.data += "growth" -> Float.box(((block.getMetaFromState(blockState) >> 2) / 2f) max 0 min 1)
     }
-    if (block == Blocks.nether_wart) {
+    if (block == Blocks.NETHER_WART) {
       e.data += "growth" -> Float.box((block.getMetaFromState(blockState) / 3f) max 0 min 1)
     }
-    if (block == Blocks.melon_block || block == Blocks.pumpkin || block == Blocks.cactus || block == Blocks.reeds) {
+    if (block == Blocks.MELON_BLOCK || block == Blocks.PUMPKIN || block == Blocks.CACTUS || block == Blocks.REEDS) {
       e.data += "growth" -> Float.box(1f)
     }
   }

@@ -6,7 +6,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 class Capacitor extends SimpleBlock {
@@ -20,9 +20,9 @@ class Capacitor extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasComparatorInputOverride = true
+  override def hasComparatorInputOverride(state: IBlockState): Boolean = true
 
-  override def getComparatorInputOverride(world: World, pos: BlockPos): Int =
+  override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
     world.getTileEntity(pos) match {
       case capacitor: tileentity.Capacitor if !world.isRemote =>
         math.round(15 * capacitor.node.localBuffer / capacitor.node.localBufferSize).toInt

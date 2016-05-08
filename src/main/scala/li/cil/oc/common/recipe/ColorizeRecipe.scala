@@ -42,7 +42,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         if (dye.isEmpty)
           return null
 
-        val itemColor = EntitySheep.func_175513_a(Color.byOreName(dye.get))
+        val itemColor = EntitySheep.getDyeRgb(Color.byOreName(dye.get))
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt

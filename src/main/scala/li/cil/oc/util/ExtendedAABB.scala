@@ -1,20 +1,20 @@
 package li.cil.oc.util
 
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 
 import scala.language.implicitConversions
 
 object ExtendedAABB {
   implicit def extendedAABB(bounds: AxisAlignedBB): ExtendedAABB = new ExtendedAABB(bounds)
 
-  def unitBounds = AxisAlignedBB.fromBounds(0, 0, 0, 1, 1, 1)
+  def unitBounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1)
 
   class ExtendedAABB(val bounds: AxisAlignedBB) {
     def offset(pos: BlockPos) = {
-      AxisAlignedBB.fromBounds(
+      new AxisAlignedBB(
         bounds.minX + pos.getX,
         bounds.minY + pos.getY,
         bounds.minZ + pos.getZ,
@@ -23,9 +23,9 @@ object ExtendedAABB {
         bounds.maxZ + pos.getZ)
     }
 
-    def min = new Vec3(bounds.minX, bounds.minY, bounds.minZ)
+    def min = new Vec3d(bounds.minX, bounds.minY, bounds.minZ)
 
-    def max = new Vec3(bounds.maxX, bounds.maxY, bounds.maxZ)
+    def max = new Vec3d(bounds.maxX, bounds.maxY, bounds.maxZ)
 
     def volume: Int = {
       val sx = ((bounds.maxX - bounds.minX) * 16).round.toInt
@@ -49,11 +49,11 @@ object ExtendedAABB {
     })
 
     def rotateY(count: Int): AxisAlignedBB = {
-      var min = new Vec3(bounds.minX - 0.5, bounds.minY - 0.5, bounds.minZ - 0.5)
-      var max = new Vec3(bounds.maxX - 0.5, bounds.maxY - 0.5, bounds.maxZ - 0.5)
+      var min = new Vec3d(bounds.minX - 0.5, bounds.minY - 0.5, bounds.minZ - 0.5)
+      var max = new Vec3d(bounds.maxX - 0.5, bounds.maxY - 0.5, bounds.maxZ - 0.5)
       min = min.rotateYaw(count * Math.PI.toFloat * 0.5f)
       max = max.rotateYaw(count * Math.PI.toFloat * 0.5f)
-      AxisAlignedBB.fromBounds(
+      new AxisAlignedBB(
         (math.min(min.xCoord + 0.5, max.xCoord + 0.5) * 32).round / 32f,
         (math.min(min.yCoord + 0.5, max.yCoord + 0.5) * 32).round / 32f,
         (math.min(min.zCoord + 0.5, max.zCoord + 0.5) * 32).round / 32f,

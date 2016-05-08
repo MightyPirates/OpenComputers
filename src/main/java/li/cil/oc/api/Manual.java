@@ -7,7 +7,7 @@ import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**

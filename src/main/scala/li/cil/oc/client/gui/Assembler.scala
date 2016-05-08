@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.IChatComponent
+import net.minecraft.util.text.ITextComponent
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -32,7 +32,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     info = validate
   }
 
-  var info: Option[(Boolean, IChatComponent, Array[IChatComponent])] = None
+  var info: Option[(Boolean, ITextComponent, Array[ITextComponent])] = None
 
   protected var runButton: ImageButton = _
 

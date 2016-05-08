@@ -13,8 +13,8 @@ import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityFurnace
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverFurnace extends DriverSidedTileEntity {
@@ -56,7 +56,7 @@ object DriverFurnace extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.furnace)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.FURNACE)
         classOf[Environment]
       else null
     }

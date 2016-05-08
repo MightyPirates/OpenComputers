@@ -11,7 +11,9 @@ import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.init.SoundEvents
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -29,7 +31,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
 
   override protected def onSuckCollect(entity: EntityItem) = {
     if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {
-      world.playSoundAtEntity(agent, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
+      world.playSound(agent.player, agent.posX, agent.posY, agent.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
     }
   }
 
@@ -74,7 +76,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
 
   @Callback(doc = "function():number -- Get the current distance to the target position.")
   def getOffset(context: Context, args: Arguments): Array[AnyRef] =
-    result(agent.getDistance(agent.targetX, agent.targetY, agent.targetZ))
+    result(agent.getDistance(agent.targetX.floatValue(), agent.targetY.floatValue(), agent.targetZ.floatValue()))
 
   @Callback(doc = "function():number -- Get the current velocity in m/s.")
   def getVelocity(context: Context, args: Arguments): Array[AnyRef] =

@@ -525,7 +525,7 @@ object Textures {
 
     Screen.makeSureThisIsInitialized()
 
-    def bind(): Unit = Textures.bind(TextureMap.locationBlocksTexture)
+    def bind(): Unit = Textures.bind(TextureMap.LOCATION_BLOCKS_TEXTURE)
 
     override protected def basePath = "blocks/%s"
 
@@ -554,12 +554,12 @@ object Textures {
 
   @SubscribeEvent
   def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {
-    Font.init(e.map)
-    GUI.init(e.map)
-    Icons.init(e.map)
-    Model.init(e.map)
-    Item.init(e.map)
-    Block.init(e.map)
+    Font.init(e.getMap)
+    GUI.init(e.getMap)
+    Icons.init(e.getMap)
+    Model.init(e.getMap)
+    Item.init(e.getMap)
+    Block.init(e.getMap)
   }
 
   abstract class TextureBundle {

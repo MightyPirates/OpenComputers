@@ -316,7 +316,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       ServerPacketSender.sendRackInventory(this)
     }
     else {
-      world.markBlockForUpdate(getPos)
+      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 

@@ -11,23 +11,25 @@ import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
-import net.minecraft.block.state.BlockState
+import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Keyboard extends SimpleBlock(Material.rock) {
+class Keyboard extends SimpleBlock(Material.ROCK) {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
-  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Pitch, PropertyRotatable.Yaw)
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Pitch, PropertyRotatable.Yaw)
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
@@ -35,17 +37,35 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   // ----------------------------------------------------------------------- //
 
-  override def isOpaqueCube = false
+  override def isOpaqueCube(state: IBlockState): Boolean = false
 
-  override def isFullCube = false
+  override def isFullCube(state: IBlockState): Boolean = false
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+
+  override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB =
+    world.getTileEntity(pos) match {
+      case keyboard: tileentity.Keyboard =>
+        val (pitch, yaw) = (keyboard.pitch, keyboard.yaw)
+        val (forward, up) = pitch match {
+          case side@(EnumFacing.DOWN | EnumFacing.UP) => (side, yaw)
+          case _ => (yaw, EnumFacing.UP)
+        }
+        val side = forward.getRotation(up)
+        val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
+        val x0 = -up.getFrontOffsetX * sizes(1) - side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * sizes(0)
+        val x1 = up.getFrontOffsetX * sizes(1) + side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * 0.5f
+        val y0 = -up.getFrontOffsetY * sizes(1) - side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * sizes(0)
+        val y1 = up.getFrontOffsetY * sizes(1) + side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * 0.5f
+        val z0 = -up.getFrontOffsetZ * sizes(1) - side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * sizes(0)
+        val z1 = up.getFrontOffsetZ * sizes(1) + side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * 0.5f
+        new AxisAlignedBB(x0, y0, z0, x1, y1, z1).offset(0.5, 0.5, 0.5)
+      case _ => super.getBoundingBox(state, world, pos)
+    }
 
   // ----------------------------------------------------------------------- //
 
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
-
-  override def setBlockBoundsForItemRender(metadata: Int) = setBlockBounds(EnumFacing.NORTH, EnumFacing.WEST)
+  override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
   override def preItemRender(metadata: Int) {
     GlStateManager.translate(-0.75f, 0, 0)
@@ -72,28 +92,6 @@ class Keyboard extends SimpleBlock(Material.rock) {
       })
   }
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) =
-    world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard => setBlockBounds(keyboard.pitch, keyboard.yaw)
-      case _ =>
-    }
-
-  private def setBlockBounds(pitch: EnumFacing, yaw: EnumFacing) {
-    val (forward, up) = pitch match {
-      case side@(EnumFacing.DOWN | EnumFacing.UP) => (side, yaw)
-      case _ => (yaw, EnumFacing.UP)
-    }
-    val side = forward.getRotation(up)
-    val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
-    val x0 = -up.getFrontOffsetX * sizes(1) - side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * sizes(0)
-    val x1 = up.getFrontOffsetX * sizes(1) + side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * 0.5f
-    val y0 = -up.getFrontOffsetY * sizes(1) - side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * sizes(0)
-    val y1 = up.getFrontOffsetY * sizes(1) + side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * 0.5f
-    val z0 = -up.getFrontOffsetZ * sizes(1) - side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * sizes(0)
-    val z1 = up.getFrontOffsetZ * sizes(1) + side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * 0.5f
-    setBlockBounds(new AxisAlignedBB(x0, y0, z0, x1, y1, z1).offset(0.5, 0.5, 0.5))
-  }
-
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
     world.getTileEntity(pos) match {
       case keyboard: tileentity.Keyboard =>
@@ -104,9 +102,9 @@ class Keyboard extends SimpleBlock(Material.rock) {
       case _ =>
     }
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     adjacencyInfo(world, pos) match {
-      case Some((keyboard, screen, blockPos, facing)) => screen.rightClick(world, blockPos, player, facing, 0, 0, 0, force = true)
+      case Some((keyboard, screen, blockPos, facing)) => screen.rightClick(world, blockPos, player, hand, heldItem, facing, 0, 0, 0, force = true)
       case _ => false
     }
 

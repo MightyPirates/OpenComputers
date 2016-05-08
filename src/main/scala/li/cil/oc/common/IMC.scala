@@ -13,7 +13,7 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 

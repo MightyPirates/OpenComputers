@@ -19,8 +19,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.RegistryNamespaced
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.registry.RegistryNamespaced
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.common.Loader
@@ -219,7 +219,7 @@ object Recipes {
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         navigationUpgrade.createItemStack(1),
-        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
+        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.FILLED_MAP, 1, OreDictionary.WILDCARD_VALUE)))
 
       // Floppy disk coloring.
       for (dye <- Color.dyes) {
@@ -281,10 +281,10 @@ object Recipes {
       }
 
       for (block <- Array(
-        net.minecraft.init.Blocks.iron_block,
-        net.minecraft.init.Blocks.gold_block,
-        net.minecraft.init.Blocks.emerald_block,
-        net.minecraft.init.Blocks.diamond_block
+        net.minecraft.init.Blocks.IRON_BLOCK,
+        net.minecraft.init.Blocks.GOLD_BLOCK,
+        net.minecraft.init.Blocks.EMERALD_BLOCK,
+        net.minecraft.init.Blocks.DIAMOND_BLOCK
       )) {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
           beaconPrint,
@@ -318,7 +318,7 @@ object Recipes {
 
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
-        print.createItemStack(1), new ItemStack(net.minecraft.init.Items.glowstone_dust)))
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Items.GLOWSTONE_DUST)))
 
       {
         val printData = new PrintData(lightPrint)
@@ -328,7 +328,7 @@ object Recipes {
 
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
-        print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.glowstone)))
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.GLOWSTONE)))
 
       // Switch/AccessPoint -> Relay conversion
       GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
@@ -422,13 +422,13 @@ object Recipes {
     Option(new FluidStack(fluid, amount))
   }
 
-  private def findItem(name: String) = getObjectWithoutFallback(Item.itemRegistry, name).orElse(Item.itemRegistry.find {
-    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.itemRegistry.getNameForObject(item).toString == name
+  private def findItem(name: String) = getObjectWithoutFallback(Item.REGISTRY, name).orElse(Item.REGISTRY.find {
+    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
     case _ => false
   })
 
-  private def findBlock(name: String) = getObjectWithoutFallback(Block.blockRegistry, name).orElse(Block.blockRegistry.find {
-    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.blockRegistry.getNameForObject(block).toString == name
+  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY, name).orElse(Block.REGISTRY.find {
+    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })
 

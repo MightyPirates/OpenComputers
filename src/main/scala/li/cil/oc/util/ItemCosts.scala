@@ -26,42 +26,42 @@ object ItemCosts {
 
   private var started = 0L
 
-  cache += new ItemStackWrapper(api.Items.get(Constants.ItemName.IronNugget).createItemStack(1)) -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
+  cache += new ItemStackWrapper(api.Items.get(Constants.ItemName.IronNugget).createItemStack(1)) -> Iterable((new ItemStack(Items.IRON_INGOT), 1.0 / 9.0))
 
   def terminate(item: Item, meta: Int = 0) = cache += new ItemStackWrapper(new ItemStack(item, 1, meta)) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
 
   def terminate(block: Block) = cache += new ItemStackWrapper(new ItemStack(block)) -> mutable.Iterable((new ItemStack(block), 1))
 
-  terminate(Blocks.clay)
-  terminate(Blocks.cobblestone)
-  terminate(Blocks.glass)
-  terminate(Blocks.planks)
-  terminate(Blocks.sand)
-  terminate(Blocks.stone)
-  terminate(Items.blaze_rod)
-  terminate(Items.bucket)
-  terminate(Items.clay_ball)
-  terminate(Items.coal)
-  terminate(Items.diamond)
-  for (i <- 0 to 15) terminate(Items.dye, i)
-  terminate(Items.emerald)
-  terminate(Items.ender_pearl)
-  terminate(Items.ender_eye)
-  terminate(Items.ghast_tear)
-  terminate(Items.glowstone_dust)
-  terminate(Items.gold_ingot)
-  terminate(Items.iron_ingot)
-  terminate(Items.quartz)
-  terminate(Items.nether_star)
-  terminate(Items.paper)
-  terminate(Items.redstone)
-  terminate(Items.string)
-  terminate(Items.slime_ball)
-  terminate(Items.stick)
+  terminate(Blocks.CLAY)
+  terminate(Blocks.COBBLESTONE)
+  terminate(Blocks.GLASS)
+  terminate(Blocks.PLANKS)
+  terminate(Blocks.SAND)
+  terminate(Blocks.STONE)
+  terminate(Items.BLAZE_ROD)
+  terminate(Items.BUCKET)
+  terminate(Items.CLAY_BALL)
+  terminate(Items.COAL)
+  terminate(Items.DIAMOND)
+  for (i <- 0 to 15) terminate(Items.DYE, i)
+  terminate(Items.EMERALD)
+  terminate(Items.ENDER_PEARL)
+  terminate(Items.ENDER_EYE)
+  terminate(Items.GHAST_TEAR)
+  terminate(Items.GLOWSTONE_DUST)
+  terminate(Items.GOLD_INGOT)
+  terminate(Items.IRON_INGOT)
+  terminate(Items.QUARTZ)
+  terminate(Items.NETHER_STAR)
+  terminate(Items.PAPER)
+  terminate(Items.REDSTONE)
+  terminate(Items.STRING)
+  terminate(Items.SLIME_BALL)
+  terminate(Items.STICK)
 
   def hasCosts(stack: ItemStack) = !Mods.CraftingCosts.isAvailable && {
     val ingredients = computeIngredients(stack)
-    ingredients.size > 0 && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
+    ingredients.nonEmpty && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
   }
 
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {
@@ -100,16 +100,16 @@ object ItemCosts {
                 Iterable((stack, 1.0))
               }
               else {
-                val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
+                val recipes = CraftingManager.getInstance.getRecipeList
                 if (recipes == null) Iterable((stack, 1.0))
                 else {
                   val recipe = recipes.filter(_ != null).find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
                   val (ingredients, output) = recipe match {
                     case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                    case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                    case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.stackSize)
                     case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                    case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                    case _ => FurnaceRecipes.instance.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
+                    case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.stackSize)
+                    case _ => FurnaceRecipes.instance.getSmeltingList.find {
                       case (_, value) => fuzzyEquals(stack, value)
                     } match {
                       case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)

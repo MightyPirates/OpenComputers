@@ -10,10 +10,11 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.command.ICommandSender
 import net.minecraft.command.WrongUsageException
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatComponentText
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3d
+import net.minecraft.util.text.TextComponentString
 
 object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
   aliases += "oc_sc"
@@ -22,22 +23,22 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
 
   override def getCommandUsage(source: ICommandSender): String = name
 
-  override def processCommand(source: ICommandSender, command: Array[String]) {
+  override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     source match {
       case player: EntityPlayer =>
         val world = player.getEntityWorld
-        val origin = new Vec3(player.posX, player.posY + player.getEyeHeight, player.posZ)
+        val origin = new Vec3d(player.posX, player.posY + player.getEyeHeight, player.posZ)
         val direction = player.getLookVec
         val lookAt = origin.addVector(direction.xCoord * MaxDistance, direction.yCoord * MaxDistance, direction.zCoord * MaxDistance)
         world.rayTraceBlocks(origin, lookAt) match {
-          case hit: MovingObjectPosition if hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK =>
+          case hit: RayTraceResult if hit.typeOfHit == RayTraceResult.Type.BLOCK =>
             val hitPos = BlockPosition(hit.getBlockPos, world)
             val casePos = hitPos.offset(hit.sideHit)
             val screenPos = casePos.offset(EnumFacing.UP)
             val keyboardPos = screenPos.offset(EnumFacing.UP)
 
             if (!world.isAirBlock(casePos) || !world.isAirBlock(screenPos) || !world.isAirBlock(keyboardPos)) {
-              player.addChatMessage(new ChatComponentText("Target position obstructed."))
+              player.addChatMessage(new TextComponentString("Target position obstructed."))
               return
             }
 
@@ -80,7 +81,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.HDDTier3).createItemStack(1), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.LuaBios).createItemStack(1), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.OpenOS).createItemStack(1), casePos)
-          case _ => player.addChatMessage(new ChatComponentText("You need to be looking at a nearby block."))
+          case _ => player.addChatMessage(new TextComponentString("You need to be looking at a nearby block."))
         }
       case _ => throw new WrongUsageException("Can only be used by players.")
     }

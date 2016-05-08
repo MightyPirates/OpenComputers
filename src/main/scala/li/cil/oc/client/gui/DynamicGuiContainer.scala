@@ -160,7 +160,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     GlStateManager.color(1, 1, 1, 1)
     Textures.bind(Textures.GUI.Slot)
     val t = Tessellator.getInstance
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
     r.pos(x, y + 18, zLevel + 1).tex(0, 1).endVertex()
     r.pos(x + 18, y + 18, zLevel + 1).tex(1, 1).endVertex()

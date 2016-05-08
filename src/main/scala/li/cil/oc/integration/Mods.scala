@@ -114,12 +114,12 @@ object Mods {
     //    integration.fmp.ModForgeMultipart,
     //    integration.gc.ModGalacticraft,
     //    integration.gregtech.ModGregtech,
-    integration.ic2.ModIndustrialCraft2,
-    integration.mcmp.ModMCMultiPart,
+    //    integration.ic2.ModIndustrialCraft2,
+    //    integration.mcmp.ModMCMultiPart,
     //    integration.mekanism.ModMekanism,
     //    integration.mekanism.gas.ModMekanismGas,
     //    integration.mfr.ModMineFactoryReloaded,
-    integration.mystcraft.ModMystcraft,
+    //    integration.mystcraft.ModMystcraft,
     //    integration.nek.ModNotEnoughKeys,
     //    integration.projectred.ModProjectRed,
     //    integration.poweradvantage.ModPowerAdvantage,
@@ -130,18 +130,18 @@ object Mods {
     //    integration.thaumcraft.ModThaumcraft,
     //    integration.thaumicenergistics.ModThaumicEnergistics,
     //    integration.thermalexpansion.ModThermalExpansion,
-    integration.tis3d.ModTIS3D,
+    //    integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
     integration.versionchecker.ModVersionChecker,
-    integration.waila.ModWaila,
+    //    integration.waila.ModWaila,
     //    integration.wrcbe.ModWRCBE,
     //    integration.wrsve.ModWRSVE,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
-    integration.computercraft.ModComputerCraft,
+    //    integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.

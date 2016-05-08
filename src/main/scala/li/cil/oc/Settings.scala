@@ -363,7 +363,7 @@ class Settings(val config: Config) {
   val nanomachinesCommandRange = config.getDouble("nanomachines.commandRange") max 0
   val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
-  val nanomachinePotionWhitelist = config.getAnyRefList("nanomachines.potionWhitelist")
+  val nanomachinePotionWhitelist = config.getStringList("nanomachines.potionWhitelist")
   val nanomachinesHungryDamage = config.getDouble("nanomachines.hungryDamage").toFloat max 0
   val nanomachinesHungryEnergyRestored = config.getDouble("nanomachines.hungryEnergyRestored") max 0
 

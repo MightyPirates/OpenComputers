@@ -8,10 +8,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Container
-import net.minecraft.inventory.ICrafting
-import net.minecraft.inventory.IInventory
-import net.minecraft.inventory.Slot
+import net.minecraft.inventory._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTBase
 import net.minecraft.nbt.NBTTagCompound
@@ -33,8 +30,8 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
   override def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
 
-  override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
-    val result = super.slotClick(slot, mouseClick, holdingShift, player)
+  override def slotClick(slot: Int, dragType: Int, clickType: ClickType, player: EntityPlayer): ItemStack = {
+    val result = super.slotClick(slot, dragType, clickType, player)
     if (SideTracker.isServer) {
       detectAndSendChanges() // We have to enforce this more than MC does itself
       // because stacks can change their... "character" just by being inserted in
@@ -45,7 +42,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   }
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
-    val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
+    val slot = Option(inventorySlots.get(index)).orNull
     if (slot != null && slot.getHasStack) {
       tryTransferStackInSlot(slot, slot.inventory == otherInventory)
       if (SideTracker.isServer) {
@@ -65,7 +62,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       else (0, inventorySlots.size - 1)
 
     if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
-      val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
+      val intoSlot = inventorySlots.get(i)
       if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack
         val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
@@ -83,7 +80,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     }
 
     for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
-      val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
+      val intoSlot = inventorySlots.get(i)
       if (intoSlot.inventory != from.inventory && !intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
         val itemsMoved = math.min(maxStackSize, fromStack.stackSize)
@@ -144,10 +141,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   }
 
   protected def sendProgressBarUpdate(id: Int, value: Int) {
-    for (entry <- crafters) entry match {
-      case player: ICrafting => player.sendProgressBarUpdate(this, id, value)
-      case _ =>
-    }
+    listeners.foreach(_.sendProgressBarUpdate(this, id, value))
   }
 
   override def detectAndSendChanges(): Unit = {
@@ -155,7 +149,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     if (SideTracker.isServer) {
       val nbt = new NBTTagCompound()
       detectCustomDataChanges(nbt)
-      for (entry <- crafters) entry match {
+      for (entry <- listeners) entry match {
         case _: FakePlayer => // Nope
         case player: EntityPlayerMP => ServerPacketSender.sendContainerUpdate(this, nbt, player)
         case _ =>

@@ -8,19 +8,19 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
-import net.minecraft.block.state.BlockState
+import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.reflect.ClassTag
 
 class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
-  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing)
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
 
@@ -44,9 +44,9 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   // ----------------------------------------------------------------------- //
 
-  override def hasComparatorInputOverride = true
+  override def hasComparatorInputOverride(state: IBlockState): Boolean = true
 
-  override def getComparatorInputOverride(world: World, pos: BlockPos) =
+  override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
     world.getTileEntity(pos) match {
       case raid: tileentity.Raid if raid.presence.forall(ok => ok) => 15
       case _ => 0

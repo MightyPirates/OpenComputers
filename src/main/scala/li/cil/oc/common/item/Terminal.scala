@@ -6,12 +6,13 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.client.resources.model.ModelBakery
-import net.minecraft.client.resources.model.ModelResourceLocation
+import net.minecraft.client.renderer.block.model.ModelBakery
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumHand
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -44,11 +45,11 @@ class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
   override def registerModelLocations(): Unit = {
     for (state <- Seq(true, false)) {
       val location = modelLocationFromState(state)
-      ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
+      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
     }
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (!player.isSneaking && stack.hasTagCompound) {
       val key = stack.getTagCompound.getString(Settings.namespace + "key")
       val server = stack.getTagCompound.getString(Settings.namespace + "server")
@@ -56,7 +57,7 @@ class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
         if (world.isRemote) {
           player.openGui(OpenComputers, GuiType.Terminal.id, world, 0, 0, 0)
         }
-        player.swingItem()
+        player.swingArm(EnumHand.MAIN_HAND)
       }
     }
     super.onItemRightClick(stack, world, player)

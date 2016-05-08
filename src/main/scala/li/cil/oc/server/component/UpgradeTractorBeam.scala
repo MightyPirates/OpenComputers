@@ -13,7 +13,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 
 import scala.collection.convert.WrapAsScala._
 

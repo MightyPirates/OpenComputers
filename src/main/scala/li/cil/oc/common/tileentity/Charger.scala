@@ -19,7 +19,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -219,7 +219,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   trait Chargeable {
-    def pos: Vec3
+    def pos: Vec3d
 
     def changeBuffer(delta: Double): Double
   }
@@ -234,7 +234,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.node.asInstanceOf[Connector]) {
-    override def pos: Vec3 = BlockPosition(robot).toVec3
+    override def pos: Vec3d = BlockPosition(robot).toVec3
 
     override def equals(obj: scala.Any): Boolean = obj match {
       case chargeable: RobotChargeable => chargeable.robot == robot
@@ -245,7 +245,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
-    override def pos: Vec3 = new Vec3(drone.posX, drone.posY, drone.posZ)
+    override def pos: Vec3d = new Vec3d(drone.posX, drone.posY, drone.posZ)
 
     override def equals(obj: scala.Any): Boolean = obj match {
       case chargeable: DroneChargeable => chargeable.drone == drone
@@ -256,7 +256,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   class PlayerChargeable(val player: EntityPlayer) extends Chargeable {
-    override def pos: Vec3 = new Vec3(player.posX, player.posY, player.posZ)
+    override def pos: Vec3d = new Vec3d(player.posX, player.posY, player.posZ)
 
     override def changeBuffer(delta: Double): Double = {
       api.Nanomachines.getController(player) match {

@@ -5,7 +5,7 @@ import li.cil.oc.common.tileentity.Raid
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.WorldRenderer
+import net.minecraft.client.renderer.VertexBuffer
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -37,7 +37,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
     GlStateManager.scale(1, -1, 1)
 
     val t = Tessellator.getInstance
-    val r = t.getWorldRenderer
+    val r = t.getBuffer
 
     Textures.Block.bind()
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
@@ -73,7 +73,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
   private val u1 = 2 / 16f
   private val fs = 4 / 16f
 
-  private def renderSlot(r: WorldRenderer, slot: Int, icon: TextureAtlasSprite) {
+  private def renderSlot(r: VertexBuffer, slot: Int, icon: TextureAtlasSprite) {
     val l = u1 + slot * fs
     val h = u1 + (slot + 1) * fs
     r.pos(l, 1, 0).tex(icon.getInterpolatedU(l * 16), icon.getMaxV).endVertex()

@@ -12,10 +12,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -178,8 +180,9 @@ public final class DriverInventory extends DriverSidedTileEntity {
         private boolean notPermitted() {
             synchronized (fakePlayer) {
                 fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
-                final PlayerInteractEvent event = ForgeEventFactory.onPlayerInteract(fakePlayer, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK, fakePlayer.getEntityWorld(), position.toBlockPos(), EnumFacing.DOWN);
-                return !event.isCanceled() && event.useBlock != Event.Result.DENY && !tileEntity.isUseableByPlayer(fakePlayer);
+                final PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, fakePlayer.getHeldItemMainhand(), position.toBlockPos(), EnumFacing.DOWN, null);
+                MinecraftForge.EVENT_BUS.post(event);
+                return !event.isCanceled() && event.getUseBlock() != Event.Result.DENY && !tileEntity.isUseableByPlayer(fakePlayer);
             }
         }
     }

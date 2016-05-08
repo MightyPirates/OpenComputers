@@ -6,20 +6,21 @@ import li.cil.oc.common.nanomachines.ControllerImpl
 import net.minecraft.command.ICommandSender
 import net.minecraft.command.WrongUsageException
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatComponentText
+import net.minecraft.server.MinecraftServer
+import net.minecraft.util.text.TextComponentString
 
 object DebugNanomachinesCommand extends SimpleCommand("oc_debugNanomachines") {
   aliases += "oc_dn"
 
   override def getCommandUsage(source: ICommandSender): String = name
 
-  override def processCommand(source: ICommandSender, args: Array[String]): Unit = {
+  override def execute(server: MinecraftServer, source: ICommandSender, args: Array[String]): Unit = {
     source match {
       case player: EntityPlayer =>
         api.Nanomachines.installController(player) match {
           case controller: ControllerImpl =>
             controller.debug()
-            player.addChatMessage(new ChatComponentText("Debug configuration created, see log for mappings."))
+            player.addChatMessage(new TextComponentString("Debug configuration created, see log for mappings."))
           case _ => // Someone did something.
         }
       case _ => throw new WrongUsageException("Can only be used by players.")

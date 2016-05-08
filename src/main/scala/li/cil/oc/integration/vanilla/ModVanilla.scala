@@ -61,7 +61,7 @@ object ModVanilla extends ModProxy with RedstoneProvider {
   override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
     val world = pos.world.get
     math.max(world.computeRedstoneSignal(pos, side),
-      if (world.getBlock(pos.offset(side)) == Blocks.redstone_wire) world.getBlockMetadata(pos.offset(side)).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
+      if (world.getBlock(pos.offset(side)) == Blocks.REDSTONE_WIRE) world.getBlockMetadata(pos.offset(side)).getValue(BlockRedstoneWire.POWER).intValue() else 0)
   }
 
   override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = null

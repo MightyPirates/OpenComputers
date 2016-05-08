@@ -1,7 +1,6 @@
 package li.cil.oc.common.item.traits
 
 import java.util
-import java.util.Random
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
@@ -10,15 +9,13 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Tooltip
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
-import net.minecraft.util.WeightedRandomChestContent
-import net.minecraft.world.World
-import net.minecraftforge.common.ChestGenHooks
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import _root_.net.minecraft.entity.player.EntityPlayer
+import _root_.net.minecraft.item.Item
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.util.math.BlockPos
+import _root_.net.minecraftforge.fml.relauncher.Side
+import _root_.net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.world.IBlockAccess
 
 trait SimpleItem extends Item {
   setCreativeTab(CreativeTab)
@@ -27,13 +24,10 @@ trait SimpleItem extends Item {
 
   override def isBookEnchantable(stack: ItemStack, book: ItemStack) = false
 
-  override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
-
-
-  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer) = {
+  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = {
     world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive => true
-      case _ => super.doesSneakBypassUse(world, pos, player)
+      case _ => super.doesSneakBypassUse(stack, world, pos, player)
     }
   }
 

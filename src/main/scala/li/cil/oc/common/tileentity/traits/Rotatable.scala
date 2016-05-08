@@ -102,7 +102,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       ServerPacketSender.sendRotatableState(this)
     }
     else {
-      world.markBlockForUpdate(getPos)
+      world.notifyBlockUpdate(getPos)
     }
     world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }

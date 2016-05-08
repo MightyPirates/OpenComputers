@@ -25,14 +25,14 @@ import scala.collection.convert.WrapAsScala._
 
 abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stream) {
   def writeTileEntity(t: TileEntity) {
-    writeInt(t.getWorld.provider.getDimensionId)
+    writeInt(t.getWorld.provider.getDimension)
     writeInt(t.getPos.getX)
     writeInt(t.getPos.getY)
     writeInt(t.getPos.getZ)
   }
 
   def writeEntity(e: Entity) {
-    writeInt(e.worldObj.provider.getDimensionId)
+    writeInt(e.worldObj.provider.getDimension)
     writeInt(e.getEntityId)
   }
 
@@ -68,10 +68,10 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
   def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Option[Double]) {
-    val dimension = world.provider.getDimensionId
+    val dimension = world.provider.getDimension
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
-    val manager = server.getConfigurationManager
-    for (player <- manager.playerEntityList if player.dimension == dimension) {
+    val manager = server.getPlayerList
+    for (player <- manager.getPlayerList if player.dimension == dimension) {
       val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {

@@ -12,8 +12,8 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityBrewingStand
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverBrewingStand extends DriverSidedTileEntity {
@@ -35,7 +35,7 @@ object DriverBrewingStand extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && stack.getItem == Items.brewing_stand)
+      if (stack != null && stack.getItem == Items.BREWING_STAND)
         classOf[Environment]
       else null
     }
