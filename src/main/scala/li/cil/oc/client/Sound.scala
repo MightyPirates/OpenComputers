@@ -218,7 +218,8 @@ object Sound {
     def play(name: String) {
       val resourceName = s"${Settings.resourceDomain}:$name"
       val sound = manager.sndHandler.getAccessor(new ResourceLocation(resourceName))
-      val resource = sound.cloneEntry().getSoundAsOggLocation
+      // Specified return type because apparently this is ambiguous according to Jenkins. I don't even.
+      val resource = (sound.cloneEntry(): net.minecraft.client.audio.Sound).getSoundAsOggLocation
       if (!initialized) {
         initialized = true
         if (tileEntity != null) soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ, SoundSystemConfig.ATTENUATION_LINEAR, 16)
