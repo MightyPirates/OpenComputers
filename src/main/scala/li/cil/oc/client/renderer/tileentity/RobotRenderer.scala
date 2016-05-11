@@ -11,7 +11,6 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer._
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
@@ -367,32 +366,37 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
             }
 
             val item = stack.getItem
-            val minecraft = Minecraft.getMinecraft
-
-            if (item.isInstanceOf[ItemBlock] && minecraft.getBlockRendererDispatcher.isEntityBlockAnimated(Block.getBlockFromItem(item))) {
-              GlStateManager.translate(0.0F, 0.1875F, -0.3125F)
-              GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F)
-              GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F)
-              val scale = 0.375F
-              GlStateManager.scale(scale, -scale, scale)
+            if (item.isInstanceOf[ItemBlock]) {
+              GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F)
+              GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F)
+              val scale = 0.625F
+              GlStateManager.scale(scale, scale, scale)
             }
             else if (item == Items.BOW) {
-              GlStateManager.translate(-0.1F, -0.125F, -0.1f)
+              GlStateManager.translate(1.5f/16f, -0.125F, -0.125F)
+              GlStateManager.rotate(10.0F, 0.0F, 0.0F, 1.0F)
               val scale = 0.625F
               GlStateManager.scale(scale, -scale, scale)
-              GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F)
-              GlStateManager.rotate(10.0F, 0.0F, 1.0F, 0.0F)
             }
             else if (item.isFull3D) {
               if (item.shouldRotateAroundWhenRendering) {
                 GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F)
-                GlStateManager.translate(0.0F, -0.125F, 0.0F)
+                GlStateManager.translate(0.0F, -0.0625F, 0.0F)
               }
-              GlStateManager.translate(0.0F, 0.1F, 0.0F)
+
+              GlStateManager.translate(0.0F, 0.1875F, 0.0F)
+              GlStateManager.translate(0.0625F, -0.125F, -2/16F)
               val scale = 0.625F
               GlStateManager.scale(scale, -scale, scale)
-              GlStateManager.rotate(-2.0F, 0.0F, 1.0F, 0.0F)
-              GlStateManager.rotate(-5.0F, 0.0F, 0.0F, 1.0F)
+              GlStateManager.rotate(0.0F, 1.0F, 0.0F, 0.0F)
+              GlStateManager.rotate(0.0F, 0.0F, 1.0F, 0.0F)
+            }
+            else {
+              GlStateManager.translate(0, 2f/16f, 0)
+              val scale = 0.875F
+              GlStateManager.scale(scale, scale, scale)
+              GlStateManager.rotate(90.0F, 0.0F, 1.0F, 0.0F)
+              GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F)
             }
 
             itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.THIRD_PERSON_RIGHT_HAND)
