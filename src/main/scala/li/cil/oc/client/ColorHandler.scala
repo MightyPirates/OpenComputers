@@ -26,7 +26,7 @@ object ColorHandler {
     },
       api.Items.get(Constants.BlockName.Cable).block())
 
-    register((state, world, pos, tintIndex) => world.getTileEntity(pos) match {
+    register((state, world, pos, tintIndex) => if (pos == null) 0xFFFFFFFF else world.getTileEntity(pos) match {
       case colored: Colored => colored.getColor
       case _ => state.getBlock match {
         case block: block.Case => Color.rgbValues(Color.byTier(block.tier))
