@@ -15,16 +15,14 @@ function pipeStream.new(pm)
   return setmetatable(stream, metatable)
 end
 function pipeStream:resume()
-  local yield_args = table.pack(self.pm.pco.resume_all(table.unpack(self.pm.args)))
+  local yield_args = table.pack(self.pm.pco.resume_all())
   if not yield_args[1] then
-    self.pm.args = {false}
     self.pm.dead = true
 
     if not yield_args[1] and yield_args[2] then
       io.stderr:write(tostring(yield_args[2]) .. "\n")
     end
   end
-  self.pm.args = {true}
   return table.unpack(yield_args)
 end
 function pipeStream:close()
@@ -134,7 +132,6 @@ function plib.internal.create(fp)
   local pco = setmetatable(
   {
     stack = {},
-    args = {},
     next = nil,
     create = _co.create,
     wrap = _co.wrap,
@@ -318,7 +315,7 @@ function pipeManager.new(prog, mode, env)
   end
 
   local pm = setmetatable(
-    {dead=false,closed=false,args={},prog=prog,mode=mode,env=env},
+    {dead=false,closed=false,prog=prog,mode=mode,env=env},
     {__index=pipeManager}
   )
   pm.prog_id = pm.mode == "r" and 1 or 2
@@ -328,37 +325,29 @@ function pipeManager.new(prog, mode, env)
     function()pm.dead=true end
 
   pm.commands = {}
-  pm.commands[pm.prog_id] = {shellPath, sh.internal.buildCommandRedirects({})}
-  pm.commands[pm.self_id] = {pm.handler, sh.internal.buildCommandRedirects({})}
+  pm.commands[pm.prog_id] = {shellPath, {}}
+  pm.commands[pm.self_id] = {pm.handler, {}}
 
   pm.root = function()
+    local startup_args = {}
+
     local reason
-    pm.threads, reason, pm.inputs, pm.outputs = 
-      sh.internal.buildPipeStream(pm.commands, pm.env)
+    pm.threads, reason = sh.internal.createThreads(pm.commands, {}, pm.env)
 
     if not pm.threads then
       pm.dead = true
-      return false, reason -- 2nd return is reason, not pipes, on error :)
+      return false, reason
     end
-    pm.pipe = reason[1] -- an array of pipes of length 1
 
-    local startup_args = {}
+    pm.pipe = process.info(pm.threads[1]).data.io[1]
+    process.info(pm.threads[pm.prog_id]).data.args = {pm.env,pm.prog}
+    
     -- if we are the writer, we need args to resume prog
     if pm.mode == "w" then
-      pm.pipe.stream.args = {pm.env,pm.prog,n=2}
-      startup_args = {true,n=1}
-      -- also, if we are the writer, we need to intercept the reader
-      pm.pipe.stream.redirect.read = plib.internal.redirectRead(pm)
-    else
-      startup_args = {true,pm.env,pm.prog,n=3}
+      pm.pipe.stream.redirect[0] = plib.internal.redirectRead(pm)
     end
 
-    return sh.internal.executePipeStream(
-      pm.threads,
-      {pm.pipe},
-      pm.inputs,
-      pm.outputs,
-      startup_args)
+    return sh.internal.runThreads(pm.threads)
   end
 
   return pm

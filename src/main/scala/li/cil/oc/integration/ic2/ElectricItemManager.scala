@@ -40,7 +40,7 @@ object ElectricItemManager extends IElectricItemManager {
     false // TODO if we ever need it...
   }
 
-  override def getToolTip(stack: ItemStack): String = null
+  override def getToolTip(stack: ItemStack): String = ""
 
   override def getMaxCharge(stack: ItemStack): Double = Option(stack).map(_.getItem) match {
     case Some(item: IElectricItem) => item.getMaxCharge(stack)

@@ -33,14 +33,19 @@ function stdoutStream:write(str)
 end
 
 function stderrStream:write(str)
-  local component = require("component")
-  if component.isAvailable("gpu") and component.gpu.getDepth() and component.gpu.getDepth() > 1 then
-    local foreground = component.gpu.setForeground(0xFF0000)
-    term.write(str, true)
-    component.gpu.setForeground(foreground)
-  else
-    term.write(str, true)
+  local gpu = term.gpu()
+  local set_depth = gpu and gpu.getDepth() and gpu.getDepth() > 1
+
+  if set_depth then
+    set_depth = gpu.setForeground(0xFF0000)
   end
+    
+  term.drawText(str, true)
+
+  if set_depth then
+    gpu.setForeground(set_depth)
+  end
+
   return self
 end
 
