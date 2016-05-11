@@ -11,7 +11,6 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ItemColorizer
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
