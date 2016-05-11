@@ -245,7 +245,7 @@ function term.readKeyboard(ops)
         if db ~= false then draw("\n") end
         term.internal.read_history(history,input)
         return input.data.."\n"
-      elseif char==8 then
+      elseif code==keys.back then
         input:update(-1)
       elseif code==keys.left then
         input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
@@ -400,11 +400,31 @@ function --[[@delayloaded-start@]] term.internal.ctrl_movement(input, dir)
 end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.onTouch(input,gx,gy)
-  input:move(math.huge)
+  if input.data == "" then return end
+  input:move(-math.huge)
   local w = W()
   gx,gy=gx-w.dx,gy-w.dy
   local x2,y2,d = input.w.x,input.w.y,input.w.w
-  input:move((gy*d+gx)-(y2*d+x2))
+  local char_width_to_move = ((gy*d+gx)-(y2*d+x2))
+  if char_width_to_move <= 0 then return end
+  local total_wlen = unicode.wlen(input.data)
+  if char_width_to_move >= total_wlen then
+    input:move(math.huge)
+  else
+    local chars_to_move = unicode.wtrunc(input.data, char_width_to_move + 1)
+    input:move(unicode.len(chars_to_move))
+  end
+  -- fake white space can make the index off, redo adjustment for alignment
+  x2,y2,d = input.w.x,input.w.y,input.w.w
+  char_width_to_move = ((gy*d+gx)-(y2*d+x2))
+  if (char_width_to_move < 0) then
+    -- using char_width_to_move as a type of index is wrong, but large enough and helps to speed this up
+    local up_to_cursor = unicode.sub(input.data, input.index+char_width_to_move, input.index)
+    local full_wlen = unicode.wlen(up_to_cursor)
+    local without_tail = unicode.wtrunc(up_to_cursor, full_wlen + char_width_to_move + 1)
+    local chars_cut = unicode.len(up_to_cursor) - unicode.len(without_tail)
+    input:move(-chars_cut)
+  end
 end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
