@@ -10,6 +10,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.ItemUtils
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
@@ -111,13 +113,15 @@ object CableModel extends SmartBlockModelBase {
   protected def cableCapTexture = Array.fill(6)(Textures.getSprite(Textures.Block.CableCap))
 
   object ItemOverride extends ItemOverrideList(Collections.emptyList()) {
-    final val ItemModel = new SmartBlockModelBase {
+    class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
       override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
         val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-        faces ++= bakeQuads(Middle, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
-        faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
-        faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
+        val color = if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else Color.rgbValues(EnumDyeColor.SILVER)
+
+        faces ++= bakeQuads(Middle, cableTexture, Some(color))
+        faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(color))
+        faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(color))
         faces ++= bakeQuads(Connected(0)._1, cableCapTexture, None)
         faces ++= bakeQuads(Connected(1)._1, cableCapTexture, None)
 
@@ -125,7 +129,7 @@ object CableModel extends SmartBlockModelBase {
       }
     }
 
-    override def handleItemState(originalModel: IBakedModel, stack: ItemStack, world: World, entity: EntityLivingBase): IBakedModel = ItemModel
+    override def handleItemState(originalModel: IBakedModel, stack: ItemStack, world: World, entity: EntityLivingBase): IBakedModel = new ItemModel(stack)
   }
 
 }
