@@ -55,13 +55,6 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
 
   override def getRenderType(state: IBlockState): EnumBlockRenderType = EnumBlockRenderType.MODEL
 
-//  @SideOnly(Side.CLIENT)
-//  override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =
-//    world.getTileEntity(pos) match {
-//      case colored: Colored => colored.getColor
-//      case _ => super.colorMultiplier(world, pos, renderPass)
-//    }
-
   @SideOnly(Side.CLIENT)
   def preItemRender(metadata: Int) {}
 

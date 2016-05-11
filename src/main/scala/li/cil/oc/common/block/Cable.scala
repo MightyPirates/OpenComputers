@@ -5,7 +5,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
@@ -19,12 +18,10 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.reflect.ClassTag
 
-class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] with IBlockColor {
+class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
@@ -47,9 +44,6 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
   override def isOpaqueCube(state: IBlockState): Boolean = false
 
   override def isFullCube(state: IBlockState): Boolean = false
-
-  @SideOnly(Side.CLIENT)
-  override def colorMultiplier(state: IBlockState, worldIn: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = colorMultiplierOverride.getOrElse(0xFFFFFFFF)
 
   override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 

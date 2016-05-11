@@ -12,13 +12,11 @@ import li.cil.oc.common.block.property.PropertyTile
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -31,10 +29,8 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
-class Screen(val tier: Int) extends RedstoneAware with IBlockColor {
+class Screen(val tier: Int) extends RedstoneAware {
   ModColoredLights.setLightLevel(this, 5, 5, 5)
 
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
@@ -54,11 +50,6 @@ class Screen(val tier: Int) extends RedstoneAware with IBlockColor {
     }
 
   override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
-
-  // ----------------------------------------------------------------------- //
-
-  @SideOnly(Side.CLIENT)
-  override def colorMultiplier(state: IBlockState, worldIn: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = Color.rgbValues(Color.byTier(tier))
 
   // ----------------------------------------------------------------------- //
 

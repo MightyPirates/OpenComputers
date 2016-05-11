@@ -11,7 +11,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving.SpawnPlacementType
 import net.minecraft.entity.EntityLivingBase
@@ -26,13 +25,11 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.reflect.ClassTag
 
-class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with IBlockColor {
+class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] {
   setLightOpacity(1)
   setHardness(1)
   setCreativeTab(null)
@@ -52,9 +49,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   // ----------------------------------------------------------------------- //
 
   override def canRenderInLayer(state: IBlockState, layer: BlockRenderLayer): Boolean = layer == BlockRenderLayer.CUTOUT_MIPPED
-
-  @SideOnly(Side.CLIENT)
-  override def colorMultiplier(state: IBlockState, world: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = tintIndex
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)

@@ -3,42 +3,26 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
-import li.cil.oc.api.internal.Colored
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Color
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.color.IBlockColor
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI with IBlockColor {
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta >> 1))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex << 1 | (if (state.getValue(property.PropertyRunning.Running)) 1 else 0)
-
-  // ----------------------------------------------------------------------- //
-
-  @SideOnly(Side.CLIENT)
-  override def colorMultiplier(state: IBlockState, world: IBlockAccess, pos: BlockPos, tintIndex: Int): Int = {
-    world.getTileEntity(pos) match {
-      case colored: Colored => colored.getColor
-      case _ => Color.rgbValues(Color.byTier(tier))
-    }
-  }
 
   // ----------------------------------------------------------------------- //
 
