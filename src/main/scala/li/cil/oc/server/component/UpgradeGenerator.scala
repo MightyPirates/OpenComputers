@@ -94,13 +94,15 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     if (remainingTicks <= 0 && inventory.isDefined) {
       val stack = inventory.get
       remainingTicks = TileEntityFurnace.getItemBurnTime(stack)
-      updateClient()
-      stack.stackSize -= 1
-      if (stack.stackSize <= 0) {
-        if (stack.getItem.hasContainerItem(stack))
-          inventory = Option(stack.getItem.getContainerItem(stack))
-        else
-          inventory = None
+      if (remainingTicks > 0) { // If not we probably have a container item now (e.g. bucket after lava bucket).
+        updateClient()
+        stack.stackSize -= 1
+        if (stack.stackSize <= 0) {
+          if (stack.getItem.hasContainerItem(stack))
+            inventory = Option(stack.getItem.getContainerItem(stack))
+          else
+            inventory = None
+        }
       }
     }
     if (remainingTicks > 0) {
