@@ -147,7 +147,7 @@ object FluidUtils {
       if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null) {
         if (doFill) {
           val world = position.world.get
-          if (!world.isAirBlock(position) && !world.isAnyLiquid(position.bounds))
+          if (!world.isAirBlock(position) && !world.containsAnyLiquid(position.bounds))
             world.breakBlock(position)
           world.setBlock(position, resource.getFluid.getBlock)
           // This fake neighbor update is required to get stills to start flowing.
