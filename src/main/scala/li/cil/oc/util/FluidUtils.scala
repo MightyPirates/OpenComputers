@@ -4,6 +4,7 @@ import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
+import net.minecraft.block.BlockStaticLiquid
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidContainerRegistry
@@ -72,11 +73,16 @@ object FluidUtils {
 
     def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))
-      case block: BlockLiquid if FluidRegistry.lookupFluidForBlock(block) != null => Option(new LiquidBlockWrapper(position, block))
+      case block: BlockStaticLiquid if FluidRegistry.lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
       case block: Block if block.isAir(position) || block.isReplaceable(position) => Option(new AirBlockWrapper(position, block))
       case _ => None
     }
     else None
+
+    def isFullLiquidBlock = {
+      val state = position.world.get.getBlockState(position.toBlockPos)
+      state.getValue(BlockLiquid.LEVEL) == 0
+    }
   }
 
   private trait BlockWrapperBase extends IFluidHandler {
@@ -141,7 +147,8 @@ object FluidUtils {
       if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null) {
         if (doFill) {
           val world = position.world.get
-          world.breakBlock(position)
+          if (!world.isAirBlock(position) && !world.isAnyLiquid(position.bounds))
+            world.breakBlock(position)
           world.setBlock(position, resource.getFluid.getBlock)
           // This fake neighbor update is required to get stills to start flowing.
           world.notifyBlockOfNeighborChange(position, world.getBlock(position))
