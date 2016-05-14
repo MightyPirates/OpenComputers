@@ -9,14 +9,14 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing.Axis
 import net.minecraft.util.EnumHand
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Facing), Array(property.PropertyTile.Tile))
@@ -68,14 +68,31 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(pos) match {
       case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
-        case Some(slot) => rack.getMountable(slot) match {
-          case mountable: RackMountable if mountable.onActivate(player, side, hitX, hitY, hitZ) => return true // Activation handled by mountable.
-          case _ =>
-        }
+        case Some(slot) =>
+          val hitVec = new Vec3d(hitX, hitY, hitZ)
+          val rotation = side match {
+            case EnumFacing.WEST => Math.toRadians(90).toFloat
+            case EnumFacing.NORTH => Math.toRadians(180).toFloat
+            case EnumFacing.EAST => Math.toRadians(270).toFloat
+            case _ => 0
+          }
+          val rotatedHitVec = rotate(hitVec.addVector(-0.5, -0.5, -0.5), rotation).addVector(0.5, 0.5, 0.5)
+          val x = ((if (side.getAxis != Axis.Z) 1 - rotatedHitVec.xCoord else rotatedHitVec.xCoord) * 16 - 1) / 14f
+          val y = ((1 - rotatedHitVec.yCoord) * 16 - 2 - 3 * slot) / 3f
+          rack.getMountable(slot) match {
+            case mountable: RackMountable if mountable.onActivate(player, x.toFloat, y.toFloat) => return true // Activation handled by mountable.
+            case _ =>
+          }
         case _ =>
       }
       case _ =>
     }
     super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
+  }
+
+  def rotate(v: Vec3d, t: Float): Vec3d = {
+    val cos = Math.cos(t)
+    val sin = Math.sin(t)
+    new Vec3d(v.xCoord * cos - v.zCoord * sin, v.yCoord, v.xCoord * sin + v.zCoord * cos)
   }
 }

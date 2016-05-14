@@ -117,7 +117,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
     val stack = player.getHeldItemMainhand
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Terminal)) {
       if (!world.isRemote) {
