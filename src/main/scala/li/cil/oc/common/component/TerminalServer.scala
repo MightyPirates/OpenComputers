@@ -23,9 +23,11 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -117,24 +119,23 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
-    val stack = player.getHeldItemMainhand
-    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Terminal)) {
+  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
+    if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.Terminal)) {
       if (!world.isRemote) {
         val key = UUID.randomUUID().toString
-        if (!stack.hasTagCompound) {
-          stack.setTagCompound(new NBTTagCompound())
+        if (!heldItem.hasTagCompound) {
+          heldItem.setTagCompound(new NBTTagCompound())
         }
         else {
-          keys -= stack.getTagCompound.getString(Settings.namespace + "key")
+          keys -= heldItem.getTagCompound.getString(Settings.namespace + "key")
         }
         val maxSize = Settings.get.terminalsPerServer
         while (keys.length >= maxSize) {
           keys.remove(0)
         }
         keys += key
-        stack.getTagCompound.setString(Settings.namespace + "key", key)
-        stack.getTagCompound.setString(Settings.namespace + "server", node.address)
+        heldItem.getTagCompound.setString(Settings.namespace + "key", key)
+        heldItem.getTagCompound.setString(Settings.namespace + "server", node.address)
         rack.markChanged(slot)
         player.inventory.markDirty()
       }

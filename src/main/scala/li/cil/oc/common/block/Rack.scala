@@ -80,7 +80,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
           val x = ((if (side.getAxis != Axis.Z) 1 - rotatedHitVec.xCoord else rotatedHitVec.xCoord) * 16 - 1) / 14f
           val y = ((1 - rotatedHitVec.yCoord) * 16 - 2 - 3 * slot) / 3f
           rack.getMountable(slot) match {
-            case mountable: RackMountable if mountable.onActivate(player, x.toFloat, y.toFloat) => return true // Activation handled by mountable.
+            case mountable: RackMountable if mountable.onActivate(player, hand, heldItem, x.toFloat, y.toFloat) => return true // Activation handled by mountable.
             case _ =>
           }
         case _ =>

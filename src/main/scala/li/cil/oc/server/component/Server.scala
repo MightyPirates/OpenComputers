@@ -28,6 +28,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
@@ -157,7 +158,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (!player.getEntityWorld.isRemote) {
       if (player.isSneaking) {
         if (!machine.isRunning && isUseableByPlayer(player)) {
