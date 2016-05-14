@@ -11,16 +11,16 @@ import li.cil.oc.common.tileentity.Print
 import li.cil.oc.server.PacketSender
 import mcmultipart.multipart.IMultipart
 import mcmultipart.multipart.IMultipartContainer
-import mcmultipart.multipart.IPartConverter.IPartConverter2
-import mcmultipart.multipart.IPartConverter.IReversePartConverter
+import mcmultipart.multipart.IPartConverter
+import mcmultipart.multipart.IReversePartConverter
 import net.minecraft.block.Block
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 
 import scala.collection.convert.WrapAsScala._
 
-object PartConverter extends IPartConverter2 with IReversePartConverter {
+object PartConverter extends IPartConverter with IReversePartConverter {
   final lazy val CableBlock = api.Items.get(Constants.BlockName.Cable).block()
   final lazy val PrintBlock = api.Items.get(Constants.BlockName.Print).block()
 

@@ -2,6 +2,7 @@ package li.cil.oc.integration.mcmp
 
 import java.util
 
+import com.google.common.base.Predicate
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.internal.Colored
@@ -17,7 +18,7 @@ import mcmultipart.capabilities.ISlottedCapabilityProvider
 import mcmultipart.multipart._
 import mcmultipart.raytrace.PartMOP
 import net.minecraft.block.material.Material
-import net.minecraft.block.state.BlockState
+import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -25,15 +26,17 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.PacketBuffer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
 
 import scala.collection.convert.WrapAsScala._
 
-class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISlottedCapabilityProvider with Environment with Colored {
+class PartCable extends Multipart with ISlottedPart with INormallyOccludingPart with ISlottedCapabilityProvider with Environment with Colored {
   final val CableDefinition = api.Items.get(Constants.BlockName.Cable)
   final val CableBlock = CableDefinition.block()
 
@@ -97,9 +100,14 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
     else super.getCapability(capability, facing)
   }
 
-  private def canConnect(facing: EnumFacing) =
-    !OcclusionHelper.isSlotOccluded(getContainer.getParts, this, PartSlot.getFaceSlot(facing)) &&
-      OcclusionHelper.occlusionTest(getContainer.getParts, this, Cable.CachedBounds(Cable.mask(facing)))
+  private def canConnect(facing: EnumFacing) = {
+    val self = this
+    val isThis = new Predicate[IMultipart] {
+      override def apply(input: IMultipart): Boolean = input == self
+    }
+    OcclusionHelper.slotOcclusionTest(PartSlot.getFaceSlot(facing), isThis, getContainer.getParts) &&
+      OcclusionHelper.occlusionTest(OcclusionHelper.boxes(Cable.CachedBounds(Cable.mask(facing))), isThis, getContainer.getParts)
+  }
 
   // ----------------------------------------------------------------------- //
   // IMultipart
@@ -121,17 +129,17 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
 
   override def getDrops: util.List[ItemStack] = util.Arrays.asList(wrapped.createItemStack())
 
-  override def getHardness(hit: PartMOP): Float = CableBlock.getBlockHardness(getWorld, getPos)
+  override def getHardness(hit: PartMOP): Float = CableBlock.getBlockHardness(MultipartRegistry.getDefaultState(this).getBaseState, getWorld, getPos)
 
-  override def getMaterial: Material = CableBlock.getMaterial
+  override def getMaterial: Material = CableBlock.getMaterial(MultipartRegistry.getDefaultState(this).getBaseState)
 
   override def isToolEffective(toolType: String, level: Int): Boolean = CableBlock.isToolEffective(toolType, getWorld.getBlockState(getPos))
 
   // ----------------------------------------------------------------------- //
 
-  override def getModelPath = MCMultiPart.CableMultipartLocation.getResourceDomain + ":" + MCMultiPart.CableMultipartLocation.getResourcePath
+  override def getModelPath = new ResourceLocation(MCMultiPart.CableMultipartRawLocation)
 
-  override def createBlockState(): BlockState = new ExtendedBlockState(CableBlock, Array.empty, Array(property.PropertyTile.Tile))
+  override def createBlockState(): BlockStateContainer = new ExtendedBlockState(CableBlock, Array.empty, Array(property.PropertyTile.Tile))
 
   override def getExtendedState(state: IBlockState): IBlockState =
     state match {
@@ -220,16 +228,16 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
 
   // ----------------------------------------------------------------------- //
 
-  override def onActivated(player: EntityPlayer, heldItem: ItemStack, hit: PartMOP): Boolean = {
+  override def onActivated(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hit: PartMOP): Boolean = {
     if (Color.isDye(heldItem)) {
-      setColor(Color.rgbValues(Color.dyeColor(player.getHeldItem)))
+      setColor(Color.rgbValues(Color.dyeColor(heldItem)))
       markDirty()
       if (!player.capabilities.isCreativeMode && wrapped.consumesDye) {
-        player.getHeldItem.splitStack(1)
+        heldItem.splitStack(1)
       }
       true
     }
-    else super.onActivated(player, heldItem, hit)
+    else super.onActivated(player, hand, heldItem, hit)
   }
 
   // ----------------------------------------------------------------------- //

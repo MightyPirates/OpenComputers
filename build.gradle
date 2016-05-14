@@ -182,11 +182,11 @@ configurations {
 }
 
 dependencies {
+    deobfCompile "MCMultiPart:MCMultiPart-experimental:${config.mcmp.version}:universal"
 /*
     deobfCompile "mezz.jei:jei_1.8.9:${config.jei.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"
-    deobfCompile "MCMultiPart:MCMultiPart:${config.mcmp.version}:universal"
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
@@ -265,7 +265,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/ic2/**'
             exclude 'li/cil/oc/integration/igw/**'
             exclude 'li/cil/oc/integration/jei/**'
-            exclude 'li/cil/oc/integration/mcmp/**'
             exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'

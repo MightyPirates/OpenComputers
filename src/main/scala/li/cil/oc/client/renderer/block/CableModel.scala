@@ -7,6 +7,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
@@ -26,15 +27,14 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-object CableModel extends SmartBlockModelBase {
+object CableModel extends CableModel
+
+class CableModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride
 
   override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] =
     state match {
       case extended: IExtendedBlockState =>
-        //    if (Mods.MCMultiPart.isAvailable)
-        //      new PartCableModel.BlockModel(extended)
-        //    else
         extended.getValue(block.property.PropertyTile.Tile) match {
           case t: tileentity.Cable =>
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
