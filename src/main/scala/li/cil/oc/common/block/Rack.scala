@@ -10,6 +10,8 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing.Axis
+import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
@@ -67,14 +69,31 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(pos) match {
       case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
-        case Some(slot) => rack.getMountable(slot) match {
-          case mountable: RackMountable if mountable.onActivate(player, side, hitX, hitY, hitZ) => return true // Activation handled by mountable.
-          case _ =>
-        }
+        case Some(slot) =>
+          val hitVec = new Vec3(hitX, hitY, hitZ)
+          val rotation = side match {
+            case EnumFacing.WEST => Math.toRadians(90).toFloat
+            case EnumFacing.NORTH => Math.toRadians(180).toFloat
+            case EnumFacing.EAST => Math.toRadians(270).toFloat
+            case _ => 0
+          }
+          val rotatedHitVec = rotate(hitVec.addVector(-0.5, -0.5, -0.5), rotation).addVector(0.5, 0.5, 0.5)
+          val x = ((if (side.getAxis != Axis.Z) 1 - rotatedHitVec.xCoord else rotatedHitVec.xCoord) * 16 - 1) / 14f
+          val y = ((1 - rotatedHitVec.yCoord) * 16 - 2 - 3 * slot) / 3f
+          rack.getMountable(slot) match {
+            case mountable: RackMountable if mountable.onActivate(player, x.toFloat, y.toFloat) => return true // Activation handled by mountable.
+            case _ =>
+          }
         case _ =>
       }
       case _ =>
     }
     super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+  }
+
+  def rotate(v: Vec3, t: Float): Vec3 = {
+    val cos = Math.cos(t)
+    val sin = Math.sin(t)
+    new Vec3(v.xCoord * cos - v.zCoord * sin, v.yCoord, v.xCoord * sin + v.zCoord * cos)
   }
 }
