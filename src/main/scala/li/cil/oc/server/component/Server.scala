@@ -157,7 +157,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
     if (!player.getEntityWorld.isRemote) {
       if (player.isSneaking) {
         if (!machine.isRunning && isUseableByPlayer(player)) {

@@ -147,7 +147,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
     if (player.isSneaking) {
       val isDiskInDrive = getStackInSlot(0) != null
       val isHoldingDisk = isItemValidForSlot(0, player.getHeldItem)
