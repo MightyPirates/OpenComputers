@@ -98,6 +98,20 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
 
   // ----------------------------------------------------------------------- //
 
+  override protected def initialize(): Unit = {
+    super.initialize()
+    if (isClient) {
+      connectComponents()
+    }
+  }
+
+  override def dispose(): Unit = {
+    super.dispose()
+    if (isClient) {
+      disconnectComponents()
+    }
+  }
+
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
@@ -122,5 +136,6 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     load(nbt)
+    connectComponents()
   }
 }
