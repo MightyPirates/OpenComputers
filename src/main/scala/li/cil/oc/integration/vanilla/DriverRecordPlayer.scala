@@ -43,7 +43,7 @@ object DriverRecordPlayer extends DriverSidedTileEntity {
     def play(context: Context, args: Arguments): Array[AnyRef] = {
       val record = tileEntity.getRecord
       if (record != null && record.getItem.isInstanceOf[ItemRecord]) {
-        tileEntity.getWorld.playAuxSFXAtEntity(null, 1005, tileEntity.getPos, Item.getIdFromItem(record.getItem))
+        tileEntity.getWorld.playEvent(null, 1005, tileEntity.getPos, Item.getIdFromItem(record.getItem))
         result(true)
       }
       else null
@@ -51,7 +51,7 @@ object DriverRecordPlayer extends DriverSidedTileEntity {
 
     @Callback(doc = "function() -- Stop playing the record currently in the jukebox.")
     def stop(context: Context, args: Arguments): Array[AnyRef] = {
-      tileEntity.getWorld.playAuxSFX(1005, tileEntity.getPos, 0)
+      tileEntity.getWorld.playEvent(1005, tileEntity.getPos, 0)
       tileEntity.getWorld.playRecord(tileEntity.getPos, null)
       null
     }

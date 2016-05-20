@@ -170,7 +170,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       activeBehaviorsDirty = true
 
       player match {
-        case playerMP: EntityPlayerMP if playerMP.playerNetServerHandler != null =>
+        case playerMP: EntityPlayerMP if playerMP.connection != null =>
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 100))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 150))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 200))

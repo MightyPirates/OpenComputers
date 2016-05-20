@@ -11,11 +11,9 @@ import li.cil.oc.api
 import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.Loader

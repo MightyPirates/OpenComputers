@@ -67,7 +67,7 @@ object ExtendedWorld {
 
     def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block, side: EnumFacing) = world.notifyNeighborsOfStateExcept(position.toBlockPos, block, side)
 
-    def playAuxSFX(id: Int, position: BlockPosition, data: Int) = world.playAuxSFX(id, position.toBlockPos, data)
+    def playAuxSFX(id: Int, position: BlockPosition, data: Int) = world.playEvent(id, position.toBlockPos, data)
 
     def setBlock(position: BlockPosition, block: Block) = world.setBlockState(position.toBlockPos, block.getDefaultState)
 

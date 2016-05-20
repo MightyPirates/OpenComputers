@@ -433,7 +433,7 @@ object DebugCard {
       checkEnabled()
       val blockPos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       world.getTileEntity(blockPos) match {
-        case tileEntity: TileEntity => result(toNbt(tileEntity.writeToNBT _).toTypedMap)
+        case tileEntity: TileEntity => result(toNbt((nbt) => tileEntity.writeToNBT(nbt): Unit).toTypedMap)
         case _ => null
       }
     }

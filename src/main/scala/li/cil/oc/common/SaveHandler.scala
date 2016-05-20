@@ -12,7 +12,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.ChunkDataEvent
@@ -42,7 +42,7 @@ object SaveHandler {
   // which takes a lot of time and is completely unnecessary in those cases.
   var savingForClients = false
 
-  val saveData = mutable.Map.empty[Int, mutable.Map[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]]
+  val saveData = mutable.Map.empty[Int, mutable.Map[ChunkPos, mutable.Map[String, Array[Byte]]]]
 
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
 
@@ -71,7 +71,7 @@ object SaveHandler {
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
     val dimension = world.provider.getDimension
-    val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
+    val chunk = new ChunkPos(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
@@ -111,12 +111,12 @@ object SaveHandler {
     // Same goes for the chunk. This also works around issues with computers
     // being moved (e.g. Redstone in Motion).
     val dimension = nbt.getInteger("dimension")
-    val chunk = new ChunkCoordIntPair(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
+    val chunk = new ChunkPos(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
 
     load(dimension, chunk, name)
   }
 
-  def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
+  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
       // Make sure we get rid of old versions (e.g. left over by other mods
@@ -129,7 +129,7 @@ object SaveHandler {
     }
   }
 
-  def load(dimension: Int, chunk: ChunkCoordIntPair, name: String): Array[Byte] = {
+  def load(dimension: Int, chunk: ChunkPos, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     // Use data from 'cache' if possible. This avoids weird things happening
     // when writeToNBT+readFromNBT is called by other mods (i.e. this is not

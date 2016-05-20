@@ -239,7 +239,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
-                world.playAuxSFX(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
+                world.playEvent(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
               }
               else {
                 val sx = newPosition.getX + 0.5

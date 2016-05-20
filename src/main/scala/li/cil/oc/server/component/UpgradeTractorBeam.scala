@@ -53,7 +53,6 @@ abstract class UpgradeTractorBeam extends prefab.ManagedEnvironment {
   @Callback(doc = """function():boolean -- Tries to pick up a random item in the robots' vicinity.""")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val items = world.getEntitiesWithinAABB(classOf[EntityItem], position.bounds.expand(pickupRadius, pickupRadius, pickupRadius))
-      .map(_.asInstanceOf[EntityItem])
       .filter(item => item.isEntityAlive && !item.cannotPickup)
     if (items.nonEmpty) {
       val item = items(world.rand.nextInt(items.size))
@@ -62,7 +61,7 @@ abstract class UpgradeTractorBeam extends prefab.ManagedEnvironment {
       collectItem(item)
       if (stack.stackSize < size || item.isDead) {
         context.pause(Settings.get.suckDelay)
-        world.playAuxSFX(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
+        world.playEvent(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
         return result(true)
       }
     }

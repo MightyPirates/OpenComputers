@@ -65,9 +65,9 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block) {
     world.notifyBlockUpdate(pos, state, state, 3)
-    super.onNeighborBlockChange(world, pos, state, neighborBlock)
+    super.neighborChanged(state, world, pos, neighborBlock)
   }
 
   override protected def doCustomInit(tileEntity: tileentity.Cable, player: EntityLivingBase, stack: ItemStack): Unit = {

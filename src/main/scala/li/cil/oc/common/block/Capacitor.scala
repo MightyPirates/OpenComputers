@@ -35,7 +35,7 @@ class Capacitor extends SimpleBlock {
 
   override def tickRate(world: World) = 1
 
-  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block): Unit =
     world.getTileEntity(pos) match {
       case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
       case _ =>

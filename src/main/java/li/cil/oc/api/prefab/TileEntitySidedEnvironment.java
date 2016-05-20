@@ -136,7 +136,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt) {
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         int index = 0;
         for (Node node : nodes) {
@@ -148,5 +148,6 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
             }
             ++index;
         }
+        return nbt;
     }
 }

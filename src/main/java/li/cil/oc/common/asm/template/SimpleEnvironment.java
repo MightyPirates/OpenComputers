@@ -53,8 +53,8 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt) {
-        StaticSimpleEnvironment.writeToNBT(this, nbt);
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+        return StaticSimpleEnvironment.writeToNBT(this, nbt);
     }
 
     // The following methods are only injected if their real versions do not

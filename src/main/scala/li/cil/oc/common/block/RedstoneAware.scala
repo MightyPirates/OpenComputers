@@ -36,7 +36,7 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block): Unit = {
     /* TODO MFR
     if (Mods.MineFactoryReloaded.isAvailable) {
       val position = BlockPosition(x, y, z)

@@ -19,9 +19,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.IMerchant
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.passive.EntityHorse
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EntityPlayer.EnumStatus
+import net.minecraft.entity.player.EntityPlayer.SleepResult
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
 import net.minecraft.inventory.IInventory
@@ -90,7 +89,7 @@ object Player {
 }
 
 class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
-  playerNetServerHandler = new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
+  connection= new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
 
   capabilities.allowFlying = true
   capabilities.disableDamage = true
@@ -341,7 +340,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      val strength = getBreakSpeed(state, pos)
+      val strength = getDigSpeed(state, pos)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
@@ -379,7 +378,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       world.sendBlockBreakProgress(-1, pos, -1)
 
-      world.playAuxSFXAtEntity(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
+      world.playEvent(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
 
       if (stack != null) {
         stack.onBlockDestroyed(world, state, pos, this)
@@ -555,7 +554,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def startRiding(entityIn: Entity, force: Boolean): Boolean = false
 
-  override def trySleep(bedLocation: BlockPos) = EnumStatus.OTHER_PROBLEM
+  override def trySleep(bedLocation: BlockPos) = SleepResult.OTHER_PROBLEM
 
   override def addChatMessage(message: ITextComponent) {}
 

@@ -144,7 +144,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void writeToNBT(final NBTTagCompound nbt) {
+    public NBTTagCompound writeToNBT(final NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         // See readFromNBT() regarding host check.
         if (node != null && node.host() == this) {
@@ -152,5 +152,6 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
             node.save(nodeNbt);
             nbt.setTag("oc:node", nodeNbt);
         }
+        return nbt;
     }
 }

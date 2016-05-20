@@ -242,9 +242,10 @@ class PartCable extends Multipart with ISlottedPart with INormallyOccludingPart 
 
   // ----------------------------------------------------------------------- //
 
-  override def writeToNBT(tag: NBTTagCompound): Unit = {
+  override def writeToNBT(tag: NBTTagCompound): NBTTagCompound = {
     super.writeToNBT(tag)
     wrapped.writeToNBT(tag)
+    tag
   }
 
   override def readFromNBT(tag: NBTTagCompound): Unit = {

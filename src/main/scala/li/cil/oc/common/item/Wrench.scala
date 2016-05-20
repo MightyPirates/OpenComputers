@@ -37,7 +37,7 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
     if (world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos)) world.getBlockState(pos).getBlock match {
       case block: Block if block.rotateBlock(world, pos, side) =>
-        block.onNeighborBlockChange(world, pos, world.getBlockState(pos), Blocks.AIR)
+        block.neighborChanged(world.getBlockState(pos), world, pos, Blocks.AIR)
         player.swingArm(hand)
         if (!world.isRemote) EnumActionResult.SUCCESS else EnumActionResult.PASS
       case _ =>

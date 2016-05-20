@@ -8,7 +8,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
     }
 }
 
@@ -295,7 +295,7 @@ minecraft {
 
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
-    mappings = "snapshot_20160506"
+    mappings = "${config.minecraft.mappings}"
 
     replace "@VERSION@", project.simpleVersion
 }

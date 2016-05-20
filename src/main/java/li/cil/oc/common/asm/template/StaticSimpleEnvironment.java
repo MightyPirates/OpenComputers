@@ -78,7 +78,7 @@ public final class StaticSimpleEnvironment {
         }
     }
 
-    public static void writeToNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
+    public static NBTTagCompound writeToNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
         self.writeToNBT_OpenComputers(nbt);
         final Node node = node(self);
         if (node != null) {
@@ -86,5 +86,6 @@ public final class StaticSimpleEnvironment {
             node.save(nodeNbt);
             nbt.setTag("oc:node", nodeNbt);
         }
+        return nbt;
     }
 }

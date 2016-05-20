@@ -89,16 +89,22 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
     if (isServer) {
       readFromNBTForServer(nbt)
     }
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound): Unit = {
-    if (isServer) {
-      writeToNBTForServer(nbt)
+    else if (world != null) {
+      readFromNBTForClient(nbt)
     }
   }
 
-  override def getDescriptionPacket = {
-    val nbt = new NBTTagCompound()
+  override def writeToNBT(nbt: NBTTagCompound): NBTTagCompound = {
+    if (isServer) {
+      writeToNBTForServer(nbt)
+    }
+    nbt
+  }
+
+  override def getUpdatePacket: SPacketUpdateTileEntity = new SPacketUpdateTileEntity(getPos, getBlockMetadata, getUpdateTag)
+
+  override def getUpdateTag: NBTTagCompound = {
+    val nbt = super.getUpdateTag
 
     // See comment on savingForClients variable.
     SaveHandler.savingForClients = true
@@ -106,10 +112,11 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
       try writeToNBTForClient(nbt) catch {
         case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
       }
-      if (nbt.hasNoTags) null else new SPacketUpdateTileEntity(getPos, -1, nbt)
     } finally {
       SaveHandler.savingForClients = false
     }
+
+    nbt
   }
 
   override def onDataPacket(manager: NetworkManager, packet: SPacketUpdateTileEntity) {
