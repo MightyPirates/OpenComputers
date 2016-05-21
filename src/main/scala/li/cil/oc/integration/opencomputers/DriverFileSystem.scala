@@ -98,15 +98,17 @@ object DriverFileSystem extends Item {
       label = Option(value).map(_.take(16))
     }
 
+    private final val LabelTag = Settings.namespace + "fs.label"
+
     override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "fs.label")) {
-        label = Option(nbt.getString(Settings.namespace + "fs.label"))
+      if (nbt.hasKey(LabelTag)) {
+        label = Option(nbt.getString(LabelTag))
       }
     }
 
     override def save(nbt: NBTTagCompound) {
       label match {
-        case Some(value) => nbt.setString(Settings.namespace + "fs.label", value)
+        case Some(value) => nbt.setString(LabelTag, value)
         case _ =>
       }
     }

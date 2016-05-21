@@ -54,6 +54,7 @@ class PartPrint extends Multipart with INormallyOccludingPart with IRedstonePart
 
   def onStateChange(): Unit = {
     notifyPartUpdate()
+    sendUpdatePacket(true)
   }
 
   // ----------------------------------------------------------------------- //

@@ -146,24 +146,28 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     }
   }
 
+  private final val RomGeneratorTag = "romGenerator"
+  private final val InventoryTag = "inventory"
+  private final val RemainingTicksTag = "remainingTicks"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romGenerator.foreach(_.load(nbt.getCompoundTag("romGenerator")))
-    if (nbt.hasKey("inventory")) {
-      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
+    romGenerator.foreach(_.load(nbt.getCompoundTag(RomGeneratorTag)))
+    if (nbt.hasKey(InventoryTag)) {
+      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(InventoryTag)))
     }
-    remainingTicks = nbt.getInteger("remainingTicks")
+    remainingTicks = nbt.getInteger(RemainingTicksTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romGenerator.foreach(fs => nbt.setNewCompoundTag("romGenerator", fs.save))
+    romGenerator.foreach(fs => nbt.setNewCompoundTag(RomGeneratorTag, fs.save))
     inventory match {
-      case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
+      case Some(stack) => nbt.setNewCompoundTag(InventoryTag, stack.writeToNBT)
       case _ =>
     }
     if (remainingTicks > 0) {
-      nbt.setInteger("remainingTicks", remainingTicks)
+      nbt.setInteger(RemainingTicksTag, remainingTicks)
     }
   }
 }

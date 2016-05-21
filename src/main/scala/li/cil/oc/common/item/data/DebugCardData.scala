@@ -13,23 +13,26 @@ class DebugCardData extends ItemData(Constants.ItemName.DebugCard) {
 
   var player: Option[String] = None
 
+  private final val DataTag = Settings.namespace + "data"
+  private final val PlayerTag = Settings.namespace + "player"
+
   override def load(nbt: NBTTagCompound) {
     val tag = dataTag(nbt)
-    if (tag.hasKey(Settings.namespace + "player")) {
-      player = Option(tag.getString(Settings.namespace + "player"))
+    if (tag.hasKey(PlayerTag)) {
+      player = Option(tag.getString(PlayerTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     val tag = dataTag(nbt)
-    tag.removeTag(Settings.namespace + "player")
-    player.foreach(tag.setString(Settings.namespace + "player", _))
+    tag.removeTag(PlayerTag)
+    player.foreach(tag.setString(PlayerTag, _))
   }
 
   private def dataTag(nbt: NBTTagCompound) = {
-    if (!nbt.hasKey(Settings.namespace + "data")) {
-      nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
+    if (!nbt.hasKey(DataTag)) {
+      nbt.setTag(DataTag, new NBTTagCompound())
     }
-    nbt.getCompoundTag(Settings.namespace + "data")
+    nbt.getCompoundTag(DataTag)
   }
 }

@@ -282,43 +282,57 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val AmountMaterialTag = Settings.namespace + "amountMaterial"
+  private final val AmountInkTag = Settings.namespace + "amountInk"
+  private final val DataTag = Settings.namespace + "data"
+  private final val IsActiveTag = Settings.namespace + "active"
+  private final val LimitTag = Settings.namespace + "limit"
+  private final val OutputTag = Settings.namespace + "output"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val RemainingTag = Settings.namespace + "remaining"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    amountMaterial = nbt.getInteger(Settings.namespace + "amountMaterial")
-    amountInk = nbt.getInteger(Settings.namespace + "amountInk")
-    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
-    isActive = nbt.getBoolean(Settings.namespace + "active")
-    limit = nbt.getInteger(Settings.namespace + "limit")
-    if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
+    amountMaterial = nbt.getInteger(AmountMaterialTag)
+    amountInk = nbt.getInteger(AmountInkTag)
+    data.load(nbt.getCompoundTag(DataTag))
+    isActive = nbt.getBoolean(IsActiveTag)
+    limit = nbt.getInteger(LimitTag)
+    if (nbt.hasKey(OutputTag)) {
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTag)))
     }
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
-    requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
+    else {
+      output = None
+    }
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setInteger(Settings.namespace + "amountMaterial", amountMaterial)
-    nbt.setInteger(Settings.namespace + "amountInk", amountInk)
-    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
-    nbt.setBoolean(Settings.namespace + "active", isActive)
-    nbt.setInteger(Settings.namespace + "limit", limit)
-    output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
-    nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
+    nbt.setInteger(AmountMaterialTag, amountMaterial)
+    nbt.setInteger(AmountInkTag, amountInk)
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setBoolean(IsActiveTag, isActive)
+    nbt.setInteger(LimitTag, limit)
+    output.foreach(stack => nbt.setNewCompoundTag(OutputTag, stack.writeToNBT))
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
-    requiredEnergy = nbt.getDouble("remaining")
+    data.load(nbt.getCompoundTag(DataTag))
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
-    nbt.setDouble("remaining", requiredEnergy)
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //

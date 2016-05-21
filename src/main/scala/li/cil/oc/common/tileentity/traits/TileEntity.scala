@@ -18,6 +18,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 // TODO only implement ticking interface where needed.
 trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
+  private final val IsServerDataTag = Settings.namespace + "isServerData"
+
   def world = getWorld
 
   def x = getPos.getX
@@ -76,20 +78,25 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
 
   def readFromNBTForServer(nbt: NBTTagCompound): Unit = super.readFromNBT(nbt)
 
-  def writeToNBTForServer(nbt: NBTTagCompound): Unit = super.writeToNBT(nbt)
+  def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
+    nbt.setBoolean(IsServerDataTag, true)
+    super.writeToNBT(nbt)
+  }
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}
 
-  def writeToNBTForClient(nbt: NBTTagCompound) {}
+  def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
+    nbt.setBoolean(IsServerDataTag, false)
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound): Unit = {
-    if (isServer) {
+    if (isServer || nbt.getBoolean(IsServerDataTag)) {
       readFromNBTForServer(nbt)
     }
-    else if (world != null) {
+    else {
       readFromNBTForClient(nbt)
     }
   }

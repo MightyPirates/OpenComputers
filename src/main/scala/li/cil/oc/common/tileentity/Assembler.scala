@@ -123,35 +123,41 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val OutputTag = Settings.namespace + "output"
+  private final val OutputTagCompat = Settings.namespace + "robot"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val RemainingTag = Settings.namespace + "remaining"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
+    if (nbt.hasKey(OutputTag)) {
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTag)))
     }
-    else if (nbt.hasKey(Settings.namespace + "robot")) {
-      // Backwards compatibility.
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
+    else if (nbt.hasKey(OutputTagCompat)) {
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTagCompat)))
     }
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
-    requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
-    nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
+    output.foreach(stack => nbt.setNewCompoundTag(OutputTag, stack.writeToNBT))
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    requiredEnergy = nbt.getDouble("remaining")
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setDouble("remaining", requiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //

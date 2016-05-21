@@ -9,6 +9,7 @@ import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
+import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.component.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -85,7 +86,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
         label, this, Settings.resourceDomain + ":hdd_access", 6).
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
-      nbtToSetAddress.setString("address", id)
+      nbtToSetAddress.setString(NodeData.AddressTag, id)
       fs.node.load(nbtToSetAddress)
       fs.node.setVisibility(Visibility.Network)
       // Ensure we're in a network before connecting the raid fs.
@@ -114,11 +115,15 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
+  private final val FileSystemTag = Settings.namespace + "fs"
+  private final val PresenceTag = Settings.namespace + "presence"
+  private final val LabelTag = Settings.namespace + "label"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(Settings.namespace + "fs")) {
-      val tag = nbt.getCompoundTag(Settings.namespace + "fs")
-      tryCreateRaid(tag.getCompoundTag("node").getString("address"))
+    if (nbt.hasKey(FileSystemTag)) {
+      val tag = nbt.getCompoundTag(FileSystemTag)
+      tryCreateRaid(tag.getCompoundTag(NodeData.NodeTag).getString(NodeData.AddressTag))
       filesystem.foreach(fs => fs.load(tag))
     }
     label.load(nbt)
@@ -126,24 +131,24 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    filesystem.foreach(fs => nbt.setNewCompoundTag(Settings.namespace + "fs", fs.save))
+    filesystem.foreach(fs => nbt.setNewCompoundTag(FileSystemTag, fs.save))
     label.save(nbt)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    nbt.getByteArray("presence").
+    nbt.getByteArray(PresenceTag).
       map(_ != 0).
       copyToArray(presence)
-    label.setLabel(nbt.getString("label"))
+    label.setLabel(nbt.getString(LabelTag))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setTag("presence", items.map(_.isDefined))
+    nbt.setTag(PresenceTag, items.map(_.isDefined))
     if (label.getLabel != null)
-      nbt.setString("label", label.getLabel)
+      nbt.setString(LabelTag, label.getLabel)
   }
 
   // ----------------------------------------------------------------------- //

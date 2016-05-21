@@ -166,23 +166,27 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   // ----------------------------------------------------------------------- //
 
+  private final val OpenPortsTag = "openPorts"
+  private final val WakeMessageTag = "wakeMessage"
+  private final val WakeMessageFuzzyTag = "wakeMessageFuzzy"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
     assert(openPorts.isEmpty)
-    openPorts ++= nbt.getIntArray("openPorts")
-    if (nbt.hasKey("wakeMessage")) {
-      wakeMessage = Option(nbt.getString("wakeMessage"))
+    openPorts ++= nbt.getIntArray(OpenPortsTag)
+    if (nbt.hasKey(WakeMessageTag)) {
+      wakeMessage = Option(nbt.getString(WakeMessageTag))
     }
-    wakeMessageFuzzy = nbt.getBoolean("wakeMessageFuzzy")
+    wakeMessageFuzzy = nbt.getBoolean(WakeMessageFuzzyTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
-    nbt.setIntArray("openPorts", openPorts.toArray)
-    wakeMessage.foreach(nbt.setString("wakeMessage", _))
-    nbt.setBoolean("wakeMessageFuzzy", wakeMessageFuzzy)
+    nbt.setIntArray(OpenPortsTag, openPorts.toArray)
+    wakeMessage.foreach(nbt.setString(WakeMessageTag, _))
+    nbt.setBoolean(WakeMessageFuzzyTag, wakeMessageFuzzy)
   }
 
   // ----------------------------------------------------------------------- //

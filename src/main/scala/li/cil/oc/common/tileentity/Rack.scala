@@ -372,11 +372,16 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   // ----------------------------------------------------------------------- //
 
+  private final val IsRelayEnabledTag = Settings.namespace + "isRelayEnabled"
+  private final val NodeMappingTag = Settings.namespace + "nodeMapping"
+  private final val LastDataTag = Settings.namespace + "lastData"
+  private final val RackDataTag = Settings.namespace + "rackData"
+
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
 
-    isRelayEnabled = nbt.getBoolean(Settings.namespace + "isRelayEnabled")
-    nbt.getTagList(Settings.namespace + "nodeMapping", NBT.TAG_INT_ARRAY).map((buses: NBTTagIntArray) =>
+    isRelayEnabled = nbt.getBoolean(IsRelayEnabledTag)
+    nbt.getTagList(NodeMappingTag, NBT.TAG_INT_ARRAY).map((buses: NBTTagIntArray) =>
       buses.getIntArray.map(id => if (id < 0 || id == EnumFacing.SOUTH.ordinal()) None else Option(EnumFacing.getFront(id)))).
       copyToArray(nodeMapping)
 
@@ -387,19 +392,19 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
 
-    nbt.setBoolean(Settings.namespace + "isRelayEnabled", isRelayEnabled)
-    nbt.setNewTagList(Settings.namespace + "nodeMapping", nodeMapping.map(buses =>
-      toNbt(buses.map(side => side.map(_.ordinal()).getOrElse(-1)))))
+    nbt.setBoolean(IsRelayEnabledTag, isRelayEnabled)
+    nbt.setNewTagList(NodeMappingTag, nodeMapping.map(buses =>
+      toNbt(buses.map(side => side.fold(-1)(_.ordinal())))))
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
 
-    val data = nbt.getTagList(Settings.namespace + "lastData", NBT.TAG_COMPOUND).
+    val data = nbt.getTagList(LastDataTag, NBT.TAG_COMPOUND).
       toArray[NBTTagCompound]
     data.copyToArray(lastData)
-    load(nbt.getCompoundTag(Settings.namespace + "rackData"))
+    load(nbt.getCompoundTag(RackDataTag))
     connectComponents()
   }
 
@@ -407,8 +412,8 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     super.writeToNBTForClient(nbt)
 
     val data = lastData.map(tag => if (tag == null) new NBTTagCompound() else tag)
-    nbt.setNewTagList(Settings.namespace + "lastData", data)
-    nbt.setNewCompoundTag(Settings.namespace + "rackData", save)
+    nbt.setNewTagList(LastDataTag, data)
+    nbt.setNewCompoundTag(RackDataTag, save)
   }
 
   // ----------------------------------------------------------------------- //

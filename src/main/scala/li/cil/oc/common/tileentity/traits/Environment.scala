@@ -83,17 +83,19 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   // ----------------------------------------------------------------------- //
 
+  private final val NodeTag = Settings.namespace + "node"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (node != null && node.host == this) {
-      node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+      node.load(nbt.getCompoundTag(NodeTag))
     }
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
     if (node != null && node.host == this) {
-      nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+      nbt.setNewCompoundTag(NodeTag, node.save)
     }
   }
 

@@ -113,6 +113,8 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   // ----------------------------------------------------------------------- //
 
+  private final val HeadPosTag = "headPos"
+
   override def load(nbt: NBTTagCompound) = this.synchronized {
     super.load(nbt)
 
@@ -133,7 +135,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
       case t: Throwable => OpenComputers.log.warn(s"Failed loading drive contents for '${node.address}'.", t)
     }
 
-    headPos = nbt.getInteger("headPos") max 0 min sectorToHeadPos(sectorCount)
+    headPos = nbt.getInteger(HeadPosTag) max 0 min sectorToHeadPos(sectorCount)
 
     if (label != null) {
       label.load(nbt)
@@ -156,7 +158,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
       case t: Throwable => OpenComputers.log.warn(s"Failed saving drive contents for '${node.address}'.", t)
     }
 
-    nbt.setInteger("headPos", headPos)
+    nbt.setInteger(HeadPosTag, headPos)
 
     if (label != null) {
       label.save(nbt)

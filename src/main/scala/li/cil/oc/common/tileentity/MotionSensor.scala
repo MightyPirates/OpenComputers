@@ -109,13 +109,15 @@ class MotionSensor extends traits.Environment {
 
   // ----------------------------------------------------------------------- //
 
+  private final val SensitivityTag = Settings.namespace + "sensitivity"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    sensitivity = nbt.getDouble(Settings.namespace + "sensitivity")
+    sensitivity = nbt.getDouble(SensitivityTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setDouble(Settings.namespace + "sensitivity", sensitivity)
+    nbt.setDouble(SensitivityTag, sensitivity)
   }
 }

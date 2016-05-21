@@ -143,17 +143,21 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   // ----------------------------------------------------------------------- //
 
+  private final val BlocksTag = Settings.namespace + "adapter.blocks"
+  private final val BlockNameTag = "name"
+  private final val BlockDataTag = "data"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
 
-    val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks", NBT.TAG_COMPOUND)
+    val blocksNbt = nbt.getTagList(BlocksTag, NBT.TAG_COMPOUND)
     (0 until (blocksNbt.tagCount min blocksData.length)).
       map(blocksNbt.getCompoundTagAt).
       zipWithIndex.
       foreach {
       case (blockNbt, i) =>
-        if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
-          blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
+        if (blockNbt.hasKey(BlockNameTag) && blockNbt.hasKey(BlockDataTag)) {
+          blocksData(i) = Some(new BlockData(blockNbt.getString(BlockNameTag), blockNbt.getCompoundTag(BlockDataTag)))
         }
     }
   }
@@ -170,13 +174,13 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
             case Some((environment, _)) => environment.save(data.data)
             case _ =>
           }
-          blockNbt.setString("name", data.name)
-          blockNbt.setTag("data", data.data)
+          blockNbt.setString(BlockNameTag, data.name)
+          blockNbt.setTag(BlockDataTag, data.data)
         case _ =>
       }
       blocksNbt.appendTag(blockNbt)
     }
-    nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
+    nbt.setTag(BlocksTag, blocksNbt)
   }
 
   // ----------------------------------------------------------------------- //

@@ -144,11 +144,13 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     def getLabel = label
 
+    private final val LabelTag = Settings.namespace + "fs.label"
+
     override def load(nbt: NBTTagCompound) {}
 
     override def save(nbt: NBTTagCompound) {
       if (label != null) {
-        nbt.setString(Settings.namespace + "fs.label", label)
+        nbt.setString(LabelTag, label)
       }
     }
   }

@@ -126,17 +126,21 @@ trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice
 
   // ----------------------------------------------------------------------- //
 
+  private final val WirelessFrequencyTag = "wirelessFrequency"
+  private final val WirelessInputTag = "wirelessInput"
+  private final val WirelessOutputTag = "wirelessOutput"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    wirelessFrequency = nbt.getInteger("wirelessFrequency")
-    wirelessInput = nbt.getBoolean("wirelessInput")
-    wirelessOutput = nbt.getBoolean("wirelessOutput")
+    wirelessFrequency = nbt.getInteger(WirelessFrequencyTag)
+    wirelessInput = nbt.getBoolean(WirelessInputTag)
+    wirelessOutput = nbt.getBoolean(WirelessOutputTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger("wirelessFrequency", wirelessFrequency)
-    nbt.setBoolean("wirelessInput", wirelessInput)
-    nbt.setBoolean("wirelessOutput", wirelessOutput)
+    nbt.setInteger(WirelessFrequencyTag, wirelessFrequency)
+    nbt.setBoolean(WirelessInputTag, wirelessInput)
+    nbt.setBoolean(WirelessOutputTag, wirelessOutput)
   }
 }

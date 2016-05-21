@@ -39,7 +39,7 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
       node.remove()
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
-      world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f, false)
+      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
       world.notifyNeighborsOfStateChange(getPos, getBlockType)
     }
     else {
@@ -74,7 +74,7 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f, false)
+        world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
       }
       else {
         world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
@@ -82,28 +82,33 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val IsInvertedTag = Settings.namespace + "isInverted"
+  private final val OpenSidesTag = Settings.namespace + "openSides"
+
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
-    isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
-    openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
+    isInverted = nbt.getBoolean(IsInvertedTag)
+    openSides = uncompressSides(nbt.getByte(OpenSidesTag))
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
-    nbt.setByte(Settings.namespace + "openSides", compressSides)
+    nbt.setBoolean(IsInvertedTag, isInverted)
+    nbt.setByte(OpenSidesTag, compressSides)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
-    isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
-    openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
+    isInverted = nbt.getBoolean(IsInvertedTag)
+    openSides = uncompressSides(nbt.getByte(OpenSidesTag))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
-    nbt.setByte(Settings.namespace + "openSides", compressSides)
+    nbt.setBoolean(IsInvertedTag, isInverted)
+    nbt.setByte(OpenSidesTag, compressSides)
   }
 }

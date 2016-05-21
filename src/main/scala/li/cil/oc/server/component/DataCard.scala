@@ -87,14 +87,16 @@ abstract class DataCard extends prefab.ManagedEnvironment {
     }
   }
 
+  private final val RomDataTag = "romData"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romData.foreach(_.load(nbt.getCompoundTag("romData")))
+    romData.foreach(_.load(nbt.getCompoundTag(RomDataTag)))
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romData.foreach(fs => nbt.setNewCompoundTag("romData", fs.save))
+    romData.foreach(fs => nbt.setNewCompoundTag(RomDataTag, fs.save))
   }
 }
 
@@ -318,15 +320,18 @@ object DataCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val TypeTag = "Type"
+    private final val DataTag = "Data"
+
     override def load(nbt: NBTTagCompound): Unit = {
-      val keyType = nbt.getString("Type")
-      val data = nbt.getByteArray("Data")
+      val keyType = nbt.getString(TypeTag)
+      val data = nbt.getByteArray(DataTag)
       value = ECUserdata.deserializeKey(keyType, data)
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString("Type", keyType)
-      nbt.setByteArray("Data", value.getEncoded)
+      nbt.setString(TypeTag, keyType)
+      nbt.setByteArray(DataTag, value.getEncoded)
     }
   }
 

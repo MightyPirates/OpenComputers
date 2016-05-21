@@ -34,7 +34,7 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEn
     val blockPos = hostPos.offset(side)
     if (!host.world.isAirBlock(blockPos) && node.tryChangeBuffer(-Settings.get.pistonCost) && Blocks.PISTON.doMove(host.world, hostPos.toBlockPos, side, true)) {
       host.world.setBlockToAir(blockPos)
-      host.world.playSound(host.xPosition, host.yPosition, host.zPosition, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, host.world.rand.nextFloat() * 0.25f + 0.6f, false)
+      host.world.playSound(null, host.xPosition, host.yPosition, host.zPosition, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, host.world.rand.nextFloat() * 0.25f + 0.6f)
       context.pause(0.5)
       result(true)
     }

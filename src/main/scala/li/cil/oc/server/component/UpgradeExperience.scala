@@ -94,14 +94,16 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     case _ =>
   }
 
+  private final val XpTag = Settings.namespace + "xp"
+
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble(Settings.namespace + "xp", experience)
+    nbt.setDouble(XpTag, experience)
   }
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    experience = nbt.getDouble(Settings.namespace + "xp") max 0
+    experience = nbt.getDouble(XpTag) max 0
     updateXpInfo()
   }
 }

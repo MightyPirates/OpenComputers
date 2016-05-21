@@ -132,6 +132,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
+  private final val ComputerTag = Settings.namespace + "computer"
+  private final val HasErroredTag = Settings.namespace + "hasErrored"
+  private final val IsRunningTag = Settings.namespace + "isRunning"
+  private final val UsersTag = Settings.namespace + "users"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     // God, this is so ugly... will need to rework the robot architecture.
@@ -141,7 +146,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       case proxy: RobotProxy => proxy.robot.setPos(getPos)
       case _ =>
     }
-    machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+    machine.load(nbt.getCompoundTag(ComputerTag))
 
     // Kickstart initialization to avoid values getting overwritten by
     // readFromNBTForClient if that packet is handled after a manual
@@ -154,25 +159,25 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     super.writeToNBTForServer(nbt)
     if (machine != null) {
       if (!Waila.isSavingForTooltip)
-        nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
+        nbt.setNewCompoundTag(ComputerTag, machine.save)
     }
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    hasErrored = nbt.getBoolean("hasErrored")
-    setRunning(nbt.getBoolean("isRunning"))
+    hasErrored = nbt.getBoolean(HasErroredTag)
+    setRunning(nbt.getBoolean(IsRunningTag))
     _users.clear()
-    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
+    _users ++= nbt.getTagList(UsersTag, NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
     if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("hasErrored", machine != null && machine.lastError != null)
-    nbt.setBoolean("isRunning", isRunning)
-    nbt.setNewTagList("users", machine.users.map(user => new NBTTagString(user)))
+    nbt.setBoolean(HasErroredTag, machine != null && machine.lastError != null)
+    nbt.setBoolean(IsRunningTag, isRunning)
+    nbt.setNewTagList(UsersTag, machine.users.map(user => new NBTTagString(user)))
   }
 
   // ----------------------------------------------------------------------- //

@@ -21,36 +21,45 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
   var tier = Tier.One
   var container: Option[ItemStack] = None
 
+  private final val ItemsTag = Settings.namespace + "items"
+  private final val SlotTag = "slot"
+  private final val ItemTag = "item"
+  private final val IsRunningTag = Settings.namespace + "isRunning"
+  private final val EnergyTag = Settings.namespace + "energy"
+  private final val MaxEnergyTag = Settings.namespace + "maxEnergy"
+  private final val TierTag = Settings.namespace + "tier"
+  private final val ContainerTag = Settings.namespace + "container"
+
   override def load(nbt: NBTTagCompound) {
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
-      val slot = slotNbt.getByte("slot")
+    nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
+      val slot = slotNbt.getByte(SlotTag)
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag(ItemTag)))
       }
     })
-    isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
-    energy = nbt.getDouble(Settings.namespace + "energy")
-    maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
-    tier = nbt.getInteger(Settings.namespace + "tier")
-    if (nbt.hasKey(Settings.namespace + "container")) {
-      container = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "container")))
+    isRunning = nbt.getBoolean(IsRunningTag)
+    energy = nbt.getDouble(EnergyTag)
+    maxEnergy = nbt.getDouble(MaxEnergyTag)
+    tier = nbt.getInteger(TierTag)
+    if (nbt.hasKey(ContainerTag)) {
+      container = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(ContainerTag)))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setNewTagList(Settings.namespace + "items",
+    nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
       } map {
         case (stack, slot) =>
           val slotNbt = new NBTTagCompound()
-          slotNbt.setByte("slot", slot.toByte)
-          slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+          slotNbt.setByte(SlotTag, slot.toByte)
+          slotNbt.setNewCompoundTag(ItemTag, stack.writeToNBT)
       })
-    nbt.setBoolean(Settings.namespace + "isRunning", isRunning)
-    nbt.setDouble(Settings.namespace + "energy", energy)
-    nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
-    nbt.setInteger(Settings.namespace + "tier", tier)
-    container.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "container", stack.writeToNBT))
+    nbt.setBoolean(IsRunningTag, isRunning)
+    nbt.setDouble(EnergyTag, energy)
+    nbt.setDouble(MaxEnergyTag, maxEnergy)
+    nbt.setInteger(TierTag, tier)
+    container.foreach(stack => nbt.setNewCompoundTag(ContainerTag, stack.writeToNBT))
   }
 }

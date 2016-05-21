@@ -2,6 +2,14 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
+import _root_.net.minecraft.entity.player.EntityPlayer
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.nbt.NBTTagCompound
+import _root_.net.minecraft.util.EnumFacing
+import _root_.net.minecraft.util.EnumParticleTypes
+import _root_.net.minecraft.util.math.Vec3d
+import _root_.net.minecraftforge.fml.relauncher.Side
+import _root_.net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -14,14 +22,6 @@ import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumParticleTypes
-import net.minecraft.util.math.Vec3d
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -131,31 +131,47 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
+  private final val ChargeSpeedTag = Settings.namespace + "chargeSpeed"
+  private final val ChargeSpeedTagCompat = "chargeSpeed"
+  private final val HasPowerTag = Settings.namespace + "hasPower"
+  private final val HasPowerTagCompat = "hasPower"
+  private final val InvertSignalTag = Settings.namespace + "invertSignal"
+  private final val InvertSignalTagCompat = "invertSignal"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    chargeSpeed = nbt.getDouble("chargeSpeed") max 0 min 1
-    hasPower = nbt.getBoolean("hasPower")
-    invertSignal = nbt.getBoolean("invertSignal")
+    if (nbt.hasKey(ChargeSpeedTagCompat))
+      chargeSpeed = nbt.getDouble(ChargeSpeedTagCompat) max 0 min 1
+    else
+      chargeSpeed = nbt.getDouble(ChargeSpeedTag) max 0 min 1
+    if (nbt.hasKey(HasPowerTagCompat))
+      hasPower = nbt.getBoolean(HasPowerTagCompat)
+    else
+      hasPower = nbt.getBoolean(HasPowerTag)
+    if (nbt.hasKey(InvertSignalTagCompat))
+      invertSignal = nbt.getBoolean(InvertSignalTagCompat)
+    else
+      invertSignal = nbt.getBoolean(InvertSignalTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setDouble("chargeSpeed", chargeSpeed)
-    nbt.setBoolean("hasPower", hasPower)
-    nbt.setBoolean("invertSignal", invertSignal)
+    nbt.setDouble(ChargeSpeedTag, chargeSpeed)
+    nbt.setBoolean(HasPowerTag, hasPower)
+    nbt.setBoolean(InvertSignalTag, invertSignal)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    chargeSpeed = nbt.getDouble("chargeSpeed")
-    hasPower = nbt.getBoolean("hasPower")
+    chargeSpeed = nbt.getDouble(ChargeSpeedTag)
+    hasPower = nbt.getBoolean(HasPowerTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setDouble("chargeSpeed", chargeSpeed)
-    nbt.setBoolean("hasPower", hasPower)
+    nbt.setDouble(ChargeSpeedTag, chargeSpeed)
+    nbt.setBoolean(HasPowerTag, hasPower)
   }
 
   // ----------------------------------------------------------------------- //

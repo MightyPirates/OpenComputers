@@ -97,20 +97,27 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val PlugsTag = Settings.namespace + "plugs"
+  private final val QueueTag = Settings.namespace + "queue"
+  private final val SideTag = "side"
+  private final val RelayCooldownTag = Settings.namespace + "relayCooldown"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    nbt.getTagList(PlugsTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => plugs(index).node.load(tag)
     }
-    nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach(
+    nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).foreach(
       (tag: NBTTagCompound) => {
-        val side = tag.getDirection("side")
+        val side = tag.getDirection(SideTag)
         val packet = api.Network.newPacket(tag)
         queue += side -> packet
       })
-    if (nbt.hasKey(Settings.namespace + "relayCooldown")) {
-      relayCooldown = nbt.getInteger(Settings.namespace + "relayCooldown")
+    if (nbt.hasKey(RelayCooldownTag)) {
+      relayCooldown = nbt.getInteger(RelayCooldownTag)
     }
   }
 
@@ -118,20 +125,20 @@ trait Hub extends traits.Environment with SidedEnvironment {
     super.writeToNBTForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
-      nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
+      nbt.setNewTagList(PlugsTag, plugs.map(plug => {
         val plugNbt = new NBTTagCompound()
         plug.node.save(plugNbt)
         plugNbt
       }))
-      nbt.setNewTagList(Settings.namespace + "queue", queue.map {
+      nbt.setNewTagList(QueueTag, queue.map {
         case (sourceSide, packet) =>
           val tag = new NBTTagCompound()
-          tag.setDirection("side", sourceSide)
+          tag.setDirection(SideTag, sourceSide)
           packet.save(tag)
           tag
       })
       if (relayCooldown > 0) {
-        nbt.setInteger(Settings.namespace + "relayCooldown", relayCooldown)
+        nbt.setInteger(RelayCooldownTag, relayCooldown)
       }
     }
   }

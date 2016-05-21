@@ -62,14 +62,18 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val TierTag = Settings.namespace + "tier"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
+    tier = nbt.getByte(TierTag) max 0 min 3
     setColor(Color.rgbValues(Color.byTier(tier)))
     super.readFromNBTForServer(nbt)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
-    nbt.setByte(Settings.namespace + "tier", tier.toByte)
+    nbt.setByte(TierTag, tier.toByte)
     super.writeToNBTForServer(nbt)
   }
 

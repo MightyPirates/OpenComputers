@@ -60,24 +60,26 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
 
   // ----------------------------------------------------------------------- //
 
+  private final val LabelTag = Settings.namespace + "label"
+
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
-    label = nbt.getString(Settings.namespace + "label")
+    label = nbt.getString(LabelTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    nbt.setString(Settings.namespace + "label", label)
+    nbt.setString(LabelTag, label)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
-    label = nbt.getString(Settings.namespace + "label")
+    label = nbt.getString(LabelTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
-    nbt.setString(Settings.namespace + "label", label)
+    nbt.setString(LabelTag, label)
   }
 }

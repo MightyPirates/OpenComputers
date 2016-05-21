@@ -126,32 +126,37 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   // ----------------------------------------------------------------------- //
 
+  private final val QueueTag = Settings.namespace + "queue"
+  private final val BufferTag = Settings.namespace + "buffer"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val IsActiveTag = Settings.namespace + "isActive"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     queue.clear()
-    queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
+    queue ++= nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).
       map((tag: NBTTagCompound) => ItemStack.loadItemStackFromNBT(tag))
-    buffer = nbt.getDouble(Settings.namespace + "buffer")
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
+    buffer = nbt.getDouble(BufferTag)
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
     isActive = queue.nonEmpty
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setNewTagList(Settings.namespace + "queue", queue)
-    nbt.setDouble(Settings.namespace + "buffer", buffer)
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
+    nbt.setNewTagList(QueueTag, queue)
+    nbt.setDouble(BufferTag, buffer)
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isActive = nbt.getBoolean("isActive")
+    isActive = nbt.getBoolean(IsActiveTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("isActive", isActive)
+    nbt.setBoolean(IsActiveTag, isActive)
   }
 
   // ----------------------------------------------------------------------- //

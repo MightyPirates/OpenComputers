@@ -133,14 +133,16 @@ class InternetCard extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  private final val RomInternetTag = "romInternet"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romInternet.foreach(_.load(nbt.getCompoundTag("romInternet")))
+    romInternet.foreach(_.load(nbt.getCompoundTag(RomInternetTag)))
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romInternet.foreach(fs => nbt.setNewCompoundTag("romInternet", fs.save))
+    romInternet.foreach(fs => nbt.setNewCompoundTag(RomInternetTag, fs.save))
   }
 
   // ----------------------------------------------------------------------- //

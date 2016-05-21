@@ -437,87 +437,105 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   // ----------------------------------------------------------------------- //
 
+  private def dataPath = node.address + "_data"
+  private final val TierTag = Settings.namespace + "tier"
+  private final val VolumeTag = "volume"
+  private final val ColorsTag = "colors"
+  private final val ScaleTag = Settings.namespace + "scale"
+  private final val OffsetXTag = Settings.namespace + "offsetX"
+  private final val OffsetYTag = Settings.namespace + "offsetY"
+  private final val OffsetZTag = Settings.namespace + "offsetZ"
+  private final val RotationAngleTag = Settings.namespace + "rotationAngle"
+  private final val RotationXTag = Settings.namespace + "rotationX"
+  private final val RotationYTag = Settings.namespace + "rotationY"
+  private final val RotationZTag = Settings.namespace + "rotationZ"
+  private final val RotationSpeedTag = Settings.namespace + "rotationSpeed"
+  private final val RotationSpeedXTag = Settings.namespace + "rotationSpeedX"
+  private final val RotationSpeedYTag = Settings.namespace + "rotationSpeedY"
+  private final val RotationSpeedZTag = Settings.namespace + "rotationSpeedZ"
+  private final val HasPowerTag = Settings.namespace + "hasPower"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
+    tier = nbt.getByte(TierTag) max 0 min 1
     super.readFromNBTForServer(nbt)
-    val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
-    tag.getIntArray("volume").copyToArray(volume)
-    tag.getIntArray("colors").map(convertColor).copyToArray(colors)
-    scale = nbt.getDouble(Settings.namespace + "scale")
-    val tx = nbt.getDouble(Settings.namespace + "offsetX")
-    val ty = nbt.getDouble(Settings.namespace + "offsetY")
-    val tz = nbt.getDouble(Settings.namespace + "offsetZ")
+    val tag = SaveHandler.loadNBT(nbt, dataPath)
+    tag.getIntArray(VolumeTag).copyToArray(volume)
+    tag.getIntArray(ColorsTag).map(convertColor).copyToArray(colors)
+    scale = nbt.getDouble(ScaleTag)
+    val tx = nbt.getDouble(OffsetXTag)
+    val ty = nbt.getDouble(OffsetYTag)
+    val tz = nbt.getDouble(OffsetZTag)
     translation = new Vec3d(tx, ty, tz)
-    rotationAngle = nbt.getFloat(Settings.namespace + "rotationAngle")
-    rotationX = nbt.getFloat(Settings.namespace + "rotationX")
-    rotationY = nbt.getFloat(Settings.namespace + "rotationY")
-    rotationZ = nbt.getFloat(Settings.namespace + "rotationZ")
-    rotationSpeed = nbt.getFloat(Settings.namespace + "rotationSpeed")
-    rotationSpeedX = nbt.getFloat(Settings.namespace + "rotationSpeedX")
-    rotationSpeedY = nbt.getFloat(Settings.namespace + "rotationSpeedY")
-    rotationSpeedZ = nbt.getFloat(Settings.namespace + "rotationSpeedZ")
+    rotationAngle = nbt.getFloat(RotationAngleTag)
+    rotationX = nbt.getFloat(RotationXTag)
+    rotationY = nbt.getFloat(RotationYTag)
+    rotationZ = nbt.getFloat(RotationZTag)
+    rotationSpeed = nbt.getFloat(RotationSpeedTag)
+    rotationSpeedX = nbt.getFloat(RotationSpeedXTag)
+    rotationSpeedY = nbt.getFloat(RotationSpeedYTag)
+    rotationSpeedZ = nbt.getFloat(RotationSpeedZTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) = this.synchronized {
-    nbt.setByte(Settings.namespace + "tier", tier.toByte)
+    nbt.setByte(TierTag, tier.toByte)
     super.writeToNBTForServer(nbt)
     if (!Waila.isSavingForTooltip) {
-      SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
-        tag.setIntArray("volume", volume)
-        tag.setIntArray("colors", colors.map(convertColor))
+      SaveHandler.scheduleSave(world, x, z, nbt, dataPath, tag => {
+        tag.setIntArray(VolumeTag, volume)
+        tag.setIntArray(ColorsTag, colors.map(convertColor))
       })
     }
-    nbt.setDouble(Settings.namespace + "scale", scale)
-    nbt.setDouble(Settings.namespace + "offsetX", translation.xCoord)
-    nbt.setDouble(Settings.namespace + "offsetY", translation.yCoord)
-    nbt.setDouble(Settings.namespace + "offsetZ", translation.zCoord)
-    nbt.setFloat(Settings.namespace + "rotationAngle", rotationAngle)
-    nbt.setFloat(Settings.namespace + "rotationX", rotationX)
-    nbt.setFloat(Settings.namespace + "rotationY", rotationY)
-    nbt.setFloat(Settings.namespace + "rotationZ", rotationZ)
-    nbt.setFloat(Settings.namespace + "rotationSpeed", rotationSpeed)
-    nbt.setFloat(Settings.namespace + "rotationSpeedX", rotationSpeedX)
-    nbt.setFloat(Settings.namespace + "rotationSpeedY", rotationSpeedY)
-    nbt.setFloat(Settings.namespace + "rotationSpeedZ", rotationSpeedZ)
+    nbt.setDouble(ScaleTag, scale)
+    nbt.setDouble(OffsetXTag, translation.xCoord)
+    nbt.setDouble(OffsetYTag, translation.yCoord)
+    nbt.setDouble(OffsetZTag, translation.zCoord)
+    nbt.setFloat(RotationAngleTag, rotationAngle)
+    nbt.setFloat(RotationXTag, rotationX)
+    nbt.setFloat(RotationYTag, rotationY)
+    nbt.setFloat(RotationZTag, rotationZ)
+    nbt.setFloat(RotationSpeedTag, rotationSpeed)
+    nbt.setFloat(RotationSpeedXTag, rotationSpeedX)
+    nbt.setFloat(RotationSpeedYTag, rotationSpeedY)
+    nbt.setFloat(RotationSpeedZTag, rotationSpeedZ)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    nbt.getIntArray("volume").copyToArray(volume)
-    nbt.getIntArray("colors").copyToArray(colors)
-    scale = nbt.getDouble("scale")
-    hasPower = nbt.getBoolean("hasPower")
-    val tx = nbt.getDouble("offsetX")
-    val ty = nbt.getDouble("offsetY")
-    val tz = nbt.getDouble("offsetZ")
+    nbt.getIntArray(VolumeTag).copyToArray(volume)
+    nbt.getIntArray(ColorsTag).copyToArray(colors)
+    scale = nbt.getDouble(ScaleTag)
+    hasPower = nbt.getBoolean(HasPowerTag)
+    val tx = nbt.getDouble(OffsetXTag)
+    val ty = nbt.getDouble(OffsetYTag)
+    val tz = nbt.getDouble(OffsetZTag)
     translation = new Vec3d(tx, ty, tz)
-    rotationAngle = nbt.getFloat("rotationAngle")
-    rotationX = nbt.getFloat("rotationX")
-    rotationY = nbt.getFloat("rotationY")
-    rotationZ = nbt.getFloat("rotationZ")
-    rotationSpeed = nbt.getFloat("rotationSpeed")
-    rotationSpeedX = nbt.getFloat("rotationSpeedX")
-    rotationSpeedY = nbt.getFloat("rotationSpeedY")
-    rotationSpeedZ = nbt.getFloat("rotationSpeedZ")
+    rotationAngle = nbt.getFloat(RotationAngleTag)
+    rotationX = nbt.getFloat(RotationXTag)
+    rotationY = nbt.getFloat(RotationYTag)
+    rotationZ = nbt.getFloat(RotationZTag)
+    rotationSpeed = nbt.getFloat(RotationSpeedTag)
+    rotationSpeedX = nbt.getFloat(RotationSpeedXTag)
+    rotationSpeedY = nbt.getFloat(RotationSpeedYTag)
+    rotationSpeedZ = nbt.getFloat(RotationSpeedZTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setIntArray("volume", volume)
-    nbt.setIntArray("colors", colors)
-    nbt.setDouble("scale", scale)
-    nbt.setBoolean("hasPower", hasPower)
-    nbt.setDouble("offsetX", translation.xCoord)
-    nbt.setDouble("offsetY", translation.yCoord)
-    nbt.setDouble("offsetZ", translation.zCoord)
-    nbt.setFloat("rotationAngle", rotationAngle)
-    nbt.setFloat("rotationX", rotationX)
-    nbt.setFloat("rotationY", rotationY)
-    nbt.setFloat("rotationZ", rotationZ)
-    nbt.setFloat("rotationSpeed", rotationSpeed)
-    nbt.setFloat("rotationSpeedX", rotationSpeedX)
-    nbt.setFloat("rotationSpeedY", rotationSpeedY)
-    nbt.setFloat("rotationSpeedZ", rotationSpeedZ)
+    nbt.setIntArray(VolumeTag, volume)
+    nbt.setIntArray(ColorsTag, colors)
+    nbt.setDouble(ScaleTag, scale)
+    nbt.setBoolean(HasPowerTag, hasPower)
+    nbt.setDouble(OffsetXTag, translation.xCoord)
+    nbt.setDouble(OffsetYTag, translation.yCoord)
+    nbt.setDouble(OffsetZTag, translation.zCoord)
+    nbt.setFloat(RotationAngleTag, rotationAngle)
+    nbt.setFloat(RotationXTag, rotationX)
+    nbt.setFloat(RotationYTag, rotationY)
+    nbt.setFloat(RotationZTag, rotationZ)
+    nbt.setFloat(RotationSpeedTag, rotationSpeed)
+    nbt.setFloat(RotationSpeedXTag, rotationSpeedX)
+    nbt.setFloat(RotationSpeedYTag, rotationSpeedY)
+    nbt.setFloat(RotationSpeedZTag, rotationSpeedZ)
   }
 }

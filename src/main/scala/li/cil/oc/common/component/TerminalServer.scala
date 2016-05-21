@@ -147,21 +147,25 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // Persistable
 
+  private final val BufferTag = Settings.namespace + "buffer"
+  private final val KeyboardTag = Settings.namespace + "keyboard"
+  private final val KeysTag = Settings.namespace + "keys"
+
   override def load(nbt: NBTTagCompound): Unit = {
     if (!rack.world.isRemote) {
       node.load(nbt)
     }
-    buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
-    keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
+    buffer.load(nbt.getCompoundTag(BufferTag))
+    keyboard.load(nbt.getCompoundTag(KeyboardTag))
     keys.clear()
-    nbt.getTagList(Settings.namespace + "keys", NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.getString)
+    nbt.getTagList(KeysTag, NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.getString)
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     node.save(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
-    nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
-    nbt.setNewTagList(Settings.namespace + "keys", keys)
+    nbt.setNewCompoundTag(BufferTag, buffer.save)
+    nbt.setNewCompoundTag(KeyboardTag, keyboard.save)
+    nbt.setNewTagList(KeysTag, keys)
   }
 
   // ----------------------------------------------------------------------- //

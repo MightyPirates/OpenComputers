@@ -131,9 +131,11 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
 
   protected def onRedstoneOutputEnabledChanged() {
-    world.notifyNeighborsOfStateChange(getPos, getBlockType)
-    if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    if (world != null) {
+      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      if (isServer) ServerPacketSender.sendRedstoneState(this)
+      else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    }
   }
 
   protected def onRedstoneOutputChanged(side: EnumFacing) {

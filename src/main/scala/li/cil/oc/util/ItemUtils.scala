@@ -27,6 +27,22 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemUtils {
+  def getDisplayName(nbt: NBTTagCompound): Option[String] = {
+    if (nbt.hasKey("display")) {
+      val displayNbt = nbt.getCompoundTag("display")
+      if (displayNbt.hasKey("Name"))
+        return Option(displayNbt.getString("Name"))
+    }
+    None
+  }
+
+  def setDisplayName(nbt: NBTTagCompound, name: String): Unit = {
+    if (!nbt.hasKey("display")) {
+      nbt.setTag("display", new NBTTagCompound())
+    }
+    nbt.getCompoundTag("display").setString("Name", name)
+  }
+
   def caseTier(stack: ItemStack) = {
     val descriptor = api.Items.get(stack)
     if (descriptor == api.Items.get(Constants.BlockName.CaseTier1)) Tier.One

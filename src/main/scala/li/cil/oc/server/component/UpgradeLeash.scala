@@ -71,9 +71,11 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     leashedEntities.clear()
   }
 
+  private final val LeashedEntitiesTag = "leashedEntities"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    leashedEntities ++= nbt.getTagList("leashedEntities", NBT.TAG_STRING).
+    leashedEntities ++= nbt.getTagList(LeashedEntitiesTag, NBT.TAG_STRING).
       map((s: NBTTagString) => UUID.fromString(s.getString))
     // Re-acquire leashed entities. Need to do this manually because leashed
     // entities only remember their leashee if it's an EntityLivingBase...
@@ -95,6 +97,6 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setNewTagList("leashedEntities", leashedEntities.map(_.toString))
+    nbt.setNewTagList(LeashedEntitiesTag, leashedEntities.map(_.toString))
   }
 }

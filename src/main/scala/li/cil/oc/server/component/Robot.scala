@@ -134,13 +134,15 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
+  private final val RomRobotTag = "romRobot"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romRobot.foreach(_.load(nbt.getCompoundTag("romRobot")))
+    romRobot.foreach(_.load(nbt.getCompoundTag(RomRobotTag)))
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romRobot.foreach(fs => nbt.setNewCompoundTag("romRobot", fs.save))
+    romRobot.foreach(fs => nbt.setNewCompoundTag(RomRobotTag, fs.save))
   }
 }

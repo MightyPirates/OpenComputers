@@ -304,14 +304,16 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val NameTag = "name"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      name = nbt.getString("name")
+      name = nbt.getString(NameTag)
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setString("name", name)
+      nbt.setString(NameTag, name)
     }
   }
 
@@ -396,7 +398,7 @@ object DebugCard {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val sound = args.checkString(3)
       val range = args.checkInteger(4)
-      world.playSound(x, y, z, new SoundEvent(new ResourceLocation(sound)), SoundCategory.MASTER, range / 15 + 0.5F, 1.0F, false)
+      world.playSound(null, x, y, z, new SoundEvent(new ResourceLocation(sound)), SoundCategory.MASTER, range / 15 + 0.5F, 1.0F)
       null
     }
 
@@ -568,14 +570,16 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val DimensionTag = "dimension"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      world = DimensionManager.getWorld(nbt.getInteger("dimension"))
+      world = DimensionManager.getWorld(nbt.getInteger(DimensionTag))
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setInteger("dimension", world.provider.getDimension)
+      nbt.setInteger(DimensionTag, world.provider.getDimension)
     }
   }
 
@@ -644,14 +648,16 @@ object DebugCard {
       OpenComputers.log.info("TestValue.dispose()")
     }
 
+    private final val ValueTag = "value"
+
     override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
-      value = nbt.getString("value")
+      value = nbt.getString(ValueTag)
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
-      nbt.setString("value", value)
+      nbt.setString(ValueTag, value)
     }
   }
 

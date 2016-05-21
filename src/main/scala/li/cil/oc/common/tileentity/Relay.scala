@@ -250,19 +250,23 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   // ----------------------------------------------------------------------- //
 
+  private final val StrengthTag = Settings.namespace + "strength"
+  private final val IsRepeaterTag = Settings.namespace + "isRepeater"
+  private final val ComponentNodesTag = Settings.namespace + "componentNodes"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     for (slot <- items.indices) items(slot) collect {
       case stack => updateLimits(slot, stack)
     }
 
-    if (nbt.hasKey(Settings.namespace + "strength")) {
-      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
+    if (nbt.hasKey(StrengthTag)) {
+      strength = nbt.getDouble(StrengthTag) max 0 min Settings.get.maxWirelessRange
     }
-    if (nbt.hasKey(Settings.namespace + "isRepeater")) {
-      isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")
+    if (nbt.hasKey(IsRepeaterTag)) {
+      isRepeater = nbt.getBoolean(IsRepeaterTag)
     }
-    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    nbt.getTagList(ComponentNodesTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => componentNodes(index).load(tag)
     }
@@ -270,9 +274,9 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   override def writeToNBTForServer(nbt: NBTTagCompound) = {
     super.writeToNBTForServer(nbt)
-    nbt.setDouble(Settings.namespace + "strength", strength)
-    nbt.setBoolean(Settings.namespace + "isRepeater", isRepeater)
-    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+    nbt.setDouble(StrengthTag, strength)
+    nbt.setBoolean(IsRepeaterTag, isRepeater)
+    nbt.setNewTagList(ComponentNodesTag, componentNodes.map {
       case node: Node =>
         val tag = new NBTTagCompound()
         node.save(tag)

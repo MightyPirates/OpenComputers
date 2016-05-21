@@ -59,37 +59,50 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
   private var opacity_ = 0f
   private var opacityDirty = true
 
+  private final val LabelTag = "label"
+  private final val TooltipTag = "tooltip"
+  private final val IsButtonModeTag = "isButtonMode"
+  private final val RedstoneLevelTag = "redstoneLevel"
+  private final val RedstoneLevelTagCompat = "emitRedstone"
+  private final val PressurePlateTag = "pressurePlate"
+  private final val StateOffTag = "stateOff"
+  private final val StateOnTag = "stateOn"
+  private final val IsBeaconBaseTag = "isBeaconBase"
+  private final val LightLevelTag = "lightLevel"
+  private final val NoclipOffTag = "noclipOff"
+  private final val NoclipOnTag = "noclipOn"
+
   override def load(nbt: NBTTagCompound): Unit = {
-    if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
-    if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip")) else tooltip = None
-    isButtonMode = nbt.getBoolean("isButtonMode")
-    redstoneLevel = nbt.getInteger("redstoneLevel") max 0 min 15
-    if (nbt.getBoolean("emitRedstone")) redstoneLevel = 15
-    pressurePlate = nbt.getBoolean("pressurePlate")
+    if (nbt.hasKey(LabelTag)) label = Option(nbt.getString(LabelTag)) else label = None
+    if (nbt.hasKey(TooltipTag)) tooltip = Option(nbt.getString(TooltipTag)) else tooltip = None
+    isButtonMode = nbt.getBoolean(IsButtonModeTag)
+    redstoneLevel = nbt.getInteger(RedstoneLevelTag) max 0 min 15
+    if (nbt.getBoolean(RedstoneLevelTagCompat)) redstoneLevel = 15
+    pressurePlate = nbt.getBoolean(PressurePlateTag)
     stateOff.clear()
-    stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    stateOff ++= nbt.getTagList(StateOffTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
-    stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
-    isBeaconBase = nbt.getBoolean("isBeaconBase")
-    lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min 15
-    noclipOff = nbt.getBoolean("noclipOff")
-    noclipOn = nbt.getBoolean("noclipOn")
+    stateOn ++= nbt.getTagList(StateOnTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    isBeaconBase = nbt.getBoolean(IsBeaconBaseTag)
+    lightLevel = (nbt.getByte(LightLevelTag) & 0xFF) max 0 min 15
+    noclipOff = nbt.getBoolean(NoclipOffTag)
+    noclipOn = nbt.getBoolean(NoclipOnTag)
 
     opacityDirty = true
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
-    label.foreach(nbt.setString("label", _))
-    tooltip.foreach(nbt.setString("tooltip", _))
-    nbt.setBoolean("isButtonMode", isButtonMode)
-    nbt.setInteger("redstoneLevel", redstoneLevel)
-    nbt.setBoolean("pressurePlate", pressurePlate)
-    nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))
-    nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
-    nbt.setBoolean("isBeaconBase", isBeaconBase)
-    nbt.setByte("lightLevel", lightLevel.toByte)
-    nbt.setBoolean("noclipOff", noclipOff)
-    nbt.setBoolean("noclipOn", noclipOn)
+    label.foreach(nbt.setString(LabelTag, _))
+    tooltip.foreach(nbt.setString(TooltipTag, _))
+    nbt.setBoolean(IsButtonModeTag, isButtonMode)
+    nbt.setInteger(RedstoneLevelTag, redstoneLevel)
+    nbt.setBoolean(PressurePlateTag, pressurePlate)
+    nbt.setNewTagList(StateOffTag, stateOff.map(PrintData.shapeToNBT))
+    nbt.setNewTagList(StateOnTag, stateOn.map(PrintData.shapeToNBT))
+    nbt.setBoolean(IsBeaconBaseTag, isBeaconBase)
+    nbt.setByte(LightLevelTag, lightLevel.toByte)
+    nbt.setBoolean(NoclipOffTag, noclipOff)
+    nbt.setBoolean(NoclipOnTag, noclipOn)
   }
 }
 

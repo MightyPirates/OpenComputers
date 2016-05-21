@@ -23,10 +23,13 @@ class NanomachineData extends ItemData(Constants.ItemName.Nanomachines) {
   var uuid = ""
   var configuration: Option[NBTTagCompound] = None
 
+  private final val UUIDTag = Settings.namespace + "uuid"
+  private final val ConfigurationTag = Settings.namespace + "configuration"
+
   override def load(nbt: NBTTagCompound): Unit = {
-    uuid = nbt.getString(Settings.namespace + "uuid")
-    if (nbt.hasKey(Settings.namespace + "configuration")) {
-      configuration = Option(nbt.getCompoundTag(Settings.namespace + "configuration"))
+    uuid = nbt.getString(UUIDTag)
+    if (nbt.hasKey(ConfigurationTag)) {
+      configuration = Option(nbt.getCompoundTag(ConfigurationTag))
     }
     else {
       configuration = None
@@ -34,7 +37,7 @@ class NanomachineData extends ItemData(Constants.ItemName.Nanomachines) {
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
-    nbt.setString(Settings.namespace + "uuid", uuid)
-    configuration.foreach(nbt.setTag(Settings.namespace + "configuration", _))
+    nbt.setString(UUIDTag, uuid)
+    configuration.foreach(nbt.setTag(ConfigurationTag, _))
   }
 }

@@ -182,16 +182,21 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // ----------------------------------------------------------------------- //
 
+  private final val InfoTag = Settings.namespace + "info"
+  private final val OutputsTag = Settings.namespace + "outputs"
+  private final val ComponentNodesTag = Settings.namespace + "componentNodes"
+  private final val SnooperTag = Settings.namespace + "snooper"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     // Load info before inventory and such, to avoid initializing components
     // to empty inventory.
-    info.load(nbt.getCompoundTag(Settings.namespace + "info"))
-    nbt.getBooleanArray(Settings.namespace + "outputs")
-    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    info.load(nbt.getCompoundTag(InfoTag))
+    nbt.getBooleanArray(OutputsTag)
+    nbt.getTagList(ComponentNodesTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => componentNodes(index).load(tag)
     }
-    snooperNode.load(nbt.getCompoundTag(Settings.namespace + "snooper"))
+    snooperNode.load(nbt.getCompoundTag(SnooperTag))
     super.readFromNBTForServer(nbt)
     api.Network.joinNewNetwork(machine.node)
     machine.node.connect(snooperNode)
@@ -199,30 +204,30 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "info", info.save)
-    nbt.setBooleanArray(Settings.namespace + "outputs", outputSides)
-    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+    nbt.setNewCompoundTag(InfoTag, info.save)
+    nbt.setBooleanArray(OutputsTag, outputSides)
+    nbt.setNewTagList(ComponentNodesTag, componentNodes.map {
       case node: Node =>
         val tag = new NBTTagCompound()
         node.save(tag)
         tag
       case _ => new NBTTagCompound()
     })
-    nbt.setNewCompoundTag(Settings.namespace + "snooper", snooperNode.save)
+    nbt.setNewCompoundTag(SnooperTag, snooperNode.save)
   }
-
-  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
-    info.load(nbt.getCompoundTag("info"))
+    info.load(nbt.getCompoundTag(InfoTag))
     super.readFromNBTForClient(nbt)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setNewCompoundTag("info", info.save)
+    nbt.setNewCompoundTag(InfoTag, info.save)
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def items = info.components.map(Option(_))
 

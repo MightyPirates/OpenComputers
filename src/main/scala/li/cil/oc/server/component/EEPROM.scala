@@ -94,21 +94,26 @@ class EEPROM extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  private final val EEPROMTag = Settings.namespace + "eeprom"
+  private final val LabelTag = Settings.namespace + "label"
+  private final val ReadonlyTag = Settings.namespace + "readonly"
+  private final val UserdataTag = Settings.namespace + "userdata"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    codeData = nbt.getByteArray(Settings.namespace + "eeprom")
-    if (nbt.hasKey(Settings.namespace + "label")) {
-      label = nbt.getString(Settings.namespace + "label")
+    codeData = nbt.getByteArray(EEPROMTag)
+    if (nbt.hasKey(LabelTag)) {
+      label = nbt.getString(LabelTag)
     }
-    readonly = nbt.getBoolean(Settings.namespace + "readonly")
-    volatileData = nbt.getByteArray(Settings.namespace + "userdata")
+    readonly = nbt.getBoolean(ReadonlyTag)
+    volatileData = nbt.getByteArray(UserdataTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setByteArray(Settings.namespace + "eeprom", codeData)
-    nbt.setString(Settings.namespace + "label", label)
-    nbt.setBoolean(Settings.namespace + "readonly", readonly)
-    nbt.setByteArray(Settings.namespace + "userdata", volatileData)
+    nbt.setByteArray(EEPROMTag, codeData)
+    nbt.setString(LabelTag, label)
+    nbt.setBoolean(ReadonlyTag, readonly)
+    nbt.setByteArray(UserdataTag, volatileData)
   }
 }

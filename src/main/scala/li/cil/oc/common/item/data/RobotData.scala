@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -51,38 +52,40 @@ class RobotData extends ItemData(Constants.BlockName.Robot) {
 
   var lightColor = 0xF23030
 
+  private final val StoredEnergyTag = Settings.namespace + "storedEnergy"
+  private final val RobotEnergyTag = Settings.namespace + "robotEnergy"
+  private final val TierTag = Settings.namespace + "tier"
+  private final val ComponentsTag = Settings.namespace + "components"
+  private final val ContainersTag = Settings.namespace + "containers"
+  private final val LightColorTag = Settings.namespace + "lightColor"
+
   override def load(nbt: NBTTagCompound) {
-    if (nbt.hasKey("display") && nbt.getCompoundTag("display").hasKey("Name")) {
-      name = nbt.getCompoundTag("display").getString("Name")
-    }
+    name = ItemUtils.getDisplayName(nbt).getOrElse("")
     if (Strings.isNullOrEmpty(name)) {
       name = RobotData.randomName
     }
-    totalEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
-    robotEnergy = nbt.getInteger(Settings.namespace + "robotEnergy")
-    tier = nbt.getInteger(Settings.namespace + "tier")
-    components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+    totalEnergy = nbt.getInteger(StoredEnergyTag)
+    robotEnergy = nbt.getInteger(RobotEnergyTag)
+    tier = nbt.getInteger(TierTag)
+    components = nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).
       toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
-    containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
+    containers = nbt.getTagList(ContainersTag, NBT.TAG_COMPOUND).
       toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
-    if (nbt.hasKey(Settings.namespace + "lightColor")) {
-      lightColor = nbt.getInteger(Settings.namespace + "lightColor")
+    if (nbt.hasKey(LightColorTag)) {
+      lightColor = nbt.getInteger(LightColorTag)
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     if (!Strings.isNullOrEmpty(name)) {
-      if (!nbt.hasKey("display")) {
-        nbt.setTag("display", new NBTTagCompound())
-      }
-      nbt.getCompoundTag("display").setString("Name", name)
+      ItemUtils.setDisplayName(nbt, name)
     }
-    nbt.setInteger(Settings.namespace + "storedEnergy", totalEnergy)
-    nbt.setInteger(Settings.namespace + "robotEnergy", robotEnergy)
-    nbt.setInteger(Settings.namespace + "tier", tier)
-    nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
-    nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
-    nbt.setInteger(Settings.namespace + "lightColor", lightColor)
+    nbt.setInteger(StoredEnergyTag, totalEnergy)
+    nbt.setInteger(RobotEnergyTag, robotEnergy)
+    nbt.setInteger(TierTag, tier)
+    nbt.setNewTagList(ComponentsTag, components.toIterable)
+    nbt.setNewTagList(ContainersTag, containers.toIterable)
+    nbt.setInteger(LightColorTag, lightColor)
   }
 
   def copyItemStack() = {

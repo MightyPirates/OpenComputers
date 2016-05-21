@@ -21,11 +21,15 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
 
   var storedEnergy = 0
 
+  private final val TierTag = Settings.namespace + "tier"
+  private final val ComponentsTag = Settings.namespace + "components"
+  private final val StoredEnergyTag = Settings.namespace + "storedEnergy"
+
   override def load(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier")
-    components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+    tier = nbt.getByte(TierTag)
+    components = nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).
       toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT).filter(_ != null)
-    storedEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
+    storedEnergy = nbt.getInteger(StoredEnergyTag)
 
     // Reserve slot for EEPROM if necessary, avoids having to resize the
     // components array in the MCU tile entity, which isn't possible currently.
@@ -35,9 +39,9 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setByte(Settings.namespace + "tier", tier.toByte)
-    nbt.setNewTagList(Settings.namespace + "components", components.filter(_ != null).toIterable)
-    nbt.setInteger(Settings.namespace + "storedEnergy", storedEnergy)
+    nbt.setByte(TierTag, tier.toByte)
+    nbt.setNewTagList(ComponentsTag, components.filter(_ != null).toIterable)
+    nbt.setInteger(StoredEnergyTag, storedEnergy)
   }
 
   def copyItemStack() = {

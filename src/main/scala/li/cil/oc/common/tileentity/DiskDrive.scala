@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.machine.Arguments
@@ -104,19 +105,18 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
 
   override def canUpdate = false
 
+  private final val DiskTag = Settings.namespace + "disk"
+
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    if (nbt.hasKey("disk")) {
-      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("disk")))
+    if (nbt.hasKey(DiskTag)) {
+      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(DiskTag)))
     }
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    items(0) match {
-      case Some(stack) => nbt.setNewCompoundTag("disk", stack.writeToNBT)
-      case _ =>
-    }
+    items(0).foreach(stack => nbt.setNewCompoundTag(DiskTag, stack.writeToNBT))
   }
 }

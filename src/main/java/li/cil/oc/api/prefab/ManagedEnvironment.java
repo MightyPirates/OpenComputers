@@ -9,6 +9,8 @@ import net.minecraft.nbt.NBTTagCompound;
  * unused methods don't clutter the implementing class.
  */
 public abstract class ManagedEnvironment implements li.cil.oc.api.network.ManagedEnvironment {
+    public static final String NODE_TAG = "node";
+
     // Should be initialized using setNode(api.Network.newNode()). See TileEntityEnvironment.
     private Node _node;
 
@@ -45,7 +47,7 @@ public abstract class ManagedEnvironment implements li.cil.oc.api.network.Manage
     @Override
     public void load(final NBTTagCompound nbt) {
         if (node() != null) {
-            node().load(nbt.getCompoundTag("node"));
+            node().load(nbt.getCompoundTag(NODE_TAG));
         }
     }
 
@@ -61,13 +63,13 @@ public abstract class ManagedEnvironment implements li.cil.oc.api.network.Manage
 
                 final NBTTagCompound nodeTag = new NBTTagCompound();
                 node().save(nodeTag);
-                nbt.setTag("node", nodeTag);
+                nbt.setTag(NODE_TAG, nodeTag);
 
                 node().remove();
             } else {
                 final NBTTagCompound nodeTag = new NBTTagCompound();
                 node().save(nodeTag);
-                nbt.setTag("node", nodeTag);
+                nbt.setTag(NODE_TAG, nodeTag);
             }
         }
     }

@@ -60,17 +60,19 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def onMessage(message: Message) {
   }
 
+  private final val MachineTag = "machine"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (!rack.world.isRemote) {
-      machine.load(nbt.getCompoundTag("machine"))
+      machine.load(nbt.getCompoundTag(MachineTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     if (!rack.world.isRemote) {
-      nbt.setNewCompoundTag("machine", machine.save)
+      nbt.setNewCompoundTag(MachineTag, machine.save)
     }
   }
 

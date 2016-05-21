@@ -4,6 +4,7 @@ import java.util
 
 import com.google.common.base.Strings
 import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.util.ExtendedAABB
@@ -114,7 +115,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   def toggleState(): Unit = {
     if (canToggle.fold(true)(_.apply())) {
       state = !state
-      world.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.BLOCKS, 0.3F, if (state) 0.6F else 0.5F, false)
+      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.BLOCKS, 0.3F, if (state) 0.6F else 0.5F)
       world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       updateRedstone()
       if (state && data.isButtonMode) {
@@ -154,24 +155,42 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     }
   }
 
+  override protected def onRotationChanged(): Unit = {
+    super.onRotationChanged()
+    updateBounds()
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  private final val DataTag = Settings.namespace + "data"
+  private final val DataTagCompat = "data"
+  private final val StateTag = Settings.namespace + "state"
+  private final val StateTagCompat = "state"
+
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
-    data.load(nbt.getCompoundTag("data"))
-    state = nbt.getBoolean("state")
+    if (nbt.hasKey(DataTagCompat))
+      data.load(nbt.getCompoundTag(DataTagCompat))
+    else
+      data.load(nbt.getCompoundTag(DataTag))
+    if (nbt.hasKey(StateTagCompat))
+      state = nbt.getBoolean(StateTagCompat)
+    else
+      state = nbt.getBoolean(StateTag)
     updateBounds()
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag("data", data.save)
-    nbt.setBoolean("state", state)
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setBoolean(StateTag, state)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
-    data.load(nbt.getCompoundTag("data"))
-    state = nbt.getBoolean("state")
+    data.load(nbt.getCompoundTag(DataTag))
+    state = nbt.getBoolean(StateTag)
     updateBounds()
     if (world != null) {
       world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
@@ -181,12 +200,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
-    nbt.setNewCompoundTag("data", data.save)
-    nbt.setBoolean("state", state)
-  }
-
-  override protected def onRotationChanged(): Unit = {
-    super.onRotationChanged()
-    updateBounds()
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setBoolean(StateTag, state)
   }
 }

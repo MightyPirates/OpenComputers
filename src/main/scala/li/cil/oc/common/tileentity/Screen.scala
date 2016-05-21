@@ -289,32 +289,36 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
+  private final val TierTag = Settings.namespace + "tier"
+  private final val HadRedstoneInputTag = Settings.namespace + "hadRedstoneInput"
+  private final val InvertTouchModeTag = Settings.namespace + "invertTouchMode"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
+    tier = nbt.getByte(TierTag) max 0 min 2
     setColor(Color.rgbValues(Color.byTier(tier)))
     super.readFromNBTForServer(nbt)
-    hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
-    invertTouchMode = nbt.getBoolean(Settings.namespace + "invertTouchMode")
+    hadRedstoneInput = nbt.getBoolean(HadRedstoneInputTag)
+    invertTouchMode = nbt.getBoolean(InvertTouchModeTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
-    nbt.setByte(Settings.namespace + "tier", tier.toByte)
+    nbt.setByte(TierTag, tier.toByte)
     super.writeToNBTForServer(nbt)
-    nbt.setBoolean(Settings.namespace + "hadRedstoneInput", hadRedstoneInput)
-    nbt.setBoolean(Settings.namespace + "invertTouchMode", invertTouchMode)
+    nbt.setBoolean(HadRedstoneInputTag, hadRedstoneInput)
+    nbt.setBoolean(InvertTouchModeTag, invertTouchMode)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
-    tier = nbt.getByte("tier") max 0 min 2
+    tier = nbt.getByte(TierTag) max 0 min 2
     super.readFromNBTForClient(nbt)
-    invertTouchMode = nbt.getBoolean("invertTouchMode")
+    invertTouchMode = nbt.getBoolean(InvertTouchModeTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
-    nbt.setByte("tier", tier.toByte)
+    nbt.setByte(TierTag, tier.toByte)
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("invertTouchMode", invertTouchMode)
+    nbt.setBoolean(InvertTouchModeTag, invertTouchMode)
   }
 
   // ----------------------------------------------------------------------- //

@@ -107,15 +107,17 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   // ----------------------------------------------------------------------- //
 
+  private final val StrengthTag = "strength"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("strength")) {
-      strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
+    if (nbt.hasKey(StrengthTag)) {
+      strength = nbt.getDouble(StrengthTag) max 0 min Settings.get.maxWirelessRange
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble("strength", strength)
+    nbt.setDouble(StrengthTag, strength)
   }
 }

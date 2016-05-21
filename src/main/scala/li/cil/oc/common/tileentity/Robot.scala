@@ -395,32 +395,45 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
+  private final val RobotTag = Settings.namespace + "robot"
+  private final val OwnerTag = Settings.namespace + "owner"
+  private final val OwnerUUIDTag = Settings.namespace + "ownerUuid"
+  private final val SelectedSlotTag = Settings.namespace + "selectedSlot"
+  private final val SelectedTankTag = Settings.namespace + "selectedTank"
+  private final val AnimationTicksTotalTag = Settings.namespace + "animationTicksTotal"
+  private final val AnimationTicksLeftTag = Settings.namespace + "animationTicksLeft"
+  private final val MoveFromXTag = Settings.namespace + "moveFromX"
+  private final val MoveFromYTag = Settings.namespace + "moveFromY"
+  private final val MoveFromZTag = Settings.namespace + "moveFromZ"
+  private final val SwingingToolTag = Settings.namespace + "swingingTool"
+  private final val TurnAxisTag = Settings.namespace + "turnAxis"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     updateInventorySize()
     machine.onHostChanged()
 
-    bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
-    if (nbt.hasKey(Settings.namespace + "owner")) {
-      ownerName = nbt.getString(Settings.namespace + "owner")
+    bot.load(nbt.getCompoundTag(RobotTag))
+    if (nbt.hasKey(OwnerTag)) {
+      ownerName = nbt.getString(OwnerTag)
     }
-    if (nbt.hasKey(Settings.namespace + "ownerUuid")) {
-      ownerUUID = UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid"))
+    if (nbt.hasKey(OwnerUUIDTag)) {
+      ownerUUID = UUID.fromString(nbt.getString(OwnerUUIDTag))
     }
     if (inventorySize > 0) {
-      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max 0 min mainInventory.getSizeInventory - 1
+      selectedSlot = nbt.getInteger(SelectedSlotTag) max 0 min mainInventory.getSizeInventory - 1
     }
-    selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
-    animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
-    animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
+    selectedTank = nbt.getInteger(SelectedTankTag)
+    animationTicksTotal = nbt.getInteger(AnimationTicksTotalTag)
+    animationTicksLeft = nbt.getInteger(AnimationTicksLeftTag)
     if (animationTicksLeft > 0) {
-      if (nbt.hasKey(Settings.namespace + "moveFromX")) {
-        val moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
-        val moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
-        val moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
+      if (nbt.hasKey(MoveFromXTag)) {
+        val moveFromX = nbt.getInteger(MoveFromXTag)
+        val moveFromY = nbt.getInteger(MoveFromYTag)
+        val moveFromZ = nbt.getInteger(MoveFromZTag)
         moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
       }
-      swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
-      turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
+      swingingTool = nbt.getBoolean(SwingingToolTag)
+      turnAxis = nbt.getByte(TurnAxisTag)
     }
 
     // Normally set in superclass, but that's not called directly, only in the
@@ -435,23 +448,23 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
     // which is a bit ugly, and may be refactored some day, but it works.
-    nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
-    nbt.setString(Settings.namespace + "owner", ownerName)
-    nbt.setString(Settings.namespace + "ownerUuid", ownerUUID.toString)
-    nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
-    nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
+    nbt.setNewCompoundTag(RobotTag, bot.save)
+    nbt.setString(OwnerTag, ownerName)
+    nbt.setString(OwnerUUIDTag, ownerUUID.toString)
+    nbt.setInteger(SelectedSlotTag, selectedSlot)
+    nbt.setInteger(SelectedTankTag, selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
-      nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
-      nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
+      nbt.setInteger(AnimationTicksTotalTag, animationTicksTotal)
+      nbt.setInteger(AnimationTicksLeftTag, animationTicksLeft)
       moveFrom match {
         case Some(blockPos) =>
-          nbt.setInteger(Settings.namespace + "moveFromX", blockPos.getX)
-          nbt.setInteger(Settings.namespace + "moveFromY", blockPos.getY)
-          nbt.setInteger(Settings.namespace + "moveFromZ", blockPos.getZ)
+          nbt.setInteger(MoveFromXTag, blockPos.getX)
+          nbt.setInteger(MoveFromYTag, blockPos.getY)
+          nbt.setInteger(MoveFromZTag, blockPos.getZ)
         case _ =>
       }
-      nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
-      nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
+      nbt.setBoolean(SwingingToolTag, swingingTool)
+      nbt.setByte(TurnAxisTag, turnAxis.toByte)
     }
   }
 
@@ -463,18 +476,18 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
     updateInventorySize()
 
-    selectedSlot = nbt.getInteger("selectedSlot")
-    animationTicksTotal = nbt.getInteger("animationTicksTotal")
-    animationTicksLeft = nbt.getInteger("animationTicksLeft")
+    selectedSlot = nbt.getInteger(SelectedSlotTag)
+    animationTicksTotal = nbt.getInteger(AnimationTicksTotalTag)
+    animationTicksLeft = nbt.getInteger(AnimationTicksLeftTag)
     if (animationTicksLeft > 0) {
-      if (nbt.hasKey("moveFromX")) {
-        val moveFromX = nbt.getInteger("moveFromX")
-        val moveFromY = nbt.getInteger("moveFromY")
-        val moveFromZ = nbt.getInteger("moveFromZ")
+      if (nbt.hasKey(MoveFromXTag)) {
+        val moveFromX = nbt.getInteger(MoveFromXTag)
+        val moveFromY = nbt.getInteger(MoveFromYTag)
+        val moveFromZ = nbt.getInteger(MoveFromZTag)
         moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
       }
-      swingingTool = nbt.getBoolean("swingingTool")
-      turnAxis = nbt.getByte("turnAxis")
+      swingingTool = nbt.getBoolean(SwingingToolTag)
+      turnAxis = nbt.getByte(TurnAxisTag)
     }
     connectComponents()
   }
@@ -484,19 +497,19 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     save(nbt)
     info.save(nbt)
 
-    nbt.setInteger("selectedSlot", selectedSlot)
+    nbt.setInteger(SelectedSlotTag, selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
-      nbt.setInteger("animationTicksTotal", animationTicksTotal)
-      nbt.setInteger("animationTicksLeft", animationTicksLeft)
+      nbt.setInteger(AnimationTicksTotalTag, animationTicksTotal)
+      nbt.setInteger(AnimationTicksLeftTag, animationTicksLeft)
       moveFrom match {
         case Some(blockPos) =>
-          nbt.setInteger("moveFromX", blockPos.getX)
-          nbt.setInteger("moveFromY", blockPos.getY)
-          nbt.setInteger("moveFromZ", blockPos.getZ)
+          nbt.setInteger(MoveFromXTag, blockPos.getX)
+          nbt.setInteger(MoveFromYTag, blockPos.getY)
+          nbt.setInteger(MoveFromZTag, blockPos.getZ)
         case _ =>
       }
-      nbt.setBoolean("swingingTool", swingingTool)
-      nbt.setByte("turnAxis", turnAxis.toByte)
+      nbt.setBoolean(SwingingToolTag, swingingTool)
+      nbt.setByte(TurnAxisTag, turnAxis.toByte)
     }
   }
 

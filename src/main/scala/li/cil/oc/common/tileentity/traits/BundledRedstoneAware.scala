@@ -111,17 +111,23 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
     bundledInput(side, BundledRedstone.computeBundledInput(position, side))
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val BundledInputTag = Settings.namespace + "rs.bundledInput"
+  private final val BundledOutputTag = Settings.namespace + "rs.bundledOutput"
+  private final val RednetInputTag = Settings.namespace + "rs.rednetInput"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
 
-    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+    nbt.getTagList(BundledInputTag, NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
       map(_.getIntArray).zipWithIndex.foreach {
       case (input, index) if index < _bundledInput.length =>
         val safeLength = input.length min _bundledInput(index).length
         input.copyToArray(_bundledInput(index), 0, safeLength)
       case _ =>
     }
-    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+    nbt.getTagList(BundledOutputTag, NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
       map(_.getIntArray).zipWithIndex.foreach {
       case (input, index) if index < _bundledOutput.length =>
         val safeLength = input.length min _bundledOutput(index).length
@@ -129,7 +135,7 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
       case _ =>
     }
 
-    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+    nbt.getTagList(RednetInputTag, NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
       map(_.getIntArray).zipWithIndex.foreach {
       case (input, index) if index < _rednetInput.length =>
         val safeLength = input.length min _rednetInput(index).length
@@ -141,10 +147,10 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
 
-    nbt.setNewTagList(Settings.namespace + "rs.bundledInput", _bundledInput.view)
-    nbt.setNewTagList(Settings.namespace + "rs.bundledOutput", _bundledOutput.view)
+    nbt.setNewTagList(BundledInputTag, _bundledInput.view)
+    nbt.setNewTagList(BundledOutputTag, _bundledOutput.view)
 
-    nbt.setNewTagList(Settings.namespace + "rs.rednetInput", _rednetInput.view)
+    nbt.setNewTagList(RednetInputTag, _rednetInput.view)
   }
 
   // ----------------------------------------------------------------------- //
