@@ -85,7 +85,9 @@ if #args == 0 or options.i then
     end
   end
   local function hint(line, index)
-    line = (line or ""):sub(1, index - 1)
+    line = (line or "")
+    local tail = line:sub(index)
+    line = line:sub(1, index - 1)
     local path = string.match(line, "[a-zA-Z_][a-zA-Z0-9_.]*$")
     if not path then return nil end
     local suffix = string.match(path, "[^.]+$") or ""
@@ -95,7 +97,7 @@ if #args == 0 or options.i then
     local r1, r2 = {}, {}
     findKeys(t, r1, string.sub(line, 1, #line - #suffix), suffix)
     for k in pairs(r1) do
-      table.insert(r2, k)
+      table.insert(r2, k .. tail)
     end
     table.sort(r2)
     if #r2 == 1 then
@@ -103,10 +105,11 @@ if #args == 0 or options.i then
         __index=function(tbl, key)
           if key==2 then
             local prev=tbl[1]
-            tbl[1]=nil
             local next = hint(prev,#prev+1)
-            for i,v in ipairs(next) do
-              tbl[i] = v
+            if next then
+              for i,v in ipairs(next) do
+                tbl[i] = v
+              end
             end
             setmetatable(tbl,getmetatable(next))
             return tbl[1]
