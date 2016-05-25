@@ -517,7 +517,7 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
   c.i=(c.i+change)%math.max(#c,1)
   local next=c[c.i+1]
   if next then
-    local tail = unicode.wlen(input.data) - input.index - 1
+    local tail = unicode.len(input.data) - input.index
     input:clear()
     input:update(next)
     input:move(-tail)
