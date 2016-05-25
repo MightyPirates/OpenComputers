@@ -44,7 +44,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     fontRendererObj.drawString(
       Localization.localizeImmediately(printer.getName),
       8, 6, 0x404040)
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
@@ -55,7 +55,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
       tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

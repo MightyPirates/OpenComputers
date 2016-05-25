@@ -78,18 +78,18 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     GlStateManager.scale(scale, scale, 1)
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
     GlStateManager.depthMask(false)
     GlStateManager.color(0.5f, 0.5f, 1f)
     TextBufferRenderCache.render(bufferRenderer)
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -104,7 +104,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

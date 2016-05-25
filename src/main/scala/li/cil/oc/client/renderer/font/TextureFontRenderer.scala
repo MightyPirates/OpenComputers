@@ -36,7 +36,7 @@ abstract class TextureFontRenderer {
     val format = buffer.format
 
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     GlStateManager.scale(0.5f, 0.5f, 1)
 
@@ -112,7 +112,7 @@ abstract class TextureFontRenderer {
     GlStateManager.bindTexture(0)
     GlStateManager.depthMask(true)
     GlStateManager.color(1, 1, 1)
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
     GlStateManager.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
@@ -120,7 +120,7 @@ abstract class TextureFontRenderer {
 
   def drawString(s: String, x: Int, y: Int): Unit = {
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     GlStateManager.translate(x, y, 0)
     GlStateManager.scale(0.5f, 0.5f, 1)
@@ -141,7 +141,7 @@ abstract class TextureFontRenderer {
       GL11.glEnd()
     }
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
     GlStateManager.popMatrix()
     GlStateManager.color(1, 1, 1)
   }

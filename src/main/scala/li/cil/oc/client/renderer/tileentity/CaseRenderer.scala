@@ -15,7 +15,7 @@ object CaseRenderer extends TileEntitySpecialRenderer[Case] {
   override def renderTileEntityAt(computer: Case, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
@@ -48,7 +48,7 @@ object CaseRenderer extends TileEntitySpecialRenderer[Case] {
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

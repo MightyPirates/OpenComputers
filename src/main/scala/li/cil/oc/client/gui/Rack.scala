@@ -160,7 +160,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GlStateManager.pushAttrib() // Prevents NEI render glitch.
+    //GlStateManager.pushAttrib() // Prevents NEI render glitch.
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
@@ -250,7 +250,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
         x, y, 0x404040)
     }
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   override def drawSecondaryBackgroundLayer() {

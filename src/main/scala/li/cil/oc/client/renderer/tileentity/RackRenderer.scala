@@ -16,7 +16,7 @@ object RackRenderer extends TileEntitySpecialRenderer[Rack] {
   override def renderTileEntityAt(rack: Rack, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
 
     GlStateManager.pushMatrix()
 
@@ -36,20 +36,20 @@ object RackRenderer extends TileEntitySpecialRenderer[Rack] {
     for (i <- 0 until rack.getSizeInventory) {
       if (rack.getStackInSlot(i) != null) {
         GlStateManager.pushMatrix()
-        GlStateManager.pushAttrib()
+        //GlStateManager.pushAttrib()
 
         val v0 = vOffset + i * vSize
         val v1 = vOffset + (i + 1) * vSize
         val event = new RackMountableRenderEvent.TileEntity(rack, i, rack.lastData(i), v0, v1)
         MinecraftForge.EVENT_BUS.post(event)
 
-        GlStateManager.popAttrib()
+        //GlStateManager.popAttrib()
         GlStateManager.popMatrix()
       }
     }
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

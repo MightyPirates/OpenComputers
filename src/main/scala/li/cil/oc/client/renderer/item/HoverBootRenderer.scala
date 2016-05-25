@@ -103,7 +103,7 @@ object HoverBootRenderer extends ModelBiped {
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
-      GlStateManager.pushAttrib()
+      //GlStateManager.pushAttrib()
       GlStateManager.disableLighting()
       GlStateManager.depthFunc(GL11.GL_LEQUAL)
       GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
@@ -117,7 +117,7 @@ object HoverBootRenderer extends ModelBiped {
       GlStateManager.color(1, 1, 1)
       GlStateManager.enableLighting()
       RenderHelper.enableStandardItemLighting()
-      GlStateManager.popAttrib()
+      //GlStateManager.popAttrib()
     }
   }
 

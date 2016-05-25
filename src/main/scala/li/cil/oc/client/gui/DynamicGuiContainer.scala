@@ -36,7 +36,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     drawSecondaryForegroundLayer(mouseX, mouseY)
 
@@ -44,7 +44,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
       drawSlotHighlight(inventorySlots.inventorySlots.get(slot))
     }
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   protected def drawSecondaryBackgroundLayer() {}
@@ -82,10 +82,10 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     super.drawScreen(mouseX, mouseY, dt)
 
     if (Mods.NotEnoughItems.isAvailable) {
-      GlStateManager.pushAttrib()
+      //GlStateManager.pushAttrib()
       RenderState.makeItBlend()
       // TODO NEI drawNEIHighlights()
-      GlStateManager.popAttrib()
+      //GlStateManager.popAttrib()
     }
   }
 
