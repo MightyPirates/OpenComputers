@@ -108,7 +108,11 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
     nbt
   }
 
-  override def getUpdatePacket: SPacketUpdateTileEntity = new SPacketUpdateTileEntity(getPos, getBlockMetadata, getUpdateTag)
+  override def getUpdatePacket: SPacketUpdateTileEntity = {
+    // Obfuscation workaround. If it works.
+    val te = this.asInstanceOf[net.minecraft.tileentity.TileEntity]
+    new SPacketUpdateTileEntity(te.getPos, te.getBlockMetadata, te.getUpdateTag)
+  }
 
   override def getUpdateTag: NBTTagCompound = {
     val nbt = super.getUpdateTag
