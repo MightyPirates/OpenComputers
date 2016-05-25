@@ -55,7 +55,7 @@ abstract class PacketHandler {
     // Avoid AFK kicks by marking players as non-idle when they send packets.
     // This will usually be stuff like typing while in screen GUIs.
     player match {
-      case mp: EntityPlayerMP => mp.func_143004_u()
+      case mp: EntityPlayerMP => mp.markPlayerActive()
       case _ => // Uh... OK?
     }
   }
