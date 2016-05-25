@@ -13,7 +13,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
   override def renderTileEntityAt(geolyzer: Geolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
@@ -43,7 +43,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

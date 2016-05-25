@@ -16,7 +16,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
   override def renderTileEntityAt(raid: Raid, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
@@ -65,7 +65,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

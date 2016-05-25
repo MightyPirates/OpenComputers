@@ -55,7 +55,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
     if (!inventoryContainer.isAssembling) {
       val message =
         if (!inventoryContainer.getSlot(0).getHasStack) {
@@ -84,7 +84,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
       tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
   }
 
   private def formatTime(seconds: Int) = {

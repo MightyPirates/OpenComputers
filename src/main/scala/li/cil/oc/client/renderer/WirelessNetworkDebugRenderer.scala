@@ -28,7 +28,7 @@ object WirelessNetworkDebugRenderer {
           val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
           val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks
 
-          GlStateManager.pushAttrib()
+          //GlStateManager.pushAttrib()
           GlStateManager.pushMatrix()
           GL11.glTranslated(-px, -py, -pz)
           RenderState.makeItBlend()
@@ -91,7 +91,7 @@ object WirelessNetworkDebugRenderer {
           }
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
 
-          GlStateManager.popAttrib()
+          //GlStateManager.popAttrib()
           GlStateManager.popMatrix()
         case _ =>
       }

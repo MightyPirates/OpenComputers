@@ -15,7 +15,7 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
-      GlStateManager.pushAttrib()
+      //GlStateManager.pushAttrib()
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
@@ -59,7 +59,7 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      //GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

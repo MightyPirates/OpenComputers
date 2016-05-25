@@ -69,7 +69,7 @@ object Document {
   def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val mc = Minecraft.getMinecraft
 
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     // On some systems/drivers/graphics cards the next calls won't update the
     // depth buffer correctly if alpha test is enabled. Guess how we found out?
@@ -120,7 +120,7 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
     GlStateManager.bindTexture(0)
 
     hovered

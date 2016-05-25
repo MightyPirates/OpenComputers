@@ -12,13 +12,13 @@ object DroneRenderer extends Render[Drone](Minecraft.getMinecraft.getRenderManag
   override def doRender(entity: Drone, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {
     bindEntityTexture(entity)
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    //GlStateManager.pushAttrib()
 
     GlStateManager.translate(x, y + 2 / 16f, z)
 
     model.render(entity, 0, 0, 0, 0, 0, dt)
 
-    GlStateManager.popAttrib()
+    //GlStateManager.popAttrib()
     GlStateManager.popMatrix()
   }
 
