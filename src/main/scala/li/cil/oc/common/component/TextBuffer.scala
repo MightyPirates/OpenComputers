@@ -248,8 +248,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     // backwards compatibility, and partially to enforce a valid one.
     val sizeChanged = data.size = (w, h)
     val viewportChanged = setViewport(w, h)
-    if (sizeChanged && !viewportChanged) {
-      if (node != null) {
+    if (sizeChanged || viewportChanged) {
+      if (!viewportChanged && node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
       true
