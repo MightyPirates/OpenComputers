@@ -11,6 +11,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
@@ -32,6 +33,13 @@ abstract class PacketHandler {
     } catch {
       case e: Throwable =>
         OpenComputers.log.warn("Received a badly formatted packet.", e)
+    }
+
+    // Avoid AFK kicks by marking players as non-idle when they send packets.
+    // This will usually be stuff like typing while in screen GUIs.
+    player match {
+      case mp: EntityPlayerMP => mp.func_143004_u()
+      case _ => // Uh... OK?
     }
   }
 
