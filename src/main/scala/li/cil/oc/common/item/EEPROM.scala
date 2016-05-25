@@ -4,6 +4,8 @@ import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 
 class EEPROM(val parent: Delegator) extends traits.Delegate {
   override def displayName(stack: ItemStack): Option[String] = {
@@ -19,5 +21,5 @@ class EEPROM(val parent: Delegator) extends traits.Delegate {
     super.displayName(stack)
   }
 
-  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
+  override def doesSneakBypassUse(world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 }
