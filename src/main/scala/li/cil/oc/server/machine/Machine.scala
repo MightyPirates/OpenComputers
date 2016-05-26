@@ -440,6 +440,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
     if (componentCount > maxComponents) {
+      beep("-..")
       crash("gui.Error.ComponentOverflow")
     }
 

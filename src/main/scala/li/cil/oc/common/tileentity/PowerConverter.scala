@@ -19,5 +19,8 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
 
   override def energyThroughput = Settings.get.powerConverterRate
 
-  override def canUpdate = isServer
+  override def updateEntity(): Unit = {
+    super[PowerAcceptor].updateEntity()
+    super[Environment].updateEntity()
+  }
 }

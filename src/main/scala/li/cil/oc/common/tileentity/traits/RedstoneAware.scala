@@ -69,7 +69,11 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   }
 
   def checkRedstoneInputChanged() {
-    shouldUpdateInput = isServer
+    if (this.isInstanceOf[Tickable]) {
+      shouldUpdateInput = isServer
+    } else {
+      EnumFacing.values().foreach(updateRedstoneInput)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -86,7 +90,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
 
   override def validate(): Unit = {
     super.validate()
-    if (!canUpdate) {
+    if (!this.isInstanceOf[Tickable]) {
       EventHandler.scheduleServer(() => EnumFacing.values().foreach(updateRedstoneInput))
     }
   }

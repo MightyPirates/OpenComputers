@@ -17,7 +17,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware {
+class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
@@ -105,8 +105,6 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   def start(context: Context, args: Arguments): Array[Object] = result(start())
 
   // ----------------------------------------------------------------------- //
-
-  override def canUpdate = isServer
 
   override def updateEntity() {
     super.updateEntity()

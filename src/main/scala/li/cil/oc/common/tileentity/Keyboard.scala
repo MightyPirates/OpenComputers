@@ -37,8 +37,6 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = false
-
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (isServer) {

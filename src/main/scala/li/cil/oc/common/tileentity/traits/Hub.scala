@@ -14,7 +14,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-trait Hub extends traits.Environment with SidedEnvironment {
+trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   override def node: Node = null
 
   override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)

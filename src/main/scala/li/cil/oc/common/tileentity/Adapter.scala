@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with Analyzable with internal.Adapter {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -33,11 +33,9 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (updatingBlocks.nonEmpty) {
+    if (isServer && updatingBlocks.nonEmpty) {
       for (block <- updatingBlocks) {
         block.update()
       }

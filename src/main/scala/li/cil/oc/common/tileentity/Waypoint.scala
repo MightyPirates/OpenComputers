@@ -13,7 +13,7 @@ import net.minecraft.util.EnumParticleTypes
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Waypoint extends traits.Environment with traits.Rotatable with traits.RedstoneAware {
+class Waypoint extends traits.Environment with traits.Rotatable with traits.RedstoneAware with traits.Tickable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("waypoint").
     create()

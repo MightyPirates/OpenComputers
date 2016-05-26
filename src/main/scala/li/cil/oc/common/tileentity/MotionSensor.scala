@@ -15,7 +15,7 @@ import net.minecraft.util.Vec3
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class MotionSensor extends traits.Environment {
+class MotionSensor extends traits.Environment with traits.Tickable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("motion_sensor").
     withConnector().
@@ -29,16 +29,13 @@ class MotionSensor extends traits.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (world.getTotalWorldTime % 10 == 0) {
+    if (isServer && world.getTotalWorldTime % 10 == 0) {
       // Get a list of all living entities we could possibly detect, using a rough
       // bounding box check, then refining it using the actual distance and an
       // actual visibility check.
       val entities = world.getEntitiesWithinAABB(classOf[EntityLivingBase], sensorBounds)
-        .map(_.asInstanceOf[EntityLivingBase])
         .filter(entity => entity.isEntityAlive && isInRange(entity) && isVisible(entity))
         .toSet
       // Get rid of all tracked entities that are no longer visible.

@@ -17,8 +17,6 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
 
   override def isLinkedEnabled = false
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {

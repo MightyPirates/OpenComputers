@@ -16,8 +16,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-// TODO only implement ticking interface where needed.
-trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
+trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def world = getWorld
 
   def x = getPos.getX
@@ -33,12 +32,6 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
   def isServer = if (world != null) !world.isRemote else SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
-
-  def canUpdate = true
-
-  override def update(): Unit = {
-    if (canUpdate) updateEntity()
-  }
 
   def updateEntity() {
     if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world, getPos) > 0) {
