@@ -89,11 +89,11 @@ object BufferRenderer {
 
   def drawText(screen: api.internal.TextBuffer) =
     if (textureManager.isDefined) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
       GlStateManager.depthMask(false)
       val changed = screen.renderText()
       GlStateManager.depthMask(true)
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
       changed
     }
     else false

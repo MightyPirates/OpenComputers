@@ -59,7 +59,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
@@ -93,7 +93,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
     GlStateManager.color(1, 1, 1, 1) // #1648
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

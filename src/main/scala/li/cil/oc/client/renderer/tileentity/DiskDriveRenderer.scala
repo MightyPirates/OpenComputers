@@ -18,7 +18,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
   override def renderTileEntityAt(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     GlStateManager.color(1, 1, 1, 1)
 
     GlStateManager.pushMatrix()
@@ -77,7 +77,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
     }
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

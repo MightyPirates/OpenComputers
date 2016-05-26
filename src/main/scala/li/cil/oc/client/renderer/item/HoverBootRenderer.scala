@@ -1,6 +1,7 @@
 package li.cil.oc.client.renderer.item
 
 import li.cil.oc.Settings
+import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.model.ModelRenderer
@@ -103,7 +104,7 @@ object HoverBootRenderer extends ModelBiped {
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
       GlStateManager.disableLighting()
       GlStateManager.depthFunc(GL11.GL_LEQUAL)
       GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
@@ -117,7 +118,7 @@ object HoverBootRenderer extends ModelBiped {
       GlStateManager.color(1, 1, 1)
       GlStateManager.enableLighting()
       RenderHelper.enableStandardItemLighting()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
   }
 

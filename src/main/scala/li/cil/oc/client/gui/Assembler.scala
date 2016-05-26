@@ -8,6 +8,7 @@ import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
@@ -55,7 +56,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     if (!inventoryContainer.isAssembling) {
       val message =
         if (!inventoryContainer.getSlot(0).getHasStack) {
@@ -84,7 +85,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
       tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   private def formatTime(seconds: Int) = {

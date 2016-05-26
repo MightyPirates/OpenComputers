@@ -60,7 +60,7 @@ object PetRenderer {
     })
 
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.getPartialRenderTick)
     val playerPos = e.getEntityPlayer.getPositionEyes(e.getPartialRenderTick)
     val correction = 1.62 - (if (e.getEntityPlayer.isSneaking) 0.125 else 0)
@@ -84,7 +84,7 @@ object PetRenderer {
     RenderState.disableEntityLighting()
     GlStateManager.disableRescaleNormal()
 
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
     GlStateManager.popMatrix()
 
     rendering = None
