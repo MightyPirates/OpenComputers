@@ -6,9 +6,9 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.entity.item.EntityItem
 
 object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
   override def renderTileEntityAt(printer: Printer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
@@ -25,14 +25,15 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
       GlStateManager.rotate((System.currentTimeMillis() % 20000) / 20000f * 360, 0, 1, 0)
       GlStateManager.scale(0.75, 0.75, 0.75)
 
+      RenderHelper.enableStandardItemLighting()
+
       val brightness = printer.world.getCombinedLight(printer.getPos, 0)
       OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
 
-      // This is very 'meh', but item frames do it like this, too!
-      val entity = new EntityItem(printer.world, 0, 0, 0, stack)
-      entity.hoverStart = 0
       Textures.Block.bind()
-      Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
+      Minecraft.getMinecraft.getRenderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED)
+
+      RenderHelper.disableStandardItemLighting()
 
       GlStateManager.popMatrix()
       RenderState.popAttrib()
