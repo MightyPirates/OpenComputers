@@ -11,8 +11,6 @@ class Transposer extends traits.Environment {
   // Used on client side to check whether to render activity indicators.
   var lastOperation = 0L
 
-  override def canUpdate = false
-
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     transposer.load(nbt)

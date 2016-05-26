@@ -15,8 +15,6 @@ class Capacitor extends traits.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = false
-
   override def dispose() {
     super.dispose()
     if (isServer) {

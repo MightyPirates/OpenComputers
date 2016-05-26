@@ -50,8 +50,6 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     withComponent("relay").
     create())
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)

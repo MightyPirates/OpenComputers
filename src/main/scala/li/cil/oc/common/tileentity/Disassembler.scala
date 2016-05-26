@@ -21,7 +21,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -61,11 +61,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         val instant = disassembleNextInstantly // Is reset via decrStackSize
         disassemble(decrStackSize(0, 1), instant)

@@ -19,8 +19,6 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
 
   override protected def isConnected = nodes.exists(node => node.address != null && node.network != null)
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)

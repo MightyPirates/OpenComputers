@@ -56,8 +56,6 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = false
-
   override protected def initialize(): Unit = {
     super.initialize()
     EventHandler.scheduleServer(this)

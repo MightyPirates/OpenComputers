@@ -40,7 +40,5 @@ class Cable extends traits.Environment with traits.NotAnalyzable with traits.Imm
     }
   }
 
-  override def canUpdate = false
-
   override def getRenderBoundingBox = common.block.Cable.bounds(world, getPos).offset(x, y, z)
 }

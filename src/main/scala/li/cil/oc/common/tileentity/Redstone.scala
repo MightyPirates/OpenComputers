@@ -9,7 +9,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
-class Redstone extends traits.Environment with traits.BundledRedstoneAware {
+class Redstone extends traits.Environment with traits.BundledRedstoneAware with traits.Tickable {
   val instance =
     if (BundledRedstone.isAvailable)
       new component.Redstone.Bundled(this)
@@ -24,11 +24,13 @@ class Redstone extends traits.Environment with traits.BundledRedstoneAware {
   }
   else null
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
 
   private final val RedstoneTag = Settings.namespace + "redstone"
+
+  override def updateEntity(): Unit = {
+    super[Environment].updateEntity()
+  }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)

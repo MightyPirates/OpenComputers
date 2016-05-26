@@ -145,8 +145,6 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     }
   }
 
-  override def canUpdate = false
-
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     val newState = newMaxValue > 0

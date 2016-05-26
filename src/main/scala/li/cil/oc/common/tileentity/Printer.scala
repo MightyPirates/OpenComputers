@@ -19,7 +19,7 @@ import _root_.net.minecraft.util.math.AxisAlignedBB
 import _root_.net.minecraftforge.fml.relauncher.Side
 import _root_.net.minecraftforge.fml.relauncher.SideOnly
 
-class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with ISidedInventory {
+class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
@@ -209,10 +209,12 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
-  override def updateEntity() {
+  override def updateEntity(): Unit = {
     super.updateEntity()
+
+    if (isClient) {
+      return
+    }
 
     def canMergeOutput = {
       val presentStack = getStackInSlot(slotOutput)

@@ -14,7 +14,7 @@
 //import net.minecraftforge.fml.common.eventhandler.Event
 //
 //@Injectable.Interface(value = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
-//trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
+//trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common with traits.Tickable {
 //  private var conversionBuffer = 0.0
 //
 //  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable

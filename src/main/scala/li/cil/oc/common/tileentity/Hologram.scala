@@ -20,7 +20,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable with traits.Tickable {
   def this() = this(0)
 
   val node = api.Network.newNode(this, Visibility.Network).
@@ -366,8 +366,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def canUpdate = isServer
 
   override def updateEntity() {
     super.updateEntity()
