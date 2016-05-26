@@ -14,7 +14,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.Pow
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     if (distributor.globalBuffer > 0) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
@@ -68,7 +68,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.Pow
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

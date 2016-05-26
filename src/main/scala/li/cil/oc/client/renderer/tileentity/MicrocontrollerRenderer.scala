@@ -16,12 +16,12 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer[Microcontroller
   override def renderTileEntityAt(mcu: Microcontroller, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
 
     GlStateManager.pushMatrix()
 
@@ -57,7 +57,7 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer[Microcontroller
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

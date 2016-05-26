@@ -5,6 +5,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
@@ -160,7 +161,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GlStateManager.pushAttrib() // Prevents NEI render glitch.
+    RenderState.pushAttrib() // Prevents NEI render glitch.
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
@@ -250,7 +251,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
         x, y, 0x404040)
     }
 
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   override def drawSecondaryBackgroundLayer() {

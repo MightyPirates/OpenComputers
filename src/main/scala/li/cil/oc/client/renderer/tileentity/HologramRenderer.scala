@@ -76,7 +76,7 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     RenderState.makeItBlend()
     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
@@ -151,7 +151,7 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
 
     GlStateManager.depthFunc(GL11.GL_LEQUAL)
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
     GL11.glPopClientAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

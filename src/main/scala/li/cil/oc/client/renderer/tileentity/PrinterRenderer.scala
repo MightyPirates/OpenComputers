@@ -17,7 +17,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
     if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
       GlStateManager.pushMatrix()
 
       GlStateManager.translate(x + 0.5, y + 0.5 + 0.3, z + 0.5)
@@ -35,7 +35,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
       Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

@@ -299,7 +299,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
     val worldTime = robot.getWorld.getTotalWorldTime + f
 
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -349,7 +349,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
 
-          GlStateManager.pushAttrib()
+          RenderState.pushAttrib()
           GlStateManager.pushMatrix()
           try {
             // Copy-paste from player render code, with minor adjustments for
@@ -408,7 +408,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
           GlStateManager.enableCull()
           GlStateManager.disableRescaleNormal()
           GlStateManager.popMatrix()
-          GlStateManager.popAttrib()
+          RenderState.popAttrib()
         case _ =>
       }
 
@@ -495,7 +495,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
     }
 
     GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

@@ -49,7 +49,7 @@ object HighlightRenderer {
         val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
 
         GlStateManager.pushMatrix()
-        GlStateManager.pushAttrib()
+        RenderState.pushAttrib()
         RenderState.makeItBlend()
         Textures.bind(Textures.Model.HologramEffect)
 
@@ -102,7 +102,7 @@ object HighlightRenderer {
         }
         t.draw()
 
-        GlStateManager.popAttrib()
+        RenderState.popAttrib()
         GlStateManager.popMatrix()
       }
     }
