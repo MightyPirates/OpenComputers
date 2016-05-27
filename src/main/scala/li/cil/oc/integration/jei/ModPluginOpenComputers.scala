@@ -3,6 +3,7 @@ package li.cil.oc.integration.jei
 import java.util
 
 import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.Loot
 import li.cil.oc.common.recipe.LootDiskCyclingRecipe
@@ -33,7 +34,9 @@ class ModPluginOpenComputers extends IModPlugin {
   }
 
   override def register(registry: IModRegistry): Unit = {
-    registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
+    if (Settings.get.lootRecrafting) {
+      registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
+    }
   }
 
   override def onRecipeRegistryAvailable(recipeRegistry: IRecipeRegistry): Unit = {
