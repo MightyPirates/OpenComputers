@@ -19,15 +19,15 @@ import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.ExtendedNBT._
-import _root_.net.minecraft.entity.player.EntityPlayer
-import _root_.net.minecraft.inventory.IInventory
-import _root_.net.minecraft.item.ItemStack
-import _root_.net.minecraft.nbt.NBTTagCompound
-import _root_.net.minecraft.nbt.NBTTagIntArray
-import _root_.net.minecraft.util.EnumFacing
-import _root_.net.minecraftforge.common.util.Constants.NBT
-import _root_.net.minecraftforge.fml.relauncher.Side
-import _root_.net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
   var isRelayEnabled = true
