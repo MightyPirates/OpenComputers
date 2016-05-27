@@ -1,8 +1,6 @@
 package li.cil.oc.common.recipe
 
-import li.cil.oc.Constants
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.common.Loot
 import li.cil.oc.integration.util.Wrench
 import net.minecraft.inventory.InventoryCrafting
@@ -11,8 +9,6 @@ import net.minecraft.item.crafting.IRecipe
 import net.minecraft.world.World
 
 class LootDiskCyclingRecipe extends IRecipe {
-  private final val Floppy = api.Items.get(Constants.ItemName.Floppy)
-
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = collectStacks(crafting).toArray
     stacks.length == 2 && stacks.exists(Loot.isLootDisk) && stacks.exists(Wrench.isWrench)
