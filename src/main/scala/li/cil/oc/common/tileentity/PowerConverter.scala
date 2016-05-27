@@ -18,9 +18,4 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
   override protected def connector(side: EnumFacing) = Option(node)
 
   override def energyThroughput = Settings.get.powerConverterRate
-
-  override def updateEntity(): Unit = {
-    super[PowerAcceptor].updateEntity()
-    super[Environment].updateEntity()
-  }
 }
