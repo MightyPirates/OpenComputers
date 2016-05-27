@@ -113,16 +113,21 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         // origin.
         val w = getViewportWidth
         val h = getViewportHeight
-        relativeLitArea = (data.buffer, data.color).zipped.foldLeft(0) {
-          case (acc, (line, colors)) => acc + (line, colors).zipped.foldLeft(0) {
-            case (acc2, (char, color)) =>
-              val bg = PackedColor.unpackBackground(color, data.format)
-              val fg = PackedColor.unpackForeground(color, data.format)
-              acc2 + (if (char == ' ') if (bg == 0) 0 else 1
-              else if (char == 0x2588) if (fg == 0) 0 else 1
-              else if (fg == 0 && bg == 0) 0 else 1)
+        var acc = 0f
+        for (y <- 0 until h) {
+          val line = data.buffer(y)
+          val colors = data.color(y)
+          for (x <- 0 until w) {
+            val char = line(x)
+            val color = colors(x)
+            val bg = PackedColor.unpackBackground(color, data.format)
+            val fg = PackedColor.unpackForeground(color, data.format)
+            acc += (if (char == ' ') if (bg == 0) 0 else 1
+            else if (char == 0x2588) if (fg == 0) 0 else 1
+            else if (fg == 0 && bg == 0) 0 else 1)
           }
-        } / (w * h).toDouble
+        }
+        relativeLitArea = acc / (w * h).toDouble
       }
       if (node != null) {
         val hadPower = hasPower
