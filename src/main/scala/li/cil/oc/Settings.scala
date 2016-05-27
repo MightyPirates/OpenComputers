@@ -331,6 +331,7 @@ class Settings(val config: Config) {
   val terminalsPerServer = 4
   val updateCheck = config.getBoolean("misc.updateCheck")
   val lootProbability = config.getInt("misc.lootProbability")
+  val lootRecrafting = config.getBoolean("misc.lootRecrafting")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val geolyzerNoise = config.getDouble("misc.geolyzerNoise").toFloat max 0
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
