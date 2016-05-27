@@ -112,6 +112,7 @@ abstract class TextureFontRenderer {
     GlStateManager.bindTexture(0)
     GlStateManager.depthMask(true)
     GlStateManager.color(1, 1, 1)
+    RenderState.disableBlend()
     RenderState.popAttrib()
     GlStateManager.popMatrix()
 

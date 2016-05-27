@@ -64,6 +64,7 @@ object DisassemblerRenderer extends TileEntitySpecialRenderer[tileentity.Disasse
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

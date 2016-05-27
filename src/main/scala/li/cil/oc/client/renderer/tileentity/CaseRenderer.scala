@@ -4,6 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -45,6 +46,7 @@ object CaseRenderer extends TileEntitySpecialRenderer[Case] {
       renderFrontOverlay(Textures.Block.CaseFrontError)
     }
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()

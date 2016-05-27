@@ -72,6 +72,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

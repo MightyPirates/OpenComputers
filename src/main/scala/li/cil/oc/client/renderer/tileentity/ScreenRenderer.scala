@@ -89,6 +89,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
       draw()
     }
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
     GlStateManager.color(1, 1, 1, 1) // #1648
 

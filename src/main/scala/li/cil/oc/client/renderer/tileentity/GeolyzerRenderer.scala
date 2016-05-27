@@ -40,6 +40,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
 
     t.draw()
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()

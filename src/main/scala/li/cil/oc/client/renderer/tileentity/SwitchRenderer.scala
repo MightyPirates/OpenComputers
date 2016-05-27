@@ -56,6 +56,7 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

@@ -47,18 +47,29 @@ object RenderState {
 
   def disableEntityLighting() {
     Minecraft.getMinecraft.entityRenderer.disableLightmap()
-    RenderHelper.disableStandardItemLighting()
+    GlStateManager.disableLighting()
+    GlStateManager.disableLight(0)
+    GlStateManager.disableLight(1)
+    GlStateManager.disableColorMaterial()
   }
 
   def enableEntityLighting() {
     Minecraft.getMinecraft.entityRenderer.enableLightmap()
-    RenderHelper.enableStandardItemLighting()
+    GlStateManager.enableLighting()
+    GlStateManager.enableLight(0)
+    GlStateManager.enableLight(1)
+    GlStateManager.enableColorMaterial()
   }
 
   def makeItBlend() {
     GlStateManager.enableBlend()
     GL11.glEnable(GL11.GL_BLEND)
     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+  }
+
+  def disableBlend() {
+    GlStateManager.disableBlend()
+    GL11.glDisable(GL11.GL_BLEND)
   }
 
   def setBlendAlpha(alpha: Float) = {

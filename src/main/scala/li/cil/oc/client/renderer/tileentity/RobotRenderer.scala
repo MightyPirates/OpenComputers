@@ -489,7 +489,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
 
       GlStateManager.depthMask(true)
       GlStateManager.enableLighting()
-      GlStateManager.disableBlend()
+      RenderState.disableBlend()
 
       GlStateManager.popMatrix()
     }

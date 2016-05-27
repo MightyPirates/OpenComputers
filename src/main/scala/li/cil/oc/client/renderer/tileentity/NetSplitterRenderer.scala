@@ -80,6 +80,7 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplit
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

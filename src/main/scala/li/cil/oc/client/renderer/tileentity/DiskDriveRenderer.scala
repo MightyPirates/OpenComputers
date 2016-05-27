@@ -73,6 +73,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
     }
 
