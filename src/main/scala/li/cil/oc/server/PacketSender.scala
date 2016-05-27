@@ -273,7 +273,7 @@ object PacketSender {
 
   def sendLootDisks(p: EntityPlayerMP): Unit = {
     // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
-    val stacks = Loot.worldDisks.values.map(_._1)
+    val stacks = Loot.worldDisks.map(_._1)
     for (stack <- stacks) {
       val pb = new SimplePacketBuilder(PacketType.LootDisk)
 

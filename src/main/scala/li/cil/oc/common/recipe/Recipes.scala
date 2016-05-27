@@ -170,10 +170,11 @@ object Recipes {
       // Register all unknown recipes. Well. Loot disk recipes.
       if (recipes.hasPath("lootDisks")) try {
         val lootRecipes = recipes.getConfigList("lootDisks")
+        val lootStacks = Loot.globalDisks.map(_._1)
         for (recipe <- lootRecipes) {
           val name = recipe.getString("name")
-          Loot.globalDisks.get(name) match {
-            case Some((stack, _)) => addRecipe(stack, recipe, s"loot disk '$name'")
+          lootStacks.find(s => s.getTagCompound.getString(Settings.namespace + "lootFactory") == name) match {
+            case Some(stack) => addRecipe(stack, recipe, s"loot disk '$name'")
             case _ =>
               OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")
               hadErrors = true
@@ -205,16 +206,21 @@ object Recipes {
       }
 
       // Recrafting operations.
-      val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
-      val mcu = api.Items.get(Constants.BlockName.Microcontroller)
-      val floppy = api.Items.get(Constants.ItemName.Floppy)
-      val drone = api.Items.get(Constants.ItemName.Drone)
-      val eeprom = api.Items.get(Constants.ItemName.EEPROM)
-      val robot = api.Items.get(Constants.BlockName.Robot)
-      val tablet = api.Items.get(Constants.ItemName.Tablet)
+      val accessPoint = api.Items.get(Constants.BlockName.AccessPoint)
+      val cable = api.Items.get(Constants.BlockName.Cable)
       val chamelium = api.Items.get(Constants.ItemName.Chamelium)
       val chameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
+      val drone = api.Items.get(Constants.ItemName.Drone)
+      val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+      val floppy = api.Items.get(Constants.ItemName.Floppy)
+      val hoverBoots = api.Items.get(Constants.ItemName.HoverBoots)
+      val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+      val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
       val print = api.Items.get(Constants.BlockName.Print)
+      val relay = api.Items.get(Constants.BlockName.Relay)
+      val robot = api.Items.get(Constants.BlockName.Robot)
+      val switch = api.Items.get(Constants.BlockName.Switch)
+      val tablet = api.Items.get(Constants.ItemName.Tablet)
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
@@ -331,18 +337,19 @@ object Recipes {
         print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.glowstone)))
 
       // Switch/AccessPoint -> Relay conversion
-      GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
-        api.Items.get(Constants.BlockName.AccessPoint).createItemStack(1))
-      GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
-        api.Items.get(Constants.BlockName.Switch).createItemStack(1))
+      GameRegistry.addShapelessRecipe(relay.createItemStack(1), accessPoint.createItemStack(1))
+      GameRegistry.addShapelessRecipe(relay.createItemStack(1), switch.createItemStack(1))
 
       // Hover Boot dyeing
-      GameRegistry.addRecipe(new ColorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
-      GameRegistry.addRecipe(new DecolorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
+      GameRegistry.addRecipe(new ColorizeRecipe(hoverBoots.item()))
+      GameRegistry.addRecipe(new DecolorizeRecipe(hoverBoots.item()))
 
       // Cable dyeing
-      GameRegistry.addRecipe(new ColorizeRecipe(api.Items.get(Constants.BlockName.Cable).block()))
-      GameRegistry.addRecipe(new DecolorizeRecipe(api.Items.get(Constants.BlockName.Cable).block()))
+      GameRegistry.addRecipe(new ColorizeRecipe(cable.block()))
+      GameRegistry.addRecipe(new DecolorizeRecipe(cable.block()))
+
+      // Loot disk cycling.
+      GameRegistry.addRecipe(new LootDiskCyclingRecipe())
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

@@ -19,6 +19,7 @@ class ModPluginOpenComputers extends IModPlugin {
   }
 
   override def register(registry: IModRegistry): Unit = {
+    registry.addRecipeHandlers()
   }
 
   override def onRecipeRegistryAvailable(recipeRegistry: IRecipeRegistry): Unit = {
