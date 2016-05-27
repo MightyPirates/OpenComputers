@@ -342,7 +342,7 @@ class ClassTransformer extends IClassTransformer {
     replace(ObfNames.Method_invalidate(0), ObfNames.Method_invalidate(1), "()V")
     replace(ObfNames.Method_onChunkUnload(0), ObfNames.Method_onChunkUnload(1), "()V")
     replace(ObfNames.Method_readFromNBT(0), ObfNames.Method_readFromNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
-    replace(ObfNames.Method_writeToNBT(0), ObfNames.Method_writeToNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
+    replace(ObfNames.Method_writeToNBT(0), ObfNames.Method_writeToNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/nbt/NBTTagCompound;")
 
     log.trace("Injecting interface.")
     classNode.interfaces.add("li/cil/oc/common/asm/template/SimpleComponentImpl")
