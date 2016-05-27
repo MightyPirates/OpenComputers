@@ -13,17 +13,13 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 import com.google.common.hash.Hashing
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
@@ -33,9 +29,6 @@ abstract class DataCard extends prefab.ManagedEnvironment {
     withComponent("data", Visibility.Neighbors).
     withConnector().
     create()
-
-  val romData = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/data"), "data"))
 
   // ----------------------------------------------------------------------- //
 
@@ -69,32 +62,6 @@ abstract class DataCard extends prefab.ManagedEnvironment {
   @Callback(direct = true, doc = """function():number -- The maximum size of data that can be passed to other functions of the card.""")
   def getLimit(context: Context, args: Arguments): Array[AnyRef] = {
     result(Settings.get.dataCardHardLimit)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node.isNeighborOf(this.node)) {
-      romData.foreach(fs => node.connect(fs.node))
-    }
-  }
-
-  override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      romData.foreach(_.node.remove())
-    }
-  }
-
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    romData.foreach(_.load(nbt.getCompoundTag("romData")))
-  }
-
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    romData.foreach(fs => nbt.setNewCompoundTag("romData", fs.save))
   }
 }
 

@@ -1,19 +1,27 @@
 package li.cil.oc.server.component
 
-import java.io.{BufferedWriter, FileNotFoundException, IOException, InputStream, OutputStreamWriter}
+import java.io.BufferedWriter
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.concurrent.{Callable, ConcurrentLinkedQueue, ExecutionException, Future}
+import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
 
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.Settings
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Network, prefab}
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.api.Network
+import li.cil.oc.api.prefab
 import li.cil.oc.util.ThreadPoolFactory
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 
 import scala.collection.convert.WrapAsScala._
@@ -23,9 +31,6 @@ class InternetCard extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
-
-  val romInternet = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/internet"), "internet"))
 
   protected var owner: Option[Context] = None
 
@@ -48,8 +53,9 @@ class InternetCard extends prefab.ManagedEnvironment {
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
     val headers = if (args.isTable(2)) args.checkTable(2).collect {
-        case (key: String, value: AnyRef) => (key, value.toString)
-      }.toMap else Map.empty[String, String]
+      case (key: String, value: AnyRef) => (key, value.toString)
+    }.toMap
+    else Map.empty[String, String]
     if (!Settings.get.httpHeadersEnabled && headers.nonEmpty) {
       return result(Unit, "http request headers are unavailable")
     }
@@ -90,7 +96,6 @@ class InternetCard extends prefab.ManagedEnvironment {
     super.onConnect(node)
     if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
       owner = Some(node.host.asInstanceOf[Context])
-      romInternet.foreach(fs => node.connect(fs.node))
     }
   }
 
@@ -102,7 +107,6 @@ class InternetCard extends prefab.ManagedEnvironment {
         connections.foreach(_.close())
         connections.clear()
       }
-      romInternet.foreach(_.node.remove())
     }
   }
 
@@ -116,18 +120,6 @@ class InternetCard extends prefab.ManagedEnvironment {
         }
       case _ =>
     }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    romInternet.foreach(_.load(nbt.getCompoundTag("romInternet")))
-  }
-
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    romInternet.foreach(fs => nbt.setNewCompoundTag("romInternet", fs.save))
   }
 
   // ----------------------------------------------------------------------- //
@@ -271,13 +263,14 @@ object InternetCard {
         resolved
       }
     }
+
   }
 
   def checkLists(inetAddress: InetAddress, host: String) {
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_ (inetAddress, host))) {
       throw new FileNotFoundException("address is not whitelisted")
     }
-    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_ (inetAddress, host))) {
       throw new FileNotFoundException("address is blacklisted")
     }
   }
