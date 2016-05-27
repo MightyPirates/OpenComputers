@@ -152,6 +152,8 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
 
     GlStateManager.depthFunc(GL11.GL_LEQUAL)
     GlStateManager.popMatrix()
+
+    RenderState.disableBlend()
     RenderState.popAttrib()
     GL11.glPopClientAttrib()
 

@@ -99,6 +99,7 @@ object HighlightRenderer {
         }
         t.draw()
 
+        RenderState.disableBlend()
         RenderState.popAttrib()
         GlStateManager.popMatrix()
       }

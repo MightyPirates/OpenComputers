@@ -65,6 +65,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.Pow
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

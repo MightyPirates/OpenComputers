@@ -65,6 +65,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
       GlStateManager.rotate(90, 0, 1, 0)
     }
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()

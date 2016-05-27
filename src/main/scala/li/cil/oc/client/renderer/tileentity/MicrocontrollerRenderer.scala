@@ -54,6 +54,7 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer[Microcontroller
 
     t.draw()
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()

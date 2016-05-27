@@ -66,6 +66,7 @@ object TransposerRenderer extends TileEntitySpecialRenderer[tileentity.Transpose
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()

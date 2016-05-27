@@ -62,6 +62,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
 
     t.draw()
 
+    RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
     GlStateManager.popMatrix()
