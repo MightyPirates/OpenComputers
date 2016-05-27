@@ -339,7 +339,9 @@ object Recipes {
       GameRegistry.addRecipe(new DecolorizeRecipe(cable.block()))
 
       // Loot disk cycling.
-      GameRegistry.addRecipe(new LootDiskCyclingRecipe())
+      if (Settings.get.lootRecrafting) {
+        GameRegistry.addRecipe(new LootDiskCyclingRecipe())
+      }
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
