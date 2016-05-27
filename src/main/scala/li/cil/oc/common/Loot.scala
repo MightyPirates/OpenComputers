@@ -15,6 +15,7 @@ import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -40,13 +41,15 @@ object Loot {
 
   val factories = mutable.Map.empty[String, Callable[FileSystem]]
 
-  val globalDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val globalDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
-  val worldDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
+
+  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
 
   def randomDisk(rng: Random) =
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
@@ -111,26 +114,26 @@ object Loot {
         }
       }
     }
-    for ((name, entry) <- globalDisks if !worldDisks.contains(name)) {
-      worldDisks += name -> entry
+    for (entry <- globalDisks if !worldDisks.contains(entry)) {
+      worldDisks += entry
     }
-    for ((_, (stack, count)) <- worldDisks) {
+    for ((stack, count) <- worldDisks) {
       for (i <- 0 until count) {
         disksForSampling += stack
       }
     }
   }
 
-  private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)], external: Boolean) {
+  private def parseLootDisks(list: java.util.Properties, acc: mutable.ArrayBuffer[(ItemStack, Int)], external: Boolean) {
     for (key <- list.stringPropertyNames) {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
-          acc += key -> ((createLootDisk(name, key, external, Color.byOreName.get(color)), count.toInt))
+          acc += ((createLootDisk(name, key, external, Color.byOreName.get(color)), count.toInt))
         case Array(name, count) =>
-          acc += key -> ((createLootDisk(name, key, external), count.toInt))
+          acc += ((createLootDisk(name, key, external), count.toInt))
         case _ =>
-          acc += key -> ((createLootDisk(value, key, external), 1))
+          acc += ((createLootDisk(value, key, external), 1))
       }
       catch {
         case t: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value, t)
@@ -144,9 +147,10 @@ object Loot {
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-    val stack = registerLootDisk(name, color.getOrElse(EnumDyeColor.SILVER), callable)
+    val stack = registerLootDisk(path, color.getOrElse(EnumDyeColor.SILVER), callable)
+    stack.setStackDisplayName(name)
     if (!external) {
-      Items.registerStack(stack, name)
+      Items.registerStack(stack, path)
     }
     stack
   }

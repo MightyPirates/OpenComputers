@@ -1,14 +1,12 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.ExtendedNBT._
@@ -22,9 +20,6 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     withComponent("generator", Visibility.Neighbors).
     withConnector().
     create()
-
-  val romGenerator = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/generator"), "generator"))
 
   var inventory: Option[ItemStack] = None
 
@@ -94,7 +89,8 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     if (remainingTicks <= 0 && inventory.isDefined) {
       val stack = inventory.get
       remainingTicks = TileEntityFurnace.getItemBurnTime(stack)
-      if (remainingTicks > 0) { // If not we probably have a container item now (e.g. bucket after lava bucket).
+      if (remainingTicks > 0) {
+        // If not we probably have a container item now (e.g. bucket after lava bucket).
         updateClient()
         stack.stackSize -= 1
         if (stack.stackSize <= 0) {
@@ -121,13 +117,6 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node.isNeighborOf(this.node)) {
-      romGenerator.foreach(fs => node.connect(fs.node))
-    }
-  }
-
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
@@ -142,17 +131,15 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
         case _ =>
       }
       remainingTicks = 0
-      romGenerator.foreach(_.node.remove())
     }
   }
 
-  private final val RomGeneratorTag = "romGenerator"
   private final val InventoryTag = "inventory"
   private final val RemainingTicksTag = "remainingTicks"
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romGenerator.foreach(_.load(nbt.getCompoundTag(RomGeneratorTag)))
+      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
     if (nbt.hasKey(InventoryTag)) {
       inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(InventoryTag)))
     }
@@ -161,7 +148,6 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romGenerator.foreach(fs => nbt.setNewCompoundTag(RomGeneratorTag, fs.save))
     inventory match {
       case Some(stack) => nbt.setNewCompoundTag(InventoryTag, stack.writeToNBT)
       case _ =>
