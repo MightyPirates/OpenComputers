@@ -33,7 +33,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
-
   def isCreative = tier == Tier.Four
 
   // ----------------------------------------------------------------------- //

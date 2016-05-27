@@ -28,10 +28,6 @@ class Redstone extends traits.Environment with traits.BundledRedstoneAware with 
 
   private final val RedstoneTag = Settings.namespace + "redstone"
 
-  override def updateEntity(): Unit = {
-    super[Environment].updateEntity()
-  }
-
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     instance.load(nbt.getCompoundTag(RedstoneTag))
