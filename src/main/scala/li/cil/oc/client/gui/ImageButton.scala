@@ -53,7 +53,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
         r.pos(x0, y0, zLevel).tex(u0, v0).endVertex()
       }
       else if (isHovered) {
-        GL11.glColor4f(1, 1, 1, 0.8f)
+        GlStateManager.color(1, 1, 1, 0.8f)
 
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
         r.pos(x0, y1, zLevel).endVertex()
@@ -62,7 +62,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
         r.pos(x0, y0, zLevel).endVertex()
       }
       else {
-        GL11.glColor4f(1, 1, 1, 0.4f)
+        GlStateManager.color(1, 1, 1, 0.4f)
 
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
         r.pos(x0, y1, zLevel).endVertex()

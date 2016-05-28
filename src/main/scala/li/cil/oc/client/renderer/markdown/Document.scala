@@ -87,7 +87,7 @@ object Document {
     GlStateManager.colorMask(false, false, false, false)
 
     GlStateManager.pushMatrix()
-    GL11.glTranslatef(0, 0, 500)
+    GlStateManager.translate(0, 0, 500)
     GL11.glBegin(GL11.GL_QUADS)
     GL11.glVertex2f(0, y)
     GL11.glVertex2f(mc.displayWidth, y)
