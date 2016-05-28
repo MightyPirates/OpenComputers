@@ -553,36 +553,55 @@ function --[[@delayloaded-start@]] sh.internal.hintHandlerSplit(line)
 end --[[@delayloaded-end@]] 
 
 function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor)
+  -- line: text preceding the cursor: we want to hint this part (expand it)
   local line = unicode.sub(full_line, 1, cursor - 1)
+  -- suffix: text following the cursor (if any, else empty string) to append to the hints
   local suffix = unicode.sub(full_line, cursor)
+  -- if there is no text to hint, there are no hints
   if not line or #line < 1 then
     return {}
   end
+  -- hintHandlerSplit helps make the hints work even after delimiters such as ;
+  -- it also catches parse errors such as unclosed quotes
   local prev,line = sh.internal.hintHandlerSplit(line)
   if not prev then -- failed to parse, e.g. unclosed quote, no hints
     return {}
   end
   local result
-  local prefix, partial = line:match("^(.*[=><])(.*)$")
+  -- prefix: text (if any) that will not be expanded (such as a command word preceding a file name that we are expanding)
+  -- partial: text that we want to expand
+  -- this first match determines if partial comes after redirect symbols such as >
+  local prefix, partial = line:match("^(.*[=><]%s*)(.*)$")
+  -- if redirection was not found, partial could just be arguments following a command
   if not prefix then prefix, partial = line:match("^(.+%s+)(.*)$") end
+  -- partialPrefix: text of the partial that will not be expanded (i.e. a diretory path ending with /)
+  -- first, partialPrefix holds the whole text being expanded (we truncate later)
   local partialPrefix = (partial or line)
-  local name = partialPrefix:gsub(".*/", "")
+  -- name: text of the partial file name being expanded
+  local name = partialPrefix:gsub("^.*/", "")
+  -- here we remove the name text from the partialPrefix
   partialPrefix = partialPrefix:sub(1, -unicode.len(name) - 1)
+  -- if no prefix was found and partialPrefix did not specify a closed directory path then we are expanding the first argument
+  -- i.e. the command word (a program name)
   local searchInPath = not prefix and not partialPrefix:find("/")
   if searchInPath then
     result = sh.getMatchingPrograms(line)
   else
     result = sh.getMatchingFiles(partialPrefix, name)
   end
+  -- in very special cases, the suffix should include a blank space to indicate to the user that the hint is discrete
   local resultSuffix = suffix
   if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
      not suffix:sub(1,1):find('%s') and
      (#result == 1 or searchInPath or not prefix) then 
     resultSuffix  = " " .. resultSuffix 
   end
+  -- prefix no longer needs to refer to just the expanding section of the text
+  -- here we reintroduce the previous section of the text that hintHandlerSplit cut for us
   prefix = prev .. (prefix or "")
   table.sort(result)
   for i = 1, #result do
+    -- the hints define the whole line of text
     result[i] = prefix .. result[i] .. resultSuffix
   end
   return result
