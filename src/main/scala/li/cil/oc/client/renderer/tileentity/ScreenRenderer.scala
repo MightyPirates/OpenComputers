@@ -91,7 +91,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
     RenderState.disableBlend()
     RenderState.enableEntityLighting()
-    GlStateManager.color(1, 1, 1, 1) // #1648
 
     GlStateManager.popMatrix()
     RenderState.popAttrib()

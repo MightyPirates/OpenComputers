@@ -2,6 +2,7 @@ package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -25,7 +26,7 @@ public class TextureTabIconRenderer implements TabIconRenderer {
     @SideOnly(Side.CLIENT)
     public void render() {
         Minecraft.getMinecraft().getTextureManager().bindTexture(location);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, Minecraft.getMinecraft().getTextureManager().getTexture(location).getGlTextureId());
+        GlStateManager.bindTexture(Minecraft.getMinecraft().getTextureManager().getTexture(location).getGlTextureId());
         final Tessellator t = Tessellator.getInstance();
         final WorldRenderer r = t.getWorldRenderer();
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);

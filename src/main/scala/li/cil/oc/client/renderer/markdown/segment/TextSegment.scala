@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.markdown.segment
 
 import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
@@ -19,12 +20,12 @@ private[markdown] class TextSegment(val parent: Segment, val text: String) exten
     while (chars.length > 0) {
       val part = chars.take(numChars)
       hovered = hovered.orElse(resolvedInteractive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, stringWidth(part, renderer), (Document.lineHeight(renderer) * resolvedScale).toInt)))
-      GL11.glPushMatrix()
-      GL11.glTranslatef(currentX, currentY, 0)
-      GL11.glScalef(resolvedScale, resolvedScale, resolvedScale)
-      GL11.glTranslatef(-currentX, -currentY, 0)
+      GlStateManager.pushMatrix()
+      GlStateManager.translate(currentX, currentY, 0)
+      GlStateManager.scale(resolvedScale, resolvedScale, resolvedScale)
+      GlStateManager.translate(-currentX, -currentY, 0)
       renderer.drawString(resolvedFormat + part, currentX, currentY, resolvedColor)
-      GL11.glPopMatrix()
+      GlStateManager.popMatrix()
       currentX = x + wrapIndent
       currentY += lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
