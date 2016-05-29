@@ -8,6 +8,9 @@ import li.cil.oc.common.inventory
 import li.cil.oc.util.ExtendedInventory._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -146,6 +149,27 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     if (node == this.node) {
       disconnectComponents()
     }
+  }
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
+    val localFacing = this match {
+      case rotatable: Rotatable => rotatable.toLocal(facing)
+      case _ => facing
+    }
+    super.hasCapability(capability, facing) || components.exists {
+      case Some(component: ICapabilityProvider) => component.hasCapability(capability, localFacing)
+      case _ => false
+    }
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    val localFacing = this match {
+      case rotatable: Rotatable => rotatable.toLocal(facing)
+      case _ => facing
+    }
+    Option(super.getCapability(capability, facing)).orElse(components.collectFirst {
+      case Some(component: ICapabilityProvider) if component.hasCapability(capability, localFacing) => component.getCapability(capability, localFacing)
+    }).getOrElse(null.asInstanceOf[T])
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

@@ -29,10 +29,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
+import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
+class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider {
   lazy val machine = Machine.create(this)
 
   val node = if (!rack.world.isRemote) machine.node else null
@@ -211,4 +213,16 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // Analyzable
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
+
+  // ----------------------------------------------------------------------- //
+  // ICapabilityProvider
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = components.exists {
+    case Some(component: ICapabilityProvider) => component.hasCapability(capability, host.toLocal(facing))
+    case _ => false
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = components.collectFirst {
+    case Some(component: ICapabilityProvider) if component.hasCapability(capability, host.toLocal(facing)) => component.getCapability[T](capability, host.toLocal(facing))
+  }.getOrElse(null.asInstanceOf[T])
 }
