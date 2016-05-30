@@ -57,9 +57,9 @@ object TabletTemplate extends Template {
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new TabletData(stack)
     val itemName = Constants.ItemName.TabletCase(info.tier)
-    Array(api.Items.get(itemName).createItemStack(1)) ++ info.items.collect {
+    (Array(api.Items.get(itemName).createItemStack(1), info.container.orNull) ++ info.items.collect {
       case Some(item) => item
-    }.drop(1) // Screen.
+    }.drop(1) /* Screen */).filter(_ != null)
   }
 
   def register() {

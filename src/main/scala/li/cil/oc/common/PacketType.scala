@@ -5,6 +5,7 @@ object PacketType extends Enumeration {
   // Server -> Client
   Analyze,
   ChargerState,
+  ClientLog,
   ColorChange,
   ComputerState,
   ComputerUserList,
