@@ -6,6 +6,7 @@ object PacketType extends Enumeration {
   AbstractBusState,
   Analyze,
   ChargerState,
+  ClientLog,
   ColorChange,
   ComputerState,
   ComputerUserList,

@@ -50,6 +50,14 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendClientLog(line: String, player: EntityPlayerMP) {
+    val pb = new CompressedPacketBuilder(PacketType.ClientLog)
+
+    pb.writeUTF(line)
+
+    pb.sendToPlayer(player)
+  }
+
   def sendColorChange(t: Colored) {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
