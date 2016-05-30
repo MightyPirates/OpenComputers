@@ -166,8 +166,16 @@ public final class IMC {
      * Signature of callbacks must be:
      * <pre>
      * boolean select(ItemStack stack)
-     * ItemStack[] disassemble(ItemStack stack, ItemStack[] ingredients)
+     * Object disassemble(ItemStack stack, ItemStack[] ingredients)
      * </pre>
+     * <p/>
+     * Where the <code>Object</code> returned from the <code>disassemble</code>
+     * method must be one of the following:
+     * <ul>
+     * <li><code>ItemStack[]</code>: list of resulting items, subject to random failure.</li>
+     * <li><code>Object[]{ItemStack[],ItemStack[]}</code>: two lists of resulting items, the first being subject to
+     * random failure, the second being guaranteed drops (e.g. for item inventory contents).</li>
+     * </ul>
      * <p/>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
