@@ -28,8 +28,8 @@ class Acid(val parent: Delegator) extends traits.Delegate {
         if (!world.isRemote) {
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 200))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 100))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("moveSlowdown"), 600))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("confusion"), 1200))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 600))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("nausea"), 1200))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("saturation"), 2000))
 
           // Remove nanomachines if installed.
