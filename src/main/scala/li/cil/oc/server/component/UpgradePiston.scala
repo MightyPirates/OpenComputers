@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -15,11 +21,22 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.init.Blocks
 import net.minecraftforge.common.util.ForgeDirection
 
-abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
+import scala.collection.convert.WrapAsJava._
+
+abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("piston").
     withConnector().
     create()
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Piston upgrade",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Displacer II+"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   def pushDirection(args: Arguments, index: Int): ForgeDirection
 

@@ -5,9 +5,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -32,10 +35,11 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer {
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -98,6 +102,17 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     syncCooldown = -1 // Stop polling for init state.
     relativeLitArea = -1 // Recompute lit area, avoid screens blanking out until something changes.
   }
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Display,
+    DeviceAttribute.Description -> "Text buffer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Text Screen V0",
+    DeviceAttribute.Capacity -> (maxResolution._1 * maxResolution._2).toString,
+    DeviceAttribute.Width -> Array("1", "4", "8").apply(maxDepth.ordinal())
+  )
+
+  override def getDeviceInfo: java.util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

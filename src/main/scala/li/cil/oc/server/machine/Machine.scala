@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.item.CallBudget
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
@@ -418,6 +419,29 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     context.pause(durationInMilliseconds / 1000.0)
     PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
     null
+  }
+
+  @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
+  def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
+    context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
+    Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {
+      case (n: Component, deviceInfo: DeviceInfo) =>
+        if (n.canBeSeenFrom(node)) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+      case (n, deviceInfo: DeviceInfo) =>
+        if (n.canBeReachedFrom(node)) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+    }.collect { case Some(kvp) => kvp }.toMap)
   }
 
   // ----------------------------------------------------------------------- //

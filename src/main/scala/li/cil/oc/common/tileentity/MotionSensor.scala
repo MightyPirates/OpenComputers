@@ -1,7 +1,13 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -12,10 +18,11 @@ import net.minecraft.potion.Potion
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Vec3
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class MotionSensor extends traits.Environment {
+class MotionSensor extends traits.Environment with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("motion_sensor").
     withConnector().
@@ -26,6 +33,16 @@ class MotionSensor extends traits.Environment {
   private var sensitivity = 0.4
 
   private val trackedEntities = mutable.Map.empty[EntityLivingBase, (Double, Double, Double)]
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Motion sensor",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Blinker M1K0",
+    DeviceAttribute.Capacity -> radius.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

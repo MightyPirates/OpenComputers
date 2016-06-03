@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
 import com.google.common.hash.Hashing
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -15,12 +21,24 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 
-class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment with internal.Database {
+import scala.collection.convert.WrapAsJava._
+
+class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment with internal.Database with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("database").
     create()
 
-  override def size() = data.getSizeInventory
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Object catalogue",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "iCatalogue (patent pending)",
+    DeviceAttribute.Capacity -> size.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  override def size = data.getSizeInventory
 
   override def getStackInSlot(slot: Int) = Option(data.getStackInSlot(slot)).map(_.copy()).orNull
 

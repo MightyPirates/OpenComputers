@@ -8,11 +8,15 @@ import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
+import java.util
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -20,14 +24,16 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.prefab
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class InternetCard extends prefab.ManagedEnvironment {
+class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
@@ -35,6 +41,17 @@ class InternetCard extends prefab.ManagedEnvironment {
   protected var owner: Option[Context] = None
 
   protected val connections = mutable.Set.empty[InternetCard.Closable]
+
+  // ----------------------------------------------------------------------- //
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Communication,
+    DeviceAttribute.Description -> "Internet modem",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "SuperLink X-D4NK"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

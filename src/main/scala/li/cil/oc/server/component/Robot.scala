@@ -1,8 +1,14 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -17,7 +23,9 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent {
+import scala.collection.convert.WrapAsJava._
+
+class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
@@ -25,6 +33,16 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Robot",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Caterpillar",
+    DeviceAttribute.Capacity -> agent.getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
