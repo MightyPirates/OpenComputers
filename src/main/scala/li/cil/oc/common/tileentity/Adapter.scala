@@ -1,8 +1,14 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
@@ -14,9 +20,10 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with Analyzable with internal.Adapter {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -24,6 +31,15 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Bus,
+    DeviceAttribute.Description -> "Adapter",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Multiplug Ext.1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -149,11 +165,11 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
       map(blocksNbt.getCompoundTagAt).
       zipWithIndex.
       foreach {
-      case (blockNbt, i) =>
-        if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
-          blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
-        }
-    }
+        case (blockNbt, i) =>
+          if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
+            blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
+          }
+      }
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {

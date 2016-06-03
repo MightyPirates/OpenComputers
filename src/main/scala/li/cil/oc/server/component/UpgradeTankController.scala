@@ -1,6 +1,12 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -10,9 +16,22 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 
+import scala.collection.convert.WrapAsJava._
+
 object UpgradeTankController {
 
-  class Adapter(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldTankAnalytics {
+  trait Common extends DeviceInfo {
+    private final val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Generic,
+      DeviceAttribute.Description -> "Tank controller",
+      DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+      DeviceAttribute.Product -> "FlowCheckDX"
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
+  }
+
+  class Adapter(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldTankAnalytics with Common {
     override val node = Network.newNode(this, Visibility.Network).
       withComponent("tank_controller", Visibility.Network).
       create()
@@ -24,7 +43,7 @@ object UpgradeTankController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {
+  class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
     override val node = Network.newNode(this, Visibility.Network).
       withComponent("tank_controller", Visibility.Neighbors).
       create()
@@ -46,7 +65,7 @@ object UpgradeTankController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Robot(val host: EnvironmentHost with tileentity.Robot) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {
+  class Robot(val host: EnvironmentHost with tileentity.Robot) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
     override val node = Network.newNode(this, Visibility.Network).
       withComponent("tank_controller", Visibility.Neighbors).
       create()

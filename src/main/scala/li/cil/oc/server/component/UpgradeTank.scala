@@ -1,6 +1,12 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
@@ -9,8 +15,22 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.FluidTank
 import net.minecraftforge.fluids.IFluidTank
 
-class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends prefab.ManagedEnvironment with IFluidTank {
+import scala.collection.convert.WrapAsJava._
+
+class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends prefab.ManagedEnvironment with IFluidTank with DeviceInfo {
   override val node = Network.newNode(this, Visibility.None).create()
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Tank upgrade",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Superblubb V10",
+    DeviceAttribute.Capacity -> capacity.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
 
   val tank = new FluidTank(capacity)
 

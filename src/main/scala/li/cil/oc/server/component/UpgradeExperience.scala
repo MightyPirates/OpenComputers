@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -14,13 +20,24 @@ import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.init.Items
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment {
+class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("experience").
     withConnector(30 * Settings.get.bufferPerLevel).
     create()
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Knowledge database",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "ERSO (Event Recorder and Self-Optimizer)",
+    DeviceAttribute.Capacity -> "30"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   var experience = 0.0
 

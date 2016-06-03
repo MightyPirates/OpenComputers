@@ -13,17 +13,16 @@ import li.cil.oc.api.prefab
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeBattery(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
+class Memory(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
-    withConnector(Settings.get.bufferCapacitorUpgrades(tier)).
     create()
 
   private final val deviceInfo = Map(
-    DeviceAttribute.Class -> DeviceClass.Power,
-    DeviceAttribute.Description -> "Battery",
+    DeviceAttribute.Class -> DeviceClass.Memory,
+    DeviceAttribute.Description -> "Memory bank",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> "Unlimited Power (Almost Ed.)",
-    DeviceAttribute.Capacity -> Settings.get.bufferCapacitorUpgrades(tier).toString
+    DeviceAttribute.Product -> "Multipurpose RAM Type",
+    DeviceAttribute.Clock -> (Settings.get.callBudgets(tier) * 1000).toInt.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
