@@ -173,39 +173,7 @@ object Constants {
 
   object DeviceInfo {
 
-    object DeviceAttribute {
-      final val Class = "class"
-      final val Description = "description"
-      final val Vendor = "vendor"
-      final val Product = "product"
-      final val Capacity = "capacity"
-      final val Size = "size"
-      final val Clock = "clock"
-      final val Width = "width"
-    }
-
-    object DeviceClass {
-      final val System = "system"
-      final val Bridge = "bridge"
-      final val Memory = "memory"
-      final val Processor = "processor"
-      final val Address = "address"
-      final val Storage = "storage"
-      final val Disk = "disk"
-      final val Tape = "tape"
-      final val Bus = "bus"
-      final val Network = "network"
-      final val Display = "display"
-      final val Input = "input"
-      final val Printer = "printer"
-      final val Multimedia = "multimedia"
-      final val Communication = "communication"
-      final val Power = "power"
-      final val Volume = "volume"
-      final val Generic = "generic"
-    }
-
-    final val DefaultVendor = "MightPirates GmbH & Co. KG"
+    final val DefaultVendor = "MightyPirates GmbH & Co. KG"
 
   }
 

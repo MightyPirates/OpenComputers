@@ -15,8 +15,8 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 
 import li.cil.oc.Constants
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback

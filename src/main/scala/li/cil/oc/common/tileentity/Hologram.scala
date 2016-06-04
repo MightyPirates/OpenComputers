@@ -5,8 +5,8 @@ import java.util
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback

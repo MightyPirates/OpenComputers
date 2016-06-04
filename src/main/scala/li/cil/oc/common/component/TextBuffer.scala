@@ -5,8 +5,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api

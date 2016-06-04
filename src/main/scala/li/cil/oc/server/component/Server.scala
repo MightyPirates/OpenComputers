@@ -4,8 +4,8 @@ import java.lang.Iterable
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Machine

@@ -4,8 +4,8 @@ import java.util
 
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.Constants
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
