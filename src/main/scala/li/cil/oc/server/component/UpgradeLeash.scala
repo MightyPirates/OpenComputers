@@ -4,8 +4,8 @@ import java.util
 import java.util.UUID
 
 import li.cil.oc.Constants
-import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
-import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
