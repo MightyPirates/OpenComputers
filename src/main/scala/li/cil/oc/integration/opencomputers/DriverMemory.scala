@@ -7,6 +7,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with api.driver.item.Memory with api.driver.item.CallBudget {
@@ -25,7 +26,7 @@ object DriverMemory extends Item with api.driver.item.Memory with api.driver.ite
     api.Items.get(Constants.ItemName.RAMTier5),
     api.Items.get(Constants.ItemName.RAMTier6))
 
-  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) = null
+  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) = new component.Memory(tier(stack))
 
   override def slot(stack: ItemStack) = Slot.Memory
 

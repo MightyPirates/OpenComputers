@@ -2,8 +2,12 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -11,15 +15,17 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import _root_.net.minecraft.inventory.ISidedInventory
-import _root_.net.minecraft.item.ItemStack
-import _root_.net.minecraft.nbt.NBTTagCompound
-import _root_.net.minecraft.util.EnumFacing
-import _root_.net.minecraft.util.math.AxisAlignedBB
-import _root_.net.minecraftforge.fml.relauncher.Side
-import _root_.net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.inventory.ISidedInventory
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory {
+import scala.collection.convert.WrapAsJava._
+
+class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
@@ -40,6 +46,15 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   val slotMaterial = 0
   val slotInk = 1
   val slotOutput = 2
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Printer,
+    DeviceAttribute.Description -> "3D Printer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Omni-Materializer T6.1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

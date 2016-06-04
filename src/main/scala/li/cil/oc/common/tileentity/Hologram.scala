@@ -1,7 +1,11 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Settings
-import li.cil.oc.api
+import java.util
+
+import li.cil.oc._
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -18,9 +22,10 @@ import net.minecraft.util.math.Vec3d
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable with traits.Tickable {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable with traits.Tickable with DeviceInfo {
   def this() = this(0)
 
   val node = api.Network.newNode(this, Visibility.Network).
@@ -31,6 +36,19 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   final val width = 3 * 16
 
   final val height = 2 * 16 // 32 bit in an int
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Display,
+    DeviceAttribute.Description -> "Holographic projector",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> ("VirtualViewer H1-" + tier.toString),
+    DeviceAttribute.Capacity -> (width * width * height).toString,
+    DeviceAttribute.Width -> colors.length.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
 
   // Layout is: first half is lower bit, second half is higher bit for the
   // voxels in the cube. This is to retain compatibility with pre 1.3 saves.

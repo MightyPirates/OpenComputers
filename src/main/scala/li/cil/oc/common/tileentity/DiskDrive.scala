@@ -1,8 +1,14 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -22,7 +28,9 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
+import scala.collection.convert.WrapAsJava._
+
+class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
@@ -30,6 +38,15 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     case Some(environment) => Option(environment.node)
     case _ => None
   }
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Disk,
+    DeviceAttribute.Description -> "Floppy disk drive",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Spinner 520p1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
   // Environment

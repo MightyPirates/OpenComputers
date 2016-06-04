@@ -9,13 +9,13 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Tooltip
-import _root_.net.minecraft.entity.player.EntityPlayer
-import _root_.net.minecraft.item.Item
-import _root_.net.minecraft.item.ItemStack
-import _root_.net.minecraft.util.math.BlockPos
-import _root_.net.minecraftforge.fml.relauncher.Side
-import _root_.net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait SimpleItem extends Item {
   setCreativeTab(CreativeTab)

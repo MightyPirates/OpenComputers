@@ -7,16 +7,16 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import _root_.net.minecraft.entity.player.EntityPlayer
-import _root_.net.minecraft.item.ItemStack
-import _root_.net.minecraft.util.EnumFacing
-import _root_.net.minecraft.util.math.BlockPos
-import _root_.net.minecraft.world.IBlockAccess
-import _root_.net.minecraft.world.World
-import _root_.net.minecraftforge.fml.relauncher.Side
-import _root_.net.minecraftforge.fml.relauncher.SideOnly
 import net.minecraft.block.state.IBlockState
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Hologram(val tier: Int) extends SimpleBlock {
   if (Settings.get.hologramLight) {

@@ -4,10 +4,13 @@ import java.util
 import java.util.UUID
 
 import li.cil.oc.Constants
+import li.cil.oc.Constants.DeviceInfo.DeviceAttribute
+import li.cil.oc.Constants.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.component.RackMountable
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
@@ -30,9 +33,10 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle {
+class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   lazy val buffer = {
@@ -68,6 +72,18 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     if (!rack.world.isRemote) keys
     else rack.getMountableData(slot).getTagList("keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
   }
+
+  // ----------------------------------------------------------------------- //
+  // DeviceInfo
+
+  private final val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Terminal server",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "RemoteViewing EX"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
   // Environment

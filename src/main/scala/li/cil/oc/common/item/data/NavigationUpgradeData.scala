@@ -20,6 +20,11 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
     case _: Throwable => throw new Exception("invalid map")
   }
 
+  def getSize(world: World) = {
+    val info = mapData(world)
+    128 * (1 << info.scale)
+  }
+
   private final val DataTag = Settings.namespace + "data"
   private final val MapTag = Settings.namespace + "map"
 

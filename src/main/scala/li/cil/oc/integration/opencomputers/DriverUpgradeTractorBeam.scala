@@ -34,7 +34,7 @@ object DriverUpgradeTractorBeam extends Item with HostAware {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] =
       if (worksWith(stack))
-        classOf[component.UpgradeTractorBeam]
+        classOf[component.UpgradeTractorBeam.Common]
       else null
   }
 
