@@ -49,7 +49,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     world.notifyBlocksOfNeighborChange(x, y, z, block)
   }
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Disassembler",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

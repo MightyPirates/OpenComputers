@@ -34,7 +34,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Robot",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

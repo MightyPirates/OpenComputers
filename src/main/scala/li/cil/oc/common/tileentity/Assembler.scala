@@ -35,7 +35,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   var requiredEnergy = 0.0
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Assembler",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

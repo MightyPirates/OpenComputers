@@ -20,7 +20,7 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
     withConnector(Settings.get.bufferConverter).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Power converter",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

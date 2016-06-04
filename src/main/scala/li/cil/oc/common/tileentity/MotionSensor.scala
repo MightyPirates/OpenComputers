@@ -34,7 +34,7 @@ class MotionSensor extends traits.Environment with DeviceInfo {
 
   private val trackedEntities = mutable.Map.empty[EntityLivingBase, (Double, Double, Double)]
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Motion sensor",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

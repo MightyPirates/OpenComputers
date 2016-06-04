@@ -36,7 +36,7 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Communication,
     DeviceAttribute.Description -> "Wireless redstone controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

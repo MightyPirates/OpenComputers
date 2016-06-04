@@ -27,7 +27,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
     withConnector(Settings.get.bufferDrone).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Drone",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

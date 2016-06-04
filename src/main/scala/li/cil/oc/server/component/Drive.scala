@@ -53,7 +53,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Disk,
     DeviceAttribute.Description -> "Hard disk drive",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

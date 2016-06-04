@@ -27,7 +27,7 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
     withComponent("trading").
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Trading upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

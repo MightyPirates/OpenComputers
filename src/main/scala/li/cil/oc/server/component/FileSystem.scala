@@ -45,7 +45,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Volume,
     DeviceAttribute.Description -> "Filesystem",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

@@ -17,7 +17,7 @@ class CPU(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Processor,
     DeviceAttribute.Description -> "CPU",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

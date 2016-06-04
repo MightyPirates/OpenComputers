@@ -32,7 +32,7 @@ object UpgradeTractorBeam {
 
     private val pickupRadius = 3
 
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Generic,
       DeviceAttribute.Description -> "Tractor beam",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

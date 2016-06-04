@@ -29,7 +29,7 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEn
     withConnector().
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Piston upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

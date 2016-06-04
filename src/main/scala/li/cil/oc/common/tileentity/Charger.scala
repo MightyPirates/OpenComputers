@@ -43,7 +43,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   var invertSignal = false
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Charger",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

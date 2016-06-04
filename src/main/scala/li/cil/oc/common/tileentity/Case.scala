@@ -33,7 +33,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   color = Color.byTier(tier)
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Computer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

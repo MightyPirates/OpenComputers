@@ -47,7 +47,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   val slotInk = 1
   val slotOutput = 2
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Printer,
     DeviceAttribute.Description -> "3D Printer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

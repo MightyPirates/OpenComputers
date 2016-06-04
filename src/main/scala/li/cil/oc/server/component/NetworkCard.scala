@@ -43,7 +43,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Network,
     DeviceAttribute.Description -> "Ethernet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

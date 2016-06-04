@@ -18,7 +18,7 @@ class UpgradeBattery(val tier: Int) extends prefab.ManagedEnvironment with Devic
     withConnector(Settings.get.bufferCapacitorUpgrades(tier)).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Battery",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

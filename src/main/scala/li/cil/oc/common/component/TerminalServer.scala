@@ -73,7 +73,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // DeviceInfo
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Terminal server",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

@@ -32,7 +32,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Bus,
     DeviceAttribute.Description -> "Adapter",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

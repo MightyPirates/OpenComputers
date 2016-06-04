@@ -21,7 +21,7 @@ import scala.collection.convert.WrapAsJava._
 object UpgradeTankController {
 
   trait Common extends DeviceInfo {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Generic,
       DeviceAttribute.Description -> "Tank controller",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

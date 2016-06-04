@@ -28,7 +28,7 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
     withComponent("database").
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Object catalogue",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
