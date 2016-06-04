@@ -30,7 +30,11 @@ public interface DeviceInfo {
      * <p/>
      * For example, OC's tier one memory module returns the following:
      * <table>
-     * <tr></tr>
+     * <tr><td>class</td><td>memory</td></tr>
+     * <tr><td>description</td><td>Memory bank</td></tr>
+     * <tr><td>vendor</td><td>MightyPirates GmbH & Co. KG</td></tr>
+     * <tr><td>product</td><td>Multipurpose RAM Type</td></tr>
+     * <tr><td>clock</td><td>500</td></tr>
      * </table>
      *
      * @return the table of information on this device, or <code>null</code>.
