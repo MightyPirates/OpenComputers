@@ -25,7 +25,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Communication,
     DeviceAttribute.Description -> "Redstone controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

@@ -17,7 +17,7 @@ class Memory(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Memory,
     DeviceAttribute.Description -> "Memory bank",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

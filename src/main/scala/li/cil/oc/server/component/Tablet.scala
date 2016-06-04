@@ -23,7 +23,7 @@ class Tablet(val tablet: TabletWrapper) extends prefab.ManagedEnvironment with D
     withConnector(Settings.get.bufferTablet).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Tablet",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

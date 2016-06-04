@@ -105,7 +105,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     relativeLitArea = -1 // Recompute lit area, avoid screens blanking out until something changes.
   }
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Display,
     DeviceAttribute.Description -> "Text buffer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

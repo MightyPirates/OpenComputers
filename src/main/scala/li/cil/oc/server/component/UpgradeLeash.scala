@@ -36,7 +36,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
 
   final val MaxLeashedEntities = 8
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Leash",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

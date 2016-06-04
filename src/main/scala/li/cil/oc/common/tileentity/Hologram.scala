@@ -37,7 +37,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   final val height = 2 * 16 // 32 bit in an int
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Display,
     DeviceAttribute.Description -> "Holographic projector",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

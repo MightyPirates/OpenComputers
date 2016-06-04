@@ -61,7 +61,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Display,
     DeviceAttribute.Description -> "Graphics controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

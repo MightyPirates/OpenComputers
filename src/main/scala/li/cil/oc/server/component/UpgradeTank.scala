@@ -20,7 +20,7 @@ import scala.collection.convert.WrapAsJava._
 class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends prefab.ManagedEnvironment with IFluidTank with DeviceInfo {
   override val node = Network.newNode(this, Visibility.None).create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Tank upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

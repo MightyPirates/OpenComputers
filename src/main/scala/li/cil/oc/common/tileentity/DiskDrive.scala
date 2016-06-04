@@ -39,7 +39,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     case _ => None
   }
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Disk,
     DeviceAttribute.Description -> "Floppy disk drive",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

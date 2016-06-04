@@ -15,7 +15,7 @@ import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import scala.collection.convert.WrapAsJava._
 
 trait RedstoneBundled extends RedstoneVanilla {
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Communication,
     DeviceAttribute.Description -> "Advanced redstone controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

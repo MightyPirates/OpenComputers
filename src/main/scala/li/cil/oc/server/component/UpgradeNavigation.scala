@@ -35,7 +35,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
 
   val data = new NavigationUpgradeData()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Navigation upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

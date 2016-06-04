@@ -21,7 +21,7 @@ class Capacitor extends traits.Environment with DeviceInfo {
     withConnector(maxCapacity).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Battery",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

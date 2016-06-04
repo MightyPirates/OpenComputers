@@ -29,7 +29,7 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Network,
     DeviceAttribute.Description -> "Quantumnet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

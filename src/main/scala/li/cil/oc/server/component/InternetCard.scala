@@ -45,7 +45,7 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Communication,
     DeviceAttribute.Description -> "Internet modem",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

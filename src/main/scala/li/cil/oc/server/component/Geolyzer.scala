@@ -39,7 +39,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     withConnector().
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Geolyzer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

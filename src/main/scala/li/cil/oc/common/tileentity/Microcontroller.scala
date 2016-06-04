@@ -52,7 +52,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def runSound = None // Microcontrollers are silent.
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Microcontroller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

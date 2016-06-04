@@ -31,7 +31,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Network,
     DeviceAttribute.Description -> "Wireless ethernet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
