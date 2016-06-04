@@ -33,7 +33,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   var remainingTicks = 0
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Generator",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

@@ -21,7 +21,7 @@ class UpgradeAngel extends prefab.ManagedEnvironment with DeviceInfo {
     withComponent("angel").
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Angel upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

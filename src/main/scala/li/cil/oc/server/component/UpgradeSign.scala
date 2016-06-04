@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import scala.collection.convert.WrapAsJava._
 
 abstract class UpgradeSign extends prefab.ManagedEnvironment with DeviceInfo {
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Sign upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

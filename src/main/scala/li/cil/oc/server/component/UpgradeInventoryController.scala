@@ -23,7 +23,7 @@ import scala.collection.convert.WrapAsJava._
 object UpgradeInventoryController {
 
   trait Common extends DeviceInfo {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Generic,
       DeviceAttribute.Description -> "Inventory controller",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

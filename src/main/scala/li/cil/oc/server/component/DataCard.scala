@@ -77,7 +77,7 @@ object DataCard {
   }
 
   class Tier1 extends DataCard {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Processor,
       DeviceAttribute.Description -> "Data processor card",
       DeviceAttribute.Vendor -> "S.C. Ltd.",
@@ -138,7 +138,7 @@ object DataCard {
   }
 
   class Tier2 extends Tier1 {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Processor,
       DeviceAttribute.Description -> "Data processor card",
       DeviceAttribute.Vendor -> "S.C. Ltd.",
@@ -212,7 +212,7 @@ object DataCard {
   }
 
   class Tier3 extends Tier2 {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Processor,
       DeviceAttribute.Description -> "Data processor card",
       DeviceAttribute.Vendor -> "S.C. Ltd.",

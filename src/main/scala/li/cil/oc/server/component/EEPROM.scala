@@ -36,7 +36,7 @@ class EEPROM extends prefab.ManagedEnvironment with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Memory,
     DeviceAttribute.Description -> "EEPROM",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

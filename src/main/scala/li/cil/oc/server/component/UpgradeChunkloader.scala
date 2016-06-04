@@ -27,7 +27,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     withConnector().
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "World stabilizer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

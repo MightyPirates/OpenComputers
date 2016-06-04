@@ -47,7 +47,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   var lastFileSystemAccess = 0L
   var lastNetworkActivity = 0L
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Server",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

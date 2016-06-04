@@ -28,7 +28,7 @@ object Redstone {
 
   class BundledWireless(val redstone: EnvironmentHost with BundledRedstoneAware)
     extends component.RedstoneVanilla with component.RedstoneBundled with component.RedstoneWireless {
-    private final val deviceInfo = Map(
+    private final lazy val deviceInfo = Map(
       DeviceAttribute.Class -> DeviceClass.Communication,
       DeviceAttribute.Description -> "Combined redstone controller",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

@@ -29,7 +29,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     withConnector(30 * Settings.get.bufferPerLevel).
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Knowledge database",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

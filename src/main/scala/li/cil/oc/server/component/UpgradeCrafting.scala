@@ -32,7 +32,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
     withComponent("crafting").
     create()
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Assembly controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

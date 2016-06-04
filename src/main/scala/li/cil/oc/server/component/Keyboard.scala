@@ -35,7 +35,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Input,
     DeviceAttribute.Description -> "Keyboard",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,

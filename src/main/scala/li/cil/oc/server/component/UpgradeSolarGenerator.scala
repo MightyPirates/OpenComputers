@@ -26,7 +26,7 @@ class UpgradeSolarGenerator(val host: EnvironmentHost) extends prefab.ManagedEnv
 
   var isSunShining = false
 
-  private final val deviceInfo = Map(
+  private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Solar panel",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
