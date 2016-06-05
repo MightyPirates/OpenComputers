@@ -149,8 +149,8 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
     GlStateManager.colorMask(true, true, true, true)
     GlStateManager.depthFunc(GL11.GL_EQUAL)
     draw(glBuffer)
-
     GlStateManager.depthFunc(GL11.GL_LEQUAL)
+
     GlStateManager.popMatrix()
 
     RenderState.disableBlend()

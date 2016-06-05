@@ -248,6 +248,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
 
         {
           // Additive blending for the light.
+          RenderState.makeItBlend()
           GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
           // Light color.
           val lightColor = if (robot != null && robot.info != null) robot.info.lightColor else 0xF23030
@@ -281,10 +282,10 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
         r.pos(l, gt, l).tex(u1, v0).endVertex()
         t.draw()
 
+        RenderState.disableBlend()
         RenderState.enableEntityLighting()
       }
       GlStateManager.color(1, 1, 1, 1)
-      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
     }
   }
 

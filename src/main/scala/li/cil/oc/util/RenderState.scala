@@ -69,6 +69,7 @@ object RenderState {
   }
 
   def disableBlend() {
+    GlStateManager.blendFunc(GL11.GL_ONE, GL11.GL_ZERO)
     GlStateManager.disableBlend()
     GL11.glDisable(GL11.GL_BLEND)
   }

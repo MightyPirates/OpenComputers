@@ -107,8 +107,9 @@ final class ModelQuadcopter extends ModelBase {
       light3.rotateAngleZ = drone.flapAngles(3)(1)
 
       // Additive blending for the lights.
+      RenderState.makeItBlend()
       GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      // Light color.
+
       val lightColor = drone.lightColor
       val r = (lightColor >>> 16) & 0xFF
       val g = (lightColor >>> 8) & 0xFF
@@ -120,6 +121,8 @@ final class ModelQuadcopter extends ModelBase {
       light2.render(scale)
       light3.render(scale)
 
+      RenderState.disableBlend()
+      RenderState.enableEntityLighting()
       GlStateManager.color(1, 1, 1, 1)
     }
   }
@@ -155,6 +158,8 @@ final class ModelQuadcopter extends ModelBase {
     light3.rotateAngleX = tilt
     light3.rotateAngleZ = -tilt
 
+
+    RenderState.makeItBlend()
     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
     GlStateManager.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
 
@@ -163,6 +168,8 @@ final class ModelQuadcopter extends ModelBase {
     light2.render(scale)
     light3.render(scale)
 
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
     GlStateManager.color(1, 1, 1, 1)
   }
 

@@ -106,7 +106,9 @@ object HoverBootRenderer extends ModelBiped {
     override def render(dt: Float): Unit = {
       RenderState.pushAttrib()
       GlStateManager.disableLighting()
+      RenderState.disableEntityLighting()
       GlStateManager.depthFunc(GL11.GL_LEQUAL)
+      RenderState.makeItBlend()
       GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
       val r = ((lightColor >>> 16) & 0xFF) / 255f
       val g = ((lightColor >>> 8) & 0xFF) / 255f
@@ -115,9 +117,10 @@ object HoverBootRenderer extends ModelBiped {
 
       super.render(dt)
 
-      GlStateManager.color(1, 1, 1)
+      RenderState.disableBlend()
       GlStateManager.enableLighting()
-      RenderHelper.enableStandardItemLighting()
+      RenderState.enableEntityLighting()
+      GlStateManager.color(1, 1, 1)
       RenderState.popAttrib()
     }
   }
