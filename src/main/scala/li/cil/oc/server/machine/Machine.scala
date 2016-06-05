@@ -1,5 +1,6 @@
 package li.cil.oc.server.machine
 
+import java.util
 import java.util.concurrent.TimeUnit
 
 import li.cil.oc.OpenComputers
@@ -47,7 +48,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
+class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -175,6 +176,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDeviceInfo: util.Map[String, String] = host match {
+    case deviceInfo: DeviceInfo => deviceInfo.getDeviceInfo
+    case _ => null
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -426,7 +434,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
     Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {
       case (n: Component, deviceInfo: DeviceInfo) =>
-        if (n.canBeSeenFrom(node)) {
+        if (n.canBeSeenFrom(node) || n == node) {
           Option(deviceInfo.getDeviceInfo) match {
             case Some(info) => Option(n.address -> info)
             case _ => None

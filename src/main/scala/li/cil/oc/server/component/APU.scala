@@ -14,7 +14,7 @@ class APU(tier: Int) extends GraphicsCard(tier) {
     DeviceAttribute.Class -> DeviceClass.Processor,
     DeviceAttribute.Description -> "APU",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> ("FlexiArch " + tier.toString + " Processor (Builtin Graphics)"),
+    DeviceAttribute.Product -> ("FlexiArch " + (tier + 1).toString + " Processor (Builtin Graphics)"),
     DeviceAttribute.Capacity -> capacityInfo,
     DeviceAttribute.Width -> widthInfo,
     DeviceAttribute.Clock -> ((Settings.get.callBudgets(tier) * 1000).toInt.toString + "+" + clockInfo)

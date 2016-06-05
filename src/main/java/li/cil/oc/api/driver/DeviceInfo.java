@@ -7,6 +7,11 @@ import java.util.Map;
  * expose some (typically static) information about the device represented by
  * that environment to a {@link li.cil.oc.api.Machine} connected to it.
  * <p/>
+ * You may also implement this on a {@link li.cil.oc.api.machine.MachineHost}
+ * in which case the <code>Machine</code> will forward that information as
+ * its own (since <code>MachineHost</code>s usually use the machine's node as
+ * their own, this avoids a dummy environment used solely for device info).
+ * <p/>
  * This is intended to permit programs to reflect on the hardware they are
  * running on, typically for purely informational purposes, but possibly to
  * toggle certain hardware specific features.
