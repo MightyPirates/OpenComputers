@@ -41,7 +41,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     DeviceAttribute.Class -> DeviceClass.Display,
     DeviceAttribute.Description -> "Holographic projector",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> ("VirtualViewer H1-" + tier.toString),
+    DeviceAttribute.Product -> ("VirtualViewer H1-" + (tier + 1).toString),
     DeviceAttribute.Capacity -> (width * width * height).toString,
     DeviceAttribute.Width -> colors.length.toString
   )

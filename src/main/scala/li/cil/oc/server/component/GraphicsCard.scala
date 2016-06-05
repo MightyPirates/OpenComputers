@@ -65,7 +65,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     DeviceAttribute.Class -> DeviceClass.Display,
     DeviceAttribute.Description -> "Graphics controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> ("MPG" + (tier * 1000).toString + " GTZ"),
+    DeviceAttribute.Product -> ("MPG" + ((tier + 1) * 1000).toString + " GTZ"),
     DeviceAttribute.Capacity -> capacityInfo,
     DeviceAttribute.Width -> widthInfo,
     DeviceAttribute.Clock -> clockInfo

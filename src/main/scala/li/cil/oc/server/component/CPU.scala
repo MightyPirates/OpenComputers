@@ -14,14 +14,14 @@ import li.cil.oc.api.prefab
 import scala.collection.convert.WrapAsJava._
 
 class CPU(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+  override val node = Network.newNode(this, Visibility.Neighbors).
     create()
 
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Processor,
     DeviceAttribute.Description -> "CPU",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> ("FlexiArch " + tier.toString + " Processor"),
+    DeviceAttribute.Product -> ("FlexiArch " + (tier + 1).toString + " Processor"),
     DeviceAttribute.Clock -> (Settings.get.callBudgets(tier) * 1000).toInt.toString
   )
 
