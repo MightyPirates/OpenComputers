@@ -43,10 +43,22 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import net.minecraftforge.fluids.IFluidTank
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
+
+object Drone {
+  val DataRunning = EntityDataManager.createKey(classOf[Drone], DataSerializers.BOOLEAN)
+  val DataTargetX = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataTargetY = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataTargetZ = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataMaxAcceleration = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataSelectedSlot = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataCurrentEnergy = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataMaxEnergy = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataStatusText = EntityDataManager.createKey(classOf[Drone], DataSerializers.STRING)
+  val DataInventorySize = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataLightColor = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+}
 
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
@@ -237,30 +249,18 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  private val DataRunning = EntityDataManager.createKey(getClass, DataSerializers.BOOLEAN)
-  private val DataTargetX = EntityDataManager.createKey(getClass, DataSerializers.FLOAT)
-  private val DataTargetY = EntityDataManager.createKey(getClass, DataSerializers.FLOAT)
-  private val DataTargetZ = EntityDataManager.createKey(getClass, DataSerializers.FLOAT)
-  private val DataMaxAcceleration = EntityDataManager.createKey(getClass, DataSerializers.FLOAT)
-  private val DataSelectedSlot = EntityDataManager.createKey(getClass, DataSerializers.VARINT)
-  private val DataCurrentEnergy = EntityDataManager.createKey(getClass, DataSerializers.VARINT)
-  private val DataMaxEnergy = EntityDataManager.createKey(getClass, DataSerializers.VARINT)
-  private val DataStatusText = EntityDataManager.createKey(getClass, DataSerializers.STRING)
-  private val DataInventorySize = EntityDataManager.createKey(getClass, DataSerializers.VARINT)
-  private val DataLightColor = EntityDataManager.createKey(getClass, DataSerializers.VARINT)
-
   override def entityInit() {
-    getDataManager.register(DataRunning, java.lang.Boolean.FALSE)
-    getDataManager.register(DataTargetX, Float.box(0f))
-    getDataManager.register(DataTargetY, Float.box(0f))
-    getDataManager.register(DataTargetZ, Float.box(0f))
-    getDataManager.register(DataMaxAcceleration, Float.box(0f))
-    getDataManager.register(DataSelectedSlot, Int.box(0))
-    getDataManager.register(DataCurrentEnergy, Int.box(0))
-    getDataManager.register(DataMaxEnergy, Int.box(100))
-    getDataManager.register(DataStatusText, "")
-    getDataManager.register(DataInventorySize, Int.box(0))
-    getDataManager.register(DataLightColor, Int.box(0x66DD55))
+    getDataManager.register(Drone.DataRunning, java.lang.Boolean.FALSE)
+    getDataManager.register(Drone.DataTargetX, Float.box(0f))
+    getDataManager.register(Drone.DataTargetY, Float.box(0f))
+    getDataManager.register(Drone.DataTargetZ, Float.box(0f))
+    getDataManager.register(Drone.DataMaxAcceleration, Float.box(0f))
+    getDataManager.register(Drone.DataSelectedSlot, Int.box(0))
+    getDataManager.register(Drone.DataCurrentEnergy, Int.box(0))
+    getDataManager.register(Drone.DataMaxEnergy, Int.box(100))
+    getDataManager.register(Drone.DataStatusText, "")
+    getDataManager.register(Drone.DataInventorySize, Int.box(0))
+    getDataManager.register(Drone.DataLightColor, Int.box(0x66DD55))
   }
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3d) {
@@ -287,51 +287,50 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     components.connectComponents()
   }
 
-  def isRunning = getDataManager.get(DataRunning)
+  def isRunning = getDataManager.get(Drone.DataRunning)
 
-  def targetX = getDataManager.get(DataTargetX)
+  def targetX = getDataManager.get(Drone.DataTargetX)
 
-  def targetY = getDataManager.get(DataTargetY)
+  def targetY = getDataManager.get(Drone.DataTargetY)
 
-  def targetZ = getDataManager.get(DataTargetZ)
+  def targetZ = getDataManager.get(Drone.DataTargetZ)
 
-  def targetAcceleration = getDataManager.get(DataMaxAcceleration)
+  def targetAcceleration = getDataManager.get(Drone.DataMaxAcceleration)
 
-  def selectedSlot = getDataManager.get(DataSelectedSlot) & 0xFF
+  def selectedSlot = getDataManager.get(Drone.DataSelectedSlot) & 0xFF
 
-  def globalBuffer = getDataManager.get(DataCurrentEnergy)
+  def globalBuffer = getDataManager.get(Drone.DataCurrentEnergy)
 
-  def globalBufferSize = getDataManager.get(DataMaxEnergy)
+  def globalBufferSize = getDataManager.get(Drone.DataMaxEnergy)
 
-  def statusText = getDataManager.get(DataStatusText)
+  def statusText = getDataManager.get(Drone.DataStatusText)
 
-  def inventorySize = getDataManager.get(DataInventorySize) & 0xFF
+  def inventorySize = getDataManager.get(Drone.DataInventorySize) & 0xFF
 
-  def lightColor = getDataManager.get(DataLightColor)
+  def lightColor = getDataManager.get(Drone.DataLightColor)
 
-  def setRunning(value: Boolean) = getDataManager.set(DataRunning, Boolean.box(value))
-
+  def setRunning(value: Boolean) = getDataManager.set(Drone.DataRunning, Boolean.box(value))
 
   // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = getDataManager.set(DataTargetX, Float.box(math.round(value * 4) / 4f))
+  def targetX_=(value: Float): Unit = getDataManager.set(Drone.DataTargetX, Float.box(math.round(value * 4) / 4f))
 
-  def targetY_=(value: Float): Unit = getDataManager.set(DataTargetY, Float.box(math.round(value * 4) / 4f))
+  def targetY_=(value: Float): Unit = getDataManager.set(Drone.DataTargetY, Float.box(math.round(value * 4) / 4f))
 
-  def targetZ_=(value: Float): Unit = getDataManager.set(DataTargetZ, Float.box(math.round(value * 4) / 4f))
+  def targetZ_=(value: Float): Unit = getDataManager.set(Drone.DataTargetZ, Float.box(math.round(value * 4) / 4f))
 
-  def targetAcceleration_=(value: Float): Unit = getDataManager.set(DataMaxAcceleration, Float.box(math.max(0, math.min(maxAcceleration, value))))
+  def targetAcceleration_=(value: Float): Unit = getDataManager.set(Drone.DataMaxAcceleration, Float.box(math.max(0, math.min(maxAcceleration, value))))
 
-  def setSelectedSlot(value: Int) = getDataManager.set(DataSelectedSlot, Int.box(value.toByte))
+  def setSelectedSlot(value: Int) = getDataManager.set(Drone.DataSelectedSlot, Int.box(value.toByte))
 
-  def globalBuffer_=(value: Int) = getDataManager.set(DataCurrentEnergy, Int.box(value))
+  def globalBuffer_=(value: Int) = getDataManager.set(Drone.DataCurrentEnergy, Int.box(value))
 
-  def globalBufferSize_=(value: Int) = getDataManager.set(DataMaxEnergy, Int.box(value))
+  def globalBufferSize_=(value: Int) = getDataManager.set(Drone.DataMaxEnergy, Int.box(value))
 
-  def statusText_=(value: String) = getDataManager.set(DataStatusText, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
+  def statusText_=(value: String) = getDataManager.set(Drone.DataStatusText, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
 
-  def inventorySize_=(value: Int) = getDataManager.set(DataInventorySize, Int.box(value.toByte))
+  def inventorySize_=(value: Int) = getDataManager.set(Drone.DataInventorySize, Int.box(value.toByte))
 
-  def lightColor_=(value: Int) = getDataManager.set(DataLightColor, Int.box(value))
+  def lightColor_=(value: Int) = getDataManager.set(Drone.DataLightColor, Int.box(value))
 
   override def setPositionAndRotationDirect(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, posRotationIncrements: Int, teleport: Boolean): Unit = {
     // Only set exact position if we're too far away from the server's
