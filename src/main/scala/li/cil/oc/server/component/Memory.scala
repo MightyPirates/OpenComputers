@@ -14,7 +14,7 @@ import li.cil.oc.api.prefab
 import scala.collection.convert.WrapAsJava._
 
 class Memory(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+  override val node = Network.newNode(this, Visibility.Neighbors).
     create()
 
   private final lazy val deviceInfo = Map(
