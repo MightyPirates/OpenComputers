@@ -361,6 +361,17 @@ public final class IMC {
         FMLInterModComms.sendMessage(MOD_ID, "blacklistHost", nbt);
     }
 
+    /**
+     * Notifies OpenComputers that there is some 3rd-party power system present
+     * that adds integration on its side.
+     * <p/>
+     * This will suppress the "no power system found" message on start up, and
+     * avoid auto-disabling power use.
+     */
+    public static void registerCustomPowerSystem() {
+        FMLInterModComms.sendMessage(MOD_ID, "registerCustomPowerSystem", "true");
+    }
+
     // ----------------------------------------------------------------------- //
 
     private static final String MOD_ID = "OpenComputers";
