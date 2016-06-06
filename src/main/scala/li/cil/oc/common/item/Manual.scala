@@ -9,6 +9,7 @@ import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
@@ -28,7 +29,7 @@ class Manual(val parent: Delegator) extends traits.Delegate {
       }
       api.Manual.openFor(player)
     }
-    super.onItemRightClick(stack, world, player)
+    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
