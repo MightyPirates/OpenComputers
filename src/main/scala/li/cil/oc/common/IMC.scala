@@ -91,6 +91,9 @@ object IMC {
           case t: Throwable => OpenComputers.log.warn("Failed registering ink provider.", t)
         }
       }
+      else if (message.key == "registerCustomPowerSystem" && message.isStringMessage) {
+        Settings.get.is3rdPartyPowerSystemPresent = message.getStringValue == "true"
+      }
       else {
         OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")
       }
