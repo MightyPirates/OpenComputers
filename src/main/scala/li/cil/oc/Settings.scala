@@ -135,8 +135,9 @@ class Settings(val config: Config) {
 
   // ----------------------------------------------------------------------- //
   // power
+  var is3rdPartyPowerSystemPresent = false
   val pureIgnorePower = config.getBoolean("power.ignorePower")
-  lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
+  lazy val ignorePower = pureIgnorePower || (!is3rdPartyPowerSystemPresent && !Mods.isPowerProvidingModPresent)
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRateExternal = config.getDouble("power.chargerChargeRate")
   val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
