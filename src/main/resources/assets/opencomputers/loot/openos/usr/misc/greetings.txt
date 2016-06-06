@@ -23,6 +23,6 @@ You can get a list of all attached components using the `components` program.
 If you encounter out of memory errors, throw more RAM at your computer.
 Have you tried turning it off and on again?
 To disable this greeting, install OpenOS to a writeable medium and delete `/etc/motd`.
-Did you know OpenComputers has a forum? No? Well, it's at http://oc.cil.li/.
+Did you know OpenComputers has a forum? No? Well, it's at https://oc.cil.li/.
 Please report bugs on the Github issue tracker, thank you!
 Beware of cycles when building networks, or you may get duplicate messages!
