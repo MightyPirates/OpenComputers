@@ -2,10 +2,14 @@ package li.cil.oc.server.component
 
 import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.component.RackMountable
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -25,9 +29,10 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends prefab.ManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable {
+import scala.collection.convert.WrapAsJava._
+
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends prefab.ManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
@@ -35,6 +40,18 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
     case Some(environment) => Option(environment.node)
     case _ => None
   }
+
+  // ----------------------------------------------------------------------- //
+  // DeviceInfo
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Disk,
+    DeviceAttribute.Description -> "Floppy disk drive",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "RackDrive 100 Rev. 2"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
   // Environment
@@ -147,7 +164,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
     if (player.isSneaking) {
       val isDiskInDrive = getStackInSlot(0) != null
       val isHoldingDisk = isItemValidForSlot(0, player.getHeldItem)

@@ -1,10 +1,16 @@
 package li.cil.oc.server.component
 
+import java.util
+
 import com.google.common.base.Charsets
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.RackBusConnectable
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -15,10 +21,11 @@ import li.cil.oc.api.prefab
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable {
+class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable with DeviceInfo {
   protected val visibility = host match {
     case _: Rack => Visibility.Neighbors
     case _ => Visibility.Network
@@ -33,6 +40,18 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   protected var wakeMessage: Option[String] = None
 
   protected var wakeMessageFuzzy = false
+
+  // ----------------------------------------------------------------------- //
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Network,
+    DeviceAttribute.Description -> "Ethernet controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "42i520 (MPN-01)",
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -87,6 +106,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     result(true)
   }
 
+  // TODO 1.7 Remove, covered by device info now
   @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 

@@ -10,6 +10,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.IIcon
+import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -73,14 +74,31 @@ class Rack extends RedstoneAware with traits.SpecialBlock with traits.PowerAccep
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(x, y, z) match {
       case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
-        case Some(slot) => rack.getMountable(slot) match {
-          case mountable: RackMountable if mountable.onActivate(player, side, hitX, hitY, hitZ) => return true // Activation handled by mountable.
-          case _ =>
-        }
+        case Some(slot) =>
+          val hitVec = Vec3.createVectorHelper(hitX, hitY, hitZ)
+          val rotation = side match {
+            case ForgeDirection.WEST => Math.toRadians(90).toFloat
+            case ForgeDirection.NORTH => Math.toRadians(180).toFloat
+            case ForgeDirection.EAST => Math.toRadians(270).toFloat
+            case _ => 0
+          }
+          val localHitVec = rotate(hitVec.addVector(-0.5, -0.5, -0.5), rotation).addVector(0.5, 0.5, 0.5)
+          localHitVec.xCoord = ((if (side.offsetX != 0) 1 - localHitVec.xCoord else localHitVec.xCoord) * 16 - 1) / 14f
+          localHitVec.yCoord = ((1 - localHitVec.yCoord) * 16 - 2 - 3 * slot) / 3f
+          rack.getMountable(slot) match {
+            case mountable: RackMountable if mountable.onActivate(player, localHitVec.xCoord.toFloat, localHitVec.yCoord.toFloat) => return true // Activation handled by mountable.
+            case _ =>
+          }
         case _ =>
       }
       case _ =>
     }
     super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+  }
+
+  def rotate(v: Vec3, t: Float): Vec3 = {
+    val cos = Math.cos(t)
+    val sin = Math.sin(t)
+    Vec3.createVectorHelper(v.xCoord * cos - v.zCoord * sin, v.yCoord, v.xCoord * sin + v.zCoord * cos)
   }
 }

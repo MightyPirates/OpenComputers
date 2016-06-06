@@ -27,6 +27,7 @@ Nanomachines react to a simple, proprietary protocol: each packet must consist o
 - `getInput(index:number)` - Request the current state of the input with the specified index.
 - `setInput(index:number, value:boolean)` - Set the state of the input with the specified index to the specified value.
 - `getActiveEffects()` - Request a list of active effects. Note that some effects may not show up in this list.
+- `saveConfiguration()` - Requires a set of nanomachines in the players inventory, will store the current configuration to it.
 
 For example, in OpenOS:
 - `component.modem.broadcast(1, "nanomachines", "setInput", 1, true)` will enable the first input.

@@ -5,6 +5,7 @@ import java.io.EOFException
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.event.FileSystemAccessEvent
@@ -43,6 +44,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.AbstractBusState => onAbstractBusState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
+      case PacketType.ClientLog => onClientLog(p)
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
@@ -116,6 +118,10 @@ object PacketHandler extends CommonPacketHandler {
         t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
+
+  def onClientLog(p: PacketParser) = {
+    OpenComputers.log.info(p.readUTF())
+  }
 
   def onColorChange(p: PacketParser) =
     p.readTileEntity[Colored]() match {

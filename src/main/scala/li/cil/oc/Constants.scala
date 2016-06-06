@@ -126,7 +126,7 @@ object Constants {
     final val NavigationUpgrade = "navigationUpgrade"
     final val NetworkCard = "lanCard"
     final val NumPad = "numPad"
-    final val OpenOS = "openOS"
+    final val OpenOS = "openos"
     final val PistonUpgrade = "pistonUpgrade"
     final val Present = "present"
     final val PrintedCircuitBoard = "printedCircuitBoard"
@@ -169,6 +169,12 @@ object Constants {
     def MicrocontrollerCase(tier: Int) = ItemUtils.caseNameWithTierSuffix("microcontrollerCase", tier)
 
     def TabletCase(tier: Int) = ItemUtils.caseNameWithTierSuffix("tabletCase", tier)
+  }
+
+  object DeviceInfo {
+
+    final val DefaultVendor = "MightyPirates GmbH & Co. KG"
+
   }
 
 }

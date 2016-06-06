@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
 import cpw.mods.fml.common.FMLCommonHandler
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -17,13 +23,23 @@ import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 import scala.util.control.Breaks._
 
-class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment {
+class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Assembly controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "MultiCombinator-9S"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   @Callback(doc = """function([count:number]):number -- Tries to craft the specified number of items in the top left area of the inventory.""")
   def craft(context: Context, args: Arguments): Array[AnyRef] = {

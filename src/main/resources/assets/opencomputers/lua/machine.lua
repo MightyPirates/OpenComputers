@@ -1332,7 +1332,10 @@ local libcomputer = {
   end,
 
   beep = function(...)
-    libcomponent.invoke(computer.address(), "beep", ...)
+    return libcomponent.invoke(computer.address(), "beep", ...)
+  end,
+  getDeviceInfo = function(...)
+    return libcomponent.invoke(computer.address(), "getDeviceInfo", ...)
   end,
 
   getArchitectures = function(...)

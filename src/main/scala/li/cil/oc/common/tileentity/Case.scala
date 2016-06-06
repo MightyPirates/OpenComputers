@@ -1,9 +1,15 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common
@@ -16,7 +22,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
+import scala.collection.convert.WrapAsJava._
+
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
   def this() = this(0)
 
   // Used on client side to check whether to render disk activity/network indicators.
@@ -24,6 +32,18 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   var lastNetworkActivity = 0L
 
   color = Color.byTier(tier)
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Computer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Blocker",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
@@ -33,7 +53,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def energyThroughput = Settings.get.caseRate(tier)
 
   override def getWorld = world
-
 
   def isCreative = tier == Tier.Four
 

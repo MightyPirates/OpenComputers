@@ -7,4 +7,4 @@ To add a disk, create a folder and put the files the disk should contain into th
 
 You are invited to submit your own programs as pull requests! The more the merrier :-)
 
-For example, say you have a program named "chat.lua". You'd create a folder, say `NetChat` or whatever the program likes to call itself, and put the `chat.lua` file into that folder. You then add the line `NetChat=chat` to the `loot.properties` file. And that's it. Make a pull request and your program is in OpenComputers - unless it fails the arbitrary quality check, of course. Feel free to submit pull requests for fixes to your submitted programs (or of others) at any time!
+For example, say you have a program named "chat.lua". You'd create a folder, say `netchat` or whatever the program likes to call itself, and put the `chat.lua` file into that folder. You then add the line `netchat=NetChat` to the `loot.properties` file. And that's it. Make a pull request and your program is in OpenComputers - unless it fails the arbitrary quality check, of course. Feel free to submit pull requests for fixes to your submitted programs (or of others) at any time!

@@ -8,14 +8,8 @@ local text = {}
 local local_env = {tx=tx,unicode=unicode}
 
 text.internal = {}
-setmetatable(text.internal,
-{
-  __tostring=function()
-    return 'table of undocumented api subject to change and intended for internal use'
-  end
-})
 
-text.syntax = {";","&&","||","|",">>",">","<"}
+text.syntax = {"^%d*>>?&%d+$",";","&&","||?","^%d*>>?",">>?","<"}
 
 function --[[@delayloaded-start@]] text.detab(value, tabWidth)
   checkArg(1, value, "string")
@@ -163,11 +157,12 @@ function text.internal.tokenize(value, quotes, delimiters)
   checkArg(1, value, "string")
   checkArg(2, quotes, "table", "nil")
   checkArg(3, delimiters, "table", "nil")
+  local custom = not not delimiters
   delimiters = delimiters or text.syntax
 
   local words, reason = text.internal.words(value, quotes)
 
-  local splitter = text.escapeMagic(table.concat(delimiters))
+  local splitter = text.escapeMagic(custom and table.concat(delimiters) or "<>|;&")
   if type(words) ~= "table" or 
     #splitter == 0 or
     not value:find("["..splitter.."]") then
@@ -182,7 +177,7 @@ function text.internal.words(input, quotes)
   checkArg(1, input, "string")
   checkArg(2, quotes, "table", "nil")
   local qr = nil
-  quotes = quotes or {{"'","'",true},{'"','"'}}
+  quotes = quotes or {{"'","'",true},{'"','"'},{'`','`'}}
   local function append(dst, txt, qr)
     local size = #dst
     if size == 0 or dst[size].qr ~= qr then
@@ -253,9 +248,6 @@ function --[[@delayloaded-start@]] text.internal.splitWords(words, delimiters)
     table.insert(split_words[#split_words], part)
     next_word = false
   end
-  local delimLookup = tx.select(delimiters, function(e,i)
-    return i, e
-  end)
   for wi=1,#words do local word = words[wi]
     next_word = true
     for pi=1,#word do local part = word[pi]
@@ -265,7 +257,7 @@ function --[[@delayloaded-start@]] text.internal.splitWords(words, delimiters)
       else
         local part_text_splits = text.split(part.txt, delimiters)
         tx.foreach(part_text_splits, function(sub_txt, spi)
-          local delim = delimLookup[sub_txt]
+          local delim = #text.split(sub_txt, delimiters, true) == 0
           next_word = next_word or delim
           add_part({txt=sub_txt,qr=qr})
           next_word = delim

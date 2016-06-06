@@ -35,7 +35,7 @@ local function findFile(name, ext)
     dir = fs.concat(fs.concat(dir, name), "..")
     local name = fs.name(name)
     local list = fs.list(dir)
-    if list then
+    if list and name then
       local files = {}
       for file in list do
         files[file] = true

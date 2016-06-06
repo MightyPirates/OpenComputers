@@ -3,10 +3,14 @@ package li.cil.oc.server.component
 import java.lang.Iterable
 import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Machine
 import li.cil.oc.api.component.RackBusConnectable
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
@@ -27,11 +31,10 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
+class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with DeviceInfo {
   lazy val machine = Machine.create(this)
 
   val node = if (!rack.world.isRemote) machine.node else null
@@ -40,6 +43,16 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   var hadErrored = false
   var lastFileSystemAccess = 0L
   var lastNetworkActivity = 0L
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Server",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Blader",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
   // Environment
@@ -157,7 +170,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
     if (!player.getEntityWorld.isRemote) {
       if (player.isSneaking) {
         if (!machine.isRunning && isUseableByPlayer(player)) {

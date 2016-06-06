@@ -1,8 +1,14 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
@@ -14,9 +20,10 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter {
+class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -24,6 +31,15 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Bus,
+    DeviceAttribute.Description -> "Adapter",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Multiplug Ext.1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

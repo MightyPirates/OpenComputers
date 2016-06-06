@@ -1,14 +1,18 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.OpenComputers
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.ExtendedNBT._
@@ -17,18 +21,27 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityFurnace
 
-class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment {
+import scala.collection.convert.WrapAsJava._
+
+class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
     create()
 
-  val romGenerator = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/generator"), "generator"))
-
   var inventory: Option[ItemStack] = None
 
   var remainingTicks = 0
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Power,
+    DeviceAttribute.Description -> "Generator",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Portagen 2.0 (Rev. 3)",
+    DeviceAttribute.Capacity -> "1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -94,13 +107,16 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     if (remainingTicks <= 0 && inventory.isDefined) {
       val stack = inventory.get
       remainingTicks = TileEntityFurnace.getItemBurnTime(stack)
-      updateClient()
-      stack.stackSize -= 1
-      if (stack.stackSize <= 0) {
-        if (stack.getItem.hasContainerItem(stack))
-          inventory = Option(stack.getItem.getContainerItem(stack))
-        else
-          inventory = None
+      if (remainingTicks > 0) {
+        // If not we probably have a container item now (e.g. bucket after lava bucket).
+        updateClient()
+        stack.stackSize -= 1
+        if (stack.stackSize <= 0) {
+          if (stack.getItem.hasContainerItem(stack))
+            inventory = Option(stack.getItem.getContainerItem(stack))
+          else
+            inventory = None
+        }
       }
     }
     if (remainingTicks > 0) {
@@ -119,13 +135,6 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node.isNeighborOf(this.node)) {
-      romGenerator.foreach(fs => node.connect(fs.node))
-    }
-  }
-
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
@@ -140,13 +149,11 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
         case _ =>
       }
       remainingTicks = 0
-      romGenerator.foreach(_.node.remove())
     }
   }
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romGenerator.foreach(_.load(nbt.getCompoundTag("romGenerator")))
     if (nbt.hasKey("inventory")) {
       inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
     }
@@ -155,7 +162,6 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romGenerator.foreach(fs => nbt.setNewCompoundTag("romGenerator", fs.save))
     inventory match {
       case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
       case _ =>
