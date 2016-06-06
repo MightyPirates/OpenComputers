@@ -18,7 +18,7 @@ import scala.collection.convert.WrapAsScala._
 object ObfNames {
   final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "xr")
   final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sb")
-  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bsg")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bsd")
   final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "apv")
   final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bF")
   final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bE")
