@@ -1,6 +1,8 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class EEPROM(val parent: Delegator) extends traits.Delegate {
@@ -16,4 +18,6 @@ class EEPROM(val parent: Delegator) extends traits.Delegate {
     }
     super.displayName(stack)
   }
+
+  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
 }

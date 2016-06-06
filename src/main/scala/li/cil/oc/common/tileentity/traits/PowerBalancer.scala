@@ -5,7 +5,7 @@ import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.SidedEnvironment
 import net.minecraft.util.EnumFacing
 
-trait PowerBalancer extends PowerInformation with SidedEnvironment {
+trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable {
   var globalBuffer, globalBufferSize = 0.0
 
   protected def isConnected: Boolean

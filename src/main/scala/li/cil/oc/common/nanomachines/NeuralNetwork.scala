@@ -6,14 +6,15 @@ import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.nanomachines.BehaviorProvider
+import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.EnumChatFormatting
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.StringBuilder
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.util.Random
@@ -97,7 +98,11 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
 
   // Enter debug configuration, one input -> one behavior, and list mapping in console.
   def debug(): Unit = {
-    OpenComputers.log.info(s"Creating debug configuration for nanomachines in player ${controller.player.getDisplayName}.")
+    val log = controller.player match {
+      case playerMP: EntityPlayerMP => (s: String) => PacketSender.sendClientLog(s, playerMP)
+      case _ => (s: String) => OpenComputers.log.info(s)
+    }
+    log(s"Creating debug configuration for nanomachines in player ${controller.player.getDisplayName}.")
 
     behaviors.clear()
     behaviors ++= api.Nanomachines.getProviders.
@@ -114,7 +119,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       triggers += trigger
       behavior.inputs += trigger
 
-      OpenComputers.log.info(s"$i -> ${behavior.behavior.getNameHint} (${behavior.behavior.getClass.toString})")
+      log(s"$i -> ${behavior.behavior.getNameHint} (${behavior.behavior.getClass.toString})")
     }
   }
 

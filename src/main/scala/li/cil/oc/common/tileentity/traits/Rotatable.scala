@@ -122,6 +122,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     def setState(newState: IBlockState): Boolean = {
       if (oldState.hashCode() != newState.hashCode()) {
         world.setBlockState(getPos, newState)
+        updateTranslation()
         true
       }
       else false

@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.markdown.segment.render
 
 import li.cil.oc.api.manual.ImageRenderer
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.item.ItemStack
@@ -21,8 +22,8 @@ private[markdown] class ItemStackImageRenderer(val stacks: Array[ItemStack]) ext
     val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
     val stack = stacks(index)
 
-    GL11.glScalef(getWidth / 16, getHeight / 16, getWidth / 16)
-    GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+    GlStateManager.scale(getWidth / 16, getHeight / 16, getWidth / 16)
+    GlStateManager.enableRescaleNormal()
     RenderHelper.enableGUIStandardItemLighting()
     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240)
     mc.getRenderItem.renderItemAndEffectIntoGUI(stack, 0, 0)

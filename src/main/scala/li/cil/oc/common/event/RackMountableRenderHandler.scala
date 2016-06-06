@@ -61,6 +61,7 @@ object RackMountableRenderHandler {
 
         e.renderOverlayFromAtlas(Textures.Block.RackDiskDriveActivity)
 
+        RenderState.disableBlend()
         RenderState.enableEntityLighting()
       }
     }
@@ -82,6 +83,7 @@ object RackMountableRenderHandler {
         e.renderOverlayFromAtlas(Textures.Block.RackServerNetworkActivity)
       }
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
     }
     else if (e.data != null && TerminalServer == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
@@ -98,6 +100,7 @@ object RackMountableRenderHandler {
         e.renderOverlayFromAtlas(Textures.Block.RackTerminalServerPresence, u0, u1)
       }
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
     }
   }

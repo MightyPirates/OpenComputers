@@ -2,9 +2,14 @@ package li.cil.oc.server.component
 
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.fs.{FileSystem => IFileSystem}
@@ -23,15 +28,34 @@ import net.minecraft.nbt.NBTTagIntArray
 import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends prefab.ManagedEnvironment {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
     create()
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
+
+  final val readCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
+  final val seekCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
+  final val writeCosts = Array(1.0 / 1, 1.0 / 2, 1.0 / 3, 1.0 / 4, 1.0 / 5, 1.0 / 6)
+
+  // ----------------------------------------------------------------------- //
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Volume,
+    DeviceAttribute.Description -> "Filesystem",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "MPFS.21.6",
+    DeviceAttribute.Capacity -> (fileSystem.spaceTotal * 1.024).toInt.toString,
+    DeviceAttribute.Size -> fileSystem.spaceTotal.toString,
+    DeviceAttribute.Clock -> (((2000 / readCosts(speed)).toInt / 100).toString + "/" + ((2000 / seekCosts(speed)).toInt / 100).toString + "/" + ((2000 / writeCosts(speed)).toInt / 100).toString)
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -178,8 +202,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     }
   }
 
-  final val readCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
-
   @Callback(direct = true, doc = """function(handle:userdata, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
   def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     context.consumeCallBudget(seekCosts(speed))
@@ -200,8 +222,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     }
   }
 
-  final val seekCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
-
   @Callback(direct = true, doc = """function(handle:userdata, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     context.consumeCallBudget(writeCosts(speed))
@@ -219,8 +239,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
       case _ => throw new IOException("bad file descriptor")
     }
   }
-
-  final val writeCosts = Array(1.0 / 1, 1.0 / 2, 1.0 / 3, 1.0 / 4, 1.0 / 5, 1.0 / 6)
 
   // ----------------------------------------------------------------------- //
 

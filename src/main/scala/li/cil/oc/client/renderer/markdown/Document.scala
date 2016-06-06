@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.markdown
 import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.renderer.GlStateManager
@@ -69,7 +70,7 @@ object Document {
   def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val mc = Minecraft.getMinecraft
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     // On some systems/drivers/graphics cards the next calls won't update the
     // depth buffer correctly if alpha test is enabled. Guess how we found out?
@@ -86,7 +87,7 @@ object Document {
     GlStateManager.colorMask(false, false, false, false)
 
     GlStateManager.pushMatrix()
-    GL11.glTranslatef(0, 0, 500)
+    GlStateManager.translate(0, 0, 500)
     GL11.glBegin(GL11.GL_QUADS)
     GL11.glVertex2f(0, y)
     GL11.glVertex2f(mc.displayWidth, y)
@@ -120,7 +121,7 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
     GlStateManager.bindTexture(0)
 
     hovered

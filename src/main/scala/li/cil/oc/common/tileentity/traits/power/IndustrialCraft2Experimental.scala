@@ -5,6 +5,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.asm.Injectable
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Power
 import net.minecraft.nbt.NBTTagCompound
@@ -14,7 +15,7 @@ import net.minecraftforge.fml.common.Optional
 import net.minecraftforge.fml.common.eventhandler.Event
 
 @Injectable.Interface(value = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
-trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
+trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common with traits.Tickable {
   private var conversionBuffer = 0.0
 
   private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable

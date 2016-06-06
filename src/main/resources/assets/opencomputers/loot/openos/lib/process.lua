@@ -81,7 +81,7 @@ function process.load(path, env, init, name)
         return string.format('%s:\n%s', msg or '', stack)
       end, ...)
     }
-    process.list[thread] = nil
+    process.internal.close(thread)
     if not result[1] then
       -- msg can be a custom error object
       local msg = result[2]
@@ -100,6 +100,7 @@ function process.load(path, env, init, name)
     env = env,
     data = setmetatable(
     {
+      handles = {},
       io = setmetatable({}, {__index=p and p.data and p.data.io or nil}),
       coroutine_handler = setmetatable({}, {__index=p and p.data and p.data.coroutine_handler or nil}),
     }, {__index=p and p.data or nil}),
@@ -131,6 +132,18 @@ function process.info(levelOrThread)
   if p then
     return {path=p.path, env=p.env, command=p.command, data=p.data}
   end
+end
+
+--table of undocumented api subject to change and intended for internal use
+process.internal = {}
+--this is a future stub for a more complete method to kill a process
+function process.internal.close(thread)
+  checkArg(1,thread,"thread")
+  local pdata = process.info(thread).data
+  for k,v in pairs(pdata.handles) do
+    v:close()
+  end
+  process.list[thread] = nil
 end
 
 return process

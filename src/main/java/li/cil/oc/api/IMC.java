@@ -166,8 +166,16 @@ public final class IMC {
      * Signature of callbacks must be:
      * <pre>
      * boolean select(ItemStack stack)
-     * ItemStack[] disassemble(ItemStack stack, ItemStack[] ingredients)
+     * Object disassemble(ItemStack stack, ItemStack[] ingredients)
      * </pre>
+     * <p/>
+     * Where the <code>Object</code> returned from the <code>disassemble</code>
+     * method must be one of the following:
+     * <ul>
+     * <li><code>ItemStack[]</code>: list of resulting items, subject to random failure.</li>
+     * <li><code>Object[]{ItemStack[],ItemStack[]}</code>: two lists of resulting items, the first being subject to
+     * random failure, the second being guaranteed drops (e.g. for item inventory contents).</li>
+     * </ul>
      * <p/>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
@@ -351,6 +359,17 @@ public final class IMC {
         stack.writeToNBT(stackNbt);
         nbt.setTag("item", stackNbt);
         FMLInterModComms.sendMessage(MOD_ID, "blacklistHost", nbt);
+    }
+
+    /**
+     * Notifies OpenComputers that there is some 3rd-party power system present
+     * that adds integration on its side.
+     * <p/>
+     * This will suppress the "no power system found" message on start up, and
+     * avoid auto-disabling power use.
+     */
+    public static void registerCustomPowerSystem() {
+        FMLInterModComms.sendMessage(MOD_ID, "registerCustomPowerSystem", "true");
     }
 
     // ----------------------------------------------------------------------- //

@@ -15,7 +15,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     if (charger.chargeSpeed > 0) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
@@ -72,10 +72,11 @@ object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

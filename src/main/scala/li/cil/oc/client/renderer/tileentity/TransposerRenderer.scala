@@ -15,7 +15,7 @@ object TransposerRenderer extends TileEntitySpecialRenderer[tileentity.Transpose
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - transposer.lastOperation) / 1000.0)
     if (activity > 0) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
@@ -66,10 +66,11 @@ object TransposerRenderer extends TileEntitySpecialRenderer[tileentity.Transpose
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

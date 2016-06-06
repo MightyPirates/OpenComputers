@@ -36,8 +36,6 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
 
-  override def canUpdate = false
-
   // ----------------------------------------------------------------------- //
 
   override def getSizeInventory = 3

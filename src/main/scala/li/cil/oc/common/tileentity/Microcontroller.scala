@@ -1,8 +1,13 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -22,7 +27,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller {
+class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
   override def node = null
@@ -46,6 +51,16 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def tier = info.tier
 
   override protected def runSound = None // Microcontrollers are silent.
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Microcontroller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Cubicle",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -111,13 +126,11 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
 
     // Pump energy into the internal network.
-    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- EnumFacing.values if side != facing) {
         sidedNode(side) match {
           case connector: Connector =>

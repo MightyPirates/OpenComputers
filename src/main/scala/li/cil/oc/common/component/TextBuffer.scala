@@ -2,9 +2,12 @@ package li.cil.oc.common.component
 
 import com.google.common.base.Strings
 import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -32,10 +35,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer {
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -99,6 +103,17 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     relativeLitArea = -1 // Recompute lit area, avoid screens blanking out until something changes.
   }
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Display,
+    DeviceAttribute.Description -> "Text buffer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Text Screen V0",
+    DeviceAttribute.Capacity -> (maxResolution._1 * maxResolution._2).toString,
+    DeviceAttribute.Width -> Array("1", "4", "8").apply(maxDepth.ordinal())
+  )
+
+  override def getDeviceInfo: java.util.Map[String, String] = deviceInfo
+
   // ----------------------------------------------------------------------- //
 
   override val canUpdate = true
@@ -113,16 +128,21 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         // origin.
         val w = getViewportWidth
         val h = getViewportHeight
-        relativeLitArea = (data.buffer, data.color).zipped.foldLeft(0) {
-          case (acc, (line, colors)) => acc + (line, colors).zipped.foldLeft(0) {
-            case (acc2, (char, color)) =>
-              val bg = PackedColor.unpackBackground(color, data.format)
-              val fg = PackedColor.unpackForeground(color, data.format)
-              acc2 + (if (char == ' ') if (bg == 0) 0 else 1
-              else if (char == 0x2588) if (fg == 0) 0 else 1
-              else if (fg == 0 && bg == 0) 0 else 1)
+        var acc = 0f
+        for (y <- 0 until h) {
+          val line = data.buffer(y)
+          val colors = data.color(y)
+          for (x <- 0 until w) {
+            val char = line(x)
+            val color = colors(x)
+            val bg = PackedColor.unpackBackground(color, data.format)
+            val fg = PackedColor.unpackForeground(color, data.format)
+            acc += (if (char == ' ') if (bg == 0) 0 else 1
+            else if (char == 0x2588) if (fg == 0) 0 else 1
+            else if (fg == 0 && bg == 0) 0 else 1)
           }
-        } / (w * h).toDouble
+        }
+        relativeLitArea = acc / (w * h).toDouble
       }
       if (node != null) {
         val hadPower = hasPower
@@ -246,8 +266,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     // backwards compatibility, and partially to enforce a valid one.
     val sizeChanged = data.size = (w, h)
     val viewportChanged = setViewport(w, h)
-    if (sizeChanged && !viewportChanged) {
-      if (node != null) {
+    if (sizeChanged || viewportChanged) {
+      if (!viewportChanged && node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
       true

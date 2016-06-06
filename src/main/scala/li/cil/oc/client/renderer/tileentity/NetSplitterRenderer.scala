@@ -16,7 +16,7 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplit
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     if (splitter.openSides.contains(!splitter.isInverted)) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
 
@@ -80,10 +80,11 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplit
 
       t.draw()
 
+      RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
       GlStateManager.popMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

@@ -2,8 +2,12 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -19,9 +23,10 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -44,6 +49,15 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Disassembler",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Break.3R-100"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
@@ -61,11 +75,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         val instant = disassembleNextInstantly // Is reset via decrStackSize
         disassemble(decrStackSize(0, 1), instant)

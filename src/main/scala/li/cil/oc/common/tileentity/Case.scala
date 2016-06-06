@@ -1,7 +1,13 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common
@@ -17,7 +23,9 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
+import scala.collection.convert.WrapAsJava._
+
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
   def this() = this(0)
 
   // Used on client side to check whether to render disk activity/network indicators.
@@ -26,13 +34,24 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   setColor(Color.rgbValues(Color.byTier(tier)))
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Computer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Blocker",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != facing
 
   override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override def energyThroughput = Settings.get.caseRate(tier)
-
 
   def isCreative = tier == Tier.Four
 
@@ -41,8 +60,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   // ----------------------------------------------------------------------- //
-
-  override def canUpdate = isServer
 
   override def updateEntity() {
     if (isServer && isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {

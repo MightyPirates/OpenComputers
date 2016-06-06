@@ -6,6 +6,7 @@ import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 
@@ -44,7 +45,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     fontRendererObj.drawString(
       Localization.localizeImmediately(printer.getName),
       8, 6, 0x404040)
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
@@ -55,7 +56,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
       tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

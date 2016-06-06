@@ -1,5 +1,6 @@
 package li.cil.oc.server.machine
 
+import java.util
 import java.util.concurrent.TimeUnit
 
 import li.cil.oc.OpenComputers
@@ -7,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.item.CallBudget
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
@@ -46,7 +48,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
+class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -174,6 +176,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDeviceInfo: util.Map[String, String] = host match {
+    case deviceInfo: DeviceInfo => deviceInfo.getDeviceInfo
+    case _ => null
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -420,6 +429,29 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     null
   }
 
+  @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
+  def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
+    context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
+    Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {
+      case (n: Component, deviceInfo: DeviceInfo) =>
+        if (n.canBeSeenFrom(node) || n == node) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+      case (n, deviceInfo: DeviceInfo) =>
+        if (n.canBeReachedFrom(node)) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+    }.collect { case Some(kvp) => kvp }.toMap)
+  }
+
   // ----------------------------------------------------------------------- //
 
   def isExecuting = state.synchronized(state.contains(Machine.State.Running))
@@ -440,6 +472,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
     if (componentCount > maxComponents) {
+      beep("-..")
       crash("gui.Error.ComponentOverflow")
     }
 

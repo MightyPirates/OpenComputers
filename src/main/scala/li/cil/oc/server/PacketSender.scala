@@ -44,6 +44,14 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendClientLog(line: String, player: EntityPlayerMP) {
+    val pb = new CompressedPacketBuilder(PacketType.ClientLog)
+
+    pb.writeUTF(line)
+
+    pb.sendToPlayer(player)
+  }
+
   def sendColorChange(t: Colored) {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
@@ -273,7 +281,7 @@ object PacketSender {
 
   def sendLootDisks(p: EntityPlayerMP): Unit = {
     // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
-    val stacks = Loot.worldDisks.values.map(_._1)
+    val stacks = Loot.worldDisks.map(_._1)
     for (stack <- stacks) {
       val pb = new SimplePacketBuilder(PacketType.LootDisk)
 

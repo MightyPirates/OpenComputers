@@ -26,7 +26,7 @@ abstract class TextureFontRenderer {
     * be generated inside the draw call.
     */
   def generateChars(chars: Array[Char]) {
-    GL11.glEnable(GL11.GL_TEXTURE_2D)
+    GlStateManager.enableTexture2D()
     for (char <- chars) {
       generateChar(char)
     }
@@ -36,7 +36,7 @@ abstract class TextureFontRenderer {
     val format = buffer.format
 
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     GlStateManager.scale(0.5f, 0.5f, 1)
 
@@ -92,10 +92,10 @@ abstract class TextureFontRenderer {
           // Check if color changed.
           if (col != cfg) {
             cfg = col
-            GL11.glColor3ub(
-              ((cfg & 0xFF0000) >> 16).toByte,
-              ((cfg & 0x00FF00) >> 8).toByte,
-              ((cfg & 0x0000FF) >> 0).toByte)
+            GlStateManager.color(
+              ((cfg & 0xFF0000) >> 16) / 255f,
+              ((cfg & 0x00FF00) >> 8) / 255f,
+              ((cfg & 0x0000FF) >> 0) / 255f)
           }
           // Don't render whitespace.
           if (ch != ' ') {
@@ -112,7 +112,8 @@ abstract class TextureFontRenderer {
     GlStateManager.bindTexture(0)
     GlStateManager.depthMask(true)
     GlStateManager.color(1, 1, 1)
-    GlStateManager.popAttrib()
+    RenderState.disableBlend()
+    RenderState.popAttrib()
     GlStateManager.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
@@ -120,7 +121,7 @@ abstract class TextureFontRenderer {
 
   def drawString(s: String, x: Int, y: Int): Unit = {
     GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     GlStateManager.translate(x, y, 0)
     GlStateManager.scale(0.5f, 0.5f, 1)
@@ -141,7 +142,7 @@ abstract class TextureFontRenderer {
       GL11.glEnd()
     }
 
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
     GlStateManager.popMatrix()
     GlStateManager.color(1, 1, 1)
   }
@@ -163,7 +164,10 @@ abstract class TextureFontRenderer {
     val x1 = (x + width) * charWidth
     val y0 = y * charHeight
     val y1 = (y + 1) * charHeight
-    GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
+    GlStateManager.color(
+      ((color >> 16) & 0xFF) / 255f,
+      ((color >> 8) & 0xFF) / 255f,
+      (color & 0xFF) / 255f)
     GL11.glVertex3d(x0, y1, 0)
     GL11.glVertex3d(x1, y1, 0)
     GL11.glVertex3d(x1, y0, 0)

@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -15,34 +21,26 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object UpgradeTractorBeam {
 
-  class Player(val owner: EnvironmentHost, val player: () => EntityPlayer) extends UpgradeTractorBeam {
-    override protected def position = BlockPosition(owner)
-
-    override protected def collectItem(item: EntityItem) = item.onCollideWithPlayer(player())
-  }
-
-  class Drone(val owner: internal.Agent) extends UpgradeTractorBeam {
-    override protected def position = BlockPosition(owner)
-
-    override protected def collectItem(item: EntityItem) = {
-      InventoryUtils.insertIntoInventory(item.getEntityItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
-    }
-
-    private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getSizeInventory) ++ (0 until owner.selectedSlot)
-  }
-
-}
-
-abstract class UpgradeTractorBeam extends prefab.ManagedEnvironment {
+  abstract class Common extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tractor_beam").
     create()
 
   private val pickupRadius = 3
+
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Generic,
+      DeviceAttribute.Description -> "Tractor beam",
+      DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+      DeviceAttribute.Product -> "T313-K1N.3515"
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   protected def position: BlockPosition
 
@@ -68,4 +66,22 @@ abstract class UpgradeTractorBeam extends prefab.ManagedEnvironment {
     }
     result(false)
   }
+  }
+
+  class Player(val owner: EnvironmentHost, val player: () => EntityPlayer) extends Common {
+    override protected def position = BlockPosition(owner)
+
+    override protected def collectItem(item: EntityItem) = item.onCollideWithPlayer(player())
+  }
+
+  class Drone(val owner: internal.Agent) extends Common {
+    override protected def position = BlockPosition(owner)
+
+    override protected def collectItem(item: EntityItem) = {
+      InventoryUtils.insertIntoInventory(item.getEntityItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
+    }
+
+    private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getSizeInventory) ++ (0 until owner.selectedSlot)
+  }
+
 }
