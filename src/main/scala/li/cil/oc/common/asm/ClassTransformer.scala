@@ -30,7 +30,7 @@ object ObfNames {
   final val Method_invalidate = Array("invalidate", "func_145843_s")
   final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")
   final val Method_readFromNBT = Array("readFromNBT", "func_145839_a")
-  final val Method_writeToNBT = Array("writeToNBT", "func_145841_b")
+  final val Method_writeToNBT = Array("writeToNBT", "func_189515_b")
 }
 
 object ClassTransformer {
