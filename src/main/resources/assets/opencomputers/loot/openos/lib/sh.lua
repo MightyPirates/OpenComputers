@@ -217,9 +217,14 @@ function sh.internal.parseCommand(words)
       table.insert(evaluated_words, arg)
     end
   end
-  local program, reason = shell.resolve(evaluated_words[1], "lua")
+  local eword = evaluated_words[1]
+  local possible_dir_path = shell.resolve(eword)
+  if possible_dir_path and fs.isDirectory(possible_dir_path) then
+    return nil, string.format("%s: is a directory", eword)
+  end
+  local program, reason = shell.resolve(eword, "lua")
   if not program then
-    return nil, evaluated_words[1] .. ": " .. reason
+    return nil, eword .. ": " .. reason
   end
   evaluated_words = tx.sub(evaluated_words, 2)
   return program, evaluated_words
@@ -420,6 +425,10 @@ function --[[@delayloaded-start@]] sh.internal.buildPipeChain(threads)
     if i < #threads then
       pipe = require("buffer").new("rw", sh.internal.newMemoryStream())
       pipe:setvbuf("no")
+      -- buffer close flushes the buffer, but we have no buffer
+      -- also, when the buffer is closed, read and writes don't pass through
+      -- simply put, we don't want buffer:close
+      pipe.close = function(self) self.stream:close() end
       pipe.stream.redirect[1] = rawget(pio, 1)
       pio[1] = pipe
       table.insert(data.handles, pipe)
@@ -507,7 +516,12 @@ function --[[@delayloaded-start@]] sh.getMatchingPrograms(baseName)
   return result
 end --[[@delayloaded-end@]] 
 
-function --[[@delayloaded-start@]] sh.getMatchingFiles(basePath, name)
+function --[[@delayloaded-start@]] sh.getMatchingFiles(partial_path)
+  -- name: text of the partial file name being expanded
+  local name = partial_path:gsub("^.*/", "")
+  -- here we remove the name text from the partialPrefix
+  local basePath = unicode.sub(partial_path, 1, -unicode.len(name) - 1)
+
   local resolvedPath = shell.resolve(basePath)
   local result, baseName = {}
 
@@ -525,7 +539,7 @@ function --[[@delayloaded-start@]] sh.getMatchingFiles(basePath, name)
   for file in fs.list(resolvedPath) do
     local match = file:match(baseName)
     if match then
-      table.insert(result, basePath ..  match)
+      table.insert(result, basePath ..  match:gsub("(%s)", "\\%1"))
     end
   end
   -- (cont.) but if there's only one match and it's a directory, *then* we
@@ -537,19 +551,57 @@ function --[[@delayloaded-start@]] sh.getMatchingFiles(basePath, name)
 end --[[@delayloaded-end@]] 
 
 function --[[@delayloaded-start@]] sh.internal.hintHandlerSplit(line)
-  if line:sub(-1):find("%s") then
-    return '', line
-  end
-  local splits = text.internal.tokenize(line)
+  -- I do not plan on having text tokenizer parse error on
+  -- trailiing \ in case of future support for multiple line
+  -- input. But, there are also no hints for it
+  if line:match("\\$") then return nil end
+
+  local splits, simple = text.internal.tokenize(line,{show_escapes=true})
   if not splits then -- parse error, e.g. unclosed quotes
     return nil -- no split, no hints
   end
+
   local num_splits = #splits
-  if num_splits == 1 or not isWordOf(splits[num_splits-1],{";","&&","||","|"}) then
-    return '', line
+
+  -- search for last statement delimiters
+  local last_close = 0
+  for index = num_splits, 1, -1 do
+    local word = splits[index]
+    if isWordOf(word, {";","&&","||","|"}) then
+      last_close = index
+      break
+    end
   end
-  local l = text.internal.normalize({splits[num_splits]})[1]
-  return line:sub(1,-unicode.len(l)-1), l
+
+  -- if the very last word of the line is a delimiter
+  -- consider this a fresh new, empty line
+  -- this captures edge cases with empty input as well (i.e. no splits)
+  if last_close == num_splits then
+    return nil -- no hints on empty command
+  end
+
+  local last_word = splits[num_splits]
+  local normal = text.internal.normalize({last_word})[1]
+
+  -- if there is white space following the words
+  -- and we have at least one word following the last delimiter
+  -- then in all cases we are looking for ANY arg
+  if unicode.sub(line, -unicode.len(normal)) ~= normal then
+    return line, nil, ""
+  end
+
+  local prefix = unicode.sub(line, 1, -unicode.len(normal) - 1)
+
+  -- renormlizing the string will create 'printed' quality text
+  normal = text.internal.normalize(text.internal.tokenize(normal), true)[1]
+
+  -- one word: cmd
+  -- many: arg
+  if last_close == num_splits - 1 then
+    return prefix, normal, nil
+  else
+    return prefix, nil, normal
+  end
 end --[[@delayloaded-end@]] 
 
 function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor)
@@ -557,52 +609,47 @@ function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor
   local line = unicode.sub(full_line, 1, cursor - 1)
   -- suffix: text following the cursor (if any, else empty string) to append to the hints
   local suffix = unicode.sub(full_line, cursor)
-  -- if there is no text to hint, there are no hints
-  if not line or #line < 1 then
-    return {}
-  end
+
   -- hintHandlerSplit helps make the hints work even after delimiters such as ;
   -- it also catches parse errors such as unclosed quotes
-  local prev,line = sh.internal.hintHandlerSplit(line)
-  if not prev then -- failed to parse, e.g. unclosed quote, no hints
+  -- prev: not needed for this hint
+  -- cmd: the command needing hint
+  -- arg: the argument needing hint
+  local prev, cmd, arg = sh.internal.hintHandlerSplit(line)
+
+  -- also, if there is no text to hint, there are no hints
+  if not prev then -- no hints e.g. unclosed quote, e.g. no text
     return {}
   end
   local result
-  -- prefix: text (if any) that will not be expanded (such as a command word preceding a file name that we are expanding)
-  -- partial: text that we want to expand
-  -- this first match determines if partial comes after redirect symbols such as >
-  local prefix, partial = line:match("^(.*[=><]%s*)(.*)$")
-  -- if redirection was not found, partial could just be arguments following a command
-  if not prefix then prefix, partial = line:match("^(.+%s+)(.*)$") end
-  -- partialPrefix: text of the partial that will not be expanded (i.e. a diretory path ending with /)
-  -- first, partialPrefix holds the whole text being expanded (we truncate later)
-  local partialPrefix = (partial or line)
-  -- name: text of the partial file name being expanded
-  local name = partialPrefix:gsub("^.*/", "")
-  -- here we remove the name text from the partialPrefix
-  partialPrefix = partialPrefix:sub(1, -unicode.len(name) - 1)
-  -- if no prefix was found and partialPrefix did not specify a closed directory path then we are expanding the first argument
-  -- i.e. the command word (a program name)
-  local searchInPath = not prefix and not partialPrefix:find("/")
+
+  local searchInPath = cmd and not cmd:find("/")
   if searchInPath then
-    result = sh.getMatchingPrograms(line)
+    result = sh.getMatchingPrograms(cmd)
   else
-    result = sh.getMatchingFiles(partialPrefix, name)
+    -- special arg issue, after equal sign
+    if arg then
+      local equal_index = arg:find("=[^=]*$")
+      if equal_index then
+        prev = prev .. unicode.sub(arg, 1, equal_index)
+        arg = unicode.sub(arg, equal_index + 1)
+      end
+    end
+    result = sh.getMatchingFiles(cmd or arg)
   end
+
   -- in very special cases, the suffix should include a blank space to indicate to the user that the hint is discrete
   local resultSuffix = suffix
   if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
      not suffix:sub(1,1):find('%s') and
-     (#result == 1 or searchInPath or not prefix) then 
+     (#result == 1 or cmd) then 
     resultSuffix  = " " .. resultSuffix 
   end
-  -- prefix no longer needs to refer to just the expanding section of the text
-  -- here we reintroduce the previous section of the text that hintHandlerSplit cut for us
-  prefix = prev .. (prefix or "")
+
   table.sort(result)
   for i = 1, #result do
     -- the hints define the whole line of text
-    result[i] = prefix .. result[i] .. resultSuffix
+    result[i] = prev .. result[i] .. resultSuffix
   end
   return result
 end --[[@delayloaded-end@]] 
@@ -796,7 +843,7 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
       table.remove(self.result, 1)
       return self
     end
-    return nil, 'stream closed'
+    os.exit(0) -- abort the current process: SIGPIPE
   end
 
   local stream = {closed = false, buffer = "",

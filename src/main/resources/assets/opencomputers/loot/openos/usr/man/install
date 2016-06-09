@@ -1,0 +1,81 @@
+NAME
+  install - installs files from a source filesystem to a target filesystem
+
+SYNOPSIS
+  install [OPTIONS]...
+
+DESCRIPTION
+  install builds a list of candidate source and target mounted filesystems. If there are multiple candidates, the user is prompted for selections. By default, install copies all files from the source filesystem's root to the target filesystem's root path. If the source filesystem contains an .osprop, and unless command line options specify otherwise, the target filesystem's label is set and the user is prompted for reboot when install is complete. Alternatively, If a .lootprop file exists in the source filesystem, all default behavior is superceded and .lootprop is run as a script. .lootprop may copy files, set labels, prompt for reboot, etc. on its own. Developers creating their own .lootprop files for devices should respect environment variables set by install as per options it is given, such as ROOT. This manual page details the environment variables set by install when calling .lootprop.
+
+OPTIONS
+  --from=ADDR
+    When searching for candidate source filesystems, if specified, only mounted filesystem device addresses or their mount point paths that match ADDR will be included. By default, all filesystems except the rootfs are valid sources for install. If the user is trying to install rootfs to another filesystem, --from=ADDR is required where ADDR matches the rootfs device address or --from=/
+
+  --to=ADDR
+    same as --from but used when selecting target filesystem candidates. Note that the tmpfs is not a valid target filesystem by default, but must be specified explicitly if needed: i.e. --to=ADDR where ADDR matches the tmpfs device address or its mount point path, e.g. --to=/tmp . Note that install allows TO to equal FROM, also note that /bin/cp does not. But this detail may be noteworthy for .lootprop
+
+  --fromDir=PATH
+    Install PATH from source. PATH is relative to the root of the source filesystem. The default is .
+
+  --root=PATH
+    Same as --fromDir but for the target filesystem.
+
+  --toDir=PATH
+    Same as --root. Either can be used. It is meaningless to specify both and is not documented which takes precedence in such a case.
+
+  -u, --update
+    Indicates that install should prompt the user before modifying files. This invokes -i and -u for /bin/cp.
+
+The following only pertain when .osprop exists in the source filesystem. All environment variables are set for .lootprop regardless of the presense of .osprop
+
+  --nolabelset
+    do not set target label
+
+  --name=NAME
+    use NAME for label instead of any value specified by .osprop. This option is ignored if there is no .osprop (in which case, no label is set at all)
+
+  --noboot
+    do not set target as default boot device when rebooting
+
+  --noreboot
+    do not reboot after install
+
+.lootprop ENVIRONMENT
+  When .lootprop is loaded and executed, a custom table is added to the environment: ENV_.lootprop
+  These are the keys of the table as populated by install
+
+  ENV_.lootprop.from:
+    This is the path of the selected source filesystem to install from. It should be the path to the executing .lootprop
+    example: /mnt/ABC
+
+  ENV_.lootprop.to:
+    This is the path of the selected target filesystem to install to.
+    example: /
+
+  _ENV.lootprop.fromdir
+    This is the relative path to use in the source filesysterm as passed by command line to install. If unspecified to install it defaults to "."
+    example: .
+
+  _ENV.lootprop.root
+    This is the relative path to use in the target filesystem as passed by command line to install. If unspecified to install it defaults to "."
+    example: .
+
+  _ENV.lootprop.update
+    Assigned value of --update, see OPTIONS
+
+  _ENV.lootprop.nolabelset
+    Assigned value of --nolabelset, see OPTIONS
+
+  _ENV.lootprop.name
+    Assigned value of --name, see OPTIONS
+
+  _ENV.lootprop.noboot
+    Assigned value of --noboot, see OPTIONS
+
+  --noreboot
+    Assigned value of --noreboot, see OPTIONS
+
+EXAMPLES
+  install
+    Searches all non rootfs filesystems to install from, and all non tmpfs filesystems to install to. Prompts the user for a selection, and copies. If .osprop is defined in source, sets label and will prompt for reboot when completed.
+

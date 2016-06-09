@@ -9,8 +9,33 @@ if #args < 2 then
   return 1
 end
 
+local function is_mount(path)
+  if not fs.isDirectory(path) then return false end
+  path = fs.canonical(path) .. '/'
+  for driver, mount_point in fs.mounts() do
+    if path == mount_point then
+      return true
+    end
+  end
+end
+
+local function is_readonly(path)
+  return fs.get(path).isReadOnly()
+end
+
 local from = shell.resolve(args[1])
 local to = shell.resolve(args[2])
+
+if is_readonly(to) then
+  io.stderr:write("cannot write to " .. to .. ", filesystem is readonly\n");
+  return 1
+end
+
+if is_mount(from) then
+  io.stderr:write("cannot move " .. from .. ", it is a mount point\n");
+  return 1
+end
+
 if fs.isDirectory(to) then
   to = to .. "/" .. fs.name(from)
 end
