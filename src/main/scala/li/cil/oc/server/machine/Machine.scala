@@ -452,6 +452,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }.collect { case Some(kvp) => kvp }.toMap)
   }
 
+  @Callback(doc = """function():table -- Returns a map of program name to disk label for known programs.""")
+  def getProgramLocations(context: Context, args: Arguments): Array[AnyRef] =
+    result(ProgramLocations.getMappings(Machine.getArchitectureName(architecture.getClass)))
+
   // ----------------------------------------------------------------------- //
 
   def isExecuting = state.synchronized(state.contains(Machine.State.Running))
