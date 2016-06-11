@@ -64,8 +64,15 @@ end
 
 local function recurse(fromPath, toPath, origin)
   local isLink, target = fs.isLink(fromPath)
-  if isLink and options.P then
+  local toIsLink, toLinkTarget = fs.isLink(toPath)
+  local same_path = fs.canonical(isLink and target or fromPath) == fs.canonical(toIsLink and toLinkTarget or toPath)
+  local toExists = fs.exists(toPath)
+
+  if isLink and options.P and (not toExists or not same_path) then
     status(fromPath, toPath)
+    if toIsLink then
+      fs.remove(toPath)
+    end
     return fs.link(target, toPath)
   elseif fs.isDirectory(fromPath) then
     if not options.r then
@@ -95,35 +102,34 @@ local function recurse(fromPath, toPath, origin)
     end
     return true
   elseif fs.exists(fromPath) then
-    if fs.exists(toPath) then
-      if fs.canonical(fromPath) == fs.canonical(toPath) then
+    if toExists then
+      if same_path then
         return nil, "`" .. fromPath .. "' and `" .. toPath .. "' are the same file"
       end
-      if fs.isDirectory(toPath) then
-        if options.i then
-          if not prompt("overwrite `" .. toPath .. "'?") then
-            return true
-          end
-        elseif options.n then
-          return true
-        else -- yes, even for -f
-          return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
-        end
-      else
-        if options.u then
-          if areEqual(fromPath, toPath) then
-            return true
-          end
-        end
-        if options.i then
-          if not prompt("overwrite `" .. toPath .. "'?") then
-            return true
-          end
-        elseif options.n then
-          return true
-        end
-        -- else: default to overwriting
+
+      if options.n then
+        return true
       end
+
+      -- if target is link, we are updating the target
+      if toIsLink then
+        toPath = toLinkTarget
+      end
+
+      if options.u and not fs.isDirectory(toPath) and areEqual(fromPath, toPath) then
+        return true
+      end
+
+      if options.i then
+        if not prompt("overwrite `" .. toPath .. "'?") then
+          return true
+        end
+      end
+
+      if fs.isDirectory(toPath) then
+        return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
+      end
+
       fs.remove(toPath)
     end
     status(fromPath, toPath)

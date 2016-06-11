@@ -642,7 +642,7 @@ function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor
   local resultSuffix = suffix
   if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
      not suffix:sub(1,1):find('%s') and
-     (#result == 1 or cmd) then 
+     #result == 1 or searchInPath then 
     resultSuffix  = " " .. resultSuffix 
   end
 

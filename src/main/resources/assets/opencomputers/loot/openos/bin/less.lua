@@ -277,7 +277,7 @@ while true do
     if code == keyboard.keys.q or code == keyboard.keys.d and keyboard.isControlDown() then
       break
     elseif code == keyboard.keys.space or code == keyboard.keys.pageDown then
-      num = nil
+      num = max_display
     elseif code == keyboard.keys.pageUp then
       num = -max_display
     elseif code == keyboard.keys.enter or code == keyboard.keys.down then
