@@ -127,7 +127,7 @@ function shell.resolveAlias(command, args)
 end
 
 function shell.getWorkingDirectory()
-  return os.getenv("PWD")
+  return os.getenv("PWD") or "/"
 end
 
 function shell.setWorkingDirectory(dir)

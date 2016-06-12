@@ -1,0 +1,1 @@
+os.execute(install.from.."/oppm.lua")

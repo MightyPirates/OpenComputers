@@ -110,7 +110,7 @@ for i=1,#args do
   local file
   if arg == '-' then
     arg = 'standard input'
-    file = setmetatable({close=function()end},{__index=io.stdin})
+    file = io.stdin
   else
     file, reason = io.open(arg, 'r')
     if not file then
@@ -119,7 +119,7 @@ for i=1,#args do
   end
   if file then
     if verbose or #args > 1 then
-      io.write(string.format('==> %s <==', arg))
+      io.write(string.format('==> %s <==\n', arg))
     end
 
     local stream = new_stream()

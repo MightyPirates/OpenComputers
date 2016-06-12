@@ -32,7 +32,7 @@ local metas = {}
 local function _path(m) return shell.resolve(m.rel) end
 local function _link(m) return fs.isLink(_path(m)) end
 local function _exists(m) return _link(m) or fs.exists(_path(m)) end
-local function _dir(m) return fs.isDirectory(_path(m)) end
+local function _dir(m) return not _link(m) and fs.isDirectory(_path(m)) end
 local function _readonly(m) return not _exists(m) or fs.get(_path(m)).isReadOnly() end
 local function _empty(m) return _exists(m) and _dir(m) and (fs.list(_path(m))==nil) end
 
