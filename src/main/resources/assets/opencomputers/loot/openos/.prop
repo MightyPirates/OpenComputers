@@ -1,1 +1,1 @@
-return {label = "OpenOS", reboot=true, setlabel=true, setboot=true}
+{label = "OpenOS", reboot=true, setlabel=true, setboot=true}

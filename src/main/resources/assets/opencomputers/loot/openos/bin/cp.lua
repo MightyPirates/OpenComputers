@@ -1,5 +1,6 @@
 local fs = require("filesystem")
 local shell = require("shell")
+local computer = require("computer")
 
 local args, options = shell.parse(...)
 if #args < 2 then
@@ -18,11 +19,17 @@ end
 local exit_code = nil
 options.P = options.P or options.r
 
+-- interrupting is important, but not EVERY copy
+local greedy = computer.uptime()
+
 local function status(from, to)
   if options.v then
     io.write(from .. " -> " .. to .. "\n")
   end
-  os.sleep(0) -- allow interrupting
+  if computer.uptime() - greedy > 4 then
+    os.sleep(0) -- allow interrupting
+    greedy = computer.uptime()
+  end
 end
 
 local result, reason
@@ -69,10 +76,14 @@ local function recurse(fromPath, toPath, origin)
   local toExists = fs.exists(toPath)
 
   if isLink and options.P and (not toExists or not same_path) then
-    status(fromPath, toPath)
-    if toIsLink then
-      fs.remove(toPath)
+    if toExists and options.n then
+      return true
     end
+    fs.remove(toPath)
+    if toExists and options.v then
+      io.write(string.format("removed '%s'\n", toPath))
+    end
+    status(fromPath, toPath)
     return fs.link(target, toPath)
   elseif fs.isDirectory(fromPath) then
     if not options.r then
