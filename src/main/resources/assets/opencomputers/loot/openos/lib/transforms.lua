@@ -54,16 +54,16 @@ function lib.first(tbl,pred,f,l)
 end
 
 -- if value was made by lib.sub then find can find from whence
-function --[[@delayloaded-start@]] lib.find(tbl,v,f,l)
-  checkArg(1,tbl,'table')
-  checkArg(2,v,'table')
-  local s=#v
-  return lib.first(tbl,function(e,i,tbl)
-    for n=0,s-1 do
-      if tbl[n+i]~=v[n+1] then return nil end
+function --[[@delayloaded-start@]] lib.find(tbl, sub, first, last)
+  checkArg(1, tbl, 'table')
+  checkArg(2, sub, 'table')
+  local sub_len = #sub
+  return lib.first(tbl, function(element, index, projected_table)
+    for n=0,sub_len-1 do
+      if projected_table[n + index] ~= sub[n + 1] then return nil end
     end
-    return 1,s
-  end,f,l)
+    return 1, sub_len
+  end, first, last)
 end --[[@delayloaded-end@]] 
 
 -- Returns a list of subsets of tbl where partitioner acts as a delimiter.
@@ -150,12 +150,14 @@ function lib.foreach(tbl,c,f,l)
   return r
 end
 lib.select=lib.foreach
+
 function  --[[@delayloaded-start@]] lib.where(tbl,p,f,l)
   return lib.foreach(tbl,
     function(e,i,tbl)
       return p(e,i,tbl)and e or nil
     end,f,l)
 end --[[@delayloaded-end@]] 
+
 function lib.concat(...)
   local r,rn,k={},0
   for _,tbl in ipairs({...})do
@@ -171,5 +173,20 @@ function lib.concat(...)
   r.n=k and rn or nil
   return r
 end
+
+-- works with pairs on tables
+-- returns the kv pair, or nil and the number of pairs iterated
+function  --[[@delayloaded-start@]] lib.at(tbl, index)
+  checkArg(1, tbl, "table")
+  checkArg(2, index, "number", "nil")
+  local current_index = 1
+  for k,v in pairs(tbl) do
+    if current_index == index then
+      return k,v
+    end
+    current_index = current_index + 1
+  end
+  return nil, current_index - 1 -- went one too far
+end --[[@delayloaded-end@]] 
 
 return lib,{adjust=adjust,view=view}
