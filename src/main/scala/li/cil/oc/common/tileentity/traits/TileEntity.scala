@@ -19,6 +19,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   private final val IsServerDataTag = Settings.namespace + "isServerData"
 
+  private var isChunkUnloading = false
+
   def world = getWorld
 
   def x = getPos.getX
@@ -53,7 +55,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    dispose()
+    isChunkUnloading = true
   }
 
   protected def initialize() {}
@@ -97,6 +99,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   override def writeToNBT(nbt: NBTTagCompound): NBTTagCompound = {
     if (isServer) {
       writeToNBTForServer(nbt)
+    }
+    if (isChunkUnloading) {
+      dispose()
     }
     nbt
   }
