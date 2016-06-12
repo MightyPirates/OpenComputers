@@ -28,7 +28,7 @@ end
 function guid.next()
   -- e.g. 3c44c8a9-0613-46a2-ad33-97b6ba2e9d9a
   -- 8-4-4-4-12
-  local sets = {8, 4, 4, 12}
+  local sets = {8, 4, 4, 4, 12}
   local result = ""
 
   local i

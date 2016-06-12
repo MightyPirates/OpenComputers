@@ -80,24 +80,21 @@ end
 
 -------------------------------------------------------------------------------
 
--- tokenize allows nil for delimiters, quotes, and doNotNormalize
--- always separates by whitespace
--- default quote rules: '' and ""
--- default delimiters: all
--- default is to normalize, that is, no metadata is returned, just a list of tokens
-function text.tokenize(value, doNotNormalize, quotes, delimiters)
+-- separate string value into an array of words delimited by whitespace
+-- groups by quotes
+-- options is a table used for internal undocumented purposes
+function text.tokenize(value, options)
   checkArg(1, value, "string")
-  checkArg(2, doNotNormalize, "boolean", "nil")
-  checkArg(3, quotes, "table", "nil")
-  checkArg(4, delimiters, "table", "nil")
+  checkArg(2, options, "table", "nil")
+  options = options or {}
 
-  local tokens, reason = text.internal.tokenize(value, quotes, delimiters)
+  local tokens, reason = text.internal.tokenize(value, options)
 
   if type(tokens) ~= "table" then
     return nil, reason
   end
 
-  if doNotNormalize then
+  if options.doNotNormalize then
     return tokens
   end
 
@@ -113,6 +110,9 @@ function text.removeEscapes(txt)
 end
 
 -------------------------------------------------------------------------------
+-- like tokenize, but does not drop any text such as whitespace
+-- splits input into an array for sub strings delimited by delimiters
+-- delimiters are included in the result if not dropDelims
 function --[[@delayloaded-start@]] text.split(input, delimiters, dropDelims, di)
   checkArg(1, input, "string")
   checkArg(2, delimiters, "table")
@@ -153,14 +153,15 @@ end --[[@delayloaded-end@]]
 
 -----------------------------------------------------------------------------
 
-function text.internal.tokenize(value, quotes, delimiters)
+function text.internal.tokenize(value, options)
   checkArg(1, value, "string")
-  checkArg(2, quotes, "table", "nil")
-  checkArg(3, delimiters, "table", "nil")
-  local custom = not not delimiters
+  checkArg(2, options, "table", "nil")
+  options = options or {}
+  local delimiters = options.delimiters
+  local custom = not not options.delimiters
   delimiters = delimiters or text.syntax
 
-  local words, reason = text.internal.words(value, quotes)
+  local words, reason = text.internal.words(value, options)
 
   local splitter = text.escapeMagic(custom and table.concat(delimiters) or "<>|;&")
   if type(words) ~= "table" or 
@@ -173,9 +174,12 @@ function text.internal.tokenize(value, quotes, delimiters)
 end
 
 -- tokenize input by quotes and whitespace
-function text.internal.words(input, quotes)
+function text.internal.words(input, options)
   checkArg(1, input, "string")
-  checkArg(2, quotes, "table", "nil")
+  checkArg(2, options, "table", "nil")
+  options = options or {}
+  local quotes = options.quotes
+  local show_escapes = options.show_escapes
   local qr = nil
   quotes = quotes or {{"'","'",true},{'"','"'},{'`','`'}}
   local function append(dst, txt, qr)
@@ -193,11 +197,12 @@ function text.internal.words(input, quotes)
     local char = unicode.sub(input, i, i)
     if escaped then -- escaped character
       escaped = false
-      -- include escape char if
+      -- include escape char if show_escapes
+      -- or the followwing are all true
       -- 1. qr active
       -- 2. the char escaped is NOT the qr closure
       -- 3. qr is not literal
-      if qr and not qr[3] and qr[2] ~= char then
+      if show_escapes or (qr and not qr[3] and qr[2] ~= char) then
         append(token, '\\', qr)
       end
       append(token, char, qr)

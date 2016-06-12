@@ -1,5 +1,6 @@
 local fs = require("filesystem")
 local shell = require("shell")
+local computer = require("computer")
 
 local args, options = shell.parse(...)
 if #args < 2 then
@@ -15,19 +16,20 @@ if #args < 2 then
   return 1
 end
 
+local exit_code = nil
 options.P = options.P or options.r
 
-local from = {}
-for i = 1, #args - 1 do
-  table.insert(from, shell.resolve(args[i]))
-end
-local to = shell.resolve(args[#args])
+-- interrupting is important, but not EVERY copy
+local greedy = computer.uptime()
 
 local function status(from, to)
   if options.v then
     io.write(from .. " -> " .. to .. "\n")
   end
-  os.sleep(0) -- allow interrupting
+  if computer.uptime() - greedy > 4 then
+    os.sleep(0) -- allow interrupting
+    greedy = computer.uptime()
+  end
 end
 
 local result, reason
@@ -68,14 +70,25 @@ for dev,path in fs.mounts() do
 end
 
 local function recurse(fromPath, toPath, origin)
-  status(fromPath, toPath)
   local isLink, target = fs.isLink(fromPath)
-  if isLink and options.P then
+  local toIsLink, toLinkTarget = fs.isLink(toPath)
+  local same_path = fs.canonical(isLink and target or fromPath) == fs.canonical(toIsLink and toLinkTarget or toPath)
+  local toExists = fs.exists(toPath)
+
+  if isLink and options.P and (not toExists or not same_path) then
+    if toExists and options.n then
+      return true
+    end
+    fs.remove(toPath)
+    if toExists and options.v then
+      io.write(string.format("removed '%s'\n", toPath))
+    end
+    status(fromPath, toPath)
     return fs.link(target, toPath)
-  end
-  if fs.isDirectory(fromPath) then
+  elseif fs.isDirectory(fromPath) then
     if not options.r then
       io.write("omitting directory `" .. fromPath .. "'\n")
+      exit_code = 1
       return true
     end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
@@ -85,10 +98,13 @@ local function recurse(fromPath, toPath, origin)
     if options.x and origin and mounts[fs.canonical(fromPath)] then
       return true
     end
-    if fs.get(fromPath) == fs.get(toPath) and fs.canonical(fs.path(toPath)):find(fs.canonical(fromPath),1,true)  then
+    if fs.get(fromPath) == fs.get(toPath) and fs.canonical(toPath):find(fs.canonical(fromPath),1,true)  then
       return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
     end
-    fs.makeDirectory(toPath)
+    if not fs.exists(toPath) then
+      status(fromPath, toPath)
+      fs.makeDirectory(toPath)
+    end
     for file in fs.list(fromPath) do
       local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file), origin or fs.get(fromPath))
       if not result then
@@ -96,44 +112,53 @@ local function recurse(fromPath, toPath, origin)
       end
     end
     return true
-  else
-    if fs.exists(toPath) then
-      if fs.canonical(fromPath) == fs.canonical(toPath) then
+  elseif fs.exists(fromPath) then
+    if toExists then
+      if same_path then
         return nil, "`" .. fromPath .. "' and `" .. toPath .. "' are the same file"
       end
-      if fs.isDirectory(toPath) then
-        if options.i then
-          if not prompt("overwrite `" .. toPath .. "'?") then
-            return true
-          end
-        elseif options.n then
-          return true
-        else -- yes, even for -f
-          return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
-        end
-      else
-        if options.u then
-          if areEqual(fromPath, toPath) then
-            return true
-          end
-        end
-        if options.i then
-          if not prompt("overwrite `" .. toPath .. "'?") then
-            return true
-          end
-        elseif options.n then
-          return true
-        end
-        -- else: default to overwriting
+
+      if options.n then
+        return true
       end
+
+      -- if target is link, we are updating the target
+      if toIsLink then
+        toPath = toLinkTarget
+      end
+
+      if options.u and not fs.isDirectory(toPath) and areEqual(fromPath, toPath) then
+        return true
+      end
+
+      if options.i then
+        if not prompt("overwrite `" .. toPath .. "'?") then
+          return true
+        end
+      end
+
+      if fs.isDirectory(toPath) then
+        return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
+      end
+
       fs.remove(toPath)
     end
+    status(fromPath, toPath)
     return fs.copy(fromPath, toPath)
+  else
+    return nil, "`" .. fromPath .. "': No such file or directory"
   end
 end
-for _, fromPath in ipairs(from) do
+
+local to = shell.resolve(args[#args])
+
+for i = 1, #args - 1 do
+  local fromPath, cuts = args[i]:gsub("(/%.%.?)$", "%1")
+  fromPath = shell.resolve(fromPath)
   local toPath = to
-  if fs.isDirectory(toPath) then
+  -- fromPath ending with /. indicates copying the contents of fromPath
+  -- in which case (cuts>0) we do not append fromPath name to toPath 
+  if cuts == 0 and fs.isDirectory(toPath) then
     toPath = fs.concat(toPath, fs.name(fromPath))
   end
   result, reason = recurse(fromPath, toPath)
@@ -144,3 +169,5 @@ for _, fromPath in ipairs(from) do
     return 1
   end
 end
+
+return exit_code

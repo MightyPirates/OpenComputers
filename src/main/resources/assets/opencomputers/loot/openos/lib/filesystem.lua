@@ -378,16 +378,23 @@ end
 function filesystem.remove(path)
   local function removeVirtual()
     local node, rest, vnode, vrest = findNode(filesystem.path(path))
-    local name = filesystem.name(path)
-    if vnode.children[name] then
-      vnode.children[name] = nil
-      removeEmptyNodes(vnode)
-      return true
-    elseif vnode.links[name] then
-      vnode.links[name] = nil
-      removeEmptyNodes(vnode)
-      return true
+    -- vrest represents the remaining path beyond vnode
+    -- vrest is nil if vnode reaches the full path
+    -- thus, if vrest is NOT NIL, then we SHOULD NOT remove children nor links
+    if not vrest then
+      local name = filesystem.name(path)
+      if vnode.children[name] then
+        vnode.children[name] = nil
+        removeEmptyNodes(vnode)
+        return true
+      elseif vnode.links[name] then
+        vnode.links[name] = nil
+        removeEmptyNodes(vnode)
+        return true
+      end
     end
+    -- return false even if vrest is nil because this means it was a expected
+    -- to be a real file
     return false
   end
   local function removePhysical()
