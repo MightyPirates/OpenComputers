@@ -89,7 +89,7 @@ function term.internal.pull(input, c, off, t, ...)
     if gpu then
       gpu.set(x,y,c[3])
     end
-    return select(2,unpack(a))
+    return unpack(a)
   end
   local blinking = w.blink
   if input then blinking = input.blink end
@@ -99,7 +99,12 @@ end
 function term.pull(p,...)
   local a,t = {p,...}
   if type(p) == "number" then t = table.remove(a,1) end
-  return term.internal.pull(nil,nil,nil,t,table.unpack(a))
+  -- term.internal.pull captures hard interrupts to keep term.readKeyboard peaceful
+  -- but other scripts may be using term.pull as an event.pull replacement
+  -- in which case, term.pull need to abort on hard interrupt
+  local packed = {term.internal.pull(nil,nil,nil,t,table.unpack(a))}
+  assert(packed[1], "interrupted")
+  return select(2, table.unpack(packed))
 end
 
 function term.read(history,dobreak,hintHandler,pwchar,filter)
@@ -229,7 +234,7 @@ function term.readKeyboard(ops)
     term.internal.build_vertical_reader(input)
   end
   while true do
-    local name, address, char, code = term.internal.pull(input)
+    local killed, name, address, char, code = term.internal.pull(input)
     local c = nil
     local backup_cache = hints.cache
     if name =="interrupted" then draw("^C\n",true) return ""
@@ -251,6 +256,8 @@ function term.readKeyboard(ops)
         input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
       elseif code==keys.right then
         input:move(ctrl and term.internal.ctrl_movement(input, 1) or 1)
+      elseif ctrl and char=="w" then
+        -- cut word
       elseif code==keys.up then
         term.internal.read_history(history,input,1)
       elseif code==keys.down then
@@ -382,6 +389,38 @@ function term.bind(gpu, screen, kb, window)
     term.setViewport(nil,nil,nil,nil,window.x,window.y,window)
   end
 end
+
+function --[[@delayloaded-start@]] term.scroll(number, window)
+  -- if zero scroll length is requested, do nothing
+  if number == 0 then return end
+  -- window is optional, default to current active terminal
+  window = window or W()
+  -- gpu works with global coordinates
+  local gpu,width,height,dx,dy,x,y = window.gpu,term.getViewport(w)
+
+  -- scroll request can be too large
+  local abs_number = math.abs(number)
+  if (abs_number >= height) then
+    term.clear()
+    return
+  end
+
+  -- box positions to shift
+  local box_height = height - abs_number
+  local top = 0
+  if number > 0 then
+    top = number -- (e.g. 1 scroll moves box at 2)
+  end
+
+  gpu.copy(dx + 1, dy + top + 1, width, box_height, 0, -number)
+
+  local fill_top = 0
+  if number > 0 then
+    fill_top = box_height
+  end
+
+  gpu.fill(dx + 1, dy + fill_top + 1, width, abs_number, " ")
+end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.ctrl_movement(input, dir)
   local index, data = input.index, input.data

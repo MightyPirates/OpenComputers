@@ -3,6 +3,7 @@ package li.cil.oc.api;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraftforge.fml.common.event.FMLInterModComms;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * copy this class while keeping the package name, to avoid conflicts if this
  * class gets updated.
  */
+@SuppressWarnings("unused")
 public final class IMC {
     /**
      * Register a callback that is used as a filter for assembler templates.
@@ -37,7 +39,7 @@ public final class IMC {
      *
      * @param callback the callback to register as a filtering method.
      */
-    public static void registerAssemblerFilter(String callback) {
+    public static void registerAssemblerFilter(final String callback) {
         FMLInterModComms.sendMessage(MOD_ID, "registerAssemblerFilter", callback);
     }
 
@@ -98,7 +100,7 @@ public final class IMC {
      *                       with only two card slots will pass <tt>null</tt>
      *                       for the third component slot. Up to nine.
      */
-    public static void registerAssemblerTemplate(String name, String select, String validate, String assemble, Class host, int[] containerTiers, int[] upgradeTiers, Iterable<Pair<String, Integer>> componentSlots) {
+    public static void registerAssemblerTemplate(final String name, final String select, final String validate, final String assemble, final Class host, final int[] containerTiers, final int[] upgradeTiers, final Iterable<Pair<String, Integer>> componentSlots) {
         final NBTTagCompound nbt = new NBTTagCompound();
         if (name != null) {
             nbt.setString("name", name);
@@ -187,7 +189,7 @@ public final class IMC {
      * @param disassemble callback used to apply a template and extract
      *                    ingredients from an item.
      */
-    public static void registerDisassemblerTemplate(String name, String select, String disassemble) {
+    public static void registerDisassemblerTemplate(final String name, final String select, final String disassemble) {
         final NBTTagCompound nbt = new NBTTagCompound();
         if (name != null) {
             nbt.setString("name", name);
@@ -218,7 +220,7 @@ public final class IMC {
      *
      * @param callback the callback to register as a durability provider.
      */
-    public static void registerToolDurabilityProvider(String callback) {
+    public static void registerToolDurabilityProvider(final String callback) {
         FMLInterModComms.sendMessage(MOD_ID, "registerToolDurabilityProvider", callback);
     }
 
@@ -242,7 +244,7 @@ public final class IMC {
      *
      * @param callback the callback to register as a wrench tool handler.
      */
-    public static void registerWrenchTool(String callback) {
+    public static void registerWrenchTool(final String callback) {
         FMLInterModComms.sendMessage(MOD_ID, "registerWrenchTool", callback);
     }
 
@@ -265,7 +267,7 @@ public final class IMC {
      *
      * @param callback the callback to register as a wrench tool tester.
      */
-    public static void registerWrenchToolCheck(String callback) {
+    public static void registerWrenchToolCheck(final String callback) {
         FMLInterModComms.sendMessage(MOD_ID, "registerWrenchToolCheck", callback);
     }
 
@@ -291,7 +293,7 @@ public final class IMC {
      * @param canCharge the callback to register for checking chargeability.
      * @param charge    the callback to register for charging items.
      */
-    public static void registerItemCharge(String name, String canCharge, String charge) {
+    public static void registerItemCharge(final String name, final String canCharge, final String charge) {
         final NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("name", name);
         nbt.setString("canCharge", canCharge);
@@ -319,7 +321,7 @@ public final class IMC {
      *
      * @param callback the callback to register as an ink provider.
      */
-    public static void registerInkProvider(String callback) {
+    public static void registerInkProvider(final String callback) {
         FMLInterModComms.sendMessage(MOD_ID, "registerInkProvider", callback);
     }
 
@@ -332,7 +334,7 @@ public final class IMC {
      *
      * @param peripheral the class of the peripheral to blacklist.
      */
-    public static void blacklistPeripheral(Class peripheral) {
+    public static void blacklistPeripheral(final Class peripheral) {
         FMLInterModComms.sendMessage(MOD_ID, "blacklistPeripheral", peripheral.getName());
     }
 
@@ -351,7 +353,7 @@ public final class IMC {
      * @param host  the class of the host to blacklist the component for.
      * @param stack the item stack representing the blacklisted component.
      */
-    public static void blacklistHost(String name, Class host, ItemStack stack) {
+    public static void blacklistHost(final String name, final Class host, final ItemStack stack) {
         final NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("name", name);
         nbt.setString("host", host.getName());
@@ -370,6 +372,44 @@ public final class IMC {
      */
     public static void registerCustomPowerSystem() {
         FMLInterModComms.sendMessage(MOD_ID, "registerCustomPowerSystem", "true");
+    }
+
+    /**
+     * Register a mapping of program name to loot disk.
+     * <p/>
+     * The table of mappings is made available to machines to allow displaying
+     * a message to the user telling her on which floppy disk to find the program
+     * they were trying to run.
+     * <p/>
+     * For Lua programs, this should be the program <em>name</em>, i.e. the file
+     * name without the <code>.lua</code> extension.
+     * <p/>
+     * The list of architectures is optional, if it is not specified this mapping
+     * will be made available to all architectures. It allows filtering since
+     * typically programs will be written for one specific architecture type, e.g.
+     * Lua programs will not (directly) work on a MIPS architecture. The name
+     * specified is the in the {@link li.cil.oc.api.machine.Architecture.Name}
+     * annotation of the architecture (also shown in the CPU tooltip).
+     * <p/>
+     * The architecture names for Lua are <code>Lua 5.2</code>, <code>Lua 5.3</code>
+     * and <code>LuaJ</code> for example.
+     *
+     * @param programName   the name of the program.
+     * @param diskLabel     the label of the disk the program is on.
+     * @param architectures the names of the architectures this entry applies to.
+     */
+    public static void registerProgramDiskLabel(final String programName, final String diskLabel, final String... architectures) {
+        final NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setString("program", programName);
+        nbt.setString("label", diskLabel);
+        if (architectures != null && architectures.length > 0) {
+            final NBTTagList architecturesNbt = new NBTTagList();
+            for (final String architecture : architectures) {
+                architecturesNbt.appendTag(new NBTTagString(architecture));
+            }
+            nbt.setTag("architectures", architecturesNbt);
+        }
+        FMLInterModComms.sendMessage(MOD_ID, "registerProgramDiskLabel", nbt);
     }
 
     // ----------------------------------------------------------------------- //

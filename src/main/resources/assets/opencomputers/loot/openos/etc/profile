@@ -6,7 +6,6 @@ alias copy=cp
 alias del=rm
 alias md=mkdir
 alias cls=clear
-alias less=more
 alias rs=redstone
 alias view=edit\ -r
 alias help=man
