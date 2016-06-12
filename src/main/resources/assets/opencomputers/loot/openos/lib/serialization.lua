@@ -1,5 +1,11 @@
 local serialization = {}
 
+-- delay loaded tables fail to deserialize cross [C] boundaries (such as when having to read files that cause yields)
+local local_pairs = function(tbl)
+  local mt = getmetatable(tbl)
+  return (mt and mt.__pairs or pairs)(tbl)
+end
+
 -- Important: pretty formatting will allow presenting non-serializable values
 -- but may generate output that cannot be unserialized back.
 function serialization.serialize(value, pretty)
@@ -44,7 +50,7 @@ function serialization.serialize(value, pretty)
       local f
       if pretty then
         local ks, sks, oks = {}, {}, {}
-        for k in pairs(v) do
+        for k in local_pairs(v) do
           if type(k) == "number" then
             table.insert(ks, k)
           elseif type(k) == "string" then
@@ -72,7 +78,7 @@ function serialization.serialize(value, pretty)
           end
         end)
       else
-        f = table.pack(pairs(v))
+        f = table.pack(local_pairs(v))
       end
       for k, v in table.unpack(f) do
         if r then

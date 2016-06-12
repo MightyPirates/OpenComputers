@@ -16,6 +16,10 @@ else
   linkpath = fs.concat(shell.getWorkingDirectory(), fs.name(target))
 end
 
+if fs.isDirectory(linkpath) then
+  linkpath = fs.concat(linkpath, fs.name(target))
+end
+
 local result, reason = fs.link(target, linkpath)
 if not result then
   io.stderr:write(reason..'\n')
