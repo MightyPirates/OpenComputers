@@ -63,7 +63,7 @@ if cmd == 'select' then
 
 elseif cmd == 'install' then
   local installer_path = options.source_root .. "/.install"
-  local installer, reason = loadfile(installer_path, "bt", {install=
+  local installer, reason = loadfile(installer_path, "bt", setmetatable({install=
   {
     from=options.source_root,
     to=options.target_root,
@@ -74,7 +74,7 @@ elseif cmd == 'install' then
     setlabel=options.setlabel,
     setboot=options.setboot,
     reboot=options.reboot,
-  }})
+  }}, {__index=_G}))
   if not installer then
     io.stderr:write("installer failed to load: " .. tostring(reason) .. '\n')
     os.exit(1)
