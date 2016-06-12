@@ -100,7 +100,7 @@ object IMC {
       }
       else if (message.key == "registerProgramDiskLabel" && message.isNBTMessage) {
         OpenComputers.log.info(s"Registering new program location mapping for program '${message.getNBTValue.getString("program")}' being on disk '${message.getNBTValue.getString("label")}' from mod ${message.getSender}.")
-        ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).toArray: _*)
+        ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString()).toArray: _*)
       }
       else {
         OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")
