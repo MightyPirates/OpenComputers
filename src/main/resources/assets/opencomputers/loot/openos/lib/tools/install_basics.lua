@@ -51,7 +51,7 @@ local function cleanPath(path)
   if path then
     local rpath = shell.resolve(path)
     if fs.isDirectory(rpath) then
-      return fs.canonical(rpath):gsub("/+$", "") .. '/'
+      return fs.canonical(rpath) .. '/'
     end
   end
 end
@@ -84,8 +84,7 @@ up_deprecate('name', 'label')
 options.source_root = cleanPath(options.from)
 options.target_root = cleanPath(options.to)
 
-options.source_dir = (options.fromDir or "") .. '.'
-options.target_dir = (options.root or options.toDir or "")
+options.target_dir = fs.canonical(options.root or options.toDir or "")
 
 options.update = options.u or options.update
 
@@ -167,10 +166,11 @@ if not target then return end
 options.target_root = options.target_root or target.path
 
 -- now that source is selected, we can update options
-options.label    = options.label or source.prop.label
-options.setlabel = source.prop.setlabel and not options.nosetlabel
-options.setboot  = source.prop.setboot and not options.nosetboot
-options.reboot   = source.prop.reboot and not options.noreboot
+options.label      = options.label or source.prop.label
+options.setlabel   = source.prop.setlabel and not options.nosetlabel
+options.setboot    = source.prop.setboot and not options.nosetboot
+options.reboot     = source.prop.reboot and not options.noreboot
+options.source_dir = fs.canonical(source.prop.fromDir or options.fromDir or "") .. '/.'
 
 local installer_path = options.source_root .. "/.install"
 if fs.exists(installer_path) then
