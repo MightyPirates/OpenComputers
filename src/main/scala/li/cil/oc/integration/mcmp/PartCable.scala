@@ -3,6 +3,7 @@ package li.cil.oc.integration.mcmp
 import java.util
 
 import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.network.Environment
@@ -129,7 +130,7 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
 
   // ----------------------------------------------------------------------- //
 
-  override def getModelPath = MCMultiPart.CableMultipartLocation.getResourceDomain + ":" + MCMultiPart.CableMultipartLocation.getResourcePath
+  override def getModelPath = Settings.resourceDomain + ":" + Constants.BlockName.Cable
 
   override def createBlockState(): BlockState = new ExtendedBlockState(CableBlock, Array.empty, Array(property.PropertyTile.Tile))
 

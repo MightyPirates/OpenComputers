@@ -2,30 +2,31 @@ package li.cil.oc.integration.mcmp
 
 import java.util
 
-import li.cil.oc.api
+import _root_.net.minecraft.block.Block
+import _root_.net.minecraft.block.material.Material
+import _root_.net.minecraft.block.state.BlockState
+import _root_.net.minecraft.block.state.IBlockState
+import _root_.net.minecraft.entity.Entity
+import _root_.net.minecraft.entity.player.EntityPlayer
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.nbt.NBTTagCompound
+import _root_.net.minecraft.network.PacketBuffer
+import _root_.net.minecraft.tileentity.TileEntity
+import _root_.net.minecraft.util.AxisAlignedBB
+import _root_.net.minecraft.util.EnumFacing
+import _root_.net.minecraft.util.EnumWorldBlockLayer
+import _root_.net.minecraftforge.common.property.ExtendedBlockState
+import _root_.net.minecraftforge.common.property.IExtendedBlockState
 import li.cil.oc.Constants
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.block.property
 import li.cil.oc.common.tileentity
-import mcmultipart.multipart.Multipart
 import mcmultipart.multipart.IOccludingPart
 import mcmultipart.multipart.IRedstonePart
+import mcmultipart.multipart.Multipart
 import mcmultipart.raytrace.PartMOP
-import net.minecraft.block.Block
-import net.minecraft.block.material.Material
-import net.minecraft.block.state.BlockState
-import net.minecraft.block.state.IBlockState
-import net.minecraft.entity.Entity
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.network.PacketBuffer
-import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.EnumWorldBlockLayer
-import net.minecraftforge.common.property.ExtendedBlockState
-import net.minecraftforge.common.property.IExtendedBlockState
 
 class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
   final val PrintDefinition = api.Items.get(Constants.BlockName.Print)
@@ -92,7 +93,7 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
 
   // ----------------------------------------------------------------------- //
 
-  override def getModelPath = MCMultiPart.PrintMultipartLocation.getResourceDomain + ":" + MCMultiPart.PrintMultipartLocation.getResourcePath
+  override def getModelPath = Settings.resourceDomain + ":" + Constants.BlockName.Print
 
   override def canRenderInLayer(layer: EnumWorldBlockLayer): Boolean = layer == EnumWorldBlockLayer.CUTOUT_MIPPED
 
