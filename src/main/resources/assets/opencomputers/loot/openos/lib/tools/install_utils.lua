@@ -1,11 +1,11 @@
 local cmd, options = ...
 
-local function select_prompt(devs, direction)
+local function select_prompt(devs, prompt)
   table.sort(devs, function(a, b) return a.path<b.path end)
 
   local choice = devs[1]
   if #devs > 1 then
-    io.write("Select the device to install " .. direction .. '\n')
+    print(prompt)
 
     for i = 1, #devs do
       local src = devs[i]
@@ -59,7 +59,13 @@ if cmd == 'select' then
     os.exit(1)
   end
 
-  return select_prompt(options.sources, "from"), select_prompt(options.targets, "to")
+  local source = select_prompt(options.sources, "What do you want to install?")
+  if #options.sources > 1 and #options.targets > 1 then
+    print()
+  end
+  local target = select_prompt(options.targets, "Where do you want to install to?")
+
+  return source, target
 
 elseif cmd == 'install' then
   local installer_path = options.source_root .. "/.install"
