@@ -8,6 +8,8 @@ do
   options = basic(...)
 end
 
+if not options then return end
+
 if computer.freeMemory() < 50000 then
   print("Low memory, collecting garbage")
   for i=1,20 do os.sleep(0) end
