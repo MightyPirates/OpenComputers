@@ -61,15 +61,13 @@ end
 local delay_data = {}
 local delay_tools = setmetatable({},{__mode="v"})
 
-package.delay_data = delay_data
-
 function delay_data.__index(tbl,key)
   delay_data.lookup = delay_data.lookup or loadfile("/lib/tools/delayLookup.lua")
   return delay_data.lookup(delay_data, tbl, key)
 end
 delay_data.__pairs = delay_data.__index -- nil key acts like pairs
 
-function delaySearcher(module)
+local function delaySearcher(module)
   if not delayed[module] then
     return "\tno field package.delayed['" .. module .. "']"
   end

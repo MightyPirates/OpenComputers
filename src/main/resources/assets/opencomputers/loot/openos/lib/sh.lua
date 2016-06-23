@@ -12,8 +12,8 @@ sh.internal = {}
 
 -- --[[@@]] are not just comments, but custom annotations for delayload methods.
 -- See package.lua and the api wiki for more information
-function isWordOf(w, vs) return w and #w == 1 and not w[1].qr and tx.first(vs,{{w[1].txt}}) ~= nil end
-function isWord(w,v) return isWordOf(w,{v}) end
+local function isWordOf(w, vs) return w and #w == 1 and not w[1].qr and tx.first(vs,{{w[1].txt}}) ~= nil end
+local function isWord(w,v) return isWordOf(w,{v}) end
 local local_env = {event=event,fs=fs,process=process,shell=shell,term=term,text=text,tx=tx,unicode=unicode,isWordOf=isWordOf,isWord=isWord}
 
 -------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ function --[[@delayloaded-start@]] sh.internal.buildPipeChain(threads)
     local pipe
     if i < #threads then
       pipe = require("buffer").new("rw", sh.internal.newMemoryStream())
-      pipe:setvbuf("no")
+      pipe:setvbuf("no", 0)
       -- buffer close flushes the buffer, but we have no buffer
       -- also, when the buffer is closed, read and writes don't pass through
       -- simply put, we don't want buffer:close
@@ -461,7 +461,7 @@ function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
   end
 
   local is_abs = glob_pattern:sub(1, 1) == "/"
-  local root = is_abs and '' or shell.getWorkingDirectory()
+  local root = is_abs and '' or shell.getWorkingDirectory():gsub("([^/])$","%1/")
   local paths = {is_abs and "/" or ''}
   local relative_separator = ''
 
