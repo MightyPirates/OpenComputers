@@ -7,12 +7,10 @@ import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
+import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 import java.util
-import java.util.concurrent.Callable
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Future
+import java.util.UUID
+import java.util.concurrent._
 
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
@@ -184,6 +182,41 @@ object InternetCard {
     def close(): Unit
   }
 
+  object TCPNotifier extends Thread {
+    private val selector = Selector.open()
+    private val toAccept = new ConcurrentLinkedQueue[(SocketChannel, ()=>Unit)]
+
+    override def run(): Unit = {
+      while(true) {
+        try {
+          Stream.continually(toAccept.poll).takeWhile(_ != null).foreach({
+            case s: (SocketChannel, ()=>Unit) => {
+              s._1.register(selector, SelectionKey.OP_READ, s._2)
+            }
+          })
+
+          selector.select()
+
+          import scala.collection.JavaConversions._
+          val selectedKeys = selector.selectedKeys
+          selectedKeys.filter(_.isReadable).foreach(key => {
+            key.cancel()
+            key.attachment().asInstanceOf[()=>Unit].apply()
+          })
+
+        } catch {
+          case e: IOException => e.printStackTrace()
+        }
+      }
+    }
+
+    def add(e: (SocketChannel, ()=>Unit)) {
+      toAccept.offer(e)
+      selector.wakeup()
+    }
+  }
+  TCPNotifier.start()
+
   class TCPSocket extends AbstractValue with Closable {
     def this(owner: InternetCard, uri: URI, port: Int) {
       this()
@@ -197,9 +230,24 @@ object InternetCard {
     private var address: Future[InetAddress] = null
     private var channel: SocketChannel = null
     private var isAddressResolved = false
+    private val id = UUID.randomUUID()
+
+    private def setupSelector() {
+      TCPNotifier.add((channel, () => {
+        if(owner.isDefined) {
+          owner.head.node.sendToVisible("computer.signal", "internet_ready", owner.head.node.address(), id.toString)
+        } else {
+          channel.close()
+        }
+      }))
+    }
 
     @Callback(doc = """function():boolean -- Ensures a socket is connected. Errors if the connection failed.""")
-    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized(result(checkConnected()))
+    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = {
+      val r = this.synchronized(result(checkConnected()))
+      setupSelector()
+      r
+    }
 
     @Callback(doc = """function([n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
@@ -208,7 +256,10 @@ object InternetCard {
         val buffer = ByteBuffer.allocate(n)
         val read = channel.read(buffer)
         if (read == -1) result(Unit)
-        else result(buffer.array.view(0, read).toArray)
+        else {
+          setupSelector()
+          result(buffer.array.view(0, read).toArray)
+        }
       }
       else result(Array.empty[Byte])
     }
@@ -226,6 +277,11 @@ object InternetCard {
     def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       close()
       null
+    }
+
+    @Callback(direct = true, doc = """function():string -- Returns connection ID""")
+    def id(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      result(id.toString)
     }
 
     override def dispose(context: Context): Unit = {
