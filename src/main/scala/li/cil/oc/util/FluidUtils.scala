@@ -110,7 +110,7 @@ object FluidUtils {
   }
 
   private class FluidBlockWrapper(val position: BlockPosition, val block: IFluidBlock) extends BlockWrapperBase {
-    final val AssumedCapacity = FluidContainerRegistry.BUCKET_VOLUME
+    final val AssumedCapacity = Fluid.BUCKET_VOLUME
 
     override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = block.canDrain(position)
 
@@ -124,7 +124,7 @@ object FluidUtils {
 
     override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = true
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array(new FluidTankInfo(new FluidTank(fluid, FluidContainerRegistry.BUCKET_VOLUME, FluidContainerRegistry.BUCKET_VOLUME)))
+    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array(new FluidTankInfo(new FluidTank(fluid, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME)))
 
     override protected def uncheckedDrain(doDrain: Boolean): FluidStack = {
       if (doDrain) {

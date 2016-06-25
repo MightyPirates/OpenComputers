@@ -21,6 +21,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.registry.RegistryNamespaced
+import net.minecraft.util.registry.RegistryNamespacedDefaultedByKey
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.common.Loader
@@ -432,12 +433,12 @@ object Recipes {
     Option(new FluidStack(fluid, amount))
   }
 
-  private def findItem(name: String) = getObjectWithoutFallback[Item](Item.REGISTRY, name).orElse(Item.REGISTRY.find {
+  private def findItem(name: String) = getObjectWithoutFallback(Item.REGISTRY, name).orElse(Item.REGISTRY.find {
     case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
     case _ => false
   })
 
-  private def findBlock(name: String) = getObjectWithoutFallback[Block](Block.REGISTRY, name).orElse(Block.REGISTRY.find {
+  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY: RegistryNamespaced[ResourceLocation, Block], name).orElse(Block.REGISTRY.find {
     case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })
