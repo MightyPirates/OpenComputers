@@ -12,8 +12,6 @@ import net.minecraftforge.fml.relauncher.Side
 object MCMultiPart {
   final val CableMultipartRawLocation = Settings.resourceDomain + ":" + Constants.BlockName.Cable
   final val PrintMultipartRawLocation = Settings.resourceDomain + ":" + Constants.BlockName.Print
-  final val CableMultipartLocation = new ModelResourceLocation(CableMultipartRawLocation, "multipart")
-  final val PrintMultipartLocation = new ModelResourceLocation(PrintMultipartRawLocation, "multipart")
 
   def init(): Unit = {
     MultipartRegistry.registerPart(classOf[PartCable], PartFactory.PartTypeCable.toString)

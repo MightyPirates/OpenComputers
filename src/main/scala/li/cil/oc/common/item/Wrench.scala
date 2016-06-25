@@ -56,6 +56,7 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
   def canWrench(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Boolean = true
 
   // BluePower
+
   def damage(stack: ItemStack, damage: Int, player: EntityPlayer, simulated: Boolean): Boolean = damage == 0
 
   // BuildCraft
@@ -72,7 +73,17 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   def isUsable(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Boolean = true
 
+  def isUsable(stack: ItemStack, player: EntityLivingBase, entity: Entity): Boolean = true
+
   def toolUsed(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Unit = player.swingArm(EnumHand.MAIN_HAND)
+
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, entity: Entity): Unit = player.swingArm(EnumHand.MAIN_HAND)
+
+  // Compat for people shipping unofficial CoFH APIs... -.-
+
+  def isUsable(stack: ItemStack, player: EntityLivingBase, x: Int, y: Int, z: Int): Boolean = true
+
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, x: Int, y: Int, z: Int): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   // EnderIO
 

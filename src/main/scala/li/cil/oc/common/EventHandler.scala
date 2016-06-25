@@ -24,6 +24,7 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
+import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
@@ -39,6 +40,7 @@ import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.SoundCategory
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.AttachCapabilitiesEvent
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
@@ -46,6 +48,7 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.Optional
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent._
 import net.minecraftforge.fml.common.gameevent.TickEvent
@@ -106,17 +109,15 @@ object EventHandler {
     }
   }
 
-  /* TODO IC2
-    @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-    def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
-      if (SideTracker.isServer) pendingServer.synchronized {
-        pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-          MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
-          tileEntity.addedToIC2PowerGrid = true
-        })
-      }
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
+    if (SideTracker.isServer) pendingServer.synchronized {
+      pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
+      })
     }
-  */
+  }
 
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pendingServer.synchronized {

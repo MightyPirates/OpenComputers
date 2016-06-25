@@ -2,6 +2,20 @@ package li.cil.oc.common.block
 
 import java.util
 
+import _root_.net.minecraft.block.state.IBlockState
+import _root_.net.minecraft.client.Minecraft
+import _root_.net.minecraft.entity.Entity
+import _root_.net.minecraft.entity.EntityLivingBase
+import _root_.net.minecraft.entity.player.EntityPlayer
+import _root_.net.minecraft.entity.projectile.EntityArrow
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.util.EnumFacing
+import _root_.net.minecraft.util.EnumHand
+import _root_.net.minecraft.util.math.BlockPos
+import _root_.net.minecraft.world.IBlockAccess
+import _root_.net.minecraft.world.World
+import _root_.net.minecraftforge.common.property.ExtendedBlockState
+import _root_.net.minecraftforge.common.property.IExtendedBlockState
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -15,20 +29,6 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.IBlockState
-import net.minecraft.client.Minecraft
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
-import net.minecraftforge.common.property.ExtendedBlockState
-import net.minecraftforge.common.property.IExtendedBlockState
 
 class Screen(val tier: Int) extends RedstoneAware {
   ModColoredLights.setLightLevel(this, 5, 5, 5)
@@ -99,6 +99,12 @@ class Screen(val tier: Int) extends RedstoneAware {
     }
   }
 
+  override def onEntityWalk(world: World, pos: BlockPos, entity: Entity): Unit =
+    if (!world.isRemote) world.getTileEntity(pos) match {
+      case screen: tileentity.Screen if screen.tier > 0 && screen.facing == EnumFacing.UP => screen.walk(entity)
+      case _ => super.onEntityWalk(world, pos, entity)
+    }
+
   override def onEntityCollidedWithBlock(world: World, pos: BlockPos, state: IBlockState, entity: Entity): Unit =
     if (world.isRemote) (entity, world.getTileEntity(pos)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
@@ -123,10 +129,6 @@ class Screen(val tier: Int) extends RedstoneAware {
         if (side == screen.facing) {
           screen.shot(arrow)
         }
-      case _ =>
-    }
-    else world.getTileEntity(pos) match {
-      case screen: tileentity.Screen if screen.tier > 0 && screen.facing == EnumFacing.UP => screen.walk(entity)
       case _ =>
     }
 

@@ -114,7 +114,7 @@ object Mods {
     //    integration.fmp.ModForgeMultipart,
     //    integration.gc.ModGalacticraft,
     //    integration.gregtech.ModGregtech,
-    //    integration.ic2.ModIndustrialCraft2,
+    integration.ic2.ModIndustrialCraft2,
     integration.mcmp.ModMCMultiPart,
     //    integration.mekanism.ModMekanism,
     //    integration.mekanism.gas.ModMekanismGas,

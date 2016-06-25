@@ -24,5 +24,5 @@ public interface SimpleComponentImpl extends Environment, SimpleComponent {
 
     void readFromNBT_OpenComputers(NBTTagCompound nbt);
 
-    void writeToNBT_OpenComputers(NBTTagCompound nbt);
+    NBTTagCompound writeToNBT_OpenComputers(NBTTagCompound nbt);
 }

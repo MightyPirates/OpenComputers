@@ -19,17 +19,11 @@ end
 local exit_code = nil
 options.P = options.P or options.r
 
--- interrupting is important, but not EVERY copy
-local greedy = computer.uptime()
-
 local function status(from, to)
   if options.v then
     io.write(from .. " -> " .. to .. "\n")
   end
-  if computer.uptime() - greedy > 4 then
-    os.sleep(0) -- allow interrupting
-    greedy = computer.uptime()
-  end
+  os.sleep(0) -- allow interrupting
 end
 
 local result, reason
