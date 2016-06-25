@@ -8,6 +8,8 @@ do
   options = basic(...)
 end
 
+if not options then return end
+
 if computer.freeMemory() < 50000 then
   print("Low memory, collecting garbage")
   for i=1,20 do os.sleep(0) end
@@ -29,13 +31,16 @@ if options.setlabel then
 end
 
 if options.setboot then
-  computer.setBootAddress(options.target.dev.address)
+  local address = options.target.dev.address
+  if computer.setBootAddress(address) then
+    write("Boot address set to " .. address)
+  end
 end
 
 if options.reboot then
   write("Reboot now? [Y/n] ")
-  local result = read()
-  if not result or result == "" or result:sub(1, 1):lower() == "y" then
+  local result = read() or "n"
+  if result:sub(1, 1):lower() == "y" then
     write("\nRebooting now!\n")
     computer.shutdown(true)
   end

@@ -284,7 +284,7 @@ local function displayDirList(dirs)
     end
   end
 end
-local tr,cp={},{path=os.getenv("PWD")}
+local tr,cp={},{path=shell.getWorkingDirectory()}
 for _,dir in ipairs(dirsArg) do
   local path = shell.resolve(dir)
   if not fs.exists(path) then

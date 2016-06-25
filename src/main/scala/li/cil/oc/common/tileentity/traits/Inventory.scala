@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.text.ITextComponent
 
 trait Inventory extends TileEntity with inventory.Inventory {
   private lazy val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
@@ -14,6 +15,8 @@ trait Inventory extends TileEntity with inventory.Inventory {
   def items = inventory
 
   // ----------------------------------------------------------------------- //
+
+  override def getDisplayName: ITextComponent = super[Inventory].getDisplayName
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)

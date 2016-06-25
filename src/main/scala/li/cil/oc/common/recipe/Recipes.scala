@@ -437,7 +437,7 @@ object Recipes {
     case _ => false
   })
 
-  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY, name).orElse(Block.REGISTRY.find {
+  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY.asInstanceOf[RegistryNamespaced[ResourceLocation, Block]], name).orElse(Block.REGISTRY.find {
     case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })

@@ -79,7 +79,7 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
         super.readFromNBT(nbt);
     }
 
-    public void writeToNBT_OpenComputers(NBTTagCompound nbt) {
-        super.writeToNBT(nbt);
+    public NBTTagCompound writeToNBT_OpenComputers(NBTTagCompound nbt) {
+        return super.writeToNBT(nbt);
     }
 }

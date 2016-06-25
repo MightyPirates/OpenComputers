@@ -58,6 +58,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   private val arrows = mutable.Set.empty[EntityArrow]
 
+  private val lastWalked = mutable.WeakHashMap.empty[Entity, (Int, Int)]
+
   setColor(Color.rgbValues(Color.byTier(tier)))
 
   @SideOnly(Side.CLIENT)
@@ -164,11 +166,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   def walk(entity: Entity) {
     val (x, y) = localPosition
-    entity match {
-      case player: EntityPlayer if Settings.get.inputUsername =>
-        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
-      case _ =>
-        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
+    origin.lastWalked.put(entity, localPosition) match {
+      case Some((oldX, oldY)) if oldX == x && oldY == y => // Ignore
+      case _ => entity match {
+        case player: EntityPlayer if Settings.get.inputUsername =>
+          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
+        case _ =>
+          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
+      }
     }
   }
 

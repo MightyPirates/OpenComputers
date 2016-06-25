@@ -79,7 +79,7 @@ public final class StaticSimpleEnvironment {
     }
 
     public static NBTTagCompound writeToNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
-        self.writeToNBT_OpenComputers(nbt);
+        nbt = self.writeToNBT_OpenComputers(nbt);
         final Node node = node(self);
         if (node != null) {
             final NBTTagCompound nodeNbt = new NBTTagCompound();

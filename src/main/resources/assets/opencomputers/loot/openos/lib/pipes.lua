@@ -367,7 +367,7 @@ function plib.popen(prog, mode, env)
   pm.pco=plib.internal.create(pm.root)
   
   local pfd = require("buffer").new(mode, pipeStream.new(pm))
-  pfd:setvbuf("no", nil) -- 2nd are to read chunk size
+  pfd:setvbuf("no", 0) -- 2nd are to read chunk size
 
   -- popen processes start on create (which is LAME :P)
   pfd.stream:resume()
