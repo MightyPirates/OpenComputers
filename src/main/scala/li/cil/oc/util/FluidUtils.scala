@@ -38,7 +38,7 @@ object FluidUtils {
    * <p/>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: EnumFacing, sink: IFluidHandler, sinkSide: EnumFacing, limit: Int = FluidContainerRegistry.BUCKET_VOLUME) = {
+  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: EnumFacing, sink: IFluidHandler, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) = {
     val drained = source.drain(sourceSide, limit, false)
     val filled = sink.fill(sinkSide, drained, false)
     sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
@@ -51,7 +51,7 @@ object FluidUtils {
    * This uses the <tt>fluidHandlerAt</tt> method, and therefore handles special
    * cases such as fluid blocks.
    */
-  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = FluidContainerRegistry.BUCKET_VOLUME) =
+  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) =
     fluidHandlerAt(sourcePos).fold(0)(source =>
       fluidHandlerAt(sinkPos).fold(0)(sink =>
         transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
@@ -130,7 +130,7 @@ object FluidUtils {
       if (doDrain) {
         position.world.get.setBlockToAir(position)
       }
-      new FluidStack(fluid, FluidContainerRegistry.BUCKET_VOLUME)
+      new FluidStack(fluid, Fluid.BUCKET_VOLUME)
     }
   }
 
@@ -153,7 +153,7 @@ object FluidUtils {
           // This fake neighbor update is required to get stills to start flowing.
           world.notifyBlockOfNeighborChange(position, world.getBlock(position))
         }
-        FluidContainerRegistry.BUCKET_VOLUME
+        Fluid.BUCKET_VOLUME
       }
       else 0
     }

@@ -432,12 +432,12 @@ object Recipes {
     Option(new FluidStack(fluid, amount))
   }
 
-  private def findItem(name: String) = getObjectWithoutFallback(Item.REGISTRY, name).orElse(Item.REGISTRY.find {
+  private def findItem(name: String) = getObjectWithoutFallback[Item](Item.REGISTRY, name).orElse(Item.REGISTRY.find {
     case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
     case _ => false
   })
 
-  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY, name).orElse(Block.REGISTRY.find {
+  private def findBlock(name: String) = getObjectWithoutFallback[Block](Block.REGISTRY, name).orElse(Block.REGISTRY.find {
     case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })

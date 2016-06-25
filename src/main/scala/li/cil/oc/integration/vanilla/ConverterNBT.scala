@@ -24,7 +24,7 @@ object ConverterNBT extends api.driver.Converter {
     case tag: NBTTagByteArray => tag.getByteArray
     case tag: NBTTagString => tag.getString
     case tag: NBTTagList =>
-      val copy = tag.copy().asInstanceOf[NBTTagList]
+      val copy = tag.copy(): NBTTagList
       (0 until copy.tagCount).map(_ => convert(copy.removeTag(0))).toArray
     case tag: NBTTagCompound =>
       tag.getKeySet.collect {

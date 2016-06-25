@@ -263,14 +263,14 @@ object ExtendedNBT {
     def append(values: NBTBase*): Unit = append(values)
 
     def foreach[Tag <: NBTBase](f: Tag => Unit) {
-      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val iterable = nbt.copy(): NBTTagList
       while (iterable.tagCount > 0) {
         f(iterable.removeTag(0).asInstanceOf[Tag])
       }
     }
 
     def map[Tag <: NBTBase, Value](f: Tag => Value): IndexedSeq[Value] = {
-      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val iterable = nbt.copy(): NBTTagList
       val buffer = mutable.ArrayBuffer.empty[Value]
       while (iterable.tagCount > 0) {
         buffer += f(iterable.removeTag(0).asInstanceOf[Tag])
