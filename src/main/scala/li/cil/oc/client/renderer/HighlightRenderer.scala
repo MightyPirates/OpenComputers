@@ -9,6 +9,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderGlobal
@@ -123,9 +124,9 @@ object HighlightRenderer {
 
         for (shape <- print.shapes) {
           val bounds = shape.bounds.rotateTowards(print.facing)
-          RenderGlobal.drawOutlinedBoundingBox(bounds.expand(expansion, expansion, expansion)
+          RenderGlobal.func_189697_a(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
-            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0, 0, 0, 0x66)
+            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0, 0, 0, 0x66/0xFFf.toFloat)
         }
 
         GlStateManager.depthMask(true)

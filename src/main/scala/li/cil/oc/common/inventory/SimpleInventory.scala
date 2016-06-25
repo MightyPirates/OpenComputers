@@ -4,11 +4,12 @@ import li.cil.oc.Localization
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.text.ITextComponent
 
 trait SimpleInventory extends IInventory {
   override def hasCustomName = false
 
-  override def getDisplayName = Localization.localizeLater(getName)
+  override def getDisplayName: ITextComponent = Localization.localizeLater(getName)
 
   override def getInventoryStackLimit = 64
 
