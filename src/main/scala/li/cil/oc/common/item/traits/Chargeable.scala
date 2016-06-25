@@ -1,18 +1,17 @@
 package li.cil.oc.common.item.traits
 
-//import ic2.api.item.IElectricItemManager
+import ic2.api.item.IElectricItemManager
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
-//import li.cil.oc.integration.ic2.ElectricItemManager
+import li.cil.oc.integration.ic2.ElectricItemManager
 import li.cil.oc.integration.util.Power
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.Optional
 
 @Injectable.InterfaceList(Array(
-  new Injectable.Interface(value = "appeng.api.implementations.items.IAEItemPowerStorage", modid = Mods.IDs.AppliedEnergistics2),
+  //  new Injectable.Interface(value = "appeng.api.implementations.items.IAEItemPowerStorage", modid = Mods.IDs.AppliedEnergistics2),
   new Injectable.Interface(value = "cofh.api.energy.IEnergyContainerItem", modid = Mods.IDs.CoFHEnergy),
   new Injectable.Interface(value = "ic2.api.item.ISpecialElectricItem", modid = Mods.IDs.IndustrialCraft2),
   new Injectable.Interface(value = "mekanism.api.energy.IEnergizedItem", modid = Mods.IDs.Mekanism)
@@ -41,25 +40,22 @@ trait Chargeable extends api.driver.item.Chargeable {
     @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
     def getPowerFlow(stack: ItemStack): AccessRestriction = AccessRestriction.WRITE
   */
+
   // IndustrialCraft 2
-  /* TODO IC2
-    @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-    def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 
-    def getMaxCharge(stack: ItemStack): Double = Power.toEU(maxCharge(stack))
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 
-    def getTransferLimit(stack: ItemStack): Double = Power.toEU(Settings.get.chargeRateTablet)
+  def getMaxCharge(stack: ItemStack): Double = Power.toEU(maxCharge(stack))
 
-    def getTier(stack: ItemStack): Int = 1
+  def getTransferLimit(stack: ItemStack): Double = Power.toEU(Settings.get.chargeRateTablet)
 
-    def canProvideEnergy(stack: ItemStack): Boolean = false
+  def getTier(stack: ItemStack): Int = 1
 
-    def getEmptyItem(stack: ItemStack): Item = stack.getItem
+  def canProvideEnergy(stack: ItemStack): Boolean = false
 
-    def getChargedItem(stack: ItemStack): Item = stack.getItem
-  */
   // Mekanism
-  /* TODO Mekanism
+
   def getEnergy(stack: ItemStack): Double =
     Power.toJoules(getCharge(stack))
 
@@ -77,7 +73,7 @@ trait Chargeable extends api.driver.item.Chargeable {
 
   def getMaxTransfer(stack: ItemStack): Double =
     Power.toJoules(Settings.get.chargeRateTablet)
-  */
+
   // Redstone Flux
 
   def getEnergyStored(stack: ItemStack): Int =
