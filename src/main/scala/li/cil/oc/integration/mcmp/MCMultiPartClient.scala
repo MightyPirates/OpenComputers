@@ -1,5 +1,7 @@
 package li.cil.oc.integration.mcmp
 
+import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.block.ModelInitialization
 import net.minecraft.client.resources.model.IBakedModel
 import net.minecraft.client.resources.model.ModelResourceLocation
@@ -21,7 +23,7 @@ object MCMultiPartClient {
     // Replace default cable model with part model to properly handle connection
     // rendering to multipart cables.
     registry.putObject(ModelInitialization.CableBlockLocation, PartCableModel)
-    registry.putObject(MCMultiPart.CableMultipartLocation, PartCableModel)
-    registry.putObject(MCMultiPart.PrintMultipartLocation, PartPrintModel)
+    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "multipart"), PartCableModel)
+    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "multipart"), PartPrintModel)
   }
 }

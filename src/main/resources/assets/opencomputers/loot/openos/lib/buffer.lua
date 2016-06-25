@@ -73,7 +73,7 @@ function buffer:read(...)
     if computer.uptime() > timeout then
       error("timeout")
     end
-    local result, reason = self.stream:read(self.bufferSize)
+    local result, reason = self.stream:read(math.max(1,self.bufferSize))
     if result then
       self.bufferRead = self.bufferRead .. result
       return self
