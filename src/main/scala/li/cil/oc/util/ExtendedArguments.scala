@@ -4,7 +4,7 @@ import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.fluids.FluidContainerRegistry
+import net.minecraftforge.fluids.Fluid
 
 import scala.language.implicitConversions
 
@@ -17,7 +17,7 @@ object ExtendedArguments {
       if (!isDefined(index) || !hasValue(index)) default
       else math.max(0, math.min(64, args.checkInteger(index)))
 
-    def optFluidCount(index: Int, default: Int = FluidContainerRegistry.BUCKET_VOLUME) =
+    def optFluidCount(index: Int, default: Int = Fluid.BUCKET_VOLUME) =
       if (!isDefined(index) || !hasValue(index)) default
       else math.max(0, args.checkInteger(index))
 
