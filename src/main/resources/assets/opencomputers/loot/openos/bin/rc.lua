@@ -44,7 +44,7 @@ local function load(name, args)
   return nil, reason
 end
 
-function unload(name)
+function rc.unload(name)
   rc.loaded[name] = nil
 end
 
@@ -60,15 +60,15 @@ local function rawRunCommand(conf, name, cmd, args, ...)
       end
       return true
     elseif type(result[cmd]) == "function" then
-      res, what = xpcall(result[cmd], debug.traceback, ...)
-      if res then
+      result, what = xpcall(result[cmd], debug.traceback, ...)
+      if result then
         return true
       end
     elseif cmd == "restart" and type(result["stop"]) == "function" and type(result["start"]) == "function" then
-      res, what = xpcall(result["stop"], debug.traceback, ...)
-      if res then
-        res, what = xpcall(result["start"], debug.traceback, ...)
-        if res then
+      result, what = xpcall(result["stop"], debug.traceback, ...)
+      if result then
+        result, what = xpcall(result["start"], debug.traceback, ...)
+        if result then
           return true
         end
       end

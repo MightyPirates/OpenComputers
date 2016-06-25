@@ -72,6 +72,9 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
   // ----------------------------------------------------------------------- //
 
   def connect(nodeA: MutableNode, nodeB: MutableNode) = {
+    if (nodeA == null) throw new NullPointerException("nodeA")
+    if (nodeB == null) throw new NullPointerException("nodeB")
+
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot connect a node to itself.")
 
