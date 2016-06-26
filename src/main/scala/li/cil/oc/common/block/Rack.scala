@@ -7,9 +7,12 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.BlockPos
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumFacing.Axis
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.EnumHand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
@@ -65,22 +68,64 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
 
   // ----------------------------------------------------------------------- //
 
+  final val collisionBounds = Array(
+    new AxisAlignedBB(0, 0, 0, 1, 1 / 16f, 1),
+    new AxisAlignedBB(0, 15 / 16f, 0, 1, 1, 1),
+    new AxisAlignedBB(0, 0, 0, 1, 1, 1 / 16f),
+    new AxisAlignedBB(0, 0, 15 / 16f, 1, 1, 1),
+    new AxisAlignedBB(0, 0, 0, 1 / 16f, 1, 1),
+    new AxisAlignedBB(15 / 16f, 0, 0, 1, 1, 1),
+    new AxisAlignedBB(1 / 16f, 1 / 16f, 1 / 16f, 15 / 16f, 15 / 16f, 15 / 16f)
+  )
+
+  override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3): MovingObjectPosition = {
+    world.getTileEntity(pos) match {
+      case rack: tileentity.Rack =>
+        var closestDistance = Double.PositiveInfinity
+        var closest: Option[MovingObjectPosition] = None
+
+        def intersect(bounds: AxisAlignedBB): Unit = {
+          val hit = bounds.offset(pos.getX, pos.getY, pos.getZ).calculateIntercept(start, end)
+          if (hit != null) {
+            val distance = hit.hitVec.distanceTo(start)
+            if (distance < closestDistance) {
+              closestDistance = distance
+              closest = Option(hit)
+            }
+          }
+        }
+        val facings = EnumFacing.VALUES
+        for (i <- 0 until facings.length) {
+          if (rack.facing != facings(i)) {
+            intersect(collisionBounds(i))
+          }
+        }
+        intersect(collisionBounds.last)
+        closest.map(hit => new MovingObjectPosition(hit.hitVec, hit.sideHit, pos)).orNull
+      case _ => super.collisionRayTrace(world, pos, start, end)
+    }
+  }
+
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(pos) match {
       case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
         case Some(slot) =>
-          val hitVec = new Vec3d(hitX, hitY, hitZ)
+          // Snap to grid to get same behavior on client and server...
+          val hitVec = new Vec3d((hitX * 16f).toInt / 16f, (hitY * 16f).toInt / 16f, (hitZ * 16f).toInt / 16f)
           val rotation = side match {
             case EnumFacing.WEST => Math.toRadians(90).toFloat
             case EnumFacing.NORTH => Math.toRadians(180).toFloat
             case EnumFacing.EAST => Math.toRadians(270).toFloat
             case _ => 0
           }
-          val rotatedHitVec = rotate(hitVec.addVector(-0.5, -0.5, -0.5), rotation).addVector(0.5, 0.5, 0.5)
-          val x = ((if (side.getAxis != Axis.Z) 1 - rotatedHitVec.xCoord else rotatedHitVec.xCoord) * 16 - 1) / 14f
-          val y = ((1 - rotatedHitVec.yCoord) * 16 - 2 - 3 * slot) / 3f
-          rack.getMountable(slot) match {
-            case mountable: RackMountable if mountable.onActivate(player, hand, heldItem, x.toFloat, y.toFloat) => return true // Activation handled by mountable.
+          // Rotate *centers* of pixels to keep association when reversing axis.
+          val localHitVec = rotate(hitVec.addVector(-0.5 + 1 / 32f, -0.5 + 1 / 32f, -0.5 + 1 / 32f), rotation).addVector(0.5 - 1 / 32f, 0.5 - 1 / 32f, 0.5 - 1 / 32f)
+          val globalX = (localHitVec.xCoord * 16.05f).toInt // [0, 15], work around floating point inaccuracies
+          val globalY = (localHitVec.yCoord * 16.05f).toInt // [0, 15], work around floating point inaccuracies
+          val localX = (if (side.getAxis != Axis.Z) 15 - globalX else globalX) - 1
+          val localY = (15 - globalY) - 2 - 3 * slot
+          if (localX >= 0 && localX < 14 && localY >= 0 && localY < 3) rack.getMountable(slot) match {
+            case mountable: RackMountable if mountable.onActivate(player, localX / 14f, localY / 3f) => return true // Activation handled by mountable.
             case _ =>
           }
         case _ =>

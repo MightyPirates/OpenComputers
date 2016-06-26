@@ -420,9 +420,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   def slotAt(side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing) {
-      val l = 2 / 16.0
-      val h = 14 / 16.0
-      val slot = (((1 - hitY) - l) / (h - l) * getSizeInventory).toInt
+      val globalY = (hitY * 16).toInt // [0, 15]
+      val l = 2
+      val h = 14
+      val slot = ((15 - globalY) - l) * getSizeInventory / (h - l)
       Some(math.max(0, math.min(getSizeInventory - 1, slot)))
     }
     else None
