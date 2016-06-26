@@ -7,14 +7,14 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumFacing.Axis
-import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.EnumHand
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.RayTraceResult
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -36,19 +36,19 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
     }).withProperty(PropertyRotatable.Facing, getFacing(world, pos))
   }
 
-//  @SideOnly(Side.CLIENT)
-//  override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
-//    if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
-//      case rack: tileentity.Rack =>
-//        def brightness(pos: BlockPos) = world.getCombinedLight(pos, world.getBlockState(pos).getBlock.getLightValue(world, pos))
-//        val value = brightness(pos.offset(rack.facing))
-//        val skyBrightness = (value >> 20) & 15
-//        val blockBrightness = (value >> 4) & 15
-//        ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
-//      case _ => super.getMixedBrightnessForBlock(world, pos)
-//    }
-//    else super.getMixedBrightnessForBlock(world, pos)
-//  }
+  //  @SideOnly(Side.CLIENT)
+  //  override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
+  //    if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
+  //      case rack: tileentity.Rack =>
+  //        def brightness(pos: BlockPos) = world.getCombinedLight(pos, world.getBlockState(pos).getBlock.getLightValue(world, pos))
+  //        val value = brightness(pos.offset(rack.facing))
+  //        val skyBrightness = (value >> 20) & 15
+  //        val blockBrightness = (value >> 4) & 15
+  //        ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
+  //      case _ => super.getMixedBrightnessForBlock(world, pos)
+  //    }
+  //    else super.getMixedBrightnessForBlock(world, pos)
+  //  }
 
   override def isOpaqueCube(state: IBlockState): Boolean = false
 
@@ -78,11 +78,11 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
     new AxisAlignedBB(0.5f / 16f, 0.5f / 16f, 0.5f / 16f, 15.5f / 16f, 15.5f / 16f, 15.5f / 16f)
   )
 
-  override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3): MovingObjectPosition = {
+  override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d): RayTraceResult = {
     world.getTileEntity(pos) match {
       case rack: tileentity.Rack =>
         var closestDistance = Double.PositiveInfinity
-        var closest: Option[MovingObjectPosition] = None
+        var closest: Option[RayTraceResult] = None
 
         def intersect(bounds: AxisAlignedBB): Unit = {
           val hit = bounds.offset(pos.getX, pos.getY, pos.getZ).calculateIntercept(start, end)
@@ -101,8 +101,8 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
           }
         }
         intersect(collisionBounds.last)
-        closest.map(hit => new MovingObjectPosition(hit.hitVec, hit.sideHit, pos)).orNull
-      case _ => super.collisionRayTrace(world, pos, start, end)
+        closest.map(hit => new RayTraceResult(hit.hitVec, hit.sideHit, pos)).orNull
+      case _ => super.collisionRayTrace(state, world, pos, start, end)
     }
   }
 
@@ -125,7 +125,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
           val localX = (if (side.getAxis != Axis.Z) 15 - globalX else globalX) - 1
           val localY = (15 - globalY) - 2 - 3 * slot
           if (localX >= 0 && localX < 14 && localY >= 0 && localY < 3) rack.getMountable(slot) match {
-            case mountable: RackMountable if mountable.onActivate(player, localX / 14f, localY / 3f) => return true // Activation handled by mountable.
+            case mountable: RackMountable if mountable.onActivate(player, hand, heldItem, localX / 14f, localY / 3f) => return true // Activation handled by mountable.
             case _ =>
           }
         case _ =>
