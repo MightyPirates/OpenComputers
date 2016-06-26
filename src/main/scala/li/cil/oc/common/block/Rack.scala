@@ -75,7 +75,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
     new AxisAlignedBB(0, 0, 15 / 16f, 1, 1, 1),
     new AxisAlignedBB(0, 0, 0, 1 / 16f, 1, 1),
     new AxisAlignedBB(15 / 16f, 0, 0, 1, 1, 1),
-    new AxisAlignedBB(1 / 16f, 1 / 16f, 1 / 16f, 15 / 16f, 15 / 16f, 15 / 16f)
+    new AxisAlignedBB(0.5f / 16f, 0.5f / 16f, 0.5f / 16f, 15.5f / 16f, 15.5f / 16f, 15.5f / 16f)
   )
 
   override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3): MovingObjectPosition = {
