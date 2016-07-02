@@ -16,13 +16,13 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object ObfNames {
-  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "xr")
-  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sb")
-  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bsd")
-  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "apv")
-  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bF")
-  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bE")
-  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "cU")
+  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "xy")
+  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sg")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "btb")
+  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "aqk")
+  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bG")
+  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bF")
+  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "cY")
   final val Method_recreateLeashDesc = Array("()V")
   final val Method_renderLeash = Array("renderLeash", "func_110827_b", "b")
   final val Method_renderLeashDesc = Array("(Lsb;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
