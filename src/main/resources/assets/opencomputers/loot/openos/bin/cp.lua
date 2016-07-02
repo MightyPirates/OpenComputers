@@ -67,9 +67,10 @@ local function recurse(fromPath, toPath, origin)
   local isLink, target = fs.isLink(fromPath)
   local toIsLink, toLinkTarget = fs.isLink(toPath)
   local same_path = fs.canonical(isLink and target or fromPath) == fs.canonical(toIsLink and toLinkTarget or toPath)
+  local same_link = isLink and toIsLink and same_path
   local toExists = fs.exists(toPath)
-
-  if isLink and options.P and (not toExists or not same_path) then
+  
+  if isLink and options.P and not (toExists and same_path and not toIsLink) then
     if toExists and options.n then
       return true
     end
