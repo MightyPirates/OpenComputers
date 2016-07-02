@@ -666,28 +666,34 @@ function --[[@delayloaded-start@]] sh.internal.hasValidPiping(words, pipes)
   local semi_split = tx.find(text.syntax, {";"}) -- all symbols before ; in syntax CAN be repeated
   pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
-  local pies = tx.select(words, function(parts, i)
-    return #parts == 1 and #text.split(parts[1].txt, pipes, true) == 0 and true or false
-  end)
-
-  local bad_pipe
-  local last = 0
-  for k,v in ipairs(pies) do
-    if v then
-      if k-last == 1 then
-        bad_pipe = words[k][1].txt
-        break
+  local state = "" -- cannot start on a pipe
+  
+  for w=1,#words do
+    local word = words[w]
+    for p=1,#word do
+      local part = word[p]
+      if part.qr then
+        state = nil
+      elseif part.txt == "" then
+        state = nil -- not sure how this is possible (empty part without quotes?)
+      elseif #text.split(part.txt, pipes, true) == 0 then
+        local prev = state
+        state = part.txt
+        if prev then -- cannot have two pipes in a row
+          word = nil
+          break
+        end
+      else
+        state = nil
       end
-      last=k
+    end
+    if not word then -- bad pipe
+      break
     end
   end
 
-  if not bad_pipe and last == #pies then
-    bad_pipe = words[last][1].txt
-  end
-
-  if bad_pipe then
-    return false, "parse error near " .. bad_pipe
+  if state then
+    return false, "parse error near " .. state
   else
     return true
   end

@@ -22,8 +22,8 @@ local function select_prompt(devs, prompt)
     io.write("Enter 'q' to cancel the installation: ")
     choice = nil
     while not choice do
-      result = io.read()
-      if result:sub(1, 1):lower() == "q" then
+      result = io.read() or "q"
+      if result == "q" then
         os.exit()
       end
       local number = tonumber(result)

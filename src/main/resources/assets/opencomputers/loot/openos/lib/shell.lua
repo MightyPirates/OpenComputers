@@ -127,13 +127,15 @@ function shell.resolveAlias(command, args)
 end
 
 function shell.getWorkingDirectory()
+  -- if no env PWD default to /
   return os.getenv("PWD") or "/"
 end
 
 function shell.setWorkingDirectory(dir)
   checkArg(1, dir, "string")
-  dir = fs.canonical(dir) .. "/"
-  if dir == "//" then dir = "/" end
+  -- ensure at least /
+  -- and remove trailing /
+  dir = fs.canonical(dir):gsub("^$", "/"):gsub("(.)/$", "%1")
   if fs.isDirectory(dir) then
     os.setenv("PWD", dir)
     return true

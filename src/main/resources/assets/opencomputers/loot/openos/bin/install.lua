@@ -23,7 +23,6 @@ if ec ~= nil and ec ~= 0 then
 end
 
 local write = io.write
-local read = io.read
 write("Installation complete!\n")
 
 if options.setlabel then
@@ -39,8 +38,7 @@ end
 
 if options.reboot then
   write("Reboot now? [Y/n] ")
-  local result = read() or "n"
-  if result:sub(1, 1):lower() == "y" then
+  if ((io.read() or "n").."y"):match("^%s*[Yy]") then
     write("\nRebooting now!\n")
     computer.shutdown(true)
   end

@@ -81,7 +81,6 @@ object PetRenderer {
 
     RobotRenderer.renderChassis(null, offset, isRunningOverride = true)
 
-    RenderState.disableEntityLighting()
     GlStateManager.disableRescaleNormal()
 
     RenderState.popAttrib()

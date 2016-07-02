@@ -7,7 +7,6 @@ local unicode = require("unicode")
 local text = require("text")
 
 local write = io.write
-local read = io.read
 
 local args, options = shell.parse(...)
 
@@ -174,7 +173,7 @@ options.source_dir = fs.canonical(source.prop.fromDir or options.fromDir or "") 
 
 local installer_path = options.source_root .. "/.install"
 if fs.exists(installer_path) then
-  return loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options)
+  os.exit(loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options))
 end
 
 local cp_args =
@@ -190,8 +189,7 @@ if #options.targets > 1 or options.to then
   special_target = " to " .. cp_args[3]
 end
 io.write("Install " .. source_display .. special_target .. "? [Y/n] ")
-local choice = read():lower()
-if choice ~= "y" and choice ~= "" then
+if not ((io.read() or "n").."y"):match("^%s*[Yy]") then
   write("Installation cancelled\n")
   os.exit()
 end
