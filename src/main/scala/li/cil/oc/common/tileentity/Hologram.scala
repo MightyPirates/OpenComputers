@@ -25,7 +25,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable with traits.Tickable with DeviceInfo {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.RotatableTile with traits.Tickable with DeviceInfo {
   def this() = this(0)
 
   val node = api.Network.newNode(this, Visibility.Network).
