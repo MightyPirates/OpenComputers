@@ -24,6 +24,10 @@
       "name": "Português",
       "region": "Portugal"
     },
+    "pt_BR":{
+      "name": "Português (Brasil)",
+      "region": "Brazil"
+    },
     "ru_RU": {
       "region": "Россия",
       "name": "Русский"
