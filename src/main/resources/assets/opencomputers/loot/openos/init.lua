@@ -32,8 +32,11 @@ do
   for address in component.list('screen', true) do
     if #component.invoke(address, 'getKeyboards') > 0 then
       screen = address
+      break
     end
   end
+
+  component.boot_screen = screen
 
   -- Report boot progress if possible.
   local gpu = component.list("gpu", true)()
@@ -150,16 +153,8 @@ do
 
   status("Initializing components...")
 
-  local primaries = {}
   for c, t in component.list() do
-    local s = component.slot(c)
-    if not primaries[t] or (s >= 0 and s < primaries[t].slot) then
-      primaries[t] = {address=c, slot=s}
-    end
     computer.pushSignal("component_added", c, t)
-  end
-  for t, c in pairs(primaries) do
-    component.setPrimary(t, c.address)
   end
   os.sleep(0.5) -- Allow signal processing by libraries.
   computer.pushSignal("init") -- so libs know components are initialized.

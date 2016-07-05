@@ -2,6 +2,7 @@ local unicode = require("unicode")
 local event = require("event")
 local process = require("process")
 local kb = require("keyboard")
+local component = require("component")
 local keys = kb.keys
 
 local term = {}
@@ -227,54 +228,60 @@ function term.readKeyboard(ops)
   local draw=io.stdin.tty and term.drawText or term.internal.nop
   local input={w=w,promptx=w.x,prompty=w.y,index=0,data="",mask=pwchar}
   input.blink = ops.blink
-  if input.blink == nil then input.blink = w.blink end
-  if ops.nowrap then
-    term.internal.build_horizontal_reader(input)
-  else
-    term.internal.build_vertical_reader(input)
+  if input.blink == nil then
+    input.blink = w.blink
   end
+
+  -- two wrap types currently supported, vertical and hortizontal
+  if ops.nowrap then term.internal.build_horizontal_reader(input)
+  else               term.internal.build_vertical_reader(input)
+  end
+
   while true do
     local killed, name, address, char, code = term.internal.pull(input)
+    -- we have to keep checking what kb is active in case it is switching during use
+    -- we could have multiple screens, each with keyboards active
+    local main_kb = term.keyboard(w)
     local c = nil
     local backup_cache = hints.cache
-    if name =="interrupted" then draw("^C\n",true) return ""
-    elseif name=="touch" or name=="drag" then term.internal.onTouch(input,char,code)
-    elseif name=="clipboard" then c=char hints.cache = nil
-    elseif name=="key_down" then
-      hints.cache = nil
-      local ctrl = kb.isControlDown(address)
-      if ctrl and code == keys.d then return
-      elseif char==9 then hints.cache = backup_cache term.internal.tab(input,hints)
-      elseif char==13 and filter(input) then
-        input:move(math.huge)
-        if db ~= false then draw("\n") end
-        term.internal.read_history(history,input)
-        return input.data.."\n"
-      elseif code==keys.back then
-        input:update(-1)
-      elseif code==keys.left then
-        input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
-      elseif code==keys.right then
-        input:move(ctrl and term.internal.ctrl_movement(input, 1) or 1)
-      elseif ctrl and char=="w" then
-        -- cut word
-      elseif code==keys.up then
-        term.internal.read_history(history,input,1)
-      elseif code==keys.down then
-        term.internal.read_history(history,input,-1)
-      elseif code==keys.home then
-        input:move(-math.huge)
-      elseif code==keys["end"] then
-        input:move(math.huge)
-      elseif code==keys.delete then
-        input:update(0)
-      elseif char>=32 then
-        c=unicode.char(char)
-      else
-        hints.cache = backup_cache
+    if     name == "interrupted" then draw("^C\n",true) return ""
+    elseif name == "touch" or name == "drag" then term.internal.onTouch(input,char,code)
+    elseif address == (main_kb and main_kb.address) then
+      if name=="clipboard" then
+        c = char
+        hints.cache = nil
+      elseif name=="key_down" then
+        hints.cache = nil
+        local ctrl = kb.isControlDown(address)
+        if ctrl and code == keys.d then return --nil
+        elseif char==9 then
+          hints.cache = backup_cache
+          term.internal.tab(input,hints)
+        elseif char==13 and filter(input) then
+          input:move(math.huge)
+          if db ~= false then
+            draw("\n")
+          end
+          term.internal.read_history(history,input)
+          return input.data .. "\n"
+        elseif code == keys.up     then term.internal.read_history(history, input,  1)
+        elseif code == keys.down   then term.internal.read_history(history, input, -1)
+        elseif code == keys.left   then input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
+        elseif code == keys.right  then input:move(ctrl and term.internal.ctrl_movement(input,  1) or  1)
+        elseif code == keys.home   then input:move(-math.huge)
+        elseif code == keys["end"] then input:move( math.huge)
+        elseif code == keys.back   then c = -1
+        elseif code == keys.delete then c =  0
+        elseif char >= 32          then c = unicode.char(char)
+        elseif ctrl and char == "w"then -- TODO: cut word
+        else                            hints.cache = backup_cache -- ignored chars shouldn't clear hint cache
+        end
+      end
+      -- if we obtained something (c) to handle
+      if c then
+        input:update(c)
       end
     end
-    if c then input:update(c) end
   end
 end
 
@@ -384,10 +391,40 @@ function term.bind(gpu, screen, kb, window)
   window = window or W()
   window.gpu = gpu or window.gpu
   window.screen = screen or window.screen
-  window.keyboard = kb or window.keyboard
+  window.keyboard = kb -- without a keyboard bound, always use the screen's main keyboard (1st)
   if window.fullscreen then
     term.setViewport(nil,nil,nil,nil,window.x,window.y,window)
   end
+end
+
+function term.keyboard(window)
+  window = window or W()
+
+  if window.keyboard then
+    return window.keyboard
+  end
+
+  local screen = window.screen
+
+  -- if this terminal has no screen, then it cannot have a keyboard
+  if not screen then
+    return nil
+  end
+  
+  -- Terminals on the primary screen can use the primary keyboard
+  if screen == component.screen then
+    window.keyboard = component.isAvailable("keyboard") and component.keyboard
+    return window.keyboard
+  end
+
+  -- calling getKeyboards() on the screen is costly (time)
+  -- custom terminals should avoid designs that require
+  -- this on every key hit
+
+  -- this is expensive (slow!)
+  local main_kb = screen.getKeyboards()[1]
+  window.keyboard = component.proxy(main_kb)
+  return window.keyboard
 end
 
 function --[[@delayloaded-start@]] term.scroll(number, window)
@@ -552,7 +589,13 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
     hints.cache.i=-1
   end
   local c=hints.cache
-  local change = kb.isShiftDown(term.keyboard().address) and -1 or 1
+  local tkb = term.keyboard()
+  -- term may not have a keyboard
+  -- in which case, we shouldn't be handling tab events
+  if not tkb then
+    return
+  end
+  local change = kb.isShiftDown(tkb.address) and -1 or 1
   c.i=(c.i+change)%math.max(#c,1)
   local next=c[c.i+1]
   if next then
@@ -570,19 +613,6 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.screen(window)
   return (window or W()).screen
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] term.keyboard(window)
-  window = window or W()
-  local kba = window.keyboard and window.keyboard.address
-  if kba and kb.pressedCodes[kba] then return window.keyboard end
-  window.keyboard=nil
-  local component = require("component")
-  if not window.screen or not component.proxy(window.screen.address) then window.screen = nil return end
-  local kba = window.screen.getKeyboards()[1]
-  if not kba then return end
-  window.keyboard = component.proxy(kba)
-  return window.keyboard
 end --[[@delayloaded-end@]]
 
 return term, local_env
