@@ -4,6 +4,7 @@ object PacketType extends Enumeration {
   val
   // Server -> Client
   AbstractBusState,
+  AdapterState,
   Analyze,
   ChargerState,
   ClientLog,
