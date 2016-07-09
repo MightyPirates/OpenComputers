@@ -70,6 +70,12 @@ object ColorHandler {
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.ScreenTier3).block()),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.Print).block()),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.Robot).block()))
+
+    register((stack, tintIndex) =>
+      if (tintIndex == 1) {
+        if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else 0x66DD55
+      } else 0xFFFFFF,
+      api.Items.get(Constants.ItemName.HoverBoots).item())
   }
 
   def register(handler: (IBlockState, IBlockAccess, BlockPos, Int) => Int, blocks: Block*): Unit = {
