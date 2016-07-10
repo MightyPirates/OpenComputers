@@ -1,70 +1,72 @@
 local fs = require("filesystem")
 
-local proxy = {points={},address=require("guid").next()}
+local devfs = {points={},address=require("uuid").next()}
 
-local nop = function()end
+local bfd = "bad file descriptor"
 
-function proxy.getLabel()
+function devfs.getLabel()
   return "devfs"
 end
 
-function proxy.setLabel(value)
+function devfs.setLabel(value)
   error("drive does not support labeling")
 end
 
-function proxy.spaceTotal()
+function devfs.spaceTotal()
   return 0
 end
 
-function proxy.spaceUsed()
+function devfs.spaceUsed()
   return 0
 end
 
-function proxy.exists(path)
-  return not not proxy.points[path]
+function devfs.exists(path)
+  return not not devfs.points[path]
 end
 
-function proxy.size(path)
+function devfs.size(path)
   return 0
 end
 
-function proxy.isDirectory(path)
+function devfs.isDirectory(path)
   return false
 end
 
-function proxy.lastModified(path)
+function devfs.lastModified(path)
   return fs.lastModified("/dev/")
 end
 
-function proxy.list()
+function devfs.list()
   local keys = {}
-  for k,v in pairs(proxy.points) do
+  for k,v in pairs(devfs.points) do
     table.insert(keys, k)
   end
   return keys
 end
 
-function proxy.makeDirectory(path)
+function devfs.makeDirectory(path)
   return false
 end
 
-function proxy.remove(path)
-  if not proxy.exists(path) then return false end
-  proxy.points[path] = nil
+function devfs.remove(path)
+  if not devfs.exists(path) then return false end
+  devfs.points[path] = nil
   return true
 end
 
-function proxy.rename(from, to)
+function devfs.rename(from, to)
   return false
 end
 
-proxy.close = nop
-
-function proxy.open(path, mode)
+function devfs.open(path, mode)
   checkArg(1, path, "string")
 
-  local handle = proxy.points[path]
+  local handle = devfs.points[path]
   if not handle then return nil, "device point [" .. path .. "] does not exist" end
+
+  if handle.open then
+    return handle:open(path, mode)
+  end
 
   local msg = "device point [" .. path .. "] cannot be opened for "
 
@@ -81,26 +83,33 @@ function proxy.open(path, mode)
   return handle
 end
 
-function proxy.read(h,...)
+function devfs.read(h,...)
+  if not h.read then return nil, bfd end
   return h:read(...)
 end
 
-function proxy.seek(h,...)
+function devfs.seek(h,...)
+  if not h.seek then return nil, bfd end
   return h:seek(...)
 end
 
-function proxy.write(h,...)
+function devfs.write(h,...)
+  if not h.write then return nil, bfd end
   return h:write(...)
 end
 
-function proxy.create(path, handle)
-  handle.close = handle.close or nop
-  proxy.points[path] = handle
+function devfs.close(h, ...)
+  if not h.close then return nil, bfd end
+  return h:close(...)
+end
+
+function devfs.create(path, handle)
+  devfs.points[path] = handle
   return true
 end
 
-proxy.create("null", {write = nop})
-proxy.create("random", {read = function(_,n)
+devfs.create("null", {write = function()end})
+devfs.create("random", {read = function(_,n)
   local chars = {}
   for i=1,n do
     table.insert(chars,string.char(math.random(0,255)))
@@ -108,4 +117,4 @@ proxy.create("random", {read = function(_,n)
   return table.concat(chars)
 end})
 
-return proxy
+return devfs
