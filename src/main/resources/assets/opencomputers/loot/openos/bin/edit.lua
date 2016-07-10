@@ -430,7 +430,7 @@ local function find()
     setStatus("Find: " .. findText)
 
     local _, address, char, code = term.pull("key_down")
-    if address == term.keyboard().address then
+    if address == term.keyboard() then
       local handler, name = getKeyBindHandler(code)
       highlight(cbx, cby, unicode.wlen(findText), false)
       if name == "newline" then
@@ -557,7 +557,7 @@ getKeyBindHandler = function(code)
             elseif value == "shift" then shift = true
             else key = value end
           end
-          local keyboardAddress = term.keyboard().address
+          local keyboardAddress = term.keyboard()
           if (not alt or keyboard.isAltDown(keyboardAddress)) and
              (not control or keyboard.isControlDown(keyboardAddress)) and
              (not shift or keyboard.isShiftDown(keyboardAddress)) and
@@ -656,7 +656,7 @@ end
 
 while running do
   local event, address, arg1, arg2, arg3 = term.pull()
-  if address == term.keyboard().address or address == term.screen().address then
+  if address == term.keyboard() or address == term.screen() then
     local blink = true
     if event == "key_down" then
       onKeyDown(arg1, arg2)
