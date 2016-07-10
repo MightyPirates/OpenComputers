@@ -2,6 +2,7 @@ local unicode = require("unicode")
 local event = require("event")
 local process = require("process")
 local kb = require("keyboard")
+local component = require("component")
 local keys = kb.keys
 
 local term = {}
@@ -51,7 +52,7 @@ end
 
 function term.isAvailable(w)
   w = w or W()
-  return w and not not (w.gpu and w.screen)
+  return w and not not (w.gpu and w.gpu.getScreen())
 end
 
 function term.internal.pull(input, c, off, t, ...)
@@ -74,6 +75,11 @@ function term.internal.pull(input, c, off, t, ...)
     c=c or {{gpu.getBackground()},{gpu.getForeground()},gpu.get(x,y)}
     local c11,c12 = unpack(c[1])
     local c21,c22 = unpack(c[2])
+    -- c can fail if gpu does not have a screen
+    -- if can happen during a type of race condition when a screen is removed
+    if not c11 then
+      return nil, "interrupted"
+    end
     if not off then
       sf(c11,c12)
       sb(c21,c22)
@@ -227,54 +233,64 @@ function term.readKeyboard(ops)
   local draw=io.stdin.tty and term.drawText or term.internal.nop
   local input={w=w,promptx=w.x,prompty=w.y,index=0,data="",mask=pwchar}
   input.blink = ops.blink
-  if input.blink == nil then input.blink = w.blink end
-  if ops.nowrap then
-    term.internal.build_horizontal_reader(input)
-  else
-    term.internal.build_vertical_reader(input)
+  if input.blink == nil then
+    input.blink = w.blink
   end
+
+  -- two wrap types currently supported, vertical and hortizontal
+  if ops.nowrap then term.internal.build_horizontal_reader(input)
+  else               term.internal.build_vertical_reader(input)
+  end
+
   while true do
     local killed, name, address, char, code = term.internal.pull(input)
+    -- we have to keep checking what kb is active in case it is switching during use
+    -- we could have multiple screens, each with keyboards active
+    local main_kb = term.keyboard(w)
+    local main_sc = term.screen(w)
     local c = nil
     local backup_cache = hints.cache
-    if name =="interrupted" then draw("^C\n",true) return ""
-    elseif name=="touch" or name=="drag" then term.internal.onTouch(input,char,code)
-    elseif name=="clipboard" then c=char hints.cache = nil
-    elseif name=="key_down" then
-      hints.cache = nil
-      local ctrl = kb.isControlDown(address)
-      if ctrl and code == keys.d then return
-      elseif char==9 then hints.cache = backup_cache term.internal.tab(input,hints)
-      elseif char==13 and filter(input) then
-        input:move(math.huge)
-        if db ~= false then draw("\n") end
-        term.internal.read_history(history,input)
-        return input.data.."\n"
-      elseif code==keys.back then
-        input:update(-1)
-      elseif code==keys.left then
-        input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
-      elseif code==keys.right then
-        input:move(ctrl and term.internal.ctrl_movement(input, 1) or 1)
-      elseif ctrl and char=="w" then
-        -- cut word
-      elseif code==keys.up then
-        term.internal.read_history(history,input,1)
-      elseif code==keys.down then
-        term.internal.read_history(history,input,-1)
-      elseif code==keys.home then
-        input:move(-math.huge)
-      elseif code==keys["end"] then
-        input:move(math.huge)
-      elseif code==keys.delete then
-        input:update(0)
-      elseif char>=32 then
-        c=unicode.char(char)
-      else
-        hints.cache = backup_cache
+    if name == "interrupted" or name == "term_unavailable" then
+      draw("^C\n",true)
+      return ""
+    elseif address == main_kb or address == main_sc then
+      if name == "touch" or name == "drag" then
+        term.internal.onTouch(input,char,code)
+      elseif name == "clipboard" then
+        c = char
+        hints.cache = nil
+      elseif name == "key_down" then
+        hints.cache = nil
+        local ctrl = kb.isControlDown(address)
+        if ctrl and code == keys.d then return --nil
+        elseif char == 9 then
+          hints.cache = backup_cache
+          term.internal.tab(input,hints)
+        elseif char == 13 and filter(input) then
+          input:move(math.huge)
+          if db ~= false then
+            draw("\n")
+          end
+          term.internal.read_history(history,input)
+          return input.data .. "\n"
+        elseif code == keys.up     then term.internal.read_history(history, input,  1)
+        elseif code == keys.down   then term.internal.read_history(history, input, -1)
+        elseif code == keys.left   then input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
+        elseif code == keys.right  then input:move(ctrl and term.internal.ctrl_movement(input,  1) or  1)
+        elseif code == keys.home   then input:move(-math.huge)
+        elseif code == keys["end"] then input:move( math.huge)
+        elseif code == keys.back   then c = -1
+        elseif code == keys.delete then c =  0
+        elseif char >= 32          then c = unicode.char(char)
+        elseif ctrl and char == "w"then -- TODO: cut word
+        else                            hints.cache = backup_cache -- ignored chars shouldn't clear hint cache
+        end
+      end
+      -- if we obtained something (c) to handle
+      if c then
+        input:update(c)
       end
     end
-    if c then input:update(c) end
   end
 end
 
@@ -380,14 +396,54 @@ function term.getCursorBlink()
   return W().blink
 end
 
-function term.bind(gpu, screen, kb, window)
+function term.bind(gpu, window)
   window = window or W()
   window.gpu = gpu or window.gpu
-  window.screen = screen or window.screen
-  window.keyboard = kb or window.keyboard
+  window.keyboard = nil -- without a keyboard bound, always use the screen's main keyboard (1st)
   if window.fullscreen then
     term.setViewport(nil,nil,nil,nil,window.x,window.y,window)
   end
+end
+
+function term.keyboard(window)
+  window = window or W() or {} -- this method needs to be safe even if there is no terminal window (e.g. no gpu)
+
+  if window.keyboard then
+    return window.keyboard
+  end
+
+  local system_keyboard = component.isAvailable("keyboard") and component.keyboard
+  system_keyboard = system_keyboard and system_keyboard.address or "no_system_keyboard"
+
+  local screen = term.screen(window)
+
+  if not screen then
+    -- no screen, no known keyboard, use system primary keyboard if any
+    return system_keyboard
+  end
+
+  -- if we are using a gpu bound to the primary scren, then use the primary keyboard
+  if component.isAvailable("screen") and component.screen.address == screen then
+    window.keyboard = system_keyboard
+  else
+    -- calling getKeyboards() on the screen is costly (time)
+    -- custom terminals should avoid designs that require
+    -- this on every key hit
+
+    -- this is expensive (slow!)
+    window.keyboard = component.invoke(screen, "getKeyboards")[1] or system_keyboard
+  end
+
+  return window.keyboard
+end
+
+function term.screen(window)
+  window = window or W()
+  local gpu = window.gpu
+  if not gpu then
+    return nil
+  end
+  return gpu.getScreen()
 end
 
 function --[[@delayloaded-start@]] term.scroll(number, window)
@@ -552,7 +608,13 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
     hints.cache.i=-1
   end
   local c=hints.cache
-  local change = kb.isShiftDown(term.keyboard().address) and -1 or 1
+  local main_kb = term.keyboard()
+  -- term may not have a keyboard
+  -- in which case, we shouldn't be handling tab events
+  if not main_kb then
+    return
+  end
+  local change = kb.isShiftDown(main_kb) and -1 or 1
   c.i=(c.i+change)%math.max(#c,1)
   local next=c[c.i+1]
   if next then
@@ -567,22 +629,5 @@ function --[[@delayloaded-start@]] term.getGlobalArea(window)
   local w,h,dx,dy = term.getViewport(window)
   return dx+1,dy+1,w,h
 end --[[@delayloaded-end@]] 
-
-function --[[@delayloaded-start@]] term.screen(window)
-  return (window or W()).screen
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] term.keyboard(window)
-  window = window or W()
-  local kba = window.keyboard and window.keyboard.address
-  if kba and kb.pressedCodes[kba] then return window.keyboard end
-  window.keyboard=nil
-  local component = require("component")
-  if not window.screen or not component.proxy(window.screen.address) then window.screen = nil return end
-  local kba = window.screen.getKeyboards()[1]
-  if not kba then return end
-  window.keyboard = component.proxy(kba)
-  return window.keyboard
-end --[[@delayloaded-end@]]
 
 return term, local_env
