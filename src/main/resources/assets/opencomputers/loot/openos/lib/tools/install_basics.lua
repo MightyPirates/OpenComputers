@@ -171,11 +171,6 @@ options.setboot    = source.prop.setboot and not options.nosetboot
 options.reboot     = source.prop.reboot and not options.noreboot
 options.source_dir = fs.canonical(source.prop.fromDir or options.fromDir or "") .. '/.'
 
-local installer_path = options.source_root .. "/.install"
-if fs.exists(installer_path) then
-  os.exit(loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options))
-end
-
 local cp_args =
 {
   "-vrx" .. (options.update and "ui" or ""),
@@ -192,6 +187,11 @@ io.write("Install " .. source_display .. special_target .. "? [Y/n] ")
 if not ((io.read() or "n").."y"):match("^%s*[Yy]") then
   write("Installation cancelled\n")
   os.exit()
+end
+
+local installer_path = options.source_root .. "/.install"
+if fs.exists(installer_path) then
+  os.exit(loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options))
 end
 
 return
