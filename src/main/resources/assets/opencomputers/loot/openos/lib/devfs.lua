@@ -1,4 +1,6 @@
 local fs = require("filesystem")
+local text = require("text")
+local comp = require("component")
 
 local devfs = {points={},address=require("uuid").next()}
 
@@ -25,7 +27,9 @@ function devfs.exists(path)
 end
 
 function devfs.size(path)
-  return 0
+  local handle = devfs.points[path]
+  if not handle or not handle.size then return 0 end
+  return handle.size()
 end
 
 function devfs.isDirectory(path)
@@ -115,6 +119,29 @@ devfs.create("random", {read = function(_,n)
     table.insert(chars,string.char(math.random(0,255)))
   end
   return table.concat(chars)
-end})
+end, size=function()return math.huge end})
+
+if comp.isAvailable("eeprom") then
+  devfs.create("eeprom",
+  {
+    open = function(_, _, mode)
+      if ({r=true, rb=true})[mode] then
+        return text.internal.reader(comp.eeprom.get())
+      end
+      return text.internal.writer(comp.eeprom.set, ({a=true,ab=true})[mode] and comp.eeprom.get())
+    end,
+    size = function() return string.len(comp.eeprom.get()) end
+  })
+  devfs.create("eeprom-data",
+  {
+    open = function(_, _, mode)
+      if ({r=true, rb=true})[mode] then
+        return text.internal.reader(comp.eeprom.getData())
+      end
+      return text.internal.writer(comp.eeprom.setData, ({a=true,ab=true})[mode] and comp.eeprom.getData())
+    end,
+    size = function() return string.len(comp.eeprom.getData()) end
+  })
+end
 
 return devfs
