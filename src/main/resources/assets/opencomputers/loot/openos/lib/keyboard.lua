@@ -42,14 +42,7 @@ setmetatable(keyboard.keys,
 -------------------------------------------------------------------------------
 
 local function getKeyboardAddress(address)
-  if address then
-    return address
-  else
-    local primary = component.isAvailable("keyboard") and component.getPrimary("keyboard")
-    if primary then
-      return primary.address
-    end
-  end
+  return address or require("term").keyboard()
 end
 
 local function getPressedCodes(address)
