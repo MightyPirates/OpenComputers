@@ -5,7 +5,7 @@
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "http://oc.cil.li/",
-  "authorList": ["Florian 'Sangar' Nuecke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
+  "authorList": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
   "requiredMods": [ "Forge@[10.13.0.1180,)" ],
