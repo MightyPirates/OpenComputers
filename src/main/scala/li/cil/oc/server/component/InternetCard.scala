@@ -250,7 +250,7 @@ object InternetCard {
       TCPNotifier.add((channel, () => {
         owner match {
           case Some(internetCard) =>
-            internetCard.node.sendToVisible("computer.signal", "internet_ready", internetCard.node.address(), id.toString)
+            internetCard.node.sendToVisible("computer.signal", "internet_ready", id.toString)
           case _ =>
             channel.close()
         }
