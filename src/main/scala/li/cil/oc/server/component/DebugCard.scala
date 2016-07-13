@@ -272,7 +272,8 @@ object DebugCard {
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.setGameType(GameType.getByName(args.checkString(0).toLowerCase))
+        val gametype = args.checkString(0)
+        player.setGameType(GameType.values.find(_.name == gametype).getOrElse(GameType.SURVIVAL))
         null
       })
 

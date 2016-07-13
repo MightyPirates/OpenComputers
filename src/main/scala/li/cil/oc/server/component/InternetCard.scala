@@ -188,7 +188,7 @@ object InternetCard {
   }
 
   object TCPNotifier extends Thread {
-    private val selector = Selector.open()
+    private var selector = Selector.open()
     private val toAccept = new ConcurrentLinkedQueue[(SocketChannel, () => Unit)]
 
     override def run(): Unit = {
@@ -203,10 +203,20 @@ object InternetCard {
 
           import scala.collection.JavaConversions._
           val selectedKeys = selector.selectedKeys
+          val readableKeys = mutable.HashSet[SelectionKey]()
           selectedKeys.filter(_.isReadable).foreach(key => {
-            key.cancel()
-            key.attachment().asInstanceOf[() => Unit].apply()
+            key.attachment.asInstanceOf[() => Unit].apply()
+            readableKeys += key
           })
+
+          if(readableKeys.nonEmpty) {
+            val newSelector = Selector.open()
+            selectedKeys.filter(!readableKeys.contains(_)).foreach(key => {
+              key.channel.register(newSelector, SelectionKey.OP_READ, key.attachment)
+            })
+            selector.close()
+            selector = newSelector
+          }
         } catch {
           case e: IOException =>
             OpenComputers.log.error("Error in TCP selector loop.", e)
@@ -241,7 +251,7 @@ object InternetCard {
       TCPNotifier.add((channel, () => {
         owner match {
           case Some(internetCard) =>
-            internetCard.node.sendToVisible("computer.signal", "internet_ready", internetCard.node.address(), id.toString)
+            internetCard.node.sendToVisible("computer.signal", "internet_ready", id.toString)
           case _ =>
             channel.close()
         }

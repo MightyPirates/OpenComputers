@@ -31,6 +31,7 @@ import net.minecraft.world.World
 ))
 class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
+  setMaxStackSize(1)
 
   override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 
