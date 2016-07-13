@@ -297,6 +297,7 @@ minecraft {
     mappings = "${config.minecraft.mappings}"
 
     replace "@VERSION@", project.simpleVersion
+    replace "@MCVERSION@", config.minecraft.version
 }
 
 processResources {
