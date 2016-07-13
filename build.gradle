@@ -286,6 +286,7 @@ minecraft {
     mappings = "stable_20"
 
     replace "@VERSION@", project.simpleVersion
+    replace "@MCVERSION@", config.minecraft.version
 }
 
 processResources {
