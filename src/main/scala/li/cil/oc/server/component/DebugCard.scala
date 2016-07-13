@@ -31,8 +31,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.IChatComponent
-import net.minecraft.world.World
-import net.minecraft.world.WorldServer
+import net.minecraft.world.{World, WorldServer, WorldSettings}
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayer
@@ -270,7 +269,8 @@ object DebugCard {
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.setGameType(GameType.getByName(args.checkString(0).toLowerCase))
+        val gametype = args.checkString(0)
+        player.setGameType(GameType.values.find(_.name == gametype).getOrElse(GameType.SURVIVAL))
         null
       })
 
