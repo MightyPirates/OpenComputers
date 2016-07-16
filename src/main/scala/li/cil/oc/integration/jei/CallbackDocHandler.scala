@@ -51,7 +51,7 @@ object CallbackDocHandler {
 
       if (callbacks.nonEmpty) {
         val pages = mutable.Buffer.empty[String]
-        pages += callbacks.toArray.sorted.foldLeft("") {
+        val lastPage = callbacks.toArray.sorted.foldLeft("") {
           (last, doc) =>
             if (last.lines.length + 2 + doc.lines.length > 12) {
               // We've potentially got some pretty long documentation here, split it up first
@@ -61,6 +61,9 @@ object CallbackDocHandler {
             else if (last.nonEmpty) last + "\n\n" + doc
             else doc
         }
+        // The last page may be too long as well.
+        lastPage.lines.grouped(12).map(_.mkString("\n")).foreach(pages += _)
+
         Option(pages.map(page => new CallbackDocRecipe(stack, page)))
       }
       else None
