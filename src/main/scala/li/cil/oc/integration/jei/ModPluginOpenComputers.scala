@@ -37,6 +37,8 @@ class ModPluginOpenComputers extends IModPlugin {
     if (Settings.get.lootRecrafting) {
       registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
     }
+    registry.addRecipeHandlers(ManualUsageHandler.ManualUsageRecipeHandler)
+    registry.addRecipes(ManualUsageHandler.getRecipes(registry.getItemRegistry))
   }
 
   override def onRecipeRegistryAvailable(recipeRegistry: IRecipeRegistry): Unit = {
