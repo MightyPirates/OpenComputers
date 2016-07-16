@@ -236,7 +236,7 @@ minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
 
     replace "@VERSION@", project.simpleVersion
-    replace "@MCVERSION@", config.minecraft.version
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {
