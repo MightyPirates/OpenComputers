@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util.Date
+
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Sound
@@ -58,7 +60,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
     isChunkUnloading = true
   }
 
-  protected def initialize() {}
+  protected def initialize() {
+    isChunkUnloading = false
+  }
 
   def dispose() {
     if (isClient) {
@@ -101,7 +105,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
       writeToNBTForServer(nbt)
     }
     if (isChunkUnloading) {
-      dispose()
+      try dispose() catch {
+        case t: Throwable => OpenComputers.log.error("Failed properly disposing a tile entity, things may leak and or break.", t)
+      }
     }
     nbt
   }

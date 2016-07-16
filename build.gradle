@@ -297,7 +297,7 @@ minecraft {
     mappings = "${config.minecraft.mappings}"
 
     replace "@VERSION@", project.simpleVersion
-    replace "@MCVERSION@", config.minecraft.version
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {

@@ -169,7 +169,7 @@ inventoryControllerUpgrade {
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
-          ["oc:circuitChip3", {item=map, subID=any}, "oc:circuitChip3"]
+          ["oc:circuitChip3", {item=filled_map, subID=any}, "oc:circuitChip3"]
           [ingotGold, potion, ingotGold]]
 }
 signUpgrade {
