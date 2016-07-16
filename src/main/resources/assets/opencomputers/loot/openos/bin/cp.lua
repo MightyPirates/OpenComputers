@@ -148,12 +148,14 @@ end
 local to = shell.resolve(args[#args])
 
 for i = 1, #args - 1 do
-  local fromPath, cuts = args[i]:gsub("(/%.%.?)$", "%1")
-  fromPath = shell.resolve(fromPath)
+  local arg = args[i]
+  local fromPath = shell.resolve(arg)
+  -- a "contents of" copy is where src path ends in . or ..
+  -- a source path ending with . is not sufficient - could be the source filename
+  local contents_of = arg:match("%.$") and not fromPath:match("%.$")
   local toPath = to
-  -- fromPath ending with /. indicates copying the contents of fromPath
-  -- in which case (cuts>0) we do not append fromPath name to toPath 
-  if cuts == 0 and fs.isDirectory(toPath) then
+  -- we do not append fromPath name to toPath in case of contents_of copy
+  if not contents_of and fs.isDirectory(toPath) then
     toPath = fs.concat(toPath, fs.name(fromPath))
   end
   result, reason = recurse(fromPath, toPath)

@@ -243,14 +243,17 @@ function term.readKeyboard(ops)
   end
 
   while true do
-    local killed, name, address, char, code = term.internal.pull(input)
+    local ok, name, address, char, code = term.internal.pull(input)
+    if not term.isAvailable() then
+      return
+    end
     -- we have to keep checking what kb is active in case it is switching during use
     -- we could have multiple screens, each with keyboards active
     local main_kb = term.keyboard(w)
     local main_sc = term.screen(w)
-    local c = nil
+    local c
     local backup_cache = hints.cache
-    if name == "interrupted" or name == "term_unavailable" then
+    if name == "interrupted" then
       draw("^C\n",true)
       return ""
     elseif address == main_kb or address == main_sc then

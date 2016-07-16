@@ -112,9 +112,7 @@ function filesystem.setAutorunEnabled(value)
   saveConfig()
 end
 
-function filesystem.segments(path)
-  return segments(path)
-end
+filesystem.segments = segments
 
 function filesystem.canonical(path)
   local result = table.concat(segments(path), "/")
@@ -367,7 +365,11 @@ function filesystem.makeDirectory(path)
   end
   local node, rest = findNode(path)
   if node.fs and rest then
-    return node.fs.makeDirectory(rest)
+    local success, reason = node.fs.makeDirectory(rest)
+    if not success and not reason and node.fs.isReadOnly() then
+      reason = "filesystem is readonly"
+    end
+    return success, reason
   end
   if node.fs then
     return nil, "virtual directory with that name already exists"
@@ -502,11 +504,12 @@ function filesystem.open(path, mode)
   checkArg(1, path, "string")
   mode = tostring(mode or "r")
   checkArg(2, mode, "string")
+
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
     "bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
 
   local node, rest = findNode(path)
-  if not node.fs or not rest then
+  if not node.fs or not rest or (({r=true,rb=true})[mode] and not node.fs.exists(rest)) then
     return nil, "file not found"
   end
 
