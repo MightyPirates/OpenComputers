@@ -13,9 +13,14 @@ for i = 1, #args do
     io.stderr:write(string.format('cat %s: Is a directory\n', arg))
     ec = 1
   else
-    local file, reason = args[i] == "-" and io.stdin or io.open(shell.resolve(args[i]))
+    local file, reason
+    if args[i] == "-" then
+      file, reason = io.stdin, "missing stdin"
+    else
+      file, reason = io.open(shell.resolve(args[i]))
+    end
     if not file then
-      io.stderr:write(string.format("cat: %s: %s\n",args[i],tostring(reason)))
+      io.stderr:write(string.format("cat: %s: %s\n", args[i], tostring(reason)))
       ec = 1
     else
       repeat
