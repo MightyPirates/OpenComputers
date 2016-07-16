@@ -23,8 +23,17 @@ class ModPluginOpenComputers extends IModPlugin {
     if (Settings.get.lootRecrafting) {
       registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
     }
+
+    // This could go into the Description category, but Manual should always be in front of the Callback doc.
+    ManualUsageHandler.ManualUsageRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
+    registry.addRecipeCategories(ManualUsageHandler.ManualUsageRecipeCategory)
     registry.addRecipeHandlers(ManualUsageHandler.ManualUsageRecipeHandler)
-    registry.addRecipes(ManualUsageHandler.getRecipes(registry.getItemRegistry))
+    registry.addRecipes(ManualUsageHandler.getRecipes(registry))
+
+    CallbackDocHandler.CallbackDocRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
+    registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
+    registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
+    registry.addRecipes(CallbackDocHandler.getRecipes(registry))
   }
 
   override def onRecipeRegistryAvailable(recipeRegistry: IRecipeRegistry): Unit = {
