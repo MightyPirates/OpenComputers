@@ -3,7 +3,7 @@ package li.cil.oc.client.gui.traits
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -71,7 +71,7 @@ trait InputBuffer extends DisplayBuffer {
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
 
-    if (this.isInstanceOf[GuiContainer] && NEI.isInputFocused) return
+    if (this.isInstanceOf[GuiContainer] && ItemSearch.isInputFocused) return
 
     val code = Keyboard.getEventKey
     if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
