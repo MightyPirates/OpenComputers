@@ -3,10 +3,8 @@ package li.cil.oc.integration.jei
 import java.util
 import javax.annotation.Nonnull
 
-import net.minecraft.client.Minecraft
-import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumChatFormatting
 import com.google.common.base.Strings
+import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.prefab.DriverTileEntity
@@ -19,7 +17,8 @@ import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
-import mezz.jei.api.recipe.IRecipeWrapper
+import _root_.net.minecraft.client.Minecraft
+import _root_.net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -81,8 +80,8 @@ object CallbackDocHandler {
             case VexPattern(head, tail) => (name + head, tail)
             case _ => (name, doc)
           }
-          wrap(signature, 160).map(EnumChatFormatting.BLACK.toString + _).mkString("\n") +
-            EnumChatFormatting.RESET + "\n" +
+          wrap(signature, 160).map(ChatFormatting.BLACK.toString + _).mkString("\n") +
+            ChatFormatting.RESET + "\n" +
             wrap(documentation, 152).map("  " + _).mkString("\n")
         }
     }
@@ -92,10 +91,11 @@ object CallbackDocHandler {
   protected def wrap(line: String, width: Int) = Minecraft.getMinecraft.fontRendererObj.listFormattedStringToWidth(line, width)
 
   object CallbackDocRecipeHandler extends IRecipeHandler[CallbackDocRecipe] {
-
     override def getRecipeWrapper(recipe: CallbackDocRecipe) = recipe
 
     override def getRecipeCategoryUid = CallbackDocRecipeCategory.getUid
+
+    override def getRecipeCategoryUid(recipe: CallbackDocRecipe): String = getRecipeCategoryUid
 
     override def isRecipeValid(recipe: CallbackDocRecipe) = true
 
@@ -113,9 +113,7 @@ object CallbackDocHandler {
     }
   }
 
-  object CallbackDocRecipeCategory extends BlankRecipeCategory {
-
-
+  object CallbackDocRecipeCategory extends BlankRecipeCategory[CallbackDocRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
     private var background: IDrawable = null
@@ -126,8 +124,7 @@ object CallbackDocHandler {
 
     override def getBackground: IDrawable = background
 
-    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: IRecipeWrapper) {
-
+    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe) {
     }
 
     override def getTitle = "OpenComputers API"

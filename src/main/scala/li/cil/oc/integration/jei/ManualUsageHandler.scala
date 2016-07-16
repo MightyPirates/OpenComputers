@@ -3,9 +3,6 @@ package li.cil.oc.integration.jei
 import java.util
 import javax.annotation.Nonnull
 
-import net.minecraft.client.Minecraft
-import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.client.config.GuiButtonExt
 import li.cil.oc.Localization
 import li.cil.oc.api
 import mezz.jei.api.IGuiHelper
@@ -15,7 +12,9 @@ import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
-import mezz.jei.api.recipe.IRecipeWrapper
+import _root_.net.minecraft.client.Minecraft
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraftforge.fml.client.config.GuiButtonExt
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -33,6 +32,8 @@ object ManualUsageHandler {
     override def getRecipeWrapper(recipe: ManualUsageRecipe) = recipe
 
     override def getRecipeCategoryUid = ManualUsageRecipeCategory.getUid
+
+    override def getRecipeCategoryUid(recipe: ManualUsageRecipe): String = getRecipeCategoryUid
 
     override def isRecipeValid(recipe: ManualUsageRecipe) = true
 
@@ -62,7 +63,7 @@ object ManualUsageHandler {
     }
   }
 
-  object ManualUsageRecipeCategory extends BlankRecipeCategory {
+  object ManualUsageRecipeCategory extends BlankRecipeCategory[ManualUsageRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
     private var background: IDrawable = null
@@ -73,8 +74,7 @@ object ManualUsageHandler {
 
     override def getBackground: IDrawable = background
 
-    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: IRecipeWrapper) {
-
+    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: ManualUsageRecipe) {
     }
 
     override def getTitle = "OpenComputers Manual"
