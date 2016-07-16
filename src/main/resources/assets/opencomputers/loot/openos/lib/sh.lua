@@ -454,7 +454,7 @@ function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
 
   local function magical(s)
     for _,glob_rule in ipairs(sh.internal.globbers) do
-      if s:match("[^%%]-"..text.escapeMagic(glob_rule[2])) then
+      if (" "..s):match("[^%%]"..text.escapeMagic(glob_rule[2])) then
         return true
       end
     end
@@ -464,7 +464,6 @@ function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
   local root = is_abs and '' or shell.getWorkingDirectory():gsub("([^/])$","%1/")
   local paths = {is_abs and "/" or ''}
   local relative_separator = ''
-
   for i,segment in ipairs(segments) do
     local enclosed_pattern = string.format("^(%s)/?$", segment)
     local next_paths = {}
