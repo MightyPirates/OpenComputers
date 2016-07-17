@@ -27,7 +27,7 @@ import org.lwjgl.util.Rectangle
 class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) /* TODO NEI with INEIGuiHandler */ {
   private val format = new DecimalFormat("#.##hz")
 
-  private val tabPosition = new Rectangle(xSize, 10, 23, 26)
+  val tabPosition = new Rectangle(xSize, 10, 23, 26)
 
   override protected def drawSecondaryBackgroundLayer(): Unit = {
     super.drawSecondaryBackgroundLayer()

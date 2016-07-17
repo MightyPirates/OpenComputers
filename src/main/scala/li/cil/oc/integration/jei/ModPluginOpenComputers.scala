@@ -29,6 +29,8 @@ class ModPluginOpenComputers extends IModPlugin {
     registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
     registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
     registry.addRecipes(CallbackDocHandler.getRecipes(registry))
+
+    registry.addAdvancedGuiHandlers(RelayGuiHandler)
   }
 
   var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
@@ -38,7 +40,5 @@ class ModPluginOpenComputers extends IModPlugin {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
     stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
-
-    // TODO check for focused input
   }
 }
