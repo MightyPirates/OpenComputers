@@ -82,7 +82,7 @@ object Mods {
   val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
-  val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.7,)")
+  val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
   val TMechWorks = new SimpleMod(IDs.TMechWorks)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
@@ -130,7 +130,7 @@ object Mods {
     //    integration.thaumcraft.ModThaumcraft,
     //    integration.thaumicenergistics.ModThaumicEnergistics,
     //    integration.thermalexpansion.ModThermalExpansion,
-    //    integration.tis3d.ModTIS3D,
+    integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
