@@ -39,6 +39,6 @@ class ModPluginOpenComputers extends IModPlugin {
     }
     stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
 
-    // TODO check for focused input
+    ModJEI.runtime = Option(jeiRuntime)
   }
 }
