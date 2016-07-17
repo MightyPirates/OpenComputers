@@ -153,9 +153,10 @@ end
 
 local source = options.sources[1]
 local target = options.targets[1]
+local utils_path = package.searchpath("tools/install_utils", package.path)
 
 if #options.sources ~= 1 or #options.targets ~= 1 then
-  source, target = loadfile("/lib/tools/install_utils.lua", "bt", _G)('select', options)
+  source, target = loadfile(utils_path, "bt", _G)('select', options)
 end
 
 if not source then return end
@@ -191,7 +192,7 @@ end
 
 local installer_path = options.source_root .. "/.install"
 if fs.exists(installer_path) then
-  os.exit(loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options))
+  os.exit(loadfile(utils_path, "bt", _G)('install', options))
 end
 
 return
