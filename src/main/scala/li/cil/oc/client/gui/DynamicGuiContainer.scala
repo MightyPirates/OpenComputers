@@ -175,6 +175,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
 
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   private def drawNEIHighlights(): Unit = {
+    if(!LayoutManager.isItemPanelActive) return
     val panel = LayoutManager.itemPanel
     if (panel == null) return
     zLevel += 350
