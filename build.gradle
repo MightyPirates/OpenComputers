@@ -99,11 +99,11 @@ repositories {
     maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
-    }
+    }*/
     maven {
         name = "IGW"
         url = "http://maven.k-4u.nl/"
-    }
+    }/*
     maven {
         name = "dmodoomsirius"
         url = "http://api.dmodoomsirius.me/"
@@ -199,8 +199,8 @@ dependencies {
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
-    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
+    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
+    provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"/*
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
