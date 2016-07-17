@@ -1,8 +1,6 @@
 package li.cil.oc.integration.util
 
-/* TODO NEI
 import codechicken.nei.LayoutManager
-*/
 
 import li.cil.oc.integration.Mods
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -59,8 +57,8 @@ object ItemSearch {
   }
 
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  private def isInputFocused0 = false // TODO NEI LayoutManager.getInputFocused != null
+  private def isInputFocused0 = LayoutManager.getInputFocused != null
 
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = null: ItemStack // TODO NEI LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
+  private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
 }

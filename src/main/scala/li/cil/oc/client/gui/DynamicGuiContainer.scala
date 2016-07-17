@@ -1,10 +1,7 @@
 package li.cil.oc.client.gui
 
-/* TODO NEI
-import codechicken.nei.ItemPanel
 import codechicken.nei.LayoutManager
-*/
-
+import codechicken.nei.widget.ItemPanel
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -20,6 +17,8 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
@@ -84,7 +83,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     if (Mods.NotEnoughItems.isAvailable) {
       RenderState.pushAttrib()
       RenderState.makeItBlend()
-      // TODO NEI drawNEIHighlights()
+      drawNEIHighlights()
       RenderState.popAttrib()
     }
   }
@@ -173,7 +172,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     case player: Player => slot.inventory == player.playerInventory
     case _ => false
   }
-/* TODO NEI
+
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   private def drawNEIHighlights(): Unit = {
     val panel = LayoutManager.itemPanel
@@ -193,7 +192,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
           }
         case _ =>
       }
-      zLevel -= 350
     }
-  */
+    zLevel -= 350
+  }
 }

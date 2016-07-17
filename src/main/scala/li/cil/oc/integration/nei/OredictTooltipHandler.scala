@@ -6,7 +6,7 @@ import codechicken.nei.NEIClientConfig
 import codechicken.nei.guihook.IContainerTooltipHandler
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.text.TextFormatting
 import net.minecraftforge.oredict.OreDictionary
 
 class OredictTooltipHandler() extends IContainerTooltipHandler {
@@ -17,7 +17,7 @@ class OredictTooltipHandler() extends IContainerTooltipHandler {
   override def handleItemTooltip(gui: GuiContainer, stack: ItemStack, x: Int, y: Int, tooltip: util.List[String]) = {
     if (NEIClientConfig.getBooleanSetting("inventory.oredict")) {
       for (oreId <- OreDictionary.getOreIDs(stack)) {
-        tooltip.add(EnumChatFormatting.DARK_GRAY + OreDictionary.getOreName(oreId))
+        tooltip.add(TextFormatting.DARK_GRAY + OreDictionary.getOreName(oreId))
       }
     }
     tooltip
