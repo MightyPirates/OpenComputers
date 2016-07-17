@@ -12,9 +12,9 @@ import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
-import _root_.net.minecraft.client.Minecraft
-import _root_.net.minecraft.item.ItemStack
-import _root_.net.minecraftforge.fml.client.config.GuiButtonExt
+import net.minecraft.client.Minecraft
+import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.client.config.GuiButtonExt
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
