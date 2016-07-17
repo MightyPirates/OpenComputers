@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.text.TextFormatting
 
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler(pages) {
   def this() = this(None)
@@ -43,9 +44,21 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
           }
 
           if (callbacks.nonEmpty) {
-            val fullDocumentation = callbacks.toArray.sorted.mkString("\n\n")
-            val pages = fullDocumentation.lines.grouped(12).map(_.mkString("\n")).toArray
-            Option(new CallbackDocHandler(Option(pages)))
+            val pages = mutable.Buffer.empty[String]
+            val lastPage = callbacks.toArray.sorted.foldLeft("") {
+              (last, doc) =>
+                if (last.lines.length + 2 + doc.lines.length > 12) {
+                  // We've potentially got some pretty long documentation here, split it up first
+                  last.lines.grouped(12).map(_.mkString("\n")).foreach(pages += _)
+                  doc
+                }
+                else if (last.nonEmpty) last + "\n\n" + doc
+                else doc
+            }
+            // The last page may be too long as well.
+            lastPage.lines.grouped(12).map(_.mkString("\n")).foreach(pages += _)
+
+            Option(new CallbackDocHandler(Option(pages.toArray)))
           }
           else None
       }.collectFirst {
