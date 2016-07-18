@@ -35,32 +35,7 @@ class ModPluginOpenComputers extends IModPlugin {
     registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
     registry.addRecipes(CallbackDocHandler.getRecipes(registry))
 
-    def useNBT(names: String*) = names.map(name => {
-      val info = Items.get(name)
-      Option(info.item).getOrElse(Item.getItemFromBlock(info.block))
-    }).filter(_ != null).distinct.foreach(registry.getJeiHelpers.getSubtypeRegistry.useNbtForSubtypes(_))
-
-    // Only the preconfigured blocks and items have to be here.
-    useNBT(
-      Constants.BlockName.Microcontroller,
-      Constants.BlockName.Robot,
-
-      Constants.ItemName.Drone,
-      Constants.ItemName.Tablet
-    )
-
-    registry.getJeiHelpers.getSubtypeRegistry.registerNbtInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
-      override def getSubtypeInfo(stack: ItemStack): String = {
-        if (!stack.hasTagCompound) return null
-        val compound: NBTTagCompound = stack.getTagCompound
-        val data = new NBTTagCompound
-        // Separate loot disks from normal floppies
-        if (compound.hasKey(Settings.namespace + "lootFactory")) {
-          data.setTag(Settings.namespace + "lootFactory", compound.getTag(Settings.namespace + "lootFactory"))
-        }
-        if (data.hasNoTags) null else data.toString
-      }
-    })
+    registry.addAdvancedGuiHandlers(RelayGuiHandler)
   }
 
   private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
@@ -70,7 +45,5 @@ class ModPluginOpenComputers extends IModPlugin {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
     stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
-
-    // TODO check for focused input
   }
 }
