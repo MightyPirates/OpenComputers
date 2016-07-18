@@ -31,9 +31,23 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
       term.write(sh.expand(os.getenv("PS1") or "$ "))
       gpu.setForeground(foreground)
       term.setCursorBlink(true)
-      local command = term.read(history, nil, sh.hintHandler)
+      local ok, command = pcall(term.read, history, nil, sh.hintHandler)
+      if not ok then
+        if command == "interrupted" then -- hard interrupt
+          io.write("^C\n")
+          break
+        elseif not term.isAvailable() then
+          break
+        else -- crash?
+          io.stderr:write("\nshell crashed: " .. tostring(command) .. "\n")
+          break
+        end
+      end
       if not command then
-        io.write("exit\n")
+        if command == false then
+          break -- soft interrupt
+        end
+        io.write("exit\n") -- pipe closed
         return -- eof
       end
       command = text.trim(command)

@@ -888,7 +888,7 @@ function --[[@delayloaded-start@]] sh.internal.parse_sub(input)
     end
 
     local sub = io.popen(capture)
-    local result = sub:read("*a")
+    local result = input:sub(i, fi - 1) .. sub:read("*a")
     sub:close()
     -- all whitespace is replaced by single spaces
     -- we requote the result because tokenize will respect this as text

@@ -34,7 +34,7 @@ setmetatable(keyboard.keys,
 {
   __index = function(tbl, k)
     getmetatable(keyboard.keys).__index = nil -- to be safe
-    loadfile("/lib/tools/keyboard_full.lua","t",setmetatable({keyboard=keyboard},{__index=_G}))()
+    loadfile(package.searchpath("tools/keyboard_full", package.path), "t", setmetatable({keyboard=keyboard},{__index=_G}))()
     return tbl[k]
   end
 })
