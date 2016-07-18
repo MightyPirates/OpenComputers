@@ -4,7 +4,7 @@ local shell = require("shell")
 local options
 
 do
-  local basic = loadfile("/lib/tools/install_basics.lua", "bt", _G)
+  local basic = loadfile(package.searchpath("tools/install_basics", package.path), "bt", _G)
   options = basic(...)
 end
 
