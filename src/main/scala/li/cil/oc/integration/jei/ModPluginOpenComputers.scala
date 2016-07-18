@@ -45,5 +45,7 @@ class ModPluginOpenComputers extends IModPlugin {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
     stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
+
+    ModJEI.runtime = Option(jeiRuntime)
   }
 }
