@@ -4,9 +4,11 @@ import java.lang.Iterable
 import java.text.DecimalFormat
 import java.util
 
+/* TODO NEI
 import codechicken.nei.VisibilityData
 import codechicken.nei.api.INEIGuiHandler
 import codechicken.nei.api.TaggedInventoryArea
+*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
@@ -23,8 +25,8 @@ import net.minecraftforge.fml.common.Optional
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.Rectangle
 
-@Optional.Interface(iface = "codechicken.nei.api.INEIGuiHandler", modid = Mods.IDs.NotEnoughItems)
-class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) with INEIGuiHandler {
+/* TODO NEI @Optional.Interface(iface = "codechicken.nei.api.INEIGuiHandler", modid = Mods.IDs.NotEnoughItems) */
+class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) /* with INEIGuiHandler */ {
   private val format = new DecimalFormat("#.##hz")
 
   val tabPosition = new Rectangle(xSize, 10, 23, 26)
@@ -106,6 +108,7 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     else 0x990000
   }
 
+  /* TOD NEI
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   override def modifyVisiblity(gui: GuiContainer, currentVisibility: VisibilityData): VisibilityData = null
 
@@ -122,4 +125,5 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
   override def hideItemPanelSlot(gui: GuiContainer, x: Int, y: Int, w: Int, h: Int): Boolean = {
     new Rectangle(x - windowX, y - windowY, w, h).intersects(tabPosition)
   }
+  */
 }

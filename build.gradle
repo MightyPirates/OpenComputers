@@ -189,9 +189,10 @@ dependencies {
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
 /*
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"*/
-    provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
-    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"/*
+    //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
+    //provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
+    //provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"
+/*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
@@ -266,6 +267,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
+            exclude 'li/cil/oc/integration/nei/**'
             exclude 'li/cil/oc/integration/nek/**'
             exclude 'li/cil/oc/integration/poweradvantage/**'
             exclude 'li/cil/oc/integration/projectred/**'

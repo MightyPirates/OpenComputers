@@ -1,7 +1,9 @@
 package li.cil.oc.client.gui
 
+/* TODO NEI
 import codechicken.nei.LayoutManager
 import codechicken.nei.widget.ItemPanel
+*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -81,12 +83,14 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
 
     super.drawScreen(mouseX, mouseY, dt)
 
+    /* TODO NEI
     if (Mods.NotEnoughItems.isAvailable) {
       RenderState.pushAttrib()
       RenderState.makeItBlend()
       drawNEIHighlights()
       RenderState.popAttrib()
     }
+    */
 
     if (Mods.JustEnoughItems.isAvailable) {
       drawJEIHighlights()
@@ -208,6 +212,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     }
     zLevel -= 350
   }
+*/
 
   @Optional.Method(modid = Mods.IDs.JustEnoughItems)
   private def drawJEIHighlights(): Unit = {
