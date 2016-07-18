@@ -264,7 +264,7 @@ object InternetCard {
 
     @Callback(doc = """function([n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(0, Int.MaxValue)))
       if (checkConnected()) {
         val buffer = ByteBuffer.allocate(n)
         val read = channel.read(buffer)
@@ -389,7 +389,7 @@ object InternetCard {
 
     @Callback(doc = """function([n:number]):string -- Tries to read data from the response. Returns the read byte array.""")
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(0, Int.MaxValue)))
       if (checkResponse()) {
         if (eof && queue.isEmpty) result(Unit)
         else {
