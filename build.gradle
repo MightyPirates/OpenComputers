@@ -99,7 +99,7 @@ repositories {
     maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
-    }*/
+    }
     maven {
         name = "IGW"
         url = "http://maven.k-4u.nl/"
@@ -263,11 +263,9 @@ sourceSets {
             exclude 'li/cil/oc/integration/forestry/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
-            exclude 'li/cil/oc/integration/igw/**'
             exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
-            exclude 'li/cil/oc/integration/nei/**'
             exclude 'li/cil/oc/integration/nek/**'
             exclude 'li/cil/oc/integration/poweradvantage/**'
             exclude 'li/cil/oc/integration/projectred/**'
@@ -279,7 +277,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumicenergistics/**'
-            exclude 'li/cil/oc/integration/tis3d/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
