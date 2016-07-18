@@ -1,14 +1,19 @@
 package li.cil.oc.integration.jei
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
+import li.cil.oc.api.Items
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.ItemSearch
 import mezz.jei.api.IJeiRuntime
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.IModRegistry
+import mezz.jei.api.ISubtypeRegistry.ISubtypeInterpreter
 import mezz.jei.api.JEIPlugin
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
 @JEIPlugin
 class ModPluginOpenComputers extends IModPlugin {
@@ -29,16 +34,16 @@ class ModPluginOpenComputers extends IModPlugin {
     registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
     registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
     registry.addRecipes(CallbackDocHandler.getRecipes(registry))
+
+    registry.addAdvancedGuiHandlers(RelayGuiHandler)
   }
 
-  var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
+  private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
 
   override def onRuntimeAvailable(jeiRuntime: IJeiRuntime) {
     if (stackUnderMouse == null) {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
     stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
-
-    // TODO check for focused input
   }
 }

@@ -89,7 +89,7 @@ function term.internal.pull(input, c, off, t, ...)
     sf(c21,c22)
   end
 
-  local a={pcall(event.pull,math.min(t,0.5),...)}
+  local a={event.pull(math.min(t,0.5),...)}
 
   if #a>1 or t<.5 then
     if gpu then
@@ -105,12 +105,7 @@ end
 function term.pull(p,...)
   local a,t = {p,...}
   if type(p) == "number" then t = table.remove(a,1) end
-  -- term.internal.pull captures hard interrupts to keep term.readKeyboard peaceful
-  -- but other scripts may be using term.pull as an event.pull replacement
-  -- in which case, term.pull need to abort on hard interrupt
-  local packed = {term.internal.pull(nil,nil,nil,t,table.unpack(a))}
-  assert(packed[1], "interrupted")
-  return select(2, table.unpack(packed))
+  return term.internal.pull(nil,nil,nil,t,table.unpack(a))
 end
 
 function term.read(history,dobreak,hintHandler,pwchar,filter)
@@ -243,10 +238,9 @@ function term.readKeyboard(ops)
   end
 
   while true do
-    local ok, name, address, char, code = term.internal.pull(input)
-    if not term.isAvailable() then
-      return
-    end
+    local name, address, char, code = term.internal.pull(input)
+    assert(term.isAvailable(), "term_unavailable")
+
     -- we have to keep checking what kb is active in case it is switching during use
     -- we could have multiple screens, each with keyboards active
     local main_kb = term.keyboard(w)
@@ -255,7 +249,7 @@ function term.readKeyboard(ops)
     local backup_cache = hints.cache
     if name == "interrupted" then
       draw("^C\n",true)
-      return ""
+      return false
     elseif address == main_kb or address == main_sc then
       if name == "touch" or name == "drag" then
         term.internal.onTouch(input,char,code)
@@ -265,7 +259,7 @@ function term.readKeyboard(ops)
       elseif name == "key_down" then
         hints.cache = nil
         local ctrl = kb.isControlDown(address)
-        if ctrl and code == keys.d then return --nil
+        if ctrl and code == keys.d then return
         elseif char == 9 then
           hints.cache = backup_cache
           term.internal.tab(input,hints)

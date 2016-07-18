@@ -1,5 +1,4 @@
 alias dir=ls
-alias list=ls
 alias move=mv
 alias rename=mv
 alias copy=cp

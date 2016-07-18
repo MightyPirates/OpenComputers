@@ -11,7 +11,7 @@ import mezz.jei.api.recipe.IRecipeHandler
 import mezz.jei.api.recipe.IRecipeWrapper
 import mezz.jei.api.recipe.VanillaRecipeCategoryUid
 import mezz.jei.api.recipe.wrapper.ICraftingRecipeWrapper
-import _root_.net.minecraft.item.ItemStack
+import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
 
