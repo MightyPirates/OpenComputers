@@ -2,7 +2,6 @@ package li.cil.oc.integration.igw
 
 import java.util
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import igwmod.api.PageChangeEvent
 import igwmod.api.WikiRegistry
 import li.cil.oc.OpenComputers
@@ -12,6 +11,7 @@ import li.cil.oc.client.renderer.markdown
 import li.cil.oc.client.renderer.markdown.MarkupFormat
 import li.cil.oc.common.init.Items
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
