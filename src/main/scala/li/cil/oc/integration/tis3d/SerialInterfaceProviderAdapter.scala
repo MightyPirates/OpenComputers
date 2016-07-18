@@ -18,8 +18,8 @@ import li.cil.tis3d.api.serial.SerialInterface
 import li.cil.tis3d.api.serial.SerialInterfaceProvider
 import li.cil.tis3d.api.serial.SerialProtocolDocumentationReference
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.collection.mutable
