@@ -9,7 +9,7 @@ local local_env = {tx=tx,unicode=unicode}
 
 text.internal = {}
 
-text.syntax = {"^%d*>>?&%d+$",";","&&","||?","^%d*>>?",">>?","<"}
+text.syntax = {"^%d?>>?&%d+$",";","&&","||?","^%d?>>?",">>?","<"}
 
 function --[[@delayloaded-start@]] text.detab(value, tabWidth)
   checkArg(1, value, "string")

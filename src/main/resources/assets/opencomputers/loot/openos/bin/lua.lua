@@ -133,7 +133,7 @@ if #args == 0 or options.i then
     term.write(tostring(env._PROMPT or "lua> "))
     gpu.setForeground(foreground)
     local command = term.read(history, nil, hint)
-    if command == nil or command == "" then -- eof
+    if not command then -- eof
       return
     end
     local code, reason
