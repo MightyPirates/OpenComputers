@@ -239,7 +239,9 @@ function term.readKeyboard(ops)
 
   while true do
     local name, address, char, code = term.internal.pull(input)
-    assert(term.isAvailable(), "term_unavailable")
+    if not term.isAvailable() then
+      return
+    end
 
     -- we have to keep checking what kb is active in case it is switching during use
     -- we could have multiple screens, each with keyboards active
