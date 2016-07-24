@@ -19,6 +19,11 @@ local local_env = {unicode=unicode,event=event,process=process,W=W,kb=kb}
 function term.internal.open(...)
   local dx, dy, w, h = ...
   local window = {x=1,y=1,fullscreen=select("#",...)==0,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true}
+  event.listen("screen_resized", function(_,addr,w,h)
+    if term.isAvailable(window) and term.screen(window) == addr and window.fullscreen then
+      window.w,window.h = w,h
+    end
+  end)
   return window
 end
 

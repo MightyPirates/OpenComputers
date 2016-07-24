@@ -93,7 +93,7 @@ local function recurse(fromPath, toPath, origin)
     if options.x and origin and mounts[fs.canonical(fromPath)] then
       return true
     end
-    if fs.get(fromPath) == fs.get(toPath) and fs.canonical(toPath):find(fs.canonical(fromPath),1,true)  then
+    if fs.get(fromPath) == fs.get(toPath) and (fs.canonical(toPath).."/"):find(fs.canonical(fromPath).."/",1,true)  then
       return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
     end
     if not fs.exists(toPath) then
