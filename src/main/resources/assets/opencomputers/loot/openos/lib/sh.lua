@@ -251,26 +251,31 @@ function sh.internal.createThreads(commands, eargs, env)
     end, name)
 
     threads[i] = thread
-    
-    if thread then
-      -- smart check if ios should be loaded
-      if tx.first(args, function(token) return token == "<" or token:find(">") end) then
-        args, reason = sh.internal.buildCommandRedirects(thread, args)
-      end
-    end
-    
-    if not args or not thread then
+
+    if not thread then
       for i,t in ipairs(threads) do
         process.internal.close(t)
       end
       return nil, reason
     end
 
-    process.info(thread).data.args = tx.concat(args, eargs or {})
+    process.info(thread).data.args = args
   end
 
   if #threads > 1 then
     sh.internal.buildPipeChain(threads)
+  end
+
+  for i = 1, #threads do
+    local thread = threads[i]
+    local args = process.info(thread).data.args
+
+    -- smart check if ios should be loaded
+    if tx.first(args, function(token) return token == "<" or token:find(">") end) then
+      args, reason = sh.internal.buildCommandRedirects(thread, args)
+    end
+
+    process.info(thread).data.args = tx.concat(args, eargs or {})
   end
 
   return threads
