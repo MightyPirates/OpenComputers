@@ -67,7 +67,8 @@ end
 
 for _, row in ipairs(result) do
   for col, value in ipairs(row) do
-    io.write(text.padRight(value, m[col] + 2))
+    local padding = col == #row and 0 or 2
+    io.write(text.padRight(value, m[col] + padding))
   end
   print()
 end
