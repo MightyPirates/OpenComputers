@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.traits
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
@@ -33,9 +34,15 @@ trait WorldAware {
   }
 
   def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
-    val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, null, blockPos.toBlockPos, face, null)
-    MinecraftForge.EVENT_BUS.post(event)
-    !event.isCanceled && event.getUseBlock != Result.DENY
+    try {
+      val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, null, blockPos.toBlockPos, face, null)
+      MinecraftForge.EVENT_BUS.post(event)
+      !event.isCanceled && event.getUseBlock != Result.DENY
+    } catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Some event handler threw up while checking for permission to access a block.", t)
+        true
+    }
   }
 
   def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {
