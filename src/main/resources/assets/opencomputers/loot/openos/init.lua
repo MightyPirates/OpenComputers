@@ -157,10 +157,10 @@ do
     computer.pushSignal("component_added", c, t)
   end
   os.sleep(0.5) -- Allow signal processing by libraries.
-  computer.pushSignal("init") -- so libs know components are initialized.
-
   status("Initializing system...")
-  os.sleep(0.1) -- Allow init processing.
+
+  computer.pushSignal("init") -- so libs know components are initialized.
+  require("event").pull(1, "init") -- Allow init processing.
   runlevel = 1
 end
 
