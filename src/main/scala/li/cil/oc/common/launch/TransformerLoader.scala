@@ -2,13 +2,13 @@ package li.cil.oc.common.launch
 
 import java.util
 
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import li.cil.oc.common.asm.ClassTransformer
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
-@MCVersion("1.7.10")
+@MCVersion("1.10.2")
 class TransformerLoader extends IFMLLoadingPlugin {
   val instance = this
 

@@ -177,7 +177,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       val tag = dataTag(driver, stack)
       // Clear the tag compound before saving to get the same behavior as
       // in tile entities (otherwise entries have to be cleared manually).
-      for (key <- tag.func_150296_c.map(_.asInstanceOf[String])) {
+      for (key <- tag.getKeySet.map(_.asInstanceOf[String])) {
         tag.removeTag(key)
       }
       component.save(tag)

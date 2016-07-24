@@ -1,12 +1,12 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.Waypoint
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.RTree
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -16,22 +16,22 @@ object Waypoints {
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+    if (!e.getWorld.isRemote) {
+      dimensions.remove(e.getWorld.provider.getDimension)
     }
   }
 
   @SubscribeEvent
   def onWorldLoad(e: WorldEvent.Load) {
-    if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+    if (!e.getWorld.isRemote) {
+      dimensions.remove(e.getWorld.provider.getDimension)
     }
   }
 
   // Safety clean up, in case some tile entities didn't properly leave the net.
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload) {
-    e.getChunk.chunkTileEntityMap.values.foreach {
+    e.getChunk.getTileEntityMap.values.foreach {
       case waypoint: Waypoint => remove(waypoint)
       case _ =>
     }
@@ -49,7 +49,7 @@ object Waypoints {
   }
 
   def findWaypoints(pos: BlockPosition, range: Double): Iterable[Waypoint] = {
-    dimensions.get(pos.world.get.provider.dimensionId) match {
+    dimensions.get(pos.world.get.provider.getDimension) match {
       case Some(set) =>
         val bounds = pos.bounds.expand(range * 0.5, range * 0.5, range * 0.5)
         set.query((bounds.minX, bounds.minY, bounds.minZ), (bounds.maxX, bounds.maxY, bounds.maxZ))
@@ -57,5 +57,5 @@ object Waypoints {
     }
   }
 
-  private def dimension(waypoint: Waypoint) = waypoint.world.provider.dimensionId
+  private def dimension(waypoint: Waypoint) = waypoint.world.provider.getDimension
 }

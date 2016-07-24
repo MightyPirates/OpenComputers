@@ -7,39 +7,41 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
+import net.minecraft.block.Block
+import net.minecraft.block.state.BlockStateContainer
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.reflect.ClassTag
 
 class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
   setCreativeTab(null)
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
-  override protected def customTextures = Array(
-    Some("MicrocontrollerTop"),
-    Some("MicrocontrollerTop"),
-    Some("MicrocontrollerSide"),
-    Some("MicrocontrollerFront"),
-    Some("MicrocontrollerSide"),
-    Some("MicrocontrollerSide")
-  )
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
+
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+
+  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
   // ----------------------------------------------------------------------- //
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
+  override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
+    world.getTileEntity(pos) match {
       case mcu: tileentity.Microcontroller => mcu.info.copyItemStack()
       case _ => null
     }
@@ -65,16 +67,15 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override def energyThroughput = Settings.get.caseRate(Tier.One)
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Microcontroller()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Microcontroller()
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (!Wrench.holdsApplicableWrench(player, pos)) {
       if (!player.isSneaking) {
         if (!world.isRemote) {
-          world.getTileEntity(x, y, z) match {
+          world.getTileEntity(pos) match {
             case mcu: tileentity.Microcontroller =>
               if (mcu.machine.isRunning) mcu.machine.stop()
               else mcu.machine.start()
@@ -83,9 +84,9 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
         }
         true
       }
-      else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.EEPROM)) {
+      else if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.EEPROM)) {
         if (!world.isRemote) {
-          world.getTileEntity(x, y, z) match {
+          world.getTileEntity(pos) match {
             case mcu: tileentity.Microcontroller =>
               val newEeprom = player.inventory.decrStackSize(player.inventory.currentItem, 1)
               mcu.changeEEPROM(newEeprom) match {
@@ -113,6 +114,6 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
     super.doCustomDrops(tileEntity, player, willHarvest)
     tileEntity.saveComponents()
     tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
-    dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, tileEntity.info.createItemStack())
+    Block.spawnAsEntity(tileEntity.world, tileEntity.getPos, tileEntity.info.createItemStack())
   }
 }

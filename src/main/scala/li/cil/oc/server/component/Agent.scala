@@ -16,11 +16,13 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.util.MovingObjectPosition
-import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.Vec3
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
@@ -31,7 +33,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   override def fakePlayer = agent.player
 
-  protected def rotatedPlayer(facing: ForgeDirection = agent.facing, side: ForgeDirection = agent.facing) = {
+  protected def rotatedPlayer(facing: EnumFacing = agent.facing, side: EnumFacing = agent.facing) = {
     val player = agent.player.asInstanceOf[Player]
     Player.updatePositionAndRotation(player, facing, side)
     player
@@ -80,7 +82,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
@@ -102,8 +104,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       triggerDelay()
       (true, "entity")
     }
-    def click(player: Player, x: Int, y: Int, z: Int, side: Int) = {
-      val breakTime = player.clickBlock(x, y, z, side)
+    def click(player: Player, pos: BlockPos, side: EnumFacing) = {
+      val breakTime = player.clickBlock(pos, side)
       val broke = breakTime > 0
       if (broke) {
         triggerDelay(breakTime)
@@ -120,15 +122,15 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
         val hit = pick(player, Settings.get.swingRange)
         (Option(hit) match {
           case Some(info) => info.typeOfHit
-          case _ => MovingObjectType.MISS
+          case _ => RayTraceResult.Type.MISS
         }) match {
-          case MovingObjectType.ENTITY =>
+          case RayTraceResult.Type.ENTITY =>
             attack(player, hit.entityHit)
-          case MovingObjectType.BLOCK =>
-            click(player, hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+          case RayTraceResult.Type.BLOCK =>
+            click(player, hit.getBlockPos, hit.sideHit)
           case _ =>
             // Retry with full block bounds, disregarding swing range.
-            player.closestEntity[EntityLivingBase]() match {
+            player.closestEntity(classOf[EntityLivingBase]) match {
               case Some(entity) =>
                 attack(player, entity)
               case _ =>
@@ -160,7 +162,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val duration =
@@ -185,7 +187,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
     def interact(player: Player, entity: Entity) = {
       beginConsumeDrops(entity)
-      val result = player.interactWith(entity)
+      val result = player.interact(entity, player.getHeldItemMainhand, EnumHand.MAIN_HAND)
       endConsumeDrops(player, entity)
       result
     }
@@ -195,20 +197,20 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       player.setSneaking(sneaky)
 
       val (success, what) = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-        case Some(hit) if hit.typeOfHit == MovingObjectType.ENTITY && interact(player, hit.entityHit) =>
+        case Some(hit) if hit.typeOfHit == RayTraceResult.Type.ENTITY && interact(player, hit.entityHit) == EnumActionResult.SUCCESS =>
           triggerDelay()
           (true, "item_interacted")
-        case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
+        case Some(hit) if hit.typeOfHit == RayTraceResult.Type.BLOCK =>
+          val (blockPos, hx, hy, hz) = clickParamsFromHit(hit)
+          activationResult(player.activateBlockOrUseItem(blockPos, hit.sideHit, hx, hy, hz, duration))
         case _ =>
           (if (canPlaceInAir) {
-            val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
-            if (player.placeBlock(0, bx, by, bz, facing.ordinal, hx, hy, hz))
+            val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
+            if (player.placeBlock(0, blockPos, facing, hx, hy, hz))
               ActivationType.ItemPlaced
             else {
-              val (bx, by, bz, hx, hy, hz) = clickParamsForItemUse(facing, side)
-              player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
+              val (blockPos, hx, hy, hz) = clickParamsForItemUse(facing, side)
+              player.activateBlockOrUseItem(blockPos, side.getOpposite, hx, hy, hz, duration)
             }
           } else ActivationType.None) match {
             case ActivationType.None =>
@@ -239,7 +241,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
@@ -251,12 +253,12 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       val player = rotatedPlayer(facing, side)
       player.setSneaking(sneaky)
       val success = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-        case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          player.placeBlock(agent.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
-          player.placeBlock(agent.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
+        case Some(hit) if hit.typeOfHit == RayTraceResult.Type.BLOCK =>
+          val (blockPos, hx, hy, hz) = clickParamsFromHit(hit)
+          player.placeBlock(agent.selectedSlot, blockPos, hit.sideHit, hx, hy, hz)
+        case None if canPlaceInAir && player.closestEntity(classOf[Entity]).isEmpty =>
+          val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
+          player.placeBlock(agent.selectedSlot, blockPos, facing, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
@@ -286,47 +288,47 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   // ----------------------------------------------------------------------- //
 
-  protected def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
+  protected def checkSideForFace(args: Arguments, n: Int, facing: EnumFacing) = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
 
   protected def pick(player: Player, range: Double) = {
-    val origin = Vec3.createVectorHelper(
-      player.posX + player.facing.offsetX * 0.5,
-      player.posY + player.facing.offsetY * 0.5,
-      player.posZ + player.facing.offsetZ * 0.5)
+    val origin = new Vec3d(
+      player.posX + player.facing.getFrontOffsetX * 0.5,
+      player.posY + player.facing.getFrontOffsetY * 0.5,
+      player.posZ + player.facing.getFrontOffsetZ * 0.5)
     val blockCenter = origin.addVector(
-      player.facing.offsetX * 0.51,
-      player.facing.offsetY * 0.51,
-      player.facing.offsetZ * 0.51)
+      player.facing.getFrontOffsetX * 0.51,
+      player.facing.getFrontOffsetY * 0.51,
+      player.facing.getFrontOffsetZ * 0.51)
     val target = blockCenter.addVector(
-      player.side.offsetX * range,
-      player.side.offsetY * range,
-      player.side.offsetZ * range)
+      player.side.getFrontOffsetX * range,
+      player.side.getFrontOffsetY * range,
+      player.side.getFrontOffsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
-    player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || Vec3.createVectorHelper(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+    player.closestEntity(classOf[Entity]) match {
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3d(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new RayTraceResult(entity)
       case _ => hit
     }
   }
 
-  protected def clickParamsFromHit(hit: MovingObjectPosition) = {
-    (hit.blockX, hit.blockY, hit.blockZ,
-      (hit.hitVec.xCoord - hit.blockX).toFloat,
-      (hit.hitVec.yCoord - hit.blockY).toFloat,
-      (hit.hitVec.zCoord - hit.blockZ).toFloat)
+  protected def clickParamsFromHit(hit: RayTraceResult) = {
+    (hit.getBlockPos,
+      (hit.hitVec.xCoord - hit.getBlockPos.getX).toFloat,
+      (hit.hitVec.yCoord - hit.getBlockPos.getY).toFloat,
+      (hit.hitVec.zCoord - hit.getBlockPos.getZ).toFloat)
   }
 
-  protected def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {
+  protected def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing) = {
     val blockPos = position.offset(facing).offset(side)
-    (blockPos.x, blockPos.y, blockPos.z,
-      0.5f - side.offsetX * 0.5f,
-      0.5f - side.offsetY * 0.5f,
-      0.5f - side.offsetZ * 0.5f)
+    (blockPos.toBlockPos,
+      0.5f - side.getFrontOffsetX * 0.5f,
+      0.5f - side.getFrontOffsetY * 0.5f,
+      0.5f - side.getFrontOffsetZ * 0.5f)
   }
 
-  protected def clickParamsForPlace(facing: ForgeDirection) = {
-    (position.x, position.y, position.z,
-      0.5f + facing.offsetX * 0.5f,
-      0.5f + facing.offsetY * 0.5f,
-      0.5f + facing.offsetZ * 0.5f)
+  protected def clickParamsForPlace(facing: EnumFacing) = {
+    (position.toBlockPos,
+      0.5f + facing.getFrontOffsetX * 0.5f,
+      0.5f + facing.getFrontOffsetY * 0.5f,
+      0.5f + facing.getFrontOffsetZ * 0.5f)
   }
 }

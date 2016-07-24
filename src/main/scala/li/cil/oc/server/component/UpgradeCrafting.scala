@@ -2,7 +2,6 @@ package li.cil.oc.server.component
 
 import java.util
 
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -22,6 +21,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -72,9 +72,9 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
               if (item.hasContainerItem(stack)) {
                 val container = item.getContainerItem(stack)
                 if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
+                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container, null))
                 }
-                else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
+                else if (getStackInSlot(slot) != null) {
                   surplus += container
                 }
                 else {

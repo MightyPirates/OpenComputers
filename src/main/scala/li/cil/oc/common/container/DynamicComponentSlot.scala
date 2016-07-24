@@ -1,22 +1,21 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.client.gui.Icons
+import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
-import net.minecraft.inventory.Slot
 
-class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
+class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends ComponentSlot(inventory, index, x, y) {
   override def tier = {
     val mainTier = containerTierGetter()
     if (mainTier >= 0) info(this).tier
     else mainTier
   }
 
-  def tierIcon = Icons.get(tier)
+  def tierIcon = Textures.Icons.get(tier)
 
   def slot = {
     val mainTier = containerTierGetter()
@@ -24,7 +23,9 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
     else common.Slot.None
   }
 
-  override def getBackgroundIconIndex = Icons.get(slot)
+  override def hasBackground = Textures.Icons.get(slot) != null
+
+  override def getBackgroundLocation = Option(Textures.Icons.get(slot)).getOrElse(super.getBackgroundLocation)
 
   override def getSlotStackLimit =
     slot match {

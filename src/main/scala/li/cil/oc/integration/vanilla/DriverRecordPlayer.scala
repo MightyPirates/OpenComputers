@@ -15,13 +15,15 @@ import net.minecraft.init.Blocks
 import net.minecraft.item.Item
 import net.minecraft.item.ItemRecord
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverRecordPlayer extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[BlockJukebox.TileEntityJukebox]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment = new Environment(world.getTileEntity(x, y, z).asInstanceOf[BlockJukebox.TileEntityJukebox])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[BlockJukebox.TileEntityJukebox])
 
   final class Environment(tileEntity: BlockJukebox.TileEntityJukebox) extends ManagedTileEntityEnvironment[BlockJukebox.TileEntityJukebox](tileEntity, "jukebox") with NamedBlock {
     override def preferredName = "jukebox"
@@ -30,7 +32,7 @@ object DriverRecordPlayer extends DriverSidedTileEntity {
 
     @Callback(doc = "function():string -- Get the title of the record currently in the jukebox.")
     def getRecord(context: Context, args: Arguments): Array[AnyRef] = {
-      val record = tileEntity.func_145856_a()
+      val record = tileEntity.getRecord
       if (record != null && record.getItem.isInstanceOf[ItemRecord]) {
         result(record.getItem.asInstanceOf[ItemRecord].getRecordNameLocal)
       }
@@ -39,9 +41,9 @@ object DriverRecordPlayer extends DriverSidedTileEntity {
 
     @Callback(doc = "function() -- Start playing the record currently in the jukebox.")
     def play(context: Context, args: Arguments): Array[AnyRef] = {
-      val record = tileEntity.func_145856_a()
+      val record = tileEntity.getRecord
       if (record != null && record.getItem.isInstanceOf[ItemRecord]) {
-        tileEntity.getWorldObj.playAuxSFXAtEntity(null, 1005, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, Item.getIdFromItem(record.getItem))
+        tileEntity.getWorld.playEvent(null, 1005, tileEntity.getPos, Item.getIdFromItem(record.getItem))
         result(true)
       }
       else null
@@ -49,15 +51,15 @@ object DriverRecordPlayer extends DriverSidedTileEntity {
 
     @Callback(doc = "function() -- Stop playing the record currently in the jukebox.")
     def stop(context: Context, args: Arguments): Array[AnyRef] = {
-      tileEntity.getWorldObj.playAuxSFX(1005, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, 0)
-      tileEntity.getWorldObj.playRecord(null, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      tileEntity.getWorld.playEvent(1005, tileEntity.getPos, 0)
+      tileEntity.getWorld.playRecord(tileEntity.getPos, null)
       null
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.jukebox)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.JUKEBOX)
         classOf[Environment]
       else null
     }

@@ -7,17 +7,18 @@ import net.minecraft.command.ICommandSender
 import net.minecraft.command.WrongUsageException
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.server.MinecraftServer
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 object LogNanomachinesCommand extends SimpleCommand("oc_nanomachines") {
   aliases += "oc_nm"
 
   override def getCommandUsage(source: ICommandSender): String = name + " [player]"
 
-  override def processCommand(source: ICommandSender, command: Array[String]) {
+  override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     (if (command.length > 0) {
       val player = command(0)
-      val config = MinecraftServer.getServer.getConfigurationManager
-      config.func_152612_a(player)
+      val config = FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList
+      config.getPlayerByUsername(player)
     } else source) match {
       case player: EntityPlayer =>
         api.Nanomachines.installController(player) match {

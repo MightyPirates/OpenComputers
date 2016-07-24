@@ -14,9 +14,9 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedBlock._
-import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
@@ -66,7 +66,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
     val blockPos = BlockPosition(redstone).offset(side)
     if (redstone.world.blockExists(blockPos)) {
       val block = redstone.world.getBlock(blockPos)
-      if (block.hasComparatorInputOverride) {
+      if (block.hasComparatorInputOverride(redstone.world.getBlockState(blockPos.toBlockPos))) {
         val comparatorOverride = block.getComparatorInputOverride(blockPos, side.getOpposite)
         return result(comparatorOverride)
       }
@@ -79,7 +79,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
-      case Array(side: ForgeDirection, oldMaxValue: Number, newMaxValue: Number) =>
+      case Array(side: EnumFacing, oldMaxValue: Number, newMaxValue: Number) =>
         onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
       case _ =>
     }
@@ -91,6 +91,6 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
-    redstone.toGlobal(ForgeDirection.getOrientation(side))
+    redstone.toGlobal(EnumFacing.getFront(side))
   }
 }

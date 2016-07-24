@@ -1,7 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.implementations.tiles.ISegmentedInventory
-import appeng.api.parts.IPartHost
 import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
@@ -9,7 +7,6 @@ import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.reflect.ClassTag
 

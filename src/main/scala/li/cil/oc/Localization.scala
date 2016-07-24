@@ -1,12 +1,12 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.event.FMLFingerprintViolationEvent
 import li.cil.oc.client.CommandHandler.SetClipboardCommand
-import net.minecraft.event.ClickEvent
-import net.minecraft.event.HoverEvent
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.ChatComponentTranslation
-import net.minecraft.util.StatCollector
+import net.minecraft.util.text.TextComponentString
+import net.minecraft.util.text.TextComponentTranslation
+import net.minecraft.util.text.event.ClickEvent
+import net.minecraft.util.text.event.HoverEvent
+import net.minecraft.util.text.translation.I18n
+import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent
 
 import scala.util.matching.Regex
 
@@ -15,21 +15,21 @@ object Localization {
 
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
-  def canLocalize(key: String) = StatCollector.canTranslate(key)
+  def canLocalize(key: String) = I18n.canTranslate(key)
 
-  def localizeLater(formatKey: String, values: AnyRef*) = new ChatComponentTranslation(resolveKey(formatKey), values: _*)
+  def localizeLater(formatKey: String, values: AnyRef*) = new TextComponentTranslation(resolveKey(formatKey), values: _*)
 
-  def localizeLater(key: String) = new ChatComponentTranslation(resolveKey(key))
+  def localizeLater(key: String) = new TextComponentTranslation(resolveKey(key))
 
-  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(formatKey: String, values: AnyRef*) = I18n.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
 
-  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(key: String) = I18n.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
     def Address(value: String) = {
       val result = localizeLater("gui.Analyzer.Address", value)
-      result.getChatStyle.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, s"/${SetClipboardCommand.name} $value"))
-      result.getChatStyle.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, localizeLater("gui.Analyzer.CopyToClipboard")))
+      result.getStyle.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, s"/${SetClipboardCommand.name} $value"))
+      result.getStyle.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, localizeLater("gui.Analyzer.CopyToClipboard")))
       result
     }
 
@@ -69,7 +69,7 @@ object Localization {
 
     def Complexity(complexity: Int, maxComplexity: Int) = {
       val message = localizeLater("gui.Assembler.Complexity", complexity.toString, maxComplexity.toString)
-      if (complexity > maxComplexity) new ChatComponentText("§4").appendSibling(message)
+      if (complexity > maxComplexity) new TextComponentString("§4").appendSibling(message)
       else message
     }
 
@@ -77,31 +77,31 @@ object Localization {
 
     def Progress(progress: Double, timeRemaining: String) = localizeImmediately("gui.Assembler.Progress", progress.toInt.toString, timeRemaining)
 
-    def Warning(name: String) = new ChatComponentText("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
+    def Warning(name: String) = new TextComponentString("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
 
     def Warnings = localizeLater("gui.Assembler.Warnings")
   }
 
   object Chat {
-    def WarningLuaFallback = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
+    def WarningLuaFallback = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
 
-    def WarningProjectRed = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
+    def WarningProjectRed = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
 
-    def WarningPower = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningPower"))
+    def WarningPower = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningPower"))
 
-    def WarningFingerprint(event: FMLFingerprintViolationEvent) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
+    def WarningFingerprint(event: FMLFingerprintViolationEvent) = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.getExpectedFingerprint, event.getFingerprints.toArray.mkString(", ")))
 
-    def WarningRecipes = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
+    def WarningRecipes = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
 
-    def WarningClassTransformer = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
+    def WarningClassTransformer = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
 
-    def WarningSimpleComponent = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
+    def WarningSimpleComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
 
-    def WarningLink(url: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
+    def WarningLink(url: String) = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
 
-    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
+    def InfoNewVersion(version: String) = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
 
-    def TextureName(name: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
+    def TextureName(name: String) = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
   }
 
   object Computer {

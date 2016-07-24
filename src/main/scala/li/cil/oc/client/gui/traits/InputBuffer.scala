@@ -3,12 +3,13 @@ package li.cil.oc.client.gui.traits
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -38,18 +39,22 @@ trait InputBuffer extends DisplayBuffer {
     super.drawBufferLayer()
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.guiKeyboardMissing)
-      GL11.glDisable(GL11.GL_DEPTH_TEST)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
+      Textures.bind(Textures.GUI.KeyboardMissing)
+      GlStateManager.disableDepth()
+
       val x = bufferX + buffer.renderWidth - 16
       val y = bufferY + buffer.renderHeight - 16
-      t.addVertexWithUV(x, y + 16, 0, 0, 1)
-      t.addVertexWithUV(x + 16, y + 16, 0, 1, 1)
-      t.addVertexWithUV(x + 16, y, 0, 1, 0)
-      t.addVertexWithUV(x, y, 0, 0, 0)
+
+      val t = Tessellator.getInstance
+      val r = t.getBuffer
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x, y + 16, 0).tex(0, 1).endVertex()
+      r.pos(x + 16, y + 16, 0).tex(1, 1).endVertex()
+      r.pos(x + 16, y, 0).tex(1, 0).endVertex()
+      r.pos(x, y, 0).tex(0, 0).endVertex()
       t.draw()
-      GL11.glEnable(GL11.GL_DEPTH_TEST)
+
+      GlStateManager.enableDepth()
 
       RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
     }
@@ -66,7 +71,7 @@ trait InputBuffer extends DisplayBuffer {
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
 
-    if (this.isInstanceOf[GuiContainer] && NEI.isInputFocused) return
+    if (this.isInstanceOf[GuiContainer] && ItemSearch.isInputFocused) return
 
     val code = Keyboard.getEventKey
     if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {

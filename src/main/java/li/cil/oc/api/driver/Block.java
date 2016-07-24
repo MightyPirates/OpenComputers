@@ -1,6 +1,7 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -36,12 +37,10 @@ public interface Block {
      * can force this by sending a neighbor block change notification.
      *
      * @param world the world in which the block to check lives.
-     * @param x     the X coordinate of the block to check.
-     * @param y     the Y coordinate of the block to check.
-     * @param z     the Z coordinate of the block to check.
+     * @param pos   the position coordinate of the block to check.
      * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(World world, int x, int y, int z);
+    boolean worksWith(World world, BlockPos pos);
 
     /**
      * Create a new managed environment interfacing the specified block.
@@ -57,10 +56,8 @@ public interface Block {
      * <tt>Adapter</tt> block that caused its creation.
      *
      * @param world the world containing the block to get the environment for.
-     * @param x     the X coordinate of the block to get the environment for.
-     * @param y     the Y coordinate of the block to get the environment for.
-     * @param z     the Z coordinate of the block to get the environment for.
+     * @param pos   the position of the block to get the environment for.
      * @return the environment for the block at that location.
      */
-    ManagedEnvironment createEnvironment(World world, int x, int y, int z);
+    ManagedEnvironment createEnvironment(World world, BlockPos pos);
 }

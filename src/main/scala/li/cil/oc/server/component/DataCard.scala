@@ -324,15 +324,18 @@ object DataCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val TypeTag = "Type"
+    private final val DataTag = "Data"
+
     override def load(nbt: NBTTagCompound): Unit = {
-      val keyType = nbt.getString("Type")
-      val data = nbt.getByteArray("Data")
+      val keyType = nbt.getString(TypeTag)
+      val data = nbt.getByteArray(DataTag)
       value = ECUserdata.deserializeKey(keyType, data)
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString("Type", keyType)
-      nbt.setByteArray("Data", value.getEncoded)
+      nbt.setString(TypeTag, keyType)
+      nbt.setByteArray(DataTag, value.getEncoded)
     }
   }
 

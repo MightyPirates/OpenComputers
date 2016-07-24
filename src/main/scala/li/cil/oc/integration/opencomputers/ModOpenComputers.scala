@@ -1,6 +1,5 @@
 package li.cil.oc.integration.opencomputers
 
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -37,6 +36,7 @@ import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
@@ -45,6 +45,7 @@ import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
@@ -53,6 +54,8 @@ object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
+    ItemBlacklist.apply()
+
     DroneTemplate.register()
     MicrocontrollerTemplate.register()
     NavigationUpgradeTemplate.register()
@@ -93,10 +96,10 @@ object ModOpenComputers extends ModProxy {
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
-    FMLCommonHandler.instance.bus.register(EventHandler)
-    FMLCommonHandler.instance.bus.register(NanomachinesHandler.Common)
-    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
-    FMLCommonHandler.instance.bus.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(EventHandler)
+    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
+    MinecraftForge.EVENT_BUS.register(SimpleComponentTickHandler.Instance)
+    MinecraftForge.EVENT_BUS.register(Tablet)
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
@@ -317,7 +320,7 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addProvider("block", BlockImageProvider)
     api.Manual.addProvider("oredict", OreDictImageProvider)
 
-    api.Manual.addTab(new TextureTabIconRenderer(Textures.guiManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
+    api.Manual.addTab(new TextureTabIconRenderer(Textures.GUI.ManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
 
@@ -328,9 +331,9 @@ object ModOpenComputers extends ModProxy {
     api.Nanomachines.addProvider(MagnetProvider)
   }
 
-  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getHeldItem.getItem match {
-      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, x, y, z, !changeDurability)
+  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
+    player.getHeldItemMainhand.getItem match {
+      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
       case _ => false
     }
   }
@@ -364,8 +367,10 @@ object ModOpenComputers extends ModProxy {
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
-    for (itemName <- itemNames) {
+    for (itemName <- itemNames) try {
       api.IMC.blacklistHost(itemName, host, api.Items.get(itemName).createItemStack(1))
+    } catch {
+      case t: Throwable => OpenComputers.log.warn(s"Error blacklisting '$itemName' for '${host.getSimpleName}.", t)
     }
   }
 
@@ -382,7 +387,7 @@ object ModOpenComputers extends ModProxy {
       case _ => null
     }
 
-    override def pathFor(world: World, x: Int, y: Int, z: Int): String = world.getBlock(x, y, z) match {
+    override def pathFor(world: World, pos: BlockPos): String = world.getBlockState(pos).getBlock match {
       case block: SimpleBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
       case _ => null
     }

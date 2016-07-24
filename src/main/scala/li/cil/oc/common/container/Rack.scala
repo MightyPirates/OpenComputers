@@ -7,8 +7,8 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends Player(playerInventory, rack) {
   addSlotToContainer(20, 23, Slot.RackMountable)
@@ -23,7 +23,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def updateCustomData(nbt: NBTTagCompound): Unit = {
     super.updateCustomData(nbt)
     nbt.getTagList("nodeMapping", NBT.TAG_INT_ARRAY).map((sides: NBTTagIntArray) => {
-      sides.func_150302_c().map(side => if (side >= 0) Option(ForgeDirection.getOrientation(side)) else None)
+      sides.getIntArray.map(side => if (side >= 0) Option(EnumFacing.getFront(side)) else None)
     }).copyToArray(rack.nodeMapping)
     nbt.getBooleanArray("nodePresence").grouped(MaxConnections).copyToArray(nodePresence)
     rack.isRelayEnabled = nbt.getBoolean("isRelayEnabled")

@@ -3,7 +3,6 @@ package li.cil.oc.common
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
@@ -17,7 +16,9 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagString
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 
 import scala.collection.convert.WrapAsScala._
 
@@ -49,8 +50,8 @@ object IMC {
         }
       }
       else if (message.key == "registerWrenchTool" && message.isStringMessage) {
-        OpenComputers.log.info(s"Registering new wrench tool usage '${message.getStringValue}' from mod ${message.getSender}.")
-        try Wrench.addUsage(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[Int], classOf[Int], classOf[Int], classOf[Boolean])) catch {
+        OpenComputers.log.info(s"Registering new wrench usage '${message.getStringValue}' from mod ${message.getSender}.")
+        try Wrench.addUsage(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[BlockPos], classOf[Boolean])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench usage.", t)
         }
       }
@@ -99,7 +100,7 @@ object IMC {
       }
       else if (message.key == "registerProgramDiskLabel" && message.isNBTMessage) {
         OpenComputers.log.info(s"Registering new program location mapping for program '${message.getNBTValue.getString("program")}' being on disk '${message.getNBTValue.getString("label")}' from mod ${message.getSender}.")
-        ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).toArray: _*)
+        ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString()).toArray: _*)
       }
       else {
         OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")

@@ -91,7 +91,7 @@ object ExtendedLuaState {
       val tableIndex = lua.getTop
       memo += obj -> tableIndex
       for ((key: AnyRef, value: AnyRef) <- map) {
-        if (key != null && key != Unit && !key.isInstanceOf[BoxedUnit]) {
+        if (key != null && !key.isInstanceOf[BoxedUnit]) {
           pushValue(key, memo)
           val keyIndex = lua.getTop
           pushValue(value, memo)

@@ -12,9 +12,10 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
@@ -94,41 +95,41 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 153 - deltaY, 18, 18, Textures.guiButtonPower, canToggle = true)
-    scrollButton = new ImageButton(1, guiLeft + scrollX + 1, guiTop + scrollY + 1, 6, 13, Textures.guiButtonScroll)
+    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 153 - deltaY, 18, 18, Textures.GUI.ButtonPower, canToggle = true)
+    scrollButton = new ImageButton(1, guiLeft + scrollX + 1, guiTop + scrollY + 1, 6, 13, Textures.GUI.ButtonScroll)
     add(buttonList, powerButton)
     add(buttonList, scrollButton)
   }
 
   override def drawBuffer() {
     if (buffer != null) {
-      GL11.glTranslatef(bufferX, bufferY, 0)
-      RenderState.disableLighting()
-      GL11.glPushMatrix()
-      GL11.glTranslatef(-3, -3, 0)
-      GL11.glColor4f(1, 1, 1, 1)
+      GlStateManager.translate(bufferX, bufferY, 0)
+      RenderState.disableEntityLighting()
+      GlStateManager.pushMatrix()
+      GlStateManager.translate(-3, -3, 0)
+      GlStateManager.color(1, 1, 1, 1)
       BufferRenderer.drawBackground()
-      GL11.glPopMatrix()
+      GlStateManager.popMatrix()
       RenderState.makeItBlend()
       val scaleX = bufferRenderWidth / buffer.renderWidth
       val scaleY = bufferRenderHeight / buffer.renderHeight
       val scale = math.min(scaleX, scaleY)
       if (scaleX > scale) {
-        GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
+        GlStateManager.translate(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
       }
       else if (scaleY > scale) {
-        GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
+        GlStateManager.translate(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-      GL11.glScaled(scale, scale, scale)
-      GL11.glScaled(this.scale, this.scale, 1)
+      GlStateManager.scale(scale, scale, scale)
+      GlStateManager.scale(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }
   }
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
-    if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
+    RenderState.pushAttrib()
+    if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
@@ -137,18 +138,18 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
         robot.globalBufferSize.toInt))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    if (powerButton.func_146115_a) {
+    if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (robot.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GL11.glPopAttrib()
+    RenderState.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    if (buffer != null) mc.renderEngine.bindTexture(Textures.guiRobot)
-    else mc.renderEngine.bindTexture(Textures.guiRobotNoScreen)
+    GlStateManager.color(1, 1, 1)
+    if (buffer != null) Textures.bind(Textures.GUI.Robot)
+    else Textures.bind(Textures.GUI.RobotNoScreen)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = robot.globalBuffer / robot.globalBufferSize
     drawWidgets()
@@ -157,11 +158,6 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
 
     drawInventorySlots()
-  }
-
-  protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {
-    super.drawGradientRect(par1, par2, par3, par4, par5, par6)
-    RenderState.makeItBlend()
   }
 
   // No custom slots, we just extend DynamicGuiContainer for the highlighting.
@@ -181,8 +177,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, button)
+  override protected def mouseReleased(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseReleased(mouseX, mouseY, button)
     if (button == 0) {
       isDragging = false
     }
@@ -262,18 +258,19 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     val slot = robot.selectedSlot - inventoryOffset * 4
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
+      Textures.bind(Textures.GUI.RobotSelection)
       val now = System.currentTimeMillis() / 1000.0
       val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
       val x = guiLeft + inventoryX - 1 + (slot % 4) * (selectionSize - 2)
       val y = guiTop + inventoryY - 1 + (slot / 4) * (selectionSize - 2)
 
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(x, y, zLevel, 0, offsetV)
-      t.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
-      t.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
-      t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
+      val t = Tessellator.getInstance
+      val r = t.getBuffer
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x, y, zLevel).tex(0, offsetV).endVertex()
+      r.pos(x, y + selectionSize, zLevel).tex(0, offsetV + selectionStepV).endVertex()
+      r.pos(x + selectionSize, y + selectionSize, zLevel).tex(1, offsetV + selectionStepV).endVertex()
+      r.pos(x + selectionSize, y, zLevel).tex(1, offsetV).endVertex()
       t.draw()
     }
   }

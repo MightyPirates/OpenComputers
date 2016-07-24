@@ -6,11 +6,11 @@ import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.prefab
 import li.cil.oc.server.network.QuantumNetwork
@@ -81,15 +81,17 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
 
   // ----------------------------------------------------------------------- //
 
+  private final val TunnelTag = Settings.namespace + "tunnel"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey(Settings.namespace + "tunnel")) {
-      tunnel = nbt.getString(Settings.namespace + "tunnel")
+    if (nbt.hasKey(TunnelTag)) {
+      tunnel = nbt.getString(TunnelTag)
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setString(Settings.namespace + "tunnel", tunnel)
+    nbt.setString(TunnelTag, tunnel)
   }
 }

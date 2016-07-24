@@ -26,8 +26,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -106,7 +106,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
       return result(Unit, "not enough energy")
 
     val globalPos = BlockPosition(host).offset(globalSide)
-    val event = new Analyze(host, options, globalPos.x, globalPos.y, globalPos.z)
+    val event = new Analyze(host, options, globalPos.toBlockPos)
     MinecraftForge.EVENT_BUS.post(event)
     if (event.isCanceled) result(Unit, "scan was canceled")
     else result(event.data)
@@ -145,9 +145,9 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           if (node.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
-            val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.x, blockPos.y, blockPos.z)
+            val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.toBlockPos)
             MinecraftForge.EVENT_BUS.post(event)
             if (!event.isCanceled) {
               for ((key, value) <- event.data) value match {

@@ -1,0 +1,8 @@
+{
+    "parent": "opencomputers:block/case",
+    "textures": {
+        "east": "opencomputers:blocks/case_side_running",
+        "west": "opencomputers:blocks/case_side_running",
+        "south": "opencomputers:blocks/case_back_running"
+    }
+}

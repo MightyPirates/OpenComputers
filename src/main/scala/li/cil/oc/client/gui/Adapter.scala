@@ -9,7 +9,7 @@ class Adapter(playerInventory: InventoryPlayer, val adapter: tileentity.Adapter)
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(adapter.getInventoryName),
+      Localization.localizeImmediately(adapter.getName),
       8, 6, 0x404040)
   }
 }

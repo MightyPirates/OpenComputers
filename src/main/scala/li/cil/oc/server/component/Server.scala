@@ -31,10 +31,14 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with DeviceInfo {
+class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
   lazy val machine = Machine.create(this)
 
   val node = if (!rack.world.isRemote) machine.node else null
@@ -72,17 +76,19 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def onMessage(message: Message) {
   }
 
+  private final val MachineTag = "machine"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (!rack.world.isRemote) {
-      machine.load(nbt.getCompoundTag("machine"))
+      machine.load(nbt.getCompoundTag(MachineTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     if (!rack.world.isRemote) {
-      nbt.setNewCompoundTag("machine", machine.save)
+      nbt.setNewCompoundTag(MachineTag, machine.save)
     }
   }
 
@@ -170,7 +176,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (!player.getEntityWorld.isRemote) {
       if (player.isSneaking) {
         if (!machine.isRunning && isUseableByPlayer(player)) {
@@ -220,5 +226,17 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
+
+  // ----------------------------------------------------------------------- //
+  // ICapabilityProvider
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = components.exists {
+    case Some(component: ICapabilityProvider) => component.hasCapability(capability, host.toLocal(facing))
+    case _ => false
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = components.collectFirst {
+    case Some(component: ICapabilityProvider) if component.hasCapability(capability, host.toLocal(facing)) => component.getCapability[T](capability, host.toLocal(facing))
+  }.getOrElse(null.asInstanceOf[T])
 }

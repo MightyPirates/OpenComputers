@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import com.google.common.base.Charsets
-import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Packet
 import li.cil.oc.common.InventorySlots
@@ -11,7 +9,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 // TODO Remove in 1.7
 class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.ComponentInventory {
@@ -19,11 +17,10 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
 
   override def isLinkedEnabled = false
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
+    /* TODO ComputerCraft
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
       val address = s"cc${computer.getID}_${computer.getAttachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
@@ -32,11 +29,12 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
           case x => x
         }: _*))
     }
+    */
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def tryEnqueuePacket(sourceSide: Option[ForgeDirection], packet: Packet): Boolean = {
+  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
     if (Mods.ComputerCraft.isAvailable) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
@@ -46,7 +44,7 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
     super.tryEnqueuePacket(sourceSide, packet)
   }
 
-  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
     onSwitchActivity()
   }

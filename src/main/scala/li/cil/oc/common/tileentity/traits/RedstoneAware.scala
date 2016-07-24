@@ -1,27 +1,30 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedWorld._
+import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
+
+/* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IConnectable
 import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
 import mods.immibis.redlogic.api.wiring.IWire
+*/
+
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = Mods.IDs.RedLogic),
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = Mods.IDs.RedLogic),
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = Mods.IDs.RedLogic)
 ))
-trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
+trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmitter with IRedstoneUpdatable TODO RedLogic */ {
   protected[tileentity] val _input = Array.fill(6)(-1)
 
   protected[tileentity] val _output = Array.fill(6)(0)
@@ -45,9 +48,9 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     this
   }
 
-  def input(side: ForgeDirection) = _input(side.ordinal()) max 0
+  def input(side: EnumFacing) = _input(side.ordinal()) max 0
 
-  def input(side: ForgeDirection, newInput: Int): Unit = {
+  def input(side: EnumFacing, newInput: Int): Unit = {
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
@@ -55,18 +58,22 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     }
   }
 
-  def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
+  def maxInput = EnumFacing.values.map(input).max
 
-  def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
+  def output(side: EnumFacing) = _output(toLocal(side).ordinal())
 
-  def output(side: ForgeDirection, value: Int): Unit = if (value != output(side)) {
+  def output(side: EnumFacing, value: Int): Unit = if (value != output(side)) {
     _output(toLocal(side).ordinal()) = value
 
     onRedstoneOutputChanged(side)
   }
 
   def checkRedstoneInputChanged() {
-    shouldUpdateInput = isServer
+    if (this.isInstanceOf[Tickable]) {
+      shouldUpdateInput = isServer
+    } else {
+      EnumFacing.values().foreach(updateRedstoneInput)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -76,19 +83,19 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     if (isServer) {
       if (shouldUpdateInput) {
         shouldUpdateInput = false
-        ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput)
+        EnumFacing.values().foreach(updateRedstoneInput)
       }
     }
   }
 
   override def validate(): Unit = {
     super.validate()
-    if (!canUpdate) {
-      EventHandler.scheduleServer(() => ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput))
+    if (!this.isInstanceOf[Tickable]) {
+      EventHandler.scheduleServer(() => EnumFacing.values().foreach(updateRedstoneInput))
     }
   }
 
-  def updateRedstoneInput(side: ForgeDirection) {
+  def updateRedstoneInput(side: EnumFacing) {
     input(side, BundledRedstone.computeInput(position, side))
   }
 
@@ -125,34 +132,37 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   // ----------------------------------------------------------------------- //
 
-  protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {}
+  protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
 
   protected def onRedstoneOutputEnabledChanged() {
-    world.notifyBlocksOfNeighborChange(position, block)
-    if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(position)
+    if (world != null) {
+      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      if (isServer) ServerPacketSender.sendRedstoneState(this)
+      else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    }
   }
 
-  protected def onRedstoneOutputChanged(side: ForgeDirection) {
-    val blockPos = position.offset(side)
-    world.notifyBlockOfNeighborChange(blockPos, block)
-    world.notifyBlocksOfNeighborChange(blockPos, world.getBlock(blockPos), side.getOpposite)
+  protected def onRedstoneOutputChanged(side: EnumFacing) {
+    val blockPos = getPos.offset(side)
+    world.notifyBlockOfStateChange(blockPos, getBlockType)
+    world.notifyNeighborsOfStateExcept(blockPos, world.getBlockState(blockPos).getBlock, side.getOpposite)
 
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(position)
+    else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
   }
 
   // ----------------------------------------------------------------------- //
+  /* TODO RedLogic
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
-
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def onRedstoneInputChanged() = checkRedstoneInputChanged()
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def onRedstoneInputChanged() = checkRedstoneInputChanged()
+  */
 }

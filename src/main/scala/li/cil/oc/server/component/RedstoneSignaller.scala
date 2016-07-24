@@ -43,13 +43,15 @@ trait RedstoneSignaller extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  private final val WakeThresholdNbt = "wakeThreshold"
+
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
-    wakeThreshold = nbt.getInteger("wakeThreshold")
+    wakeThreshold = nbt.getInteger(WakeThresholdNbt)
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
-    nbt.setInteger("wakeThreshold", wakeThreshold)
+    nbt.setInteger(WakeThresholdNbt, wakeThreshold)
   }
 }

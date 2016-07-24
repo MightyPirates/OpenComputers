@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -15,27 +14,29 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.event.entity.player.EntityInteractEvent
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object Analyzer {
   private lazy val analyzer = api.Items.get(Constants.ItemName.Analyzer)
 
   @SubscribeEvent
-  def onInteract(e: EntityInteractEvent): Unit = {
-    val player = e.entityPlayer
-    val held = player.getHeldItem
+  def onInteract(e: PlayerInteractEvent.EntityInteract): Unit = {
+    val player = e.getEntityPlayer
+    val held = player.getHeldItem(e.getHand)
     if (api.Items.get(held) == analyzer) {
-      if (analyze(e.target, player, 0, 0, 0, 0)) {
-        player.swingItem()
+      if (analyze(e.getTarget, player, EnumFacing.DOWN, 0, 0, 0)) {
+        player.swingArm(e.getHand)
         e.setCanceled(true)
       }
     }
   }
 
-  def analyze(thing: AnyRef, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  def analyze(thing: AnyRef, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     val world = player.worldObj
     thing match {
       case analyzable: Analyzable =>
@@ -45,7 +46,7 @@ object Analyzer {
         true
       case host: SidedEnvironment =>
         if (!world.isRemote) {
-          analyzeNodes(Array(host.sidedNode(ForgeDirection.getOrientation(side))), player)
+          analyzeNodes(Array(host.sidedNode(side)), player)
         }
         true
       case host: Environment =>
@@ -100,7 +101,7 @@ object Analyzer {
 }
 
 class Analyzer(val parent: Delegator) extends traits.Delegate {
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (player.isSneaking && stack.hasTagCompound) {
       stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
       if (stack.getTagCompound.hasNoTags) {
@@ -110,10 +111,10 @@ class Analyzer(val parent: Delegator) extends traits.Delegate {
     super.onItemRightClick(stack, world, player)
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = player.getEntityWorld
     world.getTileEntity(position) match {
-      case screen: tileentity.Screen if ForgeDirection.getOrientation(side) == screen.facing =>
+      case screen: tileentity.Screen if side == screen.facing =>
         if (player.isSneaking) {
           screen.copyToAnalyzer(hitX, hitY, hitZ)
         }

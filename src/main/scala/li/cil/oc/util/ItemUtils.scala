@@ -1,5 +1,7 @@
 package li.cil.oc.util
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.util.Random
 
 import li.cil.oc.Constants
@@ -16,6 +18,8 @@ import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraftforge.oredict.ShapelessOreRecipe
 
@@ -23,6 +27,22 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemUtils {
+  def getDisplayName(nbt: NBTTagCompound): Option[String] = {
+    if (nbt.hasKey("display")) {
+      val displayNbt = nbt.getCompoundTag("display")
+      if (displayNbt.hasKey("Name"))
+        return Option(displayNbt.getString("Name"))
+    }
+    None
+  }
+
+  def setDisplayName(nbt: NBTTagCompound, name: String): Unit = {
+    if (!nbt.hasKey("display")) {
+      nbt.setTag("display", new NBTTagCompound())
+    }
+    nbt.getCompoundTag("display").setString("Name", name)
+  }
+
   def caseTier(stack: ItemStack) = {
     val descriptor = api.Items.get(stack)
     if (descriptor == api.Items.get(Constants.BlockName.CaseTier1)) Tier.One
@@ -47,6 +67,23 @@ object ItemUtils {
 
   def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
+  def loadTag(data: Array[Byte]) = {
+    val bais = new ByteArrayInputStream(data)
+    CompressedStreamTools.readCompressed(bais)
+  }
+
+  def saveStack(stack: ItemStack) = {
+    val tag = new NBTTagCompound()
+    stack.writeToNBT(tag)
+    saveTag(tag)
+  }
+
+  def saveTag(tag: NBTTagCompound) = {
+    val baos = new ByteArrayOutputStream()
+    CompressedStreamTools.writeCompressed(tag, baos)
+    baos.toByteArray
+  }
+
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Int) = (inputs.filter(input =>
       input != null &&
@@ -58,15 +95,15 @@ object ItemUtils {
       !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
     def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.stackSize
     def isInputBlacklisted(stack: ItemStack) = stack.getItem match {
-      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.blockRegistry.getNameForObject(item.field_150939_a))
-      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.itemRegistry.getNameForObject(item))
+      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.REGISTRY.getNameForObject(item.getBlock))
+      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.REGISTRY.getNameForObject(item))
       case _ => false
     }
 
-    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
+    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.
       filter(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack)).collect {
         case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
-        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
+        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems, getOutputSize(recipe))
         case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
         case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
       }.collectFirst {
@@ -110,7 +147,7 @@ object ItemUtils {
 
   private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
     case stack: ItemStack => stack
-    case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
+    case list: java.util.List[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
   }
 
 }

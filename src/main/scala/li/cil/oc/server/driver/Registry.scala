@@ -14,8 +14,9 @@ import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -23,19 +24,19 @@ import scala.collection.mutable
 import scala.math.ScalaNumber
 
 /**
-  * This class keeps track of registered drivers and provides installation logic
-  * for each registered driver.
-  *
-  * Each component type must register its driver with this class to be used with
-  * computers, since this class is used to determine whether an object is a
-  * valid component or not.
-  *
-  * All drivers must be installed once the game starts - in the init phase - and
-  * are then injected into all computers started up past that point. A driver is
-  * a set of functions made available to the computer. These functions will
-  * usually require a component of the type the driver wraps to be installed in
-  * the computer, but may also provide context-free functions.
-  */
+ * This class keeps track of registered drivers and provides installation logic
+ * for each registered driver.
+ *
+ * Each component type must register its driver with this class to be used with
+ * computers, since this class is used to determine whether an object is a
+ * valid component or not.
+ *
+ * All drivers must be installed once the game starts - in the init phase - and
+ * are then injected into all computers started up past that point. A driver is
+ * a set of functions made available to the computer. These functions will
+ * usually require a component of the type the driver wraps to be installed in
+ * the computer, but may also provide context-free functions.
+ */
 private[oc] object Registry extends api.detail.DriverAPI {
   val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
 
@@ -103,19 +104,19 @@ private[oc] object Registry extends api.detail.DriverAPI {
   }
 
   // TODO Remove in OC 1.7
-  override def driverFor(world: World, x: Int, y: Int, z: Int) = {
-    driverFor(world, x, y, z, ForgeDirection.UNKNOWN) match {
+  override def driverFor(world: World, pos: BlockPos) = {
+    driverFor(world, pos, null) match {
       case driver: api.driver.SidedBlock => new api.driver.Block {
-        override def worksWith(world: World, x: Int, y: Int, z: Int): Boolean = driver.worksWith(world, x, y, z, ForgeDirection.UNKNOWN)
+        override def worksWith(world: World, pos: BlockPos): Boolean = driver.worksWith(world, pos, null)
 
-        override def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment = driver.createEnvironment(world, x, y, z, ForgeDirection.UNKNOWN)
+        override def createEnvironment(world: World, pos: BlockPos): ManagedEnvironment = driver.createEnvironment(world, pos, null)
       }
       case _ => null
     }
   }
 
-  override def driverFor(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    (sidedBlocks.filter(_.worksWith(world, x, y, z, side)), blocks.filter(_.worksWith(world, x, y, z))) match {
+  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): api.driver.SidedBlock =
+    (sidedBlocks.filter(_.worksWith(world, pos, side)), blocks.filter(_.worksWith(world, pos))) match {
       case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
       case _ => null
     }

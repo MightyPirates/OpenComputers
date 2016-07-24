@@ -1,30 +1,33 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsScala._
 
-trait ComponentSlot extends Slot {
+abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) extends Slot(inventory, index, x, y) {
   def container: Player
 
   def slot: String
 
   def tier: Int
 
-  def tierIcon: IIcon
+  def tierIcon: ResourceLocation
 
   var changeListener: Option[Slot => Unit] = None
 
   // ----------------------------------------------------------------------- //
 
+  def hasBackground = backgroundLocation != null
+
   @SideOnly(Side.CLIENT)
-  override def func_111238_b() = slot != common.Slot.None && tier != common.Tier.None && super.func_111238_b()
+  override def canBeHovered = slot != common.Slot.None && tier != common.Tier.None && super.canBeHovered
 
   override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
 

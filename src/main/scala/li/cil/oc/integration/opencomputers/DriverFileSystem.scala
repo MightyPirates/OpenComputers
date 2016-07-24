@@ -15,13 +15,15 @@ import li.cil.oc.server.component.Drive
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.DimensionManager
 
 object DriverFileSystem extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.HDDTier1),
     api.Items.get(Constants.ItemName.HDDTier2),
     api.Items.get(Constants.ItemName.HDDTier3),
-    api.Items.get(Constants.ItemName.Floppy))
+    api.Items.get(Constants.ItemName.Floppy)) &&
+    (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (host.world != null && host.world.isRemote) null
@@ -44,7 +46,7 @@ object DriverFileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = {
+  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
       Loot.factories.get(stack.getTagCompound.getString(Settings.namespace + "lootFactory")) match {
@@ -79,6 +81,7 @@ object DriverFileSystem extends Item {
       environment
     }
   }
+  else null
 
   private def addressFromTag(tag: NBTTagCompound) =
     if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
@@ -95,15 +98,17 @@ object DriverFileSystem extends Item {
       label = Option(value).map(_.take(16))
     }
 
+    private final val LabelTag = Settings.namespace + "fs.label"
+
     override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "fs.label")) {
-        label = Option(nbt.getString(Settings.namespace + "fs.label"))
+      if (nbt.hasKey(LabelTag)) {
+        label = Option(nbt.getString(LabelTag))
       }
     }
 
     override def save(nbt: NBTTagCompound) {
       label match {
-        case Some(value) => nbt.setString(Settings.namespace + "fs.label", value)
+        case Some(value) => nbt.setString(LabelTag, value)
         case _ =>
       }
     }

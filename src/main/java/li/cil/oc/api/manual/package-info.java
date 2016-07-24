@@ -5,7 +5,7 @@
  * other mod that may choose to add its documentation to it, such as addon
  * mods.
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Manual",
         apiVersion = API.VERSION)

@@ -1,0 +1,8 @@
+{
+    "parent": "block/cube_bottom_top",
+    "textures": {
+        "top": "opencomputers:blocks/powerDistributor_top",
+        "bottom": "opencomputers:blocks/generic_top",
+        "side": "opencomputers:blocks/powerDistributor_side"
+    }
+}

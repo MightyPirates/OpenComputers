@@ -116,7 +116,6 @@ object Constants {
     final val IronNugget = "nuggetIron"
     final val LeashUpgrade = "leashUpgrade"
     final val LinkedCard = "linkedCard"
-    final val LootDisk = "lootDisk"
     final val LuaBios = "luaBios"
     final val Manual = "manual"
     final val MicrocontrollerCaseCreative = "microcontrollerCaseCreative"

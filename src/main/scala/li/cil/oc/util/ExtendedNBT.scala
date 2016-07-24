@@ -3,9 +3,8 @@ package li.cil.oc.util
 import com.google.common.base.Charsets
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -195,19 +194,19 @@ object ExtendedNBT {
 
   class ExtendedNBTBase(val nbt: NBTBase) {
     def toTypedMap: Map[String, _] = Map("type" -> nbt.getId, "value" -> (nbt match {
-      case tag: NBTTagByte => tag.func_150290_f()
-      case tag: NBTTagShort => tag.func_150289_e()
-      case tag: NBTTagInt => tag.func_150287_d()
-      case tag: NBTTagLong => tag.func_150291_c()
-      case tag: NBTTagFloat => tag.func_150288_h()
-      case tag: NBTTagDouble => tag.func_150286_g()
-      case tag: NBTTagByteArray => tag.func_150292_c()
-      case tag: NBTTagString => tag.func_150285_a_()
+      case tag: NBTTagByte => tag.getByte
+      case tag: NBTTagShort => tag.getShort
+      case tag: NBTTagInt => tag.getInt
+      case tag: NBTTagLong => tag.getLong
+      case tag: NBTTagFloat => tag.getFloat
+      case tag: NBTTagDouble => tag.getDouble
+      case tag: NBTTagByteArray => tag.getByteArray
+      case tag: NBTTagString => tag.getString
       case tag: NBTTagList => tag.map((entry: NBTBase) => entry.toTypedMap)
-      case tag: NBTTagCompound => tag.func_150296_c().collect {
+      case tag: NBTTagCompound => tag.getKeySet.collect {
         case key: String => key -> tag.getTag(key).toTypedMap
       }.toMap
-      case tag: NBTTagIntArray => tag.func_150302_c()
+      case tag: NBTTagIntArray => tag.getIntArray
       case _ => throw new IllegalArgumentException()
     }))
   }
@@ -231,16 +230,12 @@ object ExtendedNBT {
 
     def getDirection(name: String) = {
       nbt.getByte(name) match {
-        case id if id < 0 => None
-        case id =>
-          val side = ForgeDirection.getOrientation(id)
-          // Backwards compatibility.
-          if (side == ForgeDirection.UNKNOWN) None
-          else Option(side)
+        case id if id < 0 || id > EnumFacing.values.length => None
+        case id => Option(EnumFacing.getFront(id))
       }
     }
 
-    def setDirection(name: String, d: Option[ForgeDirection]): Unit = {
+    def setDirection(name: String, d: Option[EnumFacing]): Unit = {
       d match {
         case Some(side) => nbt.setByte(name, side.ordinal.toByte)
         case _ => nbt.setByte(name, -1: Byte)
@@ -268,14 +263,14 @@ object ExtendedNBT {
     def append(values: NBTBase*): Unit = append(values)
 
     def foreach[Tag <: NBTBase](f: Tag => Unit) {
-      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val iterable = nbt.copy(): NBTTagList
       while (iterable.tagCount > 0) {
         f(iterable.removeTag(0).asInstanceOf[Tag])
       }
     }
 
     def map[Tag <: NBTBase, Value](f: Tag => Value): IndexedSeq[Value] = {
-      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val iterable = nbt.copy(): NBTTagList
       val buffer = mutable.ArrayBuffer.empty[Value]
       while (iterable.tagCount > 0) {
         buffer += f(iterable.removeTag(0).asInstanceOf[Tag])

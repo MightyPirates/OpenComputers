@@ -8,8 +8,8 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class DriverBloodAltar extends DriverSidedTileEntity {
     @Override
@@ -18,7 +18,7 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final EnumFacing side) {
         return new Environment((IBloodAltar) world.getTileEntity(x, y, z));
     }
 

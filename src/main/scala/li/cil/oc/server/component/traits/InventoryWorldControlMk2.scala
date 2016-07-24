@@ -9,7 +9,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideRestricted {
   @Callback(doc = """function(facing:number, slot:number[, count:number[, fromSide:number]]):boolean -- Drops the selected item stack into the specified slot of an inventory.""")
@@ -57,7 +57,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     })
   }
 
-  private def withInventory(blockPos: BlockPosition, fromSide: ForgeDirection, f: IInventory => Array[AnyRef]) =
+  private def withInventory(blockPos: BlockPosition, fromSide: EnumFacing, f: IInventory => Array[AnyRef]) =
     InventoryUtils.inventoryAt(blockPos) match {
       case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, fromSide) => f(inventory)
       case _ => result(Unit, "no inventory")

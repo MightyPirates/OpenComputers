@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -15,21 +15,10 @@ import net.minecraft.world.World
 class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   if (Settings.get.ignorePower) {
     setCreativeTab(null)
-    NEI.hide(this)
+    ItemBlacklist.hide(this)
   }
 
   private val formatter = new DecimalFormat("#.#")
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide")
-  )
 
   // ----------------------------------------------------------------------- //
 
@@ -67,7 +56,5 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 
   override def energyThroughput = Settings.get.powerConverterRate
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

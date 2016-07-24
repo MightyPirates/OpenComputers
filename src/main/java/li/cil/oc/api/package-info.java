@@ -34,7 +34,7 @@
  * </dd>
  * </dl>
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Core",
         apiVersion = API.VERSION)

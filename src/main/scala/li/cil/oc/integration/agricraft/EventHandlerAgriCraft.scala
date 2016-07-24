@@ -1,7 +1,5 @@
 package li.cil.oc.integration.agricraft
 
-import com.InfinityRaider.AgriCraft.api.v1.ISeedStats
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.GeolyzerEvent
 
 import scala.collection.convert.WrapAsScala._

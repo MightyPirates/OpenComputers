@@ -7,22 +7,24 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.GlStateManager.CullFace
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 
 import scala.util.Random
 
-object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] {
+object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callable[Int] with RemovalListener[TileEntity, Int] {
   private val random = new Random()
 
   /** We cache the VBOs for the projectors we render for performance. */
@@ -63,61 +65,61 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
    */
   private var failed = false
 
-  override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     if (failed) {
-      HologramRendererFallback.renderTileEntityAt(te, x, y, z, f)
+      HologramRendererFallback.renderTileEntityAt(hologram, x, y, z, f, damage)
       return
     }
 
+    this.hologram = hologram
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    hologram = te.asInstanceOf[Hologram]
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
     RenderState.makeItBlend()
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
     val playerDistSq = x * x + y * y + z * z
     val maxDistSq = hologram.getMaxRenderDistanceSquared
     val fadeDistSq = hologram.getFadeStartDistanceSquared
     RenderState.setBlendAlpha(0.75f * (if (playerDistSq > fadeDistSq) math.max(0, 1 - ((playerDistSq - fadeDistSq) / (maxDistSq - fadeDistSq)).toFloat) else 1))
 
-    GL11.glPushMatrix()
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     hologram.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
     hologram.pitch match {
-      case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
-      case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case EnumFacing.DOWN => GL11.glRotatef(90, 1, 0, 0)
+      case EnumFacing.UP => GL11.glRotatef(-90, 1, 0, 0)
       case _ => // No pitch.
     }
 
-    GL11.glRotatef(hologram.rotationAngle, hologram.rotationX, hologram.rotationY, hologram.rotationZ)
-    GL11.glRotatef(hologram.rotationSpeed * (hologram.getWorldObj.getTotalWorldTime % (360 * 20 - 1) + f) / 20f, hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
+    GlStateManager.rotate(hologram.rotationAngle, hologram.rotationX, hologram.rotationY, hologram.rotationZ)
+    GlStateManager.rotate(hologram.rotationSpeed * (hologram.getWorld.getTotalWorldTime % (360 * 20 - 1) + f) / 20f, hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
 
-    GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
-    GL11.glTranslated(
+    GlStateManager.scale(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
+    GlStateManager.translate(
       (hologram.translation.xCoord * hologram.width / 16 - 1.5) * hologram.scale,
       hologram.translation.yCoord * hologram.height / 16 * hologram.scale,
       (hologram.translation.zCoord * hologram.width / 16 - 1.5) * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
     if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
-      GL11.glScaled(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
-      GL11.glTranslated(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
+      GlStateManager.scale(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
+      GlStateManager.translate(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }
 
     // After the below scaling, hologram is drawn inside a [0..48]x[0..32]x[0..48] box
-    GL11.glScaled(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
+    GlStateManager.scale(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
 
-    bindTexture(Textures.blockHologram)
+    bindTexture(Textures.Model.HologramEffect)
 
     // Normalize normals (yes, glScale scales them too).
     GL11.glEnable(GL11.GL_NORMALIZE)
@@ -127,12 +129,12 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     val sz = (z + 0.5) * hologram.scale
     if (sx >= -1.5 && sx <= 1.5 && sz >= -1.5 && sz <= 1.5 && sy >= 0 && sy <= 2) {
       // Camera is inside the hologram.
-      GL11.glDisable(GL11.GL_CULL_FACE)
+      GlStateManager.disableCull()
     }
     else {
       // Camera is outside the hologram.
-      GL11.glEnable(GL11.GL_CULL_FACE)
-      GL11.glCullFace(GL11.GL_BACK)
+      GlStateManager.enableCull()
+      GlStateManager.cullFace(CullFace.BACK)
     }
 
     // We do two passes here to avoid weird transparency effects: in the first
@@ -141,15 +143,18 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     // angles (because some faces will shine through sometimes and sometimes
     // they won't), so a more... consistent look is desirable.
     val glBuffer = cache.get(hologram, this)
-    GL11.glColorMask(false, false, false, false)
-    GL11.glDepthMask(true)
+    GlStateManager.colorMask(false, false, false, false)
+    GlStateManager.depthMask(true)
     draw(glBuffer)
-    GL11.glColorMask(true, true, true, true)
-    GL11.glDepthFunc(GL11.GL_EQUAL)
+    GlStateManager.colorMask(true, true, true, true)
+    GlStateManager.depthFunc(GL11.GL_EQUAL)
     draw(glBuffer)
+    GlStateManager.depthFunc(GL11.GL_LEQUAL)
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popMatrix()
+
+    RenderState.disableBlend()
+    RenderState.popAttrib()
     GL11.glPopClientAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

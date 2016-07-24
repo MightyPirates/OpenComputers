@@ -15,9 +15,9 @@ object ConverterWorldProvider extends api.driver.Converter {
       case provider: world.WorldProvider =>
         output += "id" -> UUID.nameUUIDFromBytes(Hashing.md5().newHasher().
           putLong(provider.getSeed).
-          putInt(provider.dimensionId).
+          putInt(provider.getDimension).
           hash().asBytes()).toString
-        output += "name" -> provider.getDimensionName
+        output += "name" -> provider.getDimensionType.getName
       case _ =>
     }
 }

@@ -1,6 +1,7 @@
 package li.cil.oc.api;
 
 import li.cil.oc.api.detail.ItemInfo;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 
 import java.util.concurrent.Callable;
@@ -60,13 +61,12 @@ public final class Items {
      * loot disk, use {@link FileSystem#fromClass} in your callable.
      *
      * @param name    the label and identifier to use for the loot disk.
-     * @param color   the color of the disk, as a Minecraft color (so 0-15,
-     *                with 0 being black, 1 red and so on).
+     * @param color   the color of the disk, as a Minecraft color.
      * @param factory the callable to call for creating file system instances.
      * @return an item stack representing the registered loot disk, to allow
      * adding a recipe for your loot disk, for example.
      */
-    public static ItemStack registerFloppy(String name, int color, Callable<li.cil.oc.api.fs.FileSystem> factory) {
+    public static ItemStack registerFloppy(String name, EnumDyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory) {
         if (API.items != null)
             return API.items.registerFloppy(name, color, factory);
         return null;

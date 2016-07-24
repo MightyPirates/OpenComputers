@@ -6,8 +6,8 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 import tmechworks.lib.blocks.IDrawbridgeLogicBase;
 
 public class DriverDrawBridge extends DriverSidedTileEntity {
@@ -17,7 +17,7 @@ public class DriverDrawBridge extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final EnumFacing side) {
         return new Environment((IDrawbridgeLogicBase) world.getTileEntity(x, y, z));
     }
 

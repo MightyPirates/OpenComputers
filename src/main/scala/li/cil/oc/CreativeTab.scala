@@ -7,7 +7,7 @@ object CreativeTab extends CreativeTabs(CreativeTabs.getNextID, OpenComputers.Na
 
   override def getTabIconItem = stack.getItem
 
-  override def getIconItemStack = stack
+  override def getIconItemDamage = stack.getItemDamage
 
   override def getTranslatedTabLabel = getTabLabel
 }

@@ -3,11 +3,12 @@ package li.cil.oc.client.gui
 import li.cil.oc.client.PacketSender
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.OldScaledResolution
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.GuiTextField
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Keyboard
-import org.lwjgl.opengl.GL11
 
 class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
   var guiLeft = 0
@@ -29,15 +30,15 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
   override def initGui(): Unit = {
     super.initGui()
 
-    val screenSize = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
-    val guiSize = new ScaledResolution(mc, 176, 24)
+    val screenSize = new ScaledResolution(mc)
+    val guiSize = new OldScaledResolution(mc, 176, 24)
     val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)
     guiLeft = midX - guiSize.getScaledWidth / 2
     guiTop = midY - guiSize.getScaledHeight / 2
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
 
-    textField = new GuiTextField(fontRendererObj, guiLeft + 7, guiTop + 8, 164 - 12, 12)
+    textField = new GuiTextField(0, fontRendererObj, guiLeft + 7, guiTop + 8, 164 - 12, 12)
     textField.setMaxStringLength(32)
     textField.setEnableBackgroundDrawing(false)
     textField.setCanLoseFocus(false)
@@ -69,8 +70,8 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
     super.drawScreen(mouseX, mouseY, dt)
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiWaypoint)
+    GlStateManager.color(1, 1, 1) // Required under Linux.
+    mc.renderEngine.bindTexture(Textures.GUI.Waypoint)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     textField.drawTextBox()
   }

@@ -7,21 +7,9 @@ import codechicken.lib.data.MCDataOutput
 import codechicken.lib.raytracer.ExtendedMOP
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
-import codechicken.multipart.IRedstonePart
-import codechicken.multipart.PartMap
-import codechicken.multipart.TCuboidPart
-import codechicken.multipart.TEdgePart
-import codechicken.multipart.TFacePart
-import codechicken.multipart.TMultiPart
-import codechicken.multipart.TNormalOcclusion
-import codechicken.multipart.TSlottedPart
-import codechicken.multipart.scalatraits.TSlottedTile
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
-import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.common.block.Print
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
@@ -31,14 +19,12 @@ import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
@@ -117,7 +103,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
     asJavaIterable(shapes.map(shape => new Cuboid6(shape.bounds.rotateTowards(facing))))
   }
 
-  override def getCollisionBoxes = getOcclusionBoxes
+  override def getCollisionBoxes = getOcclusionBoxesn
 
   override def getRenderBounds = getBounds
 

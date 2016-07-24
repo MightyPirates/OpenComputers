@@ -2,7 +2,6 @@ package li.cil.oc.integration.agricraft
 
 import java.util
 
-import com.InfinityRaider.AgriCraft.api.v1.ISeedStats
 import li.cil.oc.api.driver.Converter
 import net.minecraft.item.ItemStack
 

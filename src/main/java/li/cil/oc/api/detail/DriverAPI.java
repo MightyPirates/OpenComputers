@@ -10,8 +10,9 @@ import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.Collection;
 
@@ -104,15 +105,13 @@ public interface DriverAPI {
      * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
      *
      * @param world the world containing the block.
-     * @param x     the X coordinate of the block.
-     * @param y     the Y coordinate of the block.
-     * @param z     the Z coordinate of the block.
+     * @param pos   the position of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
-     * @deprecated Use {@link #driverFor(World, int, int, int, ForgeDirection)},
-     * passing <tt>UNKNOWN</tt> if the side is to be ignored.
+     * @deprecated Use {@link #driverFor(World, BlockPos, EnumFacing)},
+     * passing <tt>null</tt> if the side is to be ignored.
      */
     @Deprecated // TODO Remove in OC 1.7
-    Block driverFor(World world, int x, int y, int z);
+    Block driverFor(World world, BlockPos pos);
 
     /**
      * Looks up a driver for the block at the specified position in the
@@ -124,13 +123,11 @@ public interface DriverAPI {
      * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
      *
      * @param world the world containing the block.
-     * @param x     the X coordinate of the block.
-     * @param y     the Y coordinate of the block.
-     * @param z     the Z coordinate of the block.
+     * @param pos   the position of the block.
      * @param side  the side of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
-    SidedBlock driverFor(World world, int x, int y, int z, ForgeDirection side);
+    SidedBlock driverFor(World world, BlockPos pos, EnumFacing side);
 
     /**
      * Looks up a driver for the specified item stack.

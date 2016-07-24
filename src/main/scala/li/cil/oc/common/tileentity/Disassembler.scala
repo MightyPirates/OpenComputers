@@ -2,8 +2,6 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -20,13 +18,15 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with DeviceInfo {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -46,7 +46,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
-    world.notifyBlocksOfNeighborChange(x, y, z, block)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }
 
   private final lazy val deviceInfo = Map(
@@ -61,9 +61,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != ForgeDirection.UP
+  override protected def hasConnector(side: EnumFacing) = side != EnumFacing.UP
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
   override def energyThroughput = Settings.get.disassemblerRate
 
@@ -75,11 +75,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         val instant = disassembleNextInstantly // Is reset via decrStackSize
         disassemble(decrStackSize(0, 1), instant)
@@ -129,43 +127,48 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   private def drop(stack: ItemStack) {
     if (stack != null) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
+      for (side <- EnumFacing.values if stack.stackSize > 0) {
         InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), Some(side.getOpposite))
       }
       if (stack.stackSize > 0) {
-        spawnStackInWorld(stack, Option(ForgeDirection.UP))
+        spawnStackInWorld(stack, Option(EnumFacing.UP))
       }
     }
   }
 
   // ----------------------------------------------------------------------- //
 
+  private final val QueueTag = Settings.namespace + "queue"
+  private final val BufferTag = Settings.namespace + "buffer"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val IsActiveTag = Settings.namespace + "isActive"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     queue.clear()
-    queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
+    queue ++= nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).
       map((tag: NBTTagCompound) => ItemStack.loadItemStackFromNBT(tag))
-    buffer = nbt.getDouble(Settings.namespace + "buffer")
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
+    buffer = nbt.getDouble(BufferTag)
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
     isActive = queue.nonEmpty
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setNewTagList(Settings.namespace + "queue", queue)
-    nbt.setDouble(Settings.namespace + "buffer", buffer)
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
+    nbt.setNewTagList(QueueTag, queue)
+    nbt.setDouble(BufferTag, buffer)
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isActive = nbt.getBoolean("isActive")
+    isActive = nbt.getBoolean(IsActiveTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("isActive", isActive)
+    nbt.setBoolean(IsActiveTag, isActive)
   }
 
   // ----------------------------------------------------------------------- //

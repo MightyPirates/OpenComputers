@@ -12,14 +12,15 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityComparator
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverComparator extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityComparator]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityComparator])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityComparator])
 
   final class Environment(tileEntity: TileEntityComparator) extends ManagedTileEntityEnvironment[TileEntityComparator](tileEntity, "comparator") with NamedBlock {
     override def preferredName = "comparator"
@@ -34,7 +35,7 @@ object DriverComparator extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && stack.getItem == Items.comparator)
+      if (stack != null && stack.getItem == Items.COMPARATOR)
         classOf[Environment]
       else null
     }

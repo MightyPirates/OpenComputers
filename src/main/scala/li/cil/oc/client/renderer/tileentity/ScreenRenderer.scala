@@ -8,15 +8,16 @@ import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GLContext
 
-object ScreenRenderer extends TileEntitySpecialRenderer {
+object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
@@ -36,10 +37,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(screen: Screen, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    screen = t.asInstanceOf[Screen]
+    this.screen = screen
     if (!screen.isOrigin) {
       return
     }
@@ -52,20 +53,21 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0) {
+    if (screenFacing.getFrontOffsetX * (x + 0.5) + screenFacing.getFrontOffsetY * (y + 0.5) + screenFacing.getFrontOffsetZ * (z + 0.5) < 0) {
       return
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
+    GlStateManager.color(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    GlStateManager.pushMatrix()
 
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: setup")
 
@@ -77,7 +79,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
       if (canUseBlendColor) {
         GL14.glBlendColor(0, 0, 0, alpha)
-        GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
+        GlStateManager.blendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
       }
     }
 
@@ -87,54 +89,62 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       draw()
     }
 
-    RenderState.enableLighting()
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popMatrix()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
   private def transform() {
     screen.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
+      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
       case _ => // No yaw.
     }
     screen.pitch match {
-      case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
-      case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case EnumFacing.DOWN => GlStateManager.rotate(90, 1, 0, 0)
+      case EnumFacing.UP => GlStateManager.rotate(-90, 1, 0, 0)
       case _ => // No pitch.
     }
 
     // Fit area to screen (bottom left = bottom left).
-    GL11.glTranslatef(-0.5f, -0.5f, 0.5f)
-    GL11.glTranslatef(0, screen.height, 0)
+    GlStateManager.translate(-0.5f, -0.5f, 0.5f)
+    GlStateManager.translate(0, screen.height, 0)
 
     // Flip text upside down.
-    GL11.glScalef(1, -1, 1)
+    GlStateManager.scale(1, -1, 1)
   }
 
-  private def drawOverlay() = if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) {
+  private def drawOverlay() = if (screen.facing == EnumFacing.UP || screen.facing == EnumFacing.DOWN) {
     // Show up vector overlay when holding same screen block.
-    val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
+    val stack = Minecraft.getMinecraft.thePlayer.getHeldItemMainhand
     if (stack != null) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.position) || screens.contains(api.Items.get(stack))) {
-        GL11.glPushMatrix()
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
+        GlStateManager.pushMatrix()
         transform()
-        bindTexture(Textures.blockScreenUpIndicator)
-        GL11.glDepthMask(false)
-        GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, 1, 0, 0, 1)
-        t.addVertexWithUV(1, 1, 0, 1, 1)
-        t.addVertexWithUV(1, 0, 0, 1, 0)
-        t.addVertexWithUV(0, 0, 0, 0, 0)
+        GlStateManager.depthMask(false)
+        GlStateManager.translate(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
+
+        val t = Tessellator.getInstance
+        val r = t.getBuffer
+
+        Textures.Block.bind()
+        r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+
+        val icon = Textures.getSprite(Textures.Block.ScreenUpIndicator)
+        r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
+
         t.draw()
-        GL11.glDepthMask(true)
-        GL11.glPopMatrix()
+
+        GlStateManager.depthMask(true)
+        GlStateManager.popMatrix()
       }
     }
   }
@@ -150,7 +160,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     transform()
 
     // Offset from border.
-    GL11.glTranslatef(sx * 2.25f / tw, sy * 2.25f / th, 0)
+    GlStateManager.translate(sx * 2.25f / tw, sy * 2.25f / th, 0)
 
     // Inner size (minus borders).
     val isx = sx - (4.5f / 16)
@@ -163,21 +173,21 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     val scaleY = isy / sizeY
     if (true) {
       if (scaleX > scaleY) {
-        GL11.glTranslatef(sizeX * 0.5f * (scaleX - scaleY), 0, 0)
-        GL11.glScalef(scaleY, scaleY, 1)
+        GlStateManager.translate(sizeX * 0.5f * (scaleX - scaleY), 0, 0)
+        GlStateManager.scale(scaleY, scaleY, 1)
       }
       else {
-        GL11.glTranslatef(0, sizeY * 0.5f * (scaleY - scaleX), 0)
-        GL11.glScalef(scaleX, scaleX, 1)
+        GlStateManager.translate(0, sizeY * 0.5f * (scaleY - scaleX), 0)
+        GlStateManager.scale(scaleX, scaleX, 1)
       }
     }
     else {
       // Stretch to fit.
-      GL11.glScalef(scaleX, scaleY, 1)
+      GlStateManager.scale(scaleX, scaleY, 1)
     }
 
     // Slightly offset the text so it doesn't clip into the screen.
-    GL11.glTranslated(0, 0, 0.01)
+    GlStateManager.translate(0, 0, 0.01)
 
     RenderState.checkError(getClass.getName + ".draw: setup")
 

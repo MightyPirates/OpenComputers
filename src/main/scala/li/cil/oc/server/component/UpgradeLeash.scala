@@ -26,6 +26,7 @@ import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with traits.WorldAware with DeviceInfo {
@@ -54,9 +55,9 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
     val side = args.checkSideAny(0)
     val nearBounds = position.bounds
-    val farBounds = nearBounds.offset(side.offsetX * 2.0, side.offsetY * 2.0, side.offsetZ * 2.0)
-    val bounds = nearBounds.func_111270_a(farBounds)
-    entitiesInBounds[EntityLiving](bounds).find(_.allowLeashing()) match {
+    val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
+    val bounds = nearBounds.union(farBounds)
+    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
       case Some(entity) =>
         entity.setLeashedToEntity(host, true)
         leashedEntities += entity.getUniqueID
@@ -80,7 +81,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   }
 
   private def unleashAll() {
-    entitiesInBounds[EntityLiving](position.bounds.expand(5, 5, 5)).foreach(entity => {
+    entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
       if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashedToEntity == host) {
         entity.clearLeashed(true, false)
       }
@@ -88,15 +89,17 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     leashedEntities.clear()
   }
 
+  private final val LeashedEntitiesTag = "leashedEntities"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    leashedEntities ++= nbt.getTagList("leashedEntities", NBT.TAG_STRING).
-      map((s: NBTTagString) => UUID.fromString(s.func_150285_a_()))
+    leashedEntities ++= nbt.getTagList(LeashedEntitiesTag, NBT.TAG_STRING).
+      map((s: NBTTagString) => UUID.fromString(s.getString))
     // Re-acquire leashed entities. Need to do this manually because leashed
     // entities only remember their leashee if it's an EntityLivingBase...
     EventHandler.scheduleServer(() => {
       val foundEntities = mutable.Set.empty[UUID]
-      entitiesInBounds[EntityLiving](position.bounds.expand(5, 5, 5)).foreach(entity => {
+      entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
         if (leashedEntities.contains(entity.getUniqueID)) {
           entity.setLeashedToEntity(host, true)
           foundEntities += entity.getUniqueID
@@ -112,6 +115,6 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setNewTagList("leashedEntities", leashedEntities.map(_.toString))
+    nbt.setNewTagList(LeashedEntitiesTag, leashedEntities.map(_.toString))
   }
 }

@@ -8,7 +8,6 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.Item
-import lordfokas.stargatetech2.api.bus.IBusDevice
 import net.minecraft.item.ItemStack
 
 object DriverAbstractBusCard extends Item with HostAware {

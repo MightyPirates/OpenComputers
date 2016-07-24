@@ -1,16 +1,14 @@
 package li.cil.oc.server.component
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.ModAPIManager
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
@@ -23,23 +21,31 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
+import net.minecraft.command.CommandResultStats.Type
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.IChatComponent
-import net.minecraft.world.{World, WorldServer, WorldSettings}
-import net.minecraft.world.WorldSettings.GameType
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvent
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.world.GameType
+import net.minecraft.world.World
+import net.minecraft.world.WorldServer
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.ModAPIManager
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -62,10 +68,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   private lazy val CommandSender = {
     def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
     new CommandSender(host, player match {
-      case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(name)) match {
-        case Some(playerEntity) => playerEntity
-        case _ => defaultFakePlayer
-      }
+      case Some(name) => Option(FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name)).getOrElse(defaultFakePlayer)
       case _ => defaultFakePlayer
     })
   }
@@ -120,7 +123,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    result(MinecraftServer.getServer.getAllUsernames)
+    result(FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames)
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -141,7 +144,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       CommandSender.prepare()
       var value = 0
       for (command <- commands) {
-        value = MinecraftServer.getServer.getCommandManager.executeCommand(CommandSender, command.toString)
+        value = FMLCommonHandler.instance.getMinecraftServerInstance.getCommandManager.executeCommand(CommandSender, command.toString)
       }
       result(value, CommandSender.messages.orNull)
     }
@@ -153,7 +156,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val z = args.checkInteger(2)
-    findNode(x, y, z) match {
+    findNode(BlockPosition(x, y, z)) match {
       case Some(other) =>
         remoteNode.foreach(other => node.disconnect(other))
         remoteNode = Some(other)
@@ -165,10 +168,10 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     }
   }
 
-  private def findNode(x: Int, y: Int, z: Int) =
-    if (host.world.blockExists(x, y, z)) {
-      host.world.getTileEntity(x, y, z) match {
-        case env: SidedEnvironment => ForgeDirection.VALID_DIRECTIONS.map(env.sidedNode).find(_ != null)
+  private def findNode(position: BlockPosition) =
+    if (host.world.blockExists(position)) {
+      host.world.getTileEntity(position) match {
+        case env: SidedEnvironment => EnumFacing.values.map(env.sidedNode).find(_ != null)
         case env: Environment => Option(env.node)
         case _ => None
       }
@@ -192,7 +195,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     super.onConnect(node)
     if (node == this.node) remoteNodePosition.foreach {
       case (x, y, z) =>
-        remoteNode = findNode(x, y, z)
+        remoteNode = findNode(BlockPosition(x, y, z))
         remoteNode match {
           case Some(other) => node.connect(other)
           case _ => remoteNodePosition = None
@@ -251,7 +254,7 @@ object DebugCard {
 
     def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
       checkEnabled()
-      MinecraftServer.getServer.getConfigurationManager.func_152612_a(name) match {
+      FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name) match {
         case player: EntityPlayerMP => f(player)
         case _ => result(Unit, "player is offline")
       }
@@ -264,7 +267,7 @@ object DebugCard {
 
     @Callback(doc = """function():string -- Get the player's game type.""")
     def getGameType(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.theItemInWorldManager.getGameType.getName))
+      withPlayer(player => result(player.interactionManager.getGameType.getName))
 
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
@@ -302,14 +305,16 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val NameTag = "name"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      name = nbt.getString("name")
+      name = nbt.getString(NameTag)
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setString("name", name)
+      nbt.setString(NameTag, name)
     }
   }
 
@@ -321,13 +326,13 @@ object DebugCard {
     @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.provider.dimensionId)
+      result(world.provider.getDimension)
     }
 
     @Callback(doc = """function():string -- Gets the name of the current dimension.""")
     def getDimensionName(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.provider.getDimensionName)
+      result(world.provider.getDimensionType.getName)
     }
 
     @Callback(doc = """function():number -- Gets the seed of the world.""")
@@ -384,7 +389,7 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number) -- Set the spawn point coordinates.""")
     def setSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      world.getWorldInfo.setSpawnPosition(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getWorldInfo.setSpawn(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
       null
     }
 
@@ -394,7 +399,7 @@ object DebugCard {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val sound = args.checkString(3)
       val range = args.checkInteger(4)
-      world.playSoundEffect(x, y, z, sound, range / 15 + 0.5F, 1.0F)
+      world.playSound(null, x, y, z, new SoundEvent(new ResourceLocation(sound)), SoundCategory.MASTER, range / 15 + 0.5F, 1.0F)
       null
     }
 
@@ -403,35 +408,35 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the ID of the block at the specified coordinates.""")
     def getBlockId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(Block.getIdFromBlock(world.getBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
+      result(Block.getIdFromBlock(world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))).getBlock))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the metadata of the block at the specified coordinates.""")
     def getMetadata(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockMetadata(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates is loaded.""")
     def isLoaded(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.blockExists(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.isBlockLoaded(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates has a tile entity.""")
     def hasTileEntity(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      val block = world.getBlock(x, y, z)
-      result(block != null && block.hasTileEntity(world.getBlockMetadata(x, y, z)))
+      val blockPos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      val state = world.getBlockState(blockPos)
+      result(state.getBlock.hasTileEntity(state))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):table -- Get the NBT of the block at the specified coordinates.""")
     def getTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      world.getTileEntity(x, y, z) match {
-        case tileEntity: TileEntity => result(toNbt(tileEntity.writeToNBT _).toTypedMap)
+      val blockPos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getTileEntity(blockPos) match {
+        case tileEntity: TileEntity => result(toNbt((nbt) => tileEntity.writeToNBT(nbt): Unit).toTypedMap)
         case _ => null
       }
     }
@@ -439,16 +444,16 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number, nbt:table):boolean -- Set the NBT of the block at the specified coordinates.""")
     def setTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      world.getTileEntity(x, y, z) match {
+      val blockPos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getTileEntity(blockPos) match {
         case tileEntity: TileEntity =>
           typedMapToNbt(mapAsScalaMap(args.checkTable(3)).toMap) match {
             case nbt: NBTTagCompound =>
               tileEntity.readFromNBT(nbt)
               tileEntity.markDirty()
-              world.markBlockForUpdate(x, y, z)
+              world.notifyBlockUpdate(blockPos)
               result(true)
-            case nbt => result(Unit, s"nbt tag compound expected, got '${NBTBase.NBTTypes(nbt.getId)}'")
+            case nbt => result(Unit, s"nbt tag compound expected, got '${NBTBase.NBT_TYPES(nbt.getId)}'")
           }
         case _ => result(Unit, "no tile entity")
       }
@@ -457,19 +462,19 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")
     def getLightOpacity(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockLightOpacity(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getBlockLightOpacity(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light value (emission) of the block at the specified coordinates.""")
     def getLightValue(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockLightValue(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getLight(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)), false))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get whether the block at the specified coordinates is directly under the sky.""")
     def canSeeSky(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.canBlockSeeTheSky(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.canBlockSeeSky(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number, id:number or string, meta:number):number -- Set the block at the specified coordinates.""")
@@ -477,7 +482,7 @@ object DebugCard {
       checkEnabled()
       val block = if (args.isInteger(3)) Block.getBlockById(args.checkInteger(3)) else Block.getBlockFromName(args.checkString(3))
       val metadata = args.checkInteger(4)
-      result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), block, metadata, 3))
+      result(world.setBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)), block.getStateFromMeta(metadata)))
     }
 
     @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number or string, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
@@ -490,7 +495,7 @@ object DebugCard {
       for (x <- math.min(xMin, xMax) to math.max(xMin, xMax)) {
         for (y <- math.min(yMin, yMax) to math.max(yMin, yMax)) {
           for (z <- math.min(zMin, zMax) to math.max(zMin, zMax)) {
-            world.setBlock(x, y, z, block, metadata, 3)
+            world.setBlockState(new BlockPos(x, y, z), block.getStateFromMeta(metadata))
           }
         }
       }
@@ -502,14 +507,14 @@ object DebugCard {
     @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
     def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val item = Item.itemRegistry.getObject(args.checkString(0)).asInstanceOf[Item]
+      val item = Item.REGISTRY.getObject(new ResourceLocation(args.checkString(0)))
       if (item == null) {
         throw new IllegalArgumentException("invalid item id")
       }
       val count = args.checkInteger(1)
       val damage = args.checkInteger(2)
       val tagJson = args.checkString(3)
-      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
+      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)
       InventoryUtils.inventoryAt(position) match {
@@ -566,14 +571,16 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val DimensionTag = "dimension"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      world = DimensionManager.getWorld(nbt.getInteger("dimension"))
+      world = DimensionManager.getWorld(nbt.getInteger(DimensionTag))
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setInteger("dimension", world.provider.dimensionId)
+      nbt.setInteger(DimensionTag, world.provider.getDimension)
     }
   }
 
@@ -588,27 +595,35 @@ object DebugCard {
       messages = None
     }
 
-    override def getCommandSenderName = underlying.getCommandSenderName
+    override def getName = underlying.getName
 
     override def getEntityWorld = host.world
 
-    override def addChatMessage(message: IChatComponent) {
+    override def addChatMessage(message: ITextComponent) {
       messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 
-    override def canCommandSenderUseCommand(level: Int, command: String) = {
+    override def getDisplayName = underlying.getDisplayName
+
+    override def setCommandStat(`type`: Type, amount: Int) = underlying.setCommandStat(`type`, amount)
+
+    override def getPosition = underlying.getPosition
+
+    override def canCommandSenderUseCommand(level: Int, commandName: String) = {
       val profile = underlying.getGameProfile
       val server = underlying.mcServer
-      val config = server.getConfigurationManager
-      server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
-        case entry: UserListOpsEntry => entry.func_152644_a >= level
+      val config = server.getPlayerList
+      server.isSinglePlayer || (config.canSendCommands(profile) && (config.getOppedPlayers.getEntry(profile) match {
+        case entry: UserListOpsEntry => entry.getPermissionLevel >= level
         case _ => server.getOpPermissionLevel >= level
       }))
     }
 
-    override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
+    override def getCommandSenderEntity = underlying
 
-    override def func_145748_c_() = underlying.func_145748_c_()
+    override def getPositionVector = underlying.getPositionVector
+
+    override def sendCommandFeedback() = underlying.sendCommandFeedback()
   }
 
   class TestValue extends AbstractValue {
@@ -634,14 +649,16 @@ object DebugCard {
       OpenComputers.log.info("TestValue.dispose()")
     }
 
+    private final val ValueTag = "value"
+
     override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
-      value = nbt.getString("value")
+      value = nbt.getString(ValueTag)
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
-      nbt.setString("value", value)
+      nbt.setString(ValueTag, value)
     }
   }
 

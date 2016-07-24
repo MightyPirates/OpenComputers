@@ -21,7 +21,8 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
 
 import scala.collection.convert.WrapAsJava._
 
@@ -93,7 +94,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
       val (something, what) = blockContent(direction)
       if (something) {
         context.pause(0.4)
-        PacketSender.sendParticleEffect(BlockPosition(agent), "crit", 8, 0.25, Some(direction))
+        PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
         result(Unit, what)
       }
       else {
@@ -107,7 +108,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
         else {
           node.changeBuffer(Settings.get.robotMoveCost)
           context.pause(0.4)
-          PacketSender.sendParticleEffect(BlockPosition(agent), "crit", 8, 0.25, Some(direction))
+          PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
           result(Unit, "impossible move")
         }
       }
@@ -118,8 +119,8 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
-      if (clockwise) agent.rotate(ForgeDirection.UP)
-      else agent.rotate(ForgeDirection.DOWN)
+      if (clockwise) agent.rotate(EnumFacing.UP)
+      else agent.rotate(EnumFacing.DOWN)
       agent.animateTurn(clockwise, Settings.get.turnDelay)
       context.pause(Settings.get.turnDelay)
       result(true)
@@ -151,13 +152,15 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
+  private final val RomRobotTag = "romRobot"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    romRobot.foreach(_.load(nbt.getCompoundTag("romRobot")))
+    romRobot.foreach(_.load(nbt.getCompoundTag(RomRobotTag)))
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romRobot.foreach(fs => nbt.setNewCompoundTag("romRobot", fs.save))
+    romRobot.foreach(fs => nbt.setNewCompoundTag(RomRobotTag, fs.save))
   }
 }

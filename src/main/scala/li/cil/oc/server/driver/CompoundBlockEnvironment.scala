@@ -53,9 +53,11 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
     }
   }
 
+  private final val TypeHashTag = "typeHash"
+
   override def load(nbt: NBTTagCompound) {
     // Ignore existing data if the underlying type is different.
-    if (nbt.hasKey("typeHash") && nbt.getLong("typeHash") != typeHash) return
+    if (nbt.hasKey(TypeHashTag) && nbt.getLong(TypeHashTag) != typeHash) return
     node.load(nbt)
     for ((driver, environment) <- environments) {
       if (nbt.hasKey(driver)) {
@@ -69,7 +71,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setLong("typeHash", typeHash)
+    nbt.setLong(TypeHashTag, typeHash)
     node.save(nbt)
     for ((driver, environment) <- environments) {
       try {

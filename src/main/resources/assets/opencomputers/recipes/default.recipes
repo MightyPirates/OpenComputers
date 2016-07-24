@@ -296,9 +296,9 @@ inventoryControllerUpgrade {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 leashUpgrade {
-  input: [[ingotIron, lead, ingotIron]
-          [lead, "oc:materialCU", lead]
-          [ingotIron, lead, ingotIron]]
+  input: [[ingotIron, {item="minecraft:lead"}, ingotIron]
+          [{item="minecraft:lead"}, "oc:materialCU", {item="minecraft:lead"}]
+          [ingotIron, {item="minecraft:lead"}, ingotIron]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
@@ -405,7 +405,7 @@ disk {
 chamelium {
   input: [[gravel, redstone, gravel],
           [redstone, {item=coal, subID=1}, redstone],
-          [gravel, water_bucket, gravel]]
+          [gravel, {item="minecraft:water_bucket"}, gravel]]
   output: 16
 }
 chameliumBlock {

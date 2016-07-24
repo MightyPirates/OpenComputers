@@ -1,13 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.AEApi
-import appeng.api.config.Actionable
-import appeng.api.config.FuzzyMode
-import appeng.api.config.Settings
-import appeng.api.config.Upgrades
-import appeng.api.networking.security.MachineSource
-import appeng.api.parts.IPartHost
-import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
@@ -21,9 +13,6 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
-
-import scala.collection.convert.WrapAsScala._
 
 object DriverExportBus extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =

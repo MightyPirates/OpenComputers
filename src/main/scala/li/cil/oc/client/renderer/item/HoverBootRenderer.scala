@@ -5,6 +5,8 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.Entity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
@@ -89,32 +91,37 @@ object HoverBootRenderer extends ModelBiped {
   bipedBody.isHidden = true
   bipedRightArm.isHidden = true
   bipedLeftArm.isHidden = true
-  bipedEars.isHidden = true
-  bipedCloak.isHidden = true
 
   var lightColor = 0x66DD55
 
   override def render(entity: Entity, f0: Float, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
     // Because Forge is being a dummy...
     isSneak = entity.isSneaking
+    // Because Forge is being an even bigger dummy...
+    isChild = false
     super.render(entity, f0, f1, f2, f3, f4, f5)
   }
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-      RenderState.disableLighting()
-      GL11.glDepthFunc(GL11.GL_LEQUAL)
-      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      val r = ((lightColor >>> 16) & 0xFF).toByte
-      val g = ((lightColor >>> 8) & 0xFF).toByte
-      val b = ((lightColor >>> 0) & 0xFF).toByte
-      GL11.glColor3ub(r, g, b)
+      RenderState.pushAttrib()
+      GlStateManager.disableLighting()
+      RenderState.disableEntityLighting()
+      GlStateManager.depthFunc(GL11.GL_LEQUAL)
+      RenderState.makeItBlend()
+      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      val r = ((lightColor >>> 16) & 0xFF) / 255f
+      val g = ((lightColor >>> 8) & 0xFF) / 255f
+      val b = ((lightColor >>> 0) & 0xFF) / 255f
+      GlStateManager.color(r, g, b)
 
       super.render(dt)
 
-      RenderState.enableLighting()
-      GL11.glPopAttrib()
+      RenderState.disableBlend()
+      GlStateManager.enableLighting()
+      RenderState.enableEntityLighting()
+      GlStateManager.color(1, 1, 1)
+      RenderState.popAttrib()
     }
   }
 

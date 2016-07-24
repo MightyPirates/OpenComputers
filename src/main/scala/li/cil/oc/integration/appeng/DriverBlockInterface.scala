@@ -14,13 +14,13 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverBlockInterface extends DriverSidedTileEntity {
   def getTileEntityClass: Class[_] = classOf[TileInterface]
 
-  def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
+  def createEnvironment(world: World, x: Int, y: Int, z: Int, side: EnumFacing): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
 
   final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {

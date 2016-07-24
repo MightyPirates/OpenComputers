@@ -7,6 +7,7 @@ import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -121,14 +122,12 @@ public class Manual {
      * Look up the documentation for the specified block in the world.
      *
      * @param world the world containing the block.
-     * @param x     the X coordinate of the block.
-     * @param y     the Y coordinate of the block.
-     * @param z     the Z coordinate of the block.
+     * @param pos   the position of the block.
      * @return the path to the page, <tt>null</tt> if none is known.
      */
-    public static String pathFor(World world, int x, int y, int z) {
+    public static String pathFor(World world, BlockPos pos) {
         if (API.manual != null)
-            return API.manual.pathFor(world, x, y, z);
+            return API.manual.pathFor(world, pos);
         return null;
     }
 

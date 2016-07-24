@@ -10,8 +10,12 @@ import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 @Injectable.InterfaceList(Array(
   new Injectable.Interface(value = "appeng.api.implementations.items.IAEWrench", modid = Mods.IDs.AppliedEnergistics2),
@@ -29,56 +33,68 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
   setMaxStackSize(1)
 
-  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = true
+  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    world.blockExists(x, y, z) && world.canMineBlock(player, x, y, z) && (world.getBlock(x, y, z) match {
-      case block: Block if block.rotateBlock(world, x, y, z, ForgeDirection.getOrientation(side)) =>
-        block.onNeighborBlockChange(world, x, y, z, Blocks.air)
-        player.swingItem()
-        !world.isRemote
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
+    if (world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos)) world.getBlockState(pos).getBlock match {
+      case block: Block if block.rotateBlock(world, pos, side) =>
+        block.neighborChanged(world.getBlockState(pos), world, pos, Blocks.AIR)
+        player.swingArm(hand)
+        if (!world.isRemote) EnumActionResult.SUCCESS else EnumActionResult.PASS
       case _ =>
-        super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
-    })
+        super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+    }
+    else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
-  def useWrenchOnBlock(player: EntityPlayer, world: World, x: Int, y: Int, z: Int, simulate: Boolean): Boolean = {
-    if (!simulate) player.swingItem()
+  def useWrenchOnBlock(player: EntityPlayer, world: World, pos: BlockPos, simulate: Boolean): Boolean = {
+    if (!simulate) player.swingArm(EnumHand.MAIN_HAND)
     true
   }
 
   // Applied Energistics 2
 
-  def canWrench(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
+  def canWrench(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Boolean = true
 
   // BluePower
+
   def damage(stack: ItemStack, damage: Int, player: EntityPlayer, simulated: Boolean): Boolean = damage == 0
 
   // BuildCraft
 
-  def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
+  def canWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
 
-  def wrenchUsed(player: EntityPlayer, x: Int, y: Int, z: Int): Unit = player.swingItem()
+  def wrenchUsed(player: EntityPlayer, pos: BlockPos): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   def canWrench(player: EntityPlayer, entity: Entity): Boolean = true
 
-  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
+  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   // CoFH
 
+  def isUsable(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Boolean = true
+
+  def isUsable(stack: ItemStack, player: EntityLivingBase, entity: Entity): Boolean = true
+
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Unit = player.swingArm(EnumHand.MAIN_HAND)
+
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, entity: Entity): Unit = player.swingArm(EnumHand.MAIN_HAND)
+
+  // Compat for people shipping unofficial CoFH APIs... -.-
+
   def isUsable(stack: ItemStack, player: EntityLivingBase, x: Int, y: Int, z: Int): Boolean = true
 
-  def toolUsed(stack: ItemStack, player: EntityLivingBase, x: Int, y: Int, z: Int): Unit = player.swingItem()
+  def toolUsed(stack: ItemStack, player: EntityLivingBase, x: Int, y: Int, z: Int): Unit = player.swingArm(EnumHand.MAIN_HAND)
 
   // EnderIO
 
-  def canUse(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
+  def canUse(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Boolean = true
 
-  def used(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int): Unit = {}
+  def used(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Unit = {}
 
   // Mekanism
 
-  def canUseWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
+  def canUseWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
 
   // Project Red
 
@@ -92,9 +108,9 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   // Railcraft
 
-  def canWhack(player: EntityPlayer, stack: ItemStack, x: Int, y: Int, z: Int): Boolean = true
+  def canWhack(player: EntityPlayer, stack: ItemStack, pos: BlockPos): Boolean = true
 
-  def onWhack(player: EntityPlayer, stack: ItemStack, x: Int, y: Int, z: Int): Unit = {}
+  def onWhack(player: EntityPlayer, stack: ItemStack, pos: BlockPos): Unit = {}
 
   def canLink(player: EntityPlayer, stack: ItemStack, cart: EntityMinecart): Boolean = false
 

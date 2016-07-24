@@ -9,7 +9,7 @@ class Charger(playerInventory: InventoryPlayer, val charger: tileentity.Charger)
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(charger.getInventoryName),
+      Localization.localizeImmediately(charger.getName),
       8, 6, 0x404040)
   }
 }

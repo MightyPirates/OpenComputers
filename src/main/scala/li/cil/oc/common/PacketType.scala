@@ -3,7 +3,6 @@ package li.cil.oc.common
 object PacketType extends Enumeration {
   val
   // Server -> Client
-  AbstractBusState,
   Analyze,
   ChargerState,
   ClientLog,

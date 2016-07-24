@@ -1,6 +1,5 @@
 package li.cil.oc.common.nanomachines.provider
 
-import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.DisableReason
@@ -8,14 +7,16 @@ import li.cil.oc.api.prefab.AbstractBehavior
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.event.ForgeEventFactory
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.mutable
 
@@ -24,7 +25,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
 
   override def readBehaviorFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = new DisintegrationBehavior(player)
 
-  class DisintegrationBehavior(player: EntityPlayer) extends AbstractBehavior(player) {
+  class DisintegrationBehavior(p: EntityPlayer) extends AbstractBehavior(p) {
     var breakingMap = mutable.Map.empty[BlockPosition, SlowBreakInfo]
     var breakingMapNew = mutable.Map.empty[BlockPosition, SlowBreakInfo]
 
@@ -55,17 +56,17 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
                 breakingMapNew += pos -> info
                 info.update(world, player, now)
               case None =>
-                val event = ForgeEventFactory.onPlayerInteract(player, Action.LEFT_CLICK_BLOCK, pos.x, pos.y, pos.z, 0, world)
-                val allowed = !event.isCanceled && event.useBlock != Event.Result.DENY && event.useItem != Event.Result.DENY
-                val adventureOk = !world.getWorldInfo.getGameType.isAdventure || player.isCurrentToolAdventureModeExempt(pos.x, pos.y, pos.z)
+                val event = new PlayerInteractEvent.LeftClickBlock(player, pos.toBlockPos, null, null)
+                MinecraftForge.EVENT_BUS.post(event)
+                val allowed = !event.isCanceled && event.getUseBlock != Event.Result.DENY && event.getUseItem != Event.Result.DENY
+                val adventureOk = !world.getWorldInfo.getGameType.isAdventure || player.canPlayerEdit(pos.toBlockPos, null, player.getHeldItemMainhand)
                 if (allowed && adventureOk && !world.isAirBlock(pos)) {
-                  val block = world.getBlock(pos)
-                  val hardness = block.getPlayerRelativeBlockHardness(player, world, pos.x, pos.y, pos.z)
+                  val blockState = world.getBlockState(pos.toBlockPos)
+                  val hardness = blockState.getBlock.getPlayerRelativeBlockHardness(world.getBlockState(pos.toBlockPos), player, world, pos.toBlockPos)
                   if (hardness > 0) {
                     val timeToBreak = (1 / hardness).toInt
                     if (timeToBreak < 20 * 30) {
-                      val meta = world.getBlockMetadata(pos)
-                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, Option(player.getHeldItem).map(_.copy()), block, meta)
+                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, Option(player.getHeldItemMainhand).map(_.copy()), blockState)
                       world.destroyBlockInWorldPartially(pos.hashCode(), pos, 0)
                       breakingMapNew += pos -> info
                     }
@@ -97,11 +98,11 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
     }
   }
 
-  class SlowBreakInfo(val timeStarted: Long, val timeBroken: Long, val pos: BlockPosition, val originalTool: Option[ItemStack], val block: Block, val meta: Int) {
+  class SlowBreakInfo(val timeStarted: Long, val timeBroken: Long, val pos: BlockPosition, val originalTool: Option[ItemStack], val blockState: IBlockState) {
     var lastDamageSent = 0
 
     def checkTool(player: EntityPlayer): Boolean = {
-      val currentTool = Option(player.getHeldItem).map(_.copy())
+      val currentTool = Option(player.getHeldItemMainhand).map(_.copy())
       (currentTool, originalTool) match {
         case (Some(stackA), Some(stackB)) => stackA.getItem == stackB.getItem && (stackA.isItemStackDamageable || stackA.getItemDamage == stackB.getItemDamage)
         case (None, None) => true
@@ -122,11 +123,11 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
     }
 
     def finish(world: World, player: EntityPlayerMP): Unit = {
-      val sameBlock = world.getBlock(pos) == block && world.getBlockMetadata(pos) == meta
+      val sameBlock = world.getBlockState(pos.toBlockPos) == blockState
       if (sameBlock) {
         world.destroyBlockInWorldPartially(pos.hashCode(), pos, -1)
-        if (player.theItemInWorldManager.tryHarvestBlock(pos.x, pos.y, pos.z)) {
-          world.playAuxSFX(2001, pos, Block.getIdFromBlock(block) + (meta << 12))
+        if (player.interactionManager.tryHarvestBlock(pos.toBlockPos)) {
+          world.playAuxSFX(2001, pos, Block.getIdFromBlock(blockState.getBlock) + (blockState.getBlock.getMetaFromState(blockState) << 12))
         }
       }
     }

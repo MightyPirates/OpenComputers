@@ -15,7 +15,7 @@ import net.minecraftforge.fluids.IFluidContainerItem
 trait TankInventoryControl extends WorldAware with InventoryAware with TankAware {
   @Callback(doc = """function([slot:number]):number -- Get the amount of fluid in the tank item in the specified slot or the selected slot.""")
   def getTankLevelInSlot(context: Context, args: Arguments): Array[AnyRef] =
-    withFluidInfo(optSlot(args, 0), (fluid, _) => result(fluid.amount))
+    withFluidInfo(optSlot(args, 0), (fluid, _) => result(fluid.fold(0)(_.amount)))
 
   @Callback(doc = """function([slot:number]):number -- Get the capacity of the tank item in the specified slot of the robot or the selected slot.""")
   def getTankCapacityInSlot(context: Context, args: Arguments): Array[AnyRef] =
@@ -23,7 +23,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
 
   @Callback(doc = """function([slot:number]):table -- Get a description of the fluid in the tank item in the specified slot or the selected slot.""")
   def getFluidInTankInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
-    withFluidInfo(optSlot(args, 0), (fluid, _) => result(fluid))
+    withFluidInfo(optSlot(args, 0), (fluid, _) => result(fluid.orNull))
   }
   else result(Unit, "not enabled in config")
 
@@ -115,16 +115,16 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     }
   }
 
-  private def withFluidInfo(slot: Int, f: (FluidStack, Int) => Array[AnyRef]) = {
+  private def withFluidInfo(slot: Int, f: (Option[FluidStack], Int) => Array[AnyRef]) = {
     def fluidInfo(stack: ItemStack) = {
       if (FluidContainerRegistry.isFilledContainer(stack)) {
-        Option((FluidContainerRegistry.getFluidForFilledItem(stack), FluidContainerRegistry.getContainerCapacity(stack)))
+        Option((Option(FluidContainerRegistry.getFluidForFilledItem(stack)), FluidContainerRegistry.getContainerCapacity(stack)))
       }
       else if (FluidContainerRegistry.isEmptyContainer(stack)) {
-        Option((new FluidStack(0, 0), FluidContainerRegistry.getContainerCapacity(stack)))
+        Option((None, FluidContainerRegistry.getContainerCapacity(stack)))
       }
       else stack.getItem match {
-        case from: IFluidContainerItem => Option((from.getFluid(stack), from.getCapacity(stack)))
+        case from: IFluidContainerItem => Option((Option(from.getFluid(stack)), from.getCapacity(stack)))
         case _ => None
       }
     }

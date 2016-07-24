@@ -11,8 +11,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.integration.Mods
-import li.cil.oc.integration.computercraft.DriverComputerCraftMedia
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -89,9 +87,9 @@ object FileSystem extends api.detail.FileSystemAPI {
         case _ =>
           System.getProperty("java.class.path").split(System.getProperty("path.separator")).
             find(cp => {
-              val fsp = new io.File(new io.File(cp), innerPath)
-              fsp.exists() && fsp.isDirectory
-            }) match {
+            val fsp = new io.File(new io.File(cp), innerPath)
+            fsp.exists() && fsp.isDirectory
+          }) match {
             case None => null
             case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
           }
@@ -113,12 +111,6 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
-
-  def fromComputerCraft(mount: AnyRef): api.fs.FileSystem =
-    if (Mods.ComputerCraft.isAvailable) {
-      DriverComputerCraftMedia.createFileSystem(mount).orNull
-    }
-    else null
 
   override def asReadOnly(fileSystem: api.fs.FileSystem) =
     if (fileSystem.isReadOnly) fileSystem
@@ -152,11 +144,13 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     def getLabel = label
 
+    private final val LabelTag = Settings.namespace + "fs.label"
+
     override def load(nbt: NBTTagCompound) {}
 
     override def save(nbt: NBTTagCompound) {
       if (label != null) {
-        nbt.setString(Settings.namespace + "fs.label", label)
+        nbt.setString(LabelTag, label)
       }
     }
   }

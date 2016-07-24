@@ -12,11 +12,13 @@ class DriveData extends ItemData(null) {
 
   var isUnmanaged = false
 
+  private final val UnmanagedTag = Settings.namespace + "unmanaged"
+
   override def load(nbt: NBTTagCompound) {
-    isUnmanaged = nbt.getBoolean(Settings.namespace + "unmanaged")
+    isUnmanaged = nbt.getBoolean(UnmanagedTag)
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setBoolean(Settings.namespace + "unmanaged", isUnmanaged)
+    nbt.setBoolean(UnmanagedTag, isUnmanaged)
   }
 }

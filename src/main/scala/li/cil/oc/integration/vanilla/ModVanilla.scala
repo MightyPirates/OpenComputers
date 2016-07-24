@@ -8,9 +8,10 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.BlockRedstoneWire
 import net.minecraft.init.Blocks
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 
 object ModVanilla extends ModProxy with RedstoneProvider {
   def getMod = Mods.Minecraft
@@ -57,11 +58,11 @@ object ModVanilla extends ModProxy with RedstoneProvider {
     MinecraftForge.EVENT_BUS.register(EventHandlerVanilla)
   }
 
-  override def computeInput(pos: BlockPosition, side: ForgeDirection): Int = {
+  override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
     val world = pos.world.get
     math.max(world.computeRedstoneSignal(pos, side),
-      if (world.getBlock(pos.offset(side)) == Blocks.redstone_wire) world.getBlockMetadata(pos.offset(side)) else 0)
+      if (world.getBlock(pos.offset(side)) == Blocks.REDSTONE_WIRE) world.getBlockMetadata(pos.offset(side)).getValue(BlockRedstoneWire.POWER).intValue() else 0)
   }
 
-  override def computeBundledInput(pos: BlockPosition, side: ForgeDirection): Array[Int] = null
+  override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = null
 }

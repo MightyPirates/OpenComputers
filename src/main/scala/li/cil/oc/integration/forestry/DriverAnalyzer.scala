@@ -1,7 +1,5 @@
 package li.cil.oc.integration.forestry
 
-import forestry.api.genetics.AlleleManager
-import forestry.core.tiles.TileAnalyzer
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -10,7 +8,6 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 class DriverAnalyzer extends DriverSidedTileEntity {
   override def getTileEntityClass = classOf[TileAnalyzer]

@@ -2,11 +2,10 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
@@ -25,6 +24,9 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
@@ -65,9 +67,9 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     if (ejected != null && ejected.stackSize > 0) {
       val entity = InventoryUtils.spawnStackInWorld(position, ejected, Option(facing))
       if (entity != null) {
-        val vx = facing.offsetX * velocity
-        val vy = facing.offsetY * velocity
-        val vz = facing.offsetZ * velocity
+        val vx = facing.getFrontOffsetX * velocity
+        val vy = facing.getFrontOffsetY * velocity
+        val vz = facing.getFrontOffsetZ * velocity
         entity.addVelocity(vx, vy, vz)
       }
       result(true)
@@ -78,7 +80,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
 
   // ----------------------------------------------------------------------- //
   // IInventory
@@ -118,21 +120,18 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   // ----------------------------------------------------------------------- //
   // TileEntity
 
-  override def canUpdate = false
+  private final val DiskTag = Settings.namespace + "disk"
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    if (nbt.hasKey("disk")) {
-      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("disk")))
+    if (nbt.hasKey(DiskTag)) {
+      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(DiskTag)))
     }
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    items(0) match {
-      case Some(stack) => nbt.setNewCompoundTag("disk", stack.writeToNBT)
-      case _ =>
-    }
+    items(0).foreach(stack => nbt.setNewCompoundTag(DiskTag, stack.writeToNBT))
   }
 }

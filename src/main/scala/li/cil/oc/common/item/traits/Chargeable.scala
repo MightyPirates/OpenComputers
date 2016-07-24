@@ -1,7 +1,5 @@
 package li.cil.oc.common.item.traits
 
-import appeng.api.config.AccessRestriction
-import cpw.mods.fml.common.Optional
 import ic2.api.item.IElectricItemManager
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -9,11 +7,11 @@ import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.ic2.ElectricItemManager
 import li.cil.oc.integration.util.Power
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.Optional
 
 @Injectable.InterfaceList(Array(
-  new Injectable.Interface(value = "appeng.api.implementations.items.IAEItemPowerStorage", modid = Mods.IDs.AppliedEnergistics2),
+  //  new Injectable.Interface(value = "appeng.api.implementations.items.IAEItemPowerStorage", modid = Mods.IDs.AppliedEnergistics2),
   new Injectable.Interface(value = "cofh.api.energy.IEnergyContainerItem", modid = Mods.IDs.CoFHEnergy),
   new Injectable.Interface(value = "ic2.api.item.ISpecialElectricItem", modid = Mods.IDs.IndustrialCraft2),
   new Injectable.Interface(value = "mekanism.api.energy.IEnergizedItem", modid = Mods.IDs.Mekanism)
@@ -26,40 +24,35 @@ trait Chargeable extends api.driver.item.Chargeable {
   def setCharge(stack: ItemStack, amount: Double): Unit
 
   // Applied Energistics 2
-
-  def getAECurrentPower(stack: ItemStack): Double =
+  /* TODO AE2
+    def getAECurrentPower(stack: ItemStack): Double =
     Power.toAE(getCharge(stack))
 
-  def getAEMaxPower(stack: ItemStack): Double =
+    def getAEMaxPower(stack: ItemStack): Double =
     Power.toAE(maxCharge(stack))
 
-  def injectAEPower(stack: ItemStack, value: Double): Double =
+    def injectAEPower(stack: ItemStack, value: Double): Double =
     Power.toAE(charge(stack, Power.fromAE(value), false))
 
-  def extractAEPower(stack: ItemStack, value: Double): Double =
+    def extractAEPower(stack: ItemStack, value: Double): Double =
     value - Power.toAE(charge(stack, Power.fromAE(-value), false))
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  def getPowerFlow(stack: ItemStack): AccessRestriction = AccessRestriction.WRITE
+    @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
+    def getPowerFlow(stack: ItemStack): AccessRestriction = AccessRestriction.WRITE
+  */
 
   // IndustrialCraft 2
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 
-  def getMaxCharge(stack: ItemStack): Double =
-    Power.toEU(maxCharge(stack))
+  def getMaxCharge(stack: ItemStack): Double = Power.toEU(maxCharge(stack))
 
-  def getTransferLimit(stack: ItemStack): Double =
-    Power.toEU(Settings.get.chargeRateTablet)
+  def getTransferLimit(stack: ItemStack): Double = Power.toEU(Settings.get.chargeRateTablet)
 
   def getTier(stack: ItemStack): Int = 1
 
   def canProvideEnergy(stack: ItemStack): Boolean = false
-
-  def getEmptyItem(stack: ItemStack): Item = stack.getItem
-
-  def getChargedItem(stack: ItemStack): Item = stack.getItem
 
   // Mekanism
 

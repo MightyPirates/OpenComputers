@@ -7,6 +7,7 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ITickable;
 
 /**
  * TileEntities can implement the {@link li.cil.oc.api.network.Environment}
@@ -17,7 +18,7 @@ import net.minecraft.tileentity.TileEntity;
  * network as an index structure to find other nodes connected to them.
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class TileEntityEnvironment extends TileEntity implements Environment {
+public abstract class TileEntityEnvironment extends TileEntity implements Environment, ITickable {
     /**
      * This must be set in subclasses to the node that is used to represent
      * this tile entity.
@@ -96,7 +97,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void updateEntity() {
+    public void update() {
         // On the first update, try to add our node to nearby networks. We do
         // this in the update logic, not in validate() because we need to access
         // neighboring tile entities, which isn't possible in validate().
@@ -143,7 +144,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void writeToNBT(final NBTTagCompound nbt) {
+    public NBTTagCompound writeToNBT(final NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         // See readFromNBT() regarding host check.
         if (node != null && node.host() == this) {
@@ -151,5 +152,6 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
             node.save(nodeNbt);
             nbt.setTag("oc:node", nodeNbt);
         }
+        return nbt;
     }
 }

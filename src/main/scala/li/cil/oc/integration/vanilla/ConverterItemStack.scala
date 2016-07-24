@@ -7,9 +7,9 @@ import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item
 import net.minecraft.item.Item
-import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.oredict.OreDictionary
@@ -30,29 +30,25 @@ object ConverterItemStack extends api.driver.Converter {
         output += "size" -> Int.box(stack.stackSize)
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTagCompound)
-        output += "name" -> Item.itemRegistry.getNameForObject(stack.getItem)
+        output += "name" -> Item.REGISTRY.getNameForObject(stack.getItem)
         output += "label" -> stack.getDisplayName
         if (stack.hasTagCompound &&
           stack.getTagCompound.hasKey("display", NBT.TAG_COMPOUND) &&
           stack.getTagCompound.getCompoundTag("display").hasKey("Lore", NBT.TAG_LIST)) {
           output += "lore" -> stack.getTagCompound.
             getCompoundTag("display").
-            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).
+            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString).
             mkString("\n")
         }
 
         val enchantments = mutable.ArrayBuffer.empty[mutable.Map[String, Any]]
         EnchantmentHelper.getEnchantments(stack).collect {
-          case (id: Int, level: Int) if id >= 0 && id < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList(id) != null =>
-            val enchantment = Enchantment.enchantmentsList(id)
-            val map = mutable.Map(
+          case (enchantment, level) =>
+            val map = mutable.Map[String, Any](
               "name" -> enchantment.getName,
               "label" -> enchantment.getTranslatedName(level),
               "level" -> level
             )
-            if (Settings.get.insertIdsInConverters) {
-              map += "id" -> id
-            }
             enchantments += map
         }
         if (enchantments.nonEmpty) {
@@ -60,7 +56,7 @@ object ConverterItemStack extends api.driver.Converter {
         }
 
         if (stack.hasTagCompound && Settings.get.allowItemStackNBTTags) {
-          output += "tag" -> CompressedStreamTools.compress(stack.getTagCompound)
+          output += "tag" -> ItemUtils.saveTag(stack.getTagCompound)
         }
       case _ =>
     }

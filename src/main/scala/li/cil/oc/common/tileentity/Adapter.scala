@@ -17,13 +17,13 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter with DeviceInfo {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -43,27 +43,25 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
     case Some(((environment, _))) => environment.node
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (updatingBlocks.nonEmpty) {
+    if (isServer && updatingBlocks.nonEmpty) {
       for (block <- updatingBlocks) {
         block.update()
       }
     }
   }
 
-  def neighborChanged(d: ForgeDirection) {
+  def neighborChanged(d: EnumFacing) {
     if (node != null && node.network != null) {
-      val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
-      world.getTileEntity(x, y, z) match {
+      val blockPos = getPos.offset(d)
+      world.getTileEntity(blockPos) match {
         case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
@@ -71,7 +69,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          Option(api.Driver.driverFor(world, x, y, z, d)) match {
+          Option(api.Driver.driverFor(world, blockPos, d)) match {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
@@ -82,7 +80,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   node.disconnect(oldEnvironment.node)
 
                   // Then rebuild - if we have something.
-                  val environment = newDriver.createEnvironment(world, x, y, z, d)
+                  val environment = newDriver.createEnvironment(world, blockPos, d)
                   if (environment != null) {
                     blocks(d.ordinal()) = Some((environment, newDriver))
                     if (environment.canUpdate) {
@@ -94,7 +92,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                 } // else: the more things change, the more they stay the same.
               case _ =>
                 // A challenger appears. Maybe.
-                val environment = newDriver.createEnvironment(world, x, y, z, d)
+                val environment = newDriver.createEnvironment(world, blockPos, d)
                 if (environment != null) {
                   blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {
@@ -126,7 +124,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   def neighborChanged() {
     if (node != null && node.network != null) {
-      for (d <- ForgeDirection.VALID_DIRECTIONS) {
+      for (d <- EnumFacing.values) {
         neighborChanged(d)
       }
     }
@@ -159,19 +157,23 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   // ----------------------------------------------------------------------- //
 
+  private final val BlocksTag = Settings.namespace + "adapter.blocks"
+  private final val BlockNameTag = "name"
+  private final val BlockDataTag = "data"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
 
-    val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks", NBT.TAG_COMPOUND)
+    val blocksNbt = nbt.getTagList(BlocksTag, NBT.TAG_COMPOUND)
     (0 until (blocksNbt.tagCount min blocksData.length)).
       map(blocksNbt.getCompoundTagAt).
       zipWithIndex.
       foreach {
-      case (blockNbt, i) =>
-        if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
-          blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
-        }
-    }
+        case (blockNbt, i) =>
+          if (blockNbt.hasKey(BlockNameTag) && blockNbt.hasKey(BlockDataTag)) {
+            blocksData(i) = Some(new BlockData(blockNbt.getString(BlockNameTag), blockNbt.getCompoundTag(BlockDataTag)))
+          }
+      }
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
@@ -186,13 +188,13 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
             case Some((environment, _)) => environment.save(data.data)
             case _ =>
           }
-          blockNbt.setString("name", data.name)
-          blockNbt.setTag("data", data.data)
+          blockNbt.setString(BlockNameTag, data.name)
+          blockNbt.setTag(BlockDataTag, data.data)
         case _ =>
       }
       blocksNbt.appendTag(blockNbt)
     }
-    nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
+    nbt.setTag(BlocksTag, blocksNbt)
   }
 
   // ----------------------------------------------------------------------- //

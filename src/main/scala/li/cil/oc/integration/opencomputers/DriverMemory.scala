@@ -11,13 +11,12 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with api.driver.item.Memory with api.driver.item.CallBudget {
-  override def amount(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(memory: item.Memory) =>
-        val sizes = Settings.get.ramSizes
-        Settings.get.ramSizes(memory.tier max 0 min (sizes.length - 1))
-      case _ => 0.0
-    }
+  override def amount(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(memory: item.Memory) =>
+      val sizes = Settings.get.ramSizes
+      Settings.get.ramSizes(memory.tier max 0 min (sizes.length - 1))
+    case _ => 0.0
+  }
 
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.RAMTier1),

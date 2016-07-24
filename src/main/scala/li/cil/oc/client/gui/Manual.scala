@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Textures
@@ -12,8 +10,8 @@ import li.cil.oc.client.{Manual => ManualAPI}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -34,7 +32,7 @@ class Manual extends GuiScreen with traits.Window {
   override val windowWidth = 256
   override val windowHeight = 192
 
-  override def backgroundImage = Textures.guiManual
+  override def backgroundImage = Textures.GUI.Manual
 
   var isDragging = false
   var document: Segment = null
@@ -93,10 +91,10 @@ class Manual extends GuiScreen with traits.Window {
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val x = guiLeft + tabPosX
       val y = guiTop + tabPosY + i * (tabHeight - 1)
-      add(buttonList, new ImageButton(i, x, y, tabWidth, tabHeight, Textures.guiManualTab))
+      add(buttonList, new ImageButton(i, x, y, tabWidth, tabHeight, Textures.GUI.ManualTab))
     }
 
-    scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
+    scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.GUI.ButtonScroll)
     add(buttonList, scrollButton)
 
     refreshPage()
@@ -110,10 +108,10 @@ class Manual extends GuiScreen with traits.Window {
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]
-      GL11.glPushMatrix()
-      GL11.glTranslated(button.xPosition + 5, button.yPosition + 5, zLevel)
+      GlStateManager.pushMatrix()
+      GlStateManager.translate(button.xPosition + 5, button.yPosition + 5, zLevel)
       tab.renderer.render()
-      GL11.glPopMatrix()
+      GlStateManager.popMatrix()
     }
 
     currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
@@ -175,8 +173,8 @@ class Manual extends GuiScreen with traits.Window {
     }
   }
 
-  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, button)
+  override protected def mouseReleased(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseReleased(mouseX, mouseY, button)
     if (button == 0) {
       isDragging = false
     }

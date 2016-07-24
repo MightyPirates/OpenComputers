@@ -61,8 +61,12 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
   def updateXpInfo() {
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
+    val oldLevel = level
     level = math.min((Math.pow(experience - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
     if (node != null) {
+      if (level != oldLevel) {
+        updateClient()
+      }
       node.setLocalBufferSize(Settings.get.bufferPerLevel * level)
     }
   }
@@ -81,12 +85,11 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
       return result(Unit, "no item")
     }
     var xp = 0
-    if (stack.getItem == Items.experience_bottle) {
+    if (stack.getItem == Items.EXPERIENCE_BOTTLE) {
       xp += 3 + host.world.rand.nextInt(5) + host.world.rand.nextInt(5)
     }
     else {
-      for ((id: Int, level: Int) <- EnchantmentHelper.getEnchantments(stack)) {
-        val enchantment = Enchantment.enchantmentsList(id)
+      for ((enchantment, level) <- EnchantmentHelper.getEnchantments(stack)) {
         if (enchantment != null) {
           xp += enchantment.getMinEnchantability(level)
         }
@@ -103,14 +106,21 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     result(true)
   }
 
+  private def updateClient() = host match {
+    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
+    case _ =>
+  }
+
+  private final val XpTag = Settings.namespace + "xp"
+
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble(Settings.namespace + "xp", experience)
+    nbt.setDouble(XpTag, experience)
   }
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    experience = nbt.getDouble(Settings.namespace + "xp") max 0
+    experience = nbt.getDouble(XpTag) max 0
     updateXpInfo()
   }
 }

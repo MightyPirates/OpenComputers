@@ -405,11 +405,13 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   // ----------------------------------------------------------------------- //
 
+  private final val ScreenTag = "screen"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    if (nbt.hasKey("screen")) {
-      nbt.getString("screen") match {
+    if (nbt.hasKey(ScreenTag)) {
+      nbt.getString(ScreenTag) match {
         case screen: String if !screen.isEmpty => screenAddress = Some(screen)
         case _ => screenAddress = None
       }
@@ -421,7 +423,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     super.save(nbt)
 
     if (screenAddress.isDefined) {
-      nbt.setString("screen", screenAddress.get)
+      nbt.setString(ScreenTag, screenAddress.get)
     }
   }
 }

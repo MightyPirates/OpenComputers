@@ -1,9 +1,9 @@
 package li.cil.oc.common.event
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.network.Component
 import li.cil.oc.server.component.UpgradeAngel
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 

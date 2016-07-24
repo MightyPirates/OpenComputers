@@ -21,18 +21,18 @@ import net.minecraft.item.ItemStack
  */
 object EnvironmentProviderBlocks extends EnvironmentProvider {
   override def getEnvironment(stack: ItemStack): Class[_] = stack.getItem match {
-    case block: ItemBlock if block.field_150939_a != null =>
-      if (isOneOf(block.field_150939_a, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.MotionSensor)) classOf[tileentity.MotionSensor]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.Printer)) classOf[tileentity.Printer]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)) classOf[common.component.Screen]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.Robot)) classOf[component.Robot]: Class[_ <: Environment]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.Waypoint)) classOf[tileentity.Waypoint]: Class[_ <: Environment]
+    case block: ItemBlock if block.getBlock != null =>
+      if (isOneOf(block.getBlock, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
+      else if (isOneOf(block.getBlock, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
+      else if (isOneOf(block.getBlock, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]
+      else if (isOneOf(block.getBlock, Constants.BlockName.MotionSensor)) classOf[tileentity.MotionSensor]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Printer)) classOf[tileentity.Printer]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
+      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]
+      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)) classOf[common.component.Screen]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Robot)) classOf[component.Robot]: Class[_ <: Environment]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Waypoint)) classOf[tileentity.Waypoint]: Class[_ <: Environment]
       else null
     case _ =>
       if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)) classOf[component.Drone]: Class[_ <: Environment]

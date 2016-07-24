@@ -23,7 +23,7 @@ import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
@@ -76,9 +76,9 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
     val positionVec = position.toVec3
     val rangeSq = range * range
     val waypoints = Waypoints.findWaypoints(position, range).
-      filter(waypoint => waypoint.getDistanceFrom(positionVec.xCoord, positionVec.yCoord, positionVec.zCoord) <= rangeSq)
+      filter(waypoint => waypoint.getDistanceSq(positionVec.xCoord, positionVec.yCoord, positionVec.zCoord) <= rangeSq)
     result(waypoints.map(waypoint => {
-      val delta = positionVec.subtract(waypoint.position.offset(waypoint.facing).toVec3)
+      val delta = waypoint.position.offset(waypoint.facing).toVec3.subtract(positionVec)
       Map(
         "position" -> Array(delta.xCoord, delta.yCoord, delta.zCoord),
         "redstone" -> waypoint.maxInput,
@@ -91,7 +91,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           val info = data.mapData(host.world)
           nbt.setInteger("posX", blockPos.x - info.xCenter)
           nbt.setInteger("posY", blockPos.y)

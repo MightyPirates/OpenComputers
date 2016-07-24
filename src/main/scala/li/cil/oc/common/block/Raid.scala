@@ -4,26 +4,27 @@ import java.util
 
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
+import net.minecraft.block.Block
+import net.minecraft.block.state.BlockStateContainer
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.reflect.ClassTag
 
 class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("RaidSide"),
-    Some("RaidFront"),
-    Some("RaidSide"),
-    Some("RaidSide")
-  )
+  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
-  // ----------------------------------------------------------------------- //
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+
+  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
@@ -39,16 +40,14 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   override def guiType = GuiType.Raid
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Raid()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Raid()
 
   // ----------------------------------------------------------------------- //
 
-  override def hasComparatorInputOverride = true
+  override def hasComparatorInputOverride(state: IBlockState): Boolean = true
 
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
+  override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
       case raid: tileentity.Raid if raid.presence.forall(ok => ok) => 15
       case _ => 0
     }
@@ -78,6 +77,6 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
       data.label = Option(tileEntity.label.getLabel)
       data.save(stack)
     }
-    dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, stack)
+    Block.spawnAsEntity(tileEntity.world, tileEntity.getPos, stack)
   }
 }

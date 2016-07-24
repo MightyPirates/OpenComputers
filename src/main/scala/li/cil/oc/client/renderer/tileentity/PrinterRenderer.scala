@@ -1,42 +1,38 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Printer
 import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.entity.RenderItem
-import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.tileentity.TileEntity
-import org.lwjgl.opengl.GL11
 
-object PrinterRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
+  override def renderTileEntityAt(printer: Printer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val printer = tileEntity.asInstanceOf[Printer]
-    if (printer.data.stateOff.size > 0) {
+    if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-      GL11.glPushMatrix()
+      RenderState.pushAttrib()
+      GlStateManager.pushMatrix()
 
-      GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+      GlStateManager.translate(x + 0.5, y + 0.5 + 0.3, z + 0.5)
 
-      GL11.glRotated((System.currentTimeMillis() % 20000) / 20000.0 * 360, 0, 1, 0)
+      GlStateManager.rotate((System.currentTimeMillis() % 20000) / 20000f * 360, 0, 1, 0)
+      GlStateManager.scale(0.75, 0.75, 0.75)
 
-      val brightness = printer.world.getLightBrightnessForSkyBlocks(printer.x, printer.y, printer.z, 0)
+      val brightness = printer.world.getCombinedLight(printer.getPos, 0)
       OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
 
-      // This is very 'meh', but item frames do it like this, too!
-      val entity = new EntityItem(printer.world, 0, 0, 0, stack)
-      entity.hoverStart = 0
-      RenderItem.renderInFrame = true
-      RenderManager.instance.renderEntityWithPosYaw(entity, 0, -0.1, 0, 0, 0)
-      RenderItem.renderInFrame = false
+      Textures.Block.bind()
+      Minecraft.getMinecraft.getRenderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED)
 
-      GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popMatrix()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

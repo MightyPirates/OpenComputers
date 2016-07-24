@@ -19,5 +19,9 @@
 /eclipse
 /run
 
+# Windows...
+**/Thumbs.db
+
 # OS X
 .DS_Store
+/run

@@ -3,9 +3,9 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.SidedEnvironment
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
-trait PowerBalancer extends PowerInformation with SidedEnvironment {
+trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable {
   var globalBuffer, globalBufferSize = 0.0
 
   protected def isConnected: Boolean
@@ -55,7 +55,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
     (sumBuffer, sumSize)
   }
 
-  private def connectors = ForgeDirection.VALID_DIRECTIONS.view.map(sidedNode(_) match {
+  private def connectors = EnumFacing.values.view.map(sidedNode(_) match {
     case connector: Connector => connector
     case _ => null
   })

@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "facing=north,running=false": { "model": "opencomputers:case" },
+        "facing=south,running=false": { "model": "opencomputers:case", "y": 180 },
+        "facing=west,running=false":  { "model": "opencomputers:case", "y": 270 },
+        "facing=east,running=false":  { "model": "opencomputers:case", "y": 90 },
+        "facing=north,running=true": { "model": "opencomputers:case_running" },
+        "facing=south,running=true": { "model": "opencomputers:case_running", "y": 180 },
+        "facing=west,running=true":  { "model": "opencomputers:case_running", "y": 270 },
+        "facing=east,running=true":  { "model": "opencomputers:case_running", "y": 90 }
+    }
+}

@@ -50,7 +50,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     pressedKeys.get(player) match {
       case Some(keys) => for ((code, char) <- keys) {
         if (Settings.get.inputUsername) {
-          signal(player, "key_up", char, code, player.getCommandSenderName)
+          signal(player, "key_up", char, code, player.getName)
         }
         else {
           signal(player, "key_up", char, code)
@@ -69,7 +69,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
         if (isUseableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
           if (Settings.get.inputUsername) {
-            signal(p, "key_down", char, code, p.getCommandSenderName)
+            signal(p, "key_down", char, code, p.getName)
           }
           else {
             signal(p, "key_down", char, code)
@@ -80,7 +80,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
           case Some(keys) if keys.contains(code) =>
             keys -= code
             if (Settings.get.inputUsername) {
-              signal(p, "key_up", char, code, p.getCommandSenderName)
+              signal(p, "key_up", char, code, p.getName)
             }
             else {
               signal(p, "key_up", char, code)
@@ -91,7 +91,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
         if (isUseableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
             if (Settings.get.inputUsername) {
-              signal(p, "clipboard", line, p.getCommandSenderName)
+              signal(p, "clipboard", line, p.getName)
             }
             else {
               signal(p, "clipboard", line)

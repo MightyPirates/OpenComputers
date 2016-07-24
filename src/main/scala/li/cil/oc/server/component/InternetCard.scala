@@ -21,6 +21,8 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -29,6 +31,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -468,7 +471,7 @@ object InternetCard {
     private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
-        val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
+        val proxy = Option(FMLCommonHandler.instance.getMinecraftServerInstance.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {
             http.setDoInput(true)

@@ -4,8 +4,6 @@ import java.io.File
 import java.io.FileReader
 
 import com.typesafe.config._
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.Loot
 import li.cil.oc.common.block.SimpleBlock
@@ -14,16 +12,19 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.RegistryNamespaced
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.registry.RegistryNamespaced
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
@@ -67,6 +68,18 @@ object Recipes {
       case _ => new ItemStack(instance)
     }, oreDict: _*)
     instance
+  }
+
+  def addSubItem[T <: common.item.traits.Delegate](delegate: T, name: String, registerRecipe: Boolean, oreDict: String*) = {
+    Items.registerItem(delegate, name)
+    if (registerRecipe) {
+      addRecipe(delegate.createItemStack(), name)
+      register(delegate.createItemStack(), oreDict: _*)
+    }
+    else {
+      ItemBlacklist.hide(delegate)
+    }
+    delegate
   }
 
   def addStack(stack: ItemStack, name: String, oreDict: String*) = {
@@ -114,22 +127,22 @@ object Recipes {
       lazy val config: ConfigParseOptions = ConfigParseOptions.defaults.
         setSyntax(ConfigSyntax.CONF).
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
-        var fallback: ConfigIncluder = _
+          var fallback: ConfigIncluder = _
 
-        override def withFallback(fallback: ConfigIncluder) = {
-          this.fallback = fallback
-          this
-        }
+          override def withFallback(fallback: ConfigIncluder) = {
+            this.fallback = fallback
+            this
+          }
 
-        override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
+          override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
 
-        override def includeFile(context: ConfigIncludeContext, what: File) = {
-          val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
-          val result = ConfigFactory.parseReader(in, config)
-          in.close()
-          result.root()
-        }
-      })
+          override def includeFile(context: ConfigIncludeContext, what: File) = {
+            val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
+            val result = ConfigFactory.parseReader(in, config)
+            in.close()
+            result.root()
+          }
+        })
       val recipes = ConfigFactory.parseFile(userRecipes, config)
 
       // Register all known recipes.
@@ -202,7 +215,6 @@ object Recipes {
       val eeprom = api.Items.get(Constants.ItemName.EEPROM)
       val floppy = api.Items.get(Constants.ItemName.Floppy)
       val hoverBoots = api.Items.get(Constants.ItemName.HoverBoots)
-      val lootDisk = api.Items.get(Constants.ItemName.LootDisk)
       val mcu = api.Items.get(Constants.BlockName.Microcontroller)
       val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
       val print = api.Items.get(Constants.BlockName.Print)
@@ -214,7 +226,7 @@ object Recipes {
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         navigationUpgrade.createItemStack(1),
-        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
+        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.FILLED_MAP, 1, OreDictionary.WILDCARD_VALUE)))
 
       // Floppy disk coloring.
       for (dye <- Color.dyes) {
@@ -276,10 +288,10 @@ object Recipes {
       }
 
       for (block <- Array(
-        net.minecraft.init.Blocks.iron_block,
-        net.minecraft.init.Blocks.gold_block,
-        net.minecraft.init.Blocks.emerald_block,
-        net.minecraft.init.Blocks.diamond_block
+        net.minecraft.init.Blocks.IRON_BLOCK,
+        net.minecraft.init.Blocks.GOLD_BLOCK,
+        net.minecraft.init.Blocks.EMERALD_BLOCK,
+        net.minecraft.init.Blocks.DIAMOND_BLOCK
       )) {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
           beaconPrint,
@@ -288,7 +300,6 @@ object Recipes {
 
       // Floppy disk formatting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), lootDisk.createItemStack(1)))
 
       // Hard disk formatting.
       val hdds = Array(
@@ -314,7 +325,7 @@ object Recipes {
 
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
-        print.createItemStack(1), new ItemStack(net.minecraft.init.Items.glowstone_dust)))
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Items.GLOWSTONE_DUST)))
 
       {
         val printData = new PrintData(lightPrint)
@@ -324,7 +335,7 @@ object Recipes {
 
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
-        print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.glowstone)))
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.GLOWSTONE)))
 
       // Switch/AccessPoint -> Relay conversion
       GameRegistry.addShapelessRecipe(relay.createItemStack(1), accessPoint.createItemStack(1))
@@ -421,19 +432,21 @@ object Recipes {
     Option(new FluidStack(fluid, amount))
   }
 
-  private def findItem(name: String) = getObjectWithoutFallback(Item.itemRegistry, name).orElse(Item.itemRegistry.find {
-    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
+  private def findItem(name: String) = getObjectWithoutFallback(Item.REGISTRY, name).orElse(Item.REGISTRY.find {
+    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
     case _ => false
   })
 
-  private def findBlock(name: String) = getObjectWithoutFallback(Block.blockRegistry, name).orElse(Block.blockRegistry.find {
-    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name
+  private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY.asInstanceOf[RegistryNamespaced[ResourceLocation, Block]], name).orElse(Block.REGISTRY.find {
+    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })
 
-  private def getObjectWithoutFallback(registry: RegistryNamespaced, key: String) =
-    if (registry.containsKey(key)) Option(registry.getObject(key))
+  private def getObjectWithoutFallback[V](registry: RegistryNamespaced[ResourceLocation, V], key: String) = {
+    val loc = new ResourceLocation(key)
+    if (registry.containsKey(loc)) Option(registry.getObject(loc))
     else None
+  }
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
@@ -461,16 +474,23 @@ object Recipes {
 
   private def hide(value: ItemStack) {
     Delegator.subItem(value) match {
-      case Some(stack) => stack.showInItemList = false
-      case _ => value.getItem match {
-        case itemBlock: ItemBlock => itemBlock.field_150939_a match {
-          case simple: SimpleBlock =>
-            simple.setCreativeTab(null)
-            NEI.hide(simple)
-          case _ =>
-        }
+      case Some(stack) =>
+        stack.showInItemList = false
+      case _ =>
+    }
+    value.getItem match {
+      case simple: SimpleItem =>
+        simple.setCreativeTab(null)
+      case _ =>
+    }
+    value.getItem match {
+      case itemBlock: ItemBlock => itemBlock.getBlock match {
+        case simple: SimpleBlock =>
+          simple.setCreativeTab(null)
+          ItemBlacklist.hide(simple)
         case _ =>
       }
+      case _ =>
     }
   }
 

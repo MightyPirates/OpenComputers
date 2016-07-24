@@ -1,15 +1,14 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
 import li.cil.oc.api.internal
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RotationHelper
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 /** TileEntity base class for rotatable blocks. */
 trait Rotatable extends RotationAware with internal.Rotatable {
@@ -17,37 +16,34 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Lookup tables
   // ----------------------------------------------------------------------- //
 
-  private val pitch2Direction = Array(ForgeDirection.UP, ForgeDirection.NORTH, ForgeDirection.DOWN)
+  private val pitch2Direction = Array(EnumFacing.UP, EnumFacing.NORTH, EnumFacing.DOWN)
 
-  private val yaw2Direction = Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
-
-  // ----------------------------------------------------------------------- //
-  // State
-  // ----------------------------------------------------------------------- //
-
-  /** One of Up, Down and North (where north means forward/no pitch). */
-  private var _pitch = ForgeDirection.NORTH
-
-  /** One of the four cardinal directions. */
-  private var _yaw = ForgeDirection.SOUTH
+  private val yaw2Direction = Array(EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST)
 
   // ----------------------------------------------------------------------- //
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = _pitch
+  def pitch = if (world != null) getBlockType match {
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => world.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
+    case _ => EnumFacing.NORTH
+  } else EnumFacing.NORTH
 
-  def pitch_=(value: ForgeDirection): Unit =
+  def pitch_=(value: EnumFacing): Unit =
     trySetPitchYaw(value match {
-      case ForgeDirection.DOWN | ForgeDirection.UP => value
-      case _ => ForgeDirection.NORTH
-    }, _yaw)
+      case EnumFacing.DOWN | EnumFacing.UP => value
+      case _ => EnumFacing.NORTH
+    }, yaw)
 
-  def yaw = _yaw
+  def yaw = if (world != null) getBlockType match {
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => world.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => world.getBlockState(getPos).getValue(PropertyRotatable.Facing)
+    case _ => EnumFacing.SOUTH
+  } else EnumFacing.SOUTH
 
-  def yaw_=(value: ForgeDirection): Unit =
+  def yaw_=(value: EnumFacing): Unit =
     trySetPitchYaw(pitch, value match {
-      case ForgeDirection.DOWN | ForgeDirection.UP => _yaw
+      case EnumFacing.DOWN | EnumFacing.UP => yaw
       case _ => value
     })
 
@@ -56,35 +52,35 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       pitch2Direction((entity.rotationPitch / 90).round + 1),
       yaw2Direction((entity.rotationYaw / 360 * 4).round & 3))
 
-  def setFromFacing(value: ForgeDirection) =
+  def setFromFacing(value: EnumFacing) =
     value match {
-      case ForgeDirection.DOWN | ForgeDirection.UP =>
+      case EnumFacing.DOWN | EnumFacing.UP =>
         trySetPitchYaw(value, yaw)
       case yaw =>
-        trySetPitchYaw(ForgeDirection.NORTH, yaw)
+        trySetPitchYaw(EnumFacing.NORTH, yaw)
     }
 
   def invertRotation() =
-    trySetPitchYaw(_pitch match {
-      case ForgeDirection.DOWN | ForgeDirection.UP => _pitch.getOpposite
-      case _ => ForgeDirection.NORTH
-    }, _yaw.getOpposite)
+    trySetPitchYaw(pitch match {
+      case EnumFacing.DOWN | EnumFacing.UP => pitch.getOpposite
+      case _ => EnumFacing.NORTH
+    }, yaw.getOpposite)
 
-  override def facing = _pitch match {
-    case ForgeDirection.DOWN | ForgeDirection.UP => _pitch
-    case _ => _yaw
+  override def facing = pitch match {
+    case EnumFacing.DOWN | EnumFacing.UP => pitch
+    case _ => yaw
   }
 
-  def rotate(axis: ForgeDirection) = {
+  def rotate(axis: EnumFacing) = {
     val block = world.getBlock(position)
     if (block != null) {
-      val valid = block.getValidRotations(world, x, y, z)
+      val valid = block.getValidRotations(world, getPos)
       if (valid != null && valid.contains(axis)) {
         val (newPitch, newYaw) = facing.getRotation(axis) match {
-          case value@(ForgeDirection.UP | ForgeDirection.DOWN) =>
+          case value@(EnumFacing.UP | EnumFacing.DOWN) =>
             if (value == pitch) (value, yaw.getRotation(axis))
             else (value, yaw)
-          case value => (ForgeDirection.NORTH, value)
+          case value => (EnumFacing.NORTH, value)
         }
         trySetPitchYaw(newPitch, newYaw)
       }
@@ -93,11 +89,11 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else false
   }
 
-  override def toLocal(value: ForgeDirection) = RotationHelper.toLocal(_pitch, _yaw, value)
+  override def toLocal(value: EnumFacing) = if (value == null) null else RotationHelper.toLocal(pitch, yaw, value)
 
-  override def toGlobal(value: ForgeDirection) = RotationHelper.toGlobal(_pitch, _yaw, value)
+  override def toGlobal(value: EnumFacing) = if (value == null) null else RotationHelper.toGlobal(pitch, yaw, value)
 
-  def validFacings = Array(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.EAST)
+  def validFacings = Array(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST)
 
   // ----------------------------------------------------------------------- //
 
@@ -106,78 +102,37 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       ServerPacketSender.sendRotatableState(this)
     }
     else {
-      world.markBlockForUpdate(x, y, z)
+      world.notifyBlockUpdate(getPos)
     }
-    world.notifyBlocksOfNeighborChange(x, y, z, block)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def readFromNBTForServer(nbt: NBTTagCompound) = {
-    super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(Settings.namespace + "pitch")) {
-      pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
-    }
-    if (nbt.hasKey(Settings.namespace + "yaw")) {
-      yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
-    }
-    validatePitchAndYaw()
-    updateTranslation()
-  }
-
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
-    super.writeToNBTForServer(nbt)
-    nbt.setInteger(Settings.namespace + "pitch", pitch.ordinal)
-    nbt.setInteger(Settings.namespace + "yaw", yaw.ordinal)
-  }
-
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
-    yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
-    validatePitchAndYaw()
-    updateTranslation()
-  }
-
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    nbt.setInteger("pitch", pitch.ordinal)
-    nbt.setInteger("yaw", yaw.ordinal)
-  }
-
-  private def validatePitchAndYaw() {
-    if (!Set(ForgeDirection.UP, ForgeDirection.DOWN, ForgeDirection.NORTH).contains(_pitch)) {
-      _pitch = ForgeDirection.NORTH
-    }
-    if (!Set(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.EAST, ForgeDirection.WEST).contains(_yaw)) {
-      _yaw = ForgeDirection.SOUTH
-    }
+    world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }
 
   // ----------------------------------------------------------------------- //
 
   /** Updates cached translation array and sends notification to clients. */
-  private def updateTranslation() = {
+  protected def updateTranslation(): Unit = {
     if (world != null) {
       onRotationChanged()
     }
   }
 
   /** Validates new values against the allowed rotations as set in our block. */
-  private def trySetPitchYaw(pitch: ForgeDirection, yaw: ForgeDirection) = {
-    var changed = false
-    if (pitch != _pitch) {
-      changed = true
-      _pitch = pitch
+  protected def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
+    val oldState = world.getBlockState(getPos)
+    def setState(newState: IBlockState): Boolean = {
+      if (oldState.hashCode() != newState.hashCode()) {
+        world.setBlockState(getPos, newState)
+        updateTranslation()
+        true
+      }
+      else false
     }
-    if (yaw != _yaw) {
-      changed = true
-      _yaw = yaw
+    getBlockType match {
+      case rotatable if oldState.getProperties.containsKey(PropertyRotatable.Pitch) && oldState.getProperties.containsKey(PropertyRotatable.Yaw) =>
+        setState(oldState.withProperty(PropertyRotatable.Pitch, pitch).withProperty(PropertyRotatable.Yaw, yaw))
+      case rotatable if oldState.getProperties.containsKey(PropertyRotatable.Facing) =>
+        setState(oldState.withProperty(PropertyRotatable.Facing, yaw))
+      case _ => false
     }
-    if (changed) {
-      updateTranslation()
-    }
-    changed
   }
 }

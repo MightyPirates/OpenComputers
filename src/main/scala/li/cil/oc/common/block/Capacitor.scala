@@ -3,9 +3,10 @@ package li.cil.oc.common.block
 import java.util.Random
 
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 class Capacitor extends SimpleBlock {
@@ -13,40 +14,29 @@ class Capacitor extends SimpleBlock {
 
   setTickRandomly(true)
 
-  override protected def customTextures = Array(
-    None,
-    Some("CapacitorTop"),
-    Some("CapacitorSide"),
-    Some("CapacitorSide"),
-    Some("CapacitorSide"),
-    Some("CapacitorSide")
-  )
+  // ----------------------------------------------------------------------- //
+
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Capacitor()
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasComparatorInputOverride(state: IBlockState): Boolean = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Capacitor()
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
+  override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
       case capacitor: tileentity.Capacitor if !world.isRemote =>
         math.round(15 * capacitor.node.localBuffer / capacitor.node.localBufferSize).toInt
       case _ => 0
     }
 
-  override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random): Unit = {
-    world.notifyBlocksOfNeighborChange(x, y, z, this)
+  override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random): Unit = {
+    world.notifyNeighborsOfStateChange(pos, this)
   }
 
-  override def tickRate(world : World) = 1
+  override def tickRate(world: World) = 1
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
-    world.getTileEntity(x, y, z) match {
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block): Unit =
+    world.getTileEntity(pos) match {
       case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
       case _ =>
     }

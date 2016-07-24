@@ -10,17 +10,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class Redstone extends RedstoneAware {
-  override protected def customTextures = Array(
-    Some("RedstoneTop"),
-    Some("RedstoneTop"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide")
-  )
-
-  // ----------------------------------------------------------------------- //
-
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (Mods.ProjectRedTransmission.isAvailable) {
@@ -36,5 +25,5 @@ class Redstone extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
 }

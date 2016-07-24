@@ -1,6 +1,5 @@
 package li.cil.oc.integration.tcon
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.item.ItemStack
 

@@ -10,7 +10,7 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.oredict.OreDictionary
 
 trait WorldInventoryAnalytics extends WorldAware with SideRestricted with NetworkAware {
@@ -89,7 +89,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
 
-  private def withInventory(side: ForgeDirection, f: IInventory => Array[AnyRef]) =
+  private def withInventory(side: EnumFacing, f: IInventory => Array[AnyRef]) =
     InventoryUtils.inventoryAt(position.offset(side)) match {
       case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(position.offset(side), side.getOpposite) => f(inventory)
       case _ => result(Unit, "no inventory")

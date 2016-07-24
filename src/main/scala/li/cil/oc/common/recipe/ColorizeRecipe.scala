@@ -5,7 +5,6 @@ import li.cil.oc.util.ItemColorizer
 import net.minecraft.block.Block
 import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
-import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -13,7 +12,7 @@ import net.minecraft.world.World
 /**
   * @author asie, Vexatos
   */
-class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
+class ColorizeRecipe(target: Item, source: Array[Item] = null) extends ContainerItemAwareRecipe {
   def this(target: Block, source: Array[Item]) = this(Item.getItemFromBlock(target), source)
   def this(target: Block) = this(target, null)
 
@@ -43,7 +42,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
         if (dye.isEmpty)
           return null
 
-        val itemColor = EntitySheep.fleeceColorTable(15 - Color.dyes.indexOf(dye.get))
+        val itemColor = EntitySheep.getDyeRgb(Color.byOreName(dye.get))
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt

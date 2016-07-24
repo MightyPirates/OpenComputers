@@ -386,16 +386,19 @@ final class HandleValue extends AbstractValue {
     }
   }
 
+  private val OwnerTag = "owner"
+  private val HandleTag = "handle"
+
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
-    owner = nbt.getString("owner")
-    handle = nbt.getInteger("handle")
+    owner = nbt.getString(OwnerTag)
+    handle = nbt.getInteger(HandleTag)
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
-    nbt.setInteger("handle", handle)
-    nbt.setString("owner", owner)
+    nbt.setString(OwnerTag, owner)
+    nbt.setInteger(HandleTag, handle)
   }
 
   override def toString: String = handle.toString

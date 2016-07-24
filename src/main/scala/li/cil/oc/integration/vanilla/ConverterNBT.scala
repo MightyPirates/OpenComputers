@@ -15,21 +15,21 @@ object ConverterNBT extends api.driver.Converter {
     }
 
   private def convert(nbt: NBTBase): AnyRef = nbt match {
-    case tag: NBTTagByte => Byte.box(tag.func_150290_f())
-    case tag: NBTTagShort => Short.box(tag.func_150289_e())
-    case tag: NBTTagInt => Int.box(tag.func_150287_d())
-    case tag: NBTTagLong => Long.box(tag.func_150291_c())
-    case tag: NBTTagFloat => Float.box(tag.func_150288_h())
-    case tag: NBTTagDouble => Double.box(tag.func_150286_g())
-    case tag: NBTTagByteArray => tag.func_150292_c()
-    case tag: NBTTagString => tag.func_150285_a_()
+    case tag: NBTTagByte => Byte.box(tag.getByte)
+    case tag: NBTTagShort => Short.box(tag.getShort)
+    case tag: NBTTagInt => Int.box(tag.getInt)
+    case tag: NBTTagLong => Long.box(tag.getLong)
+    case tag: NBTTagFloat => Float.box(tag.getFloat)
+    case tag: NBTTagDouble => Double.box(tag.getDouble)
+    case tag: NBTTagByteArray => tag.getByteArray
+    case tag: NBTTagString => tag.getString
     case tag: NBTTagList =>
-      val copy = tag.copy().asInstanceOf[NBTTagList]
+      val copy = tag.copy(): NBTTagList
       (0 until copy.tagCount).map(_ => convert(copy.removeTag(0))).toArray
     case tag: NBTTagCompound =>
-      tag.func_150296_c().collect {
+      tag.getKeySet.collect {
         case key: String => key -> convert(tag.getTag(key))
       }.toMap
-    case tag: NBTTagIntArray => tag.func_150302_c()
+    case tag: NBTTagIntArray => tag.getIntArray
   }
 }

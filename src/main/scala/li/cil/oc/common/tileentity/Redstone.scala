@@ -7,9 +7,9 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
-class Redstone extends traits.Environment with traits.BundledRedstoneAware {
+class Redstone extends traits.Environment with traits.BundledRedstoneAware with traits.Tickable {
   val instance =
     if (BundledRedstone.isAvailable)
       new component.Redstone.Bundled(this)
@@ -24,23 +24,23 @@ class Redstone extends traits.Environment with traits.BundledRedstoneAware {
   }
   else null
 
-  override def canUpdate = isServer
-
   // ----------------------------------------------------------------------- //
+
+  private final val RedstoneTag = Settings.namespace + "redstone"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    instance.load(nbt.getCompoundTag(Settings.namespace + "redstone"))
+    instance.load(nbt.getCompoundTag(RedstoneTag))
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "redstone", instance.save)
+    nbt.setNewCompoundTag(RedstoneTag, instance.save)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
+  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     if (node != null && node.network != null) {
       node.connect(dummyNode)

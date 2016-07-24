@@ -19,18 +19,22 @@ class RaidData extends ItemData(Constants.BlockName.Raid) {
 
   var label: Option[String] = None
 
+  private final val DisksTag = Settings.namespace + "disks"
+  private final val FileSystemTag = Settings.namespace + "filesystem"
+  private final val LabelTag = Settings.namespace + "label"
+
   override def load(nbt: NBTTagCompound): Unit = {
-    disks = nbt.getTagList(Settings.namespace + "disks", NBT.TAG_COMPOUND).
+    disks = nbt.getTagList(DisksTag, NBT.TAG_COMPOUND).
       toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
-    filesystem = nbt.getCompoundTag(Settings.namespace + "filesystem")
-    if (nbt.hasKey(Settings.namespace + "label")) {
-      label = Option(nbt.getString(Settings.namespace + "label"))
+    filesystem = nbt.getCompoundTag(FileSystemTag)
+    if (nbt.hasKey(LabelTag)) {
+      label = Option(nbt.getString(LabelTag))
     }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
-    nbt.setNewTagList(Settings.namespace + "disks", disks.toIterable)
-    nbt.setTag(Settings.namespace + "filesystem", filesystem)
-    label.foreach(nbt.setString(Settings.namespace + "label", _))
+    nbt.setNewTagList(DisksTag, disks.toIterable)
+    nbt.setTag(FileSystemTag, filesystem)
+    label.foreach(nbt.setString(LabelTag, _))
   }
 }

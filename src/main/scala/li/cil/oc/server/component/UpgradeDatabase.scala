@@ -16,10 +16,9 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompressedStreamTools
 
 import scala.collection.convert.WrapAsJava._
 
@@ -53,7 +52,7 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
   def computeHash(context: Context, args: Arguments): Array[AnyRef] = {
     data.getStackInSlot(args.checkSlot(data, 0)) match {
       case stack: ItemStack =>
-        val hash = Hashing.sha256().hashBytes(CompressedStreamTools.compress(stack))
+        val hash = Hashing.sha256().hashBytes(ItemUtils.saveStack(stack))
         result(hash.toString)
       case _ => null
     }
@@ -99,7 +98,7 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
   private def indexOf(needle: String, offset: Int = 0): Int = {
     for (slot <- 0 until data.getSizeInventory) data.getStackInSlot(slot) match {
       case stack: ItemStack =>
-        val hash = Hashing.sha256().hashBytes(CompressedStreamTools.compress(stack))
+        val hash = Hashing.sha256().hashBytes(ItemUtils.saveStack(stack))
         if (hash.toString == needle) return slot + offset
       case _ =>
     }

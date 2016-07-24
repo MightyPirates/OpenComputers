@@ -1,46 +1,44 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
-import li.cil.oc.client.Textures
+import li.cil.oc.common.block.property.PropertyTile
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.common.property.ExtendedBlockState
+import net.minecraftforge.common.property.IExtendedBlockState
 
 class NetSplitter extends RedstoneAware {
-  override protected def customTextures = Array(
-    Some("NetSplitterTop"),
-    Some("NetSplitterTop"),
-    Some("NetSplitterSide"),
-    Some("NetSplitterSide"),
-    Some("NetSplitterSide"),
-    Some("NetSplitterSide")
-  )
+  override def createBlockState() = new ExtendedBlockState(this, Array.empty, Array(PropertyTile.Tile))
 
-  @SideOnly(Side.CLIENT)
-  override def registerBlockIcons(iconRegister: IIconRegister): Unit = {
-    super.registerBlockIcons(iconRegister)
-    Textures.NetSplitter.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":NetSplitterOn")
-  }
-
-  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection): Boolean = false
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
+    (state, world.getTileEntity(pos)) match {
+      case (extendedState: IExtendedBlockState, t: tileentity.NetSplitter) =>
+        extendedState.withProperty(property.PropertyTile.Tile, t)
+      case _ => state
+    }
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.NetSplitter()
+  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = false
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+  override def createNewTileEntity(world: World, meta: Int) = new tileentity.NetSplitter()
+
+  // ----------------------------------------------------------------------- //
+
+  // NOTE: must not be final for immibis microblocks to work.
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    if (Wrench.holdsApplicableWrench(player, pos)) {
       val sideToToggle = if (player.isSneaking) side.getOpposite else side
-      world.getTileEntity(x, y, z) match {
+      world.getTileEntity(pos) match {
         case splitter: tileentity.NetSplitter =>
           if (!world.isRemote) {
             val oldValue = splitter.openSides(sideToToggle.ordinal())
@@ -50,6 +48,6 @@ class NetSplitter extends RedstoneAware {
         case _ => false
       }
     }
-    else super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+    else super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ)
   }
 }

@@ -1,12 +1,12 @@
 package li.cil.oc.common.tileentity.traits.power
-
-import cpw.mods.fml.common.Optional
+/* TODO RotaryCraft
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Power
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common.Optional
 
 @Injectable.Interface(value = "Reika.RotaryCraft.API.Power.ShaftPowerReceiver", modid = Mods.IDs.RotaryCraft)
 trait RotaryCraft extends Common {
@@ -79,7 +79,7 @@ trait RotaryCraft extends Common {
   // PowerAcceptor
 
   @Optional.Method(modid = Mods.IDs.RotaryCraft)
-  def canReadFrom(forgeDirection: ForgeDirection): Boolean = true
+  def canReadFrom(forgeDirection: EnumFacing): Boolean = true
 
   @Optional.Method(modid = Mods.IDs.RotaryCraft)
   def isReceiving: Boolean = true
@@ -87,3 +87,4 @@ trait RotaryCraft extends Common {
   @Optional.Method(modid = Mods.IDs.RotaryCraft)
   def getMinTorque(available: Int): Int = 0
 }
+*/

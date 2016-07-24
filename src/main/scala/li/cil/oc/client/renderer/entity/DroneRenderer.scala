@@ -1,24 +1,27 @@
 package li.cil.oc.client.renderer.entity
 
+import li.cil.oc.client.Textures
+import li.cil.oc.common.entity.Drone
+import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.entity.Render
-import net.minecraft.entity.Entity
-import org.lwjgl.opengl.GL11
 
-object DroneRenderer extends Render {
+object DroneRenderer extends Render[Drone](Minecraft.getMinecraft.getRenderManager) {
   val model = new ModelQuadcopter()
 
-  override def doRender(entity: Entity, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {
+  override def doRender(entity: Drone, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {
     bindEntityTexture(entity)
-    GL11.glPushMatrix()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushMatrix()
+    RenderState.pushAttrib()
 
-    GL11.glTranslated(x, y + 2 / 16f, z)
+    GlStateManager.translate(x, y + 2 / 16f, z)
 
     model.render(entity, 0, 0, 0, 0, 0, dt)
 
-    GL11.glPopAttrib()
-    GL11.glPopMatrix()
+    RenderState.popAttrib()
+    GlStateManager.popMatrix()
   }
 
-  override def getEntityTexture(entity: Entity) = model.texture
+  override def getEntityTexture(entity: Drone) = Textures.Model.Drone
 }

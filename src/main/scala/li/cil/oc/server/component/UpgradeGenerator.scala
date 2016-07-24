@@ -143,7 +143,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
           val world = host.world
           val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
-          entity.delayBeforeCanPickup = 5
+          entity.setPickupDelay(5)
           world.spawnEntityInWorld(entity)
           inventory = None
         case _ =>
@@ -152,22 +152,26 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     }
   }
 
+  private final val InventoryTag = "inventory"
+  private final val RemainingTicksTag = "remainingTicks"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("inventory")) {
       inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
+    if (nbt.hasKey(InventoryTag)) {
+      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(InventoryTag)))
     }
-    remainingTicks = nbt.getInteger("remainingTicks")
+    remainingTicks = nbt.getInteger(RemainingTicksTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     inventory match {
-      case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
+      case Some(stack) => nbt.setNewCompoundTag(InventoryTag, stack.writeToNBT)
       case _ =>
     }
     if (remainingTicks > 0) {
-      nbt.setInteger("remainingTicks", remainingTicks)
+      nbt.setInteger(RemainingTicksTag, remainingTicks)
     }
   }
 }

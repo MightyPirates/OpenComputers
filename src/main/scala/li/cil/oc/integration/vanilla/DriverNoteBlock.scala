@@ -14,14 +14,15 @@ import net.minecraft.block.material.Material
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityNote
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverNoteBlock extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityNote]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityNote])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityNote])
 
   final class Environment(tileEntity: TileEntityNote) extends ManagedTileEntityEnvironment[TileEntityNote](tileEntity, "note_block") with NamedBlock {
     override def preferredName = "note_block"
@@ -44,13 +45,11 @@ object DriverNoteBlock extends DriverSidedTileEntity {
       if (args.count > 0 && args.checkAny(0) != null) {
         setPitch(args.checkInteger(0))
       }
-      val world = tileEntity.getWorldObj
-      val x = tileEntity.xCoord
-      val y = tileEntity.yCoord
-      val z = tileEntity.zCoord
-      val material = world.getBlock(x, y + 1, z).getMaterial
-      val canTrigger = material eq Material.air
-      tileEntity.triggerNote(world, x, y, z)
+      val world = tileEntity.getWorld
+      val pos = tileEntity.getPos
+      val material = world.getBlockState(pos.add(0, 1, 0)).getMaterial
+      val canTrigger = material == Material.AIR
+      tileEntity.triggerNote(world, pos)
       result(canTrigger)
     }
 
@@ -65,7 +64,7 @@ object DriverNoteBlock extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.noteblock)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.NOTEBLOCK)
         classOf[Environment]
       else null
     }

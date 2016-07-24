@@ -2,8 +2,6 @@ package li.cil.oc.client
 
 import java.io.EOFException
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -24,24 +22,28 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import org.lwjgl.input.Keyboard
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
-  def onPacket(e: ClientCustomPacketEvent) =
-    onPacketData(e.packet.payload, Minecraft.getMinecraft.thePlayer)
+  def onPacket(e: ClientCustomPacketEvent) = {
+    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, Minecraft.getMinecraft.thePlayer)
+  }
 
   protected override def world(player: EntityPlayer, dimension: Int) = {
     val world = player.worldObj
-    if (world.provider.dimensionId == dimension) Some(world)
+    if (world.provider.getDimension == dimension) Some(world)
     else None
   }
 
   override def dispatch(p: PacketParser) {
     p.packetType match {
-      case PacketType.AbstractBusState => onAbstractBusState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
@@ -96,12 +98,6 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onAbstractBusState(p: PacketParser) =
-    p.readTileEntity[AbstractBusAware]() match {
-      case Some(t) => t.isAbstractBusAvailable = p.readBoolean()
-      case _ => // Invalid packet.
-    }
-
   def onAnalyze(p: PacketParser) {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
@@ -115,7 +111,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
-        t.world.markBlockForUpdate(t.position)
+        t.world.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -126,8 +122,8 @@ object PacketHandler extends CommonPacketHandler {
   def onColorChange(p: PacketParser) =
     p.readTileEntity[Colored]() match {
       case Some(t) =>
-        t.color = p.readInt()
-        t.world.markBlockForUpdate(t.position)
+        t.setColor(p.readInt())
+        t.world.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -270,9 +266,10 @@ object PacketHandler extends CommonPacketHandler {
   def onHologramPositionOffsetY(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
-        t.translation.xCoord = p.readDouble()
-        t.translation.yCoord = p.readDouble()
-        t.translation.zCoord = p.readDouble()
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        t.translation = new Vec3d(x, y, z)
       case _ => // Invalid packet.
     }
 
@@ -353,7 +350,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.isInverted = p.readBoolean()
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
+        t.world.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
@@ -366,26 +363,26 @@ object PacketHandler extends CommonPacketHandler {
         val z = p.readInt()
         val velocity = p.readDouble()
         val direction = p.readDirection()
-        val name = p.readUTF()
+        val particleType = EnumParticleTypes.getParticleFromId(p.readInt())
         val count = p.readUnsignedByte()
 
         for (i <- 0 until count) {
-          def rv(f: ForgeDirection => Int) = direction match {
+          def rv(f: EnumFacing => Int) = direction match {
             case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
             case _ => world.rand.nextFloat * 2.0 - 1
           }
-          val vx = rv(_.offsetX)
-          val vy = rv(_.offsetY)
-          val vz = rv(_.offsetZ)
+          val vx = rv(_.getFrontOffsetX)
+          val vy = rv(_.getFrontOffsetY)
+          val vz = rv(_.getFrontOffsetZ)
           if (vx * vx + vy * vy + vz * vz < 1) {
-            def rp(x: Int, v: Double, f: ForgeDirection => Int) = direction match {
+            def rp(x: Int, v: Double, f: EnumFacing => Int) = direction match {
               case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
               case _ => x + 0.5 + v * velocity
             }
-            val px = rp(x, vx, _.offsetX)
-            val py = rp(y, vy, _.offsetY)
-            val pz = rp(z, vz, _.offsetZ)
-            world.spawnParticle(name, px, py, pz, vx, vy + velocity * 0.25, vz)
+            val px = rp(x, vx, _.getFrontOffsetX)
+            val py = rp(y, vy, _.getFrontOffsetY)
+            val pz = rp(z, vz, _.getFrontOffsetZ)
+            world.spawnParticle(particleType, px, py, pz, vx, vy + velocity * 0.25, vz)
           }
         }
       case _ => // Invalid packet.
@@ -396,7 +393,7 @@ object PacketHandler extends CommonPacketHandler {
     if (!PetRenderer.isInitialized) {
       PetRenderer.isInitialized = true
       if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
       }
       PacketSender.sendPetVisibility()
     }
@@ -445,6 +442,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         val mountableIndex = p.readInt()
         t.lastData(mountableIndex) = p.readNBT()
+        t.getWorld.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
@@ -461,7 +459,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[RedstoneAware]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
-        for (d <- ForgeDirection.VALID_DIRECTIONS) {
+        for (d <- EnumFacing.values) {
           t.output(d, p.readByte())
         }
       case _ => // Invalid packet.
@@ -516,7 +514,7 @@ object PacketHandler extends CommonPacketHandler {
       case (Some(t), Some(d)) => t.robot.move(d)
       case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + d.offsetX, y + d.offsetY, z + d.offsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.getFrontOffsetX, y + d.getFrontOffsetY, z + d.getFrontOffsetZ)
       case _ => // Invalid packet.
     }
   }
@@ -542,14 +540,14 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onTextBufferPowerChange(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
   def onTextBufferInit(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
         val nbt = p.readNBT()
         if (nbt.hasKey("maxWidth")) {
@@ -570,7 +568,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTextBufferMulti(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    if (p.player != null) ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {

@@ -1,0 +1,20 @@
+{
+    "variants": {
+      "color=silver": { "model": "opencomputers:chameliumBlock" },
+      "color=magenta": { "model": "opencomputers:chameliumBlock" },
+      "color=light_blue": { "model": "opencomputers:chameliumBlock" },
+      "color=red": { "model": "opencomputers:chameliumBlock" },
+      "color=yellow": { "model": "opencomputers:chameliumBlock" },
+      "color=gray": { "model": "opencomputers:chameliumBlock" },
+      "color=brown": { "model": "opencomputers:chameliumBlock" },
+      "color=cyan": { "model": "opencomputers:chameliumBlock" },
+      "color=green": { "model": "opencomputers:chameliumBlock" },
+      "color=blue": { "model": "opencomputers:chameliumBlock" },
+      "color=purple": { "model": "opencomputers:chameliumBlock" },
+      "color=orange": { "model": "opencomputers:chameliumBlock" },
+      "color=pink": { "model": "opencomputers:chameliumBlock" },
+      "color=black": { "model": "opencomputers:chameliumBlock" },
+      "color=white": { "model": "opencomputers:chameliumBlock" },
+      "color=lime": { "model": "opencomputers:chameliumBlock" }
+    }
+}

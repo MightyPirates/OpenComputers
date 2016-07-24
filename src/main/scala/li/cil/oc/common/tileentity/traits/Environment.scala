@@ -1,6 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.Connector
@@ -13,7 +12,8 @@ import li.cil.oc.server.network.Network
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common.Optional
 
 @Injectable.Interface(value = "appeng.api.movable.IMovableTile", modid = Mods.IDs.AppliedEnergistics2)
 trait Environment extends TileEntity with network.Environment with network.EnvironmentHost {
@@ -25,7 +25,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   override def zPosition = z + 0.5
 
-  override def markChanged() = if (canUpdate) isChangeScheduled = true else world.markTileEntityChunkModified(x, y, z, this)
+  override def markChanged() = if (this.isInstanceOf[Tickable]) isChangeScheduled = true else world.markChunkDirty(getPos, this)
 
   protected def isConnected = node.address != null && node.network != null
 
@@ -41,7 +41,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   override def updateEntity() {
     super.updateEntity()
     if (isChangeScheduled) {
-      world.markTileEntityChunkModified(x, y, z, this)
+      world.markChunkDirty(getPos, this)
       isChangeScheduled = false
     }
   }
@@ -52,7 +52,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
       if (moving && this.isInstanceOf[Computer]) {
         this match {
           case env: SidedEnvironment =>
-            for (side <- ForgeDirection.VALID_DIRECTIONS) {
+            for (side <- EnumFacing.values) {
               val npos = position.offset(side)
               Network.getNetworkNode(world.getTileEntity(npos), side.getOpposite) match {
                 case neighbor: Node if env.sidedNode(side) != null => env.sidedNode(side).disconnect(neighbor)
@@ -60,7 +60,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
               }
             }
           case env =>
-            for (side <- ForgeDirection.VALID_DIRECTIONS) {
+            for (side <- EnumFacing.values) {
               val npos = position.offset(side)
               Network.getNetworkNode(world.getTileEntity(npos), side.getOpposite) match {
                 case neighbor: Node if env.node != null => env.node.disconnect(neighbor)
@@ -72,7 +72,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
       else {
         Option(node).foreach(_.remove)
         this match {
-          case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          case sidedEnvironment: SidedEnvironment => for (side <- EnumFacing.values) {
             Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
           }
           case _ =>
@@ -83,17 +83,19 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   // ----------------------------------------------------------------------- //
 
+  private final val NodeTag = Settings.namespace + "node"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (node != null && node.host == this) {
-      node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+      node.load(nbt.getCompoundTag(NodeTag))
     }
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
     if (node != null && node.host == this) {
-      nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+      nbt.setNewCompoundTag(NodeTag, node.save)
     }
   }
 
@@ -124,7 +126,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   def doneMoving(): Unit = {
     moving = false
     Network.joinOrCreateNetwork(this)
-    world.markBlockForUpdate(x, y, z)
+    world.notifyBlockUpdate(getPos)
   }
 
   // ----------------------------------------------------------------------- //

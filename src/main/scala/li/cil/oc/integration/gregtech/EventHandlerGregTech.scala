@@ -1,8 +1,5 @@
 package li.cil.oc.integration.gregtech
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import gregtech.api.interfaces.IDamagableItem
-import gregtech.api.items.GT_MetaGenerated_Tool
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.item.ItemStack
 

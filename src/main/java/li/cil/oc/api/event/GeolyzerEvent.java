@@ -1,8 +1,9 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
 import li.cil.oc.api.network.EnvironmentHost;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -102,18 +103,16 @@ public abstract class GeolyzerEvent extends Event {
          * <p/>
          * Note: get the world via the host if you need it.
          */
-        public final int x, y, z;
+        public final BlockPos pos;
 
         /**
          * The retrieved data for the block being scanned.
          */
         public final Map<String, Object> data = new HashMap<String, Object>();
 
-        public Analyze(EnvironmentHost host, Map<?, ?> options, int x, int y, int z) {
+        public Analyze(EnvironmentHost host, Map<?, ?> options, BlockPos pos) {
             super(host, options);
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.pos = pos;
         }
     }
 }

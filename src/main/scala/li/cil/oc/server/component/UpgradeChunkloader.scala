@@ -62,7 +62,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     super.onConnect(node)
     if (node == this.node) {
       if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
-        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.dimensionId}.")
+        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
       }
       ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
         case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))

@@ -8,6 +8,8 @@ import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.network.WirelessEndpoint;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 
 /**
  * This class provides factories for networks and nodes.
@@ -29,8 +31,7 @@ import net.minecraft.tileentity.TileEntity;
  */
 public final class Network {
     /**
-     * Tries to add a tile entity's network node(s) at the specified coordinates
-     * to adjacent networks.
+     * Convenience overload for {@link #joinOrCreateNetwork(IBlockAccess, BlockPos)}.
      * <p/>
      * If the tile entity implements {@link Environment} its one node will be
      * connected to any existing adjacent tile entity nodes. If none exist a
@@ -46,6 +47,18 @@ public final class Network {
     public static void joinOrCreateNetwork(final TileEntity tileEntity) {
         if (API.network != null)
             API.network.joinOrCreateNetwork(tileEntity);
+    }
+
+    /**
+     * Tries to add network node(s) at the specified coordinates to adjacent
+     * networks.
+     *
+     * @param world the world containing the location to connect.
+     * @param pos   the position at which to update the network.
+     */
+    public static void joinOrCreateNetwork(final IBlockAccess world, final BlockPos pos) {
+        if (API.network != null)
+            API.network.joinOrCreateNetwork(world, pos);
     }
 
     /**

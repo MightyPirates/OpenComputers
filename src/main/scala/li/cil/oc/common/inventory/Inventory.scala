@@ -46,21 +46,25 @@ trait Inventory extends SimpleInventory {
     }
   }
 
-  override def getInventoryName = Settings.namespace + "container." + inventoryName
+  override def getName = Settings.namespace + "container." + inventoryName
 
   protected def inventoryName = getClass.getSimpleName
 
   // ----------------------------------------------------------------------- //
 
+  private final val ItemsTag = Settings.namespace + "items"
+  private final val SlotTag = "slot"
+  private final val ItemTag = "item"
+
   def load(nbt: NBTTagCompound) {
     // Implicit slot numbers are compatibility code for loading old server save format.
     // TODO 1.7 remove compat code.
     var count = 0
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
-      if (tag.hasKey("slot")) {
-        val slot = tag.getByte("slot")
+    nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
+      if (tag.hasKey(SlotTag)) {
+        val slot = tag.getByte(SlotTag)
         if (slot >= 0 && slot < items.length) {
-          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag("item")))
+          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag(ItemTag)))
         }
       }
       else {
@@ -74,14 +78,14 @@ trait Inventory extends SimpleInventory {
   }
 
   def save(nbt: NBTTagCompound) {
-    nbt.setNewTagList(Settings.namespace + "items",
+    nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
       } map {
         case (stack, slot) =>
           val slotNbt = new NBTTagCompound()
-          slotNbt.setByte("slot", slot.toByte)
-          slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+          slotNbt.setByte(SlotTag, slot.toByte)
+          slotNbt.setNewCompoundTag(ItemTag, stack.writeToNBT)
       })
   }
 

@@ -1,27 +1,27 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
-import org.lwjgl.opengl.GL11
 
-object HologramRendererFallback extends TileEntitySpecialRenderer {
+object HologramRendererFallback extends TileEntitySpecialRenderer[Hologram] {
   var text = "Requires OpenGL 1.5"
 
-  override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val fontRenderer = Minecraft.getMinecraft.fontRenderer
+    val fontRenderer = Minecraft.getMinecraft.fontRendererObj
 
-    GL11.glPushMatrix()
-    GL11.glTranslated(x + 0.5, y + 0.75, z + 0.5)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(x + 0.5, y + 0.75, z + 0.5)
 
-    GL11.glScalef(1 / 128f, -1 / 128f, 1 / 128f)
-    GL11.glDisable(GL11.GL_CULL_FACE)
+    GlStateManager.scale(1 / 128f, -1 / 128f, 1 / 128f)
+    GlStateManager.disableCull()
     fontRenderer.drawString(text, -fontRenderer.getStringWidth(text) / 2, 0, 0xFFFFFFFF)
 
-    GL11.glPopMatrix()
+    GlStateManager.popMatrix()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

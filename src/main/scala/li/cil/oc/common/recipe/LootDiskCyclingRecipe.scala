@@ -33,4 +33,16 @@ class LootDiskCyclingRecipe extends IRecipe {
   override def getRecipeSize: Int = 2
 
   override def getRecipeOutput: ItemStack = null
+
+  override def getRemainingItems(crafting: InventoryCrafting): Array[ItemStack] = {
+    val result = new Array[ItemStack](crafting.getSizeInventory)
+    for (slot <- 0 until crafting.getSizeInventory) {
+      val stack = crafting.getStackInSlot(slot)
+      if (Wrench.isWrench(stack)) {
+        result(slot) = stack.copy()
+        stack.stackSize = 0
+      }
+    }
+    result
+  }
 }

@@ -13,6 +13,8 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
@@ -22,7 +24,7 @@ object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, GuiType.extractY(y), z) match {
+        world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new gui.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
@@ -67,23 +69,23 @@ object GuiHandler extends CommonGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItem) match {
+        Delegator.subItem(player.getHeldItemMainhand) match {
           case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id =>
-            new gui.Drive(player.inventory, () => player.getHeldItem)
+            new gui.Drive(player.inventory, () => player.getHeldItemMainhand)
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new gui.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               item.Tablet.get(stack, player).components.collect {
                 case Some(buffer: api.internal.TextBuffer) => buffer
@@ -94,13 +96,13 @@ object GuiHandler extends CommonGuiHandler {
             }
             else null
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
             }
             else null
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
               val address = stack.getTagCompound.getString(Settings.namespace + "server")
               val key = stack.getTagCompound.getString(Settings.namespace + "key")
@@ -108,22 +110,22 @@ object GuiHandler extends CommonGuiHandler {
                 component.TerminalServer.loaded.find(_.address == address) match {
                   case Some(term) => term.rack match {
                     case rack: TileEntity with api.internal.Rack =>
-                      def inRange = player.isEntityAlive && !rack.isInvalid && rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.range * term.range
-                      if (inRange) {
+                      def inRange = player.isEntityAlive && !rack.isInvalid && rack.getDistanceSq(player.posX, player.posY, player.posZ) < term.range * term.range
+                    if (inRange) {
                         if (term.sidedKeys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
-                          // Check if someone else bound a term to our server.
-                          if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
-                            Minecraft.getMinecraft.displayGuiScreen(null)
-                          }
-                          // Check whether we're still in range.
-                          if (!inRange) {
-                            Minecraft.getMinecraft.displayGuiScreen(null)
-                          }
-                          true
-                        })
-                        else player.addChatMessage(Localization.Terminal.InvalidKey)
-                      }
-                      else player.addChatMessage(Localization.Terminal.OutOfRange)
+                        // Check if someone else bound a term to our server.
+                        if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
+                          Minecraft.getMinecraft.displayGuiScreen(null)
+                        }
+                        // Check whether we're still in range.
+                        if (!inRange) {
+                          Minecraft.getMinecraft.displayGuiScreen(null)
+                        }
+                        true
+                      })
+                      else player.addChatMessage(Localization.Terminal.InvalidKey)
+                    }
+                    else player.addChatMessage(Localization.Terminal.OutOfRange)
                     case _ => // Eh?
                   }
                   case _ => player.addChatMessage(Localization.Terminal.OutOfRange)

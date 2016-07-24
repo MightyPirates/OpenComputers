@@ -9,7 +9,6 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.util.ForgeDirection
 
 trait ItemInventoryControl extends InventoryAware {
   @Callback(doc = "function(slot:number):number -- The size of an item inventory in the specified slot.")
@@ -21,7 +20,7 @@ trait ItemInventoryControl extends InventoryAware {
   def dropIntoItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val count = args.optItemCount(1)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, itemInventory), inventory, ForgeDirection.UNKNOWN, count))
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, itemInventory), inventory, null, count))
     })
   }
 
@@ -29,7 +28,7 @@ trait ItemInventoryControl extends InventoryAware {
   def suckFromItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val count = args.optItemCount(1)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, ForgeDirection.UNKNOWN, count))
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, null, count))
     })
   }
 

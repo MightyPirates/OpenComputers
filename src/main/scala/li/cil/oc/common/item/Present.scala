@@ -8,7 +8,11 @@ import li.cil.oc.api
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.SoundCategory
 import net.minecraft.world.World
 
 import scala.collection.mutable
@@ -16,16 +20,16 @@ import scala.collection.mutable
 class Present(val parent: Delegator) extends traits.Delegate {
   showInItemList = false
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (stack.stackSize > 0) {
       stack.stackSize -= 1
       if (!world.isRemote) {
-        world.playSoundAtEntity(player, "random.levelup", 0.2f, 1f)
+        world.playSound(player, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 0.2f, 1f)
         val present = Present.nextPresent()
         InventoryUtils.addToPlayerInventory(present, player)
       }
     }
-    stack
+    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
   }
 }
 

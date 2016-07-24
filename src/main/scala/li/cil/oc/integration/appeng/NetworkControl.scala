@@ -1,14 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.AEApi
-import appeng.api.config.Actionable
-import appeng.api.networking.crafting.ICraftingLink
-import appeng.api.networking.crafting.ICraftingRequester
-import appeng.api.networking.security.IActionHost
-import appeng.api.networking.security.MachineSource
-import appeng.api.storage.data.IAEItemStack
-import appeng.me.helpers.IGridProxyable
-import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.machine.Arguments
@@ -28,7 +19,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._

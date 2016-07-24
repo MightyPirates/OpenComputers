@@ -13,9 +13,11 @@ trait InventoryProxy extends IInventory {
 
   override def getInventoryStackLimit = inventory.getInventoryStackLimit
 
-  override def getInventoryName = inventory.getInventoryName
+  override def getName = inventory.getName
 
-  override def hasCustomInventoryName = inventory.hasCustomInventoryName
+  override def getDisplayName = inventory.getDisplayName
+
+  override def hasCustomName = inventory.hasCustomName
 
   override def isUseableByPlayer(player: EntityPlayer) = inventory.isUseableByPlayer(player)
 
@@ -36,9 +38,9 @@ trait InventoryProxy extends IInventory {
     else null
   }
 
-  override def getStackInSlotOnClosing(slot: Int) = {
+  override def removeStackFromSlot(slot: Int) = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.getStackInSlotOnClosing(offsetSlot)
+    if (isValidSlot(offsetSlot)) inventory.removeStackFromSlot(offsetSlot)
     else null
   }
 
@@ -49,9 +51,17 @@ trait InventoryProxy extends IInventory {
 
   override def markDirty() = inventory.markDirty()
 
-  override def openInventory() = inventory.openInventory()
+  override def openInventory(player: EntityPlayer) = inventory.openInventory(player)
 
-  override def closeInventory() = inventory.closeInventory()
+  override def closeInventory(player: EntityPlayer) = inventory.closeInventory(player)
+
+  override def setField(id: Int, value: Int) = inventory.setField(id, value)
+
+  override def clear() = inventory.clear()
+
+  override def getFieldCount = inventory.getFieldCount
+
+  override def getField(id: Int) = inventory.getField(id)
 
   private def isValidSlot(slot: Int) = slot >= offset && slot < getSizeInventory + offset
 }

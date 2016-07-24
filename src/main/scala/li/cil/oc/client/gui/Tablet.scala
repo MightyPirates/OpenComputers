@@ -11,7 +11,7 @@ class Tablet(playerInventory: InventoryPlayer, val tablet: TabletWrapper) extend
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(tablet.getInventoryName),
+      Localization.localizeImmediately(tablet.getName),
       8, 6, 0x404040)
   }
 }

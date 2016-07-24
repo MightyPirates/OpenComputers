@@ -8,14 +8,14 @@ import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper._
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.IDeepStorageUnit
 
 object DriverDeepStorageUnit extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[IDeepStorageUnit]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: EnumFacing): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[IDeepStorageUnit])
 
   final class Environment(tileEntity: IDeepStorageUnit) extends ManagedTileEntityEnvironment[IDeepStorageUnit](tileEntity, "deep_storage_unit") {

@@ -8,12 +8,12 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import mods.railcraft.common.blocks.machine.beta.TileBoilerFirebox;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class DriverBoilerFirebox extends DriverSidedTileEntity {
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final EnumFacing side) {
         return new Environment((TileBoilerFirebox) world.getTileEntity(x, y, z));
     }
 

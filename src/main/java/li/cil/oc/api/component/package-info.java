@@ -4,7 +4,7 @@
  * This will allow OpenComputers to provide some more advanced integration
  * with your components.
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Component",
         apiVersion = API.VERSION)

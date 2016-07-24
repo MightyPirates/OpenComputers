@@ -12,16 +12,17 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntityCommandBlock
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 object DriverCommandBlock extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityCommandBlock]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityCommandBlock])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityCommandBlock])
 
   final class Environment(tileEntity: TileEntityCommandBlock) extends ManagedTileEntityEnvironment[TileEntityCommandBlock](tileEntity, "command_block") with NamedBlock {
     override def preferredName = "command_block"
@@ -30,32 +31,32 @@ object DriverCommandBlock extends DriverSidedTileEntity {
 
     @Callback(direct = true, doc = "function():string -- Get the command currently set in this command block.")
     def getCommand(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.func_145993_a.func_145753_i)
+      result(tileEntity.getCommandBlockLogic.getCommand)
     }
 
     @Callback(doc = "function(value:string) -- Set the specified command for the command block.")
     def setCommand(context: Context, args: Arguments): Array[AnyRef] = {
-      tileEntity.func_145993_a.func_145752_a(args.checkString(0))
-      tileEntity.getWorldObj.markBlockForUpdate(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      tileEntity.getCommandBlockLogic.setCommand(args.checkString(0))
+      tileEntity.getWorld.notifyBlockUpdate(tileEntity.getPos, tileEntity.getWorld.getBlockState(tileEntity.getPos), tileEntity.getWorld.getBlockState(tileEntity.getPos), 3)
       result(true)
     }
 
     @Callback(doc = "function():number -- Execute the currently set command. This has a slight delay to allow the command block to properly update.")
     def executeCommand(context: Context, args: Arguments): Array[AnyRef] = {
       context.pause(0.1)
-      if (!MinecraftServer.getServer.isCommandBlockEnabled) {
+      if (!FMLCommonHandler.instance.getMinecraftServerInstance.isCommandBlockEnabled) {
         result(null, "command blocks are disabled")
       } else {
-        val commandSender = tileEntity.func_145993_a
-        commandSender.func_145755_a(tileEntity.getWorldObj)
-        result(commandSender.func_145760_g, commandSender.func_145749_h.getUnformattedText)
+        val commandSender = tileEntity.getCommandBlockLogic
+        commandSender.trigger(tileEntity.getWorld)
+        result(commandSender.getSuccessCount, commandSender.getLastOutput.getUnformattedText)
       }
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.command_block)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.COMMAND_BLOCK)
         classOf[Environment]
       else null
     }

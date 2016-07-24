@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -9,12 +7,13 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 // TODO Remove in 1.7
 class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
@@ -31,9 +30,9 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = true
+  override protected def hasConnector(side: EnumFacing) = true
 
-  override protected def connector(side: ForgeDirection) = sidedNode(side) match {
+  override protected def connector(side: EnumFacing) = sidedNode(side) match {
     case connector: Connector => Option(connector)
     case _ => None
   }
@@ -42,9 +41,9 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     player.addChatMessage(Localization.Analyzer.WirelessStrength(strength))
-    Array(componentNodes(side))
+    Array(componentNodes(side.getIndex))
   }
 
   // ----------------------------------------------------------------------- //
@@ -71,15 +70,9 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   override def receivePacket(packet: Packet, source: WirelessEndpoint) {
     tryEnqueuePacket(None, packet)
-    if (Mods.ComputerCraft.isAvailable) {
-      packet.data.headOption match {
-        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
-      }
-    }
   }
 
-  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
     if (strength > 0 && (sourceSide.isDefined || isRepeater)) {
       val cost = Settings.get.wirelessCostPerRange

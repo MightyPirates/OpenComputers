@@ -11,7 +11,7 @@ import scala.collection.convert.WrapAsScala._
 object Tooltip {
   private val maxWidth = 220
 
-  private def font = Minecraft.getMinecraft.fontRenderer
+  private def font = Minecraft.getMinecraft.fontRendererObj
 
   def get(name: String, args: Any*): java.util.List[String] = {
     if (!Localization.canLocalize(Settings.namespace + "tooltip." + name)) return Seq.empty[String]

@@ -1,11 +1,11 @@
 package li.cil.oc.api.internal;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * This interface allows interaction with robots.
@@ -78,3 +78,4 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Tiered, ISid
     @SideOnly(Side.CLIENT)
     boolean shouldAnimate();
 }
+

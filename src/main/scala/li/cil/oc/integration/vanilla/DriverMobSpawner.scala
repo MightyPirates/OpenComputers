@@ -13,14 +13,15 @@ import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityMobSpawner
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverMobSpawner extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityMobSpawner]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityMobSpawner])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityMobSpawner])
 
   final class Environment(tileEntity: TileEntityMobSpawner) extends ManagedTileEntityEnvironment[TileEntityMobSpawner](tileEntity, "mob_spawner") with NamedBlock {
     override def preferredName = "mob_spawner"
@@ -29,13 +30,13 @@ object DriverMobSpawner extends DriverSidedTileEntity {
 
     @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")
     def getSpawningMobName(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.func_145881_a.getEntityNameToSpawn)
+      result(tileEntity.getSpawnerBaseLogic.getEntityNameToSpawn)
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.mob_spawner)
+      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
         classOf[Environment]
       else null
     }

@@ -1,0 +1,9 @@
+{
+    "parent": "block/orientable",
+    "textures": {
+        "top": "opencomputers:blocks/generic_top",
+        "bottom": "opencomputers:blocks/generic_top",
+        "side": "opencomputers:blocks/diskDrive_side",
+        "front": "opencomputers:blocks/diskDrive_front"
+    }
+}

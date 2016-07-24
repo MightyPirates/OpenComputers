@@ -29,6 +29,8 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
@@ -72,9 +74,9 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
     if (ejected != null && ejected.stackSize > 0) {
       val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
       if (entity != null) {
-        val vx = rack.facing.offsetX * velocity
-        val vy = rack.facing.offsetY * velocity
-        val vz = rack.facing.offsetZ * velocity
+        val vx = rack.facing.getFrontOffsetX * velocity
+        val vy = rack.facing.getFrontOffsetY * velocity
+        val vz = rack.facing.getFrontOffsetZ * velocity
         entity.addVelocity(vx, vy, vz)
       }
       result(true)
@@ -85,7 +87,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
@@ -164,10 +166,10 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, hitX: Float, hitY: Float): Boolean = {
+  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (player.isSneaking) {
       val isDiskInDrive = getStackInSlot(0) != null
-      val isHoldingDisk = isItemValidForSlot(0, player.getHeldItem)
+      val isHoldingDisk = isItemValidForSlot(0, heldItem)
       if (isDiskInDrive) {
         if (!rack.world.isRemote) {
           InventoryUtils.dropSlot(BlockPosition(rack), this, 0, 1, Option(rack.facing))

@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) extends GuiScreen with traits.Window {
   override val windowHeight = 85
 
-  override def backgroundImage = Textures.guiDrive
+  override def backgroundImage = Textures.GUI.Drive
 
   protected var managedButton: ImageButton = _
   protected var unmanagedButton: ImageButton = _
@@ -28,8 +28,8 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
 
   override def initGui(): Unit = {
     super.initGui()
-    managedButton = new ImageButton(0, guiLeft + 11, guiTop + 11, 74, 18, Textures.guiButtonDriveMode, text = Localization.Drive.Managed, textColor = 0x608060, canToggle = true)
-    unmanagedButton = new ImageButton(1, guiLeft + 91, guiTop + 11, 74, 18, Textures.guiButtonDriveMode, text = Localization.Drive.Unmanaged, textColor = 0x608060, canToggle = true)
+    managedButton = new ImageButton(0, guiLeft + 11, guiTop + 11, 74, 18, Textures.GUI.ButtonDriveMode, text = Localization.Drive.Managed, textColor = 0x608060, canToggle = true)
+    unmanagedButton = new ImageButton(1, guiLeft + 91, guiTop + 11, 74, 18, Textures.GUI.ButtonDriveMode, text = Localization.Drive.Unmanaged, textColor = 0x608060, canToggle = true)
     add(buttonList, managedButton)
     add(buttonList, unmanagedButton)
   }

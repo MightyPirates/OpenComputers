@@ -4,11 +4,11 @@ import java.util
 
 import com.google.common.base.Charsets
 import li.cil.oc.api.machine.Arguments
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTSizeTracker
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ResourceLocation
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -220,7 +220,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   }
 
   private def makeStack(name: String, damage: Int, tag: Option[NBTTagCompound]) = {
-    Item.itemRegistry.getObject(name) match {
+    Item.REGISTRY.getObject(new ResourceLocation(name)) match {
       case item: Item =>
         val stack = new ItemStack(item, 1, damage)
         tag.foreach(stack.setTagCompound)
@@ -229,5 +229,5 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     }
   }
 
-  private def toNbtTagCompound(data: Array[Byte]) = Option(CompressedStreamTools.func_152457_a(data, NBTSizeTracker.field_152451_a))
+  private def toNbtTagCompound(data: Array[Byte]) = Option(ItemUtils.loadTag(data))
 }

@@ -39,9 +39,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.Array.canBuildFrom
 import scala.collection.convert.WrapAsJava._
@@ -188,10 +188,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
-    MinecraftServer.getServer.isSinglePlayer || {
-    val config = MinecraftServer.getServer.getConfigurationManager
-    val entity = config.func_152612_a(player)
-    entity != null && config.func_152596_g(entity.getGameProfile)
+    FMLCommonHandler.instance.getMinecraftServerInstance.isSinglePlayer || {
+    val config = FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList
+    val entity = config.getPlayerByUsername(player)
+    entity != null && config.canSendCommands(entity.getGameProfile)
   }
 
   override def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
@@ -385,7 +385,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       throw new Exception("user exists")
     if (name.length > Settings.get.maxUsernameLength)
       throw new Exception("username too long")
-    if (!MinecraftServer.getServer.getConfigurationManager.getAllUsernames.contains(name))
+    if (!FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames.contains(name))
       throw new Exception("player must be online")
 
     _users.synchronized {
@@ -476,6 +476,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
     if (componentCount > maxComponents) {
+      beep("-..")
       crash("gui.Error.ComponentOverflow")
     }
 
@@ -603,7 +604,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
         signal(name, Seq(message.source.address) ++ args: _*)
       case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
-        if (canInteract(player.getCommandSenderName))
+        if (canInteract(player.getName))
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
         if (message.name == "computer.start" && !isPaused) start()
@@ -696,6 +697,22 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
+  private def tmpPath = node.address + "_tmp"
+  private final val StateTag = "state"
+  private final val UsersTag = "users"
+  private final val MessageTag = "message"
+  private final val ComponentsTag = "components"
+  private final val AddressTag = "address"
+  private final val NameTag = "name"
+  private final val TmpTag = "tmp"
+  private final val SignalsTag = "signals"
+  private final val ArgsTag = "args"
+  private final val LengthTag = "length"
+  private final val ArgPrefixTag = "arg"
+  private final val UptimeTag = "uptime"
+  private final val CPUTimeTag = "cpuTime"
+  private final val RemainingPauseTag = "remainingPause"
+
   override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
     assert(state.top == Machine.State.Stopped || state.top == Machine.State.Paused)
     close()
@@ -703,34 +720,34 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     super.load(nbt)
 
-    state.pushAll(nbt.getIntArray("state").reverseMap(Machine.State(_)))
-    nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
-    if (nbt.hasKey("message")) {
-      message = Some(nbt.getString("message"))
+    state.pushAll(nbt.getIntArray(StateTag).reverseMap(Machine.State(_)))
+    nbt.getTagList(UsersTag, NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.getString)
+    if (nbt.hasKey(MessageTag)) {
+      message = Some(nbt.getString(MessageTag))
     }
 
-    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
-      tag.getString("address") -> tag.getString("name"))
+    _components ++= nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
+      tag.getString(AddressTag) -> tag.getString(NameTag))
 
     tmp.foreach(fs => {
-      if (nbt.hasKey("tmp")) fs.load(nbt.getCompoundTag("tmp"))
-      else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
+      if (nbt.hasKey(TmpTag)) fs.load(nbt.getCompoundTag(TmpTag))
+      else fs.load(SaveHandler.loadNBT(nbt, tmpPath))
     })
 
     if (state.nonEmpty && isRunning && init()) try {
       architecture.load(nbt)
 
-      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {
-        val argsNbt = signalNbt.getCompoundTag("args")
-        val argsLength = argsNbt.getInteger("length")
-        new Machine.Signal(signalNbt.getString("name"),
-          (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
-            case tag: NBTTagByte if tag.func_150290_f == -1 => null
-            case tag: NBTTagByte => Boolean.box(tag.func_150290_f == 1)
-            case tag: NBTTagLong => Long.box(tag.func_150291_c)
-            case tag: NBTTagDouble => Double.box(tag.func_150286_g)
-            case tag: NBTTagString => tag.func_150285_a_
-            case tag: NBTTagByteArray => tag.func_150292_c
+      signals ++= nbt.getTagList(SignalsTag, NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {
+        val argsNbt = signalNbt.getCompoundTag(ArgsTag)
+        val argsLength = argsNbt.getInteger(LengthTag)
+        new Machine.Signal(signalNbt.getString(NameTag),
+          (0 until argsLength).map(ArgPrefixTag + _).map(argsNbt.getTag).map {
+            case tag: NBTTagByte if tag.getByte == -1 => null
+            case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
+            case tag: NBTTagLong => Long.box(tag.getLong)
+            case tag: NBTTagDouble => Double.box(tag.getDouble)
+            case tag: NBTTagString => tag.getString
+            case tag: NBTTagByteArray => tag.getByteArray
             case tag: NBTTagList =>
               val data = mutable.Map.empty[String, String]
               for (i <- 0 until tag.tagCount by 2) {
@@ -742,9 +759,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           }.toArray[AnyRef])
       })
 
-      uptime = nbt.getLong("uptime")
-      cpuTotal = nbt.getLong("cpuTime")
-      remainingPause = nbt.getInteger("remainingPause")
+      uptime = nbt.getLong(UptimeTag)
+      cpuTotal = nbt.getLong(CPUTimeTag)
+      remainingPause = nbt.getInteger(RemainingPauseTag)
 
       // Delay execution for a second to allow the world around us to settle.
       if (state.top != Machine.State.Restarting) {
@@ -779,20 +796,20 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Make sure the component list is up-to-date.
     processAddedComponents()
 
-    nbt.setIntArray("state", state.map(_.id).toArray)
-    nbt.setNewTagList("users", _users)
-    message.foreach(nbt.setString("message", _))
+    nbt.setIntArray(StateTag, state.map(_.id).toArray)
+    nbt.setNewTagList(UsersTag, _users)
+    message.foreach(nbt.setString(MessageTag, _))
 
     val componentsNbt = new NBTTagList()
     for ((address, name) <- _components) {
       val componentNbt = new NBTTagCompound()
-      componentNbt.setString("address", address)
-      componentNbt.setString("name", name)
+      componentNbt.setString(AddressTag, address)
+      componentNbt.setString(NameTag, name)
       componentsNbt.appendTag(componentNbt)
     }
-    nbt.setTag("components", componentsNbt)
+    nbt.setTag(ComponentsTag, componentsNbt)
 
-    tmp.foreach(fs => SaveHandler.scheduleSave(host, nbt, node.address + "_tmp", fs.save _))
+    tmp.foreach(fs => SaveHandler.scheduleSave(host, nbt, tmpPath, fs.save _))
 
     if (state.top != Machine.State.Stopped) try {
       architecture.save(nbt)
@@ -800,34 +817,34 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       val signalsNbt = new NBTTagList()
       for (s <- signals.iterator) {
         val signalNbt = new NBTTagCompound()
-        signalNbt.setString("name", s.name)
-        signalNbt.setNewCompoundTag("args", args => {
-          args.setInteger("length", s.args.length)
+        signalNbt.setString(NameTag, s.name)
+        signalNbt.setNewCompoundTag(ArgsTag, args => {
+          args.setInteger(LengthTag, s.args.length)
           s.args.zipWithIndex.foreach {
-            case (null, i) => args.setByte("arg" + i, -1)
-            case (arg: java.lang.Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
-            case (arg: java.lang.Long, i) => args.setLong("arg" + i, arg)
-            case (arg: java.lang.Double, i) => args.setDouble("arg" + i, arg)
-            case (arg: String, i) => args.setString("arg" + i, arg)
-            case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
+            case (null, i) => args.setByte(ArgPrefixTag + i, -1)
+            case (arg: java.lang.Boolean, i) => args.setByte(ArgPrefixTag + i, if (arg) 1 else 0)
+            case (arg: java.lang.Long, i) => args.setLong(ArgPrefixTag + i, arg)
+            case (arg: java.lang.Double, i) => args.setDouble(ArgPrefixTag + i, arg)
+            case (arg: String, i) => args.setString(ArgPrefixTag + i, arg)
+            case (arg: Array[Byte], i) => args.setByteArray(ArgPrefixTag + i, arg)
             case (arg: Map[_, _], i) =>
               val list = new NBTTagList()
               for ((key, value) <- arg) {
                 list.append(key.toString)
                 list.append(value.toString)
               }
-              args.setTag("arg" + i, list)
-            case (arg: NBTTagCompound, i) => args.setTag("arg" + i, arg)
-            case (_, i) => args.setByte("arg" + i, -1)
+              args.setTag(ArgPrefixTag + i, list)
+            case (arg: NBTTagCompound, i) => args.setTag(ArgPrefixTag + i, arg)
+            case (_, i) => args.setByte(ArgPrefixTag + i, -1)
           }
         })
         signalsNbt.appendTag(signalNbt)
       }
-      nbt.setTag("signals", signalsNbt)
+      nbt.setTag(SignalsTag, signalsNbt)
 
-      nbt.setLong("uptime", uptime)
-      nbt.setLong("cpuTime", cpuTotal)
-      nbt.setInteger("remainingPause", remainingPause)
+      nbt.setLong(UptimeTag, uptime)
+      nbt.setLong(CPUTimeTag, cpuTotal)
+      nbt.setInteger(RemainingPauseTag, remainingPause)
     }
     catch {
       case t: Throwable =>
@@ -916,7 +933,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     result
   }
 
-  private def isGamePaused = !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
+  private def isGamePaused =  FMLCommonHandler.instance.getMinecraftServerInstance != null && !FMLCommonHandler.instance.getMinecraftServerInstance.isDedicatedServer && (FMLCommonHandler.instance.getMinecraftServerInstance match {
     case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
     case _ => false
   })

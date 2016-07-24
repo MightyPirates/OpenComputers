@@ -5,12 +5,13 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+
+import scala.collection.convert.WrapAsScala._
 
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:number):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
@@ -19,9 +20,10 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     stackInSlot(selectedSlot) match {
       case Some(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
-          val blockPos = position.offset(side)
-          val idMatches = item.field_150939_a == world.getBlock(blockPos)
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(blockPos)
+          val blockPos = position.offset(side).toBlockPos
+          val state = world.getBlockState(blockPos)
+          val idMatches = item.getBlock == state.getBlock
+          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == state.getBlock.getMetaFromState(state)
           return result(idMatches && subTypeMatches)
         case _ =>
       }
@@ -79,7 +81,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
       result(true)
     }
     else {
-      for (entity <- suckableItems(facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+      for (entity <- suckableItems(facing) if !entity.isDead && !entity.cannotPickup) {
         val stack = entity.getEntityItem
         val size = stack.stackSize
         onSuckCollect(entity)
@@ -92,7 +94,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     }
   }
 
-  protected def suckableItems(side: ForgeDirection) = entitiesOnSide[EntityItem](side)
+  protected def suckableItems(side: EnumFacing) = entitiesOnSide(classOf[EntityItem], side)
 
   protected def onSuckCollect(entity: EntityItem): Unit = entity.onCollideWithPlayer(fakePlayer)
 }

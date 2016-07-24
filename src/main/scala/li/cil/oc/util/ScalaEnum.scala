@@ -6,7 +6,10 @@ import scala.annotation.tailrec
  * https://gist.github.com/viktorklang/1057513
  */
 trait ScalaEnum {
-  import java.util.concurrent.atomic.AtomicReference //Concurrency paranoia
+
+  import java.util.concurrent.atomic.AtomicReference
+
+  //Concurrency paranoia
 
   type EnumVal <: Value //This is a type that needs to be found in the implementing class
 
@@ -14,7 +17,8 @@ trait ScalaEnum {
 
   //Adds an EnumVal to our storage, uses CCAS to make sure it's thread safe, returns the ordinal
   @tailrec private final def addEnumVal(newVal: EnumVal): Int = {
-    import _values.{get, compareAndSet => CAS}
+    import _values.get
+    import _values.{compareAndSet => CAS}
     val oldVec = get
     val newVec = oldVec :+ newVal
     if ((get eq oldVec) && CAS(oldVec, newVec))
@@ -23,10 +27,14 @@ trait ScalaEnum {
       addEnumVal(newVal)
   }
 
-  def values: Vector[EnumVal] = _values.get //Here you can get all the enums that exist for this type
+  def values: Vector[EnumVal] = _values.get
+
+  //Here you can get all the enums that exist for this type
 
   //This is the trait that we need to extend our EnumVal type with, it does the book-keeping for us
-  protected trait Value { self: EnumVal => //Enforce that no one mixes in Value in a non-EnumVal type
+  protected trait Value {
+    self: EnumVal =>
+    //Enforce that no one mixes in Value in a non-EnumVal type
     final val ordinal = addEnumVal(this) //Adds the EnumVal and returns the ordinal
 
     def name: String //All enum values should have a name

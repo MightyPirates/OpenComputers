@@ -12,6 +12,7 @@ import scala.collection.convert.WrapAsScala._
 
 trait Node extends ImmutableNode {
   def host: Environment
+
   def reachability: Visibility
 
   final var address: String = null

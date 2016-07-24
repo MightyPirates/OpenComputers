@@ -2,8 +2,6 @@ package li.cil.oc.common.item.traits
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -14,15 +12,20 @@ import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait Delegate {
-  type Icon = net.minecraft.util.IIcon
-  type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
-
   def parent: Delegator
 
   def unlocalizedName = getClass.getSimpleName
@@ -35,29 +38,27 @@ trait Delegate {
 
   val itemId = parent.add(this)
 
-  private var _icon: Option[Icon] = None
-
   def maxStackSize = 64
 
   def createItemStack(amount: Int = 1) = new ItemStack(parent, amount, itemId)
 
   // ----------------------------------------------------------------------- //
 
-  def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer) = false
+  def doesSneakBypassUse(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = false
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult = EnumActionResult.PASS
 
-  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = ActionResult.newResult(EnumActionResult.PASS, stack)
 
-  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.none
+  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.NONE
 
   def getMaxItemUseDuration(stack: ItemStack) = 0
 
-  def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+  def onItemUseFinish(stack: ItemStack, world: World, player: EntityLivingBase): ItemStack = stack
 
-  def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
+  def onPlayerStoppedUsing(stack: ItemStack, player: EntityLivingBase, duration: Int) {}
 
   def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) {}
 
@@ -110,28 +111,7 @@ trait Delegate {
     }
   }
 
-  def isDamageable = false
+  def showDurabilityBar(stack: ItemStack) = false
 
-  def damage(stack: ItemStack) = 0
-
-  def maxDamage(stack: ItemStack) = 0
-
-  @SideOnly(Side.CLIENT)
-  def icon: Option[Icon] = _icon
-
-  @SideOnly(Side.CLIENT)
-  protected def icon_=(value: Icon) = _icon = Option(value)
-
-  @SideOnly(Side.CLIENT)
-  def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
-
-  @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IconRegister) {
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":" + unlocalizedName)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  def equals(stack: ItemStack) =
-    stack != null && stack.getItem == parent && parent.subItem(stack).contains(this)
+  def durability(stack: ItemStack) = 0.0
 }

@@ -7,8 +7,10 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import li.cil.oc.util.ExtendedInventory._
+import net.minecraft.block.state.IBlockState
 
 class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
   def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
@@ -22,15 +24,9 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     else inventorySlots.find(getStackInSlot(_) == null).getOrElse(-1)
   }
 
-  override def func_146030_a(p_146030_1_ : Item, p_146030_2_ : Int, p_146030_3_ : Boolean, p_146030_4_ : Boolean) = setCurrentItem(p_146030_1_, p_146030_2_, p_146030_3_, p_146030_4_)
-
-  def setCurrentItem(item: Item, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
-
   override def changeCurrentItem(direction: Int) {}
 
-  override def clearInventory(item: Item, itemDamage: Int) = 0
-
-  override def func_70439_a(item: Item, itemDamage: Int) {}
+  override def clearMatchingItems(item: Item, damage: Int, count: Int, tag: NBTTagCompound): Int = 0
 
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
@@ -43,31 +39,25 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     }
   }
 
-  override def consumeInventoryItem(item: Item): Boolean = {
-    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
-      stack.stackSize -= 1
-      if (stack.stackSize <= 0) {
-        setInventorySlotContents(slot, null)
-      }
-      return true
-    }
-    false
-  }
+//  override def consumeInventoryItem(item: Item): Boolean = {
+//    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
+//      stack.stackSize -= 1
+//      if (stack.stackSize <= 0) {
+//        setInventorySlotContents(slot, null)
+//      }
+//      return true
+//    }
+//    false
+//  }
 
   override def addItemStackToInventory(stack: ItemStack) = {
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
   }
 
-  override def func_146025_b(block: Block) = canHarvestBlock(block)
+  override def canHarvestBlock(state: IBlockState): Boolean = state.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(state))
 
-  def canHarvestBlock(block: Block): Boolean = {
-    block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.func_150998_b(block))
-  }
-
-  override def func_146023_a(block: Block) = getStrVsBlock(block)
-
-  def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.func_150997_a(block))
+  override def getStrVsBlock(state: IBlockState): Float = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(state))
 
   override def writeToNBT(nbt: NBTTagList) = nbt
 
@@ -75,13 +65,9 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def armorItemInSlot(slot: Int) = null
 
-  override def getTotalArmorValue = 0
-
   override def damageArmor(damage: Float) {}
 
   override def dropAllItems() = {}
-
-  override def hasItem(item: Item) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
 
   override def hasItemStack(stack: ItemStack) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 
@@ -99,15 +85,15 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
     else agent.mainInventory.decrStackSize(slot, amount)
 
-  override def getStackInSlotOnClosing(slot: Int) =
-    if (slot < 0) agent.equipmentInventory.getStackInSlotOnClosing(~slot)
-    else agent.mainInventory.getStackInSlotOnClosing(slot)
+  override def removeStackFromSlot(slot: Int) =
+    if (slot < 0) agent.equipmentInventory.removeStackFromSlot(~slot)
+    else agent.mainInventory.removeStackFromSlot(slot)
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) =
     if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)
     else agent.mainInventory.setInventorySlotContents(slot, stack)
 
-  override def getInventoryName = agent.mainInventory.getInventoryName
+  override def getName = agent.mainInventory.getName
 
   override def getInventoryStackLimit = agent.mainInventory.getInventoryStackLimit
 

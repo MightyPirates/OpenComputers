@@ -1,16 +1,19 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
 import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.internal.Rack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.IIcon;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Fired to allow rendering a custom overlay for {@link li.cil.oc.api.component.RackMountable}s.
@@ -59,28 +62,22 @@ public abstract class RackMountableRenderEvent extends Event {
         /**
          * The front-facing side, i.e. where the mountable is visible on the rack.
          */
-        public final ForgeDirection side;
-
-        /**
-         * The renderer used for rendering the block.
-         */
-        public final RenderBlocks renderer;
+        public final EnumFacing side;
 
         /**
          * Texture to use for the front of the mountable.
          */
-        private IIcon frontTextureOverride;
+        private TextureAtlasSprite frontTextureOverride;
 
-        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final ForgeDirection side, final RenderBlocks renderer) {
+        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final EnumFacing side) {
             super(rack, mountable, data);
             this.side = side;
-            this.renderer = renderer;
         }
 
         /**
          * The texture currently set to use for the front of the mountable, or <tt>null</tt>.
          */
-        public IIcon getFrontTextureOverride() {
+        public TextureAtlasSprite getFrontTextureOverride() {
             return frontTextureOverride;
         }
 
@@ -89,7 +86,7 @@ public abstract class RackMountableRenderEvent extends Event {
          *
          * @param texture the texture to use.
          */
-        public void setFrontTextureOverride(final IIcon texture) {
+        public void setFrontTextureOverride(final TextureAtlasSprite texture) {
             frontTextureOverride = texture;
         }
     }
@@ -142,12 +139,43 @@ public abstract class RackMountableRenderEvent extends Event {
          */
         public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
-            final Tessellator t = Tessellator.instance;
-            t.startDrawingQuads();
-            t.addVertexWithUV(u0, v1, 0, u0, v1);
-            t.addVertexWithUV(u1, v1, 0, u1, v1);
-            t.addVertexWithUV(u1, v0, 0, u1, v0);
-            t.addVertexWithUV(u0, v0, 0, u0, v0);
+            final Tessellator t = Tessellator.getInstance();
+            final VertexBuffer r = t.getBuffer();
+            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+            r.pos(u0, v1, 0).tex(u0, v1).endVertex();
+            r.pos(u1, v1, 0).tex(u1, v1).endVertex();
+            r.pos(u1, v0, 0).tex(u1, v0).endVertex();
+            r.pos(u0, v0, 0).tex(u0, v0).endVertex();
+            t.draw();
+        }
+
+        /**
+         * Utility method for rendering an atlas texture as the front-side overlay.
+         *
+         * @param texture the atlas texture to use to render the overlay.
+         */
+        public void renderOverlayFromAtlas(final ResourceLocation texture) {
+            renderOverlayFromAtlas(texture, 0, 1);
+        }
+
+        /**
+         * Utility method for rendering an atlas texture as the front-side overlay
+         * over a specified horizontal area.
+         *
+         * @param texture the atlas texture to use to render the overlay.
+         * @param u0      the lower end of the vertical area to render at.
+         * @param u1      the upper end of the vertical area to render at.
+         */
+        public void renderOverlayFromAtlas(final ResourceLocation texture, final float u0, final float u1) {
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            final TextureAtlasSprite icon = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
+            final Tessellator t = Tessellator.getInstance();
+            final VertexBuffer r = t.getBuffer();
+            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+            r.pos(u0, v1, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
+            r.pos(u1, v1, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
+            r.pos(u1, v0, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
+            r.pos(u0, v0, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
             t.draw();
         }
     }

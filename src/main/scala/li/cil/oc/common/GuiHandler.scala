@@ -1,18 +1,20 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.network.IGuiHandler
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component.Server
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.network.IGuiHandler
 
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, GuiType.extractY(y), z) match {
+        world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new container.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
@@ -50,21 +52,21 @@ abstract class GuiHandler extends IGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItem) match {
+        Delegator.subItem(player.getHeldItemMainhand) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new container.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItem
+              override def container = player.getHeldItemMainhand
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItem
+            val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound)
               new container.Tablet(player.inventory, item.Tablet.get(stack, player))
             else

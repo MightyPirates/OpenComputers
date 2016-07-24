@@ -6,8 +6,9 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidTank;
 
 public final class DriverFluidTank extends DriverSidedTileEntity {
@@ -17,8 +18,8 @@ public final class DriverFluidTank extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
-        return new Environment((IFluidTank) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+        return new Environment((IFluidTank) world.getTileEntity(pos));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IFluidTank> {

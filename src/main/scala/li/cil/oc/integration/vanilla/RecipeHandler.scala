@@ -1,13 +1,13 @@
 package li.cil.oc.integration.vanilla
 
 import com.typesafe.config.Config
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.recipe.ExtendedShapedOreRecipe
 import li.cil.oc.common.recipe.ExtendedShapelessOreRecipe
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.recipe.Recipes.RecipeException
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
+import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
@@ -66,10 +66,10 @@ object RecipeHandler {
 
     input match {
       case stack: ItemStack =>
-        FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
+        FurnaceRecipes.instance.addSmeltingRecipe(stack, output, 0)
       case name: String =>
         for (stack <- OreDictionary.getOres(name)) {
-          FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
+          FurnaceRecipes.instance.addSmeltingRecipe(stack, output, 0)
         }
       case _ =>
     }

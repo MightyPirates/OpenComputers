@@ -3,6 +3,7 @@ package li.cil.oc.client
 import li.cil.oc.common.command.SimpleCommand
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
+import net.minecraft.server.MinecraftServer
 import net.minecraftforge.client.ClientCommandHandler
 
 object CommandHandler {
@@ -13,7 +14,7 @@ object CommandHandler {
   object SetClipboardCommand extends SimpleCommand("oc_setclipboard") {
     override def getCommandUsage(source: ICommandSender): String = name + " <value>"
 
-    override def processCommand(source: ICommandSender, command: Array[String]): Unit = {
+    override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
       if (source.getEntityWorld.isRemote && command != null && command.length > 0) {
         GuiScreen.setClipboardString(command(0))
       }

@@ -1,6 +1,5 @@
 package li.cil.oc.server.component.traits
 
-import cpw.mods.fml.common.eventhandler.Event.Result
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
@@ -9,19 +8,16 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.event.ForgeEventFactory
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
-
-import scala.collection.convert.WrapAsScala._
-import scala.reflect.ClassTag
-import scala.reflect.classTag
+import net.minecraftforge.fml.common.eventhandler.Event.Result
 
 trait WorldAware {
   def position: BlockPosition
@@ -36,30 +32,31 @@ trait WorldAware {
     player
   }
 
-  def mayInteract(blockPos: BlockPosition, face: ForgeDirection): Boolean = {
-    val event = ForgeEventFactory.onPlayerInteract(fakePlayer, Action.RIGHT_CLICK_BLOCK, blockPos.x, blockPos.y, blockPos.z, face.ordinal(), world)
-    !event.isCanceled && event.useBlock != Result.DENY
+  def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
+    val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, null, blockPos.toBlockPos, face, null)
+    MinecraftForge.EVENT_BUS.post(event)
+    !event.isCanceled && event.getUseBlock != Result.DENY
   }
 
-  def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
-    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
+  def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {
+    world.getEntitiesWithinAABB(clazz, bounds)
   }
 
-  def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
-    entitiesInBounds[Type](blockPos.bounds)
+  def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition) = {
+    entitiesInBounds(clazz, blockPos.bounds)
   }
 
-  def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    entitiesInBlock[Type](position.offset(side))
+  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+    entitiesInBlock(clazz, position.offset(side))
   }
 
-  def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection) = {
+  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
     val blockPos = position.offset(side)
-    Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, blockPos.bounds, fakePlayer)).map(_.asInstanceOf[Type])
+    Option(world.findNearestEntityWithinAABB(clazz, blockPos.bounds, fakePlayer))
   }
 
-  def blockContent(side: ForgeDirection) = {
-    closestEntity[Entity](side) match {
+  def blockContent(side: EnumFacing) = {
+    closestEntity[Entity](classOf[Entity], side) match {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")
       case _ =>
@@ -70,12 +67,12 @@ trait WorldAware {
           (false, "air")
         }
         else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-          val event = new BlockEvent.BreakEvent(blockPos.x, blockPos.y, blockPos.z, world, block, metadata, fakePlayer)
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "liquid")
         }
         else if (block.isReplaceable(blockPos)) {
-          val event = new BlockEvent.BreakEvent(blockPos.x, blockPos.y, blockPos.z, world, block, metadata, fakePlayer)
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "replaceable")
         }

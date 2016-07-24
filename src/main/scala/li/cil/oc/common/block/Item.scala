@@ -13,30 +13,31 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.ItemCosts
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.util.StatCollector
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.translation.I18n
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
 
-  def block = field_150939_a
-
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
-    (block, tooltip) match {
-      case (simple: SimpleBlock, lines: util.List[String]@unchecked) =>
-        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, lines, advanced)
+    block match {
+      case (simple: SimpleBlock) =>
+        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip, advanced)
 
         if (KeyBindings.showMaterialCosts) {
-          ItemCosts.addTooltip(stack, lines)
+          ItemCosts.addTooltip(stack, tooltip)
         }
         else {
-          lines.add(StatCollector.translateToLocalFormatted(
+          tooltip.add(I18n.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
             KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }
@@ -46,7 +47,7 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def getRarity(stack: ItemStack) = block match {
     case simple: SimpleBlock => simple.rarity(stack)
-    case _ => EnumRarity.common
+    case _ => EnumRarity.COMMON
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage
@@ -69,29 +70,29 @@ class Item(value: Block) extends ItemBlock(value) {
       if (ItemColorizer.hasColor(stack)) {
         ItemColorizer.getColor(stack)
       }
-      else Color.LightGray
+      else Color.rgbValues(EnumDyeColor.SILVER)
     }
     else super.getDamage(stack)
   }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
-  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, metadata: Int) = {
+  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, newState: IBlockState) = {
     // When placing robots in creative mode, we have to copy the stack
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
     val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get(Constants.BlockName.Robot)
     val stackToUse = if (needsCopying) new RobotData(stack).copyItemStack() else stack
-    if (super.placeBlockAt(stackToUse, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
+    if (super.placeBlockAt(stackToUse, player, world, pos, side, hitX, hitY, hitZ, newState)) {
       // If it's a rotatable block try to make it face the player.
-      world.getTileEntity(x, y, z) match {
+      world.getTileEntity(pos) match {
         case keyboard: tileentity.Keyboard =>
           keyboard.setFromEntityPitchAndYaw(player)
-          keyboard.setFromFacing(ForgeDirection.getOrientation(side))
+          keyboard.setFromFacing(side)
         case rotatable: tileentity.traits.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           if (!rotatable.validFacings.contains(rotatable.pitch)) {
-            rotatable.pitch = rotatable.validFacings.headOption.getOrElse(ForgeDirection.NORTH)
+            rotatable.pitch = rotatable.validFacings.headOption.getOrElse(EnumFacing.NORTH)
           }
           if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
             rotatable.invertRotation()

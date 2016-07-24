@@ -9,7 +9,7 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsScala._
 
@@ -33,11 +33,9 @@ object InventoryUtils {
    */
   def inventoryAt(position: BlockPosition): Option[IInventory] = position.world match {
     case Some(world) if world.blockExists(position) => (world.getBlock(position), world.getTileEntity(position)) match {
-      case (block: BlockChest, chest: TileEntityChest) => Option(block.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord))
+      case (block: BlockChest, chest: TileEntityChest) => Option(block.getLockableContainer(world, chest.getPos))
       case (_, inventory: IInventory) => Some(inventory)
-      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
-        map(_.asInstanceOf[EntityMinecartContainer]).
-        find(!_.isDead)
+      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).find(!_.isDead)
     }
     case _ => None
   }
@@ -63,10 +61,10 @@ object InventoryUtils {
    * The number of items inserted can be limited, to avoid unnecessary
    * changes to the inventory the stack may come from, for example.
    */
-  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: Option[ForgeDirection], slot: Int, limit: Int = 64, simulate: Boolean = false) =
+  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: Option[EnumFacing], slot: Int, limit: Int = 64, simulate: Boolean = false) =
     (stack != null && limit > 0) && {
       val isSideValidForSlot = (inventory, side) match {
-        case (inventory: ISidedInventory, Some(s)) => inventory.canInsertItem(slot, stack, s.ordinal)
+        case (inventory: ISidedInventory, Some(s)) => inventory.canInsertItem(slot, stack, s)
         case _ => true
       }
       (stack.stackSize > 0 && inventory.isItemValidForSlot(slot, stack) && isSideValidForSlot) && {
@@ -122,11 +120,11 @@ object InventoryUtils {
    * also be achieved by a check in the consumer, but it saves some unnecessary
    * code repetition this way.
    */
-  def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64) = {
+  def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IInventory, side: EnumFacing, slot: Int, limit: Int = 64) = {
     val stack = inventory.getStackInSlot(slot)
     (stack != null && limit > 0) && {
       val isSideValidForSlot = inventory match {
-        case inventory: ISidedInventory => inventory.canExtractItem(slot, stack, side.ordinal)
+        case inventory: ISidedInventory => inventory.canExtractItem(slot, stack, side)
         case _ => true
       }
       (stack.stackSize > 0 && isSideValidForSlot) && {
@@ -162,12 +160,12 @@ object InventoryUtils {
    * item stack will be adjusted to reflect the number items inserted, by
    * having its size decremented accordingly.
    */
-  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: Option[ForgeDirection] = None, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None) =
+  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: Option[EnumFacing] = None, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None) =
     (stack != null && limit > 0) && {
       var success = false
       var remaining = limit
       val range = slots.getOrElse(inventory match {
-        case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.getOrElse(ForgeDirection.UNKNOWN).ordinal).toIterable
+        case sided: ISidedInventory => sided.getSlotsForFace(side.orNull).toIterable
         case _ => 0 until inventory.getSizeInventory
       })
 
@@ -218,9 +216,9 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractAnyFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) = {
+  def extractAnyFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: EnumFacing, limit: Int = 64) = {
     val range = inventory match {
-      case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
+      case sided: ISidedInventory => sided.getSlotsForFace(side).toIterable
       case _ => 0 until inventory.getSizeInventory
     }
     range.exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
@@ -235,9 +233,9 @@ object InventoryUtils {
    * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
    * handles special cases such as sided inventories and stack size limits.
    */
-  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, simulate: Boolean = false) = {
+  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: EnumFacing, simulate: Boolean = false) = {
     val range = inventory match {
-      case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
+      case sided: ISidedInventory => sided.getSlotsForFace(side).toIterable
       case _ => 0 until inventory.getSizeInventory
     }
     val remaining = stack.copy()
@@ -259,14 +257,14 @@ object InventoryUtils {
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
    * in the world.
    */
-  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: Option[ForgeDirection] = None, limit: Int = 64, simulate: Boolean = false): Boolean =
+  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: Option[EnumFacing] = None, limit: Int = 64, simulate: Boolean = false): Boolean =
     inventoryAt(position).exists(insertIntoInventory(stack, _, side, limit, simulate))
 
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
    * in the world.
    */
-  def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64) =
+  def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: EnumFacing, limit: Int = 64) =
     inventoryAt(position).exists(extractAnyFromInventory(consumer, _, side, limit))
 
   /**
@@ -282,14 +280,14 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was transferred.
    */
-  def transferBetweenInventories(source: IInventory, sourceSide: ForgeDirection, sink: IInventory, sinkSide: Option[ForgeDirection], limit: Int = 64) =
+  def transferBetweenInventories(source: IInventory, sourceSide: EnumFacing, sink: IInventory, sinkSide: Option[EnumFacing], limit: Int = 64) =
     extractAnyFromInventory(
       insertIntoInventory(_, sink, sinkSide, limit), source, sourceSide, limit)
 
   /**
    * Like <tt>transferBetweenInventories</tt> but moving between specific slots.
    */
-  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: ForgeDirection, sourceSlot: Int, sink: IInventory, sinkSide: Option[ForgeDirection], sinkSlot: Option[Int], limit: Int = 64) =
+  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: EnumFacing, sourceSlot: Int, sink: IInventory, sinkSide: Option[EnumFacing], sinkSlot: Option[Int], limit: Int = 64) =
     sinkSlot match {
       case Some(explicitSinkSlot) =>
         extractFromInventorySlot(
@@ -303,7 +301,7 @@ object InventoryUtils {
    * Utility method for calling <tt>transferBetweenInventories</tt> on inventories
    * in the world.
    */
-  def transferBetweenInventoriesAt(source: BlockPosition, sourceSide: ForgeDirection, sink: BlockPosition, sinkSide: Option[ForgeDirection], limit: Int = 64) =
+  def transferBetweenInventoriesAt(source: BlockPosition, sourceSide: EnumFacing, sink: BlockPosition, sinkSide: Option[EnumFacing], limit: Int = 64) =
     inventoryAt(source).exists(sourceInventory =>
       inventoryAt(sink).exists(sinkInventory =>
         transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)))
@@ -312,7 +310,7 @@ object InventoryUtils {
    * Utility method for calling <tt>transferBetweenInventoriesSlots</tt> on inventories
    * in the world.
    */
-  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[ForgeDirection], sinkSlot: Option[Int], limit: Int = 64) =
+  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[EnumFacing], sinkSlot: Option[Int], limit: Int = 64) =
     inventoryAt(sourcePos).exists(sourceInventory =>
       inventoryAt(sinkPos).exists(sinkInventory =>
         transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)))
@@ -321,7 +319,7 @@ object InventoryUtils {
    * Utility method for dropping contents from a single inventory slot into
    * the world.
    */
-  def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: Option[ForgeDirection] = None) = {
+  def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: Option[EnumFacing] = None) = {
     Option(inventory.decrStackSize(slot, count)) match {
       case Some(stack) if stack.stackSize > 0 => spawnStackInWorld(position, stack, direction); true
       case _ => false
@@ -354,7 +352,7 @@ object InventoryUtils {
         }
       }
       if (stack.stackSize > 0) {
-        player.dropPlayerItemWithRandomChoice(stack, false)
+        player.dropItem(stack, false, false)
       }
     }
   }
@@ -362,10 +360,10 @@ object InventoryUtils {
   /**
    * Utility method for spawning an item stack in the world.
    */
-  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[ForgeDirection] = None): EntityItem = position.world match {
+  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None): EntityItem = position.world match {
     case Some(world) if stack != null && stack.stackSize > 0 =>
       val rng = world.rand
-      val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.offsetX, d.offsetY, d.offsetZ))
+      val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getFrontOffsetX, d.getFrontOffsetY, d.getFrontOffsetZ))
       val (tx, ty, tz) = (
         0.1 * (rng.nextDouble - 0.5) + ox * 0.65,
         0.1 * (rng.nextDouble - 0.5) + oy * 0.75 + (ox + oz) * 0.25,
@@ -375,7 +373,7 @@ object InventoryUtils {
       entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + ox * 0.03
       entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + oy * 0.08 + (ox + oz) * 0.03
       entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03
-      entity.delayBeforeCanPickup = 15
+      entity.setPickupDelay(15)
       world.spawnEntityInWorld(entity)
       entity
     case _ => null

@@ -1,6 +1,8 @@
 package li.cil.oc.integration.coloredlights
 
+/* TODO Colored Lights
 import coloredlightscore.src.api.CLApi
+*/
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 
@@ -15,7 +17,9 @@ object ModColoredLights {
   }
 
   private def setColoredLightLevel(block: Block, r: Int, g: Int, b: Int): Unit = {
+/* TODO Colored Lights
     CLApi.setBlockColorRGB(block, r, g, b)
+*/
   }
 
   private def setPlainLightLevel(block: Block, r: Int, g: Int, b: Int): Unit = {

@@ -1,9 +1,9 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.FMLClientHandler
 import li.cil.oc.OpenComputers
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.client.settings.KeyBinding
+import net.minecraftforge.fml.client.FMLClientHandler
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 
