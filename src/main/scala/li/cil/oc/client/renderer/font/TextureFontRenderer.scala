@@ -40,9 +40,9 @@ abstract class TextureFontRenderer {
 
     GlStateManager.scale(0.5f, 0.5f, 1)
 
-    GlStateManager.depthMask(false)
+    GL11.glDepthMask(false)
     RenderState.makeItBlend()
-    GlStateManager.disableTexture2D()
+    GL11.glDisable(GL11.GL_TEXTURE_2D)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
 
@@ -69,7 +69,7 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: background")
 
-    GlStateManager.enableTexture2D()
+    GL11.glEnable(GL11.GL_TEXTURE_2D)
 
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -92,7 +92,7 @@ abstract class TextureFontRenderer {
           // Check if color changed.
           if (col != cfg) {
             cfg = col
-            GlStateManager.color(
+            GL11.glColor3f(
               ((cfg & 0xFF0000) >> 16) / 255f,
               ((cfg & 0x00FF00) >> 8) / 255f,
               ((cfg & 0x0000FF) >> 0) / 255f)
@@ -110,8 +110,8 @@ abstract class TextureFontRenderer {
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
     GlStateManager.bindTexture(0)
-    GlStateManager.depthMask(true)
-    GlStateManager.color(1, 1, 1)
+    GL11.glDepthMask(true)
+    GL11.glColor3f(1, 1, 1)
     RenderState.disableBlend()
     RenderState.popAttrib()
     GlStateManager.popMatrix()
