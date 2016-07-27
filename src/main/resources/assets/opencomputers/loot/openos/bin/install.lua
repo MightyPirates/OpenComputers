@@ -4,7 +4,11 @@ local shell = require("shell")
 local options
 
 do
-  local basic = loadfile(package.searchpath("tools/install_basics", package.path), "bt", _G)
+  local basic, reason = loadfile(package.searchpath("tools/install_basics", package.path), "bt", _G)
+  if not basic then
+    io.stderr:write("failed to load install: " .. tostring(reason) .. "\n")
+    return 1
+  end
   options = basic(...)
 end
 

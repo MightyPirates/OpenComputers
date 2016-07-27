@@ -31,6 +31,9 @@ local result, reason
 local function prompt(message)
   io.write(message .. " [Y/n] ")
   local result = io.read()
+  if not result then -- closed pipe
+    os.exit(1)
+  end
   return result and (result == "" or result:sub(1, 1):lower() == "y")
 end
 
