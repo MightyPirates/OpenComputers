@@ -82,12 +82,12 @@ function note.freq(n)
   if type(n) == "string" then
     n = string.lower(n)
     if tonumber(notes[n])~=nil then
-      return math.pow(2,(tonumber(notes[n])-69)/12)*440
+      return 2^((tonumber(notes[n])-69)/12)*440
     else
       error("Wrong input "..tostring(n).." given to note.freq, needs to be <note>[semitone sign]<octave>, e.g. A#0 or Gb4",2)
     end
   elseif type(n) == "number" then
-    return math.pow(2,(n-69)/12)*440
+    return 2^((n-69)/12)*440
   else
     error("Wrong input "..tostring(n).." given to note.freq, needs to be a number or a string",2)
   end
