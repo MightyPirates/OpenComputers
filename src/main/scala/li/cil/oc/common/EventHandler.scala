@@ -113,7 +113,7 @@ object EventHandler {
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pendingServer.synchronized {
       pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergySink]))
         tileEntity.addedToIC2PowerGrid = true
       })
     }
