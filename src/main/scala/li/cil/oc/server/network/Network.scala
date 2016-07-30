@@ -262,16 +262,23 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
           val node = vertex.data
           val neighbors = vertex.edges.map(_.other(vertex).data).toArray
 
+          var newAddress = ""
+          do {
+            newAddress = java.util.UUID.randomUUID().toString
+          } while (data.contains(newAddress) || otherNetwork.data.contains(newAddress))
+
           // This may lead to splits, which is the whole reason we have to
           // check the network of the other nodes after the readdressing.
           node.remove()
-
-          do {
-            node.address = java.util.UUID.randomUUID().toString
-          } while (data.contains(node.address) || otherNetwork.data.contains(node.address))
-
+          node.address = newAddress
           Network.joinNewNetwork(node)
-          neighbors.filter(_.network != null).foreach(_.connect(node))
+
+          if (node.address == newAddress) {
+            neighbors.filter(_.network != null).foreach(_.connect(node))
+          } else {
+            OpenComputers.log.error("I can't see this happening any other way than someone directly setting node addresses, which they shouldn't. So yeah. Shit'll be borked. Deal with it.")
+            node.remove() // well screw you then
+          }
         })
 
         duplicates.head.data.network.asInstanceOf[Network.Wrapper].network
