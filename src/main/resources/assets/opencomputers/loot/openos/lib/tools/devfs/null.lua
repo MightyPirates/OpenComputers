@@ -1,11 +1,9 @@
 return
 {
   open = function(mode)
-    if not mode or not mode:match("[wa]") then
-      return nil, "write only"
-    end
     return
     {
+      read = function() end,
       write = function() end
     }
   end
