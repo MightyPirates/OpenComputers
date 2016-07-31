@@ -4,11 +4,11 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
@@ -273,7 +273,8 @@ object DebugCard {
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.setGameType(GameType.getByName(args.checkString(0).toLowerCase))
+        val gametype = args.checkString(0)
+        player.setGameType(GameType.values.find(_.name == gametype).getOrElse(GameType.SURVIVAL))
         null
       })
 

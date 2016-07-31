@@ -4,7 +4,11 @@ local shell = require("shell")
 local options
 
 do
-  local basic = loadfile("/lib/tools/install_basics.lua", "bt", _G)
+  local basic, reason = loadfile(package.searchpath("tools/install_basics", package.path), "bt", _G)
+  if not basic then
+    io.stderr:write("failed to load install: " .. tostring(reason) .. "\n")
+    return 1
+  end
   options = basic(...)
 end
 
@@ -23,7 +27,6 @@ if ec ~= nil and ec ~= 0 then
 end
 
 local write = io.write
-local read = io.read
 write("Installation complete!\n")
 
 if options.setlabel then
@@ -39,8 +42,7 @@ end
 
 if options.reboot then
   write("Reboot now? [Y/n] ")
-  local result = read() or "n"
-  if result:sub(1, 1):lower() == "y" then
+  if ((io.read() or "n").."y"):match("^%s*[Yy]") then
     write("\nRebooting now!\n")
     computer.shutdown(true)
   end

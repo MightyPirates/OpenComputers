@@ -469,6 +469,7 @@ object Settings {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val nl = sys.props("line.separator")
       val nle = StringEscapeUtils.escapeJava(nl)
+      file.getParentFile.mkdirs()
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
         // Indent two spaces instead of four.

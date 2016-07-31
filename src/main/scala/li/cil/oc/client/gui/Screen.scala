@@ -71,12 +71,12 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
 
   private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
     toBufferCoordinates(mouseX, mouseY) match {
-      case Some((bx, by)) if bx.toInt != mx || by.toInt != my =>
+      case Some((bx, by)) if bx.toInt != mx || (by*2).toInt != my =>
         if (mx >= 0 && my >= 0) buffer.mouseDrag(bx, by, button, null)
         else buffer.mouseDown(bx, by, button, null)
         didDrag = mx >= 0 && my >= 0
         mx = bx.toInt
-        my = by.toInt
+        my = (by*2).toInt // for high precision mode, sends some unnecessary packets when not using it, but eh
       case _ =>
     }
   }

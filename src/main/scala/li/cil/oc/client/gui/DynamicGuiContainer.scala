@@ -11,7 +11,7 @@ import li.cil.oc.common
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.container.Player
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
@@ -77,7 +77,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     hoveredSlot = (inventorySlots.inventorySlots collect {
       case slot: Slot if isPointInRegion(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, mouseX, mouseY) => slot
     }).headOption
-    hoveredStackNEI = NEI.hoveredStack(this, mouseX, mouseY)
+    hoveredStackNEI = ItemSearch.hoveredStack(this, mouseX, mouseY)
 
     super.drawScreen(mouseX, mouseY, dt)
 

@@ -8,7 +8,7 @@ import net.minecraft.util.StatCollector
 
 class DamageSourceWithRandomCause(name: String, numCauses: Int) extends DamageSource(name) {
   override def getDeathMessage(damagee: EntityLivingBase): IChatComponent = {
-    val damager = damagee.func_94060_bK
+    val damager = damagee.getAttackingEntity
     val format = "death.attack." + damageType + "." + (damagee.worldObj.rand.nextInt(numCauses) + 1)
     val withCauseFormat = format + ".player"
     if (damager != null && StatCollector.canTranslate(withCauseFormat))

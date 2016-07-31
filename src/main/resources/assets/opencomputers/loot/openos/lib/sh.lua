@@ -251,26 +251,31 @@ function sh.internal.createThreads(commands, eargs, env)
     end, name)
 
     threads[i] = thread
-    
-    if thread then
-      -- smart check if ios should be loaded
-      if tx.first(args, function(token) return token == "<" or token:find(">") end) then
-        args, reason = sh.internal.buildCommandRedirects(thread, args)
-      end
-    end
-    
-    if not args or not thread then
+
+    if not thread then
       for i,t in ipairs(threads) do
         process.internal.close(t)
       end
       return nil, reason
     end
 
-    process.info(thread).data.args = tx.concat(args, eargs or {})
+    process.info(thread).data.args = args
   end
 
   if #threads > 1 then
     sh.internal.buildPipeChain(threads)
+  end
+
+  for i = 1, #threads do
+    local thread = threads[i]
+    local args = process.info(thread).data.args
+
+    -- smart check if ios should be loaded
+    if tx.first(args, function(token) return token == "<" or token:find(">") end) then
+      args, reason = sh.internal.buildCommandRedirects(thread, args)
+    end
+
+    process.info(thread).data.args = tx.concat(args, eargs or {})
   end
 
   return threads
@@ -454,7 +459,7 @@ function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
 
   local function magical(s)
     for _,glob_rule in ipairs(sh.internal.globbers) do
-      if s:match("[^%%]-"..text.escapeMagic(glob_rule[2])) then
+      if (" "..s):match("[^%%]"..text.escapeMagic(glob_rule[2])) then
         return true
       end
     end
@@ -464,7 +469,6 @@ function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
   local root = is_abs and '' or shell.getWorkingDirectory():gsub("([^/])$","%1/")
   local paths = {is_abs and "/" or ''}
   local relative_separator = ''
-
   for i,segment in ipairs(segments) do
     local enclosed_pattern = string.format("^(%s)/?$", segment)
     local next_paths = {}
@@ -666,28 +670,34 @@ function --[[@delayloaded-start@]] sh.internal.hasValidPiping(words, pipes)
   local semi_split = tx.find(text.syntax, {";"}) -- all symbols before ; in syntax CAN be repeated
   pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
-  local pies = tx.select(words, function(parts, i)
-    return #parts == 1 and #text.split(parts[1].txt, pipes, true) == 0 and true or false
-  end)
-
-  local bad_pipe
-  local last = 0
-  for k,v in ipairs(pies) do
-    if v then
-      if k-last == 1 then
-        bad_pipe = words[k][1].txt
-        break
+  local state = "" -- cannot start on a pipe
+  
+  for w=1,#words do
+    local word = words[w]
+    for p=1,#word do
+      local part = word[p]
+      if part.qr then
+        state = nil
+      elseif part.txt == "" then
+        state = nil -- not sure how this is possible (empty part without quotes?)
+      elseif #text.split(part.txt, pipes, true) == 0 then
+        local prev = state
+        state = part.txt
+        if prev then -- cannot have two pipes in a row
+          word = nil
+          break
+        end
+      else
+        state = nil
       end
-      last=k
+    end
+    if not word then -- bad pipe
+      break
     end
   end
 
-  if not bad_pipe and last == #pies then
-    bad_pipe = words[last][1].txt
-  end
-
-  if bad_pipe then
-    return false, "parse error near " .. bad_pipe
+  if state then
+    return false, "parse error near " .. state
   else
     return true
   end
@@ -883,7 +893,7 @@ function --[[@delayloaded-start@]] sh.internal.parse_sub(input)
     end
 
     local sub = io.popen(capture)
-    local result = sub:read("*a")
+    local result = input:sub(i, fi - 1) .. sub:read("*a")
     sub:close()
     -- all whitespace is replaced by single spaces
     -- we requote the result because tokenize will respect this as text

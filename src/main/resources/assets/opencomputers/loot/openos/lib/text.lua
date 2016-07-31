@@ -9,7 +9,7 @@ local local_env = {tx=tx,unicode=unicode}
 
 text.internal = {}
 
-text.syntax = {"^%d*>>?&%d+$",";","&&","||?","^%d*>>?",">>?","<"}
+text.syntax = {"^%d?>>?&%d+$",";","&&","||?","^%d?>>?",">>?","<"}
 
 function --[[@delayloaded-start@]] text.detab(value, tabWidth)
   checkArg(1, value, "string")
@@ -286,6 +286,95 @@ function --[[@delayloaded-start@]] text.internal.normalize(words, omitQuotes)
     norms[#norms+1]=table.concat(norm)
   end
   return norms
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] text.internal.seeker(handle, whence, to)
+  if not handle.txt then
+    return nil, "bad file descriptor"
+  end
+  to = to or 0
+  if whence == "cur" then
+    handle.offset = handle.offset + to
+  elseif whence == "set" then
+    handle.offset = to
+  elseif whence == "end" then
+    handle.offset = handle.len + to
+  end
+  handle.offset = math.max(0, math.min(handle.offset, handle.len))
+  return handle.offset
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] text.internal.reader(txt)
+  checkArg(1, txt, "string")
+  local reader =
+  {
+    txt = txt,
+    len = unicode.len(txt),
+    offset = 0,
+    read = function(_, n)
+      checkArg(1, n, "number")
+      if not _.txt then
+        return nil, "bad file descriptor"
+      end
+      if _.offset >= _.len then
+        return nil
+      end
+      local last_offset = _.offset
+      _:seek("cur", n)
+      local next = unicode.sub(_.txt, last_offset + 1, _.offset)
+      return next
+    end,
+    seek = text.internal.seeker,
+    close = function(_)
+      if not _.txt then
+        return nil, "bad file descriptor"
+      end
+      _.txt = nil
+      return true
+    end,
+  }
+
+  return require("buffer").new("r", reader)
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
+  if type(ostream) == "table" then
+    local mt = getmetatable(ostream) or {}
+    checkArg(1, mt.__call, "function")
+  end
+  checkArg(1, ostream, "function", "table")
+  checkArg(2, append_txt, "string", "nil")
+  local writer =
+  {
+    txt = "",
+    offset = 0,
+    len = 0,
+    write = function(_, ...)
+      if not _.txt then
+        return nil, "bad file descriptor"
+      end
+      local pre, vs, pos = unicode.sub(_.txt, 1, _.offset), {}, unicode.sub(_.txt, _.offset + 1)
+      for i,v in ipairs({...}) do
+        table.insert(vs, v)
+      end
+      vs = table.concat(vs)
+      _:seek("cur", unicode.len(vs))
+      _.txt = pre .. vs .. pos
+      _.len = unicode.len(_.txt)
+      return true
+    end,
+    seek = text.internal.seeker,
+    close = function(_)
+      if not _.txt then
+        return nil, "bad file descriptor"
+      end
+      ostream((append_txt or "") .. _.txt)
+      _.txt = nil
+      return true
+    end,
+  }
+
+  return require("buffer").new("w", writer)
 end --[[@delayloaded-end@]]
 
 return text, local_env

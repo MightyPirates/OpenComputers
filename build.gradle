@@ -283,9 +283,10 @@ minecraft {
 
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
-    mappings = "stable_20"
+    mappings = "stable_22"
 
     replace "@VERSION@", project.simpleVersion
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {

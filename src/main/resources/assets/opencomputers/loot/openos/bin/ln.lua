@@ -9,6 +9,13 @@ if #dirs == 0 then
 end
 
 local target = shell.resolve(dirs[1])
+
+-- don't link from target if it doesn't exist, unless it is a broken link
+if not fs.exists(target) and not fs.isLink(target) then
+  io.stderr:write("ln: failed to access '" .. target .. "': No such file or directory\n")
+  return 1
+end
+
 local linkpath
 if #dirs > 1 then
   linkpath = shell.resolve(dirs[2])

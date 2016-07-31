@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
@@ -88,12 +89,13 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 }
 
 // Necessary to keep track of the GZIP stream.
-abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream)
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(new BufferedOutputStream(stream))
 
 class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
   writeByte(packetType.id)
 
   override protected def packet = {
+    flush()
     new FMLProxyPacket(new PacketBuffer(Unpooled.wrappedBuffer(stream.toByteArray)), "OpenComputers")
   }
 }
@@ -102,6 +104,7 @@ class CompressedPacketBuilder(val packetType: PacketType.Value, private val data
   writeByte(packetType.id)
 
   override protected def packet = {
+    flush()
     stream.finish()
     new FMLProxyPacket(new PacketBuffer(Unpooled.wrappedBuffer(data.toByteArray)), "OpenComputers")
   }
