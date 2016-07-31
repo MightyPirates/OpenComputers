@@ -1,12 +1,12 @@
 local fs = require("filesystem")
-local guid = require("guid")
+local uuid = require("uuid")
 local shell = require("shell")
 local sh = require("sh")
 
 local touch = loadfile(shell.resolve("touch", "lua"))
 local mkdir = loadfile(shell.resolve("mkdir", "lua"))
 
-if not guid or not touch then
+if not uuid or not touch then
   local errorMessage = "missing tools for mktmp"
   io.stderr:write(errorMessage .. '\n')
   return false, errorMessage
@@ -58,7 +58,7 @@ if not fs.exists(prefix) then
 end
 
 while true do
-  local tmp = prefix .. guid.next()
+  local tmp = prefix .. uuid.next()
   if not fs.exists(tmp) then
 
     local ok, reason

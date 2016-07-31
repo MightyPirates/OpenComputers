@@ -56,6 +56,6 @@ class UpgradeSolarGenerator(val host: EnvironmentHost) extends prefab.ManagedEnv
     host.world.isDaytime &&
       (!host.world.provider.getHasNoSky) &&
       host.world.canBlockSeeSky(blockPos.toBlockPos) &&
-      (!host.world.getBiomeGenForCoords(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
+      (!host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
   }
 }

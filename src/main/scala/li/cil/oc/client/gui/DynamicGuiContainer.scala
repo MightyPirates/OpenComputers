@@ -1,17 +1,17 @@
 package li.cil.oc.client.gui
 
 /* TODO NEI
-import codechicken.nei.ItemPanel
 import codechicken.nei.LayoutManager
+import codechicken.nei.widget.ItemPanel
 */
-
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.container.Player
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.jei.ModJEI
+import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
@@ -20,8 +20,10 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.Optional
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomGuiContainer(container) {
@@ -77,15 +79,21 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     hoveredSlot = (inventorySlots.inventorySlots collect {
       case slot: Slot if isPointInRegion(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, mouseX, mouseY) => slot
     }).headOption
-    hoveredStackNEI = NEI.hoveredStack(this, mouseX, mouseY)
+    hoveredStackNEI = ItemSearch.hoveredStack(this, mouseX, mouseY)
 
     super.drawScreen(mouseX, mouseY, dt)
 
+    /* TODO NEI
     if (Mods.NotEnoughItems.isAvailable) {
       RenderState.pushAttrib()
       RenderState.makeItBlend()
-      // TODO NEI drawNEIHighlights()
+      drawNEIHighlights()
       RenderState.popAttrib()
+    }
+    */
+
+    if (Mods.JustEnoughItems.isAvailable) {
+      drawJEIHighlights()
     }
   }
 
@@ -173,9 +181,17 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     case player: Player => slot.inventory == player.playerInventory
     case _ => false
   }
+
+  override def onGuiClosed(): Unit = {
+    super.onGuiClosed()
+    if(Mods.JustEnoughItems.isAvailable) {
+      resetJEIHighlights()
+    }
+  }
 /* TODO NEI
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   private def drawNEIHighlights(): Unit = {
+    if(!LayoutManager.isItemPanelActive) return
     val panel = LayoutManager.itemPanel
     if (panel == null) return
     zLevel += 350
@@ -193,7 +209,23 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
           }
         case _ =>
       }
-      zLevel -= 350
     }
-  */
+    zLevel -= 350
+  }
+*/
+
+  @Optional.Method(modid = Mods.IDs.JustEnoughItems)
+  private def drawJEIHighlights(): Unit = {
+    ModJEI.runtime.foreach { runtime =>
+      val overlay = runtime.getItemListOverlay
+      hoveredSlot match {
+        case Some(hovered) if !isInPlayerInventory(hovered) && isSelectiveSlot(hovered) =>
+          overlay.highlightStacks(overlay.getVisibleStacks.filter(hovered.isItemValid))
+        case _ => overlay.highlightStacks(List[Nothing]())
+      }
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.JustEnoughItems)
+  private def resetJEIHighlights() = ModJEI.runtime.foreach(_.getItemListOverlay.highlightStacks(List[Nothing]()))
 }

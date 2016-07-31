@@ -3,9 +3,9 @@ package li.cil.oc.integration.nei
 import java.util
 
 import codechicken.lib.gui.GuiDraw
-import codechicken.nei.PositionedStack
 import codechicken.nei.api.IOverlayHandler
 import codechicken.nei.api.IRecipeOverlayRenderer
+import codechicken.nei.api.stack.PositionedStack
 import codechicken.nei.recipe.GuiRecipe
 import codechicken.nei.recipe.IUsageHandler
 import li.cil.oc.Localization

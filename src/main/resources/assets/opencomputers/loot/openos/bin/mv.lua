@@ -10,30 +10,31 @@ if #args < 2 then
 end
 
 local function is_mount(path)
-  if not fs.isDirectory(path) then return false end
-  path = fs.canonical(path) .. '/'
+end
+
+local from = args[1] ~= "" and shell.resolve(args[1])
+local to = args[2] ~= "" and shell.resolve(args[2])
+
+if not from or not fs.exists(from) then
+  io.stderr:write(string.format("No such file or directory: '%s'\n", args[1]))
+  return 1
+elseif not to then
+  io.stderr:write(string.format("Cannot move '%s' to '%s' No such file or directory\n", args[1], args[2]))
+  return 1
+elseif fs.get(from).isReadOnly() then
+  io.stderr:write("cannot remove " .. args[1] .. ", filesystem is readonly\n");
+  return 1
+elseif fs.get(to).isReadOnly() then
+  io.stderr:write("cannot write to " .. args[2] .. ", filesystem is readonly\n");
+  return 1
+elseif fs.isDirectory(from) then
+  local path = fs.canonical(from) .. '/'
   for driver, mount_point in fs.mounts() do
     if path == mount_point then
-      return true
+      io.stderr:write("cannot move " .. args[1] .. ", it is a mount point\n");
+      return 1
     end
   end
-end
-
-local function is_readonly(path)
-  return fs.get(path).isReadOnly()
-end
-
-local from = shell.resolve(args[1])
-local to = shell.resolve(args[2])
-
-if is_readonly(to) then
-  io.stderr:write("cannot write to " .. to .. ", filesystem is readonly\n");
-  return 1
-end
-
-if is_mount(from) then
-  io.stderr:write("cannot move " .. from .. ", it is a mount point\n");
-  return 1
 end
 
 if fs.isDirectory(to) then
@@ -44,16 +45,15 @@ if fs.exists(to) then
     io.stderr:write("target file exists\n")
     return 1
   end
-  fs.remove(to)
 end
 
 local result, reason
 if fs.get(from) == fs.get(to) then -- same filesystem
   result, reason = os.rename(from, to)
 else
-  result, reason = sh.execute(nil, shell.resolve("cp","lua"), "-r", from, to)
+  result, reason = sh.execute(nil, shell.resolve("cp","lua"), "-rf", from, to)
   if result then
-    result, reason = sh.execute(nil, shell.resolve("rm","lua"), "-r", from)
+    result, reason = sh.execute(nil, shell.resolve("rm","lua"), "-rf", from)
   end
 end
 

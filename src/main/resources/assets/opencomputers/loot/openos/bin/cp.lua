@@ -31,6 +31,9 @@ local result, reason
 local function prompt(message)
   io.write(message .. " [Y/n] ")
   local result = io.read()
+  if not result then -- closed pipe
+    os.exit(1)
+  end
   return result and (result == "" or result:sub(1, 1):lower() == "y")
 end
 
@@ -67,9 +70,10 @@ local function recurse(fromPath, toPath, origin)
   local isLink, target = fs.isLink(fromPath)
   local toIsLink, toLinkTarget = fs.isLink(toPath)
   local same_path = fs.canonical(isLink and target or fromPath) == fs.canonical(toIsLink and toLinkTarget or toPath)
+  local same_link = isLink and toIsLink and same_path
   local toExists = fs.exists(toPath)
-
-  if isLink and options.P and (not toExists or not same_path) then
+  
+  if isLink and options.P and not (toExists and same_path and not toIsLink) then
     if toExists and options.n then
       return true
     end
@@ -92,7 +96,7 @@ local function recurse(fromPath, toPath, origin)
     if options.x and origin and mounts[fs.canonical(fromPath)] then
       return true
     end
-    if fs.get(fromPath) == fs.get(toPath) and fs.canonical(toPath):find(fs.canonical(fromPath),1,true)  then
+    if fs.get(fromPath) == fs.get(toPath) and (fs.canonical(toPath).."/"):find(fs.canonical(fromPath).."/",1,true)  then
       return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
     end
     if not fs.exists(toPath) then
@@ -147,12 +151,14 @@ end
 local to = shell.resolve(args[#args])
 
 for i = 1, #args - 1 do
-  local fromPath, cuts = args[i]:gsub("(/%.%.?)$", "%1")
-  fromPath = shell.resolve(fromPath)
+  local arg = args[i]
+  local fromPath = shell.resolve(arg)
+  -- a "contents of" copy is where src path ends in . or ..
+  -- a source path ending with . is not sufficient - could be the source filename
+  local contents_of = arg:match("%.$") and not fromPath:match("%.$")
   local toPath = to
-  -- fromPath ending with /. indicates copying the contents of fromPath
-  -- in which case (cuts>0) we do not append fromPath name to toPath 
-  if cuts == 0 and fs.isDirectory(toPath) then
+  -- we do not append fromPath name to toPath in case of contents_of copy
+  if not contents_of and fs.isDirectory(toPath) then
     toPath = fs.concat(toPath, fs.name(fromPath))
   end
   result, reason = recurse(fromPath, toPath)

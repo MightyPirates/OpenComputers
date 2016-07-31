@@ -268,7 +268,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def stop() = state.synchronized(state.headOption match {
-    case Machine.State.Stopped | Machine.State.Stopping =>
+    case Some(Machine.State.Stopped | Machine.State.Stopping) =>
       false
     case _ =>
       state.push(Machine.State.Stopping)

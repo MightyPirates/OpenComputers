@@ -50,7 +50,7 @@ object Mods {
   val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
-  val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
+  val IngameWiki = new SimpleMod(IDs.IngameWiki)
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val MCMultiPart = new SimpleMod(IDs.MCMultiPart, version = "@[1.0.9,)")
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
@@ -82,7 +82,7 @@ object Mods {
   val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
-  val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.7,)")
+  val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
   val TMechWorks = new SimpleMod(IDs.TMechWorks)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
@@ -130,7 +130,7 @@ object Mods {
     //    integration.thaumcraft.ModThaumcraft,
     //    integration.thaumicenergistics.ModThaumicEnergistics,
     //    integration.thermalexpansion.ModThermalExpansion,
-    //    integration.tis3d.ModTIS3D,
+    integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
@@ -145,11 +145,11 @@ object Mods {
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
-    integration.opencomputers.ModOpenComputers
+    integration.opencomputers.ModOpenComputers,
 
     // Run IGW registration after OC registration because we use the manual
     // in there to know which pages to register.
-    //    integration.igw.ModIngameWiki
+    integration.igw.ModIngameWiki
   )
 
   def init(): Unit = {

@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version,
-  modLanguage = "scala", useMetadata = true)
+  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
 object OpenComputers {
   final val ID = "OpenComputers"
 

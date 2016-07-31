@@ -95,7 +95,7 @@ repositories {
     maven {
         name = "BluePower"
         url = "http://maven.bluepowermod.com/"
-    }
+    }*/
     maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
@@ -103,7 +103,7 @@ repositories {
     maven {
         name = "IGW"
         url = "http://maven.k-4u.nl/"
-    }
+    }/*
     maven {
         name = "dmodoomsirius"
         url = "http://api.dmodoomsirius.me/"
@@ -184,13 +184,15 @@ configurations {
 dependencies {
     deobfCompile "MCMultiPart:MCMultiPart-experimental:${config.mcmp.version}:universal"
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
-/*
-    deobfCompile "mezz.jei:jei_1.8.9:${config.jei.version}"
+    deobfCompile "mezz.jei:jei_1.10.2:${config.jei.version}"
+
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
-    deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"
-    provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+/*
+    deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"*/
+    //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
+    //provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
+    //provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"
+/*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
@@ -199,8 +201,8 @@ dependencies {
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
-    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
+    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
+    provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"/*
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
@@ -262,8 +264,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/forestry/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
-            exclude 'li/cil/oc/integration/igw/**'
-            exclude 'li/cil/oc/integration/jei/**'
             exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
@@ -279,7 +279,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumicenergistics/**'
-            exclude 'li/cil/oc/integration/tis3d/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
@@ -297,6 +296,7 @@ minecraft {
     mappings = "${config.minecraft.mappings}"
 
     replace "@VERSION@", project.simpleVersion
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {
