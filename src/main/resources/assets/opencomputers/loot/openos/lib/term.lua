@@ -261,7 +261,7 @@ function term.readKeyboard(ops)
       if name == "touch" or name == "drag" then
         term.internal.onTouch(input,char,code)
       elseif name == "clipboard" then
-        c = char
+        c = term.internal.clipboard(char)
         hints.cache = nil
       elseif name == "key_down" then
         hints.cache = nil
@@ -632,6 +632,19 @@ end --[[@delayloaded-end@]]
 function --[[@delayloaded-start@]] term.getGlobalArea(window)
   local w,h,dx,dy = term.getViewport(window)
   return dx+1,dy+1,w,h
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.clipboard(char)
+  local first_line, end_index = char:find("\13?\10")
+  if first_line then
+    local after = char:sub(end_index + 1)
+    if after ~= "" then
+      require("computer").pushSignal("key_down", term.keyboard(), 13, 28)
+      require("computer").pushSignal("clipboard", term.keyboard(), after)
+    end
+    char = char:sub(1, first_line - 1)
+  end
+  return char
 end --[[@delayloaded-end@]] 
 
 return term, local_env
