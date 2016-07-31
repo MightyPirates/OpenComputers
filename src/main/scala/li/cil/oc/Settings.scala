@@ -3,6 +3,8 @@ package li.cil.oc
 import java.io._
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
 import java.util.UUID
 
 import com.google.common.net.InetAddresses
@@ -11,11 +13,16 @@ import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
 import cpw.mods.fml.common.versioning.VersionRange
+import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.component.DebugCard
+import li.cil.oc.server.component.DebugCard.AccessContext
+import org.apache.commons.codec.binary.Hex
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 import scala.io.Codec
 import scala.io.Source
 import scala.util.matching.Regex
@@ -413,7 +420,21 @@ class Settings(val config: Config) {
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
-  val enableDebugCard = config.getBoolean("debug.enableDebugCard")
+
+  val debugCardAccess = config.getValue("debug.debugCardAccess").unwrapped() match {
+    case "true" | "allow" | java.lang.Boolean.TRUE => DebugCardAccess.Allowed
+    case "false" | "deny" | java.lang.Boolean.FALSE => DebugCardAccess.Forbidden
+    case "whitelist" =>
+      val wlFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator +
+                              "debug_card_whitelist.txt")
+
+      DebugCardAccess.Whitelist(wlFile)
+
+    case _ => // Fallback to most secure configuration
+      OpenComputers.log.warn("Unknown debug card access type, falling back to `deny`. Allowed values: `allow`, `deny`, `whitelist`.")
+      DebugCardAccess.Forbidden
+  }
+
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
   val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
 }
@@ -557,4 +578,95 @@ object Settings {
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
 
+  sealed trait DebugCardAccess {
+    def checkAccess(ctx: Option[DebugCard.AccessContext]): Option[String]
+  }
+
+  object DebugCardAccess {
+    case object Forbidden extends DebugCardAccess {
+      override def checkAccess(ctx: Option[AccessContext]): Option[String] =
+        Some("debug card is disabled")
+    }
+
+    case object Allowed extends DebugCardAccess {
+      override def checkAccess(ctx: Option[AccessContext]): Option[String] = None
+    }
+
+    case class Whitelist(noncesFile: File) extends DebugCardAccess {
+      private val values = mutable.Map.empty[String, String]
+      private val rng = SecureRandom.getInstance("SHA1PRNG")
+
+      load()
+
+      def save(): Unit = {
+        val noncesDir = noncesFile.getParentFile
+        if (!noncesDir.exists() && !noncesDir.mkdirs())
+          throw new IOException(s"Cannot create nonces directory: ${noncesDir.getCanonicalPath}")
+
+        val writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(noncesFile), StandardCharsets.UTF_8), false)
+        try {
+          for ((p, n) <- values)
+            writer.println(s"$p $n")
+        } finally writer.close()
+      }
+
+      def load(): Unit = {
+        values.clear()
+
+        if (!noncesFile.exists())
+          return
+
+        val reader = new BufferedReader(new InputStreamReader(new FileInputStream(noncesFile), StandardCharsets.UTF_8))
+        Iterator.continually(reader.readLine())
+          .takeWhile(_ != null)
+          .map(_.split(" ", 2))
+          .flatMap {
+            case Array(p, n) => Seq(p -> n)
+            case _ => Nil
+          }.foreach(values += _)
+      }
+
+      private def generateNonce(): String = {
+        val buf = new Array[Byte](16)
+        rng.nextBytes(buf)
+        new String(Hex.encodeHex(buf, true))
+      }
+
+      def nonce(player: String) = values.get(player.toLowerCase)
+
+      def isWhitelisted(player: String) = values.contains(player.toLowerCase)
+
+      def whitelist: collection.Set[String] = values.keySet
+
+      def add(player: String): Unit = {
+        if (!values.contains(player.toLowerCase)) {
+          values.put(player.toLowerCase, generateNonce())
+          save()
+        }
+      }
+
+      def remove(player: String): Unit = {
+        if (values.remove(player.toLowerCase).isDefined)
+          save()
+      }
+
+      def invalidate(player: String): Unit = {
+        if (values.contains(player.toLowerCase)) {
+          values.put(player.toLowerCase, generateNonce())
+          save()
+        }
+      }
+
+      def checkAccess(ctxOpt: Option[DebugCard.AccessContext]): Option[String] = ctxOpt match {
+        case Some(ctx) => values.get(ctx.player) match {
+          case Some(x) =>
+            if (x == ctx.nonce) None
+            else Some("debug card is invalidated, please re-bind it to yourself")
+          case None => Some("you are not whitelisted to use debug card")
+        }
+
+        case None => Some("debug card is whitelisted, Shift+Click with it to bind card to yourself")
+      }
+    }
+  }
 }
