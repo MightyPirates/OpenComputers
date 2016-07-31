@@ -7,7 +7,6 @@ local unicode = require("unicode")
 local text = require("text")
 
 local write = io.write
-local read = io.read
 
 local args, options = shell.parse(...)
 
@@ -154,9 +153,10 @@ end
 
 local source = options.sources[1]
 local target = options.targets[1]
+local utils_path = package.searchpath("tools/install_utils", package.path)
 
 if #options.sources ~= 1 or #options.targets ~= 1 then
-  source, target = loadfile("/lib/tools/install_utils.lua", "bt", _G)('select', options)
+  source, target = loadfile(utils_path, "bt", _G)('select', options)
 end
 
 if not source then return end
@@ -172,16 +172,11 @@ options.setboot    = source.prop.setboot and not options.nosetboot
 options.reboot     = source.prop.reboot and not options.noreboot
 options.source_dir = fs.canonical(source.prop.fromDir or options.fromDir or "") .. '/.'
 
-local installer_path = options.source_root .. "/.install"
-if fs.exists(installer_path) then
-  return loadfile("/lib/tools/install_utils.lua", "bt", _G)('install', options)
-end
-
 local cp_args =
 {
   "-vrx" .. (options.update and "ui" or ""),
   options.source_root .. options.source_dir,
-  options.target_root .. options.target_dir
+  options.target_root:gsub("//","/") .. options.target_dir
 }
 
 local source_display = (source.prop or {}).label or source.dev.getLabel() or source.path
@@ -190,10 +185,14 @@ if #options.targets > 1 or options.to then
   special_target = " to " .. cp_args[3]
 end
 io.write("Install " .. source_display .. special_target .. "? [Y/n] ")
-local choice = read():lower()
-if choice ~= "y" and choice ~= "" then
+if not ((io.read() or "n").."y"):match("^%s*[Yy]") then
   write("Installation cancelled\n")
   os.exit()
+end
+
+local installer_path = options.source_root .. "/.install"
+if fs.exists(installer_path) then
+  os.exit(loadfile(utils_path, "bt", _G)('install', options))
 end
 
 return

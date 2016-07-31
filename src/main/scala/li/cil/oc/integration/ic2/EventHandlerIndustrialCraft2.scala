@@ -42,7 +42,7 @@ object EventHandlerIndustrialCraft2 {
 
   def getDurability(stack: ItemStack): Double = {
     stack.getItem match {
-      case item: ISpecialElectricItem => item.getManager(stack).getCharge(stack) / item.getMaxCharge(stack)
+      case item: ISpecialElectricItem => item.getManager(stack).getCharge(stack) / item.getManager(stack).getMaxCharge(stack)
       case item: IElectricItem => ElectricItem.manager.getCharge(stack) / item.getMaxCharge(stack)
       case _ => Double.NaN
     }

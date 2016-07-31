@@ -8,7 +8,7 @@
   "authorList": ["Florian 'Sangar' Nuecke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
-  "requiredMods": [ "Forge@[11.14.1.1313,)" ],
+  "requiredMods": [ "Forge@[12.17.0.1976,)" ],
   "dependencies": [
     "BuildCraft|Core",
     "ComputerCraft",

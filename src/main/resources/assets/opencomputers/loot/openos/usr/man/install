@@ -9,10 +9,10 @@ DESCRIPTION
 
 OPTIONS
   --from=ADDR
-    Specifies the source filesystem or its root path. ADDR can be the device guid or a directory path. If this is a directory path, it represents a root path to install from. This option can also be used to specify source paths that would otherwise be ignored, those being devfs, tmpfs, and the rootfs. e.g. --from=/tmp . Note that if both --from and a [name] is given, install expects the source path to have a .prop defining the same name. See .prop for more details.
+    Specifies the source filesystem or its root path. ADDR can be the device uuid or a directory path. If this is a directory path, it represents a root path to install from. This option can also be used to specify source paths that would otherwise be ignored, those being devfs, tmpfs, and the rootfs. e.g. --from=/tmp . Note that if both --from and a [name] is given, install expects the source path to have a .prop defining the same name. See .prop for more details.
 
   --to=ADDR
-    Same as --from but specifies the target filesystem by guid or its root path. This option can also be used to specify filesystems that are otherwise ignored including tmpfs. i.e. --to=ADDR where ADDR matches the tmpfs device address or its mount point path. e.g. --to=/tmp
+    Same as --from but specifies the target filesystem by uuid or its root path. This option can also be used to specify filesystems that are otherwise ignored including tmpfs. i.e. --to=ADDR where ADDR matches the tmpfs device address or its mount point path. e.g. --to=/tmp
 
   --fromDir=PATH
     Install PATH from source. PATH is relative to the root of the source filesystem or path given by --from. The default is .

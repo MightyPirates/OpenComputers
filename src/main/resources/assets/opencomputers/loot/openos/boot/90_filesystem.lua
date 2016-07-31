@@ -22,7 +22,7 @@ local function onInit()
 end
 
 local function onComponentAdded(_, address, componentType)
-  if componentType == "filesystem" then
+  if componentType == "filesystem" and require("computer").tmpAddress() ~= address then
     local proxy = component.proxy(address)
     if proxy then
       local name = address:sub(1, 3)

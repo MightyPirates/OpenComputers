@@ -1,64 +1,76 @@
 package li.cil.oc.integration.jei
 
-import java.util
-
 import li.cil.oc.Constants
 import li.cil.oc.Settings
-import li.cil.oc.api
-import li.cil.oc.common.Loot
-import li.cil.oc.common.recipe.LootDiskCyclingRecipe
+import li.cil.oc.api.Items
 import li.cil.oc.integration.util.ItemBlacklist
-import mezz.jei.api.IItemRegistry
-import mezz.jei.api.IJeiHelpers
+import li.cil.oc.integration.util.ItemSearch
 import mezz.jei.api.IJeiRuntime
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.IModRegistry
-import mezz.jei.api.IRecipeRegistry
+import mezz.jei.api.ISubtypeRegistry.ISubtypeInterpreter
 import mezz.jei.api.JEIPlugin
-import mezz.jei.api.recipe.BlankRecipeWrapper
-import mezz.jei.api.recipe.IRecipeHandler
-import mezz.jei.api.recipe.IRecipeWrapper
-import mezz.jei.api.recipe.VanillaRecipeCategoryUid
-import mezz.jei.api.recipe.wrapper.ICraftingRecipeWrapper
+import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-
-import scala.collection.convert.WrapAsJava._
+import net.minecraft.nbt.NBTTagCompound
 
 @JEIPlugin
 class ModPluginOpenComputers extends IModPlugin {
-  override def onJeiHelpersAvailable(jeiHelpers: IJeiHelpers): Unit = {
-    ItemBlacklist.consumers += jeiHelpers.getItemBlacklist.addItemToBlacklist
-  }
-
-  override def onItemRegistryAvailable(itemRegistry: IItemRegistry): Unit = {
-  }
-
-  override def register(registry: IModRegistry): Unit = {
+  override def register(registry: IModRegistry) {
     if (Settings.get.lootRecrafting) {
       registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
     }
+
+    ItemBlacklist.hiddenItems.foreach(getter => registry.getJeiHelpers.getItemBlacklist.addItemToBlacklist(getter()))
+
+    // This could go into the Description category, but Manual should always be in front of the Callback doc.
+    ManualUsageHandler.ManualUsageRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
+    registry.addRecipeCategories(ManualUsageHandler.ManualUsageRecipeCategory)
+    registry.addRecipeHandlers(ManualUsageHandler.ManualUsageRecipeHandler)
+    registry.addRecipes(ManualUsageHandler.getRecipes(registry))
+
+    CallbackDocHandler.CallbackDocRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
+    registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
+    registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
+    registry.addRecipes(CallbackDocHandler.getRecipes(registry))
+
+    def useNBT(names: String*) = names.map(name => {
+      val info = Items.get(name)
+      Option(info.item).getOrElse(Item.getItemFromBlock(info.block))
+    }).filter(_ != null).distinct.foreach(registry.getJeiHelpers.getSubtypeRegistry.useNbtForSubtypes(_))
+
+    // Only the preconfigured blocks and items have to be here.
+    useNBT(
+      Constants.BlockName.Microcontroller,
+      Constants.BlockName.Robot,
+
+      Constants.ItemName.Drone,
+      Constants.ItemName.Tablet
+    )
+
+    registry.getJeiHelpers.getSubtypeRegistry.registerNbtInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
+      override def getSubtypeInfo(stack: ItemStack): String = {
+        if (!stack.hasTagCompound) return null
+        val compound: NBTTagCompound = stack.getTagCompound
+        val data = new NBTTagCompound
+        // Separate loot disks from normal floppies
+        if (compound.hasKey(Settings.namespace + "lootFactory")) {
+          data.setTag(Settings.namespace + "lootFactory", compound.getTag(Settings.namespace + "lootFactory"))
+        }
+        if (data.hasNoTags) null else data.toString
+      }
+    })
+
+    registry.addAdvancedGuiHandlers(RelayGuiHandler)
   }
 
-  override def onRecipeRegistryAvailable(recipeRegistry: IRecipeRegistry): Unit = {
+  private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
+
+  override def onRuntimeAvailable(jeiRuntime: IJeiRuntime) {
+    if (stackUnderMouse == null) {
+      ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
+    }
+    stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
   }
-
-  override def onRuntimeAvailable(jeiRuntime: IJeiRuntime): Unit = {
-  }
-
-  object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe] {
-    override def getRecipeClass: Class[LootDiskCyclingRecipe] = classOf[LootDiskCyclingRecipe]
-
-    override def getRecipeCategoryUid: String = VanillaRecipeCategoryUid.CRAFTING
-
-    override def getRecipeWrapper(recipe: LootDiskCyclingRecipe): IRecipeWrapper = new LootDiskCyclingRecipeWrapper(recipe)
-
-    override def isRecipeValid(recipe: LootDiskCyclingRecipe): Boolean = true
-  }
-
-  class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper with ICraftingRecipeWrapper {
-    override def getInputs: util.List[_] = List(seqAsJavaList(Loot.worldDisks.map(_._1)), api.Items.get(Constants.ItemName.Wrench).createItemStack(1))
-
-    override def getOutputs: util.List[ItemStack] = Loot.worldDisks.map(_._1).toList
-  }
-
 }

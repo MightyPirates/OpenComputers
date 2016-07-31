@@ -71,13 +71,17 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     }
     else {
       GL11.glCallList(list)
+      GlStateManager.enableTexture2D()
       GlStateManager.depthMask(true)
-      GlStateManager.color(1, 1, 1)
+      GlStateManager.color(1, 1, 1, 1)
 
       // Because display lists and the GlStateManager don't like each other, apparently.
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
       RenderState.bindTexture(0)
       GL11.glDepthMask(true)
       GL11.glColor4f(1, 1, 1, 1)
+
+      RenderState.disableBlend()
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }
