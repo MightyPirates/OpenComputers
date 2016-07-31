@@ -191,20 +191,8 @@ local devfs = new_devfs_dir()
 
 local bfd = "bad file descriptor"
 
-function devfs.getLabel()
-  return "devfs"
-end
-
 function devfs.setLabel(value)
   error("drive does not support labeling")
-end
-
-function devfs.spaceTotal()
-  return 0
-end
-
-function devfs.spaceUsed()
-  return 0
 end
 
 function devfs.makeDirectory(path)
@@ -284,9 +272,7 @@ end
 
 devfs.create("null", devfs_load("null"))
 devfs.create("random", devfs_load("random"))
-if comp.isAvailable("eeprom") then
-  devfs.create("eeprom", devfs_load("eeprom"))
-  devfs.create("eeprom-data", devfs_load("eeprom-data"))
-end
+devfs.create("eeprom", devfs_load("eeprom"))
+devfs.create("eeprom-data", devfs_load("eeprom-data"))
 
 return devfs

@@ -291,7 +291,7 @@ local function test(m,p)
       write("\n")
       empty_line = true
       needs_filename, needs_line_num = include_filename, print_line_num
-    elseif p:find("^^") then break end
+    elseif p:find("^^") and not plain then p="^$" end
   end
   if not empty_line then write("\n") end
 end
