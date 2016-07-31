@@ -334,7 +334,7 @@ function --[[@delayloaded-start@]] text.internal.reader(txt)
     end,
   }
 
-  return reader
+  return require("buffer").new("r", reader)
 end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
@@ -374,7 +374,7 @@ function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
     end,
   }
 
-  return writer
+  return require("buffer").new("w", writer)
 end --[[@delayloaded-end@]]
 
 return text, local_env

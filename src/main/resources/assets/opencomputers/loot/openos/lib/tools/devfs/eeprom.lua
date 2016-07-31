@@ -1,10 +1,6 @@
 local comp = require("component")
 local text = require("text")
 
-if not comp.isAvailable("eeprom") then
-  return nil
-end
-
 return
 {
   open = function(mode)
