@@ -56,10 +56,12 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     }
     if (world != null) {
       world.markBlockForUpdate(x, y, z)
-      runSound.foreach(sound =>
-        if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
-        else Sound.stopLoop(this)
-      )
+      if (world.isRemote) {
+        runSound.foreach(sound =>
+          if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+          else Sound.stopLoop(this)
+        )
+      }
     }
   }
 

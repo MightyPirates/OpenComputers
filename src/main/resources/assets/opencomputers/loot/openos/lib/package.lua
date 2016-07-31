@@ -62,8 +62,9 @@ local delay_data = {}
 local delay_tools = setmetatable({},{__mode="v"})
 
 function delay_data.__index(tbl,key)
-  delay_data.lookup = delay_data.lookup or loadfile("/lib/tools/delayLookup.lua")
-  return delay_data.lookup(delay_data, tbl, key)
+  local lookup = delay_data.lookup or loadfile(package.searchpath("tools/delayLookup", package.path), "bt", _G)
+  delay_data.lookup = lookup
+  return lookup(delay_data, tbl, key)
 end
 delay_data.__pairs = delay_data.__index -- nil key acts like pairs
 
@@ -75,7 +76,7 @@ local function delaySearcher(module)
   if not filepath then
     return reason
   end
-  local parser = delay_tools.parser or loadfile("/lib/tools/delayParse.lua")
+  local parser = delay_tools.parser or loadfile(package.searchpath("tools/delayParse", package.path), "bt", _G)
   delay_tools.parser = parser
   local loader, reason = parser(filepath,delay_data)
   return loader, reason

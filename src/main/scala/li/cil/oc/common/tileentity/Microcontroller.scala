@@ -190,7 +190,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   }
 
   override def onMessage(message: Message): Unit = {
-    if (message.source.network == snooperNode.network) {
+    if (message.name == "network.message" && message.source.network == snooperNode.network) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if outputSides(side.ordinal) && side != facing) {
         sidedNode(side).sendToReachable(message.name, message.data: _*)
       }

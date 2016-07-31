@@ -857,7 +857,9 @@ sandbox = {
     min = math.min,
     modf = math.modf,
     pi = math.pi,
-    pow = math.pow,
+    pow = math.pow or function(a, b) -- Deprecated in Lua 5.3
+      return a^b
+    end,
     rad = math.rad,
     random = function(...)
       return spcall(math.random, ...)

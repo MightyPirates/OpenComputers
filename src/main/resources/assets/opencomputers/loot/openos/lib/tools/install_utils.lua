@@ -22,8 +22,8 @@ local function select_prompt(devs, prompt)
     io.write("Enter 'q' to cancel the installation: ")
     choice = nil
     while not choice do
-      result = io.read()
-      if result:sub(1, 1):lower() == "q" then
+      result = io.read() or "q"
+      if result == "q" then
         os.exit()
       end
       local number = tonumber(result)
@@ -41,18 +41,18 @@ end
 if cmd == 'select' then
   if #options.sources == 0 then
     if options.source_label then
-      io.stderr:write("No install source matched given label: " .. options.source_label .. '\n')
+      io.stderr:write("Nothing to install labeled: " .. options.source_label .. '\n')
     elseif options.from then
-      io.stderr:write("No install source found: " .. options.from .. '\n')
+      io.stderr:write("Nothing to install from: " .. options.from .. '\n')
     else
-      io.stderr:write("Could not find any available installations\n")
+      io.stderr:write("Nothing to install\n")
     end
     os.exit(1)
   end
 
   if #options.targets == 0 then
     if options.to then
-      io.stderr:write("No such filesystem to install to: " .. options.to .. '\n')
+      io.stderr:write("No such target to install to: " .. options.to .. '\n')
     else
       io.stderr:write("No writable disks found, aborting\n")
     end

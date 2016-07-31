@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
@@ -88,7 +89,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 }
 
 // Necessary to keep track of the GZIP stream.
-abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream) {
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(new BufferedOutputStream(stream)) {
   var tileEntity: Option[TileEntity] = None
 
   override def writeTileEntity(t: TileEntity): Unit = {
@@ -103,6 +104,7 @@ class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilde
   writeByte(packetType.id)
 
   override protected def packet = {
+    flush()
     val payload = stream.toByteArray
     PacketBuilder.logPacket(packetType, payload.length, tileEntity)
     new FMLProxyPacket(Unpooled.wrappedBuffer(payload), "OpenComputers")
@@ -113,6 +115,7 @@ class CompressedPacketBuilder(val packetType: PacketType.Value, private val data
   writeByte(packetType.id)
 
   override protected def packet = {
+    flush()
     stream.finish()
     val payload = data.toByteArray
     PacketBuilder.logPacket(packetType, payload.length, tileEntity)
@@ -129,7 +132,6 @@ object PacketBuilder {
       tileEntity match {
         case Some(t) => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes from (${t.xCoord}, ${t.yCoord}, ${t.zCoord}).")
         case _ => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes.")
-
       }
     }
   }

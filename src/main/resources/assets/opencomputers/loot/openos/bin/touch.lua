@@ -31,7 +31,7 @@ for _,arg in ipairs(args) do
   if fs.isDirectory(path) then
     io.stderr:write(string.format("`%s' ignored: directories not supported\n", arg))
   elseif fs.exists(path) or not options.c then
-    local f, reason = io.open(path, "w")
+    local f, reason = io.open(path, "a")
     if not f then
       io.stderr:write(string.format("touch: cannot touch `%s': permission denied\n", arg))
       errors = 1
