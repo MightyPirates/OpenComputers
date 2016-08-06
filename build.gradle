@@ -73,6 +73,9 @@ repositories {
         url = "http://maven.cil.li/"
     }
     maven {
+        url "http://maven.epoxide.xyz"
+    }
+    maven {
         url "http://dvs1.progwml6.com/files/maven"
     }
     maven {
@@ -185,7 +188,7 @@ dependencies {
     deobfCompile "MCMultiPart:MCMultiPart-experimental:${config.mcmp.version}:universal"
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     deobfCompile "mezz.jei:jei_1.10.2:${config.jei.version}"
-
+    deobfCompile "net.darkhax.tesla:Tesla:${config.tesla.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
 /*
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"*/
