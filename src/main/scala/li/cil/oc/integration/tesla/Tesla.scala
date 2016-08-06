@@ -16,7 +16,7 @@ object Tesla {
   val PROVIDER_TESLA: ResourceLocation = new ResourceLocation(OpenComputers.ID, "tesla")
 
   def init(): Unit = {
-    MinecraftForge.EVENT_BUS.register(TeslaConsumerCapability.INSTANCE)
+    MinecraftForge.EVENT_BUS.register(this)
   }
 
   @SubscribeEvent
