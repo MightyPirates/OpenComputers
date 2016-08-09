@@ -66,9 +66,15 @@ function bit32.replace(n, v, field, width)
 end
 
 function bit32.lrotate(x, disp)
-  if disp == 0 then return x
-  elseif disp < 0 then return bit32.rrotate(x, -disp)
-  else return trim((x << disp) | (x >> (32 - disp))) end
+  if disp == 0 then
+    return x
+  elseif disp < 0 then
+    return bit32.rrotate(x, -disp)
+  else
+    disp = disp & 31
+    x = trim(x)
+    return trim((x << disp) | (x >> (32 - disp)))
+  end
 end
 
 function bit32.lshift(x, disp)
@@ -76,9 +82,15 @@ function bit32.lshift(x, disp)
 end
 
 function bit32.rrotate(x, disp)
-  if disp == 0 then return x
-  elseif disp < 0 then return bit32.lrotate(x, -disp)
-  else return trim((x >> disp) | (x << (32 - disp))) end
+  if disp == 0 then
+    return x
+  elseif disp < 0 then
+    return bit32.lrotate(x, -disp)
+  else
+    disp = disp & 31
+    x = trim(x)
+    return trim((x >> disp) | (x << (32 - disp)))
+  end
 end
 
 function bit32.rshift(x, disp)
