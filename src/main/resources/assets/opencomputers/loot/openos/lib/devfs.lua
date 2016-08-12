@@ -131,23 +131,24 @@ local function new_devfs_dir(name)
   end
 
   function sys.remove(path)
-    checkArg(1, path, "string")
+    return nil, "cannot remove devfs files or directories"
+    --checkArg(1, path, "string")
 
-    if path == "" then
-      return nil, "no such file or directory"
-    end
+    --if path == "" then
+    --  return nil, "no such file or directory"
+    --end
 
-    if not sys.exists(path) then
-      return nil, path.." file not found"
-    end
+    --if not sys.exists(path) then
+    --  return nil, path.." file not found"
+    --end
 
-    local node, rest = sys.findNode(path)
+    --local node, rest = sys.findNode(path)
 
-    if rest ~= "" then -- if rest is not resolved, this isn't our path
-      return node.proxy.remove(rest)
-    end
+    --if rest ~= "" then -- if rest is not resolved, this isn't our path
+    --  return node.proxy.remove(rest)
+    --end
 
-    node.parent.children[node.name] = nil
+    --node.parent.children[node.name] = nil
   end
 
   function sys.exists(path)
