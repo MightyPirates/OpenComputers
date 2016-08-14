@@ -18,20 +18,24 @@ object Tooltip {
     val tooltip = Localization.localizeImmediately("tooltip." + name).
       format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")
-    val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
+    val shouldShorten = font != null && (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
       else Seq(Localization.localizeImmediately("tooltip.TooLong", KeyBindings.getKeyBindingName(KeyBindings.extendedTooltip)))
     }
-    else tooltip.
+    else if (font != null) {
+    tooltip.
       lines.
       map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
       flatten.
       toList
+    }
+    else
+      tooltip.lines.toList
   }
 
   def extended(name: String, args: Any*): java.util.List[String] =
-    if (KeyBindings.showExtendedTooltips) {
+    if (font!=null && KeyBindings.showExtendedTooltips) {
       Localization.localizeImmediately("tooltip." + name).
         format(args.map(_.toString): _*).
         lines.
