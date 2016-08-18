@@ -7,6 +7,7 @@ import forestry.api.genetics.IAllele;
 import forestry.api.genetics.IAlleleSpecies;
 import forestry.api.genetics.IMutation;
 import forestry.api.genetics.ISpeciesRoot;
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -15,8 +16,8 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,13 +30,23 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final EnumFacing side) {
-        return new Environment((IBeeHousing) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(World world, BlockPos pos, EnumFacing side) {
+        return new Environment((IBeeHousing) world.getTileEntity(pos));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> {
+    public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> implements NamedBlock {
         public Environment(final IBeeHousing tileEntity) {
             super(tileEntity, "bee_housing");
+        }
+
+        @Override
+        public String preferredName() {
+            return "bee_housing";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():boolean -- Can the bees breed?")

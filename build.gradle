@@ -205,8 +205,8 @@ dependencies {
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
-    provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"/*
-    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
+    provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"
+    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"/*
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
@@ -264,7 +264,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/enderio/**'
             exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
-            exclude 'li/cil/oc/integration/forestry/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
             exclude 'li/cil/oc/integration/mekanism/**'
