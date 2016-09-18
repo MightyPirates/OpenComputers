@@ -13,7 +13,7 @@ local function onInit()
       local path = fs.concat(os.getenv("TMPDIR") or "/tmp", "event.log")
       local log = io.open(path, "a")
       if log then
-        log:write(reason .. "\n")
+        log:write(tostring(result) .. ":" .. tostring(reason) .. "\n")
         log:close()
       end
     end
@@ -34,20 +34,17 @@ local function onComponentAdded(_, address, componentType)
       name = fs.concat("/mnt", name)
       fs.mount(proxy, name)
       if fs.isAutorunEnabled() then
-        local function run()
-          local file = shell.resolve(fs.concat(name, "autorun"), "lua") or
-                       shell.resolve(fs.concat(name, ".autorun"), "lua")
-          if file then
-            local result, reason = shell.execute(file, _ENV, proxy)
-            if not result then
-              error(reason, 0)
-            end
+        local file = shell.resolve(fs.concat(name, "autorun"), "lua") or
+                      shell.resolve(fs.concat(name, ".autorun"), "lua")
+        if file then
+          local run = function()
+            assert(shell.execute(file, _ENV, proxy))
           end
-        end
-        if isInitialized then
-          run()
-        else
-          table.insert(pendingAutoruns, run)
+          if isInitialized then
+            run()
+          else
+            table.insert(pendingAutoruns, run)
+          end
         end
       end
     end
