@@ -62,8 +62,8 @@ object FluidUtils {
    * Lookup fluid taking into account flowing liquid blocks...
    */
   def lookupFluidForBlock(block: Block): Fluid = {
-    if (block == Blocks.flowing_lava) FluidRegistry.LAVA
-    else if (block == Blocks.flowing_water) FluidRegistry.WATER
+    if (block == Blocks.FLOWING_LAVA) FluidRegistry.LAVA
+    else if (block == Blocks.FLOWING_WATER) FluidRegistry.WATER
     else FluidRegistry.lookupFluidForBlock(block)
   }
 
