@@ -1,1 +1,3 @@
-os.execute(install.from.."/oppm.lua")
+require("shell").setWorkingDirectory(install.from)
+os.execute("oppm.lua")
+

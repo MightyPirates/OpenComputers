@@ -3,6 +3,7 @@ local event = require("event")
 local process = require("process")
 local kb = require("keyboard")
 local component = require("component")
+local computer = require("computer")
 local keys = kb.keys
 
 local term = {}
@@ -35,8 +36,11 @@ end
 function term.setViewport(w,h,dx,dy,x,y,window)
   window = window or W()
 
-  local gw,gh = window.gpu.getViewport()
-  w,h,dx,dy,x,y = w or gw,h or gh,dx or 0,dy or 0,x or 1,y or 1
+  dx,dy,x,y = dx or 0,dy or 0,x or 1,y or 1
+  if not w or not h then
+    local gw,gh = window.gpu.getViewport()
+    w,h = w or gw, h or gh
+  end
 
   window.w,window.h,window.dx,window.dy,window.x,window.y,window.gw,window.gh=
     w,h,dx,dy,x,y, gw, gh
@@ -60,57 +64,79 @@ function term.isAvailable(w)
   return w and not not (w.gpu and w.gpu.getScreen())
 end
 
-function term.internal.pull(input, c, off, t, ...)
-  t=t or math.huge
-  if t < 0 then return end
-  local w,unpack=W(),table.unpack
-  local d,h,dx,dy,x,y=term.getViewport(w)
+function term.internal.pull(input, timeout, ...)
+  timeout = timeout or math.huge
+
+  local w = W()
+  local d, h, dx, dy, x, y = term.getViewport(w)
   local out = (x<1 or x>d or y<1 or y>h)
+
   if input and out then
     input:move(0)
-    y=w.y
+    y = w.y
     input:scroll()
   end
-  x,y=w.x+dx,w.y+dy
-  local gpu
 
-  if input or not out then
-    gpu=w.gpu
-    local sf,sb=gpu.setForeground,gpu.setBackground
-    c=c or {{gpu.getBackground()},{gpu.getForeground()},gpu.get(x,y)}
-    local c11,c12 = unpack(c[1])
-    local c21,c22 = unpack(c[2])
-    -- c can fail if gpu does not have a screen
-    -- if can happen during a type of race condition when a screen is removed
-    if not c11 then
+  x, y = w.x + dx, w.y + dy
+  local gpu = (input or not out) and w.gpu
+
+  local bgColor, bgIsPalette
+  local fgColor, fgIsPalette
+  local char_at_cursor
+  local blinking
+  if gpu then
+    bgColor, bgIsPalette = gpu.getBackground()
+    -- it can happen during a type of race condition when a screen is removed
+    if not bgColor then
       return nil, "interrupted"
     end
-    if not off then
-      sf(c11,c12)
-      sb(c21,c22)
+
+    fgColor, fgIsPalette = gpu.getForeground()
+    char_at_cursor = gpu.get(x, y)
+
+    blinking = w.blink
+    if input then
+      blinking = input.blink
     end
-    gpu.set(x,y,c[3])
-    sb(c11,c12)
-    sf(c21,c22)
   end
 
-  local a={event.pull(math.min(t,0.5),...)}
-
-  if #a>1 or t<.5 then
+  -- get the next event
+  local blinked = false
+  local done = false
+  local signal
+  while true do
     if gpu then
-      gpu.set(x,y,c[3])
+      if not blinked and not done then
+        gpu.setForeground(bgColor, bgIsPalette)
+        gpu.setBackground(fgColor, fgIsPalette)
+        gpu.set(x, y, char_at_cursor)
+        gpu.setForeground(fgColor, fgIsPalette)
+        gpu.setBackground(bgColor, bgIsPalette)
+        blinked = true
+      elseif blinked then
+        gpu.set(x, y, char_at_cursor)
+        blinked = false
+      end
     end
-    return unpack(a)
+
+    if done then
+      return table.unpack(signal, 1, signal.n)
+    end
+
+    signal = table.pack(event.pull(math.min(.5, timeout), ...))
+    timeout = timeout - .5
+    done = signal.n > 1 or timeout < .5
   end
-  local blinking = w.blink
-  if input then blinking = input.blink end
-  return term.internal.pull(input,c,blinking and not off,t-0.5,...)
 end
 
-function term.pull(p,...)
-  local a,t = {p,...}
-  if type(p) == "number" then t = table.remove(a,1) end
-  return term.internal.pull(nil,nil,nil,t,table.unpack(a))
+function term.pull(...)
+  local args = table.pack(...)
+  local timeout = nil
+  if type(args[1]) == "number" then
+    timeout = table.remove(args, 1)
+    args.n = args.n - 1
+  end
+  return term.internal.pull(nil, timeout, table.unpack(args, 1, args.n))
 end
 
 function term.read(history,dobreak,hintHandler,pwchar,filter)
@@ -582,7 +608,7 @@ function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
     _.index,_.data,win.x=0,"",px
     gpu.fill(px+dx,y+dy,w-px+1-dx,1," ")
   end
-end --[[@delayloaded-end@]] 
+end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.clearLine(window)
   window = window or W()
@@ -627,7 +653,7 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
     input:update(next)
     input:move(-tail)
   end
-end --[[@delayloaded-end@]] 
+end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.getGlobalArea(window)
   local w,h,dx,dy = term.getViewport(window)
@@ -645,6 +671,6 @@ function --[[@delayloaded-start@]] term.internal.clipboard(char)
     char = char:sub(1, first_line - 1)
   end
   return char
-end --[[@delayloaded-end@]] 
+end --[[@delayloaded-end@]]
 
 return term, local_env

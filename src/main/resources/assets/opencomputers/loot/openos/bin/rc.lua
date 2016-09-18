@@ -65,9 +65,10 @@ local function rawRunCommand(conf, name, cmd, args, ...)
         return true
       end
     elseif cmd == "restart" and type(result["stop"]) == "function" and type(result["start"]) == "function" then
-      result, what = xpcall(result["stop"], debug.traceback, ...)
+      local daemon = result
+      result, what = xpcall(daemon["stop"], debug.traceback, ...)
       if result then
-        result, what = xpcall(result["start"], debug.traceback, ...)
+        result, what = xpcall(daemon["start"], debug.traceback, ...)
         if result then
           return true
         end

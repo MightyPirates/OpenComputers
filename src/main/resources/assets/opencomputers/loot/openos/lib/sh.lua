@@ -23,7 +23,6 @@ local local_env = {event=event,fs=fs,process=process,shell=shell,term=term,text=
 sh.internal.globbers = {{"*",".*"},{"?","."}}
 sh.internal.ec = {}
 sh.internal.ec.parseCommand = 127
-sh.internal.ec.sysError =  128
 sh.internal.ec.last = 0
 
 function sh.getLastExitCode()
@@ -211,26 +210,20 @@ function sh.internal.parseCommand(words)
   if #words == 0 then
     return nil
   end
-  local evaluated_words = {}
+  -- evaluated words
+  local ewords = {}
+  -- the arguments have < or > which require parsing for redirection
+  local has_tokens
   for i=1,#words do
     for _, arg in ipairs(sh.internal.evaluate(words[i])) do
-      table.insert(evaluated_words, arg)
+      table.insert(ewords, arg)
+      has_tokens = has_tokens or arg:find("[<>]")
     end
   end
-  local eword = evaluated_words[1]
-  local possible_dir_path = shell.resolve(eword)
-  if possible_dir_path and fs.isDirectory(possible_dir_path) then
-    return nil, string.format("%s: is a directory", eword)
-  end
-  local program, reason = shell.resolve(eword, "lua")
-  if not program then
-    return nil, eword .. ": " .. reason
-  end
-  evaluated_words = tx.sub(evaluated_words, 2)
-  return program, evaluated_words
+  return table.remove(ewords, 1), ewords, has_tokens
 end
 
-function sh.internal.createThreads(commands, eargs, env)
+function sh.internal.createThreads(commands, env, start_args)
   -- Piping data between programs works like so:
   -- program1 gets its output replaced with our custom stream.
   -- program2 gets its input replaced with our custom stream.
@@ -240,14 +233,23 @@ function sh.internal.createThreads(commands, eargs, env)
   -- custom stream may have "redirect" entries for fallback/duplication.
   local threads = {}
   for i = 1, #commands do
-    local program, args = table.unpack(commands[i])
+    local program, c_args, c_has_tokens = table.unpack(commands[i])
     local name, thread = tostring(program)
     local thread_env = type(program) == "string" and env or nil
-    local thread, reason = process.load(program, thread_env, function()
-      os.setenv("_", name)
+    local thread, reason = process.load(program, thread_env, function(...)
+      local cdata = process.info().data.command
+      local args, has_tokens, start_args = cdata.args, cdata.has_tokens, cdata.start_args
+      if has_tokens then
+        args = sh.internal.buildCommandRedirects(args)
+      end
+
+      sh.internal.concatn(args, start_args)
+      sh.internal.concatn(args, {...}, select('#', ...))
+
       -- popen expects each process to first write an empty string
       -- this is required for proper thread order
-      io.write('')
+      io.write("")
+      return table.unpack(args, 1, args.n or #args)
     end, name)
 
     threads[i] = thread
@@ -259,23 +261,18 @@ function sh.internal.createThreads(commands, eargs, env)
       return nil, reason
     end
 
-    process.info(thread).data.args = args
+    local pdata = process.info(thread).data
+    pdata.command =
+    {
+      args = c_args,
+      has_tokens = c_has_tokens,
+      start_args = start_args and start_args[i] or {}
+    }
+
   end
 
   if #threads > 1 then
     sh.internal.buildPipeChain(threads)
-  end
-
-  for i = 1, #threads do
-    local thread = threads[i]
-    local args = process.info(thread).data.args
-
-    -- smart check if ios should be loaded
-    if tx.first(args, function(token) return token == "<" or token:find(">") end) then
-      args, reason = sh.internal.buildCommandRedirects(thread, args)
-    end
-
-    process.info(thread).data.args = tx.concat(args, eargs or {})
   end
 
   return threads
@@ -285,25 +282,19 @@ function sh.internal.runThreads(threads)
   local result = {}
   for i = 1, #threads do
     -- Emulate CC behavior by making yields a filtered event.pull()
-    local thread, args = threads[i]
+    local thread, args = threads[i], {}
     while coroutine.status(thread) ~= "dead" do
-      args = args or process.info(thread).data.args
       result = table.pack(coroutine.resume(thread, table.unpack(args)))
       if coroutine.status(thread) ~= "dead" then
         args = sh.internal.handleThreadYield(result)
-        -- in case this was the end of the line, args is returned
-        result = args
         if table.remove(args, 1) then
-          break
+          -- in case this was the end of the line, args is returned
+          return args[2]
         end
       end
     end
-    if not result[1] then
-      sh.internal.handleThreadCrash(thread, result)
-      break
-    end
   end
-  return table.unpack(result)
+  return result[2]
 end
 
 function sh.internal.executePipes(pipe_parts, eargs, env)
@@ -318,23 +309,12 @@ function sh.internal.executePipes(pipe_parts, eargs, env)
       return sh.internal.ec.parseCommand
     end
   end
-  local threads, reason = sh.internal.createThreads(commands, eargs, env)  
+  local threads, reason = sh.internal.createThreads(commands, env, {[#commands]=eargs})  
   if not threads then
     io.stderr:write(reason,"\n")
     return false
   end
-  local result, cmd_result = sh.internal.runThreads(threads)
-
-  if not result then
-    if cmd_result then
-      if type(cmd_result) == "string" then
-        cmd_result = cmd_result:gsub("^/lib/process%.lua:%d+: /", '/')
-      end
-      io.stderr:write(tostring(cmd_result),"\n")
-    end
-    return sh.internal.ec.sysError
-  end
-  return cmd_result
+  return sh.internal.runThreads(threads)
 end
 
 function sh.execute(env, command, ...)
@@ -347,7 +327,8 @@ function sh.execute(env, command, ...)
     return true, 0
   end
 
-  local eargs = {...}
+  -- MUST be table.pack for non contiguous ...
+  local eargs = table.pack(...)
 
   -- simple
   if reason then
@@ -356,6 +337,15 @@ function sh.execute(env, command, ...)
   end
 
   return sh.internal.execute_complex(statements, eargs, env)
+end
+
+function sh.internal.concatn(apack, bpack, bn)
+  local an = (apack.n or #apack)
+  bn = bn or bpack.n or #bpack
+  for i=1,bn do
+    apack[an + i] = bpack[i]
+  end
+  apack.n = an + bn
 end
 
 function --[[@delayloaded-start@]] sh.internal.handleThreadYield(result)
@@ -367,20 +357,7 @@ function --[[@delayloaded-start@]] sh.internal.handleThreadYield(result)
   end
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] sh.internal.handleThreadCrash(thread, result)
-  if type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      result[1] = true
-      result.n = 1
-    else
-      result[2] = "terminated"
-    end
-  elseif type(result[2]) == "string" then
-    result[2] = debug.traceback(thread, result[2])
-  end
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] sh.internal.buildCommandRedirects(thread, args)
+function --[[@delayloaded-start@]] sh.internal.buildCommandRedirects(args, thread)
   local data = process.info(thread).data
   local tokens, ios, handles = args, data.io, data.handles
   args = {}
@@ -406,7 +383,7 @@ function --[[@delayloaded-start@]] sh.internal.buildCommandRedirects(thread, arg
         else
           local file, reason = io.open(shell.resolve(token), mode)
           if not file then
-            return nil, "could not open '" .. token .. "': " .. reason
+            error("could not open '" .. token .. "': " .. reason)
           end
           table.insert(handles, file)
           ios[from_io] = file
@@ -447,7 +424,6 @@ function --[[@delayloaded-start@]] sh.internal.buildPipeChain(threads)
 
     prev_pipe = pipe
   end
-
 end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
@@ -825,7 +801,7 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
       -- if that is the case, it is important to leave stream.buffer alone
       return self.redirect[0]:read(n)
     elseif self.buffer == "" then
-      process.info(self.next).data.args = table.pack(coroutine.yield(table.unpack(self.result)))
+      coroutine.yield()
     end
     local result = string.sub(self.buffer, 1, n)
     self.buffer = string.sub(self.buffer, n + 1)
@@ -842,15 +818,13 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
       return self.redirect[1]:write(value)
     elseif not self.closed then
       self.buffer = self.buffer .. value
-      local args = process.info(self.next).data.args
-      self.result = table.pack(coroutine.resume(self.next, table.unpack(args)))
+      local result = table.pack(coroutine.resume(self.next))
       if coroutine.status(self.next) == "dead" then
         self:close()
       end
-      if not self.result[1] then
-        error(self.result[2], 0)
+      if not result[1] then
+        error(result[2], 0)
       end
-      table.remove(self.result, 1)
       return self
     end
     os.exit(0) -- abort the current process: SIGPIPE
