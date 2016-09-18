@@ -1,15 +1,10 @@
 local comp = require("component")
-local text = require("text")
+local devfs = ...
 
-return
-{
-  open = function(mode)
-    if ({r=true, rb=true})[mode] then
-      return text.internal.reader(comp.eeprom.getData())
-    end
-    return text.internal.writer(comp.eeprom.setData, ({a=true,ab=true})[mode] and comp.eeprom.getData())
-  end,
-  size = function()
-    return string.len(comp.eeprom.getData())
-  end
-}
+-- eeprom get/set has to delayed because comp.eeprom may not be available
+local node = devfs.new_callback_proxy(function() return comp.eeprom.getData() end, function(...) comp.eeprom.setData(...) end)
+function node.isAvailable()
+  return comp.list("eeprom", true)()
+end
+
+return node

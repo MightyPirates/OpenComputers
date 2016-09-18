@@ -1,8 +1,11 @@
 local computer = require("computer")
 local keyboard = require("keyboard")
 
-local event, listeners, timers = {}, {}, {}
+local event = {}
+local handlers = {}
 local lastInterrupt = -math.huge
+
+event.handlers = handlers
 
 local function call(callback, ...)
   local result, message = pcall(callback, ...)
@@ -13,42 +16,78 @@ local function call(callback, ...)
   return message
 end
 
-local function dispatch(signal, ...)
-  if listeners[signal] then
-    local function callbacks()
-      local list = {}
-      for index, listener in ipairs(listeners[signal]) do
-        list[index] = listener
-      end
-      return list
+function event.register(key, callback, interval, times)
+  local handler =
+  {
+    key = key,
+    times = times or 0,
+    callback = callback,
+    interval = interval or math.huge,
+  }
+
+  handler.timeout = computer.uptime() + handler.interval
+
+  if not interval then
+    handler.times = math.huge
+  end
+
+  local id = 0
+  repeat
+    id = id + 1
+  until not handlers[id]
+
+  handlers[id] = handler
+  return id
+end
+
+local function time_to_nearest()
+  local timeout = math.huge
+  for _,handler in pairs(handlers) do
+    if timeout > handler.timeout then
+      timeout = handler.timeout
     end
-    for _, callback in ipairs(callbacks()) do
-      if call(callback, signal, ...) == false then
-        event.ignore(signal, callback) -- alternative method of removing a listener
+  end
+  return timeout
+end
+
+local function dispatch(...)
+  local signal = (...)
+  local eligable = {}
+  local ids_to_remove = {}
+  local time = computer.uptime()
+  for id, handler in pairs(handlers) do
+    -- timers have false keys
+    -- nil keys match anything
+    local key = handler.key
+    key = (key == nil and signal) or key
+    if key == signal or time >= handler.timeout then
+
+      -- push ticks to end of list (might be slightly faster to fire them last)
+      table.insert(eligable, select(handler.key and 1 or 2, 1, {handler.callback, id}))
+
+      handler.times = handler.times - 1
+      handler.timeout = computer.uptime() + handler.interval
+      if handler.times <= 0 then
+        table.insert(ids_to_remove, id)
       end
     end
+  end
+  for _,pack in ipairs(eligable) do
+    if call(pack[1], ...) == false then
+      table.insert(ids_to_remove, pack[2])
+    end
+  end
+  for _,id in ipairs(ids_to_remove) do
+    handlers[id] = nil
   end
 end
 
-local function tick()
-  local function elapsed()
-    local list = {}
-    for id, timer in pairs(timers) do
-      if timer.after <= computer.uptime() then
-        table.insert(list, timer.callback)
-        timer.times = timer.times - 1
-        if timer.times <= 0 then
-          timers[id] = nil
-        else
-          timer.after = computer.uptime() + timer.interval
-        end
-      end
-    end
-    return list
-  end
-  for _, callback in ipairs(elapsed()) do
-    call(callback)
-  end
+local _pullSignal = computer.pullSignal
+computer.pullSignal = function(...)
+  return (function(...)
+    dispatch(...)
+    return ...
+  end)(_pullSignal(...))
 end
 
 local function createPlainFilter(name, ...)
@@ -94,8 +133,8 @@ end
 
 function event.cancel(timerId)
   checkArg(1, timerId, "number")
-  if timers[timerId] then
-    timers[timerId] = nil
+  if handlers[timerId] then
+    handlers[timerId] = nil
     return true
   end
   return false
@@ -104,15 +143,10 @@ end
 function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  if listeners[name] then
-    for i = 1, #listeners[name] do
-      if listeners[name][i] == callback then
-        table.remove(listeners[name], i)
-        if #listeners[name] == 0 then
-          listeners[name] = nil
-        end
-        return true
-      end
+  for id, handler in pairs(handlers) do
+    if handler.key == name and handler.callback == callback then
+      handlers[id] = nil
+      return true
     end
   end
   return false
@@ -121,17 +155,12 @@ end
 function event.listen(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  if listeners[name] then
-    for i = 1, #listeners[name] do
-      if listeners[name][i] == callback then
-        return false
-      end
+  for id, handler in pairs(handlers) do
+    if handler.key == name and handler.callback == callback then
+      return false
     end
-  else
-    listeners[name] = {}
   end
-  table.insert(listeners[name], callback)
-  return true
+  return event.register(name, callback, nil, nil)
 end
 
 function event.onError(message)
@@ -169,7 +198,6 @@ function event.pullMultiple(...)
     end
   end
   return event.pullFiltered(seconds, createMultipleFilter(table.unpack(args, 1, args.n)))
-
 end
 
 function event.pullFiltered(...)
@@ -187,15 +215,8 @@ function event.pullFiltered(...)
 
   local deadline = seconds and (computer.uptime() + seconds) or math.huge
   repeat
-    local closest = deadline
-    for _, timer in pairs(timers) do
-      closest = math.min(closest, timer.after)
-    end
+    local closest = math.min(deadline, time_to_nearest())
     local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
-    if signal.n > 0 then
-      dispatch(table.unpack(signal, 1, signal.n))
-    end
-    tick()
     if event.shouldInterrupt() then
       lastInterrupt = computer.uptime()
       error("interrupted", 0)
@@ -230,20 +251,12 @@ function event.timer(interval, callback, times)
   checkArg(1, interval, "number")
   checkArg(2, callback, "function")
   checkArg(3, times, "number", "nil")
-  local id
-  repeat
-    id = math.floor(math.random(1, 0x7FFFFFFF))
-  until not timers[id]
-  timers[id] = {
-    interval = interval,
-    after = computer.uptime() + interval,
-    callback = callback,
-    times = times or 1
-  }
-  return id
+  return event.register(false, callback, interval, times)
 end
+
 -- users may expect to find event.push to exist
 event.push = computer.pushSignal
+
 -------------------------------------------------------------------------------
 
 return event
