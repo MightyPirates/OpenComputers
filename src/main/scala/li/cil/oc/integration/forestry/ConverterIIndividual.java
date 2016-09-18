@@ -28,11 +28,7 @@ import forestry.api.genetics.IChromosomeType;
 import forestry.api.genetics.IGenome;
 import forestry.api.genetics.IIndividual;
 import forestry.api.genetics.IIndividualLiving;
-import forestry.api.lepidopterology.EnumButterflyChromosome;
-import forestry.api.lepidopterology.IAlleleButterflyEffect;
-import forestry.api.lepidopterology.IAlleleButterflySpecies;
-import forestry.api.lepidopterology.IButterfly;
-import forestry.api.lepidopterology.IButterflyGenome;
+import forestry.api.lepidopterology.*;
 import li.cil.oc.api.driver.Converter;
 
 import java.util.Map;
@@ -161,9 +157,9 @@ public class ConverterIIndividual implements Converter {
             result.put("lifespan", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.LIFESPAN));
             result.put("fertility", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FERTILITY));
             result.put("temperatureTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.TEMPERATURE_TOLERANCE));
-            result.put("nocturnal", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.NOCTURNAL));
+            result.put("neverSleeps", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.NEVER_SLEEPS));
             result.put("humidityTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.HUMIDITY_TOLERANCE));
-            result.put("tolerantFlyer", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.TOLERANT_FLYER));
+            result.put("toleratesRain", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.TOLERATES_RAIN));
             result.put("caveDwelling", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.CAVE_DWELLING));
             result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumBeeChromosome.FLOWER_PROVIDER));
             result.put("flowering", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FLOWERING));
@@ -193,7 +189,7 @@ public class ConverterIIndividual implements Converter {
             result.put("fireResist", convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.FIRE_RESIST));
             result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumButterflyChromosome.FLOWER_PROVIDER));
             result.put("effect", convertAllele(access, IAlleleButterflyEffect.class, EnumButterflyChromosome.EFFECT));
-            result.put("territory", convertAllele(access, IAlleleArea.class, EnumButterflyChromosome.TERRITORY));
+            result.put("cocoon", convertAllele(access, IAlleleButterflyCocoon.class, EnumButterflyChromosome.COCOON));
         }
     }
 
@@ -256,7 +252,7 @@ public class ConverterIIndividual implements Converter {
             } else if (individual instanceof ITree) {
                 ITree tree = (ITree) individual;
                 output.put("type", "tree");
-                output.put("plantType", tree.getPlantTypes().toString());
+                output.put("plantType", tree.getDisplayName());
                 if (isAnalyzed) genomeReader = new TreeGenomeReader(tree.getGenome());
             }
 
