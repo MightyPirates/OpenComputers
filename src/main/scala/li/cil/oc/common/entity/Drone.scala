@@ -474,7 +474,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def processInitialInteract(player: EntityPlayer, stack: ItemStack, hand: EnumHand): Boolean = {
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItemMainhand)) {
-        kill()
+        if(!world.isRemote) {
+          kill()
+        }
       }
       else if (!world.isRemote && !machine.isRunning) {
         preparePowerUp()
