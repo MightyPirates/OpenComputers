@@ -96,6 +96,8 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   def canUseWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
 
+  def canUseWrench(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Boolean = true
+
   // Project Red
 
   def canUse(entityPlayer: EntityPlayer, itemStack: ItemStack): Boolean = true
