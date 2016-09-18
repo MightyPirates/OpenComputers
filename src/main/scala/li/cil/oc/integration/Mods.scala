@@ -78,7 +78,7 @@ object Mods {
 
     override def isModAvailable: Boolean = isModAvailable_
   }
-  val Tesla = new SimpleMod(IDs.Tesla)
+  val Tesla = new SimpleMod(IDs.Tesla, providesPower = true)
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
