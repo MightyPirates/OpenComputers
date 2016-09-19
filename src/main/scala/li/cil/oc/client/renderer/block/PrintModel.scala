@@ -61,7 +61,6 @@ object PrintModel extends SmartBlockModelBase {
     override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-      Textures.Block.bind()
       val shapes =
         if (data.hasActiveState && KeyBindings.showExtendedTooltips)
           data.stateOn
