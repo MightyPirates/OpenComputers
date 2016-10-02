@@ -109,7 +109,7 @@ object Mods {
     //    integration.cofh.transport.ModCoFHTransport,
     //    integration.ec.ModExtraCells,
     //    integration.enderio.ModEnderIO,
-    //    integration.enderstorage.ModEnderStorage,
+    integration.enderstorage.ModEnderStorage,
     //    integration.dsu.ModDeepStorageUnit,
     integration.forestry.ModForestry,
     //    integration.fmp.ModForgeMultipart,
