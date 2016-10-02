@@ -76,6 +76,22 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   }
   else result(Unit, "not enabled in config")
 
+  @Callback(doc = """function(side:number):table -- Get a description of all stacks in the inventory on the specified side of the device.""")
+  def getAllStacks(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+    val facing = checkSideForAction(args, 0)
+    withInventory(facing, inventory => {
+        var stacks = new Array[AnyRef](inventory.getSizeInventory)
+        for(i <- 0 to inventory.getSizeInventory - 1){
+          stacks(i) = inventory.getStackInSlot(i)
+          if (stacks(i) == null) {
+            stacks(i) = scala.collection.mutable.Map.empty[AnyRef, AnyRef]
+          }
+        }
+        result(stacks)
+      })
+  }
+  else result(Unit, "not enabled in config")
+
   @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address.""")
   def store(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
