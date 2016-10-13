@@ -37,8 +37,8 @@ io.write("\x1b[999;999H\x1b6n\x1b2J\x1b[30m\x1b[47m\x1bKEdit: " .. file .. "| F1
 local code = read("\x1b", "R")
 local h, w = code:match("\x1b%[(%d+);(%d+)R")
 
-local edith = h - 1
-local editw = w
+local edith = tonumber(h) - 1
+local editw = tonumber(w)
 local x, y = 1, 1
 local atline = 1
 
@@ -54,10 +54,11 @@ function setcur()
     io.write("\x1b[" .. (y - atline + 2) .. ";" .. (x) .. "H")
 end
 
+local iw = io.write
 local function render(startline, nlines)
     --io.write("\x1b["..(startline - atline + 1)..";1H")
     for n = 1, nlines do
-        io.write("\x1b["..(startline - atline + n + 1)..";1H\x1b[K" .. unicode.sub(lines[n + startline - 1] or "", 1, editw))
+        iw("\x1b["..(startline - atline + n + 1)..";1H\x1b[K" .. unicode.sub(lines[n + startline - 1] or "", 1, editw))
     end
     setcur()
 end
@@ -72,7 +73,7 @@ local charHandler
 local code = ""
 codeHandler = function(char)
     if char == "[" then code = code .. char
-    elseif char == "0" then code = code .. char
+    elseif char == "O" then code = code .. char
     elseif char == "3" then code = code .. char
     elseif code == "[" and char == "A" then
         charHandler = baseHandler
@@ -128,10 +129,10 @@ codeHandler = function(char)
         end
         x = x - 1
         setcur()
-    elseif code == "[0" and char == "P" or char == "R" then
+    elseif (code == "O" and (char == "P" or char == "R")) or (code == "[[" and (char == "A" or char == "C")) then
         run = false
-        io.write("\x1b[2J")
-        if char == "P" then
+        iw("\x1b[2J")
+        if char == "P" or char == "A" then
             local out = io.open(file, "w")
             local text = ""
             for _, line in ipairs(lines) do
