@@ -14,7 +14,9 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.server.component.DebugCard.{AccessContext, CommandSender}
+import li.cil.oc.server.PacketSender
+import li.cil.oc.server.component.DebugCard.AccessContext
+import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -31,7 +33,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
-import net.minecraft.util.SoundEvent
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.world.GameType
@@ -227,7 +228,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       val z = nbt.getInteger(Settings.namespace + "remoteZ")
       remoteNodePosition = Some((x, y, z))
     }
-    }
+  }
 
   override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
@@ -424,7 +425,7 @@ object DebugCard {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val sound = args.checkString(3)
       val range = args.checkInteger(4)
-      world.playSound(null, x, y, z, new SoundEvent(new ResourceLocation(sound)), SoundCategory.MASTER, range / 15 + 0.5F, 1.0F)
+      PacketSender.sendSound(world, x, y, z, new ResourceLocation(sound), SoundCategory.MASTER, range)
       null
     }
 

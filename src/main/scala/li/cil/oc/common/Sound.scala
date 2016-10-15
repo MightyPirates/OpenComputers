@@ -2,9 +2,9 @@ package li.cil.oc.common
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.server.PacketSender
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
-import net.minecraft.util.SoundEvent
 
 import scala.collection.mutable
 
@@ -15,8 +15,7 @@ object Sound {
     globalTimeouts.get(host) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
-        val sound = new SoundEvent(new ResourceLocation(Settings.resourceDomain + ":" + name))
-        host.world.playSound(null, host.xPosition, host.yPosition, host.zPosition, sound, SoundCategory.BLOCKS, Settings.get.soundVolume, 1)
+        PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, new ResourceLocation(Settings.resourceDomain + ":" + name), SoundCategory.BLOCKS, 15 * Settings.get.soundVolume)
         globalTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
     }
   }

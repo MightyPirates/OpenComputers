@@ -24,6 +24,9 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvent
 import net.minecraft.util.math.Vec3d
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -90,6 +93,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
+      case PacketType.SoundEffect => onSoundEffect(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
       case PacketType.TransposerActivity => onTransposerActivity(p)
@@ -720,6 +724,21 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) => t.invertTouchMode = p.readBoolean()
       case _ => // Invalid packet.
     }
+
+  def onSoundEffect(p: PacketParser) {
+    val dimension = p.readInt()
+    world(p.player, dimension) match {
+      case Some(world) =>
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        val sound = p.readUTF()
+        val category = SoundCategory.values()(p.readByte())
+        val range = p.readFloat()
+        world.playSound(p.player, x, y, z, new SoundEvent(new ResourceLocation(sound)), category, range / 15 + 0.5F, 1.0F)
+      case _ => // Invalid packet.
+    }
+  }
 
   def onSound(p: PacketParser) {
     val dimension = p.readInt()

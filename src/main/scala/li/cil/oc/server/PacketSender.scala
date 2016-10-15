@@ -19,6 +19,8 @@ import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
@@ -689,6 +691,20 @@ object PacketSender {
     pb.writeBoolean(value)
 
     pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendSound(world: World, x: Double, y: Double, z: Double, sound: ResourceLocation, category: SoundCategory, range: Double) {
+    val pb = new SimplePacketBuilder(PacketType.SoundEffect)
+
+    pb.writeInt(world.provider.getDimension)
+    pb.writeDouble(x)
+    pb.writeDouble(y)
+    pb.writeDouble(z)
+    pb.writeUTF(sound.toString)
+    pb.writeByte(category.ordinal())
+    pb.writeFloat(range.toFloat)
+
+    pb.sendToNearbyPlayers(world, x, y, z, Option(range))
   }
 
   def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {

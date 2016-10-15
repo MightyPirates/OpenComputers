@@ -61,6 +61,7 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
   ScreenTouchMode,
+  SoundEffect,
   Sound,
   SoundPattern,
   TransposerActivity,

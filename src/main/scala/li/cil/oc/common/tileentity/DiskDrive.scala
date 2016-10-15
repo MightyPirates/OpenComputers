@@ -103,17 +103,17 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
       }
       case _ =>
     }
-    Sound.playDiskInsert(this)
     if (isServer) {
       ServerPacketSender.sendFloppyChange(this, stack)
+      Sound.playDiskInsert(this)
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    Sound.playDiskEject(this)
     if (isServer) {
       ServerPacketSender.sendFloppyChange(this)
+      Sound.playDiskEject(this)
     }
   }
 
