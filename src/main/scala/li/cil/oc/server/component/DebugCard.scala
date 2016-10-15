@@ -338,14 +338,14 @@ object DebugCard {
     @Callback(doc = """function(level:number) -- Add a level to the player's experience level""")
     def addExperienceLevel(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.addExperienceLevel(args.checkDouble(0).toInt)
+        player.addExperienceLevel(args.checkInteger(0))
         null
       })
 
     @Callback(doc = """function(level:number) -- Remove a level from the player's experience level""")
     def removeExperienceLevel(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.removeExperienceLevel(args.checkDouble(0).toInt)
+        player.removeExperienceLevel(args.checkInteger(0))
         null
       })
 
@@ -359,19 +359,18 @@ object DebugCard {
     @Callback(doc = """function(id:string, amount:number, meta:number[, nbt:string]):number -- Adds the item stack to the players inventory""")
     def insertItem(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-          val item = Item.REGISTRY.getObject(new ResourceLocation(args.checkString(0)))
-          if (item == null) {
-            throw new IllegalArgumentException("invalid item id")
-          }
-          val amount = args.checkInteger(1)
-          val meta = args.checkInteger(2)
-          val tagJson = args.checkString(3)
-          val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
-          val stack = new ItemStack(item, amount, meta)
-          stack.setTagCompound((tag))
-          result(InventoryUtils.insertIntoInventory(stack, player.inventory))
+        val item = Item.REGISTRY.getObject(new ResourceLocation(args.checkString(0)))
+        if (item == null) {
+          throw new IllegalArgumentException("invalid item id")
+        }
+        val amount = args.checkInteger(1)
+        val meta = args.checkInteger(2)
+        val tagJson = args.checkString(3)
+        val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
+        val stack = new ItemStack(item, amount, meta)
+        stack.setTagCompound(tag)
+        result(InventoryUtils.addToPlayerInventory(stack, player))
       })
-
 
     // ----------------------------------------------------------------------- //
 
