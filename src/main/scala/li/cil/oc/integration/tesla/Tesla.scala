@@ -36,7 +36,7 @@ object Tesla {
     override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
       if (capability == TeslaConsumerCapability.CONSUMER_CAPABILITY) {
         providers(facing.getIndex).asInstanceOf[T]
-      } else throw new IllegalArgumentException("Capability not supported, check via hasCapability first!")
+      } else null.asInstanceOf[T]
     }
   }
 
