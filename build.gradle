@@ -195,12 +195,12 @@ dependencies {
     //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
     //provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
     //provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"
+    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:deobf"
 /*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
     }
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
@@ -262,7 +262,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
             exclude 'li/cil/oc/integration/enderio/**'
-            exclude 'li/cil/oc/integration/enderstorage/**'
+            //exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
