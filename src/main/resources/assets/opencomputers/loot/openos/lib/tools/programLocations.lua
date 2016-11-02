@@ -10,12 +10,13 @@ function lib.locate(path)
 end
 
 function lib.reportNotFound(path, reason)
+  checkArg(1, path, "string")
   local loot = lib.locate(path)
   if loot then
     io.stderr:write("The program '" .. path .. "' is currently not installed.  To install it:\n" ..
       "1. Craft the '" .. loot .. "' floppy disk and insert it into this computer.\n" ..
       "2. Run `install " .. loot  .. "`")
-  else
+  elseif type(reason) == "string" then
     io.stderr:write(path .. ": " .. reason .. "\n")
   end
 end
