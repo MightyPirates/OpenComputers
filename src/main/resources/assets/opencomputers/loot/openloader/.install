@@ -1,0 +1,1 @@
+os.execute(install.from .. "/bin/opl-flash.lua")
