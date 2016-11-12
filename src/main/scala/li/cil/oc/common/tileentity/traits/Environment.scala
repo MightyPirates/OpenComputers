@@ -27,7 +27,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   override def markChanged() = if (this.isInstanceOf[Tickable]) isChangeScheduled = true else world.markChunkDirty(getPos, this)
 
-  protected def isConnected = node.address != null && node.network != null
+  protected def isConnected = node != null && node.address != null && node.network != null
 
   // ----------------------------------------------------------------------- //
 

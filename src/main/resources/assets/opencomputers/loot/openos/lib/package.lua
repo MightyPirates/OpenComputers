@@ -137,7 +137,7 @@ function require(module)
       error(table.concat(errorMsg, "\n"), 2)
     end
   else
-    error("already loading: " .. module .. debug.traceback(), 2)
+    error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
   end
 end
 

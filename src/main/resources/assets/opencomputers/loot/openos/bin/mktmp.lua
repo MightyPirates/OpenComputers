@@ -1,12 +1,11 @@
 local fs = require("filesystem")
-local uuid = require("uuid")
 local shell = require("shell")
 local sh = require("sh")
 
 local touch = loadfile(shell.resolve("touch", "lua"))
 local mkdir = loadfile(shell.resolve("mkdir", "lua"))
 
-if not uuid or not touch then
+if not touch then
   local errorMessage = "missing tools for mktmp"
   io.stderr:write(errorMessage .. '\n')
   return false, errorMessage
@@ -57,24 +56,14 @@ if not fs.exists(prefix) then
   return 1
 end
 
-while true do
-  local tmp = prefix .. uuid.next()
-  if not fs.exists(tmp) then
+local tmp = os.tmpname()
+local ok, reason = (directory and mkdir or touch)(tmp)
 
-    local ok, reason
-    if directory then
-      ok, reason = mkdir(tmp)
-    else
-      ok, reason = touch(tmp)
-    end
-
-    if sh.internal.command_passed(ok) then
-      if verbose then
-        print(tmp)
-      end
-      return tmp
-    else
-      return ok, reason
-    end
+if sh.internal.command_passed(ok) then
+  if verbose then
+    print(tmp)
   end
+  return tmp
 end
+
+return ok, reason
