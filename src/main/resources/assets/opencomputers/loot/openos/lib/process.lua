@@ -52,7 +52,8 @@ function process.load(path, env, init, name)
           io.stderr:write(path .. ": is a directory\n")
           return 126
         end
-        io.stderr:write(path .. ": " .. reason .. "\n")
+        local handler = require("tools/programLocations")
+        handler.reportNotFound(path, reason)
         return 127
       end
       os.setenv("_", program)
