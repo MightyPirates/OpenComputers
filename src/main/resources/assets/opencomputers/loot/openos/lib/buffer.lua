@@ -158,10 +158,13 @@ function buffer:read(...)
     if type(format) == "number" then
       return readBytesOrChars(format)
     else
-      if type(format) ~= "string" or unicode.sub(format, 1, 1) ~= "*" then
+      local first_char_index = 1
+      if type(format) ~= "string" then
         error("bad argument #" .. n .. " (invalid option)")
+      elseif unicode.sub(format, 1, 1) == "*"  then
+        first_char_index = 2
       end
-      format = unicode.sub(format, 2, 2)
+      format = unicode.sub(format, first_char_index, first_char_index)
       if format == "n" then
         return require("tools/advanced-buffering").readNumber(self, readChunk)
       elseif format == "l" then
