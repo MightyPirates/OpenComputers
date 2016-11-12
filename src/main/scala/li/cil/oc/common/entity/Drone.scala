@@ -474,7 +474,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def processInitialInteract(player: EntityPlayer, stack: ItemStack, hand: EnumHand): Boolean = {
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItemMainhand)) {
-        kill()
+        if(!world.isRemote) {
+          kill()
+        }
       }
       else if (!world.isRemote && !machine.isRunning) {
         preparePowerUp()
@@ -589,7 +591,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
     components.saveComponents()
-    info.storedEnergy = control.node.localBuffer.toInt
+    info.storedEnergy = globalBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
       nbt.setNewCompoundTag("machine", machine.save)

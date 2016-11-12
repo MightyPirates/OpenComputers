@@ -3,8 +3,10 @@ package li.cil.oc.util
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.block.BlockDynamicLiquid
 import net.minecraft.block.BlockLiquid
 import net.minecraft.block.BlockStaticLiquid
+import net.minecraft.init.Blocks
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidRegistry
@@ -55,6 +57,15 @@ object FluidUtils {
       fluidHandlerAt(sinkPos).fold(0)(sink =>
         transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
 
+  /**
+   * Lookup fluid taking into account flowing liquid blocks...
+   */
+  def lookupFluidForBlock(block: Block): Fluid = {
+    if (block == Blocks.FLOWING_LAVA) FluidRegistry.LAVA
+    else if (block == Blocks.FLOWING_WATER) FluidRegistry.WATER
+    else FluidRegistry.lookupFluidForBlock(block)
+  }
+
   // ----------------------------------------------------------------------- //
 
   private class GenericBlockWrapper(position: BlockPosition) extends IFluidHandler {
@@ -72,7 +83,8 @@ object FluidUtils {
 
     def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))
-      case block: BlockStaticLiquid if FluidRegistry.lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
+      case block: BlockStaticLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
+      case block: BlockDynamicLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
       case block: Block if block.isAir(position) || block.isReplaceable(position) => Option(new AirBlockWrapper(position, block))
       case _ => None
     }
@@ -119,7 +131,7 @@ object FluidUtils {
   }
 
   private class LiquidBlockWrapper(val position: BlockPosition, val block: BlockLiquid) extends BlockWrapperBase {
-    val fluid = FluidRegistry.lookupFluidForBlock(block)
+    val fluid = lookupFluidForBlock(block)
 
     override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = true
 

@@ -98,6 +98,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   protected def drawSlotInventory(slot: Slot) {
+    GlStateManager.enableBlend()
     slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None =>
         if (!slot.getHasStack && slot.xDisplayPosition >= 0 && slot.yDisplayPosition >= 0 && component.tierIcon != null) {
@@ -124,6 +125,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
           zLevel -= 1
         }
     }
+    GlStateManager.disableBlend()
   }
 
   protected def drawSlotHighlight(slot: Slot) {

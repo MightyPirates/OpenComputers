@@ -119,17 +119,17 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
       }
       case _ =>
     }
-    Sound.playDiskInsert(rack)
     if (!rack.world.isRemote) {
       rack.markChanged(this.slot)
+      Sound.playDiskInsert(rack)
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    Sound.playDiskEject(rack)
     if (!rack.world.isRemote) {
       rack.markChanged(this.slot)
+      Sound.playDiskEject(rack)
     }
   }
 

@@ -44,7 +44,7 @@ object Mods {
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
-  val Forestry = new SimpleMod(IDs.Forestry, version = "@[4.0,)")
+  val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
@@ -78,6 +78,7 @@ object Mods {
 
     override def isModAvailable: Boolean = isModAvailable_
   }
+  val Tesla = new SimpleMod(IDs.Tesla, providesPower = true)
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
@@ -108,9 +109,9 @@ object Mods {
     //    integration.cofh.transport.ModCoFHTransport,
     //    integration.ec.ModExtraCells,
     //    integration.enderio.ModEnderIO,
-    //    integration.enderstorage.ModEnderStorage,
+    integration.enderstorage.ModEnderStorage,
     //    integration.dsu.ModDeepStorageUnit,
-    //    integration.forestry.ModForestry,
+    integration.forestry.ModForestry,
     //    integration.fmp.ModForgeMultipart,
     //    integration.gc.ModGalacticraft,
     //    integration.gregtech.ModGregtech,
@@ -130,6 +131,7 @@ object Mods {
     //    integration.thaumcraft.ModThaumcraft,
     //    integration.thaumicenergistics.ModThaumicEnergistics,
     //    integration.thermalexpansion.ModThermalExpansion,
+    integration.tesla.ModTesla,
     integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
     //    integration.tmechworks.ModTMechworks,
@@ -197,7 +199,7 @@ object Mods {
     final val EnderStorage = "EnderStorage"
     final val ExtraCells = "extracells"
     final val Factorization = "factorization"
-    final val Forestry = "Forestry"
+    final val Forestry = "forestry"
     final val ForgeMultipart = "ForgeMultipart"
     final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
@@ -223,6 +225,7 @@ object Mods {
     final val RedLogic = "RedLogic"
     final val RotaryCraft = "RotaryCraft"
     final val StargateTech2 = "StargateTech2"
+    final val Tesla = "tesla"
     final val Thaumcraft = "Thaumcraft"
     final val ThaumicEnergistics = "thaumicenergistics"
     final val ThermalExpansion = "ThermalExpansion"

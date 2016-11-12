@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.server.component.DebugCard.AccessContext
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import net.minecraft.item.ItemStack
@@ -11,22 +12,18 @@ class DebugCardData extends ItemData(Constants.ItemName.DebugCard) {
     load(stack)
   }
 
-  var player: Option[String] = None
+  var access: Option[AccessContext] = None
 
   private final val DataTag = Settings.namespace + "data"
-  private final val PlayerTag = Settings.namespace + "player"
 
-  override def load(nbt: NBTTagCompound) {
-    val tag = dataTag(nbt)
-    if (tag.hasKey(PlayerTag)) {
-      player = Option(tag.getString(PlayerTag))
-    }
+  override def load(nbt: NBTTagCompound): Unit = {
+    access = AccessContext.load(dataTag(nbt))
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound): Unit = {
     val tag = dataTag(nbt)
-    tag.removeTag(PlayerTag)
-    player.foreach(tag.setString(PlayerTag, _))
+    AccessContext.remove(tag)
+    access.foreach(_.save(tag))
   }
 
   private def dataTag(nbt: NBTTagCompound) = {

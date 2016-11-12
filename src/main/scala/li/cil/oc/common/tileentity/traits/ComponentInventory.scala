@@ -167,7 +167,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
       case rotatable: Rotatable => rotatable.toLocal(facing)
       case _ => facing
     }
-    Option(super.getCapability(capability, facing)).orElse(components.collectFirst {
+    (if (super.hasCapability(capability, facing)) Option(super.getCapability(capability, facing)) else None).orElse(components.collectFirst {
       case Some(component: ICapabilityProvider) if component.hasCapability(capability, localFacing) => component.getCapability(capability, localFacing)
     }).getOrElse(null.asInstanceOf[T])
   }
