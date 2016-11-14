@@ -136,11 +136,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
 
+  @Deprecated
   override def environmentFor(stack: ItemStack): Class[_] = {
     environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
       case clazz: Class[_] => clazz
     }.orNull
   }
+
+  override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
 
   override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
