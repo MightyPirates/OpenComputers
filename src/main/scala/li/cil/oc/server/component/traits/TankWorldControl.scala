@@ -14,7 +14,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
-        FluidUtils.fluidHandlerAt(position.offset(side)) match {
+        FluidUtils.fluidHandlerAt(position.offset(side), side.getOpposite) match {
           case Some(handler) => result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
           case _ => result(false)
         }
@@ -31,7 +31,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
         val space = tank.getCapacity - tank.getFluidAmount
         val amount = math.min(count, space)
         if (count < 1 || amount > 0) {
-          FluidUtils.fluidHandlerAt(position.offset(facing)) match {
+          FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
@@ -61,7 +61,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
       case Some(tank) =>
         val amount = math.min(count, tank.getFluidAmount)
         if (count < 1 || amount > 0) {
-          FluidUtils.fluidHandlerAt(position.offset(facing)) match {
+          FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
