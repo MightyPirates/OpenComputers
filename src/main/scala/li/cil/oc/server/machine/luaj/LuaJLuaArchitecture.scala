@@ -232,7 +232,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
     recomputeMemory(machine.host.internalComponents)
 
-    val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=kernel", "t", lua)
+    val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=machine", "t", lua)
     thread = new LuaThread(lua, kernel) // Left as the first value on the stack.
 
     true
