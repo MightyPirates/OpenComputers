@@ -30,12 +30,13 @@ object Tesla {
 
   class TeslaConsumerCapabilityProvider(tileEntity: PowerAcceptor) extends ICapabilityProvider {
     private val providers = EnumFacing.VALUES.map(side => new TeslaConsumerImpl(tileEntity, side))
+    private val nullProvider = new TeslaConsumerImpl(tileEntity, null)
 
     override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = capability == TeslaConsumerCapability.CONSUMER_CAPABILITY
 
     override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
       if (capability == TeslaConsumerCapability.CONSUMER_CAPABILITY) {
-        providers(facing.getIndex).asInstanceOf[T]
+        (if (facing == null) nullProvider else providers(facing.getIndex)).asInstanceOf[T]
       } else null.asInstanceOf[T]
     }
   }
