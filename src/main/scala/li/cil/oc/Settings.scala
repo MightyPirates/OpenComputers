@@ -84,6 +84,7 @@ class Settings(val config: Config) {
   val syncMicrocontrollerOnly = config.getBoolean("computer.sync.microcontrollerOnly")
   val syncAllowOverrideTimeout = config.getBoolean("computer.sync.allowOverrideTimeout")
   val anyoneCanSync = config.getBoolean("computer.sync.insecure")
+  var trustedSecret = config.getString("computer.sync.trustedSecret")
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")

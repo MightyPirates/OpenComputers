@@ -462,6 +462,22 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     result(None)
   }
 
+  @Callback(doc = """function() -- Block access to the trusted secret from this computer until the next reboot.""")
+  def discardSecret(context: Context, args: Arguments): Array[AnyRef] = {
+    if(curTrustState == Machine.TrustState.FullyTrusted) {
+      wantTrustState = Machine.TrustState.Trusted
+    }
+    result(None)
+  }
+
+  @Callback(doc = """function():string -- Return the trusted secret. (Only works if this computer is Trusted and hasn't discarded the secret.)""")
+  def readSecret(context: Context, args: Arguments): Array[AnyRef] = {
+    if(curTrustState == Machine.TrustState.FullyTrusted)
+      result(Settings.get.trustedSecret)
+    else
+      result(None)
+  }
+
   @Callback(doc = """function([frequency:number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
   def beep(context: Context, args: Arguments): Array[AnyRef] = {
     val frequency = args.optInteger(0, 440)
@@ -705,7 +721,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     wantToBeSynchronous = false
     if(!Settings.get.syncWhitelist.isEmpty && (!Settings.get.syncMicrocontrollerOnly || classOf[Microcontroller].isAssignableFrom(host.getClass()))) {
       if(Settings.get.syncWhitelist.contains(Machine.getArchitectureName(architecture.getClass())))
-        curTrustState = Machine.TrustState.Trusted
+        curTrustState = Machine.TrustState.FullyTrusted
       else {
         components().entrySet().find(_.getValue() == "eeprom") match {
           case Some(pair) =>
@@ -714,7 +730,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
               val data = got(0).asInstanceOf[Array[Byte]]
               val hash = new String(Base64.encodeBase64(Hashing.sha256().hashBytes(data).asBytes()))
               if(Settings.get.syncWhitelist.contains(hash))
-                curTrustState = Machine.TrustState.Trusted
+                curTrustState = Machine.TrustState.FullyTrusted
             }
           case _ =>
             // no EEPROM, so its sum can't be in the whitelist
@@ -1187,8 +1203,11 @@ object Machine extends MachineAPI {
     /** The computer made an untrusted boot, or made a trusted one that gave up its trusted status. */
     val Untrusted = Value("Untrusted")
 
-    /** The computer made a trusted boot. */
+    /** The computer made a trusted boot, and has called discardSecret. */
     val Trusted = Value("Trusted")
+
+    /** The computer made a trusted boot. */
+    val FullyTrusted = Value("FullyTrusted")
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
