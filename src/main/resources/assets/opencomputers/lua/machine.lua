@@ -1,3 +1,4 @@
+local customTimeout = nil
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
@@ -11,8 +12,6 @@ local function checkDeadline()
     error("too long without yielding", 0)
   end
 end
-
-local customTimeout = nil
 
 -------------------------------------------------------------------------------
 
@@ -1362,9 +1361,7 @@ local libcomputer = {
     end
   end,
   setCustomTimeout = function(timeout)
-     if timeout ~= nil then
-        checkArg(1, timeout, "number")
-     end
+     checkArg(1, timeout, "number", "nil")
      customTimeout = timeout
   end
 }
@@ -1437,12 +1434,12 @@ local function main()
   while true do
     -- Allow custom timeouts under either of the following circumstances:
     -- * Timeout is SHORTER than the configured timeout
-    -- * Custom timeouts are enabled in the server config AND we are Secure
+    -- * Custom timeouts are enabled in the server config AND we are Trusted
     if customTimeout
         and (customTimeout < system.timeout() or
           (system.mayOverrideTimeout
            and system.mayOverrideTimeout()
-           and libcomponent.invoke(computer.address(), "isSecure"))) then
+           and libcomponent.invoke(computer.address(), "isTrusted"))) then
       deadline = computer.realTime() + customTimeout
     else
       deadline = computer.realTime() + system.timeout()
