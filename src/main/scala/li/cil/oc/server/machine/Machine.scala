@@ -1014,6 +1014,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
+      curTrustState = wantTrustState
       isSynchronous = wantToBeSynchronous
       if(!isSynchronous)
         Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
