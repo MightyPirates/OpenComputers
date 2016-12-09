@@ -80,6 +80,10 @@ class Settings(val config: Config) {
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
   val executionDelay = config.getInt("computer.executionDelay") max 0
+  val syncWhitelist = config.getStringList("computer.sync.whitelist")
+  val syncMicrocontrollerOnly = config.getBoolean("computer.sync.microcontrollerOnly")
+  val syncAllowOverrideTimeout = config.getBoolean("computer.sync.allowOverrideTimeout")
+  val anyoneCanSync = config.getBoolean("computer.sync.insecure")
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")

@@ -47,6 +47,9 @@ import scala.Array.canBuildFrom
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import org.apache.commons.codec.binary.Base64
+import com.google.common.hash.Hashing
+import li.cil.oc.api.internal.Microcontroller
 
 class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -62,6 +65,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   var architecture: Architecture = _
 
   private[machine] val state = mutable.Stack(Machine.State.Stopped)
+
+  /** The currently-active SyncState on this Machine. Only switchTo() will change this. */
+  private var curSyncState = Machine.SyncState.Insecure
+  /** The SyncState currently requested for this Machine. The state will change at the next switchTo() call. NOT checked for legality! */
+  private var wantSyncState = Machine.SyncState.Insecure
 
   private val _components = mutable.Map.empty[String, String]
 
@@ -416,6 +424,41 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
+  @Callback(doc = """function(synchronous:boolean):boolean -- Attempts to change to or from synchronous mode. Requires special server configuration.""")
+  def setSyncMode(context: Context, args: Arguments): Array[AnyRef] = {
+    val wantSync = args.checkBoolean(0)
+    if(isSecure) {
+      wantSyncState = if(wantSync) Machine.SyncState.SecureSync else Machine.SyncState.SecureAsync
+      result(true)
+    }
+    else if(Settings.get.anyoneCanSync) {
+      wantSyncState = if(wantSync) Machine.SyncState.InsecureSync else Machine.SyncState.Insecure
+      result(true)
+    }
+    else if(!wantSync) {
+      // setSyncMode(false) is always allowed
+      result(true)
+    }
+    else if(Settings.get.syncWhitelist.isEmpty) {
+      result(false, "server configuration forbids synchronous computers")
+    }
+    else {
+      result(false, "this computer is not allowed to enter synchronous mode")
+    }
+  }
+
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the computer is considered Secure""")
+  def isSecure(context: Context, args: Arguments): Array[AnyRef] = result(isSecure)
+
+  @Callback(doc = """function() -- If this computer is Secure, give up that status.""")
+  def giveUpSyncPrivileges(context: Context, args: Arguments): Array[AnyRef] = {
+    if(curSyncState == Machine.SyncState.SecureAsync)
+      wantSyncState = Machine.SyncState.Insecure
+    else if(curSyncState == Machine.SyncState.SecureSync)
+      wantSyncState = if(Settings.get.anyoneCanSync) Machine.SyncState.InsecureSync else Machine.SyncState.Insecure
+    result(None)
+  }
+
   @Callback(doc = """function([frequency:number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
   def beep(context: Context, args: Arguments): Array[AnyRef] = {
     val frequency = args.optInteger(0, 440)
@@ -525,6 +568,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.synchronized(state.top) match {
       // Booting up.
       case Machine.State.Starting =>
+        initSyncState()
         verifyComponents()
         switchTo(Machine.State.Yielded)
       // Computer is rebooting.
@@ -583,6 +627,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         finally {
           inSynchronizedCall = false
         }
+      case Machine.State.Running | Machine.State.Yielded | Machine.State.SynchronizedReturn =>
+        if(isSynchronous) {
+          do {
+            goTillYield()
+          } while(isSynchronous && (state.top == Machine.State.Running || state.top == Machine.State.SynchronizedReturn
+                                    || (state.top == Machine.State.Yielded && !signals.isEmpty)));
+        }
       case _ => // Nothing special to do, just avoid match errors.
     }
 
@@ -595,6 +646,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case _ =>
     }
   }
+
+  def isSynchronous() = curSyncState == Machine.SyncState.InsecureSync || curSyncState == Machine.SyncState.SecureSync
+  def isAsynchronous() = curSyncState == Machine.SyncState.Insecure || curSyncState == Machine.SyncState.SecureAsync
+  def isSecure() = curSyncState == Machine.SyncState.SecureAsync || curSyncState == Machine.SyncState.SecureSync
+  def isInsecure() = curSyncState == Machine.SyncState.Insecure || curSyncState == Machine.SyncState.InsecureSync
 
   // ----------------------------------------------------------------------- //
 
@@ -640,6 +696,29 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     // For computers, to save the components in their inventory.
     host.onMachineDisconnect(node)
+  }
+
+  private def initSyncState() {
+    curSyncState = Machine.SyncState.Insecure
+    if(!Settings.get.syncWhitelist.isEmpty && (!Settings.get.syncMicrocontrollerOnly || classOf[Microcontroller].isAssignableFrom(host.getClass()))) {
+      if(Settings.get.syncWhitelist.contains(Machine.getArchitectureName(architecture.getClass())))
+        curSyncState = Machine.SyncState.SecureAsync
+      else {
+        components().entrySet().find(_.getValue() == "eeprom") match {
+          case Some(pair) =>
+            val got = invoke(pair.getKey(), "get", Array[AnyRef]())
+            if(got.length > 0 && got(0).isInstanceOf[Array[Byte]]) {
+              val data = got(0).asInstanceOf[Array[Byte]]
+              val hash = new String(Base64.encodeBase64(Hashing.sha256().hashBytes(data).asBytes()))
+              if(Settings.get.syncWhitelist.contains(hash))
+                curSyncState = Machine.SyncState.SecureAsync
+            }
+          case _ =>
+            // no EEPROM, so its sum can't be in the whitelist
+        }
+      }
+    }
+    wantSyncState = curSyncState;
   }
 
   // ----------------------------------------------------------------------- //
@@ -707,6 +786,22 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
+    }
+
+    if(nbt.hasKey("curSyncState"))
+      curSyncState = Machine.SyncState(nbt.getInteger("curSyncState"));
+    else
+      curSyncState = Machine.SyncState.Insecure
+    if(nbt.hasKey("wantSyncState"))
+      wantSyncState = Machine.SyncState(nbt.getInteger("wantSyncState"));
+    else
+      wantSyncState = curSyncState;
+
+    if(!Settings.get.anyoneCanSync && curSyncState == Machine.SyncState.InsecureSync) {
+      OpenComputers.log.warn("A computer was in InsecureSync state, but the current configuration does not allow this. Downgrading to Insecure.")
+      curSyncState = Machine.SyncState.Insecure
+      if(wantSyncState == Machine.SyncState.InsecureSync)
+        wantSyncState = Machine.SyncState.Insecure
     }
 
     _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
@@ -782,6 +877,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     nbt.setIntArray("state", state.map(_.id).toArray)
     nbt.setNewTagList("users", _users)
     message.foreach(nbt.setString("message", _))
+
+    nbt.setInteger("curSyncState", curSyncState.id)
+    nbt.setInteger("wantSyncState", wantSyncState.id)
 
     val componentsNbt = new NBTTagList()
     for ((address, name) <- _components) {
@@ -907,7 +1005,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
+      if(curSyncState != wantSyncState) curSyncState = wantSyncState
+      if(isAsynchronous)
+        Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -922,7 +1022,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   // This is a really high level lock that we only use for saving and loading.
-  override def run(): Unit = Machine.this.synchronized {
+  def goTillYield(): Unit = Machine.this.synchronized {
     val isSynchronizedReturn = state.synchronized {
       if (state.top != Machine.State.Yielded &&
         state.top != Machine.State.SynchronizedReturn) {
@@ -1009,6 +1109,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Keep track of time spent executing the computer.
     cpuTotal += System.nanoTime() - cpuStart
   }
+
+  override def run(): Unit = if(state.synchronized { isAsynchronous }) goTillYield()
 }
 
 object Machine extends MachineAPI {
@@ -1068,6 +1170,21 @@ object Machine extends MachineAPI {
 
     /** The computer is up and running, executing Lua code. */
     val Running = Value("Running")
+  }
+
+  /** Possible sync-related states of the computer */
+  private object SyncState extends Enumeration {
+    /** The computer is in the Insecure state. It is asynchronous and, unless "*" is whitelisted, cannot leave this state without a reboot. */
+    val Insecure = Value("Insecure")
+
+    /** The computer is in the Insecure state, and is synchronous. This state is only permitted if "*" is whitelisted, and will decay to Insecure if "*" is removed from the whitelist. */
+    val InsecureSync = Value("InsecureSync")
+
+    /** The computer is in the Secure state, and is currently asynchronous. */
+    val SecureAsync = Value("SecureAsync")
+
+    /** The computer is in the Secure state, and is currently synchronous. */
+    val SecureSync = Value("SecureSync")
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
