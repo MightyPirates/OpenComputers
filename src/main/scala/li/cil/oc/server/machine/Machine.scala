@@ -57,6 +57,29 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     withConnector(Settings.get.bufferComputer).
     create()
 
+  class MachineThread(val machine: Machine) extends Thread("OpenComputers-SyncComputer-"+node.address) {
+    var ticksToDo = 0
+    override def run() = synchronized {
+      /* Every time we wake up, one of two things will be true:
+       * - We are in a synchronized state and it is time to run!
+       * - We are no longer in a synchronized state and it is time to die!
+       */
+      while({wait();state.synchronized(machine.isSynchronous)}) {
+        if(ticksToDo > 1) OpenComputers.log.warn("A synchronous machine lost a tick!")
+        while(ticksToDo > 0) {
+          ticksToDo -= 1
+          do {
+            goTillYield()
+          } while(state.synchronized(isSynchronous && (state.top == Machine.State.Running || state.top == Machine.State.SynchronizedReturn
+          || (state.top == Machine.State.Yielded && !signals.isEmpty))))
+        }
+      }
+      machineThread = null
+      machine.synchronized(machine.notify())
+    }
+  }
+  private var machineThread: MachineThread = null
+
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs", null, null, 5))
@@ -648,12 +671,31 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         }
       case Machine.State.Running | Machine.State.Yielded | Machine.State.SynchronizedReturn =>
         if(isSynchronous) {
-          do {
-            goTillYield()
-          } while(isSynchronous && (state.top == Machine.State.Running || state.top == Machine.State.SynchronizedReturn
-                                    || (state.top == Machine.State.Yielded && !signals.isEmpty)));
+          if(machineThread == null) {
+            machineThread = new MachineThread(this)
+            machineThread.start()
+          }
+          /* When we reach this point, one of two things will be true:
+           * - Machine thread is still executing (locking it will block until...:)
+           * - Machine thread is yielded/asleep (we wake it up)
+           */
+          machineThread.synchronized {
+            machineThread.ticksToDo += 1
+            machineThread.notify()
+          }
         }
       case _ => // Nothing special to do, just avoid match errors.
+    }
+    if(!isSynchronous && machineThread != null) {
+      this.synchronized {
+        machineThread.synchronized(machineThread.notify())
+        /* machineThread will notice we are no longer synchronous, and die.
+         * When it dies, it will lock us, then call our notify().
+         * As a result...
+         */
+        do wait() while(machineThread != null)
+        /* ...this point will not be reached until the machineThread has finished dying. */
+      }
     }
 
     // Finally check if we should stop the computer. We cannot lock the state
