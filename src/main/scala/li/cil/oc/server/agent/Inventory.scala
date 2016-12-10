@@ -1,6 +1,7 @@
 package li.cil.oc.server.agent
 
 import li.cil.oc.api.internal
+import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
@@ -9,9 +10,12 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
-import li.cil.oc.util.ExtendedInventory._
+import net.minecraftforge.items.IItemHandlerModifiable
+import net.minecraftforge.items.wrapper.PlayerInvWrapper
 
 class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
+  protected implicit def toItemHandler(inv: Inventory):IItemHandlerModifiable = new PlayerInvWrapper(inv)
+
   def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 
   def inventorySlots = (agent.selectedSlot until getSizeInventory) ++ (0 until agent.selectedSlot)

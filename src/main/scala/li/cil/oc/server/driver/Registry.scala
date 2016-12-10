@@ -12,11 +12,12 @@ import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
+import net.minecraftforge.items.CapabilityItemHandler
+import net.minecraftforge.items.IItemHandler
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -143,10 +144,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }.orNull
   }
 
-  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
-      map(provider => provider.getInventory(stack, player)).
-      orNull
+      map(provider => provider.getItemHandler(stack, player)).
+      getOrElse {
+        if(stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
+          stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
+         else null
+      }
   }
 
   override def blockDrivers = blocks.toSeq

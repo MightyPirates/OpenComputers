@@ -8,11 +8,11 @@ import li.cil.oc.api.driver.Item;
 import li.cil.oc.api.driver.SidedBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
+import net.minecraftforge.items.IItemHandler;
 
 import java.util.Collection;
 
@@ -224,10 +224,10 @@ public final class Driver {
     }
 
     /**
-     * Get an inventory implementation providing access to an item inventory.
+     * Get an IItemHandler implementation providing access to an item inventory.
      * <p/>
      * This will use the registered {@link InventoryProvider}s to find an
-     * inventory implementation providing access to the specified stack.
+     * IItemHandler implementation providing access to the specified stack.
      * If none can be found, returns <tt>null</tt>.
      * <p/>
      * Note that the specified <tt>player</tt> may be null, but will usually
@@ -235,9 +235,9 @@ public final class Driver {
      *
      * @param stack  the item stack to get the inventory access for.
      * @param player the player holding the item. May be <tt>null</tt>.
-     * @return the inventory implementation interfacing the stack, or <tt>null</tt>.
+     * @return the IItemHandler implementation interfacing the stack, or <tt>null</tt>.
      */
-    public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
+    public static IItemHandler inventoryFor(ItemStack stack, EntityPlayer player) {
         if (API.driver != null)
             return API.driver.inventoryFor(stack, player);
         return null;

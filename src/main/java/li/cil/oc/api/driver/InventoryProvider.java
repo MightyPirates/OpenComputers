@@ -3,6 +3,7 @@ package li.cil.oc.api.driver;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.items.IItemHandler;
 
 /**
  * Inventory providers are used to access contents of item inventories.
@@ -12,7 +13,7 @@ import net.minecraft.item.ItemStack;
  * allow agents (robots, drones) to interact with such inventories using
  * the inventory controller upgrade, for example.
  * <p/>
- * Implementations returned by {@link #getInventory} should save changes
+ * Implementations returned by {@link #getItemHandler} should save changes
  * back to the item stack when {@link IInventory#markDirty()} is called.
  * Return <tt>null</tt> if the specified stack is not supported.
  */
@@ -27,7 +28,7 @@ public interface InventoryProvider {
     boolean worksWith(ItemStack stack, EntityPlayer player);
 
     /**
-     * Get an inventory implementation that allows interfacing with the
+     * Get an IItemHandler implementation that allows interfacing with the
      * item inventory represented by the specified item stack.
      * <p/>
      * Note that the specified player may be <tt>null</tt>, but will
@@ -36,7 +37,7 @@ public interface InventoryProvider {
      *
      * @param stack  the item stack to get the inventory for.
      * @param player the player holding the item, may be <tt>null</tt>.
-     * @return the inventory representing the contents, or <tt>null</tt>.
+     * @return the IItemHandler representing the contents, or <tt>null</tt>.
      */
-    IInventory getInventory(ItemStack stack, EntityPlayer player);
+    IItemHandler getItemHandler(ItemStack stack, EntityPlayer player);
 }
