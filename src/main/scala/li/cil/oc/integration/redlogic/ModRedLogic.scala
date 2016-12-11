@@ -19,7 +19,7 @@ object ModRedLogic extends ModProxy with RedstoneProvider {
   }
 
   override def computeInput(pos: BlockPosition, side: ForgeDirection): Int = {
-    pos.world.get.getTileEntity(pos) match {
+    pos.world.get.getTileEntity(pos.offset(side)) match {
       case emitter: IRedstoneEmitter =>
         var strength = 0
         for (i <- -1 to 5) {
