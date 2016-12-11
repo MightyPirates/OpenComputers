@@ -28,6 +28,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
+import net.minecraft.scoreboard.{IScoreCriteria, Scoreboard}
 import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -127,6 +128,12 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     result(FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames)
+  }
+
+  @Callback(doc = """function():userdata -- Get the scoreboard object for the world""")
+  def getScoreboard(context: Context, args: Arguments): Array[AnyRef] = {
+    checkAccess()
+    result(new DebugCard.ScoreboardValue(host.world.getScoreboard()))
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -389,6 +396,124 @@ object DebugCard {
     }
   }
 
+  class ScoreboardValue(var scoreboard: Scoreboard)(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
+    def this() = this(null)(None) // For loading.
+
+    @Callback(doc = """function(team:string) - Add a team to the scoreboard""")
+    def addTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val team = args.checkString(0)
+      scoreboard.createTeam(team)
+      null
+    }
+
+    @Callback(doc = """function(teamName: string) - Remove a team from the scoreboard""")
+    def removeTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val teamName = args.checkString(0)
+      val team = scoreboard.getTeam(teamName)
+      scoreboard.removeTeam(team)
+      null
+    }
+
+    @Callback(doc = """function(player:string, team:string):boolean - Add a player to a team""")
+    def addPlayerToTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val player = args.checkString(0)
+      val team = args.checkString(1)
+      result(scoreboard.addPlayerToTeam(player, team))
+    }
+
+    @Callback(doc = """function(player:string):boolean - Remove a player from their team""")
+    def removePlayerFromTeams(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val player = args.checkString(0)
+      result(scoreboard.removePlayerFromTeams(player))
+    }
+
+    @Callback(doc = """function(player:string, team:string):boolean - Remove a player from a specific team""")
+    def removePlayerFromTeam(context: Context, args: Arguments): Array[AnyRef] =
+    {
+      checkAccess()
+      val player = args.checkString(0)
+      val teamName = args.checkString(1)
+      val team = scoreboard.getTeam(teamName)
+      scoreboard.removePlayerFromTeam(player, team)
+      null
+    }
+
+    @Callback(doc = """function(objectiveName:string, objectiveCriteria:string) - Create a new objective for the scoreboard""")
+    def addObjective(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val objName = args.checkString(0)
+      val objType = args.checkString(1)
+      val criteria = IScoreCriteria.INSTANCES.get(objType)
+      scoreboard.addScoreObjective(objName, criteria)
+      null
+    }
+
+    @Callback(doc = """function(objectiveName:string) - Remove an objective from the scoreboard""")
+    def removeObjective(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val objName = args.checkString(0)
+      val objective = scoreboard.getObjective(objName)
+      scoreboard.removeObjective(objective)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Sets the score of a player for a certain objective""")
+    def setPlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.setScorePoints(scoreVal)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string):int - Gets the score of a player for a certain objective""")
+    def getPlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val score = scoreboard.getOrCreateScore(name, objective)
+      result(score.getScorePoints())
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Increases the score of a player for a certain objective""")
+    def increasePlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.increaseScore(scoreVal)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Decrease the score of a player for a certain objective""")
+    def decreasePlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.decreaseScore(scoreVal)
+      null
+    }
+
+
+    // ----------------------------------------------------------------------- //
+
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      ctx = AccessContext.load(nbt)
+      scoreboard = DimensionManager.getWorld(0).getScoreboard()
+    }
+  }
+
+
   class WorldValue(var world: World)(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
     def this() = this(null)(None) // For loading.
 
@@ -639,6 +764,7 @@ object DebugCard {
         case _ => result(Unit, "no tank")
       }
     }
+
 
     // ----------------------------------------------------------------------- //
 
