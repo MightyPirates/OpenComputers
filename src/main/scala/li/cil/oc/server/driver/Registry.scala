@@ -11,7 +11,9 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
@@ -144,13 +146,19 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }.orNull
   }
 
-  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
+  @Deprecated
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer):IInventory = {
+    OpenComputers.log.warn("A mod is using the deprecated method li.cil.oc.api.Driver.inventoryFor; use itemHandlerFor instead.")
+    null
+  }
+
+  override def itemHandlerFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
-      map(provider => provider.getItemHandler(stack, player)).
+      map(provider => InventoryUtils.asItemHandler(provider.getInventory(stack, player))).
       getOrElse {
         if(stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
           stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
-         else null
+        else null
       }
   }
 

@@ -8,6 +8,7 @@ import li.cil.oc.api.driver.Item;
 import li.cil.oc.api.driver.SidedBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -224,6 +225,16 @@ public final class Driver {
     }
 
     /**
+     * @deprecated Use {@link #itemHandlerFor(ItemStack, EntityPlayer)} instead.
+     */
+    @Deprecated // TODO Remove in OC 1.7
+    public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
+        if (API.driver != null)
+            return API.driver.inventoryFor(stack, player);
+        return null;
+    }
+
+    /**
      * Get an IItemHandler implementation providing access to an item inventory.
      * <p/>
      * This will use the registered {@link InventoryProvider}s to find an
@@ -237,9 +248,9 @@ public final class Driver {
      * @param player the player holding the item. May be <tt>null</tt>.
      * @return the IItemHandler implementation interfacing the stack, or <tt>null</tt>.
      */
-    public static IItemHandler inventoryFor(ItemStack stack, EntityPlayer player) {
+    public static IItemHandler itemHandlerFor(ItemStack stack, EntityPlayer player) {
         if (API.driver != null)
-            return API.driver.inventoryFor(stack, player);
+            return API.driver.itemHandlerFor(stack, player);
         return null;
     }
 
