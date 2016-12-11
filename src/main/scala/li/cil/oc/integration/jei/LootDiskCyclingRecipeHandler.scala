@@ -6,6 +6,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.Loot
 import li.cil.oc.common.recipe.LootDiskCyclingRecipe
+import mezz.jei.api.ingredients.IIngredients
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
 import mezz.jei.api.recipe.IRecipeWrapper
@@ -28,9 +29,14 @@ object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe
 
   class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper with ICraftingRecipeWrapper {
 
-    override def getInputs: util.List[_] = List(seqAsJavaList(Loot.worldDisks.map(_._1)), api.Items.get(Constants.ItemName.Wrench).createItemStack(1))
+    override def getInputs: util.List[util.List[ItemStack]] = List(seqAsJavaList(Loot.worldDisks.map(_._1)), seqAsJavaList(List(api.Items.get(Constants.ItemName.Wrench).createItemStack(1))))
 
     override def getOutputs: util.List[ItemStack] = Loot.worldDisks.map(_._1).toList
+
+    override def getIngredients(ingredients: IIngredients): Unit = {
+      ingredients.setInputLists(classOf[ItemStack], getInputs)
+      ingredients.setOutputs(classOf[ItemStack], getOutputs)
+    }
   }
 
 }

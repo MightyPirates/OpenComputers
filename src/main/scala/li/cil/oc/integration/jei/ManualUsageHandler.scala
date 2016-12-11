@@ -9,6 +9,7 @@ import mezz.jei.api.IGuiHelper
 import mezz.jei.api.IModRegistry
 import mezz.jei.api.gui.IDrawable
 import mezz.jei.api.gui.IRecipeLayout
+import mezz.jei.api.ingredients.IIngredients
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
@@ -43,7 +44,9 @@ object ManualUsageHandler {
   class ManualUsageRecipe(val stack: ItemStack, val path: String) extends BlankRecipeWrapper {
     lazy val button = new GuiButtonExt(0, (160 - 100) / 2, 10, 100, 20, Localization.localizeImmediately("nei.usage.oc.Manual"))
 
-    override def getInputs: util.List[_] = List(stack)
+    override def getInputs: util.List[ItemStack] = List(stack)
+
+    override def getIngredients(ingredients: IIngredients): Unit = ingredients.setInputs(classOf[ItemStack], getInputs)
 
     override def drawInfo(@Nonnull minecraft: Minecraft, recipeWidth: Int, recipeHeight: Int, mouseX: Int, mouseY: Int): Unit = {
       button.displayString = Localization.localizeImmediately("nei.usage.oc.Manual")
@@ -75,6 +78,9 @@ object ManualUsageHandler {
     override def getBackground: IDrawable = background
 
     override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: ManualUsageRecipe) {
+    }
+
+    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: ManualUsageRecipe, ingredients: IIngredients) {
     }
 
     override def getTitle = "OpenComputers Manual"

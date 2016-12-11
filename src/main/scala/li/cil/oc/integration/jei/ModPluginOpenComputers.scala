@@ -8,8 +8,10 @@ import li.cil.oc.integration.util.ItemSearch
 import mezz.jei.api.IJeiRuntime
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.IModRegistry
+import mezz.jei.api.ISubtypeRegistry
 import mezz.jei.api.ISubtypeRegistry.ISubtypeInterpreter
 import mezz.jei.api.JEIPlugin
+import mezz.jei.api.ingredients.IModIngredientRegistration
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -35,10 +37,28 @@ class ModPluginOpenComputers extends IModPlugin {
     registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
     registry.addRecipes(CallbackDocHandler.getRecipes(registry))
 
+    registry.addAdvancedGuiHandlers(RelayGuiHandler)
+  }
+
+  private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = _
+
+  override def onRuntimeAvailable(jeiRuntime: IJeiRuntime) {
+    if (stackUnderMouse == null) {
+      ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
+    }
+    stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
+
+    ModJEI.runtime = Option(jeiRuntime)
+  }
+
+  override def registerIngredients(registry: IModIngredientRegistration) {
+  }
+
+  override def registerItemSubtypes(subtypeRegistry: ISubtypeRegistry) {
     def useNBT(names: String*) = names.map(name => {
       val info = Items.get(name)
       Option(info.item).getOrElse(Item.getItemFromBlock(info.block))
-    }).filter(_ != null).distinct.foreach(registry.getJeiHelpers.getSubtypeRegistry.useNbtForSubtypes(_))
+    }).filter(_ != null).distinct.foreach(subtypeRegistry.useNbtForSubtypes(_))
 
     // Only the preconfigured blocks and items have to be here.
     useNBT(
@@ -49,7 +69,7 @@ class ModPluginOpenComputers extends IModPlugin {
       Constants.ItemName.Tablet
     )
 
-    registry.getJeiHelpers.getSubtypeRegistry.registerNbtInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
+    subtypeRegistry.registerNbtInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
       override def getSubtypeInfo(stack: ItemStack): String = {
         if (!stack.hasTagCompound) return null
         val compound: NBTTagCompound = stack.getTagCompound
@@ -61,18 +81,5 @@ class ModPluginOpenComputers extends IModPlugin {
         if (data.hasNoTags) null else data.toString
       }
     })
-
-    registry.addAdvancedGuiHandlers(RelayGuiHandler)
-  }
-
-  private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = null
-
-  override def onRuntimeAvailable(jeiRuntime: IJeiRuntime) {
-    if (stackUnderMouse == null) {
-      ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
-    }
-    stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
-
-    ModJEI.runtime = Option(jeiRuntime)
   }
 }
