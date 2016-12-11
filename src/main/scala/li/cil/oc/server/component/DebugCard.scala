@@ -133,7 +133,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function():userdata -- Get the scoreboard object for the world""")
   def getScoreboard(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
-    result(new DebugCard.ScoreboardValue(host.world.getScoreboard()))
+    result(new DebugCard.ScoreboardValue(Option(host.world)))
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -396,8 +396,11 @@ object DebugCard {
     }
   }
 
-  class ScoreboardValue(var scoreboard: Scoreboard)(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
-    def this() = this(null)(None) // For loading.
+  class ScoreboardValue(world: Option[World])(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
+    var scoreboard = world.fold(null: Scoreboard)(_.getScoreboard)
+    var dimension = world.fold(0)(_.provider.getDimension)
+
+    def this() = this(None)(None) // For loading.
 
     @Callback(doc = """function(team:string) - Add a team to the scoreboard""")
     def addTeam(context: Context, args: Arguments): Array[AnyRef] = {
@@ -506,10 +509,19 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    private final val DimensionTag = "dimension"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       ctx = AccessContext.load(nbt)
-      scoreboard = DimensionManager.getWorld(0).getScoreboard()
+      dimension = nbt.getInteger(DimensionTag)
+      scoreboard = DimensionManager.getWorld(dimension).getScoreboard
+    }
+
+    override def save(nbt: NBTTagCompound): Unit = {
+      super.save(nbt)
+      ctx.foreach(_.save(nbt))
+      nbt.setInteger(DimensionTag, dimension)
     }
   }
 
