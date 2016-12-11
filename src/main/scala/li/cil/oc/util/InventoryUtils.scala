@@ -88,20 +88,20 @@ object InventoryUtils {
    * changes to the inventory the stack may come from, for example.
    */
   def insertIntoInventorySlot(stack: ItemStack, inventory: IItemHandler, slot: Int, limit: Int = 64, simulate: Boolean = false): Boolean =
-    (stack != null && limit > 0) && {
+    (stack != null && limit > 0 && stack.stackSize > 0) && {
       val amount = math.min(stack.stackSize, limit)
       if (simulate) {
         val toInsert = stack.copy()
         toInsert.stackSize = amount
         inventory.insertItem(slot, toInsert, simulate) match {
-          case remaining: ItemStack => remaining.stackSize < stack.stackSize
+          case remaining: ItemStack => remaining.stackSize < amount
           case _ => true
         }
       } else {
         val toInsert = stack.splitStack(amount)
         inventory.insertItem(slot, toInsert, simulate) match {
           case remaining: ItemStack =>
-            val result = remaining.stackSize < stack.stackSize
+            val result = remaining.stackSize < amount
             stack.stackSize = remaining.stackSize
             result
           case _ => true
@@ -139,7 +139,7 @@ object InventoryUtils {
    */
   def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Boolean = {
     val stack = inventory.getStackInSlot(slot)
-    (stack != null && limit > 0) && {
+    (stack != null && limit > 0 && stack.stackSize > 0) && {
       var amount = math.min(stack.getMaxStackSize, math.min(stack.stackSize, limit))
       inventory.extractItem(slot, amount, true) match {
         case extracted: ItemStack =>
@@ -177,7 +177,7 @@ object InventoryUtils {
    * having its size decremented accordingly.
    */
   def insertIntoInventory(stack: ItemStack, inventory: IItemHandler, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None): Boolean =
-    (stack != null && limit > 0) && {
+    (stack != null && limit > 0 && stack.stackSize > 0) && {
       var success = false
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSlots)

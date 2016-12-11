@@ -10,11 +10,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
-import net.minecraftforge.items.IItemHandlerModifiable
-import net.minecraftforge.items.wrapper.PlayerInvWrapper
 
 class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
-  protected implicit def toItemHandler(inv: Inventory):IItemHandlerModifiable = new PlayerInvWrapper(inv)
 
   def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 
@@ -57,7 +54,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def addItemStackToInventory(stack: ItemStack) = {
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
-    InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
+    InventoryUtils.insertIntoInventory(stack, InventoryUtils.asItemHandler(this), slots = Option(slots))
   }
 
   override def canHeldItemHarvest(block: Block): Boolean = block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))
