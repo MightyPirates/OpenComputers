@@ -21,7 +21,7 @@ trait ItemInventoryControl extends InventoryAware {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val slot = args.checkSlot(itemInventory, 1)
       val count = args.optItemCount(2)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventorySlot(_, itemInventory, Option(ForgeDirection.UNKNOWN), slot), inventory, ForgeDirection.UNKNOWN, count))
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventorySlot(_, itemInventory, None, slot), inventory, null, count))
     })
   }
 
@@ -30,7 +30,7 @@ trait ItemInventoryControl extends InventoryAware {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val slot = args.checkSlot(itemInventory, 1)
       val count = args.optItemCount(2)
-      result(InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, ForgeDirection.UNKNOWN, slot, count))
+      result(InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, null, slot, count))
     })
   }
 
