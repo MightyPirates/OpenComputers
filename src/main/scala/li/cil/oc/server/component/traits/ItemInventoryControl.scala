@@ -16,19 +16,21 @@ trait ItemInventoryControl extends InventoryAware {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => result(itemInventory.getSizeInventory))
   }
 
-  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- The size of an item inventory in the specified slot.")
+  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- Drops an item into the specified slot in the item inventory.")
   def dropIntoItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
-      val count = args.optItemCount(1)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, itemInventory), inventory, null, count))
+      val slot = args.checkSlot(itemInventory, 1)
+      val count = args.optItemCount(2)
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventorySlot(_, itemInventory, Option(ForgeDirection.UNKNOWN), slot), inventory, ForgeDirection.UNKNOWN, count))
     })
   }
 
-  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- The size of an item inventory in the specified slot.")
+  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- Sucks an item out of the specified slot in the item inventory.")
   def suckFromItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
-      val count = args.optItemCount(1)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, null, count))
+      val slot = args.checkSlot(itemInventory, 1)
+      val count = args.optItemCount(2)
+      result(InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, ForgeDirection.UNKNOWN, slot, count))
     })
   }
 
