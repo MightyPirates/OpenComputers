@@ -15,4 +15,6 @@ object RelayGuiHandler extends IAdvancedGuiHandler[Relay] {
   override def getGuiExtraAreas(gui: Relay): util.List[Rectangle] = List(
     new Rectangle(gui.windowX + gui.tabPosition.getX, gui.windowY + gui.tabPosition.getY, gui.tabPosition.getWidth, gui.tabPosition.getHeight)
   )
+
+  override def getIngredientUnderMouse(guiContainer: Relay, mouseX: Int, mouseY: Int) = null
 }
