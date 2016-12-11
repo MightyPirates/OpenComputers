@@ -10,5 +10,7 @@ object ModEnderIO extends ModProxy {
   override def initialize(): Unit = {
     api.IMC.registerWrenchTool("li.cil.oc.integration.enderio.EventHandlerEnderIO.useWrench")
     api.IMC.registerWrenchToolCheck("li.cil.oc.integration.enderio.EventHandlerEnderIO.isWrench")
+
+    ProviderEnderIO.init()
   }
 }
