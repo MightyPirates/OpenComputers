@@ -19,6 +19,8 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fml.common.eventhandler.Event.Result
+import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.wrapper.InvWrapper
 
 trait WorldAware {
   def position: BlockPosition
@@ -44,6 +46,11 @@ trait WorldAware {
         true
     }
   }
+
+  def mayInteract(blockPos: BlockPosition, side: EnumFacing, inventory: IItemHandler): Boolean = mayInteract(blockPos, side) && (inventory match {
+    case inv: InvWrapper if inv.getInv != null => inv.getInv.isUseableByPlayer(fakePlayer)
+    case _ => true
+  })
 
   def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {
     world.getEntitiesWithinAABB(clazz, bounds)

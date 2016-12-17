@@ -5,6 +5,7 @@ import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
+import net.minecraftforge.items.IItemHandler
 
 import scala.language.implicitConversions
 
@@ -21,18 +22,22 @@ object ExtendedArguments {
       if (!isDefined(index) || !hasValue(index)) default
       else math.max(0, args.checkInteger(index))
 
-    def checkSlot(inventory: IInventory, n: Int) = {
+    def checkSlot(inventory: IItemHandler, n: Int): Int = {
       val slot = args.checkInteger(n) - 1
-      if (slot < 0 || slot >= inventory.getSizeInventory) {
+      if (slot < 0 || slot >= inventory.getSlots) {
         throw new IllegalArgumentException("invalid slot")
       }
       slot
     }
 
-    def optSlot(inventory: IInventory, index: Int, default: Int) = {
+    def optSlot(inventory: IItemHandler, index: Int, default: Int): Int = {
       if (!isDefined(index)) default
       else checkSlot(inventory, index)
     }
+
+    def checkSlot(inventory: IInventory, n: Int): Int = checkSlot(InventoryUtils.asItemHandler(inventory), n)
+
+    def optSlot(inventory: IInventory, index: Int, default: Int): Int = optSlot(InventoryUtils.asItemHandler(inventory), index, default)
 
     def checkTank(multi: MultiTank, n: Int) = {
       val tank = args.checkInteger(n) - 1
