@@ -51,7 +51,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
             else {
               into.fill(contents, true)
               inventory.decrStackSize(selectedSlot, 1)
-              InventoryUtils.insertIntoInventory(container, inventory, slots = Option(insertionSlots))
+              InventoryUtils.insertIntoInventory(container, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
               if (container.stackSize > 0) {
                 InventoryUtils.spawnStackInWorld(position, container)
               }
@@ -91,7 +91,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               val amount = FluidContainerRegistry.getFluidForFilledItem(filled).amount
               from.drain(amount, true)
               inventory.decrStackSize(selectedSlot, 1)
-              InventoryUtils.insertIntoInventory(filled, inventory, slots = Option(insertionSlots))
+              InventoryUtils.insertIntoInventory(filled, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
               if (filled.stackSize > 0) {
                 InventoryUtils.spawnStackInWorld(position, filled)
               }
@@ -128,6 +128,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
         case _ => None
       }
     }
+
     inventory.getStackInSlot(slot) match {
       case stack: ItemStack => fluidInfo(stack) match {
         case Some((fluid, capacity)) => f(fluid, capacity)

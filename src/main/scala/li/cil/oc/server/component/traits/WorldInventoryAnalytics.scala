@@ -8,16 +8,16 @@ import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.oredict.OreDictionary
 
 trait WorldInventoryAnalytics extends WorldAware with SideRestricted with NetworkAware {
   @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the device.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    withInventory(facing, inventory => result(inventory.getSizeInventory))
+    withInventory(facing, inventory => result(inventory.getSlots))
   }
 
   @Callback(doc = """function(side:number, slot:number):number -- Get number of items in the specified slot of the inventory on the specified side of the device.""")
@@ -89,9 +89,9 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
 
-  private def withInventory(side: EnumFacing, f: IInventory => Array[AnyRef]) =
-    InventoryUtils.inventoryAt(position.offset(side)) match {
-      case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(position.offset(side), side.getOpposite) => f(inventory)
+  private def withInventory(side: EnumFacing, f: IItemHandler => Array[AnyRef]) =
+    InventoryUtils.inventoryAt(position.offset(side), side.getOpposite) match {
+      case Some(inventory) if mayInteract(position.offset(side), side.getOpposite, inventory) => f(inventory)
       case _ => result(Unit, "no inventory")
     }
 }

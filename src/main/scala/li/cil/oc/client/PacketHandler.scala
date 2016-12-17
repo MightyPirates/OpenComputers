@@ -44,6 +44,7 @@ object PacketHandler extends CommonPacketHandler {
 
   override def dispatch(p: PacketParser) {
     p.packetType match {
+      case PacketType.AdapterState => onAdapterState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
@@ -97,6 +98,14 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onAdapterState(p: PacketParser) =
+    p.readTileEntity[Adapter]() match {
+      case Some(t) =>
+        t.openSides = t.uncompressSides(p.readByte())
+        t.world.notifyBlockUpdate(t.getPos)
+      case _ => // Invalid packet.
+    }
 
   def onAnalyze(p: PacketParser) {
     val address = p.readUTF()
@@ -371,6 +380,7 @@ object PacketHandler extends CommonPacketHandler {
             case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
             case _ => world.rand.nextFloat * 2.0 - 1
           }
+
           val vx = rv(_.getFrontOffsetX)
           val vy = rv(_.getFrontOffsetY)
           val vz = rv(_.getFrontOffsetZ)
@@ -379,6 +389,7 @@ object PacketHandler extends CommonPacketHandler {
               case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
               case _ => x + 0.5 + v * velocity
             }
+
             val px = rp(x, vx, _.getFrontOffsetX)
             val py = rp(y, vy, _.getFrontOffsetY)
             val pz = rp(z, vz, _.getFrontOffsetZ)
