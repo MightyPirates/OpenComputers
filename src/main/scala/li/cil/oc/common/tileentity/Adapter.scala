@@ -3,27 +3,30 @@ package li.cil.oc.common.tileentity
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with Analyzable with internal.Adapter with DeviceInfo {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -40,6 +43,22 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def defaultState = true
+
+  override def setSideOpen(side: EnumFacing, value: Boolean) {
+    super.setSideOpen(side, value)
+    if (isServer) {
+      ServerPacketSender.sendAdapterState(this)
+      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      neighborChanged(side)
+    } else {
+      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -70,7 +89,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
         // inventories, which I actually consider a plus :P
         case _ =>
           Option(api.Driver.driverFor(world, blockPos, d)) match {
-            case Some(newDriver) => blocks(d.ordinal()) match {
+            case Some(newDriver) if isSideOpen(d) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
                   // This is... odd. Maybe moved by some other mod? First, clean up.
@@ -91,6 +110,9 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                   }
                 } // else: the more things change, the more they stay the same.
               case _ =>
+                if (!isSideOpen(d)) {
+                  return
+                }
                 // A challenger appears. Maybe.
                 val environment = newDriver.createEnvironment(world, blockPos, d)
                 if (environment != null) {
