@@ -16,12 +16,12 @@ trait ItemInventoryControl extends InventoryAware {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => result(itemInventory.getSlots))
   }
 
-  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- Drops an item into the specified slot in the item inventory.")
+  @Callback(doc = "function(inventorySlot:number, slot:number[, count:number=64]):number -- Drops an item from the selected slot into the specified slot in the item inventory.")
   def dropIntoItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val slot = args.checkSlot(itemInventory, 1)
       val count = args.optItemCount(2)
-      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventorySlot(_, itemInventory, slot), inventory, null, count))
+      result(InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventorySlot(_, itemInventory, slot), inventory, null, selectedSlot, count))
     })
   }
 
