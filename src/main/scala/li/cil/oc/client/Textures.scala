@@ -107,6 +107,7 @@ object Textures {
 
   // These are kept in the block texture atlas to support animations.
   object Block extends TextureBundle {
+    val AdapterOn = L("overlay/adapter_on")
     val AssemblerSideAssembling = L("overlay/assembler_side_assembling")
     val AssemblerSideOn = L("overlay/assembler_side_on")
     val AssemblerTopOn = L("overlay/assembler_top_on")
