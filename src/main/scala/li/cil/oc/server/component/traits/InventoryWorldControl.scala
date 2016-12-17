@@ -14,7 +14,7 @@ import net.minecraft.util.EnumFacing
 import scala.collection.convert.WrapAsScala._
 
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
-  @Callback(doc = "function(side:number):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
+  @Callback(doc = "function(side:number[, fuzzy:boolean=false]):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
@@ -23,7 +23,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
           val blockPos = position.offset(side).toBlockPos
           val state = world.getBlockState(blockPos)
           val idMatches = item.getBlock == state.getBlock
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == state.getBlock.getMetaFromState(state)
+          val subTypeMatches = args.optBoolean(1, false) || !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == state.getBlock.getMetaFromState(state)
           return result(idMatches && subTypeMatches)
         case _ =>
       }
