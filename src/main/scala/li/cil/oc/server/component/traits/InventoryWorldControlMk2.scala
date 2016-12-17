@@ -8,8 +8,8 @@ import li.cil.oc.server.component.result
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.items.IItemHandler
 
 trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideRestricted {
   @Callback(doc = """function(facing:number, slot:number[, count:number[, fromSide:number]]):boolean -- Drops the selected item stack into the specified slot of an inventory.""")
@@ -21,7 +21,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     if (stack != null && stack.stackSize > 0) {
       withInventory(position.offset(facing), fromSide, inventory => {
         val slot = args.checkSlot(inventory, 1)
-        if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, Option(fromSide), slot, count)) {
+        if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, slot, count)) {
           // Cannot drop into that inventory.
           return result(false, "inventory full/invalid slot")
         }
@@ -49,7 +49,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     val fromSide = args.optSideAny(3, facing.getOpposite)
     withInventory(position.offset(facing), fromSide, inventory => {
       val slot = args.checkSlot(inventory, 1)
-      if (InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, fromSide, slot, count)) {
+      if (InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots)), inventory, slot, count)) {
         context.pause(Settings.get.suckDelay)
         result(true)
       }
@@ -57,9 +57,9 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     })
   }
 
-  private def withInventory(blockPos: BlockPosition, fromSide: EnumFacing, f: IInventory => Array[AnyRef]) =
-    InventoryUtils.inventoryAt(blockPos) match {
-      case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, fromSide) => f(inventory)
+  private def withInventory(blockPos: BlockPosition, fromSide: EnumFacing, f: IItemHandler => Array[AnyRef]) =
+    InventoryUtils.inventoryAt(blockPos, fromSide) match {
+      case Some(inventory) if mayInteract(blockPos, fromSide) => f(inventory)
       case _ => result(Unit, "no inventory")
     }
 }

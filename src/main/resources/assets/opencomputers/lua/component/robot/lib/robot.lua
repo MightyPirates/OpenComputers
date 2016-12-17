@@ -72,16 +72,16 @@ end
 -------------------------------------------------------------------------------
 -- Inventory + World
 
-function robot.compare()
-  return component.robot.compare(sides.front)
+function robot.compare(fuzzy)
+  return component.robot.compare(sides.front, fuzzy)
 end
 
-function robot.compareUp()
-  return component.robot.compare(sides.up)
+function robot.compareUp(fuzzy)
+  return component.robot.compare(sides.up, fuzzy)
 end
 
-function robot.compareDown()
-  return component.robot.compare(sides.down)
+function robot.compareDown(fuzzy)
+  return component.robot.compare(sides.down, fuzzy)
 end
 
 function robot.drop(count)

@@ -1,6 +1,7 @@
 package li.cil.oc.server.agent
 
 import li.cil.oc.api.internal
+import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
@@ -9,9 +10,9 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
-import li.cil.oc.util.ExtendedInventory._
 
 class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
+
   def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 
   def inventorySlots = (agent.selectedSlot until getSizeInventory) ++ (0 until agent.selectedSlot)
@@ -53,7 +54,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def addItemStackToInventory(stack: ItemStack) = {
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
-    InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
+    InventoryUtils.insertIntoInventory(stack, InventoryUtils.asItemHandler(this), slots = Option(slots))
   }
 
   override def canHeldItemHarvest(block: Block): Boolean = block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))

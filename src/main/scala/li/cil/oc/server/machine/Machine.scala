@@ -325,6 +325,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             case arg: java.lang.String => arg
             case arg: Array[Byte] => arg
             case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+            case arg: mutable.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
+            case arg: java.util.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
             case arg: NBTTagCompound => arg
             case arg =>
               OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
@@ -766,7 +768,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
-    assert(!isExecuting) // Lock on 'this' should guarantee this.
+    // The lock on 'this' should guarantee that this never happens regularly.
+    // If something other than regular saving tries to save while we are executing code,
+    // e.g. SpongeForge saving during robot.move due to block changes being captured,
+    // just don't save this at all. What could possibly go wrong?
+    if(isExecuting) return
 
     if (SaveHandler.savingForClients) {
       return
