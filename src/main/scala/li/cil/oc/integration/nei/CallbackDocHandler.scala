@@ -26,7 +26,7 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
     if (input == "item") {
       ingredients.collect {
         case stack: ItemStack if stack.getItem != null =>
-          val callbacks = getCallbacks(api.Driver.environmentFor(stack)).toBuffer
+          val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
           // TODO remove in OC 1.7
           if (callbacks.isEmpty) {
