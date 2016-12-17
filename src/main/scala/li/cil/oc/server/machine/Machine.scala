@@ -325,6 +325,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             case arg: java.lang.String => arg
             case arg: Array[Byte] => arg
             case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+            case arg: mutable.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
+            case arg: java.util.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
             case arg: NBTTagCompound => arg
             case arg =>
               OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
