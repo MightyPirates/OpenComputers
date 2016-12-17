@@ -27,7 +27,8 @@ trait OpenSides extends TileEntity {
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
+    if (nbt.hasKey(Settings.namespace + "openSides"))
+      openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
