@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import java.util.Calendar
 import java.util.GregorianCalendar
+import java.util.TimeZone
 
 import scala.collection.mutable
 
@@ -24,11 +25,11 @@ object GameTimeFormatter {
     'A' -> (t => weekDays(t.weekDay - 1)),
     'b' -> (t => shortMonths(t.month - 1)),
     'B' -> (t => months(t.month - 1)),
-    'c' -> (t => format("%a %b %d %H:%M:%S %Y", t)),
+    'c' -> (t => format("%a %b %e %H:%M:%S %Y", t)),
     'C' -> (t => f"${t.year / 100}%02d"),
     'd' -> (t => f"${t.day}%02d"),
     'D' -> (t => format("%m/%d/%y", t)),
-    'e' -> (t => f"${t.day}% 2d"),
+    'e' -> (t => f"${t.day}%2d"),
     'F' -> (t => format("%Y-%m-%d", t)),
     //'g' -> (t => ""),
     //'G' -> (t => ""),
@@ -60,7 +61,7 @@ object GameTimeFormatter {
   )
 
   def parse(time: Double) = {
-    val calendar = new GregorianCalendar()
+    val calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     calendar.setTimeInMillis((time * 1000).toLong)
 
     new DateTime(
@@ -91,7 +92,7 @@ object GameTimeFormatter {
   }
 
   def mktime(year: Int, mon: Int, mday: Int, hour: Int, min: Int, sec: Int): Option[Int] = {
-    val calendar = new GregorianCalendar()
+    val calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     calendar.set(Calendar.YEAR, year)
     calendar.set(Calendar.MONTH, mon - 1)
     calendar.set(Calendar.DAY_OF_MONTH, mday)
