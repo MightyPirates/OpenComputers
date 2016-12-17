@@ -92,6 +92,8 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   def used(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Unit = {}
 
+  def shouldHideFacades(stack: ItemStack, player: EntityPlayer): Boolean = false
+
   // Mekanism
 
   def canUseWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
