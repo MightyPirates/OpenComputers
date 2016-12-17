@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * This API allows registering new drivers with the mod.
@@ -219,10 +220,28 @@ public final class Driver {
      *
      * @param stack the item stack to get the environment type for.
      * @return the type of environment associated with the stack, or <tt>null</tt>.
+     * @deprecated Use {@link #environmentsFor(ItemStack)} instead.
      */
+    @Deprecated
     public static Class<?> environmentFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.environmentFor(stack);
+        return null;
+    }
+
+    /**
+     * Looks up the environments associated with the specified item stack.
+     * <p/>
+     * This will use the registered {@link EnvironmentProvider}s to find
+     * environment types for the specified item stack. If none can be
+     * found, returns an empty Set.
+     *
+     * @param stack the item stack to get the environment type for.
+     * @return the type of environment associated with the stack, or an empty Set, or null if the API is not present.
+     */
+    public static Set<Class<?>> environmentsFor(ItemStack stack) {
+        if (API.driver != null)
+            return API.driver.environmentsFor(stack);
         return null;
     }
 

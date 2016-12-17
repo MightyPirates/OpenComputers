@@ -1,7 +1,7 @@
 package li.cil.oc.common.item.data
 
-import li.cil.oc.Constants
-import li.cil.oc.Settings
+import li.cil.oc.{Constants, Settings}
+import li.cil.oc.server.component.DebugCard.AccessContext
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -11,19 +11,16 @@ class DebugCardData extends ItemData(Constants.ItemName.DebugCard) {
     load(stack)
   }
 
-  var player: Option[String] = None
+  var access: Option[AccessContext] = None
 
-  override def load(nbt: NBTTagCompound) {
-    val tag = dataTag(nbt)
-    if (tag.hasKey(Settings.namespace + "player")) {
-      player = Option(tag.getString(Settings.namespace + "player"))
-    }
+  override def load(nbt: NBTTagCompound): Unit = {
+    access = AccessContext.load(dataTag(nbt))
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound): Unit = {
     val tag = dataTag(nbt)
-    tag.removeTag(Settings.namespace + "player")
-    player.foreach(tag.setString(Settings.namespace + "player", _))
+    AccessContext.remove(tag)
+    access.foreach(_.save(tag))
   }
 
   private def dataTag(nbt: NBTTagCompound) = {

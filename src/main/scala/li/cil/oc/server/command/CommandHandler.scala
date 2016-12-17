@@ -10,5 +10,6 @@ object CommandHandler {
     e.registerServerCommand(NonDisassemblyAgreementCommand)
     e.registerServerCommand(WirelessRenderingCommand)
     e.registerServerCommand(SpawnComputerCommand)
+    e.registerServerCommand(DebugWhitelistCommand)
   }
 }

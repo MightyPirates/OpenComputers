@@ -32,6 +32,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendAdapterState(t: tileentity.Adapter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.AdapterState)
+
+    pb.writeTileEntity(t)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendAnalyze(address: String, player: EntityPlayerMP) {
     val pb = new SimplePacketBuilder(PacketType.Analyze)
 

@@ -248,16 +248,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val hitX = arrow.posX - x
         val hitY = arrow.posY - y
         val hitZ = arrow.posZ - z
-        val hitXInner = math.abs(hitX - 0.5) < 0.45
-        val hitYInner = math.abs(hitY - 0.5) < 0.45
-        val hitZInner = math.abs(hitZ - 0.5) < 0.45
-        if (hitXInner && hitYInner && !hitZInner ||
-          hitXInner && !hitYInner && hitZInner ||
-          !hitXInner && hitYInner && hitZInner) {
-          arrow.shootingEntity match {
-            case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
-            case _ =>
-          }
+        arrow.shootingEntity match {
+          case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
+          case _ =>
         }
       }
       arrows.clear()

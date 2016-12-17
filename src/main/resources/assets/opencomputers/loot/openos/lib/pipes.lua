@@ -126,13 +126,13 @@ function plib.internal.redirectRead(pm)
   return reader
 end
 
-function plib.internal.create(fp)
+function plib.internal.create(fp, init, name)
   local _co = process.info().data.coroutine_handler
 
   local pco = setmetatable(
   {
     stack = {},
-    next = nil,
+    next = false,
     create = _co.create,
     wrap = _co.wrap,
     previous_handler = _co
@@ -161,19 +161,19 @@ function plib.internal.create(fp)
     return _co.yield(...)
   end
   function pco.set_unwind(from)
-    pco.next = nil
+    pco.next = false
     if from then
       local index = pco.index_of(from)
       if index then
         pco.stack = tx.sub(pco.stack, 1, index-1)
-        pco.next = pco.stack[index-1]
+        pco.next = pco.stack[index-1] or false
       end
     end
   end
   function pco.resume_all(...)
     local base = pco.stack[1]
     local top = pco.top()
-    if type(base) ~= "thread" or _co.status(base) ~= "suspended" or 
+    if type(base) ~= "thread" or _co.status(base) ~= "suspended" or
        type(top) ~= "thread" or _co.status(top) ~= "suspended" then
       return false
     end
@@ -193,7 +193,7 @@ function plib.internal.create(fp)
     checkArg(1, thread, "thread")
     local status = pco.status(thread)
     if status ~= "suspended" then
-      local msg = string.format("cannot resume %s coroutine", 
+      local msg = string.format("cannot resume %s coroutine",
         status == "dead" and "dead" or "non-suspended")
       return false, msg
     end
@@ -212,7 +212,7 @@ function plib.internal.create(fp)
       return true, _co.yield(...) -- pass args to resume next
     else
       -- the stack is not running
-      pco.next = nil
+      pco.next = false
       local yield_args = table.pack(_co.resume(thread, ...))
       if #pco.stack > 0 then
         -- thread may have crashed (crash unwinds as well)
@@ -226,7 +226,7 @@ function plib.internal.create(fp)
           -- in such a case, yield out first, then resume where we left off
         if pco.next and pco.next ~= thread then
           local next = pco.next
-          pco.next = nil
+          pco.next = false
           return pco.resume(next, table.unpack(yield_args,2,yield_args.n))
         end
       end
@@ -251,7 +251,7 @@ function plib.internal.create(fp)
   end
 
   if fp then
-    pco.stack = {process.load(fp,nil,nil--[[init]],"pco root")}
+    pco.stack = {process.load(fp,nil,init,name or "pco root")}
     process.info(pco.stack[1]).data.coroutine_handler = pco
   end
 
@@ -320,7 +320,7 @@ function pipeManager.new(prog, mode, env)
   )
   pm.prog_id = pm.mode == "r" and 1 or 2
   pm.self_id = pm.mode == "r" and 2 or 1
-  pm.handler = pm.mode == "r" and 
+  pm.handler = pm.mode == "r" and
     function()return pipeManager.reader(pm)end or
     function()pm.dead=true end
 
@@ -329,10 +329,8 @@ function pipeManager.new(prog, mode, env)
   pm.commands[pm.self_id] = {pm.handler, {}}
 
   pm.root = function()
-    local startup_args = {}
-
     local reason
-    pm.threads, reason = sh.internal.createThreads(pm.commands, {}, pm.env)
+    pm.threads, reason = sh.internal.createThreads(pm.commands, pm.env, {[pm.prog_id]=table.pack(pm.env,pm.prog)})
 
     if not pm.threads then
       pm.dead = true
@@ -340,8 +338,7 @@ function pipeManager.new(prog, mode, env)
     end
 
     pm.pipe = process.info(pm.threads[1]).data.io[1]
-    process.info(pm.threads[pm.prog_id]).data.args = {pm.env,pm.prog}
-    
+
     -- if we are the writer, we need args to resume prog
     if pm.mode == "w" then
       pm.pipe.stream.redirect[0] = plib.internal.redirectRead(pm)
@@ -365,7 +362,7 @@ function plib.popen(prog, mode, env)
   end
 
   pm.pco=plib.internal.create(pm.root)
-  
+
   local pfd = require("buffer").new(mode, pipeStream.new(pm))
   pfd:setvbuf("no", 0) -- 2nd are to read chunk size
 

@@ -1,5 +1,8 @@
 local fs = require("filesystem")
 local comp = require("component")
+local text = require("text")
+
+local sys = {} -- base class
 
 local function new_node(parent, name, is_dir, proxy)
   local node = {parent=parent, name=name, is_dir=is_dir, proxy=proxy}
@@ -9,187 +12,230 @@ local function new_node(parent, name, is_dir, proxy)
   return node
 end
 
-local function new_devfs_dir(name)
-  local sys = {}
-  sys.mtab = new_node(nil, name or "/", true)
+-- node may support isAvailable, and may choose to not be available
+local function isAvailable(node)
+  return node and not (node.proxy and node.proxy.isAvailable and not node.proxy.isAvailable()) 
+end
 
-  -- returns: dir, point or path
-  -- node (table): the handler responsible for the path
-  --   this is essentially the device filesystem that is registered for the given path
-  -- point (string): the point name (like a file name)
-  function sys.findNode(path, create)
-    checkArg(1, path, "string")
-    local segments = fs.segments(path)
-    local node = sys.mtab
-    while #segments > 0 do
-      local name = table.remove(segments, 1)
-      local prev_path = path
-      path = table.concat(segments, "/")
-
-      if not node.children[name] then
-        if not create then
-          path = prev_path
-          break
-        end
-        node.children[name] = new_node(node, name, true, false)
-      end
-
-      node = node.children[name]
-
-      if node.proxy then -- if there is a proxy handler we stop searching here
-        break
-      end
-    end
-
-    -- only dirs can have trailing path
-    -- trailing path on a dev point (file) not allowed
-    if path == "" or node.is_dir and node.proxy then
-      return node, path
-    end
-  end
-
-  function sys.invoke(method, path, ...)
-    local node, rest = sys.findNode(path)
-    if not node or -- not found
-       rest == "" and node.is_dir or -- path is dir
-       not node.proxy[method] then -- optional method
-      return 0
-    end
-    -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
-    return node.proxy[method](rest)
-  end
-
-  function sys.size(path)
-    return sys.invoke("size", path)
-  end
-
-  function sys.lastModified(path)
-    return sys.invoke("lastModified", path)
-  end
-
-  function sys.isDirectory(path)
-    local node, rest = sys.findNode(path)
-    if not node then
-      return
-    end
-
-    if rest == "" then
-      return node.is_dir
-    elseif node.proxy then
-      return node.proxy.isDirectory(rest)
-    end
-  end
-
-  function sys.open(path, mode)
-    checkArg(1, path, "string")
-    checkArg(2, mode, "string", "nil")
-
-    if not sys.exists(path) then
-      return nil, path.." file not found"
-    elseif sys.isDirectory(path) then
-      return nil, path.." is a directory"
-    end
-
-    mode = mode or "r"
-    -- everything at this level should be a binary open
-    mode = mode:gsub("b", "")
-
-    if not ({a=true,w=true,r=true})[mode] then
-      return nil, "invalid mode"
-    end
-
-    local node, rest = sys.findNode(path)
-    -- there must be a node, else exists would have failed
-
-    local args = {}
-    if rest ~= "" then
-      -- having more rest means we expect the proxy fs to open the point
-      args[1] = rest
-    end
-    args[#args+1] = mode
-
-    return node.proxy.open(table.unpack(args))
-  end
-
-  function sys.list(path)
-    local node, rest = sys.findNode(path)
-    if not node or (rest ~= "" and not node.is_dir) then-- not found
-      return {}
-    elseif rest == "" and not node.is_dir then -- path is file
-      return {path}
-    elseif node.proxy then
-      -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
-      return node.proxy.list(rest)
-    end
-
-    -- rest == "" and node.is_dir
-    local keys = {}
-    for k in pairs(node.children) do
-      table.insert(keys, k)
-    end
-    return keys
-  end
-
-  function sys.remove(path)
-    checkArg(1, path, "string")
-
-    if path == "" then
-      return nil, "no such file or directory"
-    end
-
-    if not sys.exists(path) then
-      return nil, path.." file not found"
-    end
-
-    local node, rest = sys.findNode(path)
-
-    if rest ~= "" then -- if rest is not resolved, this isn't our path
-      return node.proxy.remove(rest)
-    end
-
-    node.parent.children[node.name] = nil
-  end
-
-  function sys.exists(path)
-    checkArg(1, path, "string")
-    local node, rest = sys.findNode(path)
-
-    if not node then
-      return false
-    elseif rest == "" then
-      return true
-    else
-      return node.proxy.exists(rest)
-    end
-  end
-
-  function sys.create(path, handler)
-    if sys.exists(path) then
-      return nil, "path already exists"
-    end
-
-    local segments = fs.segments(path)
-    local target = table.remove(segments)
+-- returns: dir, point or path
+-- node (table): the handler responsible for the path
+--   this is essentially the device filesystem that is registered for the given path
+-- point (string): the point name (like a file name)
+function sys:findNode(path, create)
+  checkArg(1, path, "string")
+  local segments = fs.segments(path)
+  local node = self.mtab
+  while #segments > 0 do
+    local name = table.remove(segments, 1)
+    local prev_path = path
     path = table.concat(segments, "/")
 
-    if not target or target == "" then
-      return nil, "missing argument"
+    local next_node = node.children[name]
+    if not isAvailable(next_node) then
+      next_node = nil
     end
 
-    local node, rest = sys.findNode(path, true)
-    if rest ~= "" then
-      return node.proxy.create(rest, handler)
+    if not next_node then
+      if not create then
+        path = prev_path
+        break
+      end
+      node.children[name] = new_node(node, name, true, false)
     end
-    node.children[target] = new_node(node, target, not not handler.list, handler)
-    return true
+
+    node = node.children[name]
+
+    if node.proxy then -- if there is a proxy handler we stop searching here
+      break
+    end
   end
 
-  return sys
+  -- only dirs can have trailing path
+  -- trailing path on a dev point (file) not allowed
+  if path == "" or node.is_dir and node.proxy then
+    return node, path
+  end
+end
+
+function sys:invoke(method, path, ...)
+  local node, rest = self.findNode(path)
+  if not node or -- not found
+      rest == "" and node.is_dir or -- path is dir
+      not node.proxy[method] then -- optional method
+    return 0
+  end
+  -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
+  return node.proxy[method](rest)
+end
+
+function sys:size(path)
+  return self.invoke("size", path)
+end
+
+function sys:lastModified(path)
+  return self.invoke("lastModified", path)
+end
+
+function sys:isDirectory(path)
+  local node, rest = self.findNode(path)
+  if not node then
+    return
+  end
+
+  if rest == "" then
+    return node.is_dir
+  elseif node.proxy then
+    return node.proxy.isDirectory(rest)
+  end
+end
+
+function sys:open(path, mode)
+  checkArg(1, path, "string")
+  checkArg(2, mode, "string", "nil")
+
+  if not self.exists(path) then
+    return nil, path.." file not found"
+  elseif self.isDirectory(path) then
+    return nil, path.." is a directory"
+  end
+
+  mode = mode or "r"
+  -- everything at this level should be a binary open
+  mode = mode:gsub("b", "")
+
+  if not ({a=true,w=true,r=true})[mode] then
+    return nil, "invalid mode"
+  end
+
+  local node, rest = self.findNode(path)
+  -- there must be a node, else exists would have failed
+
+  local args = {}
+  if rest ~= "" then
+    -- having more rest means we expect the proxy fs to open the point
+    args[1] = rest
+  end
+  args[#args+1] = mode
+
+  return node.proxy.open(table.unpack(args))
+end
+
+function sys:list(path)
+  local node, rest = self.findNode(path)
+  if not node or (rest ~= "" and not node.is_dir) then-- not found
+    return {}
+  elseif rest == "" and not node.is_dir then -- path is file
+    return {path}
+  elseif node.proxy then
+    -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
+    return node.proxy.list(rest)
+  end
+
+  -- rest == "" and node.is_dir
+  local keys = {}
+  for k,node in pairs(node.children) do
+    if isAvailable(node) then
+      table.insert(keys, k)
+    end
+  end
+  return keys
+end
+
+function sys:remove(path)
+  return nil, "cannot remove devfs files or directories"
+  --checkArg(1, path, "string")
+
+  --if path == "" then
+  --  return nil, "no such file or directory"
+  --end
+
+  --if not self.exists(path) then
+  --  return nil, path.." file not found"
+  --end
+
+  --local node, rest = self.findNode(path)
+
+  --if rest ~= "" then -- if rest is not resolved, this isn't our path
+  --  return node.proxy.remove(rest)
+  --end
+
+  --node.parent.children[node.name] = nil
+end
+
+function sys:exists(path)
+  checkArg(1, path, "string")
+  local node, rest = self.findNode(path)
+
+  if not node then
+    return false
+  elseif rest == "" then
+    return true
+  else
+    return node.proxy.exists(rest)
+  end
+end
+
+function sys:create(path, handler)
+  if self.exists(path) then
+    return nil, "path already exists"
+  end
+
+  local segments = fs.segments(path)
+  local target = table.remove(segments)
+  path = table.concat(segments, "/")
+
+  if not target or target == "" then
+    return nil, "missing argument"
+  end
+
+  local node, rest = self.findNode(path, true)
+  if rest ~= "" then
+    return node.proxy.create(rest, handler)
+  end
+  node.children[target] = new_node(node, target, not not handler.list, handler)
+  return true
+end
+
+local function new_devfs_dir(name)
+  local sys_child = setmetatable({}, {__index=function(tbl,key)
+    if sys[key] then
+      return function(...)
+        return sys[key](tbl, ...)
+      end
+    end
+  end})
+  sys_child.mtab = new_node(nil, name or "/", true)
+
+  return sys_child
 end
 
 local devfs = new_devfs_dir()
 
 local bfd = "bad file descriptor"
+
+-- to allow sub dirs to act like sub devfs
+devfs.new_dir = new_devfs_dir
+devfs.new_node = new_node
+function devfs.new_callback_proxy(read_callback, write_callback)
+  return
+  {
+    open = function(mode)
+      if ({r=true, rb=true})[mode] then
+        if not read_callback then
+          return nil, "file cannot be opened for read"
+        end
+        return text.internal.reader(read_callback())
+      end
+      if not write_callback then
+        return nil, "file cannot be opened for write"
+      end
+      return text.internal.writer(write_callback, ({a=true,ab=true})[mode] and read_callback())
+    end,
+    size = function()
+      return read_callback and string.len(read_callback()) or 0
+    end
+  }
+end
 
 function devfs.setLabel(value)
   error("drive does not support labeling")
@@ -267,12 +313,15 @@ end
 -- /dev is a special handler
 
 local function devfs_load(key)
-  return require("tools/devfs/" .. key)
+  -- using loadfile to allow us to pass args
+  -- load order complication: some dev points are dirs that want to use devfs api, but can't require devfs
+  devfs.create(key, loadfile("/lib/tools/devfs/" .. key .. ".lua", "bt", _G)(devfs))
 end
 
-devfs.create("null", devfs_load("null"))
-devfs.create("random", devfs_load("random"))
-devfs.create("eeprom", devfs_load("eeprom"))
-devfs.create("eeprom-data", devfs_load("eeprom-data"))
+devfs_load("random")
+devfs_load("null")
+devfs_load("eeprom")
+devfs_load("eeprom-data")
+--devfs_load("filesystems")
 
 return devfs

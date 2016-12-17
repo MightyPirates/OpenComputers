@@ -162,7 +162,7 @@ end
 local function wide(n,i)
   local t = _isLink(n,i) and 'l' or _isDir(n,i) and 'd' or 'f'
   local link_target = _isLink(n,i) and
-    string.format(" -> %s",_linkPath(n,i)..(_isDir(n,i)and"/"or""))or""
+    string.format(" -> %s", _linkPath(n, i):gsub("/+$", "") .. (_isDir(n, i) and "/" or "")) or ""
   local w = fs.get(_fullPath(n,i)).isReadOnly() and '-' or 'w'
   local size = formatSize(_size(n,i))
   local modDate = formatDate(_time(n,i))
