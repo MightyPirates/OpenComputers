@@ -1,18 +1,19 @@
 package li.cil.oc.integration.enderio
 
-import crazypants.enderio.tool.ITool
+import crazypants.enderio.api.tool.ITool
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
 
 object EventHandlerEnderIO {
-  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getHeldItem.getItem match {
+  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
+    player.getHeldItemMainhand.getItem match {
       case wrench: ITool =>
         if (changeDurability) {
-          wrench.used(player.getHeldItem, player, x, y, z)
+          wrench.used(player.getHeldItemMainhand, player, pos)
           true
         }
-        else wrench.canUse(player.getHeldItem, player, x, y, z)
+        else wrench.canUse(player.getHeldItemMainhand, player, pos)
       case _ => false
     }
   }

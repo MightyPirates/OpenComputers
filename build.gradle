@@ -106,7 +106,12 @@ repositories {
     maven {
         name = "IGW"
         url = "http://maven.k-4u.nl/"
-    }/*
+    }
+    maven {
+        name 'EnderIO'
+        url "http://maven.tterrag.com"
+    }
+    /*
     maven {
         name = "dmodoomsirius"
         url = "http://api.dmodoomsirius.me/"
@@ -154,10 +159,6 @@ repositories {
     ivy {
         name 'MineFactoryReloaded'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'EnderIO'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
     }
     ivy {
         name 'Railcraft'
@@ -213,8 +214,21 @@ dependencies {
     provided ("mrtjp:ProjectRed:${config.projred.version}:dev") {
         exclude module: 'CoFHCore'
     }
-    provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
-
+    provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"*/
+    deobfCompile "com.enderio.core:EnderCore:${config.ec.version}"
+    deobfCompile("com.enderio:EnderIO:${config.eio.version}") {
+        exclude module: "appliedenergistics2"
+        exclude module: "buildcraft"
+        exclude module: "Waila"
+        exclude module: "forestry_1.10.2"
+        exclude module: "OpenComputers"
+        exclude module: "CodeChickenLib"
+        exclude module: "CodeChickenCore"
+        exclude module: "EquivalentExchange3"
+        exclude module: "jei_1.10.2"
+        exclude module: "Tesla"
+    }
+/*
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
     provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
@@ -223,7 +237,6 @@ dependencies {
     provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
     provided name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
     provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
@@ -261,7 +274,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
-            exclude 'li/cil/oc/integration/enderio/**'
+            //exclude 'li/cil/oc/integration/enderio/**'
             //exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/gc/**'

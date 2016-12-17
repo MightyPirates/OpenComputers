@@ -14,6 +14,7 @@ import mezz.jei.api.IGuiHelper
 import mezz.jei.api.IModRegistry
 import mezz.jei.api.gui.IDrawable
 import mezz.jei.api.gui.IRecipeLayout
+import mezz.jei.api.ingredients.IIngredients
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
@@ -32,7 +33,7 @@ object CallbackDocHandler {
 
   def getRecipes(registry: IModRegistry): util.List[_] = registry.getItemRegistry.getItemList.collect {
     case stack: ItemStack =>
-      val callbacks = getCallbacks(api.Driver.environmentFor(stack)).toBuffer
+      val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
       // TODO remove in OC 1.7
       if (callbacks.isEmpty) {
@@ -107,7 +108,9 @@ object CallbackDocHandler {
 
   class CallbackDocRecipe(val stack: ItemStack, val page: String) extends BlankRecipeWrapper {
 
-    override def getInputs: util.List[_] = List(stack)
+    override def getInputs: util.List[ItemStack] = List(stack)
+
+    override def getIngredients(ingredients: IIngredients): Unit = ingredients.setInputs(classOf[ItemStack], getInputs)
 
     override def drawInfo(@Nonnull minecraft: Minecraft, recipeWidth: Int, recipeHeight: Int, mouseX: Int, mouseY: Int): Unit = {
       for ((text, line) <- page.lines.zipWithIndex) {
@@ -119,7 +122,7 @@ object CallbackDocHandler {
   object CallbackDocRecipeCategory extends BlankRecipeCategory[CallbackDocRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
-    private var background: IDrawable = null
+    private var background: IDrawable = _
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
@@ -128,6 +131,9 @@ object CallbackDocHandler {
     override def getBackground: IDrawable = background
 
     override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe) {
+    }
+
+    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe, ingredients: IIngredients) {
     }
 
     override def getTitle = "OpenComputers API"

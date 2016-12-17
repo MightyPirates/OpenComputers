@@ -11,12 +11,15 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.items.CapabilityItemHandler
+import net.minecraftforge.items.IItemHandler
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -137,16 +140,29 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
 
+  @Deprecated
   override def environmentFor(stack: ItemStack): Class[_] = {
     environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
       case clazz: Class[_] => clazz
     }.orNull
   }
 
-  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+  override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
+
+  @Deprecated
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer):IInventory = {
+    OpenComputers.log.warn("A mod is using the deprecated method li.cil.oc.api.Driver.inventoryFor; use itemHandlerFor instead.")
+    null
+  }
+
+  override def itemHandlerFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
-      map(provider => provider.getInventory(stack, player)).
-      orNull
+      map(provider => InventoryUtils.asItemHandler(provider.getInventory(stack, player))).
+      getOrElse {
+        if(stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
+          stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
+        else null
+      }
   }
 
   override def blockDrivers = blocks.toSeq

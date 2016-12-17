@@ -107,7 +107,14 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   override def onDisconnect(node: network.Node) {
     if (node == this.node) node match {
-      case connector: Connector => connector.setLocalBufferSize(0)
+      case connector: Connector =>
+        // Set it to zero to push all energy into other nodes, to
+        // avoid energy loss when removing nodes. Set it back to the
+        // original value though, as there are cases where the node
+        // is re-used afterwards, without re-adjusting its buffer size.
+        var bufferSize = connector.localBufferSize()
+        connector.setLocalBufferSize(0)
+        connector.setLocalBufferSize(bufferSize)
       case _ =>
     }
   }

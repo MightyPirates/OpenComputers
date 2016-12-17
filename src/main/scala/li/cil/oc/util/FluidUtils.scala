@@ -7,6 +7,7 @@ import net.minecraft.block.BlockDynamicLiquid
 import net.minecraft.block.BlockLiquid
 import net.minecraft.block.BlockStaticLiquid
 import net.minecraft.init.Blocks
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidRegistry
@@ -15,6 +16,8 @@ import net.minecraftforge.fluids.FluidTank
 import net.minecraftforge.fluids.FluidTankInfo
 import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.fluids.IFluidHandler
+import net.minecraftforge.fluids.capability
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler
 
 object FluidUtils {
   /**
@@ -22,9 +25,14 @@ object FluidUtils {
    * <p/>
    * This performs special handling for in-world liquids.
    */
-  def fluidHandlerAt(position: BlockPosition): Option[IFluidHandler] = position.world match {
+  def fluidHandlerAt(position: BlockPosition, side: EnumFacing): Option[IFluidHandler] = position.world match {
     case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
       case handler: IFluidHandler => Option(handler)
+      case t: TileEntity if t.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) =>
+        t.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) match {
+          case handler: capability.IFluidHandler => Option(new HandlerCapabilityWrapper(position, handler))
+          case _ => Option(new GenericBlockWrapper(position))
+        }
       case _ => Option(new GenericBlockWrapper(position))
     }
     case _ => None
@@ -53,8 +61,8 @@ object FluidUtils {
    * cases such as fluid blocks.
    */
   def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) =
-    fluidHandlerAt(sourcePos).fold(0)(source =>
-      fluidHandlerAt(sinkPos).fold(0)(sink =>
+    fluidHandlerAt(sourcePos, sourceSide).fold(0)(source =>
+      fluidHandlerAt(sinkPos, sinkSide).fold(0)(sink =>
         transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
 
   /**
@@ -170,6 +178,20 @@ object FluidUtils {
     }
 
     override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array.empty
+  }
+
+  private class HandlerCapabilityWrapper(val position: BlockPosition, val handler: capability.IFluidHandler) extends IFluidHandler {
+    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = handler.drain(resource, doDrain)
+
+    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = handler.drain(maxDrain, doDrain)
+
+    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canFill)
+
+    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canDrain)
+
+    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = handler.fill(resource, doFill)
+
+    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = handler.getTankProperties.map(f => new FluidTankInfo(f.getContents, f.getCapacity))
   }
 
 }

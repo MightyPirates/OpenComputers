@@ -28,6 +28,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
+import net.minecraft.scoreboard.{IScoreCriteria, Scoreboard}
 import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -127,6 +128,12 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     result(FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames)
+  }
+
+  @Callback(doc = """function():userdata -- Get the scoreboard object for the world""")
+  def getScoreboard(context: Context, args: Arguments): Array[AnyRef] = {
+    checkAccess()
+    result(new DebugCard.ScoreboardValue(Option(host.world)))
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -389,6 +396,136 @@ object DebugCard {
     }
   }
 
+  class ScoreboardValue(world: Option[World])(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
+    var scoreboard = world.fold(null: Scoreboard)(_.getScoreboard)
+    var dimension = world.fold(0)(_.provider.getDimension)
+
+    def this() = this(None)(None) // For loading.
+
+    @Callback(doc = """function(team:string) - Add a team to the scoreboard""")
+    def addTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val team = args.checkString(0)
+      scoreboard.createTeam(team)
+      null
+    }
+
+    @Callback(doc = """function(teamName: string) - Remove a team from the scoreboard""")
+    def removeTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val teamName = args.checkString(0)
+      val team = scoreboard.getTeam(teamName)
+      scoreboard.removeTeam(team)
+      null
+    }
+
+    @Callback(doc = """function(player:string, team:string):boolean - Add a player to a team""")
+    def addPlayerToTeam(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val player = args.checkString(0)
+      val team = args.checkString(1)
+      result(scoreboard.addPlayerToTeam(player, team))
+    }
+
+    @Callback(doc = """function(player:string):boolean - Remove a player from their team""")
+    def removePlayerFromTeams(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val player = args.checkString(0)
+      result(scoreboard.removePlayerFromTeams(player))
+    }
+
+    @Callback(doc = """function(player:string, team:string):boolean - Remove a player from a specific team""")
+    def removePlayerFromTeam(context: Context, args: Arguments): Array[AnyRef] =
+    {
+      checkAccess()
+      val player = args.checkString(0)
+      val teamName = args.checkString(1)
+      val team = scoreboard.getTeam(teamName)
+      scoreboard.removePlayerFromTeam(player, team)
+      null
+    }
+
+    @Callback(doc = """function(objectiveName:string, objectiveCriteria:string) - Create a new objective for the scoreboard""")
+    def addObjective(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val objName = args.checkString(0)
+      val objType = args.checkString(1)
+      val criteria = IScoreCriteria.INSTANCES.get(objType)
+      scoreboard.addScoreObjective(objName, criteria)
+      null
+    }
+
+    @Callback(doc = """function(objectiveName:string) - Remove an objective from the scoreboard""")
+    def removeObjective(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val objName = args.checkString(0)
+      val objective = scoreboard.getObjective(objName)
+      scoreboard.removeObjective(objective)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Sets the score of a player for a certain objective""")
+    def setPlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.setScorePoints(scoreVal)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string):int - Gets the score of a player for a certain objective""")
+    def getPlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val score = scoreboard.getOrCreateScore(name, objective)
+      result(score.getScorePoints())
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Increases the score of a player for a certain objective""")
+    def increasePlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.increaseScore(scoreVal)
+      null
+    }
+
+    @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Decrease the score of a player for a certain objective""")
+    def decreasePlayerScore(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val name = args.checkString(0)
+      val objective = scoreboard.getObjective(args.checkString(1))
+      val scoreVal = args.checkInteger(2)
+      val score = scoreboard.getOrCreateScore(name,objective)
+      score.decreaseScore(scoreVal)
+      null
+    }
+
+
+    // ----------------------------------------------------------------------- //
+
+    private final val DimensionTag = "dimension"
+
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      ctx = AccessContext.load(nbt)
+      dimension = nbt.getInteger(DimensionTag)
+      scoreboard = DimensionManager.getWorld(dimension).getScoreboard
+    }
+
+    override def save(nbt: NBTTagCompound): Unit = {
+      super.save(nbt)
+      ctx.foreach(_.save(nbt))
+      nbt.setInteger(DimensionTag, dimension)
+    }
+  }
+
+
   class WorldValue(var world: World)(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
     def this() = this(null)(None) // For loading.
 
@@ -588,11 +725,11 @@ object DebugCard {
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)
-      InventoryUtils.inventoryAt(position) match {
+      InventoryUtils.inventoryAt(position, side) match {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
           stack.setTagCompound(tag)
-          result(InventoryUtils.insertIntoInventory(stack, inventory, Option(side)))
+          result(InventoryUtils.insertIntoInventory(stack, inventory))
         case _ => result(Unit, "no inventory")
       }
     }
@@ -601,11 +738,11 @@ object DebugCard {
     def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
       checkAccess()
       val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
-      InventoryUtils.inventoryAt(position) match {
+      InventoryUtils.anyInventoryAt(position) match {
         case Some(inventory) =>
           val slot = args.checkSlot(inventory, 3)
-          val count = args.optInteger(4, inventory.getInventoryStackLimit)
-          val removed = inventory.decrStackSize(slot, count)
+          val count = args.optInteger(4, 64)
+          val removed = inventory.extractItem(slot, count, false)
           if (removed == null) result(0)
           else result(removed.stackSize)
         case _ => result(Unit, "no inventory")
@@ -639,6 +776,7 @@ object DebugCard {
         case _ => result(Unit, "no tank")
       }
     }
+
 
     // ----------------------------------------------------------------------- //
 

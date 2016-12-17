@@ -22,7 +22,7 @@ import net.minecraft.world.World
   new Injectable.Interface(value = "buildcraft.api.tools.IToolWrench", modid = Mods.IDs.BuildCraftTools),
   new Injectable.Interface(value = "com.bluepowermod.api.misc.IScrewdriver", modid = Mods.IDs.BluePower),
   new Injectable.Interface(value = "cofh.api.item.IToolHammer", modid = Mods.IDs.CoFHItem),
-  new Injectable.Interface(value = "crazypants.enderio.tool.ITool", modid = Mods.IDs.EnderIO),
+  new Injectable.Interface(value = "crazypants.enderio.api.tool.ITool", modid = Mods.IDs.EnderIO),
   new Injectable.Interface(value = "mekanism.api.IMekWrench", modid = Mods.IDs.Mekanism),
   new Injectable.Interface(value = "powercrystals.minefactoryreloaded.api.IMFRHammer", modid = Mods.IDs.MineFactoryReloaded),
   new Injectable.Interface(value = "mrtjp.projectred.api.IScrewdriver", modid = Mods.IDs.ProjectRedCore),
@@ -91,6 +91,8 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
   def canUse(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Boolean = true
 
   def used(stack: ItemStack, player: EntityPlayer, pos: BlockPos): Unit = {}
+
+  def shouldHideFacades(stack: ItemStack, player: EntityPlayer): Boolean = false
 
   // Mekanism
 
