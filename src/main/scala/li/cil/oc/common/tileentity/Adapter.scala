@@ -89,16 +89,8 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
         // inventories, which I actually consider a plus :P
         case _ =>
           Option(api.Driver.driverFor(world, x, y, z, d)) match {
-            case Some(newDriver) => blocks(d.ordinal()) match {
+            case Some(newDriver) if isSideOpen(d) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
-                if(!isSideOpen(d)) {
-                  // Good bye.
-                  blocks(d.ordinal()) = None
-                  updatingBlocks -= oldEnvironment
-                  blocksData(d.ordinal()) = None
-                  node.disconnect(oldEnvironment.node)
-                  return
-                }
                 if (newDriver != driver) {
                   // This is... odd. Maybe moved by some other mod? First, clean up.
                   blocks(d.ordinal()) = None
@@ -117,7 +109,10 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                     node.connect(environment.node)
                   }
                 } // else: the more things change, the more they stay the same.
-              case _ if isSideOpen(d) =>
+              case _ =>
+                if (!isSideOpen(d)) {
+                  return
+                }
                 // A challenger appears. Maybe.
                 val environment = newDriver.createEnvironment(world, x, y, z, d)
                 if (environment != null) {

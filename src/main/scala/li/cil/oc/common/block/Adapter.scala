@@ -1,10 +1,15 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -12,13 +17,19 @@ import net.minecraftforge.common.util.ForgeDirection
 
 class Adapter extends SimpleBlock with traits.GUI {
   override protected def customTextures = Array(
-    None,
+    Some("AdapterTop"),
     Some("AdapterTop"),
     Some("AdapterSide"),
     Some("AdapterSide"),
     Some("AdapterSide"),
     Some("AdapterSide")
   )
+
+  @SideOnly(Side.CLIENT)
+  override def registerBlockIcons(iconRegister: IIconRegister): Unit = {
+    super.registerBlockIcons(iconRegister)
+    Textures.Adapter.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":AdapterOn")
+  }
 
   // ----------------------------------------------------------------------- //
 
