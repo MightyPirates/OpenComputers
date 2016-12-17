@@ -14,7 +14,8 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.server.component.DebugCard.{AccessContext, CommandSender}
+import li.cil.oc.server.component.DebugCard.AccessContext
+import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -542,11 +543,11 @@ object DebugCard {
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)
-      InventoryUtils.inventoryAt(position) match {
+      InventoryUtils.inventoryAt(position, side) match {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
           stack.setTagCompound(tag)
-          result(InventoryUtils.insertIntoInventory(stack, inventory, Option(side)))
+          result(InventoryUtils.insertIntoInventory(stack, inventory))
         case _ => result(Unit, "no inventory")
       }
     }
@@ -555,11 +556,11 @@ object DebugCard {
     def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
       checkAccess()
       val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
-      InventoryUtils.inventoryAt(position) match {
+      InventoryUtils.anyInventoryAt(position) match {
         case Some(inventory) =>
           val slot = args.checkSlot(inventory, 3)
-          val count = args.optInteger(4, inventory.getInventoryStackLimit)
-          val removed = inventory.decrStackSize(slot, count)
+          val count = args.optInteger(4, 64)
+          val removed = inventory.extractItem(slot, count, false)
           if (removed == null) result(0)
           else result(removed.stackSize)
         case _ => result(Unit, "no inventory")

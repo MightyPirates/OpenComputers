@@ -3,11 +3,11 @@ package li.cil.oc.server.component
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -23,8 +23,6 @@ import net.minecraft.util.SoundCategory
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
-
-import scala.collection.convert.WrapAsJava._
 
 class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -48,7 +46,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
   override protected def suckableItems(side: EnumFacing) = entitiesInBlock(classOf[EntityItem], position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
-    if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {
+    if (InventoryUtils.insertIntoInventory(entity.getEntityItem, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))) {
       world.playSound(agent.player, agent.posX, agent.posY, agent.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
     }
   }
