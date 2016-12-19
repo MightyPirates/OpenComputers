@@ -60,6 +60,9 @@ do
     local y = 1
         
     function kernel._println(msg)
+        for line in string.gmatch(tostring(msg), "([^\n]+)") do
+            pcall(function()kernel.io.debug(msg)end)
+        end
         if gpu and screen then
             for line in string.gmatch(tostring(msg), "([^\n]+)") do
                 kernel._K.component.invoke(gpu, "set", 1, y + 3, line)
@@ -84,6 +87,7 @@ do
     end
     
     kernel.io.println = kernel._println
+    kernel.io.debug = function()end
 end
 
 kernel.io.println(_OSVERSION .. " Starting")
@@ -184,8 +188,13 @@ kernel.io.println("Starting base modules")
 for i = 1, #modules do
     if kernel.modules[modules[i].name].start then
         kernel.io.println("Start module " .. modules[i].name)
-        local result = table.pack(pcall(kernel.modules[modules[i].name].start))
+        local result = table.pack(xpcall(kernel.modules[modules[i].name].start, function(e)
+            pcall(kernel._println, "Module tb: " .. debug.traceback())
+            pcall(kernel._println, "E: " .. tostring(e))
+        end))
+        
         if not result[1] then
+            pcall(kernel._println, "Module start failed: " .. modules[i].name)
             pcall(kernel._println, result[2])
             kernel.panic()
         end

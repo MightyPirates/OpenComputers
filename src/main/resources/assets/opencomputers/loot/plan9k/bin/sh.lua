@@ -194,10 +194,18 @@ builtin.exit = function()
 end
 
 builtin.alias = function(what, ...)
+    if not what then
+        print("Usage: alias <alias> [command] [arguments...]")
+        return
+    end
     alias[what] = {...}
 end
 
 builtin.unalias = function(what)
+    if not what then
+        print("Usage: unalias <alias>")
+        return
+    end
     alias[what] = nil
 end
 
@@ -216,11 +224,15 @@ if fs.exists("~/.history") then
 end
 
 local function log(cmd)
-    local hisfile = io.open("~/.history", "a")
-    if #cmd > 0 then
-        hisfile:write(cmd .. "\n")
+    local hisfile, err = io.open("~/.history", "a")
+        if hisfile then
+        if #cmd > 0 then
+            hisfile:write(cmd .. "\n")
+        end
+        hisfile:close()
+    else
+        io.stderr:write("Error writing to histfile: " .. tostring(err))
     end
-    hisfile:close()
 end
 
 -------------------

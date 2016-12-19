@@ -94,6 +94,7 @@ function start()
     kernel.userspace.package.preload.computer = setmetatable({}, {__index = kernel.userspace.computer})
     kernel.userspace.package.preload.io = setmetatable({}, {__index = kernel.modules.io.io})
     kernel.userspace.package.preload.unicode = setmetatable({}, {__index = kernel.userspace.unicode})
+    kernel.userspace.package.preload.os = setmetatable({}, {__index = kernel.userspace.os})
     
     --TODO: fix override.. maybe
     

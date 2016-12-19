@@ -33,6 +33,7 @@ proxy.exists = function(path)
     return file and true or false
 end
 proxy.open = function(path)
+    kernel.io.debug("Sysfs open: " .. tostring(path))
     local seg = kernel.modules.vfs.segments(path)
     local file = data
     for _, d in pairs(seg) do
