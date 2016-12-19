@@ -117,6 +117,8 @@ function spawn(exec, child, name, isthread, _, ...)
         terminate = kill
     }
     
+    kernel.io.debug("Spawn thread " .. tostring(name))
+    
     return thread
 end
 
@@ -125,7 +127,7 @@ end
 local function getPendingThreads()
     local res = {}
     for _, thread in ipairs(threads) do
-        if thread.coro and #thread.eventQueue > 0 then
+        if thread.coro then
             res[#res + 1] = thread
         end
     end
@@ -162,7 +164,7 @@ local function processSignals()
             deadline = thread.deadline
         end
     end
-    --kernel.io.println("Deadline: "..(deadline - computer.uptime()))
+    --kernel.io.debug("Pull deadline: "..(deadline - computer.uptime()))
     local sig = {"signal", pullSignal(deadline - computer.uptime())}
     
     local function filt(f, signal, ...)
@@ -206,8 +208,6 @@ local function processSignals()
     end
 end
 
-
-
 ----
 
 local lastYield = computer.uptime()
@@ -226,8 +226,6 @@ function start()
     while true do
         local pending = getPendingThreads()
         local resumable = getResumableThreads(pending)
-        
-        
         
         lastYield = computer.uptime()
         while #resumable > 0 do

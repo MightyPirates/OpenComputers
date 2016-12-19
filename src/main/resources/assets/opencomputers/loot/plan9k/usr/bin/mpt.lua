@@ -344,7 +344,7 @@ mirrorFrontend = {
         local todo = {}
         for pack, data in pairs(base.installed) do
             if data.frontend == mirrorFrontend.name then
-                if mirrorFrontend.base.installed[pack] and 
+                if mirrorFrontend.base and mirrorFrontend.base.installed[pack] and 
                     mirrorFrontend.base.installed[pack].data.checksum ~= base.installed[pack].data.checksum .. (core.data.force and "WAT" or "") then
                     todo[pack] = {}
                 end
