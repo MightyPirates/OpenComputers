@@ -304,12 +304,12 @@ function --[[@delayloaded-start@]] text.internal.seeker(handle, whence, to)
   return handle.offset
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] text.internal.reader(txt)
+function --[[@delayloaded-start@]] text.internal.reader(txt, mode)
   checkArg(1, txt, "string")
   local reader =
   {
     txt = txt,
-    len = unicode.len(txt),
+    len = string.len(txt),
     offset = 0,
     read = function(_, n)
       checkArg(1, n, "number")
@@ -321,7 +321,7 @@ function --[[@delayloaded-start@]] text.internal.reader(txt)
       end
       local last_offset = _.offset
       _:seek("cur", n)
-      local next = unicode.sub(_.txt, last_offset + 1, _.offset)
+      local next = string.sub(_.txt, last_offset + 1, _.offset)
       return next
     end,
     seek = text.internal.seeker,
@@ -334,10 +334,10 @@ function --[[@delayloaded-start@]] text.internal.reader(txt)
     end,
   }
 
-  return require("buffer").new("r", reader)
+  return require("buffer").new(mode, reader)
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
+function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt, mode)
   if type(ostream) == "table" then
     local mt = getmetatable(ostream) or {}
     checkArg(1, mt.__call, "function")
@@ -353,14 +353,14 @@ function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
       if not _.txt then
         return nil, "bad file descriptor"
       end
-      local pre, vs, pos = unicode.sub(_.txt, 1, _.offset), {}, unicode.sub(_.txt, _.offset + 1)
+      local pre, vs, pos = string.sub(_.txt, 1, _.offset), {}, string.sub(_.txt, _.offset + 1)
       for i,v in ipairs({...}) do
         table.insert(vs, v)
       end
       vs = table.concat(vs)
-      _:seek("cur", unicode.len(vs))
+      _:seek("cur", string.len(vs))
       _.txt = pre .. vs .. pos
-      _.len = unicode.len(_.txt)
+      _.len = string.len(_.txt)
       return true
     end,
     seek = text.internal.seeker,
@@ -374,7 +374,7 @@ function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
     end,
   }
 
-  return require("buffer").new("w", writer)
+  return require("buffer").new(mode, writer)
 end --[[@delayloaded-end@]]
 
 return text, local_env

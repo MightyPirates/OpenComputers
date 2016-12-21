@@ -224,12 +224,12 @@ function devfs.new_callback_proxy(read_callback, write_callback)
         if not read_callback then
           return nil, "file cannot be opened for read"
         end
-        return text.internal.reader(read_callback())
+        return text.internal.reader(read_callback(), mode)
       end
       if not write_callback then
         return nil, "file cannot be opened for write"
       end
-      return text.internal.writer(write_callback, ({a=true,ab=true})[mode] and read_callback())
+      return text.internal.writer(write_callback, ({a=true,ab=true})[mode] and read_callback(), mode)
     end,
     size = function()
       return read_callback and string.len(read_callback()) or 0
