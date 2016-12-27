@@ -267,30 +267,30 @@ cable {
   output: 8
 }
 capacitor {
-  # 7 = CESU
-  input: [["", {item="ic2.blockElectric", subID=7}, ""]
+  # 73 = CESU
+  input: [["", {item="ic2.te", subID=73}, ""]
           [{block="gt.blockcasings", subID=1}, "oc:materialTransistor", {block="gt.blockcasings", subID=1}]
           ["oc:materialCircuitBoardPrinted", craftingToolWrench, "oc:materialCircuitBoardPrinted"]]
 }
 charger {
-  # 2 = Chargepad (MFE)
+  # 70 = Chargepad (MFE)
   input: [["", plateStainlessSteel, ""]
-          [{item="ic2.blockChargepad", subID=2}, {block="gt.blockcasings", subID=3}, {item="ic2.blockChargepad", subID=2}]
+          [{item="ic2.te", subID=70}, {block="gt.blockcasings", subID=3}, {item="ic2.te", subID=70}]
           ["oc:circuitChip3", craftingToolWrench, "oc:materialCircuitBoardPrinted"]]
 }
 case1 {
   input: [[screwAluminium, "oc:materialCircuitBoardPrinted", craftingToolWrench]
-          ["ic2.reactorVentSpread", {block="gt.blockcasings", subID=1}, "ic2.reactorVentSpread"]
+          ["ic2.component_heat_vent", {block="gt.blockcasings", subID=1}, "ic2.component_heat_vent"]
           [screwAluminium, "oc:circuitChip1", craftingToolScrewdriver]]
 }
 case2 {
   input: [[screwStainlessSteel , "oc:materialCircuitBoardPrinted", craftingToolWrench]
-          [{item="ic2.reactorVentGold", subID=1}, "oc:case1", {item="ic2.reactorVentGold", subID=1}]
+          ["ic2.overclocked_heat_vent", "oc:case1", "ic2.overclocked_heat_vent"]
           [screwStainlessSteel, "oc:circuitChip2", craftingToolScrewdriver]]
 }
 case3 {
   input: [[screwTitanium , "oc:materialCircuitBoardPrinted", craftingToolWrench]
-          [{item="ic2.reactorVentDiamond", subID=1}, "oc:case2", {item="ic2.reactorVentDiamond", subID=1}]
+          ["ic2.advanced_heat_vent", "oc:case2", "ic2.advanced_heat_vent"]
           [screwTitanium, "oc:circuitChip3", craftingToolScrewdriver]]
 }
 diskDrive {
@@ -300,20 +300,20 @@ diskDrive {
 }
 # keyboard { fallback to default }
 powerConverter {
-  # 4 = MV Transformer
+  # 22 = MV Transformer
   input: [["", "oc:circuitChip2", ""]
-          [plateAluminium, {item="ic2.blockElectric", subID=4}, plateAluminium]
+          [plateAluminium, {item="gt.blockmachines", subID=22}, plateAluminium]
           ["oc:materialCircuitBoardPrinted", craftingToolWrench, "oc:materialCircuitBoardPrinted"]]
 }
 powerDistributor {
-  # 7 = CESU
+  # 73 = CESU
   input: [["", plateAluminium, ""]
-          [{item="ic2.blockElectric", subID=7}, {block="gt.blockcasings", subID=2}, circuitMaster]
+          [{item="ic2.te", subID=73}, {block="gt.blockcasings", subID=2}, circuitMaster]
           ["oc:materialCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
 rack {
   input: [[craftingToolScrewdriver, "oc:wlanCard", craftingToolWrench]
-          [{item="ic2.reactorVentDiamond", subID=1}, chest, {item="ic2.reactorVentDiamond", subID=1}]
+          ["ic2.advanced_heat_vent", chest, "ic2.advanced_heat_vent"]
           ["oc:relay", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
 }
 redstone {
