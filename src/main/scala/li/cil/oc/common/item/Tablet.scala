@@ -346,7 +346,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case _ => false
   })
 
-  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getName)
+  override def isUseableByPlayer(player: EntityPlayer) = machine != null && machine.canInteract(player.getName)
 
   override def markDirty(): Unit = {
     data.save(stack)
