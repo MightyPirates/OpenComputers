@@ -12,9 +12,7 @@ import net.minecraft.util.SoundCategory
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class NetSplitter extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
-  private final val SideCount = EnumFacing.values().length
-
+class NetSplitter extends traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment {
   _isOutputEnabled = true
 
   val node = api.Network.newNode(this, Visibility.None).
@@ -22,19 +20,10 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
 
   var isInverted = false
 
-  var openSides = Array.fill(SideCount)(false)
+  override def isSideOpen(side: EnumFacing) = if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
 
-  def compressSides = (EnumFacing.values(), openSides).zipped.foldLeft(0)((acc, entry) => acc | (if (entry._2) 1 << entry._1.ordinal() else 0)).toByte
-
-  def uncompressSides(byte: Byte) = EnumFacing.values().map(d => ((1 << d.ordinal()) & byte) != 0)
-
-  def isSideOpen(side: EnumFacing) = side != null && {
-    val isOpen = openSides(side.ordinal())
-    if (isInverted) !isOpen else isOpen
-  }
-
-  def setSideOpen(side: EnumFacing, value: Boolean): Unit = if (side != null && openSides(side.ordinal()) != value) {
-    openSides(side.ordinal()) = value
+  override def setSideOpen(side: EnumFacing, value: Boolean) {
+    super.setSideOpen(side, value)
     if (isServer) {
       node.remove()
       api.Network.joinOrCreateNetwork(this)
@@ -88,25 +77,21 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
     isInverted = nbt.getBoolean(IsInvertedTag)
-    openSides = uncompressSides(nbt.getByte(OpenSidesTag))
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
     nbt.setBoolean(IsInvertedTag, isInverted)
-    nbt.setByte(OpenSidesTag, compressSides)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
     isInverted = nbt.getBoolean(IsInvertedTag)
-    openSides = uncompressSides(nbt.getByte(OpenSidesTag))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
     nbt.setBoolean(IsInvertedTag, isInverted)
-    nbt.setByte(OpenSidesTag, compressSides)
   }
 }
