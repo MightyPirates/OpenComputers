@@ -5,7 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.TextComponentString
-import net.minecraftforge.fml.server.FMLServerHandler
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.language.implicitConversions
 
@@ -14,7 +14,7 @@ package object command {
 
   def getOpLevel(sender: ICommandSender): Int = {
     // Shitty minecraft server logic & shitty minecraft server code.
-    val srv = FMLServerHandler.instance().getServer
+    val srv = FMLCommonHandler.instance().getMinecraftServerInstance
     if (srv.isSinglePlayer && srv.worldServers.head.getWorldInfo.areCommandsAllowed &&
       srv.getServerOwner.equalsIgnoreCase(sender.getName) /* || srv.commandsAllowedForAll */ )
       return 4
