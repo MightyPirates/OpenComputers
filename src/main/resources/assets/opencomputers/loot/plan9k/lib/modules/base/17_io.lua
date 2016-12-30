@@ -1,5 +1,5 @@
 local io = {}
-
+local threading
 -------------------------------------------------------------------------------
 
 local function buffWrap(b)
@@ -37,9 +37,9 @@ function io.input(file)
     elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
-    kernel.modules.threading.currentThread.io_input = file
+    threading.currentThread.io_input = file
   end
-  return kernel.modules.threading.currentThread.io_input
+  return threading.currentThread.io_input
 end
 
 function io.lines(filename, ...)
@@ -95,10 +95,10 @@ function io.popen(prog, mode, ...)
     
     if mode == "w" then
         local newin, sink = kernel.modules.buffer.pipe()
-        local thread = kernel.modules.threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
+        local thread = threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
         
-        thread.io_output = kernel.modules.threading.currentThread.io_output
-        thread.io_error = kernel.modules.threading.currentThread.io_error
+        thread.io_output = threading.currentThread.io_output
+        thread.io_error = threading.currentThread.io_error
         thread.io_input = newin
         
         sink.thread = thread.pid
@@ -106,10 +106,10 @@ function io.popen(prog, mode, ...)
     elseif mode == "r" or mode == nil then
         local out, newout = kernel.modules.buffer.pipe()
         
-        local thread = kernel.modules.threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
+        local thread = threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
         thread.io_output = newout
-        thread.io_error = kernel.modules.threading.currentThread.io_error
-        thread.io_input = kernel.modules.threading.currentThread.io_input
+        thread.io_error = threading.currentThread.io_error
+        thread.io_input = threading.currentThread.io_input
         
         out.thread = thread.pid
         return out
@@ -117,9 +117,9 @@ function io.popen(prog, mode, ...)
         local newin, sink = kernel.modules.buffer.pipe()
         local out, newout = kernel.modules.buffer.pipe()
         
-        local thread = kernel.modules.threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
+        local thread = threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
         thread.io_output = newout
-        thread.io_error = kernel.modules.threading.currentThread.io_error
+        thread.io_error = threading.currentThread.io_error
         thread.io_input = newin
         
         sink.thread = thread.pid
@@ -127,11 +127,11 @@ function io.popen(prog, mode, ...)
         
         return sink, out
     elseif mode == "" then
-        local thread = kernel.modules.threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
+        local thread = threading.spawn(prog, 0, name, _, _, ...) --TODO: child mode somehow
         
-        thread.io_output = kernel.modules.threading.currentThread.io_output
-        thread.io_error = kernel.modules.threading.currentThread.io_error
-        thread.io_input = kernel.modules.threading.currentThread.io_input
+        thread.io_output = threading.currentThread.io_output
+        thread.io_error = threading.currentThread.io_error
+        thread.io_input = threading.currentThread.io_input
         
         return thread.pid
     end
@@ -153,9 +153,9 @@ function io.output(file)
     elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
-    kernel.modules.threading.currentThread.io_output = file
+    threading.currentThread.io_output = file
   end
-  return kernel.modules.threading.currentThread.io_output
+  return threading.currentThread.io_output
 end
 
 function io.read(...)
@@ -198,3 +198,7 @@ setmetatable(io, {__index = function(_, k)
 end})
 
 _G.io = io
+
+function start()
+    threading = kernel.modules.threading
+end
