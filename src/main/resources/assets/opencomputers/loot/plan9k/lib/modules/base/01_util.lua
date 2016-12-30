@@ -24,6 +24,14 @@ function split(str, pat)
     return t
 end
 
+function cloneTab(t)
+    local n = {}
+    for k, v in pairs(t) do
+        n[k] = v
+    end
+    return n
+end
+
 --------
 
 function getAllocator()
@@ -47,6 +55,14 @@ end
 
 --------
 
+function randomString(c)
+    local s = ""
+    for i = 1, c do
+        s = s .. string.char(math.random(0, 255))
+    end
+    return s
+end
+
 function uuidBin(uuid)
     local undashed = uuid:gsub("-","")
     local high = tonumber(undashed:sub(1,16), 16)
@@ -57,6 +73,10 @@ end
 function binUUID(uuid)
     local raw = toHex(uuid)
     return raw:sub(1, 8) .. "-" .. raw:sub(9, 12) .. "-" .. raw:sub(13, 16) .. "-" .. raw:sub(17, 20) .. "-" .. raw:sub(21)
+end
+
+function shortUUID()
+    return toHex(randomString(2)):upper()
 end
     
 --------

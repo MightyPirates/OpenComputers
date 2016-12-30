@@ -19,7 +19,8 @@ kernel.userspace.computer.getBootAddress = kernel._K.computer.getBootAddress
 kernel.userspace.computer.shutdown = kernel.modules.gc.shutdown
 
 kernel.userspace.computer.pullSignal = function(timeout)
-    return coroutine.yield("signal", timeout)
+    kernel.modules.threading.currentThread.deadline = computer.uptime() + (timeout or math.huge)
+    return coroutine.yield("signal")
 end
 
 kernel.userspace.computer.hasSignal = function(sigType)
@@ -79,11 +80,12 @@ end
 
 function kernel.userspace.os.exit()
     kernel.modules.threading.kill(kernel.modules.threading.currentThread.pid)
-    coroutine.yield("yield", 0)
+    coroutine.yield("yield")
 end
 
 function kernel.userspace.os.sleep(time)
-    coroutine.yield("yield", computer.uptime() + (time or 0))
+    kernel.modules.threading.currentThread.deadline = computer.uptime() + (time or 0)
+    coroutine.yield("yield")
 end
 
 function kernel.userspace.os.getenv(name)
