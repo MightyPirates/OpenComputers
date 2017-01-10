@@ -103,7 +103,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
             case Array("getAge") =>
               respond(sender, "age", (player.getAge / 20f).toInt)
             case Array("getName") =>
-              respond(sender, "name", player.getDisplayName)
+              respond(sender, "name", player.getDisplayName.getUnformattedComponentText)
             case Array("getExperience") =>
               respond(sender, "experience", player.experienceLevel)
 

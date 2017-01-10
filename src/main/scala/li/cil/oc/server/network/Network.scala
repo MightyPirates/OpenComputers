@@ -702,7 +702,7 @@ object Network extends api.detail.NetworkAPI {
           case _: java.lang.Double => 8
           case value: java.lang.String => value.length max 1
           case value: Array[Byte] => value.length max 1
-          case _ => throw new IllegalArgumentException("unsupported data type")
+          case value => throw new IllegalArgumentException(s"unsupported data type: $value (${value.getClass.getCanonicalName})")
         })
       })
     })
