@@ -82,13 +82,13 @@ ocBackend = {
             --print("    -U, --upgrade")
             --print("        Upgrade or add package(s) to the system and install the required")
             --print("        dependencies from sync repositories. Either a URL or file path can be")
-            --print("        specified. This is a ?remove-then-add? process.")
+            --print("        specified. This is a “remove-then-add” process.")
             print("    -y, --update")
             print("        Update package lists for backends that require such action")
             print("    -u, --upgrades")
             print("        Upgrade all packages that are out-of-date on the")
             print("        local system. Only package versions are used to find outdated packages;")
-            print("        replacements are not checked here. This is a ?remove-then-add? process.")
+            print("        replacements are not checked here. This is a “remove-then-add” process.")
             print("    -f, --force")
             print("        Force operation, in case of upgrade it redownloads all packages")
             print("    --root='/some/dir'")
@@ -289,7 +289,13 @@ mptFrontend = {
         end
         local updateResp = backend.getText(config.frontend.mpt.api.."update", toCheck)
         if updateResp then
-            local updateList = load("return "..updateResp)() or {}
+            local upd, err = load("return "..updateResp)
+            if not upd then
+                print("Update error: " .. tostring(err))
+                print("Data: " .. tostring(updateResp))
+                os.exit(1)
+            end
+            local updateList = upd() or {}
             local res = {}
             for _, entry in ipairs(updateList) do
                 res[entry.package] = {checksum = entry.checksum}
@@ -338,7 +344,7 @@ mirrorFrontend = {
         local todo = {}
         for pack, data in pairs(base.installed) do
             if data.frontend == mirrorFrontend.name then
-                if mirrorFrontend.base.installed[pack] and 
+                if mirrorFrontend.base and mirrorFrontend.base.installed[pack] and 
                     mirrorFrontend.base.installed[pack].data.checksum ~= base.installed[pack].data.checksum .. (core.data.force and "WAT" or "") then
                     todo[pack] = {}
                 end
@@ -390,7 +396,7 @@ oppmFrontend = {
                 if packages then
                     for name, package in pairs(packages) do
                         local metadata = {
-                            files = expandOppmFiles(package.files),
+                            files = expandOppmFiles(package.files or {}),
                             dependencies = keys(package.dependencies or {}),
                             repo = repoid,
                             version = package.version

@@ -4,6 +4,8 @@ local text = require("text")
 local shell = require("shell")
 local fs = require("filesystem")
 
+local arg, opt = shell.parse(...)
+
 local alias = {}
 local builtin = {}
 
@@ -19,6 +21,7 @@ local function parse(tokens)
     
     local nextin = "-"
     local nextout = "-"
+    local nexterr = nil
     local arg = {}
     
     local skip = false
@@ -51,15 +54,20 @@ local function parse(tokens)
                 if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
                 nextout = tokens[k + 1]
                 skip = true
+            elseif token == "2>" then
+                if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
+                nexterr = tokens[k + 1]
+                skip = true
             elseif token == ">>" then
                 if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
                 nextout = tokens[k + 1]
                 skip = true
                 print("APPEND MODE IS NOT IMPLEMENTED")
             elseif token == "&" then
-                res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout, nowait = true}
+                res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout, stderr = nexterr, nowait = true}
                 nextout = "-"
                 nextin = "-"
+                nexterr = nil
                 arg = {}
             end
         else
@@ -68,7 +76,7 @@ local function parse(tokens)
     end
 
     if #arg > 0 then
-        res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout}
+        res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout, stderr = nexterr}
     end
 
     return res, pipes
@@ -118,9 +126,10 @@ local function execute(cmd)
         for n, program in pairs(programs) do
             local sin = type(program.stdin) == "number" and pipes[program.stdin][1] or program.stdin == "-" and io.input() or io.open(program.stdin, "r")
             local sout = type(program.stdout) == "number" and pipes[program.stdout][2] or program.stdout == "-" and io.output() or io.open(program.stdout, "w")
+            local serr = program.stderr and (program.stderr == "-" and io.output() or io.open(program.stderr, "w")) or io.stderr
 
             processes[n] = {
-                pid = os.spawnp(program.arg[1], sin, sout, io.stderr, table.unpack(program.arg, 2)),
+                pid = os.spawnp(program.arg[1], sin, sout, serr, table.unpack(program.arg, 2)),
                 stdin = sin,
                 stdout = sout
             }
@@ -149,6 +158,17 @@ local function expand(value)
     return result
 end
 
+local function script(file)
+    for line in io.lines(file) do
+        if line:sub(1,1) ~= "#" then
+            if opt.x then
+                print("> " .. line)
+            end
+            execute(text.trim(line))
+        end
+    end
+end
+
 -------------------
 -- Builtins
 
@@ -174,10 +194,18 @@ builtin.exit = function()
 end
 
 builtin.alias = function(what, ...)
+    if not what then
+        print("Usage: alias <alias> [command] [arguments...]")
+        return
+    end
     alias[what] = {...}
 end
 
 builtin.unalias = function(what)
+    if not what then
+        print("Usage: unalias <alias>")
+        return
+    end
     alias[what] = nil
 end
 
@@ -196,11 +224,15 @@ if fs.exists("~/.history") then
 end
 
 local function log(cmd)
-    local hisfile = io.open("~/.history", "a")
-    if #cmd > 0 then
-        hisfile:write(cmd .. "\n")
+    local hisfile, err = io.open("~/.history", "a")
+        if hisfile then
+        if #cmd > 0 then
+            hisfile:write(cmd .. "\n")
+        end
+        hisfile:close()
+    else
+        io.stderr:write("Error writing to histfile: " .. tostring(err))
     end
-    hisfile:close()
 end
 
 -------------------
@@ -310,10 +342,13 @@ builtin.alias("....", "cd", "../../..")
 -------------------
 -- Main loop
 
+if arg[1] and fs.exists(arg[1]) then
+    script(arg[1])
+    return
+end
+
 if fs.exists("~/.shrc") then
-    for line in io.lines("~/.shrc") do
-        execute(line)
-    end
+    script(arg[1])
 end
 
 while run do
