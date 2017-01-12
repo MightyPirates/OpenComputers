@@ -5,4 +5,4 @@ if install.update then
   io.stderr:write("Please run 'oppm update oppm' from an installed version\nof this program to update oppm.\n")
   return
 end
-os.execute(install.from .. "usr/bin/oppm install --iKnowWhatIAmDoing -f oppm " .. install.to:gsub("//","/") .. install.root)
+os.execute(install.from:gsub("//","/") .. "usr/bin/oppm install --iKnowWhatIAmDoing -f oppm " .. install.to:gsub("//","/") .. install.root:gsub("//","/"))
