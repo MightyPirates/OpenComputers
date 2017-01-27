@@ -45,6 +45,8 @@ object Loot {
 
   val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
+  val disksForCycling = mutable.ArrayBuffer.empty[ItemStack]
+
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
@@ -55,7 +57,7 @@ object Loot {
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
     else None
 
-  def registerLootDisk(name: String, color: EnumDyeColor, factory: Callable[FileSystem]): ItemStack = {
+  def registerLootDisk(name: String, color: EnumDyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
     val mod = Loader.instance.activeModContainer.getModId
 
     OpenComputers.log.info(s"Registering loot disk '$name' from mod $mod.")
@@ -76,6 +78,10 @@ object Loot {
     stack.setTagCompound(nbt)
 
     Loot.factories += modSpecificName -> factory
+
+    if(doRecipeCycling) {
+      Loot.disksForCycling += stack
+    }
 
     stack.copy()
   }
@@ -147,7 +153,7 @@ object Loot {
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-    val stack = registerLootDisk(path, color.getOrElse(EnumDyeColor.SILVER), callable)
+    val stack = registerLootDisk(path, color.getOrElse(EnumDyeColor.SILVER), callable, doRecipeCycling = true)
     stack.setStackDisplayName(name)
     if (!external) {
       Items.registerStack(stack, path)
