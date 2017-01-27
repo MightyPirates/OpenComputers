@@ -196,7 +196,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     case value => value
   }.toArray
 
-  private def isDefined(index: Int) = index >= 0 && index < args.length
+  private def isDefined(index: Int) = index >= 0 && index < args.length && args(index) != null
 
   private def checkIndex(index: Int, name: String) =
     if (index < 0) throw new IndexOutOfBoundsException()
