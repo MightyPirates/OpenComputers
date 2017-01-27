@@ -15,7 +15,7 @@ class LootDiskCyclingRecipe extends IRecipe {
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
-    val lootDiskStacks = Loot.worldDisks.map(_._1)
+    val lootDiskStacks = Loot.disksForCycling
     collectStacks(crafting).find(Loot.isLootDisk) match {
       case Some(lootDisk) if lootDiskStacks.nonEmpty =>
         val lootFactoryName = getLootFactoryName(lootDisk)
