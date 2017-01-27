@@ -102,7 +102,7 @@ object InventoryUtils {
         inventory.insertItem(slot, toInsert, simulate) match {
           case remaining: ItemStack =>
             val result = remaining.stackSize < amount
-            stack.stackSize = remaining.stackSize
+            stack.stackSize += remaining.stackSize
             result
           case _ => true
         }
