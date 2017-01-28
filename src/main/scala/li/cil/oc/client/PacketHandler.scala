@@ -63,6 +63,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.CyclingDisk => onCyclingDisk(p)
       case PacketType.NanomachinesConfiguration => onNanomachinesConfiguration(p)
       case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
       case PacketType.NanomachinesPower => onNanomachinesPower(p)
@@ -309,6 +310,13 @@ object PacketHandler extends CommonPacketHandler {
     val stack = p.readItemStack()
     if (stack != null) {
       Loot.disksForClient += stack
+    }
+  }
+
+  def onCyclingDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForCyclingClient += stack
     }
   }
 

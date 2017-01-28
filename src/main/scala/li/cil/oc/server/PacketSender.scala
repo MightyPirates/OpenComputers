@@ -304,6 +304,13 @@ object PacketSender {
 
       pb.sendToPlayer(p)
     }
+    for (stack <- Loot.disksForCyclingServer) {
+      val pb = new SimplePacketBuilder(PacketType.CyclingDisk)
+
+      pb.writeItemStack(stack)
+
+      pb.sendToPlayer(p)
+    }
   }
 
   def sendNanomachineConfiguration(player: EntityPlayer): Unit = {
