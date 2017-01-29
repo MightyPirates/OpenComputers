@@ -372,7 +372,7 @@ class Settings(val config: Config) {
   val nanomachinesCommandRange = config.getDouble("nanomachines.commandRange") max 0
   val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
-  val nanomachinePotionWhitelist = config.getStringList("nanomachines.potionWhitelist")
+  val nanomachinePotionWhitelist = config.getAnyRefList("nanomachines.potionWhitelist")
   val nanomachinesHungryDamage = config.getDouble("nanomachines.hungryDamage").toFloat max 0
   val nanomachinesHungryEnergyRestored = config.getDouble("nanomachines.hungryEnergyRestored") max 0
 
@@ -513,6 +513,10 @@ object Settings {
     // Upgrading to version 1.5.20, changed relay delay default.
     VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
       "switch.relayDelayUpgrade"
+    ),
+    // Potion whitelist was fixed in 1.6.2.
+    VersionRange.createFromVersionSpec("[0.0, 1.6.2)") -> Array(
+      "nanomachines.potionWhitelist"
     )
   )
 
