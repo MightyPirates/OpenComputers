@@ -10,7 +10,7 @@ local delay_end_pattern = "^%s*end%s*%-%-%[%[@delayloaded%-end@%]%]%s*$"
 local n,buffer,lib_name,current_method,open = 0,{}
 
 while true do
-  local line = file:read("*L")
+  local line = file:readLine(false)
   if current_method then
     local closed = not line or line:match(delay_end_pattern)
     if closed then

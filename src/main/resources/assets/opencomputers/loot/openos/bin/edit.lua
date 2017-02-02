@@ -20,14 +20,12 @@ local filename = shell.resolve(args[1])
 
 local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
-if not fs.exists(filename) then
-  if fs.isDirectory(filename) then
-    io.stderr:write("file is a directory\n")
-    return 1
-  elseif readonly then
-    io.stderr:write("file system is read only\n")
-    return 1
-  end
+if fs.isDirectory(filename) then
+  io.stderr:write("file is a directory\n")
+  return 1
+elseif not fs.exists(filename) and readonly then
+  io.stderr:write("file system is read only\n")
+  return 1
 end
 
 local function loadConfig()

@@ -57,25 +57,15 @@ function process.load(path, env, init, name)
         return 127
       end
       os.setenv("_", program)
-      local f, reason = io.open(program)
-      if not f then
-        io.stderr:write("could not read '" .. program .. "': " .. tostring(reason) .. "\n")
-        return 1
-      end
-      local shabang = f:read(2)
-      local command = f:read()
+      local f, reason = fs.open(program)
+      local shebang = f and f:read(1024):match("^#!([^\n]+)")
       f:close()
-      if shabang == "#!" then
-        if require("text").trim(command or "") == "" then
-          return -- nothing to do
-        end
-        local result = table.pack(require("shell").execute(command, env, program, ...))
-        if not result[1] then
-          error(result[2])
-        end
+      if shabang then
+        local result = table.pack(shell.execute(shebang:gsub("%s",""), env, program, ...))
+        assert(result[1], result[2])
         return table.unpack(result)
       end
-      command, reason = loadfile(program, "bt", env)
+      local command, reason = loadfile(program, "bt", env)
       if not command then
         io.stderr:write(program..(reason or ""):gsub("^[^:]*", "").."\n")
         return 128
@@ -102,7 +92,7 @@ function process.load(path, env, init, name)
             if msg.reason ~= "terminated" then
               io.stderr:write(msg.reason.."\n")
             end
-            return msg.code
+            return msg.code or 0
           end
           local stack = debug.traceback():gsub('^([^\n]*\n)[^\n]*\n[^\n]*\n','%1')
           io.stderr:write(string.format('%s:\n%s', msg or '', stack))

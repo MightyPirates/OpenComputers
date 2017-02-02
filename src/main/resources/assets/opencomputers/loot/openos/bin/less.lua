@@ -6,6 +6,10 @@ local unicode = require("unicode")
 local computer = require("computer")
 local tx = require("transforms")
 
+if not io.output().tty then
+  return loadfile(shell.resolve("cat", "lua"), "bt", _G)(...)
+end
+
 local args = shell.parse(...)
 if #args > 1 then
   io.write("Usage: more <filename>\n")
