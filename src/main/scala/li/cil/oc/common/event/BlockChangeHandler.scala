@@ -11,7 +11,6 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
 /**
-  *
   * @author Vexatos
   */
 object BlockChangeHandler {

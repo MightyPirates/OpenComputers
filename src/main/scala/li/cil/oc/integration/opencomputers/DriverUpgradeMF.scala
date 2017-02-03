@@ -12,7 +12,6 @@ import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.ForgeDirection
 
 /**
-  *
   * @author Vexatos
   */
 object DriverUpgradeMF extends Item with HostAware {

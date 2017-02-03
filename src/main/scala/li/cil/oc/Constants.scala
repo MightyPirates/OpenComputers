@@ -175,6 +175,7 @@ object Constants {
   object DeviceInfo {
 
     final val DefaultVendor = "MightyPirates GmbH & Co. KG"
+    final val Scummtech = "Scummtech, Inc."
 
   }
 
