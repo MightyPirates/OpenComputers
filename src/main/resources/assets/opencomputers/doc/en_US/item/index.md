@@ -43,6 +43,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Inventory Controller](inventoryControllerUpgrade.md)
 * [Inventory Upgrade](inventoryUpgrade.md)
 * [Leash Upgrade](leashUpgrade.md)
+* [MFU](mfu.md)
 * [Navigation Upgrade](navigationUpgrade.md)
 * [Piston Upgrade](pistonUpgrade.md)
 * [Sign Upgrade](signUpgrade.md)
