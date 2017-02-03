@@ -23,7 +23,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsJava._
 
 /**
-  * Mostly stolen from li.cil.oc.common.tileentity.Adapter
+  * Mostly stolen from {@link li.cil.oc.common.tileentity.Adapter}
   *
   * @author Sangar, Vexatos
   */
