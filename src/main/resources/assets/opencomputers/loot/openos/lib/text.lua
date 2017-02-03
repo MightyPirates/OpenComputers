@@ -288,43 +288,58 @@ function --[[@delayloaded-start@]] text.internal.normalize(words, omitQuotes)
   return norms
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] text.internal.seeker(handle, whence, to)
-  if not handle.txt then
-    return nil, "bad file descriptor"
-  end
-  to = to or 0
-  if whence == "cur" then
-    handle.offset = handle.offset + to
-  elseif whence == "set" then
-    handle.offset = to
-  elseif whence == "end" then
-    handle.offset = handle.len + to
-  end
-  handle.offset = math.max(0, math.min(handle.offset, handle.len))
-  return handle.offset
+function --[[@delayloaded-start@]] text.internal.stream_base(binary)
+  return
+  {
+    binary = binary,
+    plen = binary and string.len or unicode.len,
+    psub = binary and string.sub or unicode.sub,
+    seek = function (handle, whence, to)
+      if not handle.txt then
+        return nil, "bad file descriptor"
+      end
+      to = to or 0
+      local offset = handle:indexbytes()
+      if whence == "cur" then
+        offset = offset + to
+      elseif whence == "set" then
+        offset = to
+      elseif whence == "end" then
+        offset = handle.len + to
+      end
+      offset = math.max(0, math.min(offset, handle.len))
+      handle:byteindex(offset)
+      return offset
+    end,
+    indexbytes = function (handle)
+      return handle.psub(handle.txt, 1, handle.index):len()
+    end,
+    byteindex = function (handle, offset)
+      local sub = string.sub(handle.txt, 1, offset)
+      handle.index = handle.plen(sub)
+    end,
+  }
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] text.internal.reader(txt)
+function --[[@delayloaded-start@]] text.internal.reader(txt, mode)
   checkArg(1, txt, "string")
-  local reader =
+  local reader = setmetatable(
   {
     txt = txt,
-    len = unicode.len(txt),
-    offset = 0,
+    len = string.len(txt),
+    index = 0,
     read = function(_, n)
       checkArg(1, n, "number")
       if not _.txt then
         return nil, "bad file descriptor"
       end
-      if _.offset >= _.len then
+      if _.index >= _.plen(_.txt) then
         return nil
       end
-      local last_offset = _.offset
-      _:seek("cur", n)
-      local next = unicode.sub(_.txt, last_offset + 1, _.offset)
+      local next = _.psub(_.txt, _.index + 1, _.index + n)
+      _.index = _.index + _.plen(next)
       return next
     end,
-    seek = text.internal.seeker,
     close = function(_)
       if not _.txt then
         return nil, "bad file descriptor"
@@ -332,38 +347,39 @@ function --[[@delayloaded-start@]] text.internal.reader(txt)
       _.txt = nil
       return true
     end,
-  }
+  }, {__index=text.internal.stream_base(mode:match("b"))})
 
   return require("buffer").new("r", reader)
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
+function --[[@delayloaded-start@]] text.internal.writer(ostream, mode, append_txt)
   if type(ostream) == "table" then
     local mt = getmetatable(ostream) or {}
     checkArg(1, mt.__call, "function")
   end
   checkArg(1, ostream, "function", "table")
   checkArg(2, append_txt, "string", "nil")
-  local writer =
+  local writer = setmetatable(
   {
     txt = "",
-    offset = 0,
+    index = 0, -- last location of write
     len = 0,
     write = function(_, ...)
       if not _.txt then
         return nil, "bad file descriptor"
       end
-      local pre, vs, pos = unicode.sub(_.txt, 1, _.offset), {}, unicode.sub(_.txt, _.offset + 1)
+      local pre = _.psub(_.txt, 1, _.index)
+      local vs = {}
+      local pos = _.psub(_.txt, _.index + 1)
       for i,v in ipairs({...}) do
         table.insert(vs, v)
       end
       vs = table.concat(vs)
-      _:seek("cur", unicode.len(vs))
+      _.index = _.index + _.plen(vs)
       _.txt = pre .. vs .. pos
-      _.len = unicode.len(_.txt)
+      _.len = string.len(_.txt)
       return true
     end,
-    seek = text.internal.seeker,
     close = function(_)
       if not _.txt then
         return nil, "bad file descriptor"
@@ -372,7 +388,7 @@ function --[[@delayloaded-start@]] text.internal.writer(ostream, append_txt)
       _.txt = nil
       return true
     end,
-  }
+  }, {__index=text.internal.stream_base(mode:match("b"))})
 
   return require("buffer").new("w", writer)
 end --[[@delayloaded-end@]]

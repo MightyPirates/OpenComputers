@@ -19,7 +19,7 @@ function shell.getShell()
   if shells[shellName] then
     return shells[shellName]
   end
-  local sh, reason = loadfile(shellName, "t", env)
+  local sh, reason = loadfile(shellName, "t")
   if sh then
     shells[shellName] = sh
   end
@@ -175,7 +175,9 @@ function shell.execute(command, env, ...)
   if not sh then
     return false, reason
   end
-  local result = table.pack(pcall(sh, env, command, ...))
+  local result = table.pack(coroutine.resume(process.load(function(...)
+    return sh(...)
+  end), env, command, ...))
   if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
     if result[2].code then
       return true

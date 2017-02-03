@@ -13,9 +13,10 @@ do
 end
 
 if not options then return end
+local write = io.write
 
 if computer.freeMemory() < 50000 then
-  print("Low memory, collecting garbage")
+  write("Low memory, collecting garbage\n")
   for i=1,20 do os.sleep(0) end
 end
 
@@ -26,7 +27,6 @@ if ec ~= nil and ec ~= 0 then
   return ec
 end
 
-local write = io.write
 write("Installation complete!\n")
 
 if options.setlabel then

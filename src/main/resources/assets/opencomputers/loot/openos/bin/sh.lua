@@ -54,7 +54,7 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
       if command == "exit" then
         return
       elseif command ~= "" then
-        local result, reason = os.execute(command)
+        local result, reason = sh.execute(_ENV, command)
         if term.getCursor() > 1 then
           print()
         end
