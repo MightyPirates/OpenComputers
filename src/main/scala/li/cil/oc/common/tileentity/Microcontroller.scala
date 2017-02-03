@@ -1,10 +1,15 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -22,7 +27,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
-class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller {
+class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
   override def node = null
@@ -46,6 +51,16 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def tier = info.tier
 
   override protected def runSound = None // Microcontrollers are silent.
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Microcontroller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Cubicle",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -175,7 +190,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   }
 
   override def onMessage(message: Message): Unit = {
-    if (message.source.network == snooperNode.network) {
+    if (message.name == "network.message" && message.source.network == snooperNode.network) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if outputSides(side.ordinal) && side != facing) {
         sidedNode(side).sendToReachable(message.name, message.data: _*)
       }

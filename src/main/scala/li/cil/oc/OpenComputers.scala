@@ -10,10 +10,11 @@ import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.command.CommandHandler
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version,
-  modLanguage = "scala", useMetadata = true)
+  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
 object OpenComputers {
   final val ID = "OpenComputers"
 
@@ -21,7 +22,9 @@ object OpenComputers {
 
   final val Version = "@VERSION@"
 
-  var log = LogManager.getLogger(Name)
+  def log = logger.getOrElse(LogManager.getLogger(Name))
+
+  var logger: Option[Logger] = None
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null
@@ -30,7 +33,7 @@ object OpenComputers {
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) {
-    log = e.getModLog
+    logger = Option(e.getModLog)
     proxy.preInit(e)
     OpenComputers.log.info("Done with pre init phase.")
   }

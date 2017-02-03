@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
@@ -14,13 +20,26 @@ import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.init.Items
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment {
+class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
+  final val MaxLevel = 30
+
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("experience").
     withConnector(30 * Settings.get.bufferPerLevel).
     create()
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Knowledge database",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "ERSO (Event Recorder and Self-Optimizer)",
+    DeviceAttribute.Capacity -> "30"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   var experience = 0.0
 
@@ -33,7 +52,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
   def xpForNextLevel = xpForLevel(level + 1)
 
   def addExperience(value: Double) {
-    if (level < 30) {
+    if (level < MaxLevel) {
       experience = experience + value
       if (experience >= xpForNextLevel) {
         updateXpInfo()
@@ -59,6 +78,9 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
 
   @Callback(doc = """function():boolean -- Tries to consume an enchanted item to add experience to the upgrade.""")
   def consume(context: Context, args: Arguments): Array[AnyRef] = {
+    if (level >= MaxLevel) {
+      return result(Unit, "max level")
+    }
     val stack = host.mainInventory.getStackInSlot(host.selectedSlot)
     if (stack == null || stack.stackSize < 1) {
       return result(Unit, "no item")

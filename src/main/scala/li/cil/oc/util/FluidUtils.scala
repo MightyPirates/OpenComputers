@@ -3,7 +3,10 @@ package li.cil.oc.util
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.block.BlockDynamicLiquid
 import net.minecraft.block.BlockLiquid
+import net.minecraft.block.BlockStaticLiquid
+import net.minecraft.init.Blocks
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidContainerRegistry
@@ -55,6 +58,15 @@ object FluidUtils {
       fluidHandlerAt(sinkPos).fold(0)(sink =>
         transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
 
+  /**
+   * Lookup fluid taking into account flowing liquid blocks...
+   */
+  def lookupFluidForBlock(block: Block): Fluid = {
+    if (block == Blocks.flowing_lava) FluidRegistry.LAVA
+    else if (block == Blocks.flowing_water) FluidRegistry.WATER
+    else FluidRegistry.lookupFluidForBlock(block)
+  }
+
   // ----------------------------------------------------------------------- //
 
   private class GenericBlockWrapper(position: BlockPosition) extends IFluidHandler {
@@ -72,11 +84,14 @@ object FluidUtils {
 
     def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))
-      case block: BlockLiquid if FluidRegistry.lookupFluidForBlock(block) != null => Option(new LiquidBlockWrapper(position, block))
+      case block: BlockStaticLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
+      case block: BlockDynamicLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
       case block: Block if block.isAir(position) || block.isReplaceable(position) => Option(new AirBlockWrapper(position, block))
       case _ => None
     }
     else None
+
+    def isFullLiquidBlock = position.world.get.getBlockMetadata(position) == 0
   }
 
   private trait BlockWrapperBase extends IFluidHandler {
@@ -114,7 +129,7 @@ object FluidUtils {
   }
 
   private class LiquidBlockWrapper(val position: BlockPosition, val block: BlockLiquid) extends BlockWrapperBase {
-    val fluid = FluidRegistry.lookupFluidForBlock(block)
+    val fluid = lookupFluidForBlock(block)
 
     override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = true
 
@@ -141,7 +156,8 @@ object FluidUtils {
       if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null) {
         if (doFill) {
           val world = position.world.get
-          world.breakBlock(position)
+          if (!world.isAirBlock(position) && !world.isAnyLiquid(position.bounds))
+            world.breakBlock(position)
           world.setBlock(position, resource.getFluid.getBlock)
           // This fake neighbor update is required to get stills to start flowing.
           world.notifyBlockOfNeighborChange(position, world.getBlock(position))

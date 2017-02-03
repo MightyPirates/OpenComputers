@@ -26,6 +26,7 @@ import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
+import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
@@ -218,6 +219,7 @@ object EventHandler {
     PetRenderer.isInitialized = false
     PetRenderer.hidden.clear()
     Loot.disksForClient.clear()
+    Loot.disksForCyclingClient.clear()
 
     client.Sound.startLoop(null, "computer_running", 0f, 0)
     scheduleServer(() => client.Sound.stopLoop(null))
@@ -269,6 +271,7 @@ object EventHandler {
 
   lazy val drone = api.Items.get(Constants.ItemName.Drone)
   lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+  lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
   lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
   lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
   lazy val robot = api.Items.get(Constants.BlockName.Robot)
@@ -305,6 +308,20 @@ object EventHandler {
       // Restore EEPROM currently used in tablet.
       new TabletData(stack).items.collect { case Some(item) => item }.find(api.Items.get(_) == eeprom)
     }) || didRecraft
+
+    didRecraft = {
+      if (Loot.isLootDisk(e.crafting)) {
+        val stacks = (0 until e.craftMatrix.getSizeInventory).flatMap(i => Option(e.craftMatrix.getStackInSlot(i))).toArray
+        if (stacks.length == 2) stacks.find(Wrench.isWrench) match {
+          case Some(stack) =>
+            stack.stackSize += 1
+            true
+          case _ => didRecraft
+        }
+        else didRecraft
+      }
+      else didRecraft
+    }
 
     // Presents?
     e.player match {

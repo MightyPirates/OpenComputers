@@ -12,8 +12,11 @@ import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.machine.ProgramLocations
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsScala._
@@ -89,6 +92,14 @@ object IMC {
         try PrintData.addInkProvider(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering ink provider.", t)
         }
+      }
+      else if (message.key == "registerCustomPowerSystem" && message.isStringMessage) {
+        OpenComputers.log.info(s"Was told there is an unknown power system present by mod ${message.getSender}.")
+        Settings.get.is3rdPartyPowerSystemPresent = message.getStringValue == "true"
+      }
+      else if (message.key == "registerProgramDiskLabel" && message.isNBTMessage) {
+        OpenComputers.log.info(s"Registering new program location mapping for program '${message.getNBTValue.getString("program")}' being on disk '${message.getNBTValue.getString("label")}' from mod ${message.getSender}.")
+        ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).toArray: _*)
       }
       else {
         OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")

@@ -383,15 +383,33 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def updateEntity() {
     super.updateEntity()
     if (isServer && isConnected) {
+      lazy val connectors = ForgeDirection.VALID_DIRECTIONS.map(sidedNode).collect {
+        case connector: Connector => connector
+      }
       components.zipWithIndex.collect {
-        case (Some(mountable: RackMountable), slot) if hasChanged(slot) =>
-          hasChanged(slot) = false
-          lastData(slot) = mountable.getData
-          ServerPacketSender.sendRackMountableData(this, slot)
-          world.notifyBlocksOfNeighborChange(x, y, z, block)
-          // These are working state dependent, so recompute them.
-          isOutputEnabled = hasRedstoneCard
-          isAbstractBusAvailable = hasAbstractBusCard
+        case (Some(mountable: RackMountable), slot) =>
+          if (hasChanged(slot)) {
+            hasChanged(slot) = false
+            lastData(slot) = mountable.getData
+            ServerPacketSender.sendRackMountableData(this, slot)
+            world.notifyBlocksOfNeighborChange(x, y, z, block)
+            // These are working state dependent, so recompute them.
+            isOutputEnabled = hasRedstoneCard
+            isAbstractBusAvailable = hasAbstractBusCard
+          }
+
+          // Power mountables without requiring them to be connected to the outside.
+          mountable.node match {
+            case connector: Connector =>
+              var remaining = Settings.get.serverRackRate
+              for (outside <- connectors if remaining > 0) {
+                val received = remaining + outside.changeBuffer(-remaining)
+                val rejected = connector.changeBuffer(received)
+                outside.changeBuffer(rejected)
+                remaining -= received - rejected
+              }
+            case _ => // Nothing using energy.
+          }
       }
 
       updateComponents()
@@ -444,9 +462,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   def slotAt(side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing) {
-      val l = 2 / 16.0
-      val h = 14 / 16.0
-      val slot = (((1 - hitY) - l) / (h - l) * getSizeInventory).toInt
+      val globalY = (hitY * 16).toInt // [0, 15]
+      val l = 2
+      val h = 14
+      val slot = ((15 - globalY) - l) * getSizeInventory / (h - l)
       Some(math.max(0, math.min(getSizeInventory - 1, slot)))
     }
     else None

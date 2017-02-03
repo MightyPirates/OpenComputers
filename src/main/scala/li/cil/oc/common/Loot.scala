@@ -19,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
@@ -41,15 +42,23 @@ object Loot {
 
   val factories = mutable.Map.empty[String, Callable[FileSystem]]
 
-  val globalDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val globalDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
-  val worldDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
+
+  def disksForCycling = if(disksForCyclingClient.nonEmpty) disksForCyclingClient else disksForCyclingServer
+
+  val disksForCyclingServer = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForCyclingClient = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
 
-  def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem]): ItemStack = {
+  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
+
+  def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
     val mod = Loader.instance.activeModContainer.getModId
 
     OpenComputers.log.info(s"Registering loot disk '$name' from mod $mod.")
@@ -70,6 +79,10 @@ object Loot {
     stack.setTagCompound(nbt)
 
     Loot.factories += modSpecificName -> factory
+
+    if(doRecipeCycling) {
+      Loot.disksForCyclingServer += stack
+    }
 
     stack.copy()
   }
@@ -106,26 +119,26 @@ object Loot {
         }
       }
     }
-    for ((name, entry) <- globalDisks if !worldDisks.contains(name)) {
-      worldDisks += name -> entry
+    for (entry <- globalDisks if !worldDisks.contains(entry)) {
+      worldDisks += entry
     }
-    for ((_, (stack, count)) <- worldDisks) {
+    for ((stack, count) <- worldDisks) {
       for (i <- 0 until count) {
         disksForSampling += stack
       }
     }
   }
 
-  private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)], external: Boolean) {
+  private def parseLootDisks(list: java.util.Properties, acc: mutable.ArrayBuffer[(ItemStack, Int)], external: Boolean) {
     for (key <- list.stringPropertyNames) {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
-          acc += key -> ((createLootDisk(name, key, external, Some(Color.dyes.indexOf(color))), count.toInt))
+          acc += ((createLootDisk(name, key, external, Some(Color.dyes.indexOf(color))), count.toInt))
         case Array(name, count) =>
-          acc += key -> ((createLootDisk(name, key, external), count.toInt))
+          acc += ((createLootDisk(name, key, external), count.toInt))
         case _ =>
-          acc += key -> ((createLootDisk(value, key, external), 1))
+          acc += ((createLootDisk(value, key, external), 1))
       }
       catch {
         case t: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value, t)
@@ -139,9 +152,10 @@ object Loot {
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-    val stack = registerLootDisk(name, color.getOrElse(8), callable)
+    val stack = registerLootDisk(path, color.getOrElse(8), callable, doRecipeCycling = true)
+    stack.setStackDisplayName(name)
     if (!external) {
-      Items.registerStack(stack, name)
+      Items.registerStack(stack, path)
     }
     stack
   }

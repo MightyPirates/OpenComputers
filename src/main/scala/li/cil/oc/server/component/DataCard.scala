@@ -4,6 +4,7 @@ import java.security._
 import java.security.interfaces.ECPublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
+import java.util
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterOutputStream
 import javax.crypto.Cipher
@@ -13,29 +14,27 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 import com.google.common.hash.Hashing
-import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
-abstract class DataCard extends prefab.ManagedEnvironment {
+import scala.collection.convert.WrapAsJava._
+
+abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("data", Visibility.Neighbors).
     withConnector().
     create()
-
-  val romData = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/data"), "data"))
 
   // ----------------------------------------------------------------------- //
 
@@ -70,32 +69,6 @@ abstract class DataCard extends prefab.ManagedEnvironment {
   def getLimit(context: Context, args: Arguments): Array[AnyRef] = {
     result(Settings.get.dataCardHardLimit)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node.isNeighborOf(this.node)) {
-      romData.foreach(fs => node.connect(fs.node))
-    }
-  }
-
-  override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      romData.foreach(_.node.remove())
-    }
-  }
-
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    romData.foreach(_.load(nbt.getCompoundTag("romData")))
-  }
-
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    romData.foreach(fs => nbt.setNewCompoundTag("romData", fs.save))
-  }
 }
 
 object DataCard {
@@ -104,6 +77,17 @@ object DataCard {
   }
 
   class Tier1 extends DataCard {
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Processor,
+      DeviceAttribute.Description -> "Data processor card",
+      DeviceAttribute.Vendor -> "S.C. Ltd.",
+      DeviceAttribute.Product -> "SC01D H45h3r"
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+    // ----------------------------------------------------------------------- //
+
     @Callback(direct = true, limit = 32, doc = """function(data:string):string -- Applies base64 encoding to the data.""")
     def encode64(context: Context, args: Arguments): Array[AnyRef] = {
       result(Base64.encodeBase64(trivialCost(context, args)))
@@ -154,6 +138,17 @@ object DataCard {
   }
 
   class Tier2 extends Tier1 {
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Processor,
+      DeviceAttribute.Description -> "Data processor card",
+      DeviceAttribute.Vendor -> "S.C. Ltd.",
+      DeviceAttribute.Product -> "SC02D Cryptic"
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+    // ----------------------------------------------------------------------- //
+
     @Callback(direct = true, limit = 8, doc = """function(data:string[, hmacKey:string]):string -- Computes MD5 hash of the data. Result is binary data.""")
     override def md5(context: Context, args: Arguments): Array[AnyRef] =
       if (args.count() > 1) {
@@ -217,6 +212,17 @@ object DataCard {
   }
 
   class Tier3 extends Tier2 {
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Processor,
+      DeviceAttribute.Description -> "Data processor card",
+      DeviceAttribute.Vendor -> "S.C. Ltd.",
+      DeviceAttribute.Product -> "SC03D Signer"
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+    // ----------------------------------------------------------------------- //
+
     @Callback(direct = true, limit = 1, doc = """function([bitLen:number]):userdata, userdata -- Generates key pair. Returns: public, private keys. Allowed key lengths: 256, 384 bits.""")
     def generateKeyPair(context: Context, args: Arguments): Array[AnyRef] = {
       checkCost(Settings.get.dataCardAsymmetric)

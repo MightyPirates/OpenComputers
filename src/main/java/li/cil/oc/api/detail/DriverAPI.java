@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.Collection;
+import java.util.Set;
 
 public interface DriverAPI {
     /**
@@ -169,8 +170,22 @@ public interface DriverAPI {
      *
      * @param stack the item stack to get the environment type for.
      * @return the type of environment associated with the stack, or <tt>null</tt>.
+     * @deprecated Use {@link #environmentsFor(ItemStack)} instead.
      */
+    @Deprecated
     Class<?> environmentFor(ItemStack stack);
+
+    /**
+     * Looks up the environments associated with the specified item stack.
+     * <p/>
+     * This will use the registered {@link EnvironmentProvider}s to find
+     * environment types for the specified item stack. If none can be
+     * found, returns an empty Set.
+     *
+     * @param stack the item stack to get the environment type for.
+     * @return the type of environment associated with the stack, or an empty Set.
+     */
+    Set<Class<?>> environmentsFor(ItemStack stack);
 
     /**
      * Get an inventory implementation providing access to an item inventory.

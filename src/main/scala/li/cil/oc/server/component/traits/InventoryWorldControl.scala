@@ -13,7 +13,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraftforge.common.util.ForgeDirection
 
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
-  @Callback(doc = "function(side:number):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
+  @Callback(doc = "function(side:number[, fuzzy:boolean=false]):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
@@ -21,7 +21,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
         case Some(item: ItemBlock) =>
           val blockPos = position.offset(side)
           val idMatches = item.field_150939_a == world.getBlock(blockPos)
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(blockPos)
+          val subTypeMatches = args.optBoolean(1, false) || !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(blockPos)
           return result(idMatches && subTypeMatches)
         case _ =>
       }

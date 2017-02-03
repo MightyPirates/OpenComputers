@@ -1,9 +1,15 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -12,6 +18,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
 import scala.util.matching.Regex
 
 // IMPORTANT: usually methods with side effects should *not* be direct
@@ -26,7 +33,7 @@ import scala.util.matching.Regex
 // saved, but before the computer was saved, leading to mismatching states in
 // the save file - a Bad Thing (TM).
 
-class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
+class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
@@ -44,6 +51,31 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     case Some(screen) => screen.synchronized(f(screen))
     case _ => Array(Unit, "no screen")
   }
+
+  final val setBackgroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+  final val setForegroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+  final val setPaletteColorCosts = Array(1.0 / 2, 1.0 / 8, 1.0 / 16)
+  final val setCosts = Array(1.0 / 64, 1.0 / 128, 1.0 / 256)
+  final val copyCosts = Array(1.0 / 16, 1.0 / 32, 1.0 / 64)
+  final val fillCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+
+  // ----------------------------------------------------------------------- //
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Display,
+    DeviceAttribute.Description -> "Graphics controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> ("MPG" + ((tier + 1) * 1000).toString + " GTZ"),
+    DeviceAttribute.Capacity -> capacityInfo,
+    DeviceAttribute.Width -> widthInfo,
+    DeviceAttribute.Clock -> clockInfo
+  )
+
+  def capacityInfo = (maxResolution._1 * maxResolution._2).toString
+  def widthInfo = Array("1", "4", "8").apply(maxDepth.ordinal())
+  def clockInfo = ((2000 / setBackgroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setForegroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setPaletteColorCosts(tier)).toInt / 100).toString + "/" + ((2000 / setCosts(tier)).toInt / 100).toString + "/" + ((2000 / copyCosts(tier)).toInt / 100).toString + "/" + ((2000 / fillCosts(tier)).toInt / 100).toString
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -117,8 +149,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     })
   }
 
-  final val setBackgroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
-
   @Callback(direct = true, doc = """function():number, boolean -- Get the current foreground color and whether it's from the palette or not.""")
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getForegroundColor, s.isForegroundFromPalette))
@@ -140,8 +170,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
       result(oldColor, oldIndex)
     })
   }
-
-  final val setForegroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
 
   @Callback(direct = true, doc = """function(index:number):number -- Get the palette color at the specified palette index.""")
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
@@ -166,8 +194,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
       case _: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("invalid palette index")
     })
   }
-
-  final val setPaletteColorCosts = Array(1.0 / 2, 1.0 / 8, 1.0 / 16)
 
   @Callback(direct = true, doc = """function():number -- Returns the currently set color depth.""")
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
@@ -281,8 +307,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     })
   }
 
-  final val setCosts = Array(1.0 / 64, 1.0 / 128, 1.0 / 256)
-
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
     context.consumeCallBudget(copyCosts(tier))
@@ -300,8 +324,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
       else result(Unit, "not enough energy")
     })
   }
-
-  final val copyCosts = Array(1.0 / 16, 1.0 / 32, 1.0 / 64)
 
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
@@ -324,8 +346,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     })
     else throw new Exception("invalid fill value")
   }
-
-  final val fillCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
 
   private def consumePower(n: Double, cost: Double) = node.tryChangeBuffer(-n * cost)
 

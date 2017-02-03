@@ -1,5 +1,6 @@
 package li.cil.oc.server.machine
 
+import java.util
 import java.util.concurrent.TimeUnit
 
 import li.cil.oc.OpenComputers
@@ -7,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.item.CallBudget
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
@@ -46,7 +48,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
+class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -177,6 +179,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
+  override def getDeviceInfo: util.Map[String, String] = host match {
+    case deviceInfo: DeviceInfo => deviceInfo.getDeviceInfo
+    case _ => null
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     MinecraftServer.getServer.isSinglePlayer || {
@@ -259,7 +268,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def stop() = state.synchronized(state.headOption match {
-    case Machine.State.Stopped | Machine.State.Stopping =>
+    case Some(Machine.State.Stopped | Machine.State.Stopping) =>
       false
     case _ =>
       state.push(Machine.State.Stopping)
@@ -316,6 +325,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             case arg: java.lang.String => arg
             case arg: Array[Byte] => arg
             case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+            case arg: mutable.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
+            case arg: java.util.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
             case arg: NBTTagCompound => arg
             case arg =>
               OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
@@ -419,6 +430,33 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
     null
   }
+
+  @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
+  def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
+    context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
+    Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {
+      case (n: Component, deviceInfo: DeviceInfo) =>
+        if (n.canBeSeenFrom(node) || n == node) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+      case (n, deviceInfo: DeviceInfo) =>
+        if (n.canBeReachedFrom(node)) {
+          Option(deviceInfo.getDeviceInfo) match {
+            case Some(info) => Option(n.address -> info)
+            case _ => None
+          }
+        }
+        else None
+    }.collect { case Some(kvp) => kvp }.toMap)
+  }
+
+  @Callback(doc = """function():table -- Returns a map of program name to disk label for known programs.""")
+  def getProgramLocations(context: Context, args: Arguments): Array[AnyRef] =
+    result(ProgramLocations.getMappings(Machine.getArchitectureName(architecture.getClass)))
 
   // ----------------------------------------------------------------------- //
 
@@ -729,7 +767,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
-    assert(!isExecuting) // Lock on 'this' should guarantee this.
+    // The lock on 'this' should guarantee that this never happens regularly.
+    // If something other than regular saving tries to save while we are executing code,
+    // e.g. SpongeForge saving during robot.move due to block changes being captured,
+    // just don't save this at all. What could possibly go wrong?
+    if(isExecuting) return
 
     if (SaveHandler.savingForClients) {
       return

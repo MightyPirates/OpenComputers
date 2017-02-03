@@ -4,7 +4,11 @@ import codechicken.lib.vec.Vector3
 import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 import cpw.mods.fml.common.Optional
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -15,11 +19,13 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
+
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice {
+trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice with DeviceInfo {
   def redstone: EnvironmentHost
 
   var wirelessFrequency = 0
@@ -27,6 +33,19 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
   var wirelessInput = false
 
   var wirelessOutput = false
+
+  // ----------------------------------------------------------------------- //
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Communication,
+    DeviceAttribute.Description -> "Wireless redstone controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Rw400-M",
+    DeviceAttribute.Capacity -> "1",
+    DeviceAttribute.Width -> "1"
+  )
+
+  override def getDeviceInfo: java.util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 

@@ -2,6 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc
 import li.cil.oc.Constants
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
@@ -17,6 +18,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object DriverFileSystem extends Item {
+  val UUIDVerifier = """^([0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})$""".r
+
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.HDDTier1),
     api.Items.get(Constants.ItemName.HDDTier2),
@@ -82,7 +85,14 @@ object DriverFileSystem extends Item {
 
   private def addressFromTag(tag: NBTTagCompound) =
     if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
-      tag.getCompoundTag("node").getString("address")
+      tag.getCompoundTag("node").getString("address") match {
+        case UUIDVerifier(address) => address
+        case _ => // Invalid disk address.
+          val newAddress = java.util.UUID.randomUUID().toString
+          tag.getCompoundTag("node").setString("address", newAddress)
+          OpenComputers.log.warn(s"Generated new address for disk '${newAddress}'.")
+          newAddress
+      }
     }
     else java.util.UUID.randomUUID().toString
 
