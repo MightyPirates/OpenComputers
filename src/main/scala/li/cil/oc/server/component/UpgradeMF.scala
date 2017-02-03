@@ -1,5 +1,11 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.event.BlockChangeHandler
@@ -7,18 +13,21 @@ import li.cil.oc.common.event.BlockChangeHandler.ChangeListener
 import li.cil.oc.server.network
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
+
+import scala.collection.convert.WrapAsJava._
 
 /**
   * Mostly stolen from li.cil.oc.common.tileentity.Adapter
   *
   * @author Sangar, Vexatos
   */
-class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: ForgeDirection) extends prefab.ManagedEnvironment with ChangeListener {
+class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: ForgeDirection) extends prefab.ManagedEnvironment with ChangeListener with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
@@ -28,6 +37,15 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Bus,
+    DeviceAttribute.Description -> "Remote Adapter",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.Scummtech,
+    DeviceAttribute.Product -> "ERR NAME NOT FOUND"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   private def otherNode(tile: TileEntity, f: (Node) => Unit) {
     network.Network.getNetworkNode(tile, dir) match {
