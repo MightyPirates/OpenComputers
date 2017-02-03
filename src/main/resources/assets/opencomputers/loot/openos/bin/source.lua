@@ -19,7 +19,7 @@ if not file then
 else
   local status, reason = xpcall(function()
     repeat
-      local line = file:read("*L")
+      local line = file:read()
       if line then
         sh.execute(nil, line)
       end

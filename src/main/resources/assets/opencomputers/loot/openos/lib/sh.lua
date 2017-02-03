@@ -38,8 +38,10 @@ function sh.internal.command_result_as_code(ec)
   -- convert lua result to bash ec
   if ec == false then
     return 1
-  elseif ec == nil or ec == true or type(ec) ~= "number" then
+  elseif ec == nil or ec == true then
     return 0
+  elseif type(ec) ~= "number" then
+    return 2 -- illegal number
   else
     return ec
   end
@@ -137,7 +139,8 @@ function sh.expand(value)
     if sh.internal.isIdentifier(key) then
       return sh.internal.expandKey(key)
     end
-    error("${" .. key .. "}: bad substitution")
+    io.stderr:write("${" .. key .. "}: bad substitution\n")
+    os.exit(1)
   end)
   if expanded:find('`') then
     expanded = sh.internal.parse_sub(expanded)
@@ -291,6 +294,8 @@ function sh.internal.runThreads(threads)
           -- in case this was the end of the line, args is returned
           return args[2]
         end
+      elseif not result[1] then
+        io.stderr:write(result[2])
       end
     end
   end
@@ -383,7 +388,8 @@ function --[[@delayloaded-start@]] sh.internal.buildCommandRedirects(args, threa
         else
           local file, reason = io.open(shell.resolve(token), mode)
           if not file then
-            error("could not open '" .. token .. "': " .. reason)
+            io.stderr:write("could not open '" .. token .. "': " .. reason .. "\n")
+            os.exit(1)
           end
           table.insert(handles, file)
           ios[from_io] = file
@@ -428,7 +434,7 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
   local segments = text.split(glob_pattern, {"/"}, true)
-  local hiddens = tx.select(segments,function(e)return e:match("^%%%.")==nil end)
+  local hiddens = tx.foreach(segments,function(e)return e:match("^%%%.")==nil end)
   local function is_visible(s,i) 
     return not hiddens[i] or s:match("^%.") == nil 
   end
@@ -812,7 +818,8 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
     if not self.redirect[1] and self.closed then
       -- if next is dead, ignore all writes
       if coroutine.status(self.next) ~= "dead" then
-        error("attempt to use a closed stream")
+        io.stderr:write("attempt to use a closed stream\n")
+        os.exit(1)
       end
     elseif self.redirect[1] then
       return self.redirect[1]:write(value)
@@ -823,7 +830,8 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
         self:close()
       end
       if not result[1] then
-        error(result[2], 0)
+        io.stderr:write(tostring(result[2]) .. "\n")  
+        os.exit(1)
       end
       return self
     end

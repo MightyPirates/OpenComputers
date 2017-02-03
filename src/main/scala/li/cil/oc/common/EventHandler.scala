@@ -245,6 +245,7 @@ object EventHandler {
     PetRenderer.isInitialized = false
     PetRenderer.hidden.clear()
     Loot.disksForClient.clear()
+    Loot.disksForCyclingClient.clear()
 
     client.Sound.startLoop(null, "computer_running", 0f, 0)
     scheduleServer(() => client.Sound.stopLoop(null))

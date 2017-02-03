@@ -4,6 +4,10 @@ local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
 
+if not io.output().tty then
+  return loadfile(shell.resolve("cat", "lua"), "bt", _G)(...)
+end
+
 local args = shell.parse(...)
 if #args > 1 then
   io.write("Usage: more <filename>\n")

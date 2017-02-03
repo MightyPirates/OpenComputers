@@ -1,327 +1,345 @@
 local fs = require("filesystem")
-local comp = require("component")
 local text = require("text")
 
-local sys = {} -- base class
+local api = {}
 
-local function new_node(parent, name, is_dir, proxy)
-  local node = {parent=parent, name=name, is_dir=is_dir, proxy=proxy}
-  if not proxy then
+local function new_node(proxy)
+  local node = {proxy=proxy}
+  if not proxy or not proxy.list then
     node.children = {}
   end
   return node
 end
 
--- node may support isAvailable, and may choose to not be available
-local function isAvailable(node)
-  return node and not (node.proxy and node.proxy.isAvailable and not node.proxy.isAvailable()) 
+local function array_read(array, separator)
+  separator = separator or " "
+  local builder = {}
+  for _,value in ipairs(array) do
+    table.insert(builder, tostring(value))
+  end
+  return table.concat(builder, separator)
 end
 
--- returns: dir, point or path
--- node (table): the handler responsible for the path
---   this is essentially the device filesystem that is registered for the given path
--- point (string): the point name (like a file name)
-function sys:findNode(path, create)
-  checkArg(1, path, "string")
+local function child_iterator(node)
+  -- a node can either list or have children, but not both (see add_child)
+  -- a node can be a file, which has a proxy, but no children
+  local listed = {}
+  if node then
+    if node.proxy and node.proxy.list then
+      -- list should return a table, not another iterator
+      -- the elements in the list are not nodes, but proxies
+      -- we have to wrap each entry with a virtual node (a node that is not in a child-parent tree)
+      -- list can be a function that returns a table, or the table already
+      local list = node.proxy.list
+      listed = type(list) == "table" and list or list()
+    elseif node.children then
+      listed = node.children
+    end
+  end
+  local availables = {}
+  for name, item in pairs(listed) do
+    if name:len() > 0 then
+      if not item.proxy then item = new_node(item) end
+      if not item.proxy.isAvailable or item.proxy.isAvailable() then
+        availables[name] = item
+      end
+    end
+  end
+  return pairs(availables)
+end
+
+local function get_child(node, name)
+  for child_name, child in child_iterator(node) do
+    if child_name == name then
+      return child
+    end
+  end
+end
+
+local function add_child(node, name, proxy)
+  if not node or node.proxy and node.proxy.list then
+    return nil, "cannot add child to listing proxy"
+  end
+
+  local child = new_node(proxy)
+  node.children[name] = child
+  return child
+end
+
+local function findNode(path, bCreate)
   local segments = fs.segments(path)
-  local node = self.mtab
+  local node = api.root
   while #segments > 0 do
     local name = table.remove(segments, 1)
-    local prev_path = path
-    path = table.concat(segments, "/")
-
-    local next_node = node.children[name]
-    if not isAvailable(next_node) then
-      next_node = nil
-    end
-
-    if not next_node then
-      if not create then
-        path = prev_path
-        break
+    local next = get_child(node, name)
+    if not next then
+      if bCreate then
+        if not add_child(node, name) then
+          return nil, "cannot create child node"
+        end
+      else
+        return nil, "no such file or directory"
       end
-      node.children[name] = new_node(node, name, true, false)
     end
+    node = next or get_child(node, name)
+  end
+  return node
+end
 
-    node = node.children[name]
+-- devfs api
 
-    if node.proxy then -- if there is a proxy handler we stop searching here
-      break
+api.root = new_node()
+
+function api.create(path, proxy)
+  checkArg(1, path, "string")
+  checkArg(2, proxy, "table", "nil")
+  local pwd = fs.path(path)
+  local name = fs.name(path)
+  if not name then return nil, "invalid devfs path" end
+  local pnode, why = findNode(pwd, true)
+  if not pnode then
+    return nil, why
+  end
+
+  if get_child(pnode, name) then
+    return nil, "file or directory exists"
+  end
+
+  return add_child(pnode, name, proxy)
+end
+
+-- the filesystem object as seen from the system mount interface
+api.proxy = {}
+
+-- forward declare injector
+local inject_dynamic_pairs
+local function dynamic_list(path, fsnode)
+  local nodes, links, dirs = {}, {}, {}
+  local node = findNode(path)
+  if node then
+    for name,node in child_iterator(node) do
+      if node.proxy and node.proxy.link then
+        links[name] = node.proxy.link
+      elseif node.proxy and node.proxy.list then
+        local child = {name=name,parent=fsnode}
+        local child_path = path .. "/" .. name
+        inject_dynamic_pairs(child, child_path, true)
+        dirs[name] = child
+      else
+        nodes[name] = node
+      end
+    end
+  end
+  return nodes, links, dirs
+end
+
+inject_dynamic_pairs = function(fsnode, path, bStoreUse)
+  if getmetatable(fsnode) then return end
+  fsnode.children = nil
+  fsnode.links = nil
+  setmetatable(fsnode,
+  {
+    __index = function(tbl, key)
+      local bLinks = key == "links"
+      local bChildren = key == "children"
+      if not bLinks and not bChildren then return end
+      local nodes, links, dirs = dynamic_list(path, tbl)
+      if bStoreUse then
+        tbl.children = dirs
+        tbl.links = links
+      end
+      return bLinks and links or dirs
+    end
+  })
+end
+
+local label_lib = dofile("/lib/tools/device_labeling.lua")
+label_lib.loadRules()
+api.getDeviceLabel = label_lib.getDeviceLabel
+api.setDeviceLabel = label_lib.setDeviceLabel
+
+local registered = false
+function api.register(public_proxy)
+  if registered then return end
+  registered = true
+
+  local start_path = "/lib/tools/devfs/"
+  for starter in fs.list(start_path) do
+    local full_path = start_path .. starter
+    local _,matched = starter:gsub("%.lua$","")
+    if matched > 0 then
+      local data = dofile(full_path)
+      for name, entry in pairs(data) do
+        api.create(name, entry)
+      end
     end
   end
 
-  -- only dirs can have trailing path
-  -- trailing path on a dev point (file) not allowed
-  if path == "" or node.is_dir and node.proxy then
-    return node, path
+  if rawget(public_proxy, "fsnode") then
+    inject_dynamic_pairs(public_proxy.fsnode, "")
   end
 end
 
-function sys:invoke(method, path, ...)
-  local node, rest = self.findNode(path)
-  if not node or -- not found
-      rest == "" and node.is_dir or -- path is dir
-      not node.proxy[method] then -- optional method
+function api.proxy.list(path)
+  local result = {}
+  for name,node in pairs(dynamic_list(path, false, false)) do
+    table.insert(result, name)
+  end
+  return result
+end
+
+function api.proxy.isDirectory(path)
+  local node = findNode(path)
+  return node and node.proxy and node.proxy.list
+end
+
+function api.proxy.size(path)
+  checkArg(1, path, "string")
+  local node, why = findNode(path)
+  if not node or not node.proxy then
     return 0
   end
-  -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
-  return node.proxy[method](rest)
+
+  local proxy = node.proxy
+  if proxy.list then return 0 end
+  if proxy.size then return proxy.size() end
+  if proxy.open then return 0 end
+  if proxy.read then return proxy.read():len() end
+  if proxy[1] ~= nil then return array_read(proxy):len() end
+  return 0
 end
 
-function sys:size(path)
-  return self.invoke("size", path)
+function api.proxy.lastModified()
+  return 0
 end
 
-function sys:lastModified(path)
-  return self.invoke("lastModified", path)
+function api.proxy.exists(path)
+  checkArg(1, path, "string")
+  return not not findNode(path)
 end
 
-function sys:isDirectory(path)
-  local node, rest = self.findNode(path)
-  if not node then
-    return
+function api.getDevice(path)
+  checkArg(1, path, "string")
+  local device
+  local reason = "no such device"
+  local real, why = fs.realPath(require("shell").resolve(path))
+  if not real then return nil, why end
+  if fs.exists(real) then
+    -- we don't have a good way of knowing where dev is mounted still
+    -- similar hack in api.proxy.open
+    real = fs.path(real) .. (fs.name(real) or "")
+    local part, subbed = real:gsub("^/dev/", "")
+    if subbed > 0 and part:len() > 0 then
+      local node = findNode(part)
+      if node and node.proxy then
+        -- must be a special device node
+        device = node.proxy.device
+      end
+      if not device then
+        reason = "not a device"
+      end
+    else
+      device, reason = fs.get(real)
+    end
   end
-
-  if rest == "" then
-    return node.is_dir
-  elseif node.proxy then
-    return node.proxy.isDirectory(rest)
-  end
+  return device, reason
 end
 
-function sys:open(path, mode)
+function api.proxy.open(path, mode)
   checkArg(1, path, "string")
   checkArg(2, mode, "string", "nil")
 
-  if not self.exists(path) then
-    return nil, path.." file not found"
-  elseif self.isDirectory(path) then
-    return nil, path.." is a directory"
-  end
-
   mode = mode or "r"
-  -- everything at this level should be a binary open
-  mode = mode:gsub("b", "")
+  local bRead = mode:match("[ra]")
+  local bWrite = mode:match("[wa]")
 
-  if not ({a=true,w=true,r=true})[mode] then
+  if not bRead and not bWrite then
     return nil, "invalid mode"
   end
 
-  local node, rest = self.findNode(path)
-  -- there must be a node, else exists would have failed
-
-  local args = {}
-  if rest ~= "" then
-    -- having more rest means we expect the proxy fs to open the point
-    args[1] = rest
-  end
-  args[#args+1] = mode
-
-  return node.proxy.open(table.unpack(args))
-end
-
-function sys:list(path)
-  local node, rest = self.findNode(path)
-  if not node or (rest ~= "" and not node.is_dir) then-- not found
-    return {}
-  elseif rest == "" and not node.is_dir then -- path is file
-    return {path}
-  elseif node.proxy then
-    -- proxy could be a file, which doesn't take an argument, but it can be ignored if passed
-    return node.proxy.list(rest)
-  end
-
-  -- rest == "" and node.is_dir
-  local keys = {}
-  for k,node in pairs(node.children) do
-    if isAvailable(node) then
-      table.insert(keys, k)
-    end
-  end
-  return keys
-end
-
-function sys:remove(path)
-  return nil, "cannot remove devfs files or directories"
-  --checkArg(1, path, "string")
-
-  --if path == "" then
-  --  return nil, "no such file or directory"
-  --end
-
-  --if not self.exists(path) then
-  --  return nil, path.." file not found"
-  --end
-
-  --local node, rest = self.findNode(path)
-
-  --if rest ~= "" then -- if rest is not resolved, this isn't our path
-  --  return node.proxy.remove(rest)
-  --end
-
-  --node.parent.children[node.name] = nil
-end
-
-function sys:exists(path)
-  checkArg(1, path, "string")
-  local node, rest = self.findNode(path)
-
+  local node, why = findNode(path)
   if not node then
-    return false
-  elseif rest == "" then
-    return true
-  else
-    return node.proxy.exists(rest)
-  end
-end
-
-function sys:create(path, handler)
-  if self.exists(path) then
-    return nil, "path already exists"
+    return nil, why
+  elseif not node.proxy or node.proxy.list then
+    return nil, "is a directory"
   end
 
-  local segments = fs.segments(path)
-  local target = table.remove(segments)
-  path = table.concat(segments, "/")
+  local proxy = node.proxy
 
-  if not target or target == "" then
-    return nil, "missing argument"
+  -- in case someone tries to open a link directly, refer them back to fs
+  -- this is an unfortunate pathing hack due to optimizations for memory
+  if proxy.link then
+    return fs.open("/dev/"..path, mode)
   end
 
-  local node, rest = self.findNode(path, true)
-  if rest ~= "" then
-    return node.proxy.create(rest, handler)
+  -- special (but common) simple readonly cases
+  if proxy[1] ~= nil then -- contains special readonly value
+    local array = proxy
+    proxy.read = function()return array_read(array) end
   end
-  node.children[target] = new_node(node, target, not not handler.list, handler)
-  return true
+
+  if proxy.open then
+    return proxy.open(mode)
+  end
+
+  if bRead and not proxy.read then
+    return nil, "cannot open for read"
+  elseif bWrite and not proxy.write then
+    return nil, "cannot open for write"
+  end
+
+  local txtRead = bRead and proxy.read()
+
+  if bWrite then
+    return text.internal.writer(proxy.write, mode, txtRead)
+  end
+
+  return text.internal.reader(txtRead, mode)
 end
 
-local function new_devfs_dir(name)
-  local sys_child = setmetatable({}, {__index=function(tbl,key)
-    if sys[key] then
-      return function(...)
-        return sys[key](tbl, ...)
-      end
-    end
-  end})
-  sys_child.mtab = new_node(nil, name or "/", true)
+-- as long as the fsnode hack is used, fs.isLink is not needed here
+-- function api.proxy.isLink(path) end
 
-  return sys_child
+local function checked_invoke(handle, method, ...)
+  checkArg(1, handle, "table")
+  checkArg(2, method, "string")
+  checkArg(3, handle[method], "function", "table", "nil")
+  local m = handle[method]
+  if not m then
+    return nil, "bad file handle"
+  elseif type(m) == "table" then
+    local mm = getmetatable(m)
+    assert(mm and mm.__call, string.format("FILE handle [%s] method defined, but is not callable", tostring(method)))
+  end
+  return m(handle, ...)
 end
 
-local devfs = new_devfs_dir()
-
-local bfd = "bad file descriptor"
-
--- to allow sub dirs to act like sub devfs
-devfs.new_dir = new_devfs_dir
-devfs.new_node = new_node
-function devfs.new_callback_proxy(read_callback, write_callback)
-  return
-  {
-    open = function(mode)
-      if ({r=true, rb=true})[mode] then
-        if not read_callback then
-          return nil, "file cannot be opened for read"
-        end
-        return text.internal.reader(read_callback())
-      end
-      if not write_callback then
-        return nil, "file cannot be opened for write"
-      end
-      return text.internal.writer(write_callback, ({a=true,ab=true})[mode] and read_callback())
-    end,
-    size = function()
-      return read_callback and string.len(read_callback()) or 0
-    end
-  }
+function api.proxy.read(h, ...)
+  return checked_invoke(h, "read", ...)
 end
 
-function devfs.setLabel(value)
-  error("drive does not support labeling")
+function api.proxy.close(h, ...)
+  return checked_invoke(h, "close", ...)
 end
 
-function devfs.makeDirectory(path)
-  return false, "to create dirs in devfs use devfs.create"
+function api.proxy.write(h, ...)
+  return checked_invoke(h, "write", ...)
 end
 
-function devfs.read(h,...)
-  if not h.read then return nil, bfd end
-  return h:read(...)
+function api.proxy.seek(h, ...)
+  return checked_invoke(h, "seek", ...)
 end
 
-function devfs.seek(h,...)
-  if not h.seek then return nil, bfd end
-  return h:seek(...)
+function api.proxy.remove()
+  return nil, "cannot remove file or directory"
 end
 
-function devfs.write(h,...)
-  if not h.write then return nil, bfd end
-  return h:write(...)
+function api.proxy.makeDirectory()
+  return nil, "use create in the devfs api"
 end
 
-function devfs.close(h, ...)
-  if not h.close then return nil, bfd end
-  return h:close(...)
+function api.proxy.setLabel()
+  return nil, "cannot set label on devfs"
 end
 
--- devfs.create creates a new dev point at path
--- devfs is mounted to /sys by default, and /dev is a symlink to /sys/dev. If you want a devfs point to show up in /dev, specify a path here as "/dev/your_path")
--- the handler can be a single file dev file (called a point), or a devfs dir [which allows it to list its own dynamic list of points and dirs]
--- note: devfs dirs that list their own child dirs will have to handle directory queries on their own, such as list() and open(path, mode)
-
--- A handler represents a directory IF it defines list(), which returns a string array of the point names
--- a directory handler acts like simplified filesystem of its own.
--- note: that when creating new devfs points or dirs, devfs.create will not traverse into dynamic directory children of dev mount points
--- Meaning, if you create a devfs dir, which returns dirs children of its own, devfs.create does not support creating dev points
--- on those children
-
--- see new_devfs_dir() -- it might work for you, /dev uses it
-
--- Also note, your own devfs dirs may implement open() however they like -- devfs points' open() is called by the devfs library but dynamic
--- dir act as their own library for their own points
-
--- ### devfs point methods ###
--- Required
-  -- open(mode: string []) file: returns new file handle for point (see "devfs point handle methods")
--- Optional
-  -- size(path) number
-
--- ### devfs point handle instance methods ###
--- Required
-  -- + technicaly, one of the following is not required when the mode is for the other (e.g. no read when in write mode)
-  -- write(self, value, ...) boolean: writes each value (params list) and returns success
-  -- read(self, n: number) string: return string of n bytes, nil when no more bytes available
--- Optional
-  -- seek(self, whence [string], offset [number]) number: move file handle from whence by offset, return offset result
-  -- close(self) boolean: close the file handle. Note that if your open method allocated resources, you'll need to release them in close
-
--- ### devfs dir methods ###
--- Required
-  -- list() string[]: return list of child point names
-    -- if you use new_devfs_dir, set metatable on .points with __pairs and __index if you want a dynamic list of files
-  -- open(path, mode) file (table): return a file handle to path (path is relative)
-    -- it would be nice to make open() optional, but devfs doesn't know where you might store your point handlers, if you even have any
--- Optional
-  -- size(path) number
-  -- lastModified(path) number
-  -- isDirectory(path) boolean -- default returns false. Having dynamic dirs is considered advanced
-  -- remove(path) boolean
-  -- rename(path) boolean
-  -- exists(path) boolean -- default checks path against list() results
-
--- /dev is a special handler
-
-local function devfs_load(key)
-  -- using loadfile to allow us to pass args
-  -- load order complication: some dev points are dirs that want to use devfs api, but can't require devfs
-  devfs.create(key, loadfile("/lib/tools/devfs/" .. key .. ".lua", "bt", _G)(devfs))
-end
-
-devfs_load("random")
-devfs_load("null")
-devfs_load("eeprom")
-devfs_load("eeprom-data")
---devfs_load("filesystems")
-
-return devfs
+return api
