@@ -11,5 +11,6 @@ object CommandHandler {
     e.registerServerCommand(WirelessRenderingCommand)
     e.registerServerCommand(SpawnComputerCommand)
     e.registerServerCommand(DebugWhitelistCommand)
+    e.registerServerCommand(SendDebugMessageCommand)
   }
 }

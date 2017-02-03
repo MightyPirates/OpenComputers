@@ -46,6 +46,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
+      case PacketType.Clipboard => onClipboard(p)
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
@@ -131,6 +132,10 @@ object PacketHandler extends CommonPacketHandler {
 
   def onClientLog(p: PacketParser) = {
     OpenComputers.log.info(p.readUTF())
+  }
+
+  def onClipboard(p: PacketParser) {
+    GuiScreen.setClipboardString(p.readUTF())
   }
 
   def onColorChange(p: PacketParser) =

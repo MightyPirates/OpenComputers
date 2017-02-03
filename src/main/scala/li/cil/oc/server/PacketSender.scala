@@ -67,6 +67,14 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
+  def sendClipboard(player: EntityPlayerMP, text: String) {
+    val pb = new SimplePacketBuilder(PacketType.Clipboard)
+
+    pb.writeUTF(text)
+
+    pb.sendToPlayer(player)
+  }
+
   def sendColorChange(t: Colored) {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
