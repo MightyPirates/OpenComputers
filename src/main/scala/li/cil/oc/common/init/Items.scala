@@ -538,6 +538,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.DiskDriveMountable(multi), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
     Recipes.addSubItem(new item.UpgradeTrading(multi), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
     registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
+    Recipes.addSubItem(new item.UpgradeMF(multi), Constants.ItemName.MFU, "oc:mfu")
 
     // Register aliases.
     for ((k, v) <- aliases) {
