@@ -55,6 +55,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
+      case PacketType.Clipboard => onClipboard(p)
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
@@ -72,6 +73,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.CyclingDisk => onCyclingDisk(p)
       case PacketType.NanomachinesConfiguration => onNanomachinesConfiguration(p)
       case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
       case PacketType.NanomachinesPower => onNanomachinesPower(p)
@@ -134,6 +136,10 @@ object PacketHandler extends CommonPacketHandler {
 
   def onClientLog(p: PacketParser) = {
     OpenComputers.log.info(p.readUTF())
+  }
+
+  def onClipboard(p: PacketParser) {
+    GuiScreen.setClipboardString(p.readUTF())
   }
 
   def onColorChange(p: PacketParser) =
@@ -323,6 +329,13 @@ object PacketHandler extends CommonPacketHandler {
   @Optional.Method(modid = Mods.IDs.JustEnoughItems)
   private def addDiskToJEI(stack: ItemStack): Unit = {
     ModJEI.addDiskAtRuntime(stack)
+  }
+
+  def onCyclingDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForCyclingClient += stack
+    }
   }
 
   def onNanomachinesConfiguration(p: PacketParser) = {

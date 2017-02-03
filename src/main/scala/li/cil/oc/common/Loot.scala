@@ -45,7 +45,11 @@ object Loot {
 
   val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
-  val disksForCycling = mutable.ArrayBuffer.empty[ItemStack]
+  def disksForCycling = if(disksForCyclingClient.nonEmpty) disksForCyclingClient else disksForCyclingServer
+
+  val disksForCyclingServer = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForCyclingClient = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
@@ -80,7 +84,7 @@ object Loot {
     Loot.factories += modSpecificName -> factory
 
     if(doRecipeCycling) {
-      Loot.disksForCycling += stack
+      Loot.disksForCyclingServer += stack
     }
 
     stack.copy()

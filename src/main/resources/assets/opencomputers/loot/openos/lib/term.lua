@@ -14,15 +14,46 @@ function term.internal.window()
 end
 
 local W = term.internal.window
-
 local local_env = {unicode=unicode,event=event,process=process,W=W,kb=kb}
+
+local gpu_intercept = {}
+local function update_viewport(window, width, height)
+  window = window or W()
+  local gpu = window.gpu
+  if not gpu then return end
+  if not gpu_intercept[gpu] then
+    gpu_intercept[gpu] = {} -- only override a gpu once
+    -- the gpu can change resolution before we get a chance to call events and handle screen_resized
+    -- unfortunately, we have to handle viewport changes by intercept
+    local setr, setv = gpu.setResolution, gpu.setViewport
+    gpu.setResolution = function(...)
+      gpu_intercept[gpu] = {}
+      return setr(...)
+    end
+    gpu.setViewport = function(...)
+      gpu_intercept[gpu] = {}
+      return setv(...)
+    end
+  end
+  if not width and not gpu_intercept[gpu][window] then
+    width, height = gpu.getViewport()
+  end
+  if width then
+    window:resize(width, height)
+    gpu_intercept[gpu][window] = true
+  end
+end
+
+local function resize(window, width, height)
+  window.w, window.h = width, height
+end
 
 function term.internal.open(...)
   local dx, dy, w, h = ...
-  local window = {x=1,y=1,fullscreen=select("#",...)==0,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true}
+  local window = {x=1,y=1,fullscreen=select("#",...)==0,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true,resize=resize}
   event.listen("screen_resized", function(_,addr,w,h)
     if term.isAvailable(window) and term.screen(window) == addr and window.fullscreen then
-      window.w,window.h = w,h
+      update_viewport(window, w, h)
     end
   end)
   return window
@@ -30,6 +61,7 @@ end
 
 function term.getViewport(window)
   window = window or W()
+  update_viewport(window)
   return window.w, window.h, window.dx, window.dy, window.x, window.y
 end
 
@@ -42,8 +74,8 @@ function term.setViewport(w,h,dx,dy,x,y,window)
     w,h = w or gw, h or gh
   end
 
-  window.w,window.h,window.dx,window.dy,window.x,window.y,window.gw,window.gh=
-    w,h,dx,dy,x,y, gw, gh
+  window.dx,window.dy,window.x,window.y,window.gw,window.gh = dx, dy, x, y, gw, gh
+  update_viewport(window, w, h)
 end
 
 function term.gpu(window)
@@ -632,21 +664,39 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.tab(input,hints)
   if not hints.handler then return end
-  if not hints.cache then
-    hints.cache = type(hints.handler)=="table" and hints.handler
-      or hints.handler(input.data,input.index + 1) or {}
-    hints.cache.i=-1
-  end
-  local c=hints.cache
   local main_kb = term.keyboard()
   -- term may not have a keyboard
   -- in which case, we shouldn't be handling tab events
   if not main_kb then
     return
   end
+  if not hints.cache then
+    local data = hints.handler
+    hints.handler = function(...)
+      if type(data) == "table" then
+        return data
+      else
+        return data(...) or {}
+      end
+    end
+    hints.cache = hints.handler(input.data, input.index + 1)
+    hints.cache.i = -1
+  end
+
+  local cache = hints.cache
+  local cache_size = #cache
+  
+  if cache_size == 1 and cache.i == 0 then
+    -- there was only one solution, and the user is asking for the next
+    hints.cache = hints.handler(cache[1], input.index + 1)
+    hints.cache.i = -1
+    cache = hints.cache
+    cache_size = #cache
+  end
+
   local change = kb.isShiftDown(main_kb) and -1 or 1
-  c.i=(c.i+change)%math.max(#c,1)
-  local next=c[c.i+1]
+  cache.i = (cache.i + change) % math.max(#cache, 1)
+  local next = cache[cache.i + 1]
   if next then
     local tail = unicode.len(input.data) - input.index
     input:clear()

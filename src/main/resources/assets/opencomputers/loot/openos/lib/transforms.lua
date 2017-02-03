@@ -18,18 +18,6 @@ end
 local adjust=lib.internal.range_adjust
 local view=lib.internal.table_view
 
--- works like string.sub but on elements of an indexed table
-function lib.sub(tbl,f,l)
-  checkArg(1,tbl,'table')
-  local r,s={},#tbl
-  f,l=adjust(f,l,s)
-  l=math.min(l,s)
-  for i=math.max(f,1),l do
-    r[#r+1]=tbl[i]
-  end
-  return r
-end
-
 -- first(p1,p2) searches for the first range in p1 that satisfies p2
 function lib.first(tbl,pred,f,l)
   checkArg(1,tbl,'table')
@@ -52,6 +40,31 @@ function lib.first(tbl,pred,f,l)
     end
   end
 end
+
+-- returns true if p1 at first p3 equals element for element p2
+function lib.begins(tbl,v,f,l)
+  checkArg(1,tbl,'table')
+  checkArg(2,v,'table')
+  local vs=#v
+  f,l=adjust(f,l,#tbl)
+  if vs>(l-f+1)then return end
+  for i=1,vs do
+    if tbl[f+i-1]~=v[i] then return end
+  end
+  return true
+end
+
+-- works like string.sub but on elements of an indexed table
+function --[[@delayloaded-start@]] lib.sub(tbl,f,l)
+  checkArg(1,tbl,'table')
+  local r,s={},#tbl
+  f,l=adjust(f,l,s)
+  l=math.min(l,s)
+  for i=math.max(f,1),l do
+    r[#r+1]=tbl[i]
+  end
+  return r
+end --[[@delayloaded-end@]] 
 
 -- if value was made by lib.sub then find can find from whence
 function --[[@delayloaded-start@]] lib.find(tbl, sub, first, last)
@@ -117,21 +130,8 @@ function --[[@delayloaded-start@]] lib.partition(tbl,partitioner,dropEnds,f,l)
   return result
 end --[[@delayloaded-end@]] 
 
--- returns true if p1 at first p3 equals element for element p2
-function lib.begins(tbl,v,f,l)
-  checkArg(1,tbl,'table')
-  checkArg(2,v,'table')
-  local vs=#v
-  f,l=adjust(f,l,#tbl)
-  if vs>(l-f+1)then return end
-  for i=1,vs do
-    if tbl[f+i-1]~=v[i] then return end
-  end
-  return true
-end
-
 -- calls callback(e,i,tbl) for each ith element e in table tbl from first
-function lib.foreach(tbl,c,f,l)
+function --[[@delayloaded-start@]] lib.foreach(tbl,c,f,l)
   checkArg(1,tbl,'table')
   checkArg(2,c,'function','string')
   local ck=c
@@ -148,17 +148,16 @@ function lib.foreach(tbl,c,f,l)
     end
   end
   return r
-end
-lib.select=lib.foreach
+end --[[@delayloaded-end@]]
 
 function  --[[@delayloaded-start@]] lib.where(tbl,p,f,l)
   return lib.foreach(tbl,
     function(e,i,tbl)
       return p(e,i,tbl)and e or nil
     end,f,l)
-end --[[@delayloaded-end@]] 
+end --[[@delayloaded-end@]]
 
-function lib.concat(...)
+function --[[@delayloaded-start@]] lib.concat(...)
   local r,rn,k={},0
   for _,tbl in ipairs({...})do
     if type(tbl)~='table'then
@@ -172,7 +171,7 @@ function lib.concat(...)
   end
   r.n=k and rn or nil
   return r
-end
+end --[[@delayloaded-end@]] 
 
 -- works with pairs on tables
 -- returns the kv pair, or nil and the number of pairs iterated

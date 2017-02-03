@@ -24,6 +24,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   HologramValues,
   LootDisk,
+  CyclingDisk,
   NanomachinesConfiguration,
   NanomachinesInputs,
   NanomachinesPower,
