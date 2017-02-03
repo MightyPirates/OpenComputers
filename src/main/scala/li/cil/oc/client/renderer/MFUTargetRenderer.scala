@@ -21,19 +21,19 @@ object MFUTargetRenderer {
     val mc = Minecraft.getMinecraft
     val player = mc.thePlayer
     if (player == null) return
-    player.getHeldItem match {
+    player.getHeldItemMainhand match {
       case stack: ItemStack if api.Items.get(stack) == mfu && stack.hasTagCompound =>
         val data = stack.getTagCompound
         if (data.hasKey(Settings.namespace + "coord", NBT.TAG_INT_ARRAY)) {
           val Array(x, y, z, dimension, side) = data.getIntArray(Settings.namespace + "coord")
-          if (player.getEntityWorld.provider.getDimensionId != dimension) return
+          if (player.getEntityWorld.provider.getDimension != dimension) return
           if (player.getDistance(x, y, z) > 64) return
 
           val bounds = BlockPosition(x, y, z).bounds.expand(0.1, 0.1, 0.1)
 
-          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks
-          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks
-          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks
+          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
+          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
+          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks
 
           RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 

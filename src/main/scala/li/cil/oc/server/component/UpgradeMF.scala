@@ -18,7 +18,7 @@ import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 
 import scala.collection.convert.WrapAsJava._
 
@@ -55,8 +55,8 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
   }
 
   private def updateBoundState() {
-    if (node != null && node.network != null && coord.world.exists(_.provider.getDimensionId == host.world.provider.getDimensionId)
-      && coord.toVec3.distanceTo(new Vec3(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
+    if (node != null && node.network != null && coord.world.exists(_.provider.getDimension == host.world.provider.getDimension)
+      && coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
       host.world.getTileEntity(coord) match {
         case env: TileEntity with api.network.Environment =>
           otherEnv match {
@@ -158,7 +158,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
     }
     if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (!node.tryChangeBuffer(-Settings.get.mfuCost * Settings.get.tickFrequency
-        * coord.toVec3.distanceTo(new Vec3(host.xPosition, host.yPosition, host.zPosition)))) {
+        * coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)))) {
         disconnect()
       }
     }
