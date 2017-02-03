@@ -4,6 +4,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
+import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
@@ -86,6 +87,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(RackMountableRenderHandler)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
+    MinecraftForge.EVENT_BUS.register(MFUTargetRenderer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
     NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
