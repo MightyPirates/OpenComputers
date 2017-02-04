@@ -227,14 +227,14 @@ object InventoryUtils {
   }
 
   /**
-   * Extracts an item stack from an inventory.
-   * <p/>
-   * This will try to remove items of the same type as the specified item stack
-   * up to the number of the stack's size for all slots in the specified inventory.
-   * <p/>
-   * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
-   * handles special cases such as sided inventories and stack size limits.
-   */
+    * Extracts an item stack from an inventory.
+    * <p/>
+    * This will try to remove items of the same type as the specified item stack
+    * up to the number of the stack's size for all slots in the specified inventory.
+    * <p/>
+    * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
+    * handles special cases such as sided inventories and stack size limits.
+    */
   def extractFromInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, simulate: Boolean = false) = {
     val range = inventory match {
       case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
@@ -362,7 +362,7 @@ object InventoryUtils {
   /**
    * Utility method for spawning an item stack in the world.
    */
-  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[ForgeDirection] = None): EntityItem = position.world match {
+  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[ForgeDirection] = None, validator: Option[EntityItem => Boolean] = None): EntityItem = position.world match {
     case Some(world) if stack != null && stack.stackSize > 0 =>
       val rng = world.rand
       val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.offsetX, d.offsetY, d.offsetZ))
@@ -376,8 +376,11 @@ object InventoryUtils {
       entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + oy * 0.08 + (ox + oz) * 0.03
       entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03
       entity.delayBeforeCanPickup = 15
-      world.spawnEntityInWorld(entity)
-      entity
+      if (validator.fold(true)(_(entity))) {
+        world.spawnEntityInWorld(entity)
+        entity
+      }
+      else null
     case _ => null
   }
 }
