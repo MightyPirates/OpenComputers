@@ -390,7 +390,13 @@ function term.drawText(value, wrap, window)
   local function scroll(_sy,_y)
     return _sy + term.internal.scroll(window,_y-h), math.min(_y,h)
   end
+  local uptime = computer.uptime
+  local last_sleep = uptime()
   while index <= vlen do
+    if uptime() - last_sleep > 4 then
+      os.sleep(0)
+      last_sleep = uptime()
+    end
     local si,ei = value:find("[\t\r\n\a]", index)
     si = si or vlen+1
     if index==si then
@@ -401,7 +407,7 @@ function term.drawText(value, wrap, window)
         x,y=1,y+1
         sy,y = scroll(sy,y)
       elseif delim=="\a" and not beeped then
-        require("computer").beep()
+        computer.beep()
         beeped = true
       end
       cr_last = delim == "\r"
