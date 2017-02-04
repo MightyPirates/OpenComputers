@@ -590,6 +590,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
+    if (worldObj.isRemote) return
     components.saveComponents()
     info.storedEnergy = globalBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)
