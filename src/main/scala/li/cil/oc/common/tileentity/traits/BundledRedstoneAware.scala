@@ -4,14 +4,12 @@ import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
+import mrtjp.projectred.api.IBundledTile
 import net.minecraftforge.fml.common.Optional
 
 /* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
-*/
-/* TODO Project Red
-import mrtjp.projectred.api.IBundledTile
 */
 
 import net.minecraft.nbt.NBTTagCompound
@@ -28,7 +26,7 @@ import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = Mods.IDs.RedLogic),
   new Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = Mods.IDs.ProjectRedTransmission)
 ))
-trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IBundledUpdatable with IBundledTile TODO RedLogic, Project Red, MFR */ {
+trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBundledEmitter with IBundledUpdatable TODO RedLogic, MFR */ {
 
   protected[tileentity] val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
 
@@ -179,11 +177,11 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
     def onBundledInputChanged() = checkRedstoneInputChanged()
   */
   // ----------------------------------------------------------------------- //
-  /* TODO Project Red
-    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-    def canConnectBundled(side: Int) = isOutputEnabled
 
-    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-    def getBundledSignal(side: Int) = bundledOutput(EnumFacing.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
-  */
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  override def canConnectBundled(side: Int): Boolean = isOutputEnabled
+
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  override def getBundledSignal(side: Int): Array[Byte] = bundledOutput(EnumFacing.getFront(side)).map(value => math.min(math.max(value, 0), 255).toByte)
+
 }

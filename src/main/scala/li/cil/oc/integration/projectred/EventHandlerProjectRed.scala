@@ -6,10 +6,11 @@ import net.minecraft.item.ItemStack
 
 object EventHandlerProjectRed {
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getHeldItem.getItem match {
+    val stack = player.getHeldItemMainhand
+    stack.getItem match {
       case wrench: IScrewdriver =>
         if (changeDurability) {
-          wrench.damageScrewdriver(player.getEntityWorld, player)
+          wrench.damageScrewdriver(player, stack)
           true
         }
         else true
