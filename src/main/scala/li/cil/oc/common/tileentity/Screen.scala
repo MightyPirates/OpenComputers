@@ -63,10 +63,10 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   setColor(Color.rgbValues(Color.byTier(tier)))
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = toLocal(side) != EnumFacing.SOUTH
+  override def canConnect(side: EnumFacing) = side != facing
 
   // Allow connections from front for keyboards, and keyboards only...
-  override def sidedNode(side: EnumFacing) = if (toLocal(side) != EnumFacing.SOUTH || (world.isBlockLoaded(getPos.offset(side)) && world.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard])) node else null
+  override def sidedNode(side: EnumFacing) = if (side != facing || (world.isBlockLoaded(getPos.offset(side)) && world.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard])) node else null
 
   // ----------------------------------------------------------------------- //
 
