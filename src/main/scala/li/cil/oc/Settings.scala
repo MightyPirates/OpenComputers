@@ -652,7 +652,7 @@ object Settings {
       }
 
       def checkAccess(ctxOpt: Option[DebugCard.AccessContext]): Option[String] = ctxOpt match {
-        case Some(ctx) => values.get(ctx.player) match {
+        case Some(ctx) => values.get(ctx.player.toLowerCase) match {
           case Some(x) =>
             if (x == ctx.nonce) None
             else Some("debug card is invalidated, please re-bind it to yourself")
