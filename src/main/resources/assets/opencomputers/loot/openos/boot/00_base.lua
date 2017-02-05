@@ -15,7 +15,8 @@ function loadfile(filename, mode, env)
     end
     table.insert(buffer, data)
   end
-  buffer = table.concat(buffer):gsub("^#![^\n]+", "") -- remove shebang if any
+  buffer[1] = (buffer[1] or ""):gsub("^#![^\n]+", "") -- remove shebang if any
+  buffer = table.concat(buffer)
   return load(buffer, "=" .. filename, mode, env)
 end
 
