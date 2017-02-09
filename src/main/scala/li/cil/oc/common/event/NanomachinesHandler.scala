@@ -32,7 +32,7 @@ object NanomachinesHandler {
     def onRenderGameOverlay(e: RenderGameOverlayEvent.Post): Unit = {
       if (e.getType == RenderGameOverlayEvent.ElementType.TEXT) {
         val mc = Minecraft.getMinecraft
-        api.Nanomachines.getController(mc.thePlayer) match {
+        api.Nanomachines.getController(mc.player) match {
           case controller: Controller =>
             val res = new ScaledResolution(mc)
             val sizeX = 8

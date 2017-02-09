@@ -120,8 +120,8 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
-  override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
+  override def isUsableByPlayer(player: EntityPlayer) =
+    super.isUsableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {

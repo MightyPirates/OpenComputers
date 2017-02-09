@@ -209,19 +209,19 @@ object EventHandler {
       case _: FakePlayer => // Nope
       case player: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          player.addChatMessage(Localization.Chat.WarningLuaFallback)
+          player.sendMessage(Localization.Chat.WarningLuaFallback)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          player.addChatMessage(Localization.Chat.WarningPower)
+          player.sendMessage(Localization.Chat.WarningPower)
         }
         if (Recipes.hadErrors) {
-          player.addChatMessage(Localization.Chat.WarningRecipes)
+          player.sendMessage(Localization.Chat.WarningRecipes)
         }
         if (ClassTransformer.hadErrors) {
-          player.addChatMessage(Localization.Chat.WarningClassTransformer)
+          player.sendMessage(Localization.Chat.WarningClassTransformer)
         }
         if (ClassTransformer.hadSimpleComponentErrors) {
-          player.addChatMessage(Localization.Chat.WarningSimpleComponent)
+          player.sendMessage(Localization.Chat.WarningSimpleComponent)
         }
         // Gaaah, MC 1.8 y u do this to me? Sending the packets here directly can lead to them
         // arriving on the client before it has a world and player instance, which causes all
@@ -235,7 +235,7 @@ object EventHandler {
         if (!Mods.VersionChecker.isAvailable && (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile))) {
           Future {
             UpdateCheck.info onSuccess {
-              case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))
+              case Some(release) => player.sendMessage(Localization.Chat.InfoNewVersion(release.tag_name))
             }
           }
         }
@@ -312,7 +312,7 @@ object EventHandler {
     didRecraft = recraft(e, navigationUpgrade, stack => {
       // Restore the map currently used in the upgrade.
       Option(api.Driver.driverFor(e.crafting)) match {
-        case Some(driver) => Option(ItemStack.loadItemStackFromNBT(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case Some(driver) => Option(new ItemStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
         case _ => None
       }
     }) || didRecraft
@@ -346,7 +346,7 @@ object EventHandler {
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
           // Presents!
           val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
-          e.player.worldObj.playSound(e.player, e.player.posX, e.player.posY, e.player.posZ, SoundEvents.BLOCK_NOTE_PLING, SoundCategory.MASTER, 0.2f, 1f)
+          e.player.world.playSound(e.player, e.player.posX, e.player.posY, e.player.posZ, SoundEvents.BLOCK_NOTE_PLING, SoundCategory.MASTER, 0.2f, 1f)
           InventoryUtils.addToPlayerInventory(present, e.player)
         }
       case _ => // Nope.

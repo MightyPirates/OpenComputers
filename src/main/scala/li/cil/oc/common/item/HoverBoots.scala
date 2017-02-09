@@ -69,7 +69,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
   }
 
   override def getArmorTexture(stack: ItemStack, entity: Entity, slot: EntityEquipmentSlot, subType: String): String = {
-    if (entity.worldObj.isRemote) HoverBootRenderer.texture.toString
+    if (entity.world.isRemote) HoverBootRenderer.texture.toString
     else null
   }
 
@@ -81,14 +81,14 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
   }
 
   override def onEntityItemUpdate(entity: EntityItem): Boolean = {
-    if (entity != null && entity.worldObj != null && !entity.worldObj.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
+    if (entity != null && entity.world != null && !entity.world.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
       val pos = entity.getPosition
-      val state = entity.worldObj.getBlockState(pos)
+      val state = entity.world.getBlockState(pos)
       if (state.getBlock == Blocks.CAULDRON) {
         val level = state.getValue(BlockCauldron.LEVEL).toInt
         if (level > 0) {
           ItemColorizer.removeColor(entity.getEntityItem)
-          entity.worldObj.setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, Int.box(level - 1)), 3)
+          entity.world.setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, Int.box(level - 1)), 3)
           return true
         }
       }

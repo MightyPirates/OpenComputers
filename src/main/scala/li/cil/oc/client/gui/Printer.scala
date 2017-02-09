@@ -42,19 +42,19 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(printer.getName),
       8, 6, 0x404040)
     RenderState.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     if (isPointInRegion(inkBar.x, inkBar.y, inkBar.width, inkBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     RenderState.popAttrib()
   }

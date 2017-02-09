@@ -19,7 +19,7 @@ trait InventoryProxy extends IInventory {
 
   override def hasCustomName = inventory.hasCustomName
 
-  override def isUseableByPlayer(player: EntityPlayer) = inventory.isUseableByPlayer(player)
+  override def isUsableByPlayer(player: EntityPlayer) = inventory.isUsableByPlayer(player)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = {
     val offsetSlot = slot + offset

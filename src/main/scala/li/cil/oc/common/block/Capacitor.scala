@@ -30,7 +30,7 @@ class Capacitor extends SimpleBlock {
     }
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random): Unit = {
-    world.notifyNeighborsOfStateChange(pos, this)
+    world.notifyNeighborsOfStateChange(pos, this, false)
   }
 
   override def tickRate(world: World) = 1

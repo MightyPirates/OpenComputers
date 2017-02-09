@@ -112,7 +112,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else {
       world.notifyBlockUpdate(getPos)
     }
-    world.notifyNeighborsOfStateChange(getPos, getBlockType)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
   }
 
   // ----------------------------------------------------------------------- //

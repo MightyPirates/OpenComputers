@@ -387,7 +387,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       throw new Exception("user exists")
     if (name.length > Settings.get.maxUsernameLength)
       throw new Exception("username too long")
-    if (!FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames.contains(name))
+    if (!FMLCommonHandler.instance.getMinecraftServerInstance.getOnlinePlayerNames.contains(name))
       throw new Exception("player must be online")
 
     _users.synchronized {

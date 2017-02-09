@@ -105,14 +105,14 @@ object ItemCosts {
                 else {
                   val recipe = recipes.filter(_ != null).find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
                   val (ingredients, output) = recipe match {
-                    case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                    case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.stackSize)
-                    case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                    case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.stackSize)
+                    case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.getCount)
+                    case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.getCount)
+                    case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.getCount)
+                    case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)), recipe.getRecipeOutput.getCount)
                     case _ => FurnaceRecipes.instance.getSmeltingList.find {
                       case (_, value) => fuzzyEquals(stack, value)
                     } match {
-                      case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
+                      case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.getCount)
                       case _ => (Iterable((stack, 1.0)), 1)
                     }
                   }

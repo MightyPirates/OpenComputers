@@ -61,9 +61,9 @@ object ExtendedWorld {
 
     def notifyBlockUpdate(position: BlockPosition, oldState: IBlockState, newState: IBlockState, flags: Int = 3): Unit = world.notifyBlockUpdate(position.toBlockPos, oldState, newState, flags)
 
-    def notifyBlockOfNeighborChange(position: BlockPosition, block: Block) = world.notifyBlockOfStateChange(position.toBlockPos, block)
+    def notifyBlockOfNeighborChange(position: BlockPosition, block: Block) = world.neighborChanged(position.toBlockPos, block, position.toBlockPos)
 
-    def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block) = world.notifyNeighborsOfStateChange(position.toBlockPos, block)
+    def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block, updateObservers: Boolean) = world.notifyNeighborsOfStateChange(position.toBlockPos, block, updateObservers)
 
     def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block, side: EnumFacing) = world.notifyNeighborsOfStateExcept(position.toBlockPos, block, side)
 

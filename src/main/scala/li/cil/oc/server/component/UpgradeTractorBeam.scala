@@ -55,9 +55,9 @@ object UpgradeTractorBeam {
     if (items.nonEmpty) {
       val item = items(world.rand.nextInt(items.size))
       val stack = item.getEntityItem
-      val size = stack.stackSize
+      val size = stack.getCount
       collectItem(item)
-      if (stack.stackSize < size || item.isDead) {
+      if (stack.getCount < size || item.isDead) {
         context.pause(Settings.get.suckDelay)
         world.playEvent(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
         return result(true)

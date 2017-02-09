@@ -47,7 +47,7 @@ object Audio {
 
   def play(x: Float, y: Float, z: Float, pattern: String, frequencyInHz: Int = 1000, durationInMilliseconds: Int = 200): Unit = {
     val mc = Minecraft.getMinecraft
-    val distanceBasedGain = math.max(0, 1 - mc.thePlayer.getDistance(x, y, z) / maxDistance).toFloat
+    val distanceBasedGain = math.max(0, 1 - mc.player.getDistance(x, y, z) / maxDistance).toFloat
     val gain = distanceBasedGain * volume
     if (gain <= 0 || amplitude <= 0) return
 

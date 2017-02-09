@@ -52,7 +52,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking) {
       if (!world.isRemote) world.getTileEntity(pos) match {
-        case computer: tileentity.Case if !computer.machine.isRunning && computer.isUseableByPlayer(player) => computer.machine.start()
+        case computer: tileentity.Case if !computer.machine.isRunning && computer.isUsableByPlayer(player) => computer.machine.start()
         case _ =>
       }
       true

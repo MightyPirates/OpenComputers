@@ -400,7 +400,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
               GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F)
             }
 
-            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.THIRD_PERSON_RIGHT_HAND)
+            itemRenderer.renderItem(Minecraft.getMinecraft.player, stack, TransformType.THIRD_PERSON_RIGHT_HAND)
           }
           catch {
             case e: Throwable =>

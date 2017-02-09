@@ -24,7 +24,7 @@ trait InventoryControl extends InventoryAware {
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
-      case Some(stack) => stack.stackSize
+      case Some(stack) => stack.getCount
       case _ => 0
     })
   }
@@ -33,7 +33,7 @@ trait InventoryControl extends InventoryAware {
   def space(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
-      case Some(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
+      case Some(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.getCount
       case _ => inventory.getInventoryStackLimit
     })
   }
@@ -58,13 +58,13 @@ trait InventoryControl extends InventoryAware {
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(from), Some(to)) =>
         if (InventoryUtils.haveSameItemType(from, to, checkNBT = true)) {
-          val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
-          val amount = math.min(count, math.min(space, from.stackSize))
+          val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.getCount
+          val amount = math.min(count, math.min(space, from.getCount))
           if (amount > 0) {
-            from.stackSize -= amount
-            to.stackSize += amount
-            assert(from.stackSize >= 0)
-            if (from.stackSize == 0) {
+            from.shrink(amount)
+            to.grow(amount)
+            assert(from.getCount >= 0)
+            if (from.getCount == 0) {
               inventory.setInventorySlotContents(selectedSlot, null)
             }
             inventory.markDirty()
@@ -72,7 +72,7 @@ trait InventoryControl extends InventoryAware {
           }
           else false
         }
-        else if (count >= from.stackSize) {
+        else if (count >= from.getCount) {
           inventory.setInventorySlotContents(slot, from)
           inventory.setInventorySlotContents(selectedSlot, to)
           true

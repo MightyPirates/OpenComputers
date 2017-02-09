@@ -58,7 +58,7 @@ class Manual extends GuiScreen with traits.Window {
     val content = Option(api.Manual.contentFor(ManualAPI.history.top.path)).
       getOrElse(asJavaIterable(Iterable("Document not found: " + ManualAPI.history.top.path)))
     document = Document.parse(content)
-    documentHeight = Document.height(document, documentMaxWidth, fontRendererObj)
+    documentHeight = Document.height(document, documentMaxWidth, fontRenderer)
     scrollTo(offset)
   }
 
@@ -75,7 +75,7 @@ class Manual extends GuiScreen with traits.Window {
       refreshPage()
     }
     else {
-      Minecraft.getMinecraft.thePlayer.closeScreen()
+      Minecraft.getMinecraft.player.closeScreen()
     }
   }
 
@@ -114,12 +114,12 @@ class Manual extends GuiScreen with traits.Window {
       GlStateManager.popMatrix()
     }
 
-    currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
+    currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRenderer, mouseX, mouseY)
 
     if (!isDragging) currentSegment match {
       case Some(segment) =>
         segment.tooltip match {
-          case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
+          case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRenderer)
           case _ =>
         }
       case _ =>
@@ -128,12 +128,12 @@ class Manual extends GuiScreen with traits.Window {
     if (!isDragging) for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]
       if (mouseX > button.xPosition && mouseX < button.xPosition + tabWidth && mouseY > button.yPosition && mouseY < button.yPosition + tabHeight) tab.tooltip.foreach(text => {
-        drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
+        drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRenderer)
       })
     }
 
     if (canScroll && (isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop) || isDragging)) {
-      drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.yPosition + scrollButton.height + 1, fontRendererObj)
+      drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.yPosition + scrollButton.height + 1, fontRenderer)
     }
   }
 
@@ -142,7 +142,7 @@ class Manual extends GuiScreen with traits.Window {
       popPage()
     }
     else if (code == mc.gameSettings.keyBindInventory.getKeyCode) {
-      mc.thePlayer.closeScreen()
+      mc.player.closeScreen()
     }
     else super.keyTyped(char, code)
   }
@@ -184,9 +184,9 @@ class Manual extends GuiScreen with traits.Window {
     scrollTo(math.round((mouseY - guiTop - scrollPosY - 6.5) * maxOffset / (scrollHeight - 13.0)).toInt)
   }
 
-  private def scrollUp() = scrollTo(offset - Document.lineHeight(fontRendererObj) * 3)
+  private def scrollUp() = scrollTo(offset - Document.lineHeight(fontRenderer) * 3)
 
-  private def scrollDown() = scrollTo(offset + Document.lineHeight(fontRendererObj) * 3)
+  private def scrollDown() = scrollTo(offset + Document.lineHeight(fontRenderer) * 3)
 
   private def scrollTo(row: Int): Unit = {
     ManualAPI.history.top.offset = math.max(0, math.min(maxOffset, row))

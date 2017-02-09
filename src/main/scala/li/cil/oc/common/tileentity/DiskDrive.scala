@@ -64,7 +64,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
     val ejected = decrStackSize(0, 1)
-    if (ejected != null && ejected.stackSize > 0) {
+    if (ejected != null && ejected.getCount > 0) {
       val entity = InventoryUtils.spawnStackInWorld(position, ejected, Option(facing))
       if (entity != null) {
         val vx = facing.getFrontOffsetX * velocity
@@ -126,7 +126,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     if (nbt.hasKey(DiskTag)) {
-      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(DiskTag)))
+      setInventorySlotContents(0, new ItemStack(nbt.getCompoundTag(DiskTag)))
     }
   }
 

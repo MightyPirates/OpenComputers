@@ -78,7 +78,7 @@ object IMC {
       }
       else if (message.key == "blacklistHost" && message.isNBTMessage) {
         OpenComputers.log.info(s"Blacklisting component '${message.getNBTValue.getString("name")}' for host '${message.getNBTValue.getString("host")}' as requested by mod ${message.getSender}.")
-        try Registry.blacklistHost(ItemStack.loadItemStackFromNBT(message.getNBTValue.getCompoundTag("item")), Class.forName(message.getNBTValue.getString("host"))) catch {
+        try Registry.blacklistHost(new ItemStack(message.getNBTValue.getCompoundTag("item")), Class.forName(message.getNBTValue.getString("host"))) catch {
           case t: Throwable => OpenComputers.log.warn("Failed blacklisting component.", t)
         }
       }

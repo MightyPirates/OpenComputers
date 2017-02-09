@@ -62,8 +62,8 @@ class Nanomachines(val parent: Delegator) extends traits.Delegate {
             case controller => controller.reconfigure() // Huh.
           }
         }
-        stack.stackSize -= 1
-        if (stack.stackSize > 0) stack
+        stack.shrink(1)
+        if (stack.getCount > 0) stack
         else null
       case _ => stack
     }

@@ -1,6 +1,7 @@
 package li.cil.oc.common.item.traits
 
 import java.util
+import javax.annotation.Nonnull
 
 import li.cil.oc.Localization
 import li.cil.oc.Settings

@@ -40,11 +40,11 @@ import org.lwjgl.input.Keyboard
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
   def onPacket(e: ClientCustomPacketEvent) = {
-    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, Minecraft.getMinecraft.thePlayer)
+    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, Minecraft.getMinecraft.player)
   }
 
   protected override def world(player: EntityPlayer, dimension: Int) = {
-    val world = player.worldObj
+    val world = player.world
     if (world.provider.getDimension == dimension) Some(world)
     else None
   }
@@ -121,7 +121,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)
-      p.player.addChatMessage(Localization.Analyzer.AddressCopied)
+      p.player.sendMessage(Localization.Analyzer.AddressCopied)
     }
   }
 
@@ -433,7 +433,7 @@ object PacketHandler extends CommonPacketHandler {
     if (!PetRenderer.isInitialized) {
       PetRenderer.isInitialized = true
       if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
+        PetRenderer.hidden += Minecraft.getMinecraft.player.getName
       }
       PacketSender.sendPetVisibility()
     }

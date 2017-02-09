@@ -15,7 +15,7 @@ package object command {
   def getOpLevel(sender: ICommandSender): Int = {
     // Shitty minecraft server logic & shitty minecraft server code.
     val srv = FMLCommonHandler.instance().getMinecraftServerInstance
-    if (srv.isSinglePlayer && srv.worldServers.head.getWorldInfo.areCommandsAllowed &&
+    if (srv.isSinglePlayer && srv.worlds.head.getWorldInfo.areCommandsAllowed &&
       srv.getServerOwner.equalsIgnoreCase(sender.getName) /* || srv.commandsAllowedForAll */ )
       return 4
 

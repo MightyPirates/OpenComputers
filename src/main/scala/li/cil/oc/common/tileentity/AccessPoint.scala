@@ -42,7 +42,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
-    player.addChatMessage(Localization.Analyzer.WirelessStrength(strength))
+    player.sendMessage(Localization.Analyzer.WirelessStrength(strength))
     Array(componentNodes(side.getIndex))
   }
 

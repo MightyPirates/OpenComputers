@@ -121,9 +121,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
   private def drawOverlay() = if (screen.facing == EnumFacing.UP || screen.facing == EnumFacing.DOWN) {
     // Show up vector overlay when holding same screen block.
-    val stack = Minecraft.getMinecraft.thePlayer.getHeldItemMainhand
+    val stack = Minecraft.getMinecraft.player.getHeldItemMainhand
     if (stack != null) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.player, screen.getPos) || screens.contains(api.Items.get(stack))) {
         GlStateManager.pushMatrix()
         transform()
         GlStateManager.depthMask(false)
@@ -198,7 +198,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
   }
 
   private def playerDistanceSq() = {
-    val player = Minecraft.getMinecraft.thePlayer
+    val player = Minecraft.getMinecraft.player
     val bounds = screen.getRenderBoundingBox
 
     val px = player.posX

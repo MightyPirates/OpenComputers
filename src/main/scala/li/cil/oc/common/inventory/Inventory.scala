@@ -31,9 +31,9 @@ trait Inventory extends SimpleInventory {
       if (oldStack.isDefined) {
         onItemRemoved(slot, oldStack.get)
       }
-      if (stack != null && stack.stackSize >= getInventoryStackRequired) {
-        if (stack.stackSize > getInventoryStackLimit) {
-          stack.stackSize = getInventoryStackLimit
+      if (stack != null && stack.getCount >= getInventoryStackRequired) {
+        if (stack.getCount > getInventoryStackLimit) {
+          stack.setCount(getInventoryStackLimit)
         }
         updateItems(slot, stack)
       }
@@ -50,6 +50,8 @@ trait Inventory extends SimpleInventory {
 
   protected def inventoryName = getClass.getSimpleName
 
+  override def isEmpty: Boolean = items.isEmpty || items.flatten.isEmpty
+
   // ----------------------------------------------------------------------- //
 
   private final val ItemsTag = Settings.namespace + "items"
@@ -64,13 +66,13 @@ trait Inventory extends SimpleInventory {
       if (tag.hasKey(SlotTag)) {
         val slot = tag.getByte(SlotTag)
         if (slot >= 0 && slot < items.length) {
-          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag(ItemTag)))
+          updateItems(slot, new ItemStack(tag.getCompoundTag(ItemTag)))
         }
       }
       else {
         val slot = count
         if (slot >= 0 && slot < items.length) {
-          updateItems(slot, ItemStack.loadItemStackFromNBT(tag))
+          updateItems(slot, new ItemStack(tag))
         }
       }
       count += 1

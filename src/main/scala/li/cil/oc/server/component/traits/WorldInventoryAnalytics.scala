@@ -23,7 +23,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   @Callback(doc = """function(side:number, slot:number):number -- Get number of items in the specified slot of the inventory on the specified side of the device.""")
   def getSlotStackSize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    withInventory(facing, inventory => result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.stackSize)))
+    withInventory(facing, inventory => result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.getCount)))
   }
 
   @Callback(doc = """function(side:number, slot:number):number -- Get the maximum number of items in the specified slot of the inventory on the specified side of the device.""")

@@ -22,6 +22,7 @@ import net.minecraft.util.ActionResult
 import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
+import net.minecraft.util.NonNullList
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -67,7 +68,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => None
     }
 
-  override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[ItemStack]) {
+  override def getSubItems(item: Item, tab: CreativeTabs, list: NonNullList[ItemStack]) {
     // Workaround for MC's untyped lists...
     subItems.indices.filter(subItems(_).showInItemList).
       map(subItems(_).createItemStack()).
@@ -119,22 +120,31 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.doesSneakBypassUse(stack, world, pos, player)
     }
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
-      case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+  override def onItemUseFirst(player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult =
+    player.getHeldItem(hand) match {
+      case stack:ItemStack => Delegator.subItem(stack) match {
+        case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
+        case _ => super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+      }
+      case _ => super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+  }
+
+  override def onItemUse(player: EntityPlayer, world: World, pos: BlockPos, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult =
+    player.getHeldItem(hand) match {
+      case stack: ItemStack => Delegator.subItem(stack) match {
+        case Some(subItem) => if (subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)) EnumActionResult.SUCCESS else EnumActionResult.PASS
+        case _ => super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ)
+      }
+      case _ => super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ)
     }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => if (subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)) EnumActionResult.SUCCESS else EnumActionResult.PASS
-      case _ => super.onItemUse(stack, player, world, pos, hand, side, hitX, hitY, hitZ)
-    }
-
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer, hand: EnumHand): ActionResult[ItemStack] =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onItemRightClick(stack, world, player)
-      case _ => super.onItemRightClick(stack, world, player, hand)
+  override def onItemRightClick(world: World, player: EntityPlayer, hand: EnumHand): ActionResult[ItemStack] =
+    player.getHeldItem(hand) match {
+      case stack: ItemStack => Delegator.subItem(stack) match {
+        case Some(subItem) => subItem.onItemRightClick(stack, world, player)
+        case _ => super.onItemRightClick(world, player, hand)
+      }
+      case _ => super.onItemRightClick(world, player, hand)
     }
 
   // ----------------------------------------------------------------------- //

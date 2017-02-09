@@ -253,7 +253,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val hitY = arrow.posY - y
         val hitZ = arrow.posZ - z
         arrow.shootingEntity match {
-          case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
+          case player: EntityPlayer if player == Minecraft.getMinecraft.player => click(hitX, hitY, hitZ)
           case _ =>
         }
       }

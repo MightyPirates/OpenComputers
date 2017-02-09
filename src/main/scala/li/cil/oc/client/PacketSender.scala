@@ -67,7 +67,7 @@ object PacketSender {
   def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
       if (value.length > 64 * 1024 || System.currentTimeMillis() < clipboardCooldown) {
-        val player = Minecraft.getMinecraft.thePlayer
+        val player = Minecraft.getMinecraft.player
         val handler = Minecraft.getMinecraft.getSoundHandler
         handler.playSound(new PositionedSoundRecord(SoundEvents.BLOCK_NOTE_HARP, SoundCategory.MASTER, 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
       }

@@ -97,12 +97,12 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
         drone.globalBuffer * 100 / math.max(drone.globalBufferSize, 1),
         drone.globalBuffer,
         drone.globalBufferSize))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     RenderState.popAttrib()
   }

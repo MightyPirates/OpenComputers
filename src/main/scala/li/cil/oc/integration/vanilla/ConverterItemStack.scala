@@ -27,7 +27,7 @@ object ConverterItemStack extends api.driver.Converter {
         }
         output += "damage" -> Int.box(stack.getItemDamage)
         output += "maxDamage" -> Int.box(stack.getMaxDamage)
-        output += "size" -> Int.box(stack.stackSize)
+        output += "size" -> Int.box(stack.getCount)
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTagCompound)
         output += "name" -> Item.REGISTRY.getNameForObject(stack.getItem)

@@ -126,7 +126,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case _ => 0
   }
 
-  override def isUseableByPlayer(player: EntityPlayer): Boolean = rack.isUseableByPlayer(player)
+  override def isUsableByPlayer(player: EntityPlayer): Boolean = rack.isUsableByPlayer(player)
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
@@ -179,7 +179,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (!player.getEntityWorld.isRemote) {
       if (player.isSneaking) {
-        if (!machine.isRunning && isUseableByPlayer(player)) {
+        if (!machine.isRunning && isUsableByPlayer(player)) {
           wasRunning = false
           hadErrored = false
           machine.start()

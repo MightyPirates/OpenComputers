@@ -67,7 +67,7 @@ object BlockPosition {
 
   def apply(host: EnvironmentHost): BlockPosition = BlockPosition(host.xPosition, host.yPosition, host.zPosition, host.world)
 
-  def apply(entity: Entity): BlockPosition = BlockPosition(entity.posX, entity.posY, entity.posZ, entity.worldObj)
+  def apply(entity: Entity): BlockPosition = BlockPosition(entity.posX, entity.posY, entity.posZ, entity.world)
 
   def apply(pos: BlockPos, world: World): BlockPosition = BlockPosition(pos.getX, pos.getY, pos.getZ, world)
 

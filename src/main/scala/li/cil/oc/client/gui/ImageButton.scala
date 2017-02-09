@@ -77,8 +77,8 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
           if (!enabled) textDisabledColor
           else if (hoverOverride || hovered) textHoverColor
           else textColor
-        if (textIndent >= 0) drawString(mc.fontRendererObj, displayString, textIndent + xPosition, yPosition + (height - 8) / 2, color)
-        else drawCenteredString(mc.fontRendererObj, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
+        if (textIndent >= 0) drawString(mc.fontRenderer, displayString, textIndent + xPosition, yPosition + (height - 8) / 2, color)
+        else drawCenteredString(mc.fontRenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
       }
     }
   }

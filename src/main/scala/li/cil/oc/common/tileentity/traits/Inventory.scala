@@ -30,7 +30,7 @@ trait Inventory extends TileEntity with inventory.Inventory {
 
   // ----------------------------------------------------------------------- //
 
-  override def isUseableByPlayer(player: EntityPlayer) =
+  override def isUsableByPlayer(player: EntityPlayer) =
     player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
 
   // ----------------------------------------------------------------------- //

@@ -23,7 +23,7 @@ object WirelessNetworkDebugRenderer {
       WirelessNetwork.dimensions.get(world.provider.getDimension) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft
-          val player = mc.thePlayer
+          val player = mc.player
           val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
           val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
           val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks

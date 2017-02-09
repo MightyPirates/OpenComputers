@@ -77,27 +77,27 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(relay.getName),
       8, 6, 0x404040)
 
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.Switch.TransferRate,
       14, 20, 0x404040)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.Switch.PacketsPerCycle,
       14, 39, 0x404040)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.Switch.QueueSize,
       14, 58, 0x404040)
 
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       format.format(20f / inventoryContainer.relayDelay),
       108, 20, 0x404040)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       inventoryContainer.packetsPerCycleAvg + " / " + inventoryContainer.relayAmount,
       108, 39, thresholdBasedColor(inventoryContainer.packetsPerCycleAvg, math.ceil(inventoryContainer.relayAmount / 2f).toInt, inventoryContainer.relayAmount))
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       inventoryContainer.queueSize + " / " + inventoryContainer.maxQueueSize,
       108, 58, thresholdBasedColor(inventoryContainer.queueSize, inventoryContainer.maxQueueSize / 2, inventoryContainer.maxQueueSize))
   }

@@ -36,7 +36,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
       if (sourceItems.contains(stack.getItem)
         || stack.getItem == targetItem) {
         targetStack = stack.copy()
-        targetStack.stackSize = 1
+        targetStack.setCount(1)
       } else {
         val dye = Color.findDye(stack)
         if (dye.isEmpty)
@@ -69,7 +69,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         colorCount = colorCount + 1
       }
     } else if (sourceItems.contains(targetStack.getItem)) {
-      targetStack = new ItemStack(targetItem, targetStack.stackSize, targetStack.getItemDamage)
+      targetStack = new ItemStack(targetItem, targetStack.getCount, targetStack.getItemDamage)
     }
 
     var red = color(0) / colorCount

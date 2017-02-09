@@ -57,13 +57,13 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Database(player.inventory, new DatabaseInventory {
               override def container = player.getHeldItemMainhand
 
-              override def isUseableByPlayer(player: EntityPlayer) = player == player
+              override def isUsableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new container.Server(player.inventory, new ServerInventory {
               override def container = player.getHeldItemMainhand
 
-              override def isUseableByPlayer(player: EntityPlayer) = player == player
+              override def isUsableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
             val stack = player.getHeldItemMainhand

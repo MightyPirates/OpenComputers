@@ -8,7 +8,7 @@ import net.minecraft.entity.player.InventoryPlayer
 class Charger(playerInventory: InventoryPlayer, val charger: tileentity.Charger) extends DynamicGuiContainer(new container.Charger(playerInventory, charger)) {
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(charger.getName),
       8, 6, 0x404040)
   }

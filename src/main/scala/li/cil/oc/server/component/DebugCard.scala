@@ -783,7 +783,7 @@ object DebugCard {
           val count = args.optInteger(4, 64)
           val removed = inventory.extractItem(slot, count, false)
           if (removed == null) result(0)
-          else result(removed.stackSize)
+          else result(removed.getCount)
         case _ => result(Unit, "no inventory")
       }
     }
@@ -849,7 +849,7 @@ object DebugCard {
 
     override def getEntityWorld = host.world
 
-    override def addChatMessage(message: ITextComponent) {
+    override def sendMessage(message: ITextComponent) {
       messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 

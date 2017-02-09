@@ -60,8 +60,8 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
       breakable {
         while (countCrafted < wantedCount) {
           val result = cm.findMatchingRecipe(CraftingInventory, host.world)
-          if (result == null || result.stackSize < 1) break()
-          countCrafted += result.stackSize
+          if (result == null || result.getCount < 1) break()
+          countCrafted += result.getCount
           FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
           for (slot <- 0 until getSizeInventory) {
@@ -101,7 +101,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
         val stack = inventory.getStackInSlot(toParentSlot(slot))
         setInventorySlotContents(slot, stack)
         if (stack != null) {
-          amountPossible = math.min(amountPossible, stack.stackSize)
+          amountPossible = math.min(amountPossible, stack.getCount)
         }
       }
     }

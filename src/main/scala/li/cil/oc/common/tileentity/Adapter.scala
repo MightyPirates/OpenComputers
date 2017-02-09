@@ -53,7 +53,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
     if (isServer) {
       ServerPacketSender.sendAdapterState(this)
       world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
-      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
       neighborChanged(side)
     } else {
       world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)

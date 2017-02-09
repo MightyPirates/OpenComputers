@@ -29,8 +29,8 @@ class Chamelium(val parent: Delegator) extends traits.Delegate {
       player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("invisibility"), 100, 0))
       player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 200, 0))
     }
-    stack.stackSize -= 1
-    if (stack.stackSize > 0) stack
+    stack.shrink(1)
+    if (stack.getCount > 0) stack
     else null
   }
 }

@@ -28,8 +28,8 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
     def revokeUser(player: String): Unit = {
       if (wl.isWhitelisted(player)) {
         wl.invalidate(player)
-        sender.addChatMessage(new TextComponentString("§aAll your debug cards were invalidated."))
-      } else sender.addChatMessage(new TextComponentString("§cYou are not whitelisted to use debug card."))
+        sender.sendMessage(new TextComponentString("§aAll your debug cards were invalidated."))
+      } else sender.sendMessage(new TextComponentString("§cYou are not whitelisted to use debug card."))
     }
 
     args match {
@@ -38,17 +38,17 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
       case Array("list") if isOp(sender) =>
         val players = wl.whitelist
         if (players.nonEmpty)
-          sender.addChatMessage(new TextComponentString("§aCurrently whitelisted players: §e" + players.mkString(", ")))
+          sender.sendMessage(new TextComponentString("§aCurrently whitelisted players: §e" + players.mkString(", ")))
         else
-          sender.addChatMessage(new TextComponentString("§cThere is no currently whitelisted players."))
+          sender.sendMessage(new TextComponentString("§cThere is no currently whitelisted players."))
       case Array("add", player) if isOp(sender) =>
         wl.add(player)
-        sender.addChatMessage(new TextComponentString("§aPlayer was added to whitelist."))
+        sender.sendMessage(new TextComponentString("§aPlayer was added to whitelist."))
       case Array("remove", player) if isOp(sender) =>
         wl.remove(player)
-        sender.addChatMessage(new TextComponentString("§aPlayer was removed from whitelist"))
+        sender.sendMessage(new TextComponentString("§aPlayer was removed from whitelist"))
       case _ =>
-        sender.addChatMessage(new TextComponentString("§e" + getCommandUsage(sender)))
+        sender.sendMessage(new TextComponentString("§e" + getCommandUsage(sender)))
     }
   }
 }

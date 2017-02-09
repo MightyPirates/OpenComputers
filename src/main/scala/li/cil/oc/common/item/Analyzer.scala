@@ -37,7 +37,7 @@ object Analyzer {
   }
 
   def analyze(thing: AnyRef, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    val world = player.worldObj
+    val world = player.world
     thing match {
       case analyzable: Analyzable =>
         if (!world.isRemote) {
@@ -67,12 +67,12 @@ object Analyzer {
           case machine: Machine =>
             if (machine != null) {
               if (machine.lastError != null) {
-                playerMP.addChatMessage(Localization.Analyzer.LastError(machine.lastError))
+                playerMP.sendMessage(Localization.Analyzer.LastError(machine.lastError))
               }
-              playerMP.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
+              playerMP.sendMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
               val list = machine.users
               if (list.nonEmpty) {
-                playerMP.addChatMessage(Localization.Analyzer.Users(list))
+                playerMP.sendMessage(Localization.Analyzer.Users(list))
               }
             }
           case _ =>
@@ -80,19 +80,19 @@ object Analyzer {
         node match {
           case connector: Connector =>
             if (connector.localBufferSize > 0) {
-              playerMP.addChatMessage(Localization.Analyzer.StoredEnergy(f"${connector.localBuffer}%.2f/${connector.localBufferSize}%.2f"))
+              playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.localBuffer}%.2f/${connector.localBufferSize}%.2f"))
             }
-            playerMP.addChatMessage(Localization.Analyzer.TotalEnergy(f"${connector.globalBuffer}%.2f/${connector.globalBufferSize}%.2f"))
+            playerMP.sendMessage(Localization.Analyzer.TotalEnergy(f"${connector.globalBuffer}%.2f/${connector.globalBufferSize}%.2f"))
           case _ =>
         }
         node match {
           case component: Component =>
-            playerMP.addChatMessage(Localization.Analyzer.ComponentName(component.name))
+            playerMP.sendMessage(Localization.Analyzer.ComponentName(component.name))
           case _ =>
         }
         val address = node.address()
         if (address != null && !address.isEmpty) {
-          playerMP.addChatMessage(Localization.Analyzer.Address(address))
+          playerMP.sendMessage(Localization.Analyzer.Address(address))
           PacketSender.sendAnalyze(address, playerMP)
         }
       case _ =>

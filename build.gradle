@@ -186,9 +186,9 @@ configurations {
 }
 
 dependencies {
-    deobfCompile "MCMultiPart:MCMultiPart-experimental:${config.mcmp.version}:universal"
-    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
-    deobfCompile "mezz.jei:jei_1.10.2:${config.jei.version}"
+    //deobfCompile "MCMultiPart:MCMultiPart-experimental:${config.mcmp.version}:universal"
+    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
+    deobfCompile "mezz.jei:jei_1.11.2:${config.jei.version}"
     deobfCompile "net.darkhax.tesla:Tesla:${config.tesla.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
 /*
@@ -196,7 +196,7 @@ dependencies {
     //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
     //provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
     //provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:deobf"
+    //provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:deobf"
 /*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
@@ -206,8 +206,8 @@ dependencies {
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
-    provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"
-    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"/*
+    //provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"
+    /*provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
@@ -215,7 +215,7 @@ dependencies {
         exclude module: 'CoFHCore'
     }
     provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"*/
-    deobfCompile "com.enderio.core:EnderCore:${config.ec.version}"
+    /*deobfCompile "com.enderio.core:EnderCore:${config.ec.version}"
     deobfCompile("com.enderio:EnderIO:${config.eio.version}") {
         exclude module: "appliedenergistics2"
         exclude module: "buildcraft"
@@ -227,7 +227,7 @@ dependencies {
         exclude module: "EquivalentExchange3"
         exclude module: "jei_1.10.2"
         exclude module: "Tesla"
-    }
+    }*/
 /*
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
@@ -274,12 +274,15 @@ sourceSets {
             exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
-            //exclude 'li/cil/oc/integration/enderio/**'
-            //exclude 'li/cil/oc/integration/enderstorage/**'
+            exclude 'li/cil/oc/integration/enderio/**'
+            exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
+            exclude 'li/cil/oc/integration/forestry/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
+            exclude 'li/cil/oc/integration/ic2/**'
             exclude 'li/cil/oc/integration/mekanism/**'
+            exclude 'li/cil/oc/integration/mcmp/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
             exclude 'li/cil/oc/integration/nei/**'

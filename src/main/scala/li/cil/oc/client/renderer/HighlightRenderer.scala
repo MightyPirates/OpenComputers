@@ -124,7 +124,7 @@ object HighlightRenderer {
 
         for (shape <- print.shapes) {
           val bounds = shape.bounds.rotateTowards(print.facing)
-          RenderGlobal.func_189697_a(bounds.expand(expansion, expansion, expansion)
+          RenderGlobal.drawSelectionBoundingBox(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
             .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0, 0, 0, 0x66/0xFFf.toFloat)
         }

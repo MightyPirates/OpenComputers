@@ -12,7 +12,7 @@ object HologramRendererFallback extends TileEntitySpecialRenderer[Hologram] {
   override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val fontRenderer = Minecraft.getMinecraft.fontRendererObj
+    val fontRenderer = Minecraft.getMinecraft.fontRenderer
 
     GlStateManager.pushMatrix()
     GlStateManager.translate(x + 0.5, y + 0.75, z + 0.5)

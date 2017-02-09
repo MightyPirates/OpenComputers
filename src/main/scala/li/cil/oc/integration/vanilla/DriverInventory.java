@@ -62,7 +62,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
-                return new Object[]{stack.stackSize};
+                return new Object[]{stack.getCount};
             } else {
                 return new Object[]{0};
             }
@@ -119,19 +119,19 @@ public final class DriverInventory extends DriverSidedTileEntity {
                 return new Object[]{true};
             } else if (itemEquals(stackA, stackB)) {
                 // Pile.
-                final int space = Math.min(tileEntity.getInventoryStackLimit(), stackB.getMaxStackSize()) - stackB.stackSize;
-                final int amount = Math.min(count, Math.min(space, stackA.stackSize));
+                final int space = Math.min(tileEntity.getInventoryStackLimit(), stackB.getMaxStackSize()) - stackB.getCount;
+                final int amount = Math.min(count, Math.min(space, stackA.getCount));
                 if (amount > 0) {
                     // Some.
-                    stackA.stackSize -= amount;
-                    stackB.stackSize += amount;
-                    if (stackA.stackSize == 0) {
+                    stackA.getCount -= amount;
+                    stackB.getCount += amount;
+                    if (stackA.getCount == 0) {
                         tileEntity.setInventorySlotContents(slotA, null);
                     }
                     tileEntity.markDirty();
                     return new Object[]{true};
                 }
-            } else if (count >= stackA.stackSize) {
+            } else if (count >= stackA.getCount) {
                 // Swap.
                 tileEntity.setInventorySlotContents(slotB, stackA);
                 tileEntity.setInventorySlotContents(slotA, stackB);
@@ -182,7 +182,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
                 fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
                 final PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, fakePlayer.getHeldItemMainhand(), position.toBlockPos(), EnumFacing.DOWN, null);
                 MinecraftForge.EVENT_BUS.post(event);
-                return !event.isCanceled() && event.getUseBlock() != Event.Result.DENY && !tileEntity.isUseableByPlayer(fakePlayer);
+                return !event.isCanceled() && event.getUseBlock() != Event.Result.DENY && !tileEntity.isUsableByPlayer(fakePlayer);
             }
         }
     }

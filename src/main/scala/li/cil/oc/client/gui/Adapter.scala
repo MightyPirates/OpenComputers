@@ -8,7 +8,7 @@ import net.minecraft.entity.player.InventoryPlayer
 class Adapter(playerInventory: InventoryPlayer, val adapter: tileentity.Adapter) extends DynamicGuiContainer(new container.Adapter(playerInventory, adapter)) {
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(adapter.getName),
       8, 6, 0x404040)
   }

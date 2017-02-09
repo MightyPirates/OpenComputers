@@ -43,7 +43,7 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
 
   override def load(nbt: NBTTagCompound) {
     if (nbt.hasKey(MapTag)) {
-      map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(MapTag))
+      map = new ItemStack(nbt.getCompoundTag(MapTag))
     }
   }
 

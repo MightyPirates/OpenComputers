@@ -33,13 +33,13 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(computer.getName),
       8, 6, 0x404040)
     if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (computer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
   }
 

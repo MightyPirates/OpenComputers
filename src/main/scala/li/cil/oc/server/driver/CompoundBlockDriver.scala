@@ -64,7 +64,7 @@ class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock], val blocks:
     }
     try world.getTileEntity(pos) match {
       case tileEntity: TileEntity =>
-        return TileEntity.classToNameMap.get(tileEntity.getClass)
+        return TileEntity.getKey(tileEntity.getClass).getResourcePath
     } catch {
       case _: Throwable =>
     }

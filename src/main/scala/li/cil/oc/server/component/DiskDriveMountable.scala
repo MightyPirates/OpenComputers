@@ -71,7 +71,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
     val ejected = decrStackSize(0, 1)
-    if (ejected != null && ejected.stackSize > 0) {
+    if (ejected != null && ejected.getCount > 0) {
       val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
       if (entity != null) {
         val vx = rack.facing.getFrontOffsetX * velocity
@@ -104,7 +104,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
     case _ => false
   }
 
-  override def isUseableByPlayer(player: EntityPlayer): Boolean = rack.isUseableByPlayer(player)
+  override def isUsableByPlayer(player: EntityPlayer): Boolean = rack.isUsableByPlayer(player)
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory

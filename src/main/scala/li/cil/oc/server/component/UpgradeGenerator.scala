@@ -59,17 +59,17 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
           !ItemStack.areItemStackTagsEqual(existingStack, stack)) {
           return result(Unit, "different fuel type already queued")
         }
-        val space = existingStack.getMaxStackSize - existingStack.stackSize
+        val space = existingStack.getMaxStackSize - existingStack.getCount
         if (space <= 0) {
           return result(Unit, "queue is full")
         }
-        val moveCount = math.min(stack.stackSize, math.min(space, count))
-        existingStack.stackSize += moveCount
-        stack.stackSize -= moveCount
+        val moveCount = math.min(stack.getCount, math.min(space, count))
+        existingStack.grow(moveCount)
+        stack.shrink(moveCount)
       case _ =>
-        inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
+        inventory = Some(stack.splitStack(math.min(stack.getCount, count)))
     }
-    if (stack.stackSize > 0) host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
+    if (stack.getCount > 0) host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
     else host.mainInventory.setInventorySlotContents(host.selectedSlot, null)
     result(true)
   }
@@ -77,7 +77,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
   @Callback(doc = """function():number -- Get the size of the item stack in the generator's queue.""")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
-      case Some(stack) => result(stack.stackSize)
+      case Some(stack) => result(stack.getCount)
       case _ => result(0)
     }
   }
@@ -87,10 +87,10 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     val count = args.optInteger(0, Int.MaxValue)
     inventory match {
       case Some(stack) =>
-        val removedStack = stack.splitStack(math.min(count, stack.stackSize))
+        val removedStack = stack.splitStack(math.min(count, stack.getCount))
         val success = host.player.inventory.addItemStackToInventory(removedStack)
-        stack.stackSize += removedStack.stackSize
-        if (success && stack.stackSize <= 0) {
+        stack.grow(removedStack.getCount)
+        if (success && stack.getCount <= 0) {
           inventory = None
         }
         result(success)
@@ -110,8 +110,8 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
       if (remainingTicks > 0) {
         // If not we probably have a container item now (e.g. bucket after lava bucket).
         updateClient()
-        stack.stackSize -= 1
-        if (stack.stackSize <= 0) {
+        stack.shrink(1)
+        if (stack.getCount <= 0) {
           if (stack.getItem.hasContainerItem(stack))
             inventory = Option(stack.getItem.getContainerItem(stack))
           else
@@ -144,7 +144,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
           val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
           entity.setPickupDelay(5)
-          world.spawnEntityInWorld(entity)
+          world.spawnEntity(entity)
           inventory = None
         case _ =>
       }
@@ -157,9 +157,9 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
+      inventory = Option(new ItemStack(nbt.getCompoundTag("inventory")))
     if (nbt.hasKey(InventoryTag)) {
-      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(InventoryTag)))
+      inventory = Option(new ItemStack(nbt.getCompoundTag(InventoryTag)))
     }
     remainingTicks = nbt.getInteger(RemainingTicksTag)
   }

@@ -61,7 +61,7 @@ object PetRenderer {
 
     GlStateManager.pushMatrix()
     RenderState.pushAttrib()
-    val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.getPartialRenderTick)
+    val localPos = Minecraft.getMinecraft.player.getPositionEyes(e.getPartialRenderTick)
     val playerPos = e.getEntityPlayer.getPositionEyes(e.getPartialRenderTick)
     val correction = 1.62 - (if (e.getEntityPlayer.isSneaking) 0.125 else 0)
     GlStateManager.translate(
@@ -142,7 +142,7 @@ object PetRenderer {
       GlStateManager.translate(0.3, -0.1, -0.2)
     }
 
-    private def isForInventory = Minecraft.getMinecraft.currentScreen != null && owner == Minecraft.getMinecraft.thePlayer
+    private def isForInventory = Minecraft.getMinecraft.currentScreen != null && owner == Minecraft.getMinecraft.player
   }
 
   @SubscribeEvent

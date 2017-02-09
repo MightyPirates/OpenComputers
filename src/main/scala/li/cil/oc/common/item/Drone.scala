@@ -60,9 +60,9 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
           drone.ownerUUID = player.getGameProfile.getId
       }
       drone.initializeAfterPlacement(stack, player, position.offset(hitX * 1.1f, hitY * 1.1f, hitZ * 1.1f))
-      world.spawnEntityInWorld(drone)
+      world.spawnEntity(drone)
     }
-    stack.stackSize -= 1
+    stack.shrink(1)
     true
   }
 }

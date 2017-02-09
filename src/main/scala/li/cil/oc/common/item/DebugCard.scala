@@ -32,7 +32,7 @@ class DebugCard(val parent: Delegator) extends traits.Delegate {
           case wl: DebugCardAccess.Whitelist => wl.nonce(name) match {
             case Some(n) => n
             case None =>
-              player.addChatComponentMessage(new TextComponentString("§cYou are not whitelisted to use debug card"))
+              player.sendMessage(new TextComponentString("§cYou are not whitelisted to use debug card"))
               player.swingArm(EnumHand.MAIN_HAND)
               return new ActionResult[ItemStack](EnumActionResult.FAIL, stack)
           }

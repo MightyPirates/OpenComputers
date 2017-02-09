@@ -32,7 +32,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   protected var hoveredStackNEI: Option[ItemStack] = None
 
   protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately("container.inventory"),
       8, ySize - 96 + 2, 0x404040)
   }
@@ -77,7 +77,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     hoveredSlot = (inventorySlots.inventorySlots collect {
-      case slot: Slot if isPointInRegion(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, mouseX, mouseY) => slot
+      case slot: Slot if isPointInRegion(slot.xPos, slot.yPos, 16, 16, mouseX, mouseY) => slot
     }).headOption
     hoveredStackNEI = ItemSearch.hoveredStack(this, mouseX, mouseY)
 
@@ -101,24 +101,24 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     GlStateManager.enableBlend()
     slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None =>
-        if (!slot.getHasStack && slot.xDisplayPosition >= 0 && slot.yDisplayPosition >= 0 && component.tierIcon != null) {
+        if (!slot.getHasStack && slot.xPos >= 0 && slot.yPos >= 0 && component.tierIcon != null) {
           drawDisabledSlot(component)
         }
       case _ =>
         zLevel += 1
         if (!isInPlayerInventory(slot)) {
-          drawSlotBackground(slot.xDisplayPosition - 1, slot.yDisplayPosition - 1)
+          drawSlotBackground(slot.xPos - 1, slot.yPos - 1)
         }
         if (!slot.getHasStack) {
           slot match {
             case component: ComponentSlot =>
               if (component.tierIcon != null) {
                 Textures.bind(component.tierIcon)
-                Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
+                Gui.drawModalRectWithCustomSizedTexture(slot.xPos, slot.yPos, 0, 0, 16, 16, 16, 16)
               }
               if (component.hasBackground) {
                 Textures.bind(slot.getBackgroundLocation)
-                Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
+                Gui.drawModalRectWithCustomSizedTexture(slot.xPos, slot.yPos, 0, 0, 16, 16, 16, 16)
               }
             case _ =>
           }
@@ -129,7 +129,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   protected def drawSlotHighlight(slot: Slot) {
-    if (mc.thePlayer.inventory.getItemStack == null) slot match {
+    if (mc.player.inventory.getItemStack == null) slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None => // Ignore.
       case _ =>
         val currentIsInPlayerInventory = isInPlayerInventory(slot)
@@ -147,8 +147,8 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
         if (drawHighlight) {
           zLevel += 100
           drawGradientRect(
-            slot.xDisplayPosition, slot.yDisplayPosition,
-            slot.xDisplayPosition + 16, slot.yDisplayPosition + 16,
+            slot.xPos, slot.yPos,
+            slot.xPos + 16, slot.yPos + 16,
             0x80FFFFFF, 0x80FFFFFF)
           zLevel -= 100
         }
@@ -163,7 +163,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   protected def drawDisabledSlot(slot: ComponentSlot) {
     GlStateManager.color(1, 1, 1, 1)
     Textures.bind(slot.tierIcon)
-    Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
+    Gui.drawModalRectWithCustomSizedTexture(slot.xPos, slot.yPos, 0, 0, 16, 16, 16, 16)
   }
 
   protected def drawSlotBackground(x: Int, y: Int) {

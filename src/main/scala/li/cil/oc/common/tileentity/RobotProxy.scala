@@ -112,7 +112,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     super.validate()
     val firstProxy = robot.proxy == null
     robot.proxy = this
-    robot.setWorldObj(worldObj)
+    robot.setWorld(world)
     robot.setPos(getPos)
     if (firstProxy) {
       robot.validate()
@@ -242,7 +242,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def hasCustomName = robot.hasCustomName
 
-  override def isUseableByPlayer(player: EntityPlayer) = robot.isUseableByPlayer(player)
+  override def isUsableByPlayer(player: EntityPlayer) = robot.isUsableByPlayer(player)
 
   override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]) = robot.dropSlot(slot, count, direction)
 

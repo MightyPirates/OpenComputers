@@ -40,7 +40,7 @@ class LootDiskCyclingRecipe extends IRecipe {
       val stack = crafting.getStackInSlot(slot)
       if (Wrench.isWrench(stack)) {
         result(slot) = stack.copy()
-        stack.stackSize = 0
+        stack.setCount(0)
       }
     }
     result

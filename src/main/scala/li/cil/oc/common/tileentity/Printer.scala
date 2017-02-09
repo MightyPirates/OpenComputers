@@ -266,8 +266,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         if (result == null) {
           setInventorySlotContents(slotOutput, output.get)
         }
-        else if (result.stackSize < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
-          result.stackSize += 1
+        else if (result.getCount < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
+          result.grow(1)
           markDirty()
         }
         else {
@@ -318,7 +318,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     isActive = nbt.getBoolean(IsActiveTag)
     limit = nbt.getInteger(LimitTag)
     if (nbt.hasKey(OutputTag)) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTag)))
+      output = Option(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
     else {
       output = None

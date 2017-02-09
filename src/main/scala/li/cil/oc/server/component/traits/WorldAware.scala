@@ -37,7 +37,7 @@ trait WorldAware {
 
   def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
     try {
-      val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, null, blockPos.toBlockPos, face, null)
+      val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, blockPos.toBlockPos, face, null)
       MinecraftForge.EVENT_BUS.post(event)
       !event.isCanceled && event.getUseBlock != Result.DENY
     } catch {
@@ -48,7 +48,7 @@ trait WorldAware {
   }
 
   def mayInteract(blockPos: BlockPosition, side: EnumFacing, inventory: IItemHandler): Boolean = mayInteract(blockPos, side) && (inventory match {
-    case inv: InvWrapper if inv.getInv != null => inv.getInv.isUseableByPlayer(fakePlayer)
+    case inv: InvWrapper if inv.getInv != null => inv.getInv.isUsableByPlayer(fakePlayer)
     case _ => true
   })
 

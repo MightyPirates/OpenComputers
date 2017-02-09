@@ -1,5 +1,7 @@
 package li.cil.oc.common.item
 
+import javax.annotation.Nonnull
+
 import li.cil.oc.api
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -35,8 +37,8 @@ class Acid(val parent: Delegator) extends traits.Delegate {
           // Remove nanomachines if installed.
           api.Nanomachines.uninstallController(player)
         }
-        stack.stackSize -= 1
-        if (stack.stackSize > 0) stack
+        stack.shrink(1)
+        if (stack.getCount > 0) stack
         else null
       case _ => stack
     }

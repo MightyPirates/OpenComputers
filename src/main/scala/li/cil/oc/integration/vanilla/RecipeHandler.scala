@@ -25,7 +25,7 @@ object RecipeHandler {
       case row: java.util.List[AnyRef]@unchecked => row.map(Recipes.parseIngredient)
       case other => throw new RecipeException(s"Invalid row entry for shaped recipe (not a list: $other).")
     }
-    output.stackSize = Recipes.tryGetCount(recipe)
+    output.setCount(Recipes.tryGetCount(recipe))
 
     var number = -1
     var shape = mutable.ArrayBuffer.empty[String]
@@ -43,7 +43,7 @@ object RecipeHandler {
       shape += pattern.toString
       input ++= ingredients
     }
-    if (input.nonEmpty && output.stackSize > 0) {
+    if (input.nonEmpty && output.getCount > 0) {
       GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
     }
   }
@@ -53,16 +53,16 @@ object RecipeHandler {
       case list: java.util.List[AnyRef]@unchecked => list.map(Recipes.parseIngredient)
       case other => Seq(Recipes.parseIngredient(other))
     }
-    output.stackSize = Recipes.tryGetCount(recipe)
+    output.setCount(Recipes.tryGetCount(recipe))
 
-    if (input.nonEmpty && output.stackSize > 0) {
+    if (input.nonEmpty && output.getCount > 0) {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
     }
   }
 
   def addFurnaceRecipe(output: ItemStack, recipe: Config) {
     val input = Recipes.parseIngredient(recipe.getValue("input").unwrapped())
-    output.stackSize = Recipes.tryGetCount(recipe)
+    output.setCount(Recipes.tryGetCount(recipe))
 
     input match {
       case stack: ItemStack =>

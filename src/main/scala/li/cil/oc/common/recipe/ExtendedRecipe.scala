@@ -156,7 +156,7 @@ object ExtendedRecipe {
 
     // EEPROM copying.
     if (api.Items.get(craftedStack) == eeprom &&
-      craftedStack.stackSize == 2 &&
+      craftedStack.getCount == 2 &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) breakable {

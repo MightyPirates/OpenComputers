@@ -29,7 +29,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
     (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
       if (stack.getItem == targetItem) {
         targetStack = stack.copy()
-        targetStack.stackSize = 1
+        targetStack.setCount(1)
       } else if (stack.getItem != Items.WATER_BUCKET) {
         return null
       }

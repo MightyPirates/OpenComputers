@@ -9,7 +9,7 @@ import net.minecraft.util.text.translation.I18n
 class DamageSourceWithRandomCause(name: String, numCauses: Int) extends DamageSource(name) {
   override def getDeathMessage(damagee: EntityLivingBase): ITextComponent = {
     val damager = damagee.getAttackingEntity
-    val format = "death.attack." + damageType + "." + (damagee.worldObj.rand.nextInt(numCauses) + 1)
+    val format = "death.attack." + damageType + "." + (damagee.world.rand.nextInt(numCauses) + 1)
     val withCauseFormat = format + ".player"
     if (damager != null && I18n.canTranslate(withCauseFormat))
       new TextComponentTranslation(withCauseFormat, damagee.getDisplayName, damager.getDisplayName)

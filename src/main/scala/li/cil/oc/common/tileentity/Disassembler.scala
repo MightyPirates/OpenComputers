@@ -46,7 +46,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
-    world.notifyNeighborsOfStateChange(getPos, getBlockType)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType, true)
   }
 
   private final lazy val deviceInfo = Map(
@@ -127,10 +127,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   private def drop(stack: ItemStack) {
     if (stack != null) {
-      for (side <- EnumFacing.values if stack.stackSize > 0) {
+      for (side <- EnumFacing.values if stack.getCount > 0) {
         InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), Some(side.getOpposite))
       }
-      if (stack.stackSize > 0) {
+      if (stack.getCount > 0) {
         spawnStackInWorld(stack, Option(EnumFacing.UP))
       }
     }
@@ -147,7 +147,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     super.readFromNBTForServer(nbt)
     queue.clear()
     queue ++= nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).
-      map((tag: NBTTagCompound) => ItemStack.loadItemStackFromNBT(tag))
+      map((tag: NBTTagCompound) => new ItemStack(tag))
     buffer = nbt.getDouble(BufferTag)
     totalRequiredEnergy = nbt.getDouble(TotalTag)
     isActive = queue.nonEmpty

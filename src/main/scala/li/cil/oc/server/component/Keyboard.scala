@@ -66,7 +66,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   override def onMessage(message: Message) = {
     message.data match {
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
-        if (isUseableByPlayer(p)) {
+        if (isUsableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
           if (Settings.get.inputUsername) {
             signal(p, "key_down", char, code, p.getName)
@@ -88,7 +88,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
           case _ =>
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
-        if (isUseableByPlayer(p)) {
+        if (isUsableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
             if (Settings.get.inputUsername) {
               signal(p, "clipboard", line, p.getName)
@@ -104,7 +104,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  def isUseableByPlayer(p: EntityPlayer) = usableOverride match {
+  def isUsableByPlayer(p: EntityPlayer) = usableOverride match {
     case Some(callback) => callback.isUsableByPlayer(this, p)
     case _ => p.getDistanceSq(host.xPosition, host.yPosition, host.zPosition) <= 64
   }

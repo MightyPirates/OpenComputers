@@ -23,7 +23,7 @@ trait SimpleInventory extends IInventory {
   override def decrStackSize(slot: Int, amount: Int): ItemStack = {
     if (slot >= 0 && slot < getSizeInventory) {
       (getStackInSlot(slot) match {
-        case stack: ItemStack if stack.stackSize - amount < getInventoryStackRequired =>
+        case stack: ItemStack if stack.getCount - amount < getInventoryStackRequired =>
           setInventorySlotContents(slot, null)
           stack
         case stack: ItemStack =>
@@ -32,7 +32,7 @@ trait SimpleInventory extends IInventory {
           result
         case _ => null
       }) match {
-        case stack: ItemStack if stack.stackSize > 0 => stack
+        case stack: ItemStack if stack.getCount > 0 => stack
         case _ => null
       }
     }

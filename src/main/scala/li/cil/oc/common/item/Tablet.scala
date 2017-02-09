@@ -211,7 +211,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
               val computer = Tablet.get(stack, player).machine
               computer.start()
               computer.lastError match {
-                case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+                case message if message != null => player.sendMessage(Localization.Analyzer.LastError(message))
                 case _ =>
               }
             }
@@ -229,7 +229,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.
-  val world = player.worldObj
+  val world = player.world
 
   lazy val machine = if (world.isRemote) null else Machine.create(this)
 
@@ -346,7 +346,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case _ => false
   })
 
-  override def isUseableByPlayer(player: EntityPlayer) = machine != null && machine.canInteract(player.getName)
+  override def isUsableByPlayer(player: EntityPlayer) = machine != null && machine.canInteract(player.getName)
 
   override def markDirty(): Unit = {
     data.save(stack)
@@ -454,7 +454,7 @@ object Tablet {
   }
 
   def get(stack: ItemStack, holder: EntityPlayer) = {
-    if (holder.worldObj.isRemote) Client.get(stack, holder)
+    if (holder.world.isRemote) Client.get(stack, holder)
     else Server.get(stack, holder)
   }
 
@@ -510,7 +510,7 @@ object Tablet {
 
         // Force re-load on world change, in case some components store a
         // reference to the world object.
-        if (holder.worldObj != wrapper.world) {
+        if (holder.world != wrapper.world) {
           wrapper.writeToNBT(clearState = false)
           wrapper.autoSave = false
           cache.invalidate(id)

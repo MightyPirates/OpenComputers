@@ -20,8 +20,8 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
 
   override def updateScreen(): Unit = {
     super.updateScreen()
-    if (mc.thePlayer.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) > 64) {
-      mc.thePlayer.closeScreen()
+    if (mc.player.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) > 64) {
+      mc.player.closeScreen()
     }
   }
 
@@ -38,7 +38,7 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
 
-    textField = new GuiTextField(0, fontRendererObj, guiLeft + 7, guiTop + 8, 164 - 12, 12)
+    textField = new GuiTextField(0, fontRenderer, guiLeft + 7, guiTop + 8, 164 - 12, 12)
     textField.setMaxStringLength(32)
     textField.setEnableBackgroundDrawing(false)
     textField.setCanLoseFocus(false)
@@ -61,7 +61,7 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
         if (label != waypoint.label) {
           waypoint.label = label
           PacketSender.sendWaypointLabel(waypoint)
-          mc.thePlayer.closeScreen()
+          mc.player.closeScreen()
         }
       }
       else super.keyTyped(char, code)

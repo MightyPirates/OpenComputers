@@ -119,10 +119,10 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
-  override def addCollisionBoxToList(state: IBlockState, world: World, pos: BlockPos, mask: AxisAlignedBB, list: util.List[AxisAlignedBB], entity: Entity): Unit = {
+  override def addCollisionBoxToList(state: IBlockState, world: World, pos: BlockPos, mask: AxisAlignedBB, list: util.List[AxisAlignedBB], entity: Entity, par7: Boolean): Unit = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print => print.addCollisionBoxesToList(mask, list, pos)
-      case _ => super.addCollisionBoxToList(state, world, pos, mask, list, entity)
+      case _ => super.addCollisionBoxToList(state, world, pos, mask, list, entity, par7)
     }
   }
 
@@ -184,9 +184,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print if print.data.emitRedstone(print.state) =>
-        world.notifyNeighborsOfStateChange(pos, this)
+        world.notifyNeighborsOfStateChange(pos, this, false)
         for (side <- EnumFacing.values) {
-          world.notifyNeighborsOfStateChange(pos.offset(side), this)
+          world.notifyNeighborsOfStateChange(pos.offset(side), this, false)
         }
       case _ =>
     }

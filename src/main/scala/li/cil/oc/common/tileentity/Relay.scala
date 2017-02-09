@@ -66,7 +66,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     if (isWirelessEnabled) {
-      player.addChatMessage(Localization.Analyzer.WirelessStrength(strength))
+      player.sendMessage(Localization.Analyzer.WirelessStrength(strength))
       Array(componentNodes(side.getIndex))
     }
     else null

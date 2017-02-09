@@ -34,7 +34,7 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte(SlotTag)
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag(ItemTag)))
+        items(slot) = Option(new ItemStack(slotNbt.getCompoundTag(ItemTag)))
       }
     })
     isRunning = nbt.getBoolean(IsRunningTag)
@@ -42,7 +42,7 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     maxEnergy = nbt.getDouble(MaxEnergyTag)
     tier = nbt.getInteger(TierTag)
     if (nbt.hasKey(ContainerTag)) {
-      container = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(ContainerTag)))
+      container = Option(new ItemStack(nbt.getCompoundTag(ContainerTag)))
     }
   }
 

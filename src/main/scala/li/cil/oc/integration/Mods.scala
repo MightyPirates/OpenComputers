@@ -108,15 +108,15 @@ object Mods {
     //    integration.cofh.tileentity.ModCoFHTileEntity,
     //    integration.cofh.transport.ModCoFHTransport,
     //    integration.ec.ModExtraCells,
-    integration.enderio.ModEnderIO,
-    integration.enderstorage.ModEnderStorage,
+    //    integration.enderio.ModEnderIO,
+    //    integration.enderstorage.ModEnderStorage,
     //    integration.dsu.ModDeepStorageUnit,
-    integration.forestry.ModForestry,
+    //    integration.forestry.ModForestry,
     //    integration.fmp.ModForgeMultipart,
     //    integration.gc.ModGalacticraft,
     //    integration.gregtech.ModGregtech,
-    integration.ic2.ModIndustrialCraft2,
-    integration.mcmp.ModMCMultiPart,
+    //    integration.ic2.ModIndustrialCraft2,
+    //    integration.mcmp.ModMCMultiPart,
     //    integration.mekanism.ModMekanism,
     //    integration.mekanism.gas.ModMekanismGas,
     //    integration.mfr.ModMineFactoryReloaded,
@@ -147,11 +147,11 @@ object Mods {
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
-    integration.opencomputers.ModOpenComputers,
+    integration.opencomputers.ModOpenComputers
 
     // Run IGW registration after OC registration because we use the manual
     // in there to know which pages to register.
-    integration.igw.ModIngameWiki
+    //    integration.igw.ModIngameWiki
   )
 
   def init(): Unit = {

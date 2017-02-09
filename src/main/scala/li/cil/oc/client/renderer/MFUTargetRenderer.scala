@@ -19,7 +19,7 @@ object MFUTargetRenderer {
   @SubscribeEvent
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
     val mc = Minecraft.getMinecraft
-    val player = mc.thePlayer
+    val player = mc.player
     if (player == null) return
     player.getHeldItemMainhand match {
       case stack: ItemStack if api.Items.get(stack) == mfu && stack.hasTagCompound =>

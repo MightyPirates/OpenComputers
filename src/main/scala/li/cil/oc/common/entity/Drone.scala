@@ -31,6 +31,7 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
+import net.minecraft.entity.MoverType
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -102,7 +103,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
-    override def isUseableByPlayer(player: EntityPlayer) = true
+    override def isUsableByPlayer(player: EntityPlayer) = true
 
     override def node = Option(machine).map(_.node).orNull
 
@@ -123,7 +124,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
 
-    override def isUseableByPlayer(player: EntityPlayer) = false
+    override def isUsableByPlayer(player: EntityPlayer) = false
   }
   val mainInventory = new Inventory {
     val items = Array.fill[Option[ItemStack]](8)(None)
@@ -136,7 +137,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot >= 0 && slot < getSizeInventory
 
-    override def isUseableByPlayer(player: EntityPlayer) = player.getDistanceSqToEntity(Drone.this) < 64
+    override def isUsableByPlayer(player: EntityPlayer) = player.getDistanceSqToEntity(Drone.this) < 64
   }
   val tank = new MultiTank {
     override def tankCount = components.components.count {
@@ -436,7 +437,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionY -= gravity
     }
 
-    moveEntity(motionX, motionY, motionZ)
+    move(MoverType.SELF, motionX, motionY, motionZ)
 
     // Make sure we don't get infinitely faster.
     if (isRunning) {
@@ -445,7 +446,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionZ *= drag
     }
     else {
-      val groundDrag = worldObj.getBlock(BlockPosition(this: Entity).offset(EnumFacing.DOWN)).slipperiness * drag
+      val groundDrag = world.getBlock(BlockPosition(this: Entity).offset(EnumFacing.DOWN)).slipperiness * drag
       motionX *= groundDrag
       motionY *= drag
       motionZ *= groundDrag
@@ -471,7 +472,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     super.hitByEntity(entity)
   }
 
-  override def processInitialInteract(player: EntityPlayer, stack: ItemStack, hand: EnumHand): Boolean = {
+  override def processInitialInteract(player: EntityPlayer, hand: EnumHand): Boolean = {
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItemMainhand)) {
         if(!world.isRemote) {
@@ -550,7 +551,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.setPickupDelay(15)
-      world.spawnEntityInWorld(entity)
+      world.spawnEntity(entity)
       InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
     }
   }
@@ -558,7 +559,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def getName = Localization.localizeImmediately("entity.oc.Drone.name")
 
   override def handleWaterMovement() = {
-    inWater = worldObj.handleMaterialAcceleration(getEntityBoundingBox, Material.WATER, this)
+    inWater = world.handleMaterialAcceleration(getEntityBoundingBox, Material.WATER, this)
     inWater
   }
 
@@ -590,7 +591,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
-    if (worldObj.isRemote) return
+    if (world.isRemote) return
     components.saveComponents()
     info.storedEnergy = globalBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)

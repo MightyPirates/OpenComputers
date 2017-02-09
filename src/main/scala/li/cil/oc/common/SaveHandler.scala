@@ -175,7 +175,7 @@ object SaveHandler {
   def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
     val path = statePath
     val dimension = e.getWorld.provider.getDimension
-    val chunk = e.getChunk.getChunkCoordIntPair
+    val chunk = e.getChunk.getPos
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
     if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {

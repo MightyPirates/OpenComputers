@@ -36,7 +36,7 @@ object RackMountableRenderHandler {
       // Disk drive.
 
       if (e.data.hasKey("disk")) {
-        val stack = ItemStack.loadItemStackFromNBT(e.data.getCompoundTag("disk"))
+        val stack = new ItemStack(e.data.getCompoundTag("disk"))
         if (stack != null) {
           GlStateManager.pushMatrix()
           GlStateManager.scale(1, -1, 1)

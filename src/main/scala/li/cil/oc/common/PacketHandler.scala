@@ -131,7 +131,7 @@ abstract class PacketHandler {
     def readItemStack() = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemStack.loadItemStackFromNBT(readNBT())
+        new ItemStack(readNBT())
       }
       else null
     }

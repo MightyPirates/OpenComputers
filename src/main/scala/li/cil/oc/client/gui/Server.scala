@@ -49,13 +49,13 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory,
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(serverInventory.getName),
       8, 6, 0x404040)
     if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (inventoryContainer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
   }
   }
 

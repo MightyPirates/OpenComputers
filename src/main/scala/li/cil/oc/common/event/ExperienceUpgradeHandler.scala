@@ -18,7 +18,7 @@ object ExperienceUpgradeHandler {
     val (level, experience) = getLevelAndExperience(e.agent)
     // This is basically a 'does it have an experience upgrade' check.
     if (experience != 0.0) {
-      e.player.addChatMessage(Localization.Analyzer.RobotXp(experience, level))
+      e.player.sendMessage(Localization.Analyzer.RobotXp(experience, level))
     }
   }
 

@@ -54,7 +54,7 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Server(player.inventory, new ServerInventory {
               override def container = t.getStackInSlot(slot)
 
-              override def isUseableByPlayer(player: EntityPlayer) = t.isUseableByPlayer(player)
+              override def isUsableByPlayer(player: EntityPlayer) = t.isUsableByPlayer(player)
             }, Option(t), slot)
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
@@ -76,13 +76,13 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Database(player.inventory, new DatabaseInventory {
               override def container = player.getHeldItemMainhand
 
-              override def isUseableByPlayer(player: EntityPlayer) = player == player
+              override def isUsableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new gui.Server(player.inventory, new ServerInventory {
               override def container = player.getHeldItemMainhand
 
-              override def isUseableByPlayer(player: EntityPlayer) = player == player
+              override def isUsableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
             val stack = player.getHeldItemMainhand
@@ -123,12 +123,12 @@ object GuiHandler extends CommonGuiHandler {
                         }
                         true
                       })
-                      else player.addChatMessage(Localization.Terminal.InvalidKey)
+                      else player.sendMessage(Localization.Terminal.InvalidKey)
                     }
-                    else player.addChatMessage(Localization.Terminal.OutOfRange)
+                    else player.sendMessage(Localization.Terminal.OutOfRange)
                     case _ => // Eh?
                   }
-                  case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
+                  case _ => player.sendMessage(Localization.Terminal.OutOfRange)
                 }
               }
             }

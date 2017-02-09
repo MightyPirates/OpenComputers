@@ -192,8 +192,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     }
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && (player match {
+  override def isUsableByPlayer(player: EntityPlayer) =
+    super.isUsableByPlayer(player) && (player match {
       case fakePlayer: agent.Player => canInteract(fakePlayer.agent.ownerName())
       case _ => canInteract(player.getName)
     })

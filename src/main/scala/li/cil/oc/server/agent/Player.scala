@@ -165,8 +165,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     })
   }
 
-  override def interact(entity: Entity, stack: ItemStack, hand: EnumHand): EnumActionResult = {
-    val cancel = try MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteract(this, EnumHand.MAIN_HAND, getHeldItemMainhand, entity)) catch {
+  override def interactOn(entity: Entity, hand: EnumHand): EnumActionResult = {
+    val cancel = try MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteract(this, EnumHand.MAIN_HAND, entity)) catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
           OpenComputers.log.warn("Some event handler screwed up!", t)
@@ -174,11 +174,11 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         false
     }
     if(!cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
-      val result = isItemUseAllowed(stack) && (entity.processInitialInteract(this, stack, EnumHand.MAIN_HAND) || (entity match {
+      val result = isItemUseAllowed(stack) && (entity.processInitialInteract(this, EnumHand.MAIN_HAND) || (entity match {
         case living: EntityLivingBase if getHeldItemMainhand != null => getHeldItemMainhand.interactWithEntity(this, living, EnumHand.MAIN_HAND)
         case _ => false
       }))
-      if (getHeldItemMainhand != null && getHeldItemMainhand.stackSize <= 0) {
+      if (getHeldItemMainhand != null && getHeldItemMainhand.getCount <= 0) {
         val orig = getHeldItemMainhand
         this.inventory.setInventorySlotContents(this.inventory.currentItem, null)
         ForgeEventFactory.onPlayerDestroyItem(this, orig, EnumHand.MAIN_HAND)
@@ -195,7 +195,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       val item = if (stack != null) stack.getItem else null
       if (!PortalGun.isPortalGun(stack)) {
-        if (item != null && item.onItemUseFirst(stack, this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
+        if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
           return ActivationType.ItemUsed
         }
       }
@@ -205,7 +205,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       val canActivate = block != Blocks.AIR && Settings.get.allowActivateBlocks
       val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(stack, world, pos, this)))
       val result =
-        if (shouldActivate && block.onBlockActivated(world, pos, state, this, EnumHand.MAIN_HAND, stack, side, hitX, hitY, hitZ))
+        if (shouldActivate && block.onBlockActivated(world, pos, state, this, EnumHand.MAIN_HAND, side, hitX, hitY, hitZ))
           ActivationType.BlockActivated
         else if (isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
@@ -220,7 +220,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   def fireRightClickBlock(pos: BlockPos, side: EnumFacing): PlayerInteractEvent.RightClickBlock = {
     val hitVec = new Vec3d(0.5 + side.getDirectionVec.getX * 0.5, 0.5 + side.getDirectionVec.getY * 0.5, 0.5 + side.getDirectionVec.getZ * 0.5)
-    val event = new PlayerInteractEvent.RightClickBlock(this, EnumHand.MAIN_HAND, getHeldItemMainhand, pos, side, hitVec)
+    val event = new PlayerInteractEvent.RightClickBlock(this, EnumHand.MAIN_HAND, pos, side, hitVec)
     MinecraftForge.EVENT_BUS.post(event)
     event
   }
@@ -233,7 +233,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def fireRightClickAir(): PlayerInteractEvent.RightClickItem = {
-    val event = new PlayerInteractEvent.RightClickItem(this, EnumHand.MAIN_HAND, getHeldItemMainhand)
+    val event = new PlayerInteractEvent.RightClickItem(this, EnumHand.MAIN_HAND)
     MinecraftForge.EVENT_BUS.post(event)
     event
   }
@@ -249,8 +249,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   private def tryUseItem(stack: ItemStack, duration: Double) = {
     stopActiveHand()
-    stack != null && stack.stackSize > 0 && isItemUseAllowed(stack) && {
-      val oldSize = stack.stackSize
+    stack != null && stack.getCount > 0 && isItemUseAllowed(stack) && {
+      val oldSize = stack.getCount
       val oldDamage = if (stack != null) stack.getItemDamage else 0
       val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
       val heldTicks = Math.max(0, Math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
@@ -272,7 +272,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       posZ -= offset.getFrontOffsetZ * 0.6
       agent.machine.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
-      def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
+      def sizeOrDamageChanged = newStack.getCount != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
       val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
@@ -441,11 +441,11 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       this.inventory.currentItem = 0
       val newStack = inventory.getStackInSlot(slot)
       if (newStack != null) {
-        if (newStack.stackSize <= 0) {
+        if (newStack.getCount <= 0) {
           inventory.setInventorySlotContents(slot, null)
         }
         if (repair) {
-          if (newStack.stackSize > 0) tryRepair(newStack, oldStack)
+          if (newStack.getCount > 0) tryRepair(newStack, oldStack)
           else ForgeEventFactory.onPlayerDestroyItem(this, newStack, EnumHand.MAIN_HAND)
         }
       }
@@ -465,7 +465,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    stack != null && stack.stackSize > 0 && {
+    stack != null && stack.getCount > 0 && {
       val event = new RobotPlaceBlockEvent.Pre(agent, stack, world, pos)
       MinecraftForge.EVENT_BUS.post(event)
       if (event.isCanceled) false
@@ -506,7 +506,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def swingArm(hand: EnumHand): Unit = {}
 
-  override def canCommandSenderUseCommand(level: Int, command: String): Boolean = {
+  override def canUseCommand(level: Int, command: String): Boolean = {
     ("seed" == command && !mcServer.isDedicatedServer) ||
       "tell" == command ||
       "help" == command ||
@@ -556,7 +556,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def trySleep(bedLocation: BlockPos) = SleepResult.OTHER_PROBLEM
 
-  override def addChatMessage(message: ITextComponent) {}
+  override def sendMessage(message: ITextComponent) {}
 
   override def displayGUIChest(inventory: IInventory) {}
 

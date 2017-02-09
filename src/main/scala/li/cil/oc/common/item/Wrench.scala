@@ -35,16 +35,16 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
+  override def onItemUseFirst(player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
     if (world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos)) world.getBlockState(pos).getBlock match {
       case block: Block if block.rotateBlock(world, pos, side) =>
-        block.neighborChanged(world.getBlockState(pos), world, pos, Blocks.AIR)
+        block.neighborChanged(world.getBlockState(pos), world, pos, Blocks.AIR, pos)
         player.swingArm(hand)
         if (!world.isRemote) EnumActionResult.SUCCESS else EnumActionResult.PASS
       case _ =>
-        super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+        super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
     }
-    else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+    else super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
   def useWrenchOnBlock(player: EntityPlayer, world: World, pos: BlockPos, simulate: Boolean): Boolean = {

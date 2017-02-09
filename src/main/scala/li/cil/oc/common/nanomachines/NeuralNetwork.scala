@@ -153,7 +153,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
         }
       }
       sb.append(")")
-      player.addChatMessage(new TextComponentString(sb.toString()))
+      player.sendMessage(new TextComponentString(sb.toString()))
       sb.clear()
     }
   }

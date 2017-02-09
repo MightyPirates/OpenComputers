@@ -30,7 +30,7 @@ object DriverMobSpawner extends DriverSidedTileEntity {
 
     @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")
     def getSpawningMobName(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getSpawnerBaseLogic.getEntityNameToSpawn)
+      result(tileEntity.getSpawnerBaseLogic.getEntityId)
     }
   }
 

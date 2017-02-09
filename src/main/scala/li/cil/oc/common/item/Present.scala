@@ -21,8 +21,8 @@ class Present(val parent: Delegator) extends traits.Delegate {
   showInItemList = false
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (stack.stackSize > 0) {
-      stack.stackSize -= 1
+    if (stack.getCount > 0) {
+      stack.shrink(1)
       if (!world.isRemote) {
         world.playSound(player, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 0.2f, 1f)
         val present = Present.nextPresent()

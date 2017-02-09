@@ -72,7 +72,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
+    player.sendMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
   }
 
@@ -242,7 +242,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
       connectors.clear()
       connectors ++= newConnectors
-      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
     }
   }
 

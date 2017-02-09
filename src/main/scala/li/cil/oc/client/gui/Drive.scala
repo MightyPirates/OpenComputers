@@ -42,6 +42,6 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
     super.drawScreen(mouseX, mouseY, dt)
-    fontRendererObj.drawSplitString(Localization.Drive.Warning, guiLeft + 7, guiTop + 37, xSize - 16, 0x404040)
+    fontRenderer.drawSplitString(Localization.Drive.Warning, guiLeft + 7, guiTop + 37, xSize - 16, 0x404040)
   }
 }

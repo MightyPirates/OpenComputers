@@ -88,21 +88,21 @@ object InventoryUtils {
    * changes to the inventory the stack may come from, for example.
    */
   def insertIntoInventorySlot(stack: ItemStack, inventory: IItemHandler, slot: Int, limit: Int = 64, simulate: Boolean = false): Boolean =
-    (stack != null && limit > 0 && stack.stackSize > 0) && {
-      val amount = math.min(stack.stackSize, limit)
+    (stack != null && limit > 0 && stack.getCount > 0) && {
+      val amount = math.min(stack.getCount, limit)
       if (simulate) {
         val toInsert = stack.copy()
-        toInsert.stackSize = amount
+        toInsert.setCount(amount)
         inventory.insertItem(slot, toInsert, simulate) match {
-          case remaining: ItemStack => remaining.stackSize < amount
+          case remaining: ItemStack => remaining.getCount < amount
           case _ => true
         }
       } else {
         val toInsert = stack.splitStack(amount)
         inventory.insertItem(slot, toInsert, simulate) match {
           case remaining: ItemStack =>
-            val result = remaining.stackSize < amount
-            stack.stackSize += remaining.stackSize
+            val result = remaining.getCount < amount
+            stack.grow(remaining.getCount)
             result
           case _ => true
         }
@@ -139,15 +139,15 @@ object InventoryUtils {
    */
   def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Boolean = {
     val stack = inventory.getStackInSlot(slot)
-    (stack != null && limit > 0 && stack.stackSize > 0) && {
-      var amount = math.min(stack.getMaxStackSize, math.min(stack.stackSize, limit))
+    (stack != null && limit > 0 && stack.getCount > 0) && {
+      var amount = math.min(stack.getMaxStackSize, math.min(stack.getCount, limit))
       inventory.extractItem(slot, amount, true) match {
         case extracted: ItemStack =>
-          amount = extracted.stackSize
+          amount = extracted.getCount
           consumer(extracted)
-          if(extracted.stackSize >= amount) return false
-          inventory.extractItem(slot, amount - extracted.stackSize, false) match {
-            case realExtracted: ItemStack if realExtracted.stackSize == amount - extracted.stackSize => true
+          if(extracted.getCount >= amount) return false
+          inventory.extractItem(slot, amount - extracted.getCount, false) match {
+            case realExtracted: ItemStack if realExtracted.getCount == amount - extracted.getCount => true
             case _ =>
               OpenComputers.log.warn("Items may have been duplicated during inventory extraction. This means an IItemHandler instance acted differently between simulated and non-simulated extraction. Offender: " + inventory)
               true
@@ -177,7 +177,7 @@ object InventoryUtils {
    * having its size decremented accordingly.
    */
   def insertIntoInventory(stack: ItemStack, inventory: IItemHandler, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None): Boolean =
-    (stack != null && limit > 0 && stack.stackSize > 0) && {
+    (stack != null && limit > 0 && stack.getCount > 0) && {
       var success = false
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSlots)
@@ -188,17 +188,17 @@ object InventoryUtils {
         // selected slot. In that case we want to prefer inserting into that
         // slot, if at all possible, over merging.
         if (slots.isDefined) {
-          val stackSize = stack.stackSize
+          val getCount = stack.getCount
           if (insertIntoInventorySlot(stack, inventory, range.head, remaining, simulate)) {
-            remaining -= stackSize - stack.stackSize
+            remaining -= getCount - stack.getCount
             success = true
           }
         }
 
         for (slot <- range) {
-          val stackSize = stack.stackSize
+          val getCount = stack.getCount
           if (insertIntoInventorySlot(stack, inventory, slot, remaining, simulate)) {
-            remaining -= stackSize - stack.stackSize
+            remaining -= getCount - stack.getCount
             success = true
           }
         }
@@ -238,16 +238,16 @@ object InventoryUtils {
    */
   def extractFromInventory(stack: ItemStack, inventory: IItemHandler, simulate: Boolean = false): ItemStack = {
     val remaining = stack.copy()
-    for (slot <- 0 until inventory.getSlots if remaining.stackSize > 0) {
+    for (slot <- 0 until inventory.getSlots if remaining.getCount > 0) {
       extractFromInventorySlot(stack => {
         if (haveSameItemType(remaining, stack, checkNBT = true)) {
-          val transferred = stack.stackSize min remaining.stackSize
-          remaining.stackSize -= transferred
+          val transferred = stack.getCount min remaining.getCount
+          remaining.shrink(transferred)
           if (!simulate) {
-            stack.stackSize -= transferred
+            stack.shrink(transferred)
           }
         }
-      }, inventory, slot, limit = remaining.stackSize)
+      }, inventory, slot, limit = remaining.getCount)
     }
     remaining
   }
@@ -329,7 +329,7 @@ object InventoryUtils {
    */
   def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: Option[EnumFacing] = None): Boolean = {
     Option(inventory.decrStackSize(slot, count)) match {
-      case Some(stack) if stack.stackSize > 0 => spawnStackInWorld(position, stack, direction); true
+      case Some(stack) if stack.getCount > 0 => spawnStackInWorld(position, stack, direction); true
       case _ => false
     }
   }
@@ -340,7 +340,7 @@ object InventoryUtils {
   def dropAllSlots(position: BlockPosition, inventory: IInventory): Unit = {
     for (slot <- 0 until inventory.getSizeInventory) {
       Option(inventory.getStackInSlot(slot)) match {
-        case Some(stack) if stack.stackSize > 0 =>
+        case Some(stack) if stack.getCount > 0 =>
           inventory.setInventorySlotContents(slot, null)
           spawnStackInWorld(position, stack)
         case _ => // Nothing.
@@ -359,7 +359,7 @@ object InventoryUtils {
           player.openContainer.detectAndSendChanges()
         }
       }
-      if (stack.stackSize > 0) {
+      if (stack.getCount > 0) {
         player.dropItem(stack, false, false)
       }
     }
@@ -369,7 +369,7 @@ object InventoryUtils {
    * Utility method for spawning an item stack in the world.
    */
   def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None, validator: Option[EntityItem => Boolean] = None): EntityItem = position.world match {
-    case Some(world) if stack != null && stack.stackSize > 0 =>
+    case Some(world) if stack != null && stack.getCount > 0 =>
       val rng = world.rand
       val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getFrontOffsetX, d.getFrontOffsetY, d.getFrontOffsetZ))
       val (tx, ty, tz) = (
@@ -383,7 +383,7 @@ object InventoryUtils {
       entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03
       if (validator.fold(true)(_ (entity))) {
         entity.setPickupDelay(15)
-        world.spawnEntityInWorld(entity)
+        world.spawnEntity(entity)
         entity
       }
       else null

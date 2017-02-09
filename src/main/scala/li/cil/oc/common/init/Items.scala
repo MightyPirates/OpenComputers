@@ -31,6 +31,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.NonNullList
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.registry.GameRegistry
 
 import scala.collection.mutable
@@ -106,7 +108,7 @@ object Items extends ItemAPI {
       instance match {
         case simple: SimpleItem =>
           simple.setUnlocalizedName("oc." + id)
-          GameRegistry.registerItem(simple, id)
+          GameRegistry.register(simple, new ResourceLocation(Settings.resourceDomain, id))
           OpenComputers.proxy.registerModel(instance, id)
         case _ =>
       }
@@ -136,7 +138,7 @@ object Items extends ItemAPI {
 
       override def createItemStack(size: Int): ItemStack = {
         val copy = immutableStack.copy()
-        copy.stackSize = size
+        copy.setCount(size)
         copy
       }
 
@@ -526,7 +528,7 @@ object Items extends ItemAPI {
         Items.createChargedHoverBoots()
       ) ++ Loot.disksForClient ++ registeredItems
 
-      override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[ItemStack]): Unit = {
+      override def getSubItems(item: Item, tab: CreativeTabs, list: NonNullList[ItemStack]): Unit = {
         super.getSubItems(item, tab, list)
         configuredItems.foreach(list.add)
       }
@@ -548,7 +550,7 @@ object Items extends ItemAPI {
 
   private def newItem[T <: Item](item: T, name: String): T = {
     item.setUnlocalizedName("oc." + name)
-    GameRegistry.registerItem(item, name)
+    GameRegistry.register(item, new ResourceLocation(Settings.resourceDomain, name))
     item
   }
 }

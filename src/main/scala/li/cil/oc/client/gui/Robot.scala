@@ -136,12 +136,12 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
         ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
         robot.globalBuffer.toInt,
         robot.globalBufferSize.toInt))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (robot.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     RenderState.popAttrib()
   }
@@ -225,13 +225,13 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       val slot = inventorySlots.getSlot(index)
       val displayIndex = index - inventoryOffset * 4 - 4
       if (displayIndex >= 0 && displayIndex < 16) {
-        slot.xDisplayPosition = 1 + inventoryX + (displayIndex % 4) * slotSize
-        slot.yDisplayPosition = 1 + inventoryY + (displayIndex / 4) * slotSize
+        slot.xPos = 1 + inventoryX + (displayIndex % 4) * slotSize
+        slot.yPos = 1 + inventoryY + (displayIndex / 4) * slotSize
       }
       else {
         // Hide the rest!
-        slot.xDisplayPosition = -10000
-        slot.yDisplayPosition = -10000
+        slot.xPos = -10000
+        slot.yPos = -10000
       }
     }
     val yMin = guiTop + scrollY + 1

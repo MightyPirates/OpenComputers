@@ -29,7 +29,7 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
       world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
-      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
     }
     else {
       world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)

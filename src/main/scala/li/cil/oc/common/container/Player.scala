@@ -28,7 +28,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
   private var lastSync = System.currentTimeMillis()
 
-  override def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
+  override def canInteractWith(player: EntityPlayer) = otherInventory.isUsableByPlayer(player)
 
   override def slotClick(slot: Int, dragType: Int, clickType: ClickType, player: EntityPlayer): ItemStack = {
     val result = super.slotClick(slot, dragType, clickType, player)
@@ -37,7 +37,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
     }
-    if (result != null && result.stackSize > 0) result
+    if (result != null && result.getCount > 0) result
     else null
   }
 
@@ -61,17 +61,17 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       if (intoPlayerInventory) (inventorySlots.size - 1, 0)
       else (0, inventorySlots.size - 1)
 
-    if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
+    if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.getCount > 0) {
       val intoSlot = inventorySlots.get(i)
       if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack
         val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
-        val slotHasCapacity = intoStack.stackSize < maxStackSize
+        val slotHasCapacity = intoStack.getCount < maxStackSize
         if (itemsAreEqual && slotHasCapacity) {
-          val itemsMoved = math.min(maxStackSize - intoStack.stackSize, fromStack.stackSize)
+          val itemsMoved = math.min(maxStackSize - intoStack.getCount, fromStack.getCount)
           if (itemsMoved > 0) {
-            intoStack.stackSize += from.decrStackSize(itemsMoved).stackSize
+            intoStack.grow(from.decrStackSize(itemsMoved).getCount)
             intoSlot.onSlotChanged()
             somethingChanged = true
           }
@@ -79,11 +79,11 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       }
     }
 
-    for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
+    for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.getCount > 0) {
       val intoSlot = inventorySlots.get(i)
       if (intoSlot.inventory != from.inventory && !intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
-        val itemsMoved = math.min(maxStackSize, fromStack.stackSize)
+        val itemsMoved = math.min(maxStackSize, fromStack.getCount)
         intoSlot.putStack(from.decrStackSize(itemsMoved))
         if (maxStackSize == 0) {
           // Special case: we have an inventory with "phantom/ghost stacks", i.e.

@@ -163,7 +163,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     RenderState.pushAttrib() // Prevents NEI render glitch.
 
-    fontRendererObj.drawString(
+    fontRenderer.drawString(
       Localization.localizeImmediately(rack.getName),
       8, 6, 0x404040)
 
@@ -246,7 +246,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       val x = 122
       val y = 20 + bus * 11
 
-      fontRendererObj.drawString(
+      fontRenderer.drawString(
         Localization.localizeImmediately(sideName(busToSide(bus))),
         x, y, 0x404040)
     }

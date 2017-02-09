@@ -146,10 +146,10 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (nbt.hasKey(OutputTag)) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTag)))
+      output = Option(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
     else if (nbt.hasKey(OutputTagCompat)) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(OutputTagCompat)))
+      output = Option(new ItemStack(nbt.getCompoundTag(OutputTagCompat)))
     }
     totalRequiredEnergy = nbt.getDouble(TotalTag)
     requiredEnergy = nbt.getDouble(RemainingTag)

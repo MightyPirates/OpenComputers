@@ -67,7 +67,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
           case _ if inventoryContainer.getSlot(0).getHasStack => Localization.Assembler.CollectResult
           case _ => ""
         }
-      fontRendererObj.drawString(message, 30, 94, 0x404040)
+      fontRenderer.drawString(message, 30, 94, 0x404040)
       if (runButton.isMouseOver) {
         val tooltip = new java.util.ArrayList[String]
         tooltip.add(Localization.Assembler.Run)
@@ -76,14 +76,14 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
             tooltip.addAll(warnings.map(_.getUnformattedText).toList)
           }
         }
-        copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+        copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       }
     }
     else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(inventoryContainer.assemblyRemainingTime)
       tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     RenderState.popAttrib()
   }

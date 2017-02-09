@@ -12,7 +12,7 @@ object PortalGun {
   }
 
   def isPortalGun(stack: ItemStack) =
-    stack != null && stack.stackSize > 0 &&
+    stack != null && stack.getCount > 0 &&
       Mods.PortalGun.isAvailable &&
       portalGunClass != null &&
       portalGunClass.isAssignableFrom(stack.getItem.getClass)

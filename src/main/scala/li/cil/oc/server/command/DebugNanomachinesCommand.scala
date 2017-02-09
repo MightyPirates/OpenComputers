@@ -20,7 +20,7 @@ object DebugNanomachinesCommand extends SimpleCommand("oc_debugNanomachines") {
         api.Nanomachines.installController(player) match {
           case controller: ControllerImpl =>
             controller.debug()
-            player.addChatMessage(new TextComponentString("Debug configuration created, see log for mappings."))
+            player.sendMessage(new TextComponentString("Debug configuration created, see log for mappings."))
           case _ => // Someone did something.
         }
       case _ => throw new WrongUsageException("Can only be used by players.")

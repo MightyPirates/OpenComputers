@@ -92,7 +92,7 @@ class RobotAfterimage extends SimpleBlock {
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     findMovingRobot(world, pos) match {
-      case Some(robot) => api.Items.get(Constants.BlockName.Robot).block.onBlockActivated(world, robot.getPos, world.getBlockState(robot.getPos), player, hand, heldItem, side, hitX, hitY, hitZ)
+      case Some(robot) => api.Items.get(Constants.BlockName.Robot).block.onBlockActivated(world, robot.getPos, world.getBlockState(robot.getPos), player, hand, side, hitX, hitY, hitZ)
       case _ => world.setBlockToAir(pos)
     }
   }

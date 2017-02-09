@@ -31,7 +31,7 @@ object CallbackDocHandler {
 
   private val VexPattern = """(?s)^function(\(.*?\).*?); (.*)$""".r
 
-  def getRecipes(registry: IModRegistry): util.List[_] = registry.getItemRegistry.getItemList.collect {
+  def getRecipes(registry: IModRegistry): util.List[_] = registry.getIngredientRegistry.getIngredients(classOf[ItemStack]).collect {
     case stack: ItemStack =>
       val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
@@ -92,14 +92,12 @@ object CallbackDocHandler {
   }
   else Seq.empty
 
-  protected def wrap(line: String, width: Int) = Minecraft.getMinecraft.fontRendererObj.listFormattedStringToWidth(line, width)
+  protected def wrap(line: String, width: Int) = Minecraft.getMinecraft.fontRenderer.listFormattedStringToWidth(line, width)
 
   object CallbackDocRecipeHandler extends IRecipeHandler[CallbackDocRecipe] {
     override def getRecipeWrapper(recipe: CallbackDocRecipe) = recipe
 
-    override def getRecipeCategoryUid = CallbackDocRecipeCategory.getUid
-
-    override def getRecipeCategoryUid(recipe: CallbackDocRecipe): String = getRecipeCategoryUid
+    override def getRecipeCategoryUid(recipe: CallbackDocRecipe): String = CallbackDocRecipeCategory.getUid
 
     override def isRecipeValid(recipe: CallbackDocRecipe) = true
 
@@ -108,13 +106,11 @@ object CallbackDocHandler {
 
   class CallbackDocRecipe(val stack: ItemStack, val page: String) extends BlankRecipeWrapper {
 
-    override def getInputs: util.List[ItemStack] = List(stack)
-
-    override def getIngredients(ingredients: IIngredients): Unit = ingredients.setInputs(classOf[ItemStack], getInputs)
+    override def getIngredients(ingredients: IIngredients): Unit = ingredients.setInputs(classOf[ItemStack], List(stack))
 
     override def drawInfo(@Nonnull minecraft: Minecraft, recipeWidth: Int, recipeHeight: Int, mouseX: Int, mouseY: Int): Unit = {
       for ((text, line) <- page.lines.zipWithIndex) {
-        minecraft.fontRendererObj.drawString(text, 4, 4 + line * (minecraft.fontRendererObj.FONT_HEIGHT + 1), 0x333333, false)
+        minecraft.fontRenderer.drawString(text, 4, 4 + line * (minecraft.fontRenderer.FONT_HEIGHT + 1), 0x333333, false)
       }
     }
   }
@@ -129,9 +125,6 @@ object CallbackDocHandler {
     }
 
     override def getBackground: IDrawable = background
-
-    override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe) {
-    }
 
     override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe, ingredients: IIngredients) {
     }

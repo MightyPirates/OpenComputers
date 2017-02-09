@@ -38,7 +38,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             val keyboardPos = screenPos.offset(EnumFacing.UP)
 
             if (!world.isAirBlock(casePos) || !world.isAirBlock(screenPos) || !world.isAirBlock(keyboardPos)) {
-              player.addChatMessage(new TextComponentString("Target position obstructed."))
+              player.sendMessage(new TextComponentString("Target position obstructed."))
               return
             }
 
@@ -81,7 +81,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.HDDTier3).createItemStack(1), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.LuaBios).createItemStack(1), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.OpenOS).createItemStack(1), casePos)
-          case _ => player.addChatMessage(new TextComponentString("You need to be looking at a nearby block."))
+          case _ => player.sendMessage(new TextComponentString("You need to be looking at a nearby block."))
         }
       case _ => throw new WrongUsageException("Can only be used by players.")
     }

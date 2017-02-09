@@ -20,7 +20,7 @@ object HoverBootsHandler {
       val hasHoverBoots = !player.isSneaking && equippedArmor(player).exists(stack => stack.getItem match {
         case boots: HoverBoots =>
           Settings.get.ignorePower || {
-            if (player.onGround && !player.capabilities.isCreativeMode && player.worldObj.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+            if (player.onGround && !player.capabilities.isCreativeMode && player.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
               val velocity = player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ
               if (velocity > 0.015f) {
                 boots.charge(stack, -Settings.get.hoverBootMove, simulate = false)

@@ -19,6 +19,7 @@ import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.FMLLog
 import net.minecraftforge.fml.common.event._
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -84,7 +85,7 @@ class Proxy {
     Loot.init()
     Achievement.init()
 
-    EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
+    EntityRegistry.registerModEntity(new ResourceLocation(Settings.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
@@ -156,7 +157,7 @@ class Proxy {
         blockRenames.get(missing.name) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
+            else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
       }
@@ -164,7 +165,7 @@ class Proxy {
         itemRenames.get(missing.name) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
+            else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
       }

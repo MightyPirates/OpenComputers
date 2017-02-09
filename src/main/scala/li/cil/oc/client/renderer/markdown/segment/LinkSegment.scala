@@ -52,7 +52,7 @@ private[markdown] class LinkSegment(parent: Segment, text: String, val url: Stri
       desktop.getMethod("browse", classOf[URI]).invoke(instance, new URI(url))
     }
     catch {
-      case t: Throwable => Minecraft.getMinecraft.thePlayer.addChatMessage(Localization.Chat.WarningLink(t.toString))
+      case t: Throwable => Minecraft.getMinecraft.player.sendMessage(Localization.Chat.WarningLink(t.toString))
     }
   }
 

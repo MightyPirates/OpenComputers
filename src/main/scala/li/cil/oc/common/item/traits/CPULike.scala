@@ -39,7 +39,7 @@ trait CPULike extends Delegate {
               val archClass = architectures(newIndex)
               val archName = api.Machine.getArchitectureName(archClass)
               driver.setArchitecture(stack, archClass)
-              player.addChatMessage(new TextComponentTranslation(Settings.namespace + "tooltip.CPU.Architecture", archName))
+              player.sendMessage(new TextComponentTranslation(Settings.namespace + "tooltip.CPU.Architecture", archName))
             }
             player.swingArm(EnumHand.MAIN_HAND)
           case _ => // No known driver for this processor.

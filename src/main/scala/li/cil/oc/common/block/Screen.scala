@@ -91,7 +91,7 @@ class Screen(val tier: Int) extends RedstoneAware {
         }
         true
       case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
-        if (world.isRemote && player == Minecraft.getMinecraft.thePlayer) {
+        if (world.isRemote && player == Minecraft.getMinecraft.player) {
           screen.click(hitX, hitY, hitZ)
         }
         else true

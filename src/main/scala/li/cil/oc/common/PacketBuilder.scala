@@ -33,7 +33,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
   }
 
   def writeEntity(e: Entity) {
-    writeInt(e.worldObj.provider.getDimension)
+    writeInt(e.world.provider.getDimension)
     writeInt(e.getEntityId)
   }
 
@@ -43,7 +43,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
   }
 
   def writeItemStack(stack: ItemStack) = {
-    val haveStack = stack != null && stack.stackSize > 0
+    val haveStack = stack != null && stack.getCount > 0
     writeBoolean(haveStack)
     if (haveStack) {
       writeNBT(stack.writeToNBT(new NBTTagCompound()))
@@ -72,7 +72,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     val dimension = world.provider.getDimension
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getPlayerList
-    for (player <- manager.getPlayerList if player.dimension == dimension) {
+    for (player <- manager.getPlayers if player.dimension == dimension) {
       val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {

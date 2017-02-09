@@ -13,12 +13,12 @@ import net.minecraft.util.EnumFacing
 
 class UpgradeMF(val parent: Delegator) extends traits.Delegate with traits.ItemTier {
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult = {
-    if (!player.worldObj.isRemote && player.isSneaking) {
+    if (!player.world.isRemote && player.isSneaking) {
       if (!stack.hasTagCompound) {
         stack.setTagCompound(new NBTTagCompound())
       }
       val data = stack.getTagCompound
-      data.setIntArray(Settings.namespace + "coord", Array(position.x, position.y, position.z, player.worldObj.provider.getDimension, side.ordinal()))
+      data.setIntArray(Settings.namespace + "coord", Array(position.x, position.y, position.z, player.world.provider.getDimension, side.ordinal()))
       return EnumActionResult.SUCCESS
     }
     super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)

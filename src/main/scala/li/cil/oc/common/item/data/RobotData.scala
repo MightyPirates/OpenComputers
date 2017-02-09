@@ -68,9 +68,9 @@ class RobotData extends ItemData(Constants.BlockName.Robot) {
     robotEnergy = nbt.getInteger(RobotEnergyTag)
     tier = nbt.getInteger(TierTag)
     components = nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
+      toArray[NBTTagCompound].map(new ItemStack(_))
     containers = nbt.getTagList(ContainersTag, NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
+      toArray[NBTTagCompound].map(new ItemStack(_))
     if (nbt.hasKey(LightColorTag)) {
       lightColor = nbt.getInteger(LightColorTag)
     }

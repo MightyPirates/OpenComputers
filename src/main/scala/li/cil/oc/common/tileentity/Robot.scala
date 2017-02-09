@@ -180,8 +180,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override def setName(name: String): Unit = info.name = name
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage(Localization.Analyzer.RobotOwner(ownerName))
-    player.addChatMessage(Localization.Analyzer.RobotName(player_.getName))
+    player.sendMessage(Localization.Analyzer.RobotOwner(ownerName))
+    player.sendMessage(Localization.Analyzer.RobotName(player_.getName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
@@ -550,7 +550,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       if (isComponentSlot(slot, stack)) {
         super.onItemAdded(slot, stack)
-        world.notifyBlocksOfNeighborChange(position, getBlockType)
+        world.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
       }
       if (isInventorySlot(slot)) {
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
@@ -576,7 +576,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
       if (isComponentSlot(slot, stack)) {
-        world.notifyBlocksOfNeighborChange(position, getBlockType)
+        world.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
       }
     }
   }
@@ -721,20 +721,20 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
     if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
-      if (stack != null && stack.stackSize > 1 && isComponentSlot(slot, stack)) {
+      if (stack != null && stack.getCount > 1 && isComponentSlot(slot, stack)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
-        if (stack.stackSize > 0 && isServer) {
+        if (stack.getCount > 0 && isServer) {
           player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0 && !world.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
+    else if (stack != null && stack.getCount > 0 && !world.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
+  override def isUsableByPlayer(player: EntityPlayer) =
+    super.isUsableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, _) => true // Allow anything in the tool slot.

@@ -52,7 +52,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               into.fill(contents, true)
               inventory.decrStackSize(selectedSlot, 1)
               InventoryUtils.insertIntoInventory(container, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
-              if (container.stackSize > 0) {
+              if (container.getCount > 0) {
                 InventoryUtils.spawnStackInWorld(position, container)
               }
               result(true, contents.amount)
@@ -92,7 +92,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               from.drain(amount, true)
               inventory.decrStackSize(selectedSlot, 1)
               InventoryUtils.insertIntoInventory(filled, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
-              if (filled.stackSize > 0) {
+              if (filled.getCount > 0) {
                 InventoryUtils.spawnStackInWorld(position, filled)
               }
               result(true, amount)

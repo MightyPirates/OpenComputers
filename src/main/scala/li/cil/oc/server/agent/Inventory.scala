@@ -100,7 +100,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def markDirty() = agent.mainInventory.markDirty()
 
-  override def isUseableByPlayer(player: EntityPlayer) = agent.mainInventory.isUseableByPlayer(player)
+  override def isUsableByPlayer(player: EntityPlayer) = agent.mainInventory.isUsableByPlayer(player)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot < 0) agent.equipmentInventory.isItemValidForSlot(~slot, stack)

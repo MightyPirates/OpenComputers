@@ -187,7 +187,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
     def interact(player: Player, entity: Entity) = {
       beginConsumeDrops(entity)
-      val result = player.interact(entity, player.getHeldItemMainhand, EnumHand.MAIN_HAND)
+      val result = player.interactOn(entity, EnumHand.MAIN_HAND)
       endConsumeDrops(player, entity)
       result
     }
@@ -245,7 +245,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
-    if (stack == null || stack.stackSize == 0) {
+    if (stack == null || stack.getCount == 0) {
       return result(Unit, "nothing selected")
     }
 
