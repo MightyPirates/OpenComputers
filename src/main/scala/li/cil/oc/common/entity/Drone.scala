@@ -464,7 +464,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     super.hitByEntity(entity)
   }
 
-  override def interactFirst(player: EntityPlayer) = {
+  override def interactFirst(player: EntityPlayer): Boolean = {
+    if (isDead) return false
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItem)) {
         if(!world.isRemote) {
@@ -536,6 +537,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def kill(): Unit = {
+    if (isDead) return
     super.kill()
     if (!world.isRemote) {
       val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
