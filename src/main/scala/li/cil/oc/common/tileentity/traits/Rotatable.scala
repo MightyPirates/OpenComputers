@@ -24,10 +24,10 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = if (world != null) getBlockType match {
+  def pitch = if (world != null && world.isBlockLoaded(getPos)) getBlockType match {
     case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => world.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
     case _ => EnumFacing.NORTH
-  } else EnumFacing.NORTH
+  } else null
 
   def pitch_=(value: EnumFacing): Unit =
     trySetPitchYaw(value match {
@@ -35,11 +35,11 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => EnumFacing.NORTH
     }, yaw)
 
-  def yaw = if (world != null) getBlockType match {
+  def yaw = if (world != null && world.isBlockLoaded(getPos)) getBlockType match {
     case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => world.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
     case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => world.getBlockState(getPos).getValue(PropertyRotatable.Facing)
     case _ => EnumFacing.SOUTH
-  } else EnumFacing.SOUTH
+  } else null
 
   def yaw_=(value: EnumFacing): Unit =
     trySetPitchYaw(pitch, value match {
@@ -89,9 +89,17 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else false
   }
 
-  override def toLocal(value: EnumFacing) = if (value == null) null else RotationHelper.toLocal(pitch, yaw, value)
+  override def toLocal(value: EnumFacing) = if (value == null) null else {
+    val p = pitch
+    val y = yaw
+    if (p != null && y != null) RotationHelper.toLocal(pitch, yaw, value) else null
+  }
 
-  override def toGlobal(value: EnumFacing) = if (value == null) null else RotationHelper.toGlobal(pitch, yaw, value)
+  override def toGlobal(value: EnumFacing) = if (value == null) null else {
+    val p = pitch
+    val y = yaw
+    if (p != null && y != null) RotationHelper.toGlobal(pitch, yaw, value) else null
+  }
 
   def validFacings = Array(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST)
 

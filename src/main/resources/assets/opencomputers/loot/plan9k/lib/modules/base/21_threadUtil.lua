@@ -43,6 +43,16 @@ function userKill(pid, signal, ...)
     return true
 end
 
+function select(timeout, ...)
+    checkArg(1, timeout, "number")
+    local funcs = {}
+    for n, f in ipairs(...) do
+        checkArg(n + 1, f, "function")
+        funcs[n] = coroutine.create(f)
+    end
+    
+end
+
 function setKillHandler(signal, handler) --WAT
     if not kernel.modules.threading.threads[pid]
       or not kernel.modules.threading.threads[pid].coro then

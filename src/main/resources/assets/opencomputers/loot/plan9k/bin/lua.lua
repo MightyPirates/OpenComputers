@@ -106,7 +106,7 @@ if #args == 0 or options.i then
   --component.gpu.setForeground(0xFFFF00)
   term.write("Enter a statement and hit enter to evaluate it.\n")
   term.write("Prefix an expression with '=' to show its value.\n")
-  term.write("Press Ctrl+C to exit the interpreter.\n")
+  term.write("Type os.exit() to exit the interpreter.\n")
   --component.gpu.setForeground(0xFFFFFF)
 
   while term.isAvailable() do
@@ -117,8 +117,8 @@ if #args == 0 or options.i then
     if command == nil then -- eof
       return
     end
-    while #history > 10 do
-      table.remove(history, 1)
+    while #history > 20 do
+      history[#history] = nil
     end
     local code, reason
     if string.sub(command, 1, 1) == "=" then

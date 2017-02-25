@@ -1,3 +1,5 @@
+local component = require "component"
+
 local term = {}
 
 term.escape = "\x1b"
@@ -278,6 +280,10 @@ function term.getInfo()
     return gpu, screen
 end
 
+function term.gpu()
+    local addr = term.getInfo()
+    return component.proxy(addr)
+end
 
 
 function term.clear()
@@ -317,7 +323,15 @@ function term.isAvailable()
 end
 
 function term.setCursorBlink(enabled)
+    if enabled then
+        io.write("\x1b[?25h")
+    else
+        io.write("\x1b[?25l")
+    end
+end
 
+function term.getCursorBlink(enabled)
+    return true
 end
 
 function term.read(history, dobreak, hint, pwchar)
@@ -436,7 +450,7 @@ function term.read(history, dobreak, hint, pwchar)
                     --x = x
                     io.write("\x1b[K" .. after .. "\x1b[" .. unicode.len(after) .. "D")
                 end
-            elseif mode == "0" then
+            elseif mode == "O" then
                 local act = io.read(1)
                 if act == "H" then
                     io.write("\x1b["..(x - 1).."D")

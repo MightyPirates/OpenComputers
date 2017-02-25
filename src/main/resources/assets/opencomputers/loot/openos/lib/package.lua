@@ -39,7 +39,7 @@ function package.searchpath(name, path, sep, rep)
       subPath = fs.concat(os.getenv("PWD") or "/", subPath)
     end
     if fs.exists(subPath) then
-      local file = io.open(subPath, "r")
+      local file = fs.open(subPath, "r")
       if file then
         file:close()
         return subPath
@@ -111,7 +111,7 @@ function require(module)
       -- the pcall is mostly for out of memory errors
       local ok, f, extra = pcall(package.searchers[i], module)
       if not ok then
-        table.insert(errorMsg, "\t" .. f)
+        table.insert(errorMsg, "\t" .. (f or "nil"))
       elseif f and type(f) ~= "string" then
         loader = f
         value = extra

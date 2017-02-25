@@ -3,13 +3,13 @@ package li.cil.oc.server.component
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -72,31 +72,14 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   )
 
   def capacityInfo = (maxResolution._1 * maxResolution._2).toString
+
   def widthInfo = Array("1", "4", "8").apply(maxDepth.ordinal())
+
   def clockInfo = ((2000 / setBackgroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setForegroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setPaletteColorCosts(tier)).toInt / 100).toString + "/" + ((2000 / setCosts(tier)).toInt / 100).toString + "/" + ((2000 / copyCosts(tier)).toInt / 100).toString + "/" + ((2000 / fillCosts(tier)).toInt / 100).toString
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
-
-  override val canUpdate = true
-
-  override def update() {
-    super.update()
-    if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
-      Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[api.internal.TextBuffer] =>
-          screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
-        case _ =>
-          // This could theoretically happen after loading an old address, but
-          // if the screen either disappeared between saving and now or changed
-          // type. The first scenario is more likely, and could happen if the
-          // chunk the screen is in isn't loaded when the chunk the GPU is in
-          // gets loaded.
-          screenAddress = None
-      }
-    }
-  }
 
   @Callback(doc = """function(address:string[, reset:boolean=true]):boolean -- Binds the GPU to the screen with the specified address and resets screen settings if `reset` is true.""")
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
@@ -392,6 +375,17 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
         }
         null // For screen()
       })
+    }
+  }
+
+  override def onConnect(node: Node): Unit = {
+    super.onConnect(node)
+    if (screenInstance.isEmpty && screenAddress.fold(false)(_ == node.address)) {
+      node.host match {
+        case buffer: api.internal.TextBuffer =>
+          screenInstance = Some(buffer)
+        case _ => // Not the screen node we're looking for.
+      }
     }
   }
 

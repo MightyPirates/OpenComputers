@@ -21,13 +21,11 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  if varname == '#' then
-    return #env()
-  elseif varname ~= nil then
-    return env()[varname]
-  else
-    return env()
+  local env = env()
+  if not varname then
+    return env
   end
+  return env[varname]
 end
 
 function os.setenv(varname, value)
@@ -38,7 +36,7 @@ function os.setenv(varname, value)
     local success, val = pcall(tostring, value)
     if success then
       env()[varname] = val
-      return env()[varname]
+      return val
     else
       return nil, val
     end

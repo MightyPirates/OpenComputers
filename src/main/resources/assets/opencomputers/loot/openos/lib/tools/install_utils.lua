@@ -5,7 +5,7 @@ local function select_prompt(devs, prompt)
 
   local choice = devs[1]
   if #devs > 1 then
-    print(prompt)
+    io.write(prompt,'\n')
 
     for i = 1, #devs do
       local src = devs[i]
@@ -61,7 +61,7 @@ if cmd == 'select' then
 
   local source = select_prompt(options.sources, "What do you want to install?")
   if #options.sources > 1 and #options.targets > 1 then
-    print()
+    io.write('\n')
   end
   local target = select_prompt(options.targets, "Where do you want to install to?")
 

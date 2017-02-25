@@ -81,7 +81,7 @@ end
 local function dofile(fs, file)
     local program, reason = loadfile(fs, file)
     if program then
-        local result = table.pack(pcall(program))
+        local result = table.pack(true, program())
         if result[1] then
             return table.unpack(result, 2, result.n)
         else
