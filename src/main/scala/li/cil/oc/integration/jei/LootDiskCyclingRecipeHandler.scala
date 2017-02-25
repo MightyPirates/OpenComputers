@@ -27,9 +27,9 @@ object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe
 
   class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper with ICraftingRecipeWrapper {
 
-    override def getInputs: util.List[_] = List(seqAsJavaList(Loot.worldDisks.map(_._1)), api.Items.get(Constants.ItemName.Wrench).createItemStack(1))
+    override def getInputs: util.List[_] = List(seqAsJavaList(Loot.disksForCycling), api.Items.get(Constants.ItemName.Wrench).createItemStack(1))
 
-    override def getOutputs: util.List[ItemStack] = Loot.worldDisks.map(_._1).toList
+    override def getOutputs: util.List[ItemStack] = Loot.disksForCycling.toList
   }
 }
 

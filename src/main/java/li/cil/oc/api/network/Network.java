@@ -103,7 +103,7 @@ public interface Network {
     Iterable<Node> nodes();
 
     /**
-     * The list of addressed nodes in the network visible to the specified node.
+     * The list of addressed nodes in the network reachable by the specified node.
      * <p/>
      * This does <em>not</em> include nodes with a visibility of <tt>None</tt>
      * or a visibility of <tt>Neighbors</tt> when there is no direct connection

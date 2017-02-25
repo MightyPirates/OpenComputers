@@ -14,7 +14,7 @@ function add(func, time)
     if deadline > timer.next then
         deadline = timer.next
         if thread.currentHandler == "yield" then
-            thread.currentHandlerArg = deadline
+            thread.deadline = deadline
         end
     end
     
@@ -66,9 +66,9 @@ thread = kernel.modules.threading.spawn(function()
                 end
             end
         end
-        local dl = deadline
+        thread.deadline = deadline
         deadline = math.huge
-        coroutine.yield("yield", dl)
+        coroutine.yield("yield")
     end
 end, 0, "[timer]")
 

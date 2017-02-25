@@ -160,10 +160,18 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   def nodes: Iterable[ImmutableNode] = data.values.map(_.data)
 
-  def nodes(reference: ImmutableNode): Iterable[ImmutableNode] = {
+  def reachableNodes(reference: ImmutableNode): Iterable[ImmutableNode] = {
     val referenceNeighbors = neighbors(reference).toSet
     nodes.filter(node => node != reference && (node.reachability == Visibility.Network ||
       (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node))))
+  }
+
+  def reachingNodes(reference: ImmutableNode): Iterable[ImmutableNode] = {
+    if (reference.reachability == Visibility.Network) nodes.filter(node => node != reference)
+    else if (reference.reachability == Visibility.Neighbors) {
+      val referenceNeighbors = neighbors(reference).toSet
+      nodes.filter(node => node != reference && referenceNeighbors.contains(node))
+    } else Iterable.empty
   }
 
   def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = {
@@ -194,13 +202,13 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
   def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
-    send(source, nodes(source), name, args: _*)
+    send(source, reachableNodes(source), name, args: _*)
   }
 
   def sendToVisible(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
-    send(source, nodes(source) collect {
+    send(source, reachableNodes(source) collect {
       case component: api.network.Component if component.canBeSeenFrom(source) => component
     }, name, args: _*)
   }
@@ -236,11 +244,11 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
           connects += ((addedNode, Iterable(addedNode)))
         case Visibility.Neighbors =>
           connects += ((addedNode, Iterable(addedNode) ++ neighbors(addedNode)))
-          nodes(addedNode).foreach(node => connects += ((node, Iterable(addedNode))))
+          reachingNodes(addedNode).foreach(node => connects += ((node, Iterable(addedNode))))
         case Visibility.Network =>
           // Explicitly send to the added node itself first.
           connects += ((addedNode, Iterable(addedNode) ++ nodes.filter(_ != addedNode)))
-          nodes(addedNode).foreach(node => connects += ((node, Iterable(addedNode))))
+          reachingNodes(addedNode).foreach(node => connects += ((node, Iterable(addedNode))))
       }
     }
     else {
@@ -702,7 +710,7 @@ object Network extends api.detail.NetworkAPI {
           case _: java.lang.Double => 8
           case value: java.lang.String => value.length max 1
           case value: Array[Byte] => value.length max 1
-          case _ => throw new IllegalArgumentException("unsupported data type")
+          case value => throw new IllegalArgumentException(s"unsupported data type: $value (${value.getClass.getCanonicalName})")
         })
       })
     })
@@ -746,7 +754,7 @@ object Network extends api.detail.NetworkAPI {
 
     def nodes = network.nodes.asJava
 
-    def nodes(reference: ImmutableNode) = network.nodes(reference).asJava
+    def nodes(reference: ImmutableNode) = network.reachableNodes(reference).asJava
 
     def neighbors(node: ImmutableNode) = network.neighbors(node).asJava
 

@@ -15,7 +15,6 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.UpgradeTrading
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -150,8 +149,12 @@ object Items extends ItemAPI {
 
   val registeredItems = mutable.ArrayBuffer.empty[ItemStack]
 
-  override def registerFloppy(name: String, color: EnumDyeColor, factory: Callable[FileSystem]): ItemStack = {
-    val stack = Loot.registerLootDisk(name, color, factory)
+  @Deprecated
+  override def registerFloppy(name: String, color: EnumDyeColor, factory: Callable[FileSystem]): ItemStack =
+    registerFloppy(name, color, factory, doRecipeCycling = false)
+
+  override def registerFloppy(name: String, color: EnumDyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    val stack = Loot.registerLootDisk(name, color, factory, doRecipeCycling)
 
     registeredItems += stack
 
@@ -482,7 +485,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
 
     // 1.6
-    Recipes.addSubItem(new UpgradeTrading(upgrades), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
+    Recipes.addSubItem(new item.UpgradeTrading(upgrades), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
+    Recipes.addSubItem(new item.UpgradeMF(upgrades), Constants.ItemName.MFU, "oc:mfu")
   }
 
   // Storage media of all kinds.

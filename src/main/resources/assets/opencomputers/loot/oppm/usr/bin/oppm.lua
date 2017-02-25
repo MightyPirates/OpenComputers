@@ -4,13 +4,12 @@ Author: Vexatos
 
 Warning! This file is just an auto-installer for OPPM!
 DO NOT EVER TRY TO INSTALL A PACKAGE WITH THIS!
-Once you ran OPPM once, you can remove the floppy disk
+Once you have installed OPPM, you can remove the floppy disk
 and run the installed OPPM version just fine.
 ]]
 local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
-local process = require("process")
 local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
@@ -58,22 +57,43 @@ local function getContent(url)
   return sContent
 end
 
-local function getRepos()
+local NIL = {}
+local function cached(f)
+  return options.nocache and f or setmetatable(
+    {},
+    {
+      __index=function(t,k)
+        local v = f(k)
+        t[k] = v
+        return v
+      end,
+      __call=function(t,k)
+        if k == nil then
+          k = NIL
+        end
+        return t[k]
+      end,
+    }
+  )
+end
+
+
+local getRepos = cached(function()
   local success, sRepos = pcall(getContent,"https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
   if not success then
     io.stderr:write("Could not connect to the Internet. Please ensure you have an Internet connection.")
     return -1
   end
   return serial.unserialize(sRepos)
-end
+end)
 
-local function getPackages(repo)
+local getPackages = cached(function(repo)
   local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   if not success or not sPackages then
     return -1
   end
   return serial.unserialize(sPackages)
-end
+end)
 
 --For sorting table values by alphabet
 local function compare(a,b)
@@ -103,7 +123,7 @@ local function readFromFile(fNum)
   elseif fNum == 2 then
     path = "/etc/oppm.cfg"
     if not fs.exists(path) then
-      local tProcess = process.running()
+      local tProcess = os.getenv("_")
       path = fs.concat(fs.path(shell.resolve(tProcess)),"/etc/oppm.cfg")
     end
   end
@@ -147,8 +167,8 @@ local function listPackages(filter)
       io.stderr:write("Unable to connect to the Internet.\n")
       return
     elseif repos==nil then
-        print("Error while trying to receive repository list")
-        return
+      print("Error while trying to receive repository list")
+      return
     end
     for _,j in pairs(repos) do
       if j.repo then
@@ -156,10 +176,9 @@ local function listPackages(filter)
         local lPacks = getPackages(j.repo)
         if lPacks==nil then
           io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
-          return
         elseif type(lPacks) == "table" then
-          for k in pairs(lPacks) do
-            if not k.hidden then
+          for k,kt in pairs(lPacks) do
+            if not kt.hidden then
               table.insert(packages,k)
             end
           end
@@ -169,8 +188,8 @@ local function listPackages(filter)
     local lRepos = readFromFile(2)
     if lRepos and lRepos.repos then
       for _,j in pairs(lRepos.repos) do
-        for k in pairs(j) do
-          if not k.hidden then
+        for k,kt in pairs(j) do
+          if not kt.hidden then
             table.insert(packages,k)
           end
         end
@@ -188,7 +207,7 @@ local function listPackages(filter)
     local lPacks = {}
     for i,j in ipairs(packages) do
       if (#j>=#filter) and string.find(j,filter,1,true)~=nil then
-          table.insert(lPacks,j)
+        table.insert(lPacks,j)
       end
     end
     packages = lPacks
@@ -250,7 +269,7 @@ local function parseFolders(pack, repo, info)
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/*$",""):gsub("^/*","")
         tFiles[newPath] = relPath
       elseif v["type"] == "dir" then
-        local newFiles = unserializeFiles(getFolderTable(repo, relPath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
+        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, namePath, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
           tFiles[p] = q
         end
@@ -345,8 +364,14 @@ local function provideInfo(pack)
     done = true
   end
   if info.files then
-    print("Number of files: "..tostring(#info.files))
-    done = true
+    local c = 0
+    for i in pairs(info.files) do
+      c = c + 1
+    end
+    if c > 0 then
+      print("Number of files: "..tostring(c))
+      done = true
+    end
   end
   if not done then
     print("No information provided.")
@@ -360,13 +385,17 @@ local function installPackage(pack,path,update)
     printUsage()
     return
   end
-  if not path and not update then
+  if not path then
     local lConfig = readFromFile(2)
     path = lConfig.path or "/usr"
-    print("Installing package to "..path.."...")
+    if not update then
+      print("Installing package to "..path.."...")
+    end
   elseif not update then
     path = shell.resolve(path)
-    print("Installing package to "..path.."...")
+    if not update then
+      print("Installing package to "..path.."...")
+    end
   end
   pack = string.lower(pack)
 
@@ -384,9 +413,8 @@ local function installPackage(pack,path,update)
   end
   if update then
     print("Updating package "..pack)
-    path = nil
     if not tPacks[pack] then
-      io.stderr:write("error while checking update path")
+      io.stderr:write("error while checking update path\n")
       return
     end
     for i,j in pairs(info.files) do
@@ -469,6 +497,8 @@ local function installPackage(pack,path,update)
       return
     end
   end
+  saveToFile(tPacks)
+
   if info.dependencies then
     term.write("Done.\nInstalling Dependencies...\n")
     for i,j in pairs(info.dependencies) do
@@ -476,12 +506,14 @@ local function installPackage(pack,path,update)
       if string.find(j,"^//") then
         nPath = string.sub(j,2)
       else
-        nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+        nPath = fs.concat(path,j)
       end
       if string.lower(string.sub(i,1,4))=="http" then
+        nPath = fs.concat(nPath, string.gsub(i,".+(/.-)$","%1"),nil)
         local success,response = pcall(downloadFile,i,nPath)
         if success and response then
           tPacks[pack][i] = nPath
+          saveToFile(tPacks)
         else
           response = response or "no error message"
           term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
@@ -490,22 +522,26 @@ local function installPackage(pack,path,update)
             fs.remove(p)
             tPacks[pack][o]=nil
           end
+          saveToFile(tPacks)
           print("Done.\nPlease contact the package author about this problem.")
-          return
+          return tPacks
         end
       else
         local depInfo = getInformation(string.lower(i))
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        installPackage(string.lower(i),fs.concat(path,j),update)
+        local tNewPacks = installPackage(string.lower(i),nPath,update)
+        if tNewPacks then
+          tPacks = tNewPacks
+        end
       end
     end
   end
-  term.write("Done.\n")
   saveToFile(tPacks)
+  term.write("Done.\n")
   print("Successfully installed package "..pack)
-  return true
+  return tPacks
 end
 
 local function uninstallPackage(pack)
@@ -517,10 +553,10 @@ local function uninstallPackage(pack)
     table.remove(tFiles,1)
   end
   if not tFiles[pack] then
-      print("Package has not been installed.")
-      print("If it has, the package could not be identified.")
-      print("In this case you have to remove it manually.")
-      return
+    print("Package has not been installed.")
+    print("If it has, the package could not be identified.")
+    print("In this case you have to remove it manually.")
+    return
   end
   term.write("Removing package files...")
   for i,j in pairs(tFiles[pack]) do
@@ -566,7 +602,7 @@ if options.iKnowWhatIAmDoing then
     provideInfo(args[2])
   elseif args[1] == "install" then
     if not getInternet() then return end
-    return installPackage(args[2],args[3],false)
+    return installPackage(args[2], args[3], false)
   elseif args[1] == "update" then
     if not getInternet() then return end
     updatePackage(args[2])
@@ -576,70 +612,6 @@ if options.iKnowWhatIAmDoing then
     printUsage()
     return
   end
-  return
 end
 
---Very much not stolen from Sangar's install.lua
-
-local computer = require("computer")
-local unicode = require("unicode")
-
-local candidates = {}
-for address in component.list("filesystem") do
-  local dev = component.proxy(address)
-  if not dev.isReadOnly() and dev.address ~= computer.tmpAddress() then
-    table.insert(candidates, dev)
-  end
-end
-
-if #candidates == 0 then
-  print("No writable disks found, aborting.")
-  return
-end
-
-for i = 1, #candidates do
-  local label = candidates[i].getLabel()
-  if label then
-    label = label .. " (" .. candidates[i].address:sub(1, 8) .. "...)"
-  else
-    label = candidates[i].address
-  end
-  print(i .. ") " .. label)
-end
-
-print("To select the device to install to, please enter a number between 1 and " .. #candidates .. ".")
-print("Press 'q' to cancel the installation.")
-local choice
-while not choice do
-  result = io.read()
-  if result:sub(1, 1):lower() == "q" then
-    return
-  end
-  local number = tonumber(result)
-  if number and number > 0 and number <= #candidates then
-    choice = candidates[number]
-  else
-    print("Invalid input, please try again.")
-  end
-end
-candidates = nil
-
-print("Installing OPPM to device " .. (choice.getLabel() or choice.address))
-os.sleep(0.25)
-local mnt = choice.address:sub(1, 3)
-local result, reason = shell.execute("oppm", nil, "install", "-f", "oppm", "/mnt/" .. mnt .. "/usr/", "--iKnowWhatIAmDoing")
-if not result then
-  error(reason, 0)
-end
-
-if not reason then
-  return
-end
-
-print("All done! Please remove the Floppy Disk used for installation! Reboot now? [Y/n]")
-local result = io.read()
-if not result or result == "" or result:sub(1, 1):lower() == "y" then
-  print("\nRebooting now!")
-  computer.shutdown(true)
-end
-print("Returning to shell.")
+io.stderr:write("Please install oppm by running /bin/install.lua")

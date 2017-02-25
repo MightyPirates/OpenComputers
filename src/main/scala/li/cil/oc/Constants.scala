@@ -117,6 +117,7 @@ object Constants {
     final val LeashUpgrade = "leashUpgrade"
     final val LinkedCard = "linkedCard"
     final val LuaBios = "luaBios"
+    final val MFU = "mfu"
     final val Manual = "manual"
     final val MicrocontrollerCaseCreative = "microcontrollerCaseCreative"
     final val MicrocontrollerCaseTier1 = "microcontrollerCase1"
@@ -173,6 +174,7 @@ object Constants {
   object DeviceInfo {
 
     final val DefaultVendor = "MightyPirates GmbH & Co. KG"
+    final val Scummtech = "Scummtech, Inc."
 
   }
 
