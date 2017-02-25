@@ -9,6 +9,8 @@ trait InventoryProxy extends IInventory {
 
   def offset = 0
 
+  override def isEmpty: Boolean = inventory.isEmpty
+
   override def getSizeInventory = inventory.getSizeInventory
 
   override def getInventoryStackLimit = inventory.getInventoryStackLimit

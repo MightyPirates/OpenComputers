@@ -13,7 +13,7 @@ object NonDisassemblyAgreementCommand extends SimpleCommand("oc_preventDisassemb
   aliases += "oc_nodis"
   aliases += "oc_prevdis"
 
-  override def getCommandUsage(source: ICommandSender) = name + " <boolean>"
+  override def getUsage(source: ICommandSender) = name + " <boolean>"
 
   override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     source match {

@@ -105,8 +105,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   var facing, side = EnumFacing.SOUTH
 
-  def world = agent.world
-
   override def getPosition = new BlockPos(posX, posY, posZ)
 
   override def getDefaultEyeHeight = 0f

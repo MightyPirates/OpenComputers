@@ -65,6 +65,8 @@ object Drone {
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
 class Drone(world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
+  override def world = getEntityWorld
+
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)

@@ -10,7 +10,7 @@ import net.minecraft.server.MinecraftServer
 object SendDebugMessageCommand extends SimpleCommand("oc_sendDebugMessage") {
   aliases += "oc_sdbg"
 
-  override def getCommandUsage(sender: ICommandSender): String = name + "<destinationAddress> [message...]"
+  override def getUsage(sender: ICommandSender): String = name + "<destinationAddress> [message...]"
 
   override def execute(server: MinecraftServer, sender: ICommandSender, args: Array[String]): Unit = {
     if (args == null || args.length == 0) {

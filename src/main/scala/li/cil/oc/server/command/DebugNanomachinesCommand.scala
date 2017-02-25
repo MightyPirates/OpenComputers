@@ -12,7 +12,7 @@ import net.minecraft.util.text.TextComponentString
 object DebugNanomachinesCommand extends SimpleCommand("oc_debugNanomachines") {
   aliases += "oc_dn"
 
-  override def getCommandUsage(source: ICommandSender): String = name
+  override def getUsage(source: ICommandSender): String = name
 
   override def execute(server: MinecraftServer, source: ICommandSender, args: Array[String]): Unit = {
     source match {

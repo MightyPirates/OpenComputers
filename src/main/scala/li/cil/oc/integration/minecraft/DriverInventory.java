@@ -12,9 +12,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -61,7 +61,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
-                return new Object[]{stack.getCount};
+                return new Object[]{stack.getCount()};
             } else {
                 return new Object[]{0};
             }
@@ -118,19 +118,19 @@ public final class DriverInventory extends DriverSidedTileEntity {
                 return new Object[]{true};
             } else if (itemEquals(stackA, stackB)) {
                 // Pile.
-                final int space = Math.min(tileEntity.getInventoryStackLimit(), stackB.getMaxStackSize()) - stackB.getCount;
-                final int amount = Math.min(count, Math.min(space, stackA.getCount));
+                final int space = Math.min(tileEntity.getInventoryStackLimit(), stackB.getMaxStackSize()) - stackB.getCount();
+                final int amount = Math.min(count, Math.min(space, stackA.getCount()));
                 if (amount > 0) {
                     // Some.
-                    stackA.getCount -= amount;
-                    stackB.getCount += amount;
-                    if (stackA.getCount == 0) {
+                    stackA.setCount(stackA.getCount() - amount);
+                    stackB.setCount(stackB.getCount() + amount);
+                    if (stackA.getCount() == 0) {
                         tileEntity.setInventorySlotContents(slotA, null);
                     }
                     tileEntity.markDirty();
                     return new Object[]{true};
                 }
-            } else if (count >= stackA.getCount) {
+            } else if (count >= stackA.getCount()) {
                 // Swap.
                 tileEntity.setInventorySlotContents(slotB, stackA);
                 tileEntity.setInventorySlotContents(slotA, stackB);
@@ -179,7 +179,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
         private boolean notPermitted() {
             synchronized (fakePlayer) {
                 fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
-                final PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, fakePlayer.getHeldItemMainhand(), position.toBlockPos(), EnumFacing.DOWN, null);
+                final PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, position.toBlockPos(), EnumFacing.DOWN, null);
                 MinecraftForge.EVENT_BUS.post(event);
                 return !event.isCanceled() && event.getUseBlock() != Event.Result.DENY && !tileEntity.isUsableByPlayer(fakePlayer);
             }

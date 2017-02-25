@@ -4,22 +4,28 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
-public final class DriverFluidHandler extends DriverSidedTileEntity {
+public final class DriverFluidHandler implements li.cil.oc.api.driver.SidedBlock {
     @Override
-    public Class<?> getTileEntityClass() {
-        return IFluidHandler.class;
+    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity == null) {
+            return false;
+        }
+        return tileEntity.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) &&
+                tileEntity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) != null;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment((IFluidHandler) world.getTileEntity(pos));
+        return new Environment(world.getTileEntity(pos).getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IFluidHandler> {
@@ -27,10 +33,9 @@ public final class DriverFluidHandler extends DriverSidedTileEntity {
             super(tileEntity, "fluid_handler");
         }
 
-        @Callback(doc = "function([side:number=6]):table -- Get some information about the tank accessible from the specified side.")
+        @Callback(doc = "function():table -- Get some information about the tank accessible from the specified side.")
         public Object[] getTankInfo(final Context context, final Arguments args) {
-            EnumFacing side = args.count() > 0 ? EnumFacing.getFront(args.checkInteger(0)) : EnumFacing.DOWN;
-            return tileEntity.getTankInfo(side);
+            return tileEntity.getTankProperties();
         }
     }
 }

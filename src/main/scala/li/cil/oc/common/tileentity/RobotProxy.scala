@@ -8,6 +8,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.FluidTankProperties
 import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -290,15 +291,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean) = robot.fill(from, resource, doFill)
+  override def fill(resource: FluidStack, doFill: Boolean) = robot.fill(resource, doFill)
 
-  override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean) = robot.drain(from, resource, doDrain)
+  override def drain(resource: FluidStack, doDrain: Boolean) = robot.drain(resource, doDrain)
 
-  override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean) = robot.drain(from, maxDrain, doDrain)
+  override def drain(maxDrain: Int, doDrain: Boolean) = robot.drain(maxDrain, doDrain)
 
-  override def canFill(from: EnumFacing, fluid: Fluid) = robot.canFill(from, fluid)
+  def canFill(fluid: Fluid) = robot.canFill(fluid)
 
-  override def canDrain(from: EnumFacing, fluid: Fluid) = robot.canDrain(from, fluid)
+  def canDrain(fluid: Fluid) = robot.canDrain(fluid)
 
-  override def getTankInfo(from: EnumFacing) = robot.getTankInfo(from)
+  override def getTankProperties = robot.getTankProperties
 }

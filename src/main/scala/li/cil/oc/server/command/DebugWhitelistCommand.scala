@@ -15,7 +15,7 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
   override def getRequiredPermissionLevel = 0
   private def isOp(sender: ICommandSender) = getOpLevel(sender) >= 2
 
-  override def getCommandUsage(sender: ICommandSender): String =
+  override def getUsage(sender: ICommandSender): String =
     if (isOp(sender)) name + " [revoke|add|remove] <player> OR " + name + " [revoke|list]"
     else name + " revoke"
 
@@ -48,7 +48,7 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
         wl.remove(player)
         sender.sendMessage(new TextComponentString("§aPlayer was removed from whitelist"))
       case _ =>
-        sender.sendMessage(new TextComponentString("§e" + getCommandUsage(sender)))
+        sender.sendMessage(new TextComponentString("§e" + getUsage(sender)))
     }
   }
 }

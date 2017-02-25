@@ -63,7 +63,7 @@ final class ModelQuadcopter extends ModelBase {
   private def doRender(drone: Drone, dt: Float) {
     if (drone.isRunning) {
       val timeJitter = drone.hashCode() ^ 0xFF
-      GlStateManager.translate(0, (math.sin(timeJitter + (drone.world.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
+      GlStateManager.translate(0, (math.sin(timeJitter + (drone.getEntityWorld.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
     }
 
     val velocity = new Vec3d(drone.motionX, drone.motionY, drone.motionZ)

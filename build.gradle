@@ -65,11 +65,6 @@ repositories {
     maven { url "http://maven.amadornes.com/" }
     maven { url "http://maven.cil.li/" }
     maven { url "http://maven.ic2.player.to/" }
-
-    ivy {
-        name 'BloodMagic'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-[revision].[ext]"
-    }
 }
 
 configurations {
@@ -82,8 +77,6 @@ dependencies {
     deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
     deobfCompile "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
     deobfCompile "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"
-
-    deobfCompile name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 

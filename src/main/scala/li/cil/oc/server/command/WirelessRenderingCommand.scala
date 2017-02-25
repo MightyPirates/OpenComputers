@@ -9,7 +9,7 @@ import net.minecraft.server.MinecraftServer
 object WirelessRenderingCommand extends SimpleCommand("oc_renderWirelessNetwork") {
   aliases += "oc_wlan"
 
-  override def getCommandUsage(source: ICommandSender) = name + " <boolean>"
+  override def getUsage(source: ICommandSender) = name + " <boolean>"
 
   override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     Settings.rTreeDebugRenderer =

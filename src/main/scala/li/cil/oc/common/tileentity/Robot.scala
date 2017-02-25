@@ -45,7 +45,9 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fluids._
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.FluidTankProperties
 import net.minecraftforge.fluids.capability.IFluidHandler
+import net.minecraftforge.fluids.capability.IFluidTankProperties
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -67,7 +69,6 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   if (isServer) {
     machine.setCostPerTick(Settings.get.robotCost)
   }
-
 
 
   // ----------------------------------------------------------------------- //
@@ -814,21 +815,21 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean) =
+  override def fill(resource: FluidStack, doFill: Boolean) =
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.fill(resource, doFill)
       case _ => 0
     }
 
-  override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean) =
+  override def drain(resource: FluidStack, doDrain: Boolean) =
     tryGetTank(selectedTank) match {
       case Some(t) if t.getFluid != null && t.getFluid.isFluidEqual(resource) =>
         t.drain(resource.amount, doDrain)
       case _ => null
     }
 
-  override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean) = {
+  override def drain(maxDrain: Int, doDrain: Boolean) = {
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.drain(maxDrain, doDrain)
@@ -836,22 +837,21 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  override def canFill(from: EnumFacing, fluid: Fluid) = {
+  def canFill(fluid: Fluid) = {
     tryGetTank(selectedTank) match {
       case Some(t) => t.getFluid == null || t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
-  override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = {
+  def canDrain(fluid: Fluid): Boolean = {
     tryGetTank(selectedTank) match {
       case Some(t) => t.getFluid != null && t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
-  override def getTankInfo(from: EnumFacing) =
-    components.collect {
-      case Some(t: IFluidTank) => t.getInfo
-    }
+  override def getTankProperties = FluidTankProperties.convert(components.collect {
+    case Some(t: IFluidTank) => t.getInfo
+  }).map(_.asInstanceOf[IFluidTankProperties])
 }

@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler
 object LogNanomachinesCommand extends SimpleCommand("oc_nanomachines") {
   aliases += "oc_nm"
 
-  override def getCommandUsage(source: ICommandSender): String = name + " [player]"
+  override def getUsage(source: ICommandSender): String = name + " [player]"
 
   override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     (if (command.length > 0) {

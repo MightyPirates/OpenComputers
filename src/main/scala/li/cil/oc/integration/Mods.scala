@@ -18,10 +18,8 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   def All = knownMods.clone()
-  val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
-  val MCMultiPart = new SimpleMod(IDs.MCMultiPart, version = "@[1.0.9,)")
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
@@ -59,10 +57,8 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   object IDs {
-    final val BloodMagic = "AWWayofTime"
     final val Forestry = "forestry"
     final val JustEnoughItems = "JEI"
-    final val MCMultiPart = "mcmultipart"
     final val Minecraft = "Minecraft"
     final val OpenComputers = "OpenComputers"
     final val TIS3D = "tis3d"

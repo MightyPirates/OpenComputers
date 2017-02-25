@@ -18,6 +18,7 @@ import net.minecraftforge.fluids.FluidTankInfo
 import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.fluids.capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.FluidTankProperties
 import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandlerItem
 import net.minecraftforge.fluids.capability.IFluidTankProperties
@@ -86,17 +87,17 @@ object FluidUtils {
   // ----------------------------------------------------------------------- //
 
   private class GenericBlockWrapper(position: BlockPosition) extends IFluidHandler {
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.drain(new FluidStack(fluid, 1), false).amount > 0)
+    def canDrain(fluid: Fluid): Boolean = currentWrapper.fold(false)(_.drain(new FluidStack(fluid, 1), false).amount > 0)
 
-    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(resource, doDrain))
+    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(resource, doDrain))
 
-    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(maxDrain, doDrain))
+    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(maxDrain, doDrain))
 
-    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.fill(new FluidStack(fluid, 1), false) > 0)
+    def canFill(fluid: Fluid): Boolean = currentWrapper.fold(false)(_.fill(new FluidStack(fluid, 1), false) > 0)
 
-    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = currentWrapper.fold(0)(_.fill(resource, doFill))
+    override def fill(resource: FluidStack, doFill: Boolean): Int = currentWrapper.fold(0)(_.fill(resource, doFill))
 
-    override def getTankInfo(from: EnumFacing): Array[IFluidTankProperties] = currentWrapper.fold(Array.empty[IFluidTankProperties])(_.getTankProperties)
+    override def getTankProperties: Array[IFluidTankProperties] = currentWrapper.fold(Array.empty[IFluidTankProperties])(_.getTankProperties)
 
     def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))
@@ -116,7 +117,7 @@ object FluidUtils {
   private trait BlockWrapperBase extends IFluidHandler {
     protected def uncheckedDrain(doDrain: Boolean): FluidStack
 
-    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = {
+    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = {
       val drained = uncheckedDrain(false)
       if (drained != null && (resource == null || (drained.getFluid == resource.getFluid && drained.amount <= resource.amount))) {
         uncheckedDrain(doDrain)
@@ -124,7 +125,7 @@ object FluidUtils {
       else null
     }
 
-    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = {
+    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = {
       val drained = uncheckedDrain(false)
       if (drained != null && drained.amount <= maxDrain) {
         uncheckedDrain(doDrain)
@@ -132,17 +133,17 @@ object FluidUtils {
       else null
     }
 
-    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = false
+    def canFill(fluid: Fluid): Boolean = false
 
-    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = 0
+    override def fill(resource: FluidStack, doFill: Boolean): Int = 0
   }
 
   private class FluidBlockWrapper(val position: BlockPosition, val block: IFluidBlock) extends BlockWrapperBase {
     final val AssumedCapacity = Fluid.BUCKET_VOLUME
 
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = block.canDrain(position)
+    def canDrain(fluid: Fluid): Boolean = block.canDrain(position)
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array(new FluidTankInfo(new FluidTank(block.getFluid, (block.getFilledPercentage(position) * AssumedCapacity).toInt, AssumedCapacity)))
+    override def getTankProperties: Array[IFluidTankProperties] = Array(new FluidTankProperties(new FluidStack(block.getFluid, (block.getFilledPercentage(position) * AssumedCapacity).toInt), AssumedCapacity))
 
     override protected def uncheckedDrain(doDrain: Boolean): FluidStack = block.drain(position, doDrain)
   }
@@ -150,9 +151,9 @@ object FluidUtils {
   private class LiquidBlockWrapper(val position: BlockPosition, val block: BlockLiquid) extends BlockWrapperBase {
     val fluid = lookupFluidForBlock(block)
 
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = true
+    def canDrain(fluid: Fluid): Boolean = true
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array(new FluidTankInfo(new FluidTank(fluid, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME)))
+    override def getTankProperties: Array[IFluidTankProperties] = Array(new FluidTankProperties(new FluidStack(fluid, Fluid.BUCKET_VOLUME), Fluid.BUCKET_VOLUME))
 
     override protected def uncheckedDrain(doDrain: Boolean): FluidStack = {
       if (doDrain) {
@@ -163,15 +164,15 @@ object FluidUtils {
   }
 
   private class AirBlockWrapper(val position: BlockPosition, val block: Block) extends IFluidHandler {
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = false
+    def canDrain(fluid: Fluid): Boolean = false
 
-    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = null
+    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = null
 
-    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = null
+    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = null
 
-    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = fluid.canBePlacedInWorld
+    def canFill(fluid: Fluid): Boolean = fluid.canBePlacedInWorld
 
-    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = {
+    override def fill(resource: FluidStack, doFill: Boolean): Int = {
       if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null) {
         if (doFill) {
           val world = position.world.get
@@ -186,21 +187,21 @@ object FluidUtils {
       else 0
     }
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array.empty
+    override def getTankProperties: Array[IFluidTankProperties] = Array.empty
   }
 
   private class HandlerCapabilityWrapper(val position: BlockPosition, val handler: capability.IFluidHandler) extends IFluidHandler {
-    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = handler.drain(resource, doDrain)
+    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = handler.drain(resource, doDrain)
 
-    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = handler.drain(maxDrain, doDrain)
+    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = handler.drain(maxDrain, doDrain)
 
-    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canFill)
+    def canFill(fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canFill)
 
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canDrain)
+    def canDrain(fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canDrain)
 
-    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = handler.fill(resource, doFill)
+    override def fill(resource: FluidStack, doFill: Boolean): Int = handler.fill(resource, doFill)
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = handler.getTankProperties.map(f => new FluidTankInfo(f.getContents, f.getCapacity))
+    override def getTankProperties: Array[IFluidTankProperties] = handler.getTankProperties.map(f => new FluidTankProperties(f.getContents, f.getCapacity))
   }
 
 }

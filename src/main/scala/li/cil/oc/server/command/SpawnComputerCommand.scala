@@ -21,7 +21,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
 
   final val MaxDistance = 16
 
-  override def getCommandUsage(source: ICommandSender): String = name
+  override def getUsage(source: ICommandSender): String = name
 
   override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
     source match {

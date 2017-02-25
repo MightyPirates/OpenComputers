@@ -10,7 +10,6 @@ import forestry.api.apiculture.IBee;
 import forestry.api.apiculture.IBeeGenome;
 import forestry.api.arboriculture.EnumTreeChromosome;
 import forestry.api.arboriculture.IAlleleFruit;
-import forestry.api.arboriculture.IAlleleGrowth;
 import forestry.api.arboriculture.IAlleleLeafEffect;
 import forestry.api.arboriculture.IAlleleTreeSpecies;
 import forestry.api.arboriculture.ITree;
@@ -21,7 +20,6 @@ import forestry.api.genetics.IAlleleBoolean;
 import forestry.api.genetics.IAlleleFloat;
 import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IAlleleInteger;
-import forestry.api.genetics.IAllelePlantType;
 import forestry.api.genetics.IAlleleTolerance;
 import forestry.api.genetics.IChromosome;
 import forestry.api.genetics.IChromosomeType;
@@ -91,18 +89,6 @@ public class ConverterIIndividual implements Converter {
                         @Override
                         public Object convert(IAlleleArea allele) {
                             return allele.getValue();
-                        }
-                    })
-                    .put(IAllelePlantType.class, new IAlleleConverter<IAllelePlantType>() {
-                        @Override
-                        public Object convert(IAllelePlantType allele) {
-                            return allele.getPlantTypes();
-                        }
-                    })
-                    .put(IAlleleGrowth.class, new IAlleleConverter<IAlleleGrowth>() {
-                        @Override
-                        public Object convert(IAlleleGrowth allele) {
-                            return allele.getProvider().getInfo();
                         }
                     })
                     .build();
@@ -202,14 +188,12 @@ public class ConverterIIndividual implements Converter {
         @Override
         protected void addAlleleInfo(GenomeAccess access, Map<String, Object> result) {
             result.put("species", convertAllele(access, IAlleleTreeSpecies.class, EnumTreeChromosome.SPECIES));
-            result.put("growth", convertAllele(access, IAlleleGrowth.class, EnumTreeChromosome.GROWTH));
+            result.put("fireproof", convertAllele(access, IAlleleBoolean.class, EnumTreeChromosome.FIREPROOF));
             result.put("height", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.HEIGHT));
             result.put("fertility", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.FERTILITY));
             result.put("fruits", convertAllele(access, IAlleleFruit.class, EnumTreeChromosome.FRUITS));
             result.put("yield", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.YIELD));
-            result.put("plant", convertAllele(access, IAllelePlantType.class, EnumTreeChromosome.PLANT));
             result.put("sappiness", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.SAPPINESS));
-            result.put("territory", convertAllele(access, IAlleleArea.class, EnumTreeChromosome.TERRITORY));
             result.put("effect", convertAllele(access, IAlleleLeafEffect.class, EnumTreeChromosome.EFFECT));
             result.put("maturation", convertAllele(access, IAlleleInteger.class, EnumTreeChromosome.MATURATION));
             result.put("girth", convertAllele(access, IAlleleInteger.class, EnumTreeChromosome.GIRTH));

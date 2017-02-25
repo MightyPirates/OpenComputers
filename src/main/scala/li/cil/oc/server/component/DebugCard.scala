@@ -859,7 +859,7 @@ object DebugCard {
 
     override def getPosition = underlying.getPosition
 
-    override def canCommandSenderUseCommand(level: Int, commandName: String) = {
+    override def canUseCommand(level: Int, commandName: String) = {
       val profile = underlying.getGameProfile
       val server = underlying.mcServer
       val config = server.getPlayerList
