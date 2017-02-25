@@ -194,7 +194,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       texture, tint)
     isActive = false // Needs committing.
 
-    world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
 
     result(true)
   }

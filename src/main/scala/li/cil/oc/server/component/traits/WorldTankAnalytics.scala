@@ -14,7 +14,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
 
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) =>
-        result(handler.getTankInfo(facing.getOpposite).map(info => Option(info.fluid).fold(0)(_.amount)).sum)
+        result(handler.getTankProperties.map(info => Option(info.getContents).fold(0)(_.amount)).sum)
       case _ => result(Unit, "no tank")
     }
   }
@@ -24,7 +24,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
     val facing = checkSideForAction(args, 0)
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) =>
-        result(handler.getTankInfo(facing.getOpposite).map(_.capacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
+        result(handler.getTankProperties.map(_.getCapacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
       case _ => result(Unit, "no tank")
     }
   }
@@ -34,7 +34,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
     val facing = checkSideForAction(args, 0)
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) =>
-        result(handler.getTankInfo(facing.getOpposite))
+        result(handler.getTankProperties)
       case _ => result(Unit, "no tank")
     }
   }

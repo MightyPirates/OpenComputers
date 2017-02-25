@@ -332,7 +332,6 @@ object Items extends ItemAPI {
     initUpgrades()
     initStorage()
     initSpecial()
-    initIntegration()
 
     // Register aliases.
     for ((k, v) <- aliases) {
@@ -537,15 +536,6 @@ object Items extends ItemAPI {
     registerItem(new item.Tablet(misc), Constants.ItemName.Tablet)
     registerItem(new item.Drone(misc), Constants.ItemName.Drone)
     registerItem(new item.Present(misc), Constants.ItemName.Present)
-  }
-
-  // Items used for integration with other mods.
-  private def initIntegration(): Unit = {
-    val integration = newItem(new item.Delegator(), "integration")
-
-    // Only register recipes if the related mods are present.
-    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, Mods.StargateTech2.isAvailable, "oc:abstractBusCard")
-    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, Mods.Galacticraft.isAvailable, "oc:worldSensorCard")
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {

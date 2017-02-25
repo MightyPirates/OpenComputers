@@ -146,7 +146,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Colored]() match {
       case Some(t) =>
         t.setColor(p.readInt())
-        t.world.notifyBlockUpdate(t.position)
+        t.getWorld.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 

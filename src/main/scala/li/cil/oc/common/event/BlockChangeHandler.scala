@@ -47,6 +47,8 @@ object BlockChangeHandler {
       }
     }
 
+    override def spawnParticle(id: Int, ignoreRange: Boolean, p_190570_3_ : Boolean, x: Double, y: Double, z: Double, xSpeed: Double, ySpeed: Double, zSpeed: Double, parameters: Int*): Unit = {}
+
     override def playRecord(soundIn: SoundEvent, pos: BlockPos): Unit = {}
 
     override def playEvent(player: EntityPlayer, `type`: Int, blockPosIn: BlockPos, data: Int): Unit = {}

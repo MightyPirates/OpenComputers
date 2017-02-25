@@ -62,7 +62,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (isServer && isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
@@ -74,7 +74,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override protected def onRunningChanged(): Unit = {
     super.onRunningChanged()
     getBlockType match {
-      case block: common.block.Case => world.setBlockState(getPos, world.getBlockState(getPos).withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
+      case block: common.block.Case => getWorld.setBlockState(getPos, getWorld.getBlockState(getPos).withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
       case _ =>
     }
   }

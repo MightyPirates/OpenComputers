@@ -12,7 +12,7 @@ object CommandHandler {
   }
 
   object SetClipboardCommand extends SimpleCommand("oc_setclipboard") {
-    override def getCommandUsage(source: ICommandSender): String = name + " <value>"
+    override def getUsage(source: ICommandSender): String = name + " <value>"
 
     override def execute(server: MinecraftServer, source: ICommandSender, command: Array[String]): Unit = {
       if (source.getEntityWorld.isRemote && command != null && command.length > 0) {

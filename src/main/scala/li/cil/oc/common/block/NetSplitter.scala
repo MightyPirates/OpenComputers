@@ -35,7 +35,7 @@ class NetSplitter extends RedstoneAware {
   // ----------------------------------------------------------------------- //
 
   // NOTE: must not be final for immibis microblocks to work.
-  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     if (Wrench.holdsApplicableWrench(player, pos)) {
       val sideToToggle = if (player.isSneaking) side.getOpposite else side
       world.getTileEntity(pos) match {
@@ -48,6 +48,6 @@ class NetSplitter extends RedstoneAware {
         case _ => false
       }
     }
-    else super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ)
+    else super.onBlockActivated(world, pos, state, player, hand, side, hitX, hitY, hitZ)
   }
 }

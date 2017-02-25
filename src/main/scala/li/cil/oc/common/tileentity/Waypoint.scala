@@ -38,13 +38,13 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
     super.updateEntity()
     if (isClient) {
       val origin = position.toVec3.addVector(facing.getFrontOffsetX * 0.5, facing.getFrontOffsetY * 0.5, facing.getFrontOffsetZ * 0.5)
-      val dx = (world.rand.nextFloat() - 0.5f) * 0.8f
-      val dy = (world.rand.nextFloat() - 0.5f) * 0.8f
-      val dz = (world.rand.nextFloat() - 0.5f) * 0.8f
-      val vx = (world.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetX * 0.3f
-      val vy = (world.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetY * 0.3f - 0.5f
-      val vz = (world.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetZ * 0.3f
-      world.spawnParticle(EnumParticleTypes.PORTAL, origin.xCoord + dx, origin.yCoord + dy, origin.zCoord + dz, vx, vy, vz)
+      val dx = (getWorld.rand.nextFloat() - 0.5f) * 0.8f
+      val dy = (getWorld.rand.nextFloat() - 0.5f) * 0.8f
+      val dz = (getWorld.rand.nextFloat() - 0.5f) * 0.8f
+      val vx = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetX * 0.3f
+      val vy = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetY * 0.3f - 0.5f
+      val vz = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetZ * 0.3f
+      getWorld.spawnParticle(EnumParticleTypes.PORTAL, origin.xCoord + dx, origin.yCoord + dy, origin.zCoord + dz, vx, vy, vz)
     }
   }
 

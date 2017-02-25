@@ -15,7 +15,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     fluidInTank(selectedTank) match {
       case Some(stack) =>
         FluidUtils.fluidHandlerAt(position.offset(side), side.getOpposite) match {
-          case Some(handler) => result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
+          case Some(handler) => result(Option(handler.getTankProperties).exists(_.exists(other => stack.isFluidEqual(other.getContents))))
           case _ => result(false)
         }
       case _ => result(false)
@@ -35,14 +35,14 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
-                  val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
+                  val drained = handler.drain(new FluidStack(stack, amount), true)
                   if ((drained != null && drained.amount > 0) || amount == 0) {
                     val filled = tank.fill(drained, true)
                     result(true, filled)
                   }
                   else result(Unit, "incompatible or no fluid")
                 case _ =>
-                  val transferred = tank.fill(handler.drain(facing.getOpposite, amount, true), true)
+                  val transferred = tank.fill(handler.drain(amount, true), true)
                   result(transferred > 0, transferred)
               }
             case _ => result(Unit, "incompatible or no fluid")
@@ -65,7 +65,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
-                  val filled = handler.fill(facing.getOpposite, new FluidStack(stack, amount), true)
+                  val filled = handler.fill(new FluidStack(stack, amount), true)
                   if (filled > 0 || amount == 0) {
                     tank.drain(filled, true)
                     result(true, filled)

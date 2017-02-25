@@ -30,7 +30,6 @@ object Mods {
 
   val Proxies = Array(
     integration.forestry.ModForestry,
-    integration.mcmp.ModMCMultiPart,
     integration.tis3d.ModTIS3D,
     integration.minecraft.ModMinecraft,
 

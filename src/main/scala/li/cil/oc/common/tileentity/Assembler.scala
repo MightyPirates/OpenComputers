@@ -123,7 +123,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def updateEntity() {
     super.updateEntity()
-    if (output.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (output.isDefined && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
       requiredEnergy -= have

@@ -74,7 +74,7 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
           relayCooldown = relayDelay - 1
         }
       }
-      else if (world.getTotalWorldTime % relayDelay == 0) {
+      else if (getWorld.getTotalWorldTime % relayDelay == 0) {
         packetsPerCycleAvg += 0
       }
     }

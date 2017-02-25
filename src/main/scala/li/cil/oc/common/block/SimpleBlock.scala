@@ -154,8 +154,8 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
 
   // ----------------------------------------------------------------------- //
 
-  // NOTE: must not be final for immibis microblocks to work.
-  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    val heldItem = player.getHeldItem(hand)
     world.getTileEntity(pos) match {
       case colored: Colored if Color.isDye(heldItem) =>
         colored.setColor(Color.rgbValues(Color.dyeColor(heldItem)))
@@ -164,8 +164,9 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
           heldItem.splitStack(1)
         }
         true
-      case _ => localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
+      case _ => localOnBlockActivated(world, pos, player, hand, heldItem, facing, hitX, hitY, hitZ)
     }
+  }
 
   def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = false
 }

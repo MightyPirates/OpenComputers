@@ -6,11 +6,10 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.FluidUtils
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fluids.FluidContainerRegistry
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.IFluidContainerItem
 
 trait TankInventoryControl extends WorldAware with InventoryAware with TankAware {
   @Callback(doc = """function([slot:number]):number -- Get the amount of fluid in the tank item in the specified slot or the selected slot.""")
@@ -39,35 +38,16 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(into) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>
-          if (FluidContainerRegistry.isFilledContainer(stack)) {
-            val contents = FluidContainerRegistry.getFluidForFilledItem(stack)
-            val container = stack.getItem.getContainerItem(stack)
-            if (into.getCapacity - into.getFluidAmount < contents.amount) {
-              result(Unit, "tank is full")
-            }
-            else if (into.fill(contents, false) < contents.amount) {
-              result(Unit, "incompatible fluid")
-            }
-            else {
-              into.fill(contents, true)
-              inventory.decrStackSize(selectedSlot, 1)
-              InventoryUtils.insertIntoInventory(container, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
-              if (container.getCount > 0) {
-                InventoryUtils.spawnStackInWorld(position, container)
-              }
-              result(true, contents.amount)
-            }
-          }
-          else stack.getItem match {
-            case from: IFluidContainerItem =>
-              val drained = from.drain(stack, amount, false)
+          Option(FluidUtils.fluidHandlerOf(stack)) match {
+            case Some(handler) =>
+              val drained = handler.drain(amount, false)
               val transferred = into.fill(drained, true)
               if (transferred > 0) {
-                from.drain(stack, transferred, true)
+                handler.drain(transferred, true)
                 result(true, transferred)
               }
               else result(Unit, "incompatible or no fluid")
-            case _ => result(Unit, "item is empty or not a fluid container")
+            case _ => result(Unit, "item is not a fluid container")
           }
         case _ => result(Unit, "nothing selected")
       }
@@ -81,33 +61,16 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(from) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>
-          if (FluidContainerRegistry.isEmptyContainer(stack)) {
-            val drained = from.drain(amount, false)
-            val filled = FluidContainerRegistry.fillFluidContainer(drained, stack)
-            if (filled == null) {
-              result(Unit, "tank is empty")
-            }
-            else {
-              val amount = FluidContainerRegistry.getFluidForFilledItem(filled).amount
-              from.drain(amount, true)
-              inventory.decrStackSize(selectedSlot, 1)
-              InventoryUtils.insertIntoInventory(filled, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))
-              if (filled.getCount > 0) {
-                InventoryUtils.spawnStackInWorld(position, filled)
-              }
-              result(true, amount)
-            }
-          }
-          else stack.getItem match {
-            case into: IFluidContainerItem =>
+          Option(FluidUtils.fluidHandlerOf(stack)) match {
+            case Some(handler) =>
               val drained = from.drain(amount, false)
-              val transferred = into.fill(stack, drained, true)
+              val transferred = handler.fill(drained, true)
               if (transferred > 0) {
                 from.drain(transferred, true)
                 result(true, transferred)
               }
               else result(Unit, "incompatible or no fluid")
-            case _ => result(Unit, "item is full or not a fluid container")
+            case _ => result(Unit, "item is not a fluid container")
           }
         case _ => result(Unit, "nothing selected")
       }
@@ -116,17 +79,11 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
   }
 
   private def withFluidInfo(slot: Int, f: (Option[FluidStack], Int) => Array[AnyRef]) = {
-    def fluidInfo(stack: ItemStack) = {
-      if (FluidContainerRegistry.isFilledContainer(stack)) {
-        Option((Option(FluidContainerRegistry.getFluidForFilledItem(stack)), FluidContainerRegistry.getContainerCapacity(stack)))
-      }
-      else if (FluidContainerRegistry.isEmptyContainer(stack)) {
-        Option((None, FluidContainerRegistry.getContainerCapacity(stack)))
-      }
-      else stack.getItem match {
-        case from: IFluidContainerItem => Option((Option(from.getFluid(stack)), from.getCapacity(stack)))
-        case _ => None
-      }
+    def fluidInfo(stack: ItemStack) = Option(FluidUtils.fluidHandlerOf(stack)) match {
+      case Some(handler) if handler.getTankProperties.length > 0 =>
+        val props = handler.getTankProperties()(0)
+        Option((Option(props.getContents), props.getCapacity))
+      case _ => None
     }
 
     inventory.getStackInSlot(slot) match {

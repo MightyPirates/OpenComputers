@@ -61,7 +61,6 @@ object ExtendedRecipe {
     }
 
     if (api.Items.get(craftedStack) == linkedCard) {
-      if (weAreBeingCalledFromAppliedEnergistics2) return disabled.copy()
       if (SideTracker.isServer) {
         Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
           val nbt = driver.dataTag(craftedStack)
@@ -205,8 +204,6 @@ object ExtendedRecipe {
       }
     }
   }
-
-  private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")
 
   private trait ItemDataWrapper {
     def components: Array[ItemStack]

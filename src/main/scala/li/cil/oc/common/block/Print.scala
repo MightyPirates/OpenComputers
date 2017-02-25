@@ -90,8 +90,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case _ => super.getLightOpacity(state, world, pos)
     }
 
-  override def isVisuallyOpaque = false
-
   override def isFullCube(state: IBlockState): Boolean = false
 
   override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
@@ -159,10 +157,10 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print => print.activate()
-      case _ => super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ)
+      case _ => super.onBlockActivated(world, pos, state, player, hand, side, hitX, hitY, hitZ)
     }
   }
 
@@ -171,7 +169,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
     tileEntity.updateRedstone()
-    tileEntity.world.checkLight(tileEntity.getPos)
+    tileEntity.getWorld.checkLight(tileEntity.getPos)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Print, player: EntityPlayer, willHarvest: Boolean): Unit = {

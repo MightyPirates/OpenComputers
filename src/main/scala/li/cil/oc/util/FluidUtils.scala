@@ -7,6 +7,7 @@ import net.minecraft.block.BlockDynamicLiquid
 import net.minecraft.block.BlockLiquid
 import net.minecraft.block.BlockStaticLiquid
 import net.minecraft.init.Blocks
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
@@ -15,9 +16,11 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.FluidTank
 import net.minecraftforge.fluids.FluidTankInfo
 import net.minecraftforge.fluids.IFluidBlock
-import net.minecraftforge.fluids.IFluidHandler
 import net.minecraftforge.fluids.capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.IFluidHandler
+import net.minecraftforge.fluids.capability.IFluidHandlerItem
+import net.minecraftforge.fluids.capability.IFluidTankProperties
 
 object FluidUtils {
   /**
@@ -38,6 +41,12 @@ object FluidUtils {
     case _ => None
   }
 
+  def fluidHandlerOf(stack: ItemStack): IFluidHandlerItem = Option(stack) match {
+    case Some(itemStack) if itemStack.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null) =>
+      itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)
+    case _ => null
+  }
+
   /**
    * Transfers some fluid between two fluid handlers.
    * <p/>
@@ -47,10 +56,10 @@ object FluidUtils {
    * <p/>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: EnumFacing, sink: IFluidHandler, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) = {
-    val drained = source.drain(sourceSide, limit, false)
-    val filled = sink.fill(sinkSide, drained, false)
-    sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
+  def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME) = {
+    val drained = source.drain(limit, false)
+    val filled = sink.fill(drained, false)
+    sink.fill(source.drain(filled, true), true)
   }
 
   /**
@@ -63,7 +72,7 @@ object FluidUtils {
   def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) =
     fluidHandlerAt(sourcePos, sourceSide).fold(0)(source =>
       fluidHandlerAt(sinkPos, sinkSide).fold(0)(sink =>
-        transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
+        transferBetweenFluidHandlers(source, sink, limit)))
 
   /**
    * Lookup fluid taking into account flowing liquid blocks...
@@ -77,17 +86,17 @@ object FluidUtils {
   // ----------------------------------------------------------------------- //
 
   private class GenericBlockWrapper(position: BlockPosition) extends IFluidHandler {
-    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.canDrain(from, fluid))
+    override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.drain(new FluidStack(fluid, 1), false).amount > 0)
 
-    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(from, resource, doDrain))
+    override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(resource, doDrain))
 
-    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(from, maxDrain, doDrain))
+    override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = currentWrapper.fold(null: FluidStack)(_.drain(maxDrain, doDrain))
 
-    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.canFill(from, fluid))
+    override def canFill(from: EnumFacing, fluid: Fluid): Boolean = currentWrapper.fold(false)(_.fill(new FluidStack(fluid, 1), false) > 0)
 
-    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = currentWrapper.fold(0)(_.fill(from, resource, doFill))
+    override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = currentWrapper.fold(0)(_.fill(resource, doFill))
 
-    override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = currentWrapper.fold(Array.empty[FluidTankInfo])(_.getTankInfo(from))
+    override def getTankInfo(from: EnumFacing): Array[IFluidTankProperties] = currentWrapper.fold(Array.empty[IFluidTankProperties])(_.getTankProperties)
 
     def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))

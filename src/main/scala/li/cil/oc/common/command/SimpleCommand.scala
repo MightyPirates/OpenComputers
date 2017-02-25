@@ -13,9 +13,9 @@ import scala.collection.mutable
 abstract class SimpleCommand(val name: String) extends CommandBase {
   protected var aliases = mutable.ListBuffer.empty[String]
 
-  override def getCommandName = name
+  override def getName = name
 
-  override def getCommandAliases: util.List[String] = aliases
+  override def getAliases: util.List[String] = aliases
 
   override def checkPermission(server: MinecraftServer, sender: ICommandSender): Boolean = super.checkPermission(server, sender)|| (FMLCommonHandler.instance().getMinecraftServerInstance != null && FMLCommonHandler.instance().getMinecraftServerInstance.isSinglePlayer)
 

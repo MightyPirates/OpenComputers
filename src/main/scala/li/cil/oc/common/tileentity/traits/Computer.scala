@@ -8,7 +8,6 @@ import li.cil.oc.api
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
-import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.agent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -53,11 +52,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     if (value) {
       hasErrored = false
     }
-    if (world != null) {
-      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
-      if (world.isRemote) {
+    if (getWorld != null) {
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+      if (getWorld.isRemote) {
         runSound.foreach(sound =>
-          if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+          if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + getWorld.rand.nextInt(50))
           else Sound.stopLoop(this)
         )
       }
@@ -127,7 +126,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def dispose(): Unit = {
     super.dispose()
-    if (machine != null && !this.isInstanceOf[RobotProxy] && !moving) {
+    if (machine != null && !this.isInstanceOf[RobotProxy]) {
       machine.stop()
     }
   }
@@ -160,8 +159,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
     if (machine != null) {
-      if (!Waila.isSavingForTooltip)
-        nbt.setNewCompoundTag(ComputerTag, machine.save)
+      nbt.setNewCompoundTag(ComputerTag, machine.save)
     }
   }
 
@@ -172,7 +170,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     setRunning(nbt.getBoolean(IsRunningTag))
     _users.clear()
     _users ++= nbt.getTagList(UsersTag, NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
-    if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))
+    if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + getWorld.rand.nextInt(2000)))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

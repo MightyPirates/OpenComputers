@@ -24,8 +24,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = if (world != null && world.isBlockLoaded(getPos)) getBlockType match {
-    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => world.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
+  def pitch = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getBlockType match {
+    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
     case _ => EnumFacing.NORTH
   } else null
 
@@ -35,9 +35,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => EnumFacing.NORTH
     }, yaw)
 
-  def yaw = if (world != null && world.isBlockLoaded(getPos)) getBlockType match {
-    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => world.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
-    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => world.getBlockState(getPos).getValue(PropertyRotatable.Facing)
+  def yaw = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getBlockType match {
+    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
+    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Facing)
     case _ => EnumFacing.SOUTH
   } else null
 
@@ -72,9 +72,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   def rotate(axis: EnumFacing) = {
-    val block = world.getBlock(position)
+    val block = getWorld.getBlock(position)
     if (block != null) {
-      val valid = block.getValidRotations(world, getPos)
+      val valid = block.getValidRotations(getWorld, getPos)
       if (valid != null && valid.contains(axis)) {
         val (newPitch, newYaw) = facing.getRotation(axis) match {
           case value@(EnumFacing.UP | EnumFacing.DOWN) =>
@@ -110,26 +110,26 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       ServerPacketSender.sendRotatableState(this)
     }
     else {
-      world.notifyBlockUpdate(getPos)
+      getWorld.notifyBlockUpdate(getPos)
     }
-    world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+    getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
   }
 
   // ----------------------------------------------------------------------- //
 
   /** Updates cached translation array and sends notification to clients. */
   protected def updateTranslation(): Unit = {
-    if (world != null) {
+    if (getWorld != null) {
       onRotationChanged()
     }
   }
 
   /** Validates new values against the allowed rotations as set in our block. */
   protected def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
-    val oldState = world.getBlockState(getPos)
+    val oldState = getWorld.getBlockState(getPos)
     def setState(newState: IBlockState): Boolean = {
       if (oldState.hashCode() != newState.hashCode()) {
-        world.setBlockState(getPos, newState)
+        getWorld.setBlockState(getPos, newState)
         updateTranslation()
         true
       }

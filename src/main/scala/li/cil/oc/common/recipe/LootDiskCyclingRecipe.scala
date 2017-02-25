@@ -6,6 +6,7 @@ import li.cil.oc.integration.util.Wrench
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.IRecipe
+import net.minecraft.util.NonNullList
 import net.minecraft.world.World
 
 class LootDiskCyclingRecipe extends IRecipe {
@@ -34,12 +35,12 @@ class LootDiskCyclingRecipe extends IRecipe {
 
   override def getRecipeOutput: ItemStack = null
 
-  override def getRemainingItems(crafting: InventoryCrafting): Array[ItemStack] = {
-    val result = new Array[ItemStack](crafting.getSizeInventory)
+  override def getRemainingItems(crafting: InventoryCrafting): NonNullList[ItemStack] = {
+    val result = NonNullList.withSize[ItemStack](crafting.getSizeInventory, ItemStack.EMPTY)
     for (slot <- 0 until crafting.getSizeInventory) {
       val stack = crafting.getStackInSlot(slot)
       if (Wrench.isWrench(stack)) {
-        result(slot) = stack.copy()
+        result.set(slot, stack.copy())
         stack.setCount(0)
       }
     }

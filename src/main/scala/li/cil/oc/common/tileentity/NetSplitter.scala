@@ -28,11 +28,11 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
       node.remove()
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
-      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
-      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+      getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
+      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
     }
     else {
-      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 
@@ -61,10 +61,10 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+        getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
       }
       else {
-        world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+        getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       }
     }
   }

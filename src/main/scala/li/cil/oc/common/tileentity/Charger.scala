@@ -82,11 +82,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     super.updateEntity()
 
     // Offset by hashcode to avoid all chargers ticking at the same time.
-    if ((world.getWorldInfo.getWorldTotalTime + math.abs(hashCode())) % 20 == 0) {
+    if ((getWorld.getWorldInfo.getWorldTotalTime + math.abs(hashCode())) % 20 == 0) {
       updateConnectors()
     }
 
-    if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+    if (isServer && getWorld.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
       var canCharge = Settings.get.ignorePower
 
       // Charging of external devices.
@@ -121,15 +121,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       }
     }
 
-    if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+    if (isClient && chargeSpeed > 0 && hasPower && getWorld.getWorldInfo.getWorldTotalTime % 10 == 0) {
       connectors.foreach(connector => {
         val position = connector.pos
-        val theta = world.rand.nextDouble * Math.PI
-        val phi = world.rand.nextDouble * Math.PI * 2
+        val theta = getWorld.rand.nextDouble * Math.PI
+        val phi = getWorld.rand.nextDouble * Math.PI * 2
         val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
         val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
         val dz = 0.45 * Math.cos(theta)
-        world.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
+        getWorld.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
       })
     }
   }
@@ -222,17 +222,17 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   def updateConnectors() {
     val robots = EnumFacing.values.map(side => {
       val blockPos = BlockPosition(this).offset(side)
-      if (world.blockExists(blockPos)) Option(world.getTileEntity(blockPos))
+      if (getWorld.blockExists(blockPos)) Option(getWorld.getTileEntity(blockPos))
       else None
     }).collect {
       case Some(t: RobotProxy) => new RobotChargeable(t.robot)
     }
     val bounds = BlockPosition(this).bounds.expand(1, 1, 1)
-    val drones = world.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
+    val drones = getWorld.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
       case drone: Drone => new DroneChargeable(drone)
     }
 
-    val players = world.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
+    val players = getWorld.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
       case player: EntityPlayer if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
     }
 
@@ -242,7 +242,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
       connectors.clear()
       connectors ++= newConnectors
-      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
     }
   }
 

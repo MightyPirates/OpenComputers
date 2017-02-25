@@ -46,7 +46,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
-    world.notifyNeighborsOfStateChange(getPos, getBlockType, true)
+    getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
   }
 
   private final lazy val deviceInfo = Map(
@@ -77,7 +77,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         val instant = disassembleNextInstantly // Is reset via decrStackSize
         disassemble(decrStackSize(0, 1), instant)
@@ -95,7 +95,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         while (buffer >= Settings.get.disassemblerItemCost && queue.nonEmpty) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          if (disassembleNextInstantly || world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
+          if (disassembleNextInstantly || getWorld.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
             drop(stack)
           }
         }
@@ -184,13 +184,13 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
     super.setInventorySlotContents(slot, stack)
-    if (!world.isRemote) {
+    if (!getWorld.isRemote) {
       disassembleNextInstantly = false
     }
   }
 
   override def onSetInventorySlotContents(player: EntityPlayer, slot: Int, stack: ItemStack): Unit = {
-    if (!world.isRemote) {
+    if (!getWorld.isRemote) {
       disassembleNextInstantly = stack != null && slot == 0 && player.capabilities.isCreativeMode
     }
   }

@@ -24,15 +24,12 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.block.property.PropertyTile
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 
 class Screen(val tier: Int) extends RedstoneAware {
-  ModColoredLights.setLightLevel(this, 5, 5, 5)
-
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex

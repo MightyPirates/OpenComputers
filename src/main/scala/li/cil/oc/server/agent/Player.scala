@@ -10,7 +10,6 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.PortalGun
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -102,13 +101,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   setSize(1, 1)
 
-  {
-    val inventory = new Inventory(agent)
-    if (Mods.BattleGear2.isAvailable) {
-      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, inventory, "inventory", "field_71071_by", "bm")
-    }
-    else this.inventory = inventory
-  }
+  this.inventory = new Inventory(agent)
 
   var facing, side = EnumFacing.SOUTH
 
@@ -194,10 +187,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       }
 
       val item = if (stack != null) stack.getItem else null
-      if (!PortalGun.isPortalGun(stack)) {
-        if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
-          return ActivationType.ItemUsed
-        }
+      if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
+        return ActivationType.ItemUsed
       }
 
       val state = world.getBlockState(pos)
@@ -275,7 +266,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       def sizeOrDamageChanged = newStack.getCount != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged))
       if (stackChanged) {
         agent.equipmentInventory.setInventorySlotContents(0, newStack)
       }
@@ -403,9 +394,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   private def isItemUseAllowed(stack: ItemStack) = stack == null || {
-    (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
-      (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) &&
-      !stack.isItemEqual(new ItemStack(Items.LEAD))
+    (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) && !stack.isItemEqual(new ItemStack(Items.LEAD))
   }
 
   override def dropItem(stack: ItemStack, dropAround: Boolean, traceItem: Boolean): EntityItem =

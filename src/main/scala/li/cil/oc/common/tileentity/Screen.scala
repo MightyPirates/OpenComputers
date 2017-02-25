@@ -66,7 +66,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   override def canConnect(side: EnumFacing) = side != facing
 
   // Allow connections from front for keyboards, and keyboards only...
-  override def sidedNode(side: EnumFacing) = if (side != facing || (world.isBlockLoaded(getPos.offset(side)) && world.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard])) node else null
+  override def sidedNode(side: EnumFacing) = if (side != facing || (getWorld.isBlockLoaded(getPos.offset(side)) && getWorld.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard])) node else null
 
   // ----------------------------------------------------------------------- //
 
@@ -81,7 +81,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   def hasKeyboard = screens.exists(screen =>
     EnumFacing.values.map(side => (side, {
       val blockPos = BlockPosition(screen).offset(side)
-      if (world.blockExists(blockPos)) world.getTileEntity(blockPos)
+      if (getWorld.blockExists(blockPos)) getWorld.getTileEntity(blockPos)
       else null
     })).exists {
       case (side, keyboard: Keyboard) => keyboard.hasNodeOnSide(side.getOpposite)
@@ -113,7 +113,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
       return (false, None)
     }
-    if (!world.isRemote) return (true, None)
+    if (!getWorld.isRemote) return (true, None)
 
     val (iw, ih) = (width - border * 2, height - border * 2)
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
@@ -197,7 +197,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val lpos = project(current)
         def tryQueue(dx: Int, dy: Int) {
           val npos = unproject(lpos.x + dx, lpos.y + dy, lpos.z)
-          if (world.blockExists(npos)) world.getTileEntity(npos) match {
+          if (getWorld.blockExists(npos)) getWorld.getTileEntity(npos) match {
             case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
             case _ => // Ignore.
           }
@@ -219,7 +219,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         }
         if (isClient) {
           val bounds = current.origin.getRenderBoundingBox
-          world.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+          getWorld.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
             bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
         }
       }
@@ -373,7 +373,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val opos = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
       val npos = unproject(opos.x + dx, opos.y + dy, opos.z)
-      world.blockExists(npos) && (world.getTileEntity(npos) match {
+      getWorld.blockExists(npos) && (getWorld.getTileEntity(npos) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.getColor == getColor && s.yaw == yaw && !screens.contains(s) =>
           val spos = project(s.origin)
           val canMergeAlongX = spos.y == opos.y && s.height == height && s.width + width <= Settings.get.maxScreenWidth

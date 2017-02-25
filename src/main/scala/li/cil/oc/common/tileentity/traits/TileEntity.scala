@@ -18,25 +18,23 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   private final val IsServerDataTag = Settings.namespace + "isServerData"
 
-  def world = getWorld
-
   def x = getPos.getX
 
   def y = getPos.getY
 
   def z = getPos.getZ
 
-  def position = BlockPosition(x, y, z, world)
+  def position = BlockPosition(x, y, z, getWorld)
 
   def isClient = !isServer
 
-  def isServer = if (world != null) !world.isRemote else SideTracker.isServer
+  def isServer = if (getWorld != null) !getWorld.isRemote else SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 
   def updateEntity() {
-    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world.getBlockState(getPos), world, getPos) > 0) {
-      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
+    if (Settings.get.periodicallyForceLightUpdate && getWorld.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(getWorld.getBlockState(getPos), getWorld, getPos) > 0) {
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 

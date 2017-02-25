@@ -48,11 +48,11 @@ class MotionSensor extends traits.Environment with traits.Tickable with DeviceIn
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && world.getTotalWorldTime % 10 == 0) {
+    if (isServer && getWorld.getTotalWorldTime % 10 == 0) {
       // Get a list of all living entities we could possibly detect, using a rough
       // bounding box check, then refining it using the actual distance and an
       // actual visibility check.
-      val entities = world.getEntitiesWithinAABB(classOf[EntityLivingBase], sensorBounds)
+      val entities = getWorld.getEntitiesWithinAABB(classOf[EntityLivingBase], sensorBounds)
         .filter(entity => entity.isEntityAlive && isInRange(entity) && isVisible(entity))
         .toSet
       // Get rid of all tracked entities that are no longer visible.
@@ -98,7 +98,7 @@ class MotionSensor extends traits.Environment with traits.Tickable with DeviceIn
       if (entity.posY > y + 1) oy += 0.75
       if (entity.posZ < z) oz -= 0.75
       if (entity.posZ > z + 1) oz += 0.75
-      world.rayTraceBlocks(new Vec3d(ox, oy, oz), target) == null
+      getWorld.rayTraceBlocks(new Vec3d(ox, oy, oz), target) == null
     }
 
   private def sendSignal(entity: EntityLivingBase) {

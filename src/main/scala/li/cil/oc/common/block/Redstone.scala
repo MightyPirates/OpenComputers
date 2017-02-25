@@ -12,15 +12,10 @@ import net.minecraft.world.World
 class Redstone extends RedstoneAware {
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
-    if (Mods.ProjectRedTransmission.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.ProjectRed"))
-    }
-    if (Mods.RedLogic.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.RedLogic"))
-    }
-    if (Mods.MineFactoryReloaded.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.RedNet"))
-    }
+    // todo more generic way for redstone mods to provide lines
+//    if (Mods.ProjectRedTransmission.isAvailable) {
+//      tooltip.addAll(Tooltip.get("RedstoneCard.ProjectRed"))
+//    }
   }
 
   // ----------------------------------------------------------------------- //

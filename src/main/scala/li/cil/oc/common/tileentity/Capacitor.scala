@@ -37,7 +37,7 @@ class Capacitor extends traits.Environment with DeviceInfo {
     super.dispose()
     if (isServer) {
       indirectNeighbors.map(coordinate => {
-        if (world.isBlockLoaded(coordinate)) Option(world.getTileEntity(coordinate))
+        if (getWorld.isBlockLoaded(coordinate)) Option(getWorld.getTileEntity(coordinate))
         else None
       }).collect {
         case Some(capacitor: Capacitor) => capacitor.recomputeCapacity()
@@ -59,12 +59,12 @@ class Capacitor extends traits.Environment with DeviceInfo {
       Settings.get.bufferCapacitor +
         Settings.get.bufferCapacitorAdjacencyBonus * EnumFacing.values.count(side => {
           val blockPos = getPos.offset(side)
-          world.isBlockLoaded(blockPos) && (world.getTileEntity(blockPos) match {
+          getWorld.isBlockLoaded(blockPos) && (getWorld.getTileEntity(blockPos) match {
             case capacitor: Capacitor => true
             case _ => false
           })
         }) +
-        Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count(blockPos => world.isBlockLoaded(blockPos) && (world.getTileEntity(blockPos) match {
+        Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count(blockPos => getWorld.isBlockLoaded(blockPos) && (getWorld.getTileEntity(blockPos) match {
           case capacitor: Capacitor =>
             if (updateSecondGradeNeighbors) {
               capacitor.recomputeCapacity()

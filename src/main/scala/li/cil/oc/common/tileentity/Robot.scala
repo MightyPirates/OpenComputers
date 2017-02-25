@@ -42,7 +42,10 @@ import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fluids._
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -65,7 +68,16 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     machine.setCostPerTick(Settings.get.robotCost)
   }
 
+
+
   // ----------------------------------------------------------------------- //
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+      capability.cast(this.asInstanceOf[T])
+    else
+      super.getCapability(capability, facing)
+  }
 
   override def tier = info.tier
 
@@ -96,7 +108,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def setSelectedSlot(index: Int): Unit = {
     selectedSlot = index max 0 min mainInventory.getSizeInventory - 1
-    if (world != null) {
+    if (getWorld != null) {
       ServerPacketSender.sendRobotSelectedSlotChange(this)
     }
   }
@@ -189,7 +201,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   def move(direction: EnumFacing): Boolean = {
     val oldPosition = getPos
     val newPosition = oldPosition.offset(direction)
-    if (!world.isBlockLoaded(newPosition)) {
+    if (!getWorld.isBlockLoaded(newPosition)) {
       return false // Don't fall off the earth.
     }
 
@@ -201,8 +213,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
     val blockRobotProxy = api.Items.get(Constants.BlockName.Robot).block.asInstanceOf[common.block.RobotProxy]
     val blockRobotAfterImage = api.Items.get(Constants.BlockName.RobotAfterimage).block.asInstanceOf[common.block.RobotAfterimage]
-    val wasAir = world.isAirBlock(newPosition)
-    val state = world.getBlockState(newPosition)
+    val wasAir = getWorld.isAirBlock(newPosition)
+    val state = getWorld.getBlockState(newPosition)
     val block = state.getBlock
     val metadata = block.getMetaFromState(state)
     try {
@@ -214,16 +226,16 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      world.setBlockToAir(newPosition)
+      getWorld.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlockState(newPosition, world.getBlockState(oldPosition), 1) &&
-        world.getTileEntity(newPosition) == proxy
+      val created = getWorld.setBlockState(newPosition, getWorld.getBlockState(oldPosition), 1) &&
+        getWorld.getTileEntity(newPosition) == proxy
       if (created) {
         assert(getPos == newPosition)
-        world.setBlockState(oldPosition, net.minecraft.init.Blocks.AIR.getDefaultState, 1)
-        world.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
-        assert(world.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
+        getWorld.setBlockState(oldPosition, net.minecraft.init.Blocks.AIR.getDefaultState, 1)
+        getWorld.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
+        assert(getWorld.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(oldPosition, moveTicks)
@@ -239,24 +251,24 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
-                world.playEvent(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
+                getWorld.playEvent(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
               }
               else {
                 val sx = newPosition.getX + 0.5
                 val sy = newPosition.getY + 0.5
                 val sz = newPosition.getZ + 0.5
-                world.playSound(sx, sy, sz, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS,
-                  world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
+                getWorld.playSound(sx, sy, sz, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS,
+                  getWorld.rand.nextFloat * 0.25f + 0.75f, getWorld.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }
-          world.notifyBlockUpdate(oldPosition)
-          world.notifyBlockUpdate(newPosition)
+          getWorld.notifyBlockUpdate(oldPosition)
+          getWorld.notifyBlockUpdate(newPosition)
         }
         assert(!isInvalid)
       }
       else {
-        world.setBlockToAir(newPosition)
+        getWorld.setBlockToAir(newPosition)
       }
       created
     }
@@ -313,8 +325,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override def shouldRenderInPass(pass: Int) = true
 
   override def getRenderBoundingBox =
-    if (getBlockType != null && world != null)
-      getBlockType.getCollisionBoundingBox(world.getBlockState(getPos), world, getPos).expand(0.5, 0.5, 0.5).offset(getPos)
+    if (getBlockType != null && getWorld != null)
+      getBlockType.getCollisionBoundingBox(getWorld.getBlockState(getPos), getWorld, getPos).expand(0.5, 0.5, 0.5).offset(getPos)
     else
       new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(getPos)
 
@@ -331,7 +343,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
     super.updateEntity()
     if (isServer) {
-      if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {
           bot.node.changeBuffer(Double.PositiveInfinity)
         }
@@ -355,7 +367,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
     for (slot <- 0 until equipmentInventory.getSizeInventory + mainInventory.getSizeInventory) {
       getStackInSlot(slot) match {
-        case stack: ItemStack => try stack.updateAnimation(world, if (!world.isRemote) player_ else null, slot, slot == 0) catch {
+        case stack: ItemStack => try stack.updateAnimation(getWorld, if (!getWorld.isRemote) player_ else null, slot, slot == 0) catch {
           case ignored: NullPointerException => // Client side item updates that need a player instance...
         }
         case _ =>
@@ -550,7 +562,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       if (isComponentSlot(slot, stack)) {
         super.onItemAdded(slot, stack)
-        world.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
+        getWorld.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
       }
       if (isInventorySlot(slot)) {
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
@@ -576,7 +588,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
       if (isComponentSlot(slot, stack)) {
-        world.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
+        getWorld.notifyBlocksOfNeighborChange(position, getBlockType, updateObservers = false)
       }
     }
   }
@@ -692,7 +704,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         components(slot) = None
       }
       getSizeInventory = realSize + componentCount
-      if (world != null && isServer) {
+      if (getWorld != null && isServer) {
         for (stack <- removed) {
           player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
@@ -730,7 +742,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.getCount > 0 && !world.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
+    else if (stack != null && stack.getCount > 0 && !getWorld.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
 
   override def isUsableByPlayer(player: EntityPlayer) =
@@ -757,14 +769,14 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   // ----------------------------------------------------------------------- //
 
   override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]) =
-    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), mainInventory, slot, count, direction)
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), mainInventory, slot, count, direction)
 
   override def dropAllSlots() = {
-    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), this, 0, Int.MaxValue)
     for (slot <- containerSlots) {
-      InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
+      InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), this, slot, Int.MaxValue)
     }
-    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), mainInventory)
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, getWorld), mainInventory)
   }
 
   // ----------------------------------------------------------------------- //

@@ -24,7 +24,7 @@ trait Colored extends TileEntity with internal.Colored {
   override def controlsConnectivity = false
 
   protected def onColorChanged() {
-    if (world != null && isServer) {
+    if (getWorld != null && isServer) {
       PacketSender.sendColorChange(this)
     }
   }

@@ -20,7 +20,7 @@ class Adapter extends SimpleBlock with traits.GUI {
 
   // ----------------------------------------------------------------------- //
 
-  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block): Unit =
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit =
     world.getTileEntity(pos) match {
       case adapter: tileentity.Adapter => adapter.neighborChanged()
       case _ => // Ignore.

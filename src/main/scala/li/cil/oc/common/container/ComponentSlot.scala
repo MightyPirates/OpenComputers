@@ -31,12 +31,12 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
 
   override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
 
-  override def onTake(player: EntityPlayer, stack: ItemStack) {
-    super.onTake(player, stack)
+  override def onTake(player: EntityPlayer, stack: ItemStack) = {
     for (slot <- container.inventorySlots) slot match {
       case dynamic: ComponentSlot => dynamic.clearIfInvalid(player)
       case _ =>
     }
+    super.onTake(player, stack)
   }
 
   override def putStack(stack: ItemStack): Unit = {

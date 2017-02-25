@@ -109,25 +109,6 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
-    if (SideTracker.isServer) pendingServer.synchronized {
-      pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergySink]))
-        tileEntity.addedToIC2PowerGrid = true
-      })
-    }
-  }
-
-  def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
-    if (SideTracker.isServer) pendingServer.synchronized {
-      pendingServer += (() => if (rs.node.network != null) {
-        util.WirelessRedstone.addReceiver(rs)
-        util.WirelessRedstone.updateOutput(rs)
-      })
-    }
-  }
-
   @SubscribeEvent
   def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
     event.getTileEntity match {
@@ -232,7 +213,7 @@ object EventHandler {
         })
         // Do update check in local games and for OPs.
         val server = FMLCommonHandler.instance.getMinecraftServerInstance
-        if (!Mods.VersionChecker.isAvailable && (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile))) {
+        if (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile)) {
           Future {
             UpdateCheck.info onSuccess {
               case Some(release) => player.sendMessage(Localization.Chat.InfoNewVersion(release.tag_name))

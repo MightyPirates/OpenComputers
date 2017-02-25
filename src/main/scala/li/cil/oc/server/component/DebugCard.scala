@@ -46,7 +46,7 @@ import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.IFluidHandler
+import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.ModAPIManager
@@ -129,7 +129,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
-    result(FMLCommonHandler.instance.getMinecraftServerInstance.getAllUsernames)
+    result(FMLCommonHandler.instance.getMinecraftServerInstance.getOnlinePlayerNames)
   }
 
   @Callback(doc = """function():userdata -- Get the scoreboard object for the world""")
@@ -799,7 +799,7 @@ object DebugCard {
       val position = BlockPosition(args.checkDouble(2), args.checkDouble(3), args.checkDouble(4), world)
       val side = args.checkSideAny(5)
       world.getTileEntity(position) match {
-        case handler: IFluidHandler => result(handler.fill(side, new FluidStack(fluid, amount), true))
+        case handler: IFluidHandler => result(handler.fill(new FluidStack(fluid, amount), true))
         case _ => result(Unit, "no tank")
       }
     }
@@ -811,7 +811,7 @@ object DebugCard {
       val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
       val side = args.checkSideAny(4)
       world.getTileEntity(position) match {
-        case handler: IFluidHandler => result(handler.drain(side, amount, true))
+        case handler: IFluidHandler => result(handler.drain(amount, true))
         case _ => result(Unit, "no tank")
       }
     }

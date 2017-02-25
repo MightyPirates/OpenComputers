@@ -316,7 +316,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       ServerPacketSender.sendRackInventory(this)
     }
     else {
-      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 
@@ -365,7 +365,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
             hasChanged(slot) = false
             lastData(slot) = mountable.getData
             ServerPacketSender.sendRackMountableData(this, slot)
-            world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+            getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
             // These are working state dependent, so recompute them.
             isOutputEnabled = hasRedstoneCard
           }

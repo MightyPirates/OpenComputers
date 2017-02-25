@@ -130,7 +130,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     super.updateEntity()
 
     // Pump energy into the internal network.
-    if (isServer && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- EnumFacing.values if side != facing) {
         sidedNode(side) match {
           case connector: Connector =>

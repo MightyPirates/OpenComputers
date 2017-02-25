@@ -35,10 +35,10 @@ class Cable extends traits.Environment with traits.NotAnalyzable with traits.Imm
 
   override protected def onColorChanged() {
     super.onColorChanged()
-    if (world != null && isServer) {
+    if (getWorld != null && isServer) {
       api.Network.joinOrCreateNetwork(this)
     }
   }
 
-  override def getRenderBoundingBox = common.block.Cable.bounds(world, getPos).offset(x, y, z)
+  override def getRenderBoundingBox = common.block.Cable.bounds(getWorld, getPos).offset(x, y, z)
 }

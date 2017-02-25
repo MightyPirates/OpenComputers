@@ -36,11 +36,11 @@ trait Inventory extends TileEntity with inventory.Inventory {
   // ----------------------------------------------------------------------- //
 
   def dropSlot(slot: Int, count: Int = getInventoryStackLimit, direction: Option[EnumFacing] = None) =
-    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, count, direction)
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), this, slot, count, direction)
 
   def dropAllSlots() =
-    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), this)
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, getWorld), this)
 
   def spawnStackInWorld(stack: ItemStack, direction: Option[EnumFacing] = None) =
-    InventoryUtils.spawnStackInWorld(BlockPosition(x, y, z, world), stack, direction)
+    InventoryUtils.spawnStackInWorld(BlockPosition(x, y, z, getWorld), stack, direction)
 }

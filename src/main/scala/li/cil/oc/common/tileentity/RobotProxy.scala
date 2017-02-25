@@ -6,6 +6,9 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler
+import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -21,12 +24,17 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.IFluidHandler
 
 class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+      capability.cast(this.asInstanceOf[T])
+    else super.getCapability(capability, facing)
+  }
 
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot", Visibility.Neighbors).
@@ -112,7 +120,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     super.validate()
     val firstProxy = robot.proxy == null
     robot.proxy = this
-    robot.setWorld(world)
+    robot.setWorld(getWorld)
     robot.setPos(getPos)
     if (firstProxy) {
       robot.validate()

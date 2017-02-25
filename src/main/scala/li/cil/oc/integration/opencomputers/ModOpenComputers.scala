@@ -37,7 +37,6 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.ItemBlacklist
-import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
@@ -294,15 +293,10 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.LeashUpgrade,
       Constants.ItemName.TradingUpgrade)
 
-    if (!WirelessRedstone.isAvailable) {
-      blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)
-      blacklistHost(classOf[internal.Tablet], Constants.ItemName.RedstoneCardTier2)
-    }
-
     // Note: kinda nasty, but we have to check for availability for extended
     // redstone mods after integration init, so we have to set tier two
     // redstone card availability here, after all other mods were inited.
-    if (BundledRedstone.isAvailable || WirelessRedstone.isAvailable) {
+    if (BundledRedstone.isAvailable) {
       OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
       Delegator.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
         case Some(redstone: RedstoneCard) => redstone.showInItemList = true

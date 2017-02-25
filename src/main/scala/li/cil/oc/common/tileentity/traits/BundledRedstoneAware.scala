@@ -19,16 +19,7 @@ import net.minecraft.nbt.NBTTagIntArray
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
 
-/* TODO MFR
-import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
-*/
-
-@Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = Mods.IDs.RedLogic),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = Mods.IDs.RedLogic),
-  new Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = Mods.IDs.ProjectRedTransmission)
-))
-trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IBundledUpdatable with IBundledTile TODO RedLogic, Project Red, MFR */ {
+trait BundledRedstoneAware extends RedstoneAware {
 
   protected[tileentity] val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
 
@@ -91,16 +82,6 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   def bundledOutput(side: EnumFacing, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
     _bundledOutput(toLocal(side).ordinal())(color) = value
 
-    /* TODO MFR
-    if (Mods.MineFactoryReloaded.isAvailable) {
-      val blockPos = BlockPosition(x, y, z).offset(side)
-      world.getBlock(blockPos) match {
-        case block: IRedNetNetworkContainer => block.updateNetwork(world, blockPos.x, blockPos.y, blockPos.z, side.getOpposite)
-        case _ =>
-      }
-    }
-    */
-
     onRedstoneOutputChanged(side)
   }
 
@@ -152,38 +133,4 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
 
     nbt.setNewTagList(RednetInputTag, _rednetInput.view)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def onRedstoneOutputEnabledChanged() {
-    /* TODO MFR
-    if (Mods.MineFactoryReloaded.isAvailable) {
-      for (side <- EnumFacing.VALID_DIRECTIONS) {
-        val blockPos = BlockPosition(x, y, z).offset(side)
-        world.getBlock(blockPos) match {
-          case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z, side.getOpposite)
-          case _ =>
-        }
-      }
-    }
-    */
-    super.onRedstoneOutputEnabledChanged()
-  }
-
-  // ----------------------------------------------------------------------- //
-  /* TODO RedLogic
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(EnumFacing.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    def onBundledInputChanged() = checkRedstoneInputChanged()
-  */
-  // ----------------------------------------------------------------------- //
-  /* TODO Project Red
-    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-    def canConnectBundled(side: Int) = isOutputEnabled
-
-    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-    def getBundledSignal(side: Int) = bundledOutput(EnumFacing.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
-  */
 }

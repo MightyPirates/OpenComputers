@@ -19,7 +19,7 @@ import scala.collection.convert.WrapAsJava._
 object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe] {
   override def getRecipeClass: Class[LootDiskCyclingRecipe] = classOf[LootDiskCyclingRecipe]
 
-  override def getRecipeCategoryUid: String = VanillaRecipeCategoryUid.CRAFTING
+  def getRecipeCategoryUid: String = VanillaRecipeCategoryUid.CRAFTING
 
   override def getRecipeCategoryUid(recipe: LootDiskCyclingRecipe): String = getRecipeCategoryUid
 
@@ -29,9 +29,9 @@ object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe
 
   class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper with ICraftingRecipeWrapper {
 
-    override def getInputs: util.List[util.List[ItemStack]] = List(seqAsJavaList(Loot.disksForCycling), seqAsJavaList(List(api.Items.get(Constants.ItemName.Wrench).createItemStack(1))))
+    def getInputs: util.List[util.List[ItemStack]] = List(seqAsJavaList(Loot.disksForCycling), seqAsJavaList(List(api.Items.get(Constants.ItemName.Wrench).createItemStack(1))))
 
-    override def getOutputs: util.List[ItemStack] = Loot.disksForCycling.toList
+    def getOutputs: util.List[ItemStack] = Loot.disksForCycling.toList
 
     override def getIngredients(ingredients: IIngredients): Unit = {
       ingredients.setInputLists(classOf[ItemStack], getInputs)

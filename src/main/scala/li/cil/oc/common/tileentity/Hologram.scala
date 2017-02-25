@@ -3,16 +3,15 @@ package li.cil.oc.common.tileentity
 import java.util
 
 import li.cil.oc._
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
-import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
-import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -407,7 +406,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
           ServerPacketSender.sendHologramValues(this)
         resetDirtyFlag()
       }
-      if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (litRatio < 0) this.synchronized {
           litRatio = 0
           for (i <- volume.indices) {
@@ -440,7 +439,8 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val cx = x + 0.5
     val cy = y + 0.5
     val cz = z + 0.5
-    val sh = width / 16 * scale * Sqrt2 // overscale to take into account 45 degree rotation
+    val sh = width / 16 * scale * Sqrt2
+    // overscale to take into account 45 degree rotation
     val sv = height / 16 * scale * Sqrt2
     new AxisAlignedBB(
       cx + (-0.5 + translation.xCoord) * sh,
@@ -454,6 +454,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // ----------------------------------------------------------------------- //
 
   private def dataPath = node.address + "_data"
+
   private final val TierTag = Settings.namespace + "tier"
   private final val VolumeTag = "volume"
   private final val ColorsTag = "colors"
@@ -495,12 +496,10 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def writeToNBTForServer(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(TierTag, tier.toByte)
     super.writeToNBTForServer(nbt)
-    if (!Waila.isSavingForTooltip) {
-      SaveHandler.scheduleSave(world, x, z, nbt, dataPath, tag => {
-        tag.setIntArray(VolumeTag, volume)
-        tag.setIntArray(ColorsTag, colors.map(convertColor))
-      })
-    }
+    SaveHandler.scheduleSave(getWorld, x, z, nbt, dataPath, tag => {
+      tag.setIntArray(VolumeTag, volume)
+      tag.setIntArray(ColorsTag, colors.map(convertColor))
+    })
     nbt.setDouble(ScaleTag, scale)
     nbt.setDouble(OffsetXTag, translation.xCoord)
     nbt.setDouble(OffsetYTag, translation.yCoord)

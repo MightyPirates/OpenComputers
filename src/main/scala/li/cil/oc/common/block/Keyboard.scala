@@ -92,7 +92,7 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
       })
   }
 
-  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, neighborBlock: Block): Unit =
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit =
     world.getTileEntity(pos) match {
       case keyboard: tileentity.Keyboard =>
         if (!canPlaceBlockOnSide(world, pos, keyboard.facing)) {

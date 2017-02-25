@@ -52,11 +52,11 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
     super.setSideOpen(side, value)
     if (isServer) {
       ServerPacketSender.sendAdapterState(this)
-      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
-      world.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+      getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
+      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
       neighborChanged(side)
     } else {
-      world.notifyBlockUpdate(getPos, world.getBlockState(getPos), world.getBlockState(getPos), 3)
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 
@@ -80,7 +80,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   def neighborChanged(d: EnumFacing) {
     if (node != null && node.network != null) {
       val blockPos = getPos.offset(d)
-      world.getTileEntity(blockPos) match {
+      getWorld.getTileEntity(blockPos) match {
         case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
@@ -88,7 +88,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          Option(api.Driver.driverFor(world, blockPos, d)) match {
+          Option(api.Driver.driverFor(getWorld, blockPos, d)) match {
             case Some(newDriver) if isSideOpen(d) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
@@ -99,7 +99,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                   node.disconnect(oldEnvironment.node)
 
                   // Then rebuild - if we have something.
-                  val environment = newDriver.createEnvironment(world, blockPos, d)
+                  val environment = newDriver.createEnvironment(getWorld, blockPos, d)
                   if (environment != null) {
                     blocks(d.ordinal()) = Some((environment, newDriver))
                     if (environment.canUpdate) {
@@ -114,7 +114,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                   return
                 }
                 // A challenger appears. Maybe.
-                val environment = newDriver.createEnvironment(world, blockPos, d)
+                val environment = newDriver.createEnvironment(getWorld, blockPos, d)
                 if (environment != null) {
                   blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {

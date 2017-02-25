@@ -19,12 +19,7 @@ import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
-@Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = Mods.IDs.RedLogic),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = Mods.IDs.RedLogic),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = Mods.IDs.RedLogic)
-))
-trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmitter with IRedstoneUpdatable TODO RedLogic */ {
+trait RedstoneAware extends RotationAware {
   protected[tileentity] val _input = Array.fill(6)(-1)
 
   protected[tileentity] val _output = Array.fill(6)(0)
@@ -135,34 +130,19 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
 
   protected def onRedstoneOutputEnabledChanged() {
-    if (world != null) {
-      world.notifyNeighborsOfStateChange(getPos, getBlockType, true)
+    if (getWorld != null) {
+      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
       if (isServer) ServerPacketSender.sendRedstoneState(this)
-      else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+      else getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 
   protected def onRedstoneOutputChanged(side: EnumFacing) {
     val blockPos = getPos.offset(side)
-    world.neighborChanged(blockPos, getBlockType, blockPos)
-    world.notifyNeighborsOfStateExcept(blockPos, world.getBlockState(blockPos).getBlock, side.getOpposite)
+    getWorld.neighborChanged(blockPos, getBlockType, blockPos)
+    getWorld.notifyNeighborsOfStateExcept(blockPos, getWorld.getBlockState(blockPos).getBlock, side.getOpposite)
 
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    else getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
   }
-
-  // ----------------------------------------------------------------------- //
-  /* TODO RedLogic
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def onRedstoneInputChanged() = checkRedstoneInputChanged()
-  */
 }
