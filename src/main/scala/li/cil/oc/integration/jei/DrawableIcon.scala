@@ -83,7 +83,7 @@ class TickTimer(ticksPerCycle: Int, maxValue: Int, countDown: Boolean = false) e
   private var tickCount: Int = 0
 
   def getValue: Int = {
-    val worldTime = Minecraft.getMinecraft.theWorld.getTotalWorldTime
+    val worldTime = Minecraft.getMinecraft.world.getTotalWorldTime
     val ticksPassed = worldTime - lastUpdateWorldTime
     lastUpdateWorldTime = worldTime
     tickCount += ticksPassed.toInt
