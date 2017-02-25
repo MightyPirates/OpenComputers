@@ -4,6 +4,7 @@ import java.util
 import javax.annotation.Nonnull
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api
 import mezz.jei.api.IGuiHelper
 import mezz.jei.api.IModRegistry
@@ -15,6 +16,7 @@ import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.client.config.GuiButtonExt
 
 import scala.collection.convert.WrapAsJava._
@@ -65,10 +67,12 @@ object ManualUsageHandler {
   object ManualUsageRecipeCategory extends BlankRecipeCategory[ManualUsageRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
-    private var background: IDrawable = null
+    private var background: IDrawable = _
+    private var icon: IDrawable = _
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
+      icon = new DrawableIcon(new ResourceLocation(Settings.resourceDomain, "textures/items/manual.png"), 0, 0, 16, 16, 16, 16)
     }
 
     override def getBackground: IDrawable = background
