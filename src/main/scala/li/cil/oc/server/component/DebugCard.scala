@@ -10,13 +10,15 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.DebugCard.AccessContext
-import li.cil.oc.server.component.DebugCard.CommandSender
+import li.cil.oc.server.network.DebugNetwork
+import li.cil.oc.server.network.DebugNetwork.DebugNode
+import li.cil.oc.server.component.DebugCard.{AccessContext, CommandSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -52,7 +54,7 @@ import net.minecraftforge.fml.common.ModAPIManager
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
+class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with DebugNode {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().
@@ -201,21 +203,58 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  @Callback(doc = """function(player:string, text:string) -- Sends text to the specified player's clipboard if possible.""")
+  def sendToClipboard(context: Context, args: Arguments): Array[AnyRef] = {
+    checkAccess()
+    Option(FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(args.checkString(0))) match {
+      case Some(player) =>
+        PacketSender.sendClipboard(player, args.checkString(1))
+        result(true)
+      case _ =>
+        result(false, "no such player")
+    }
+  }
+
+  @Callback(doc = """function(address:string, data...) -- Sends data to the debug card with the specified address.""")
+  def sendToDebugCard(context: Context, args: Arguments): Array[AnyRef] = {
+    checkAccess()
+    val destination = args.checkString(0)
+    DebugNetwork.getEndpoint(destination).filter(_ != this).foreach{endpoint =>
+      // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
+      val packet = Network.newPacket(node.address, destination, 0, args.drop(1).asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
+      endpoint.receivePacket(packet)
+    }
+    result()
+  }
+
+  override def receivePacket(packet: Packet) {
+    val distance = 0
+    node.sendToReachable("computer.signal", Seq("debug_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+  }
+
+  override def address: String = if(node != null) node.address() else "debug"
+
+  // ----------------------------------------------------------------------- //
+
   override def onConnect(node: Node): Unit = {
     super.onConnect(node)
-    if (node == this.node) remoteNodePosition.foreach {
-      case (x, y, z) =>
-        remoteNode = findNode(BlockPosition(x, y, z))
-        remoteNode match {
-          case Some(other) => node.connect(other)
-          case _ => remoteNodePosition = None
-        }
+    if (node == this.node) {
+      DebugNetwork.add(this)
+      remoteNodePosition.foreach {
+        case (x, y, z) =>
+          remoteNode = findNode(BlockPosition(x, y, z))
+          remoteNode match {
+            case Some(other) => node.connect(other)
+            case _ => remoteNodePosition = None
+          }
+      }
     }
   }
 
   override def onDisconnect(node: Node): Unit = {
     super.onDisconnect(node)
     if (node == this.node) {
+      DebugNetwork.remove(this)
       remoteNode.foreach(other => other.disconnect(node))
     }
     else if (remoteNode.contains(node)) {

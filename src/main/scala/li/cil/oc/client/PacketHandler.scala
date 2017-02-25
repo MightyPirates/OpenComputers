@@ -16,11 +16,14 @@ import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.jei.ModJEI
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
@@ -29,6 +32,7 @@ import net.minecraft.util.SoundCategory
 import net.minecraft.util.SoundEvent
 import net.minecraft.util.math.Vec3d
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.Optional
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import org.lwjgl.input.Keyboard
@@ -51,6 +55,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
+      case PacketType.Clipboard => onClipboard(p)
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
@@ -68,6 +73,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.CyclingDisk => onCyclingDisk(p)
       case PacketType.NanomachinesConfiguration => onNanomachinesConfiguration(p)
       case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
       case PacketType.NanomachinesPower => onNanomachinesPower(p)
@@ -130,6 +136,10 @@ object PacketHandler extends CommonPacketHandler {
 
   def onClientLog(p: PacketParser) = {
     OpenComputers.log.info(p.readUTF())
+  }
+
+  def onClipboard(p: PacketParser) {
+    GuiScreen.setClipboardString(p.readUTF())
   }
 
   def onColorChange(p: PacketParser) =
@@ -310,6 +320,21 @@ object PacketHandler extends CommonPacketHandler {
     val stack = p.readItemStack()
     if (stack != null) {
       Loot.disksForClient += stack
+    }
+    if(Mods.JustEnoughItems.isAvailable) {
+      addDiskToJEI(stack)
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.JustEnoughItems)
+  private def addDiskToJEI(stack: ItemStack): Unit = {
+    ModJEI.addDiskAtRuntime(stack)
+  }
+
+  def onCyclingDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForCyclingClient += stack
     }
   }
 

@@ -38,6 +38,8 @@ class ModPluginOpenComputers extends IModPlugin {
     registry.addRecipes(CallbackDocHandler.getRecipes(registry))
 
     registry.addAdvancedGuiHandlers(RelayGuiHandler)
+
+    ModJEI.ingredientRegistry = Option(registry.getIngredientRegistry)
   }
 
   private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = _
@@ -69,7 +71,7 @@ class ModPluginOpenComputers extends IModPlugin {
       Constants.ItemName.Tablet
     )
 
-    subtypeRegistry.registerNbtInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
+    subtypeRegistry.registerSubtypeInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
       override def getSubtypeInfo(stack: ItemStack): String = {
         if (!stack.hasTagCompound) return null
         val compound: NBTTagCompound = stack.getTagCompound

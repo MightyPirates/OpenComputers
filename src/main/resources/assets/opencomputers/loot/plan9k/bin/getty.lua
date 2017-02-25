@@ -49,7 +49,7 @@ local function unblink()
 end
 
 local function reblink()
-    if not blinkState then
+    if not blinkState and blink then
         blinkState = not blinkState
         local char, fg, bg = component.invoke(gpu, "get", x, y)
         preblinkbg = blinkState and bg or preblinkbg
@@ -184,6 +184,15 @@ mcommands["49"] = function()component.invoke(gpu, "setBackground", 0x000000)end
 local lcommands = {}
 
 lcommands["4"] = function()end --Reset to replacement mode
+lcommands["?25"] = function()
+    blink = false
+end
+
+local hcommands = {}
+
+hcommands["?25"] = function()
+    blink = true
+end
 
 local ncommands = {}
 
@@ -277,6 +286,20 @@ control["l"] = function(char)
     end
 end
 
+control["h"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    if not commandList[1] or commandList[1] == "" then
+        commandList[1] = "0"
+    end
+    for _, command in ipairs(commandList) do
+        if not hcommands[command] then
+            pipes.log("Unknown escape code: " .. tostring(command))
+            break
+        end
+        hcommands[command]()
+    end
+end
+
 control["n"] = function(char)
     commandList[#commandList + 1] = commandBuf
     if not commandList[1] or commandList[1] == "" then
@@ -330,6 +353,23 @@ control["!"] = function(char) --Disable
         end
         blink = false
         return true
+    end
+end
+
+-- \x1b9[Row];[Col];[Height];[Width];[Dest Row];[Dest Col]c -- copy
+control["c"] = function(char)
+    if commandMode == "9" then
+        commandList[#commandList + 1] = commandBuf
+        if #commandList == 6 then
+            component.invoke(gpu,
+                             "copy",
+                             tonumber(commandList[2]),
+                             tonumber(commandList[1]),
+                             tonumber(commandList[4]),
+                             tonumber(commandList[3]),
+                             tonumber(commandList[6]),
+                             tonumber(commandList[5]))
+        end
     end
 end
 

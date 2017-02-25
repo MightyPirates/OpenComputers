@@ -17,7 +17,7 @@ options.source_label = args[1]
 local root_exception
 
 if options.help then
-  print([[Usage: install [OPTION]...
+  write([[Usage: install [OPTION]...
   --from=ADDR        install filesystem at ADDR
                      default: builds list of
                      candidates and prompts user
@@ -29,7 +29,8 @@ if options.help then
   --label            override label from .prop
   --nosetlabel       do not label target
   --nosetboot        do not use target for boot
-  --noreboot         do not reboot after install]])
+  --noreboot         do not reboot after install
+]])
   return nil -- exit success
 end
 
@@ -132,8 +133,10 @@ for dev, path in fs.mounts() do
         prop = prop_data
       end
       candidate.prop = prop and load('return ' .. prop)() or {}
-      if not options.source_label or options.source_label:lower() == (candidate.prop.label or dev.getLabel()):lower() then
-        table.insert(options.sources, candidate)
+      if not candidate.prop.ignore then
+        if not options.source_label or options.source_label:lower() == (candidate.prop.label or (dev.getLabel() or "")):lower() then
+          table.insert(options.sources, candidate)
+        end
       end
     end
   end

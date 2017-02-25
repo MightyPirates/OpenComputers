@@ -2,22 +2,25 @@ local shell = require("shell")
 local fs = require("filesystem")
 
 local args, options = shell.parse(...)
+local error_code = 0
 
 local function pop(key, convert)
   local result = options[key]
   options[key] = nil
   if result and convert then
-    local c = convert(result)
+    local c = tonumber(result)
     if not c then
-      error('invalid ' .. key .. ': could not convert ' .. result)
+      io.stderr:write(string.format("use --%s=n where n is a number\n", key))
+      options.help = true
+      error_code = 1
     end
     result = c
   end
   return result
 end
 
-local bytes = pop('bytes', tonumber)
-local lines = pop('lines', tonumber)
+local bytes = pop('bytes', true)
+local lines = pop('lines', true)
 local quiet = {pop('q'), pop('quiet'), pop('silent')}
 quiet = quiet[1] or quiet[2] or quiet[3]
 local verbose = {pop('v'), pop('verbose')}
@@ -33,13 +36,14 @@ if help or next(options) then
   local invalid_key = next(options)
   if invalid_key then
     invalid_key = string.format('invalid option: %s\n', invalid_key)
+    error_code = 1
   else
     invalid_key = ''
   end
   print(invalid_key .. [[Usage: head [--lines=n] file
 Print the first 10 lines of each FILE to stdout.
 For more info run: man head]])
-  os.exit()
+  os.exit(error_code)
 end
 
 if #args == 0 then

@@ -16,7 +16,15 @@ object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784
   // Lazy to give other mods a chance to register their potions.
   lazy val PotionWhitelist = filterPotions(Settings.get.nanomachinePotionWhitelist)
 
-  def filterPotions(list: Iterable[String]) = list.map(Potion.getPotionFromResourceLocation).filter(_ != null).toSet
+  def filterPotions[T](list: Iterable[T]) = {
+    list.map {
+      case name: String => Option(Potion.getPotionFromResourceLocation(name))
+      case id: java.lang.Number => Option(Potion.getPotionById(id.intValue()))
+      case _ => None
+    }.collect {
+      case Some(potion) => potion
+    }.toSet
+  }
 
   def isPotionEligible(potion: Potion) = potion != null && PotionWhitelist.contains(potion)
 
@@ -27,14 +35,14 @@ object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784
   override def writeBehaviorToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
     behavior match {
       case potionBehavior: PotionBehavior =>
-        nbt.setInteger("potionId", Potion.getIdFromPotion(potionBehavior.potion))
+        nbt.setString("potionId", Potion.REGISTRY.getNameForObject(potionBehavior.potion).toString)
       case _ => // Shouldn't happen, ever.
     }
   }
 
   override def readBehaviorFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = {
-    val potionId = nbt.getInteger("potionId")
-    new PotionBehavior(Potion.getPotionById(potionId), player)
+    val potionId = nbt.getString("potionId")
+    new PotionBehavior(Potion.getPotionFromResourceLocation(potionId), player)
   }
 
   class PotionBehavior(val potion: Potion, player: EntityPlayer) extends AbstractBehavior(player) {

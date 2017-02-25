@@ -10,6 +10,9 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.entity.item.ItemTossEvent
+import net.minecraftforge.fml.common.eventhandler.Event.Result
 
 import scala.collection.convert.WrapAsScala._
 
@@ -56,8 +59,15 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
         case _ =>
           // No inventory to drop into, drop into the world.
           val dropped = inventory.decrStackSize(selectedSlot, count)
+          val validator = (item: EntityItem) => {
+            val event = new ItemTossEvent(item, fakePlayer)
+            val canceled = MinecraftForge.EVENT_BUS.post(event)
+            val denied = event.hasResult && event.getResult == Result.DENY
+            !canceled && !denied
+          }
           if (dropped != null && dropped.stackSize > 0) {
-            InventoryUtils.spawnStackInWorld(position, dropped, Some(facing))
+            if (InventoryUtils.spawnStackInWorld(position, dropped, Some(facing), Some(validator)) == null)
+              fakePlayer.inventory.addItemStackToInventory(dropped)
           }
       }
 

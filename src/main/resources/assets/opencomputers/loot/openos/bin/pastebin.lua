@@ -21,7 +21,7 @@ local function get(pasteId, filename)
   end
 
   io.write("Downloading from pastebin.com... ")
-  local url = "http://pastebin.com/raw.php?i=" .. pasteId
+  local url = "http://pastebin.com/raw/" .. pasteId
   local result, response = pcall(internet.request, url)
   if result then
     io.write("success.\n")

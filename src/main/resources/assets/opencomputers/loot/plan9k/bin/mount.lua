@@ -10,7 +10,7 @@ if #args == 0 then
   end
   return
 end
-if #args < 2 then
+--[[if #args < 2 then
   io.write("Usage: mount [label|address path]\n")
   io.write("Note that the address may be abbreviated.")
   return
@@ -25,4 +25,12 @@ end
 local result, reason = fs.mount(table.unpack(args))
 if not result then
   io.stderr:write(reason)
+end
+]]
+
+local h = fs.open("/sys/mount")
+local r, err = h:write(table.concat(args, " "))
+h:close()
+if err then
+    print("Error: " .. tostring(err))
 end

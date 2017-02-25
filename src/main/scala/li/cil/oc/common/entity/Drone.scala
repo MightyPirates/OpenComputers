@@ -472,6 +472,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def processInitialInteract(player: EntityPlayer, stack: ItemStack, hand: EnumHand): Boolean = {
+    if (isDead) return false
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItemMainhand)) {
         if(!world.isRemote) {
@@ -543,6 +544,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def kill(): Unit = {
+    if (isDead) return
     super.kill()
     if (!world.isRemote) {
       val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
@@ -590,6 +592,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
+    if (worldObj.isRemote) return
     components.saveComponents()
     info.storedEnergy = globalBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)

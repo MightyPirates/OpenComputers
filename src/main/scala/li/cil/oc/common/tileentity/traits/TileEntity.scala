@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import java.util.Date
-
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Sound
@@ -19,8 +17,6 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   private final val IsServerDataTag = Settings.namespace + "isServerData"
-
-  private var isChunkUnloading = false
 
   def world = getWorld
 
@@ -56,11 +52,12 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    isChunkUnloading = true
+    try dispose() catch {
+      case t: Throwable => OpenComputers.log.error("Failed properly disposing a tile entity, things may leak and or break.", t)
+    }
   }
 
   protected def initialize() {
-    isChunkUnloading = false
   }
 
   def dispose() {
@@ -102,11 +99,6 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   override def writeToNBT(nbt: NBTTagCompound): NBTTagCompound = {
     if (isServer) {
       writeToNBTForServer(nbt)
-    }
-    if (isChunkUnloading) {
-      try dispose() catch {
-        case t: Throwable => OpenComputers.log.error("Failed properly disposing a tile entity, things may leak and or break.", t)
-      }
     }
     nbt
   }

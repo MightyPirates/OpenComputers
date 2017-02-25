@@ -108,7 +108,7 @@ function new(readfs, writefs)
         end
         return result
     end
-    proxy.open = function(path, mode) --hnd = orig * 2 [+ 1]
+    proxy.open = function(path, mode)
         if mode:sub(1, 1) == "w" then
             if readfs.exists(path) and not writefs.exists(kernel.modules.vfs.path(path)..".cfsdel."..kernel.modules.vfs.name(path)) then
                 if readfs.isDirectory(path) then

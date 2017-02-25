@@ -222,6 +222,7 @@ class Settings(val config: Config) {
   val transposerCost = config.getDouble("power.cost.transposer") max 0
   val nanomachineCost = config.getDouble("power.cost.nanomachineInput") max 0
   val nanomachineReconfigureCost = config.getDouble("power.cost.nanomachinesReconfigure") max 0
+  val mfuCost = config.getDouble("power.cost.mfuRelay") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -359,6 +360,7 @@ class Settings(val config: Config) {
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
   val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
   val tradingRange = config.getDouble("misc.tradingRange") max 0
+  val mfuRange = config.getInt("misc.mfuRange") max 0 min 128
 
   // ----------------------------------------------------------------------- //
   // nanomachines
@@ -372,7 +374,7 @@ class Settings(val config: Config) {
   val nanomachinesCommandRange = config.getDouble("nanomachines.commandRange") max 0
   val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
-  val nanomachinePotionWhitelist = config.getStringList("nanomachines.potionWhitelist")
+  val nanomachinePotionWhitelist = config.getAnyRefList("nanomachines.potionWhitelist")
   val nanomachinesHungryDamage = config.getDouble("nanomachines.hungryDamage").toFloat max 0
   val nanomachinesHungryEnergyRestored = config.getDouble("nanomachines.hungryEnergyRestored") max 0
 
@@ -513,6 +515,10 @@ object Settings {
     // Upgrading to version 1.5.20, changed relay delay default.
     VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
       "switch.relayDelayUpgrade"
+    ),
+    // Potion whitelist was fixed in 1.6.2.
+    VersionRange.createFromVersionSpec("[0.0, 1.6.2)") -> Array(
+      "nanomachines.potionWhitelist"
     )
   )
 
@@ -650,7 +656,7 @@ object Settings {
       }
 
       def checkAccess(ctxOpt: Option[DebugCard.AccessContext]): Option[String] = ctxOpt match {
-        case Some(ctx) => values.get(ctx.player) match {
+        case Some(ctx) => values.get(ctx.player.toLowerCase) match {
           case Some(x) =>
             if (x == ctx.nonce) None
             else Some("debug card is invalidated, please re-bind it to yourself")

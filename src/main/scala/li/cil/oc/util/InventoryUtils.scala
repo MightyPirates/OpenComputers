@@ -102,7 +102,7 @@ object InventoryUtils {
         inventory.insertItem(slot, toInsert, simulate) match {
           case remaining: ItemStack =>
             val result = remaining.stackSize < amount
-            stack.stackSize = remaining.stackSize
+            stack.stackSize += remaining.stackSize
             result
           case _ => true
         }
@@ -368,7 +368,7 @@ object InventoryUtils {
   /**
    * Utility method for spawning an item stack in the world.
    */
-  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None): EntityItem = position.world match {
+  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None, validator: Option[EntityItem => Boolean] = None): EntityItem = position.world match {
     case Some(world) if stack != null && stack.stackSize > 0 =>
       val rng = world.rand
       val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getFrontOffsetX, d.getFrontOffsetY, d.getFrontOffsetZ))
@@ -381,9 +381,12 @@ object InventoryUtils {
       entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + ox * 0.03
       entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + oy * 0.08 + (ox + oz) * 0.03
       entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03
-      entity.setPickupDelay(15)
-      world.spawnEntityInWorld(entity)
-      entity
+      if (validator.fold(true)(_ (entity))) {
+        entity.setPickupDelay(15)
+        world.spawnEntityInWorld(entity)
+        entity
+      }
+      else null
     case _ => null
   }
 }

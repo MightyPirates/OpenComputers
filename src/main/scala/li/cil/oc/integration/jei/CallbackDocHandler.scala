@@ -5,6 +5,7 @@ import javax.annotation.Nonnull
 
 import com.google.common.base.Strings
 import com.mojang.realmsclient.gui.ChatFormatting
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.prefab.DriverTileEntity
@@ -20,6 +21,7 @@ import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -123,10 +125,14 @@ object CallbackDocHandler {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
     private var background: IDrawable = _
+    private var icon: IDrawable = _
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
+      icon = new DrawableAnimatedIcon(new ResourceLocation(Settings.resourceDomain, "textures/items/tablet_on.png"), 0, 0, 16, 16, 16, 32, new TickTimer(20, 1, countDown = true), 0, 16)
     }
+
+    override def getIcon: IDrawable = icon
 
     override def getBackground: IDrawable = background
 

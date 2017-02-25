@@ -1,1 +1,1 @@
-{database="/var/lib/mpt/base.db",frontend={mpt={api="http://mpt.magik6k.net/api/"}},cacheDir="/var/lib/mpt/cache/"}
+{frontend={mpt={api="http://mpt.magik6k.net/api/"}},cacheDir="/var/lib/mpt/cache/",database="/var/lib/mpt/base.db"}
