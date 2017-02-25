@@ -8,7 +8,7 @@
   "authorList": ["Sangar", "Vexatos", "payonel", "magik6k", "Lord Joda", "Github Contributors"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
-  "requiredMods": [ "Forge@[13.20.0.2252,)" ],
+  "requiredMods": [],
   "dependencies": [
     "JEI@[4.2.7.240,)"
   ],
