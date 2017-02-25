@@ -1,27 +1,16 @@
 [{
-  "modid": "OpenComputers",
+  "modid": "opencomputers",
   "name": "OpenComputers",
   "description": "This mod adds modular computers and robots that can be programmed in Lua.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "http://oc.cil.li/",
-  "authorList": ["Florian 'Sangar' Nuecke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
+  "authorList": ["Sangar", "Vexatos", "payonel", "magik6k", "Lord Joda", "Github Contributors"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
-  "requiredMods": [ "Forge@[12.18.1.2011,)" ],
+  "requiredMods": [ "Forge@[13.20.0.2252,)" ],
   "dependencies": [
-    "BuildCraft|Core",
-    "ComputerCraft",
-    "EnderStorage",
-    "ForgeMultipart",
-    "IC2",
-    "JEI@[3.14.4,)",
-    "MineFactoryReloaded",
-    "ProjRed|Transmission",
-    "RedLogic",
-    "StargateTech2",
-    "Thaumcraft",
-    "ThermalExpansion"
+    "JEI@[4.2.7.240,)"
   ],
   "dependants": [],
   "useDependencyInformation": "true"
