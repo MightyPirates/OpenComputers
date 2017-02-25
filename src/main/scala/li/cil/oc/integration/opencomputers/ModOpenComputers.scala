@@ -98,6 +98,7 @@ object ModOpenComputers extends ModProxy {
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(BlockChangeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
@@ -166,6 +167,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
     api.Driver.add(DriverUpgradeTrading)
+    api.Driver.add(DriverUpgradeMF)
 
     api.Driver.add(DriverAPU.Provider)
     api.Driver.add(DriverDataCard.Provider)
@@ -193,6 +195,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeSign.Provider)
     api.Driver.add(DriverUpgradeTankController.Provider)
     api.Driver.add(DriverUpgradeTractorBeam.Provider)
+    api.Driver.add(DriverUpgradeMF.Provider)
 
     api.Driver.add(EnvironmentProviderBlocks)
 

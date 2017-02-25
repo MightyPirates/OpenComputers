@@ -1,8 +1,13 @@
 local fs = require("filesystem")
 local shell = require("shell")
 
-local args = shell.parse(...)
+local args, ops = shell.parse(...)
 local argc = #args
+
+if ops and (ops.h or ops.help) then
+  print("see `man mount` for help");
+  os.exit(1)
+end
     
 if argc == 0 then 
   -- for each mount
@@ -20,10 +25,15 @@ if argc == 0 then
     local dev_mounts = mounts[device.dev_path]
     table.insert(dev_mounts, device)
   end
-    
-  table.sort(mounts)
-    
-  for dev_path, dev_mounts in pairs(mounts) do
+  
+  local smounts = {}
+  for key,value in pairs(mounts) do
+    smounts[#smounts+1] = {key, value}
+  end
+  table.sort(smounts, function(a,b) return a[1] < b[1] end)
+
+  for _, dev in ipairs(smounts) do
+    local dev_path, dev_mounts = table.unpack(dev)
     for _,device in ipairs(dev_mounts) do
       local rw_ro = "(" .. device.rw_ro .. ")"
       local fs_label = "\"" .. device.fs_label .. "\""
@@ -44,6 +54,8 @@ else
   if not proxy then
     io.stderr:write(reason,"\n")
     return 1
+  elseif ops.r then
+    proxy = require("tools/ro_wrapper").wrap(proxy)
   end
 
   local result, reason = fs.mount(proxy, shell.resolve(args[2]))

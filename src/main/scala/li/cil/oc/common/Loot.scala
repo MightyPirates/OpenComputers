@@ -46,13 +46,19 @@ object Loot {
 
   val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
+  def disksForCycling = if(disksForCyclingClient.nonEmpty) disksForCyclingClient else disksForCyclingServer
+
+  val disksForCyclingServer = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForCyclingClient = mutable.ArrayBuffer.empty[ItemStack]
+
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
 
   def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
 
-  def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem]): ItemStack = {
+  def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
     val mod = Loader.instance.activeModContainer.getModId
 
     OpenComputers.log.info(s"Registering loot disk '$name' from mod $mod.")
@@ -73,6 +79,10 @@ object Loot {
     stack.setTagCompound(nbt)
 
     Loot.factories += modSpecificName -> factory
+
+    if(doRecipeCycling) {
+      Loot.disksForCyclingServer += stack
+    }
 
     stack.copy()
   }
@@ -142,7 +152,7 @@ object Loot {
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-    val stack = registerLootDisk(path, color.getOrElse(8), callable)
+    val stack = registerLootDisk(path, color.getOrElse(8), callable, doRecipeCycling = true)
     stack.setStackDisplayName(name)
     if (!external) {
       Items.registerStack(stack, path)

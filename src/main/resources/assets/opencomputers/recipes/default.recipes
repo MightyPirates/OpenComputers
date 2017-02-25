@@ -295,6 +295,11 @@ inventoryControllerUpgrade {
           [dropper, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
+mfu {
+  input: [["oc:chamelium", gemLapis, "oc:chamelium"]
+  	      ["oc:linkedCard", "oc:adapter", "oc:linkedCard"]
+          ["oc:chamelium", gemLapis, "oc:chamelium"]]
+}
 leashUpgrade {
   input: [[ingotIron, lead, ingotIron]
           [lead, "oc:materialCU", lead]

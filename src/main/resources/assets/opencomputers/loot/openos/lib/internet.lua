@@ -11,10 +11,10 @@ function internet.request(url, data, headers)
   checkArg(2, data, "string", "table", "nil")
   checkArg(3, headers, "table", "nil")
 
-  local inet = component.internet
-  if not inet then
+  if not component.isAvailable("internet") then
     error("no primary internet card found", 2)
   end
+  local inet = component.internet
 
   local post
   if type(data) == "string" then
@@ -31,23 +31,35 @@ function internet.request(url, data, headers)
     error(reason, 2)
   end
 
-  return function()
-    while true do
-      local data, reason = request.read()
-      if not data then
-        request.close()
-        if reason then
-          error(reason, 2)
-        else
-          return nil -- eof
+  return setmetatable(
+  {
+    ["()"] = "function():string -- Tries to read data from the socket stream and return the read byte array.",
+    close = setmetatable({},
+    {
+      __call = request.close,
+      __tostring = function() return "function() -- closes the connection" end
+    })
+  },
+  {
+    __call = function()
+      while true do
+        local data, reason = request.read()
+        if not data then
+          request.close()
+          if reason then
+            error(reason, 2)
+          else
+            return nil -- eof
+          end
+        elseif #data > 0 then
+          return data
         end
-      elseif #data > 0 then
-        return data
+        -- else: no data, block
+        os.sleep(0)
       end
-      -- else: no data, block
-      os.sleep(0)
-    end
-  end
+    end,
+    __index = request,
+  })
 end
 
 -------------------------------------------------------------------------------

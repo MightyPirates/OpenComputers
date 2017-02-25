@@ -1,7 +1,7 @@
 -- called from /init.lua
 local raw_loadfile = ...
 
-_G._OSVERSION = "OpenOS 1.6"
+_G._OSVERSION = "OpenOS 1.6.1"
 
 local component = component
 local computer = computer
@@ -83,11 +83,13 @@ status("Initializing package management...")
 local package = dofile("/lib/package.lua")
 
 do
-  -- Unclutter global namespace now that we have the package module.
+  -- Unclutter global namespace now that we have the package module and a filesystem
   _G.component = nil
   _G.computer = nil
   _G.process = nil
   _G.unicode = nil
+  -- Inject the package modules into the global namespace, as in Lua.
+  _G.package = package
 
   -- Initialize the package module with some of our own APIs.
   package.loaded.component = component
@@ -96,8 +98,7 @@ do
   package.preload["buffer"] = loadfile("/lib/buffer.lua")
   package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
 
-  -- Inject the package and io modules into the global namespace, as in Lua.
-  _G.package = package
+  -- Inject the io modules
   _G.io = loadfile("/lib/io.lua")()
 
   --mark modules for delay loaded api

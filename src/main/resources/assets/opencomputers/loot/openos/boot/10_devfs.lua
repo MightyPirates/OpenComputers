@@ -4,17 +4,20 @@ setmetatable({
 },
 {
   __index=function(tbl,key)
-    local pass
-    local passthrough = function() return pass end
-    if key == "getLabel" then
-      pass = "devfs"
-    elseif key == "spaceTotal" or key == "spaceUsed" then
-      pass = 0
-    elseif key == "isReadOnly" then
-      pass = false
-    else
-      return require("devfs")[key]
+    local result =
+    ({
+      getLabel = "devfs",
+      spaceTotal = 0,
+      spaceUsed = 0,
+      isReadOnly = false,
+    })[key]
+
+    if result ~= nil then
+      return function() return result end
     end
-    return passthrough
+    local lib = require("devfs")
+    lib.register(tbl)
+    return lib.proxy[key]
   end
 }), "/dev")
+

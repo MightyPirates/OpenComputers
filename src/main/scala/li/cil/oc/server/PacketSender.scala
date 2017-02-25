@@ -67,6 +67,14 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
+  def sendClipboard(player: EntityPlayerMP, text: String) {
+    val pb = new SimplePacketBuilder(PacketType.Clipboard)
+
+    pb.writeUTF(text)
+
+    pb.sendToPlayer(player)
+  }
+
   def sendColorChange(t: Colored) {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
@@ -299,6 +307,13 @@ object PacketSender {
     val stacks = Loot.worldDisks.map(_._1)
     for (stack <- stacks) {
       val pb = new SimplePacketBuilder(PacketType.LootDisk)
+
+      pb.writeItemStack(stack)
+
+      pb.sendToPlayer(p)
+    }
+    for (stack <- Loot.disksForCyclingServer) {
+      val pb = new SimplePacketBuilder(PacketType.CyclingDisk)
 
       pb.writeItemStack(stack)
 
