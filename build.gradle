@@ -194,9 +194,12 @@ dependencies {
 /*
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"*/
     //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
-    //provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:deobf"
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
     //provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:deobf"
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:deobf"
+    provided ("codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:deobf") {
+        exclude module: "CodeChickenCore"
+        exclude module: "CodeChickenLib"
+    }
 /*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
@@ -210,11 +213,12 @@ dependencies {
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"/*
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
-    provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
-    provided ("mrtjp:ProjectRed:${config.projred.version}:dev") {
-        exclude module: 'CoFHCore'
+    provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"*/
+    provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
+        exclude module: 'NotEnoughItems'
+        exclude module: "CodeChickenLib"
     }
-    provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"*/
+    //provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
     deobfCompile "com.enderio.core:EnderCore:${config.ec.version}"
     deobfCompile("com.enderio:EnderIO:${config.eio.version}") {
         exclude module: "appliedenergistics2"
@@ -285,7 +289,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/nei/**'
             exclude 'li/cil/oc/integration/nek/**'
             exclude 'li/cil/oc/integration/poweradvantage/**'
-            exclude 'li/cil/oc/integration/projectred/**'
+            //exclude 'li/cil/oc/integration/projectred/**'
             exclude 'li/cil/oc/integration/railcraft/**'
             exclude 'li/cil/oc/integration/redlogic/**'
             exclude 'li/cil/oc/integration/rotarycraft/**'

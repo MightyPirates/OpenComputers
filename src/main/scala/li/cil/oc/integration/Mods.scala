@@ -122,7 +122,7 @@ object Mods {
     //    integration.mfr.ModMineFactoryReloaded,
     //    integration.mystcraft.ModMystcraft,
     //    integration.nek.ModNotEnoughKeys,
-    //    integration.projectred.ModProjectRed,
+    integration.projectred.ModProjectRed,
     //    integration.poweradvantage.ModPowerAdvantage,
     //    integration.railcraft.ModRailcraft,
     //    integration.redlogic.ModRedLogic,
@@ -219,8 +219,8 @@ object Mods {
     final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
     final val PowerAdvantage = "poweradvantage"
-    final val ProjectRedCore = "ProjRed|Core"
-    final val ProjectRedTransmission = "ProjRed|Transmission"
+    final val ProjectRedCore = "projectred-core"
+    final val ProjectRedTransmission = "projectred-transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"
     final val RotaryCraft = "RotaryCraft"
