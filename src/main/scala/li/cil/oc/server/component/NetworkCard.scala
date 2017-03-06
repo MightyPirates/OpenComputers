@@ -110,6 +110,9 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
+  @Callback(direct = true, doc = """function():number -- Gets the maximum number of packet parts (config setting).""")
+  def maxPacketParts(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketParts)
+  
   @Callback(direct = true, doc = """function():string, boolean -- Get the current wake-up message.""")
   def getWakeMessage(context: Context, args: Arguments): Array[AnyRef] = result(wakeMessage.orNull, wakeMessageFuzzy)
 
