@@ -6,10 +6,7 @@ import li.cil.oc.api.internal.Adapter
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Message, Node, Environment, Visibility}
 import li.cil.oc.util.ResultWrapper.result
 import li.cil.tis3d.api.ManualAPI
 import li.cil.tis3d.api.SerialAPI
@@ -49,7 +46,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
 
     // ----------------------------------------------------------------------- //
 
-    val node = api.Network.newNode(this, Visibility.Network).withComponent("serial_port").create()
+    val getNode = api.Network.newNode(this, Visibility.NETWORK).withComponent("serial_port").create()
 
     override def onMessage(message: Message): Unit = {}
 
@@ -103,12 +100,12 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
       readBuffer.synchronized(writeBuffer.synchronized {
         readBuffer.clear()
         writeBuffer.clear()
-        node.remove()
+        getNode.remove()
       })
     }
 
     override def readFromNBT(nbt: NBTTagCompound): Unit = {
-      node.load(nbt)
+      getNode.load(nbt)
 
       writeBuffer.clear()
       writeBuffer ++= nbt.getIntArray("writeBuffer").map(_.toShort)
@@ -118,7 +115,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     }
 
     override def writeToNBT(nbt: NBTTagCompound): Unit = {
-      node.save(nbt)
+      getNode.save(nbt)
 
       nbt.setIntArray("writeBuffer", writeBuffer.toArray.map(_.toInt))
       nbt.setIntArray("readBuffer", readBuffer.toArray.map(_.toInt))
@@ -126,8 +123,8 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     }
 
     private def ensureConnected(): Unit = {
-      if (tileEntity.node.network != node.network) {
-        tileEntity.node.connect(node)
+      if (tileEntity.getNode.getNetwork != getNode.getNetwork) {
+        tileEntity.getNode.connect(getNode)
       }
     }
   }

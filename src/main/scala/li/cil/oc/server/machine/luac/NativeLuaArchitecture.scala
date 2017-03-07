@@ -353,14 +353,14 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
       // on. First, clear the stack, meaning the current kernel.
       lua.setTop(0)
 
-      persistence.unpersist(SaveHandler.load(nbt, machine.node.address + "_kernel"))
+      persistence.unpersist(SaveHandler.load(nbt, machine.node.getAddress + "_kernel"))
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
         // the save was corrupt (maybe someone modified the Lua files).
         throw new LuaRuntimeException("Invalid kernel.")
       }
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
-        persistence.unpersist(SaveHandler.load(nbt, machine.node.address + "_stack"))
+        persistence.unpersist(SaveHandler.load(nbt, machine.node.getAddress + "_stack"))
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
           // could for the same reasons.
@@ -398,12 +398,12 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
       // Save the kernel state (which is always at stack index one).
       assert(lua.isThread(1))
 
-      SaveHandler.scheduleSave(machine.host, nbt, machine.node.address + "_kernel", persistence.persist(1))
+      SaveHandler.scheduleSave(machine.host, nbt, machine.node.getAddress + "_kernel", persistence.persist(1))
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        SaveHandler.scheduleSave(machine.host, nbt, machine.node.address + "_stack", persistence.persist(2))
+        SaveHandler.scheduleSave(machine.host, nbt, machine.node.getAddress + "_stack", persistence.persist(2))
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)

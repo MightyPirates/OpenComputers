@@ -14,6 +14,7 @@ import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
+import li.cil.oc.common.tileentity.traits.{RedstoneAwareImpl, RotatableImpl}
 import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -31,8 +32,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with traits.Tickable with Analyzable with traits.StateAware with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.None).
+class Charger extends traits.Environment with traits.PowerAcceptor with RedstoneAwareImpl with RotatableImpl with traits.ComponentInventory with traits.Tickable with Analyzable with traits.StateAware with DeviceInfo {
+  val getNode = api.Network.newNode(this, Visibility.NONE).
     withConnector(Settings.get.bufferConverter).
     create()
 
@@ -58,7 +59,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != facing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != facing) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != facing) getNode else null)
 
   override def energyThroughput = Settings.get.chargerRate
 
@@ -92,21 +93,21 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       // Charging of external devices.
       {
         val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
-        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        canCharge ||= charge > 0 && getNode.getGlobalBuffer >= charge * 0.5
         if (canCharge) {
-          connectors.foreach(connector => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge))))
+          connectors.foreach(connector => getNode.changeBuffer(connector.changeBuffer(charge + getNode.changeBuffer(-charge))))
         }
       }
 
       // Charging of internal devices.
       {
         val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
-        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        canCharge ||= charge > 0 && getNode.getGlobalBuffer >= charge * 0.5
         if (canCharge) {
           (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (stack != null) {
-            val offered = charge + node.changeBuffer(-charge)
+            val offered = charge + getNode.changeBuffer(-charge)
             val surplus = ItemCharge.charge(stack, offered)
-            node.changeBuffer(surplus)
+            getNode.changeBuffer(surplus)
           })
         }
       }
@@ -136,7 +137,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       onNeighborChanged()
     }
   }
@@ -261,7 +262,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
   }
 
-  class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.node.asInstanceOf[Connector]) {
+  class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.getNode.asInstanceOf[Connector]) {
     override def pos: Vec3d = BlockPosition(robot).toVec3
 
     override def equals(obj: scala.Any): Boolean = obj match {
@@ -272,7 +273,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     override def hashCode(): Int = robot.hashCode()
   }
 
-  class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
+  class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.getNode.asInstanceOf[Connector]) {
     override def pos: Vec3d = new Vec3d(drone.posX, drone.posY, drone.posZ)
 
     override def equals(obj: scala.Any): Boolean = obj match {

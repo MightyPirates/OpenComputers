@@ -1,7 +1,7 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.common.Tier
-import li.cil.oc.util.Rarity
+import li.cil.oc.util.RarityUtils
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 
@@ -11,7 +11,7 @@ class APU(val parent: Delegator, val tier: Int) extends traits.Delegate with tra
   override val unlocalizedName = super[Delegate].unlocalizedName + tier
 
   override def rarity(stack: ItemStack): EnumRarity =
-    if (tier == Tier.Three) Rarity.byTier(Tier.Four)
+    if (tier == Tier.Three) RarityUtils.fromTier(Tier.Four)
     else super.rarity(stack)
 
   override def cpuTier = math.min(Tier.Three, tier + 1)

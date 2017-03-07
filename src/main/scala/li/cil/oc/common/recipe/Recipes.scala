@@ -6,14 +6,14 @@ import java.io.FileReader
 import com.typesafe.config._
 import li.cil.oc._
 import li.cil.oc.common.Loot
-import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.common.block.AbstractBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.integration.util.ItemBlacklist
-import li.cil.oc.util.Color
+import li.cil.oc.util.DyeUtils
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
@@ -47,7 +47,7 @@ object Recipes {
     Items.registerBlock(instance, name)
     addRecipe(new ItemStack(instance), name)
     register(instance match {
-      case simple: SimpleBlock => simple.createItemStack()
+      case simple: AbstractBlock => simple.createItemStack()
       case _ => new ItemStack(instance)
     }, oreDict: _*)
     instance
@@ -230,10 +230,10 @@ object Recipes {
         navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.FILLED_MAP, 1, OreDictionary.WILDCARD_VALUE)))
 
       // Floppy disk coloring.
-      for (dye <- Color.dyes) {
+      for (dye <- DyeUtils.dyes) {
         val result = floppy.createItemStack(1)
         val tag = new NBTTagCompound()
-        tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(dye))
+        tag.setInteger(Settings.namespace + "color", DyeUtils.dyes.indexOf(dye))
         result.setTagCompound(tag)
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
       }
@@ -269,7 +269,7 @@ object Recipes {
         chameliumBlock.createItemStack(1)))
 
       // Chamelium dying.
-      for ((dye, meta) <- Color.dyes.zipWithIndex) {
+      for ((dye, meta) <- DyeUtils.dyes.zipWithIndex) {
         val result = chameliumBlock.createItemStack(1)
         result.setItemDamage(meta)
         val input = chameliumBlock.createItemStack(1)
@@ -486,7 +486,7 @@ object Recipes {
     }
     value.getItem match {
       case itemBlock: ItemBlock => itemBlock.getBlock match {
-        case simple: SimpleBlock =>
+        case simple: AbstractBlock =>
           simple.setCreativeTab(null)
           ItemBlacklist.hide(simple)
         case _ =>

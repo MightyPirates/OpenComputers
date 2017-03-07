@@ -7,13 +7,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.Rarity
+import li.cil.oc.util.{InventoryUtils, RarityUtils}
 import net.minecraft.block.Block
 import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
@@ -28,7 +26,7 @@ import net.minecraft.world.World
 
 import scala.reflect.ClassTag
 
-class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
+class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends BlockRedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
@@ -60,7 +58,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override def rarity(stack: ItemStack) = {
     val data = new MicrocontrollerData(stack)
-    Rarity.byTier(data.tier)
+    RarityUtils.fromTier(data.tier)
   }
 
   // ----------------------------------------------------------------------- //
@@ -104,16 +102,16 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override protected def doCustomInit(tileEntity: tileentity.Microcontroller, player: EntityLivingBase, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
-    if (!tileEntity.world.isRemote) {
+    if (!tileEntity.getWorld.isRemote) {
       tileEntity.info.load(stack)
-      tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.localBuffer)
+      tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.getLocalBuffer)
     }
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Microcontroller, player: EntityPlayer, willHarvest: Boolean): Unit = {
     super.doCustomDrops(tileEntity, player, willHarvest)
     tileEntity.saveComponents()
-    tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
-    Block.spawnAsEntity(tileEntity.world, tileEntity.getPos, tileEntity.info.createItemStack())
+    tileEntity.info.storedEnergy = tileEntity.snooperNode.getLocalBuffer.toInt
+    Block.spawnAsEntity(tileEntity.getWorld, tileEntity.getPos, tileEntity.info.createItemStack())
   }
 }

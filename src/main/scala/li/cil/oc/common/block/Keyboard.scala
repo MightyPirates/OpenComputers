@@ -4,8 +4,8 @@ import java.util.Random
 
 import li.cil.oc.Constants
 import li.cil.oc.api
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.TileEntityKeyboard
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.InventoryUtils
@@ -23,7 +23,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Keyboard extends SimpleBlock(Material.ROCK) {
+class Keyboard extends AbstractBlock(Material.ROCK) {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
@@ -45,7 +45,7 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard =>
+      case keyboard: TileEntityKeyboard =>
         val (pitch, yaw) = (keyboard.pitch, keyboard.yaw)
         val (forward, up) = pitch match {
           case side@(EnumFacing.DOWN | EnumFacing.UP) => (side, yaw)
@@ -74,13 +74,13 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
 
   // ----------------------------------------------------------------------- //
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Keyboard()
+  override def createNewTileEntity(world: World, metadata: Int) = new TileEntityKeyboard()
 
   // ----------------------------------------------------------------------- //
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random) =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard => api.Network.joinOrCreateNetwork(keyboard)
+      case keyboard: TileEntityKeyboard => api.Network.joinOrCreateNetwork(keyboard)
       case _ =>
     }
 
@@ -94,7 +94,7 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
 
   override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard =>
+      case keyboard: TileEntityKeyboard =>
         if (!canPlaceBlockOnSide(world, pos, keyboard.facing)) {
           world.setBlockToAir(pos)
           InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), api.Items.get(Constants.BlockName.Keyboard).createItemStack(1))
@@ -110,7 +110,7 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
 
   def adjacencyInfo(world: World, pos: BlockPos) =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard =>
+      case keyboard: TileEntityKeyboard =>
         val blockPos = pos.offset(keyboard.facing.getOpposite)
         world.getBlockState(blockPos).getBlock match {
           case screen: Screen => Some((keyboard, screen, blockPos, keyboard.facing.getOpposite))

@@ -30,16 +30,16 @@ import scala.collection.convert.WrapAsJava._
 class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
-  override def node = null
+  override def getNode = null
 
   val outputSides = Array.fill(6)(true)
 
-  val snooperNode = api.Network.newNode(this, Visibility.Network).
+  val snooperNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("microcontroller").
     withConnector(Settings.get.bufferMicrocontroller).
     create()
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.NETWORK).
     withComponent("microcontroller").
     create())
 
@@ -65,14 +65,14 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = side != facing
+  override def canConnect(side: EnumFacing) = side != getFacing
 
-  override def sidedNode(side: EnumFacing): Node = if (side != facing) super.sidedNode(side) else null
+  override def sidedNode(side: EnumFacing): Node = if (side != getFacing) super.sidedNode(side) else null
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != facing) snooperNode else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) snooperNode else null)
 
   override def energyThroughput = Settings.get.caseRate(Tier.One)
 
@@ -80,7 +80,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     super.onAnalyze(player, side, hitX, hitY, hitZ)
-    if (side != facing)
+    if (side != getFacing)
       Array(componentNodes(side.getIndex))
     else
       Array(machine.node)
@@ -90,7 +90,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def internalComponents(): java.lang.Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   // ----------------------------------------------------------------------- //
 
@@ -112,13 +112,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   @Callback(direct = true, doc = """function(side:number):boolean -- Get whether network messages are sent via the specified side.""")
   def isSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSideExcept(0, facing)
+    val side = args.checkSideExcept(0, getFacing)
     result(outputSides(side.ordinal()))
   }
 
   @Callback(doc = """function(side:number, open:boolean):boolean -- Set whether network messages are sent via the specified side.""")
   def setSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSideExcept(0, facing)
+    val side = args.checkSideExcept(0, getFacing)
     val oldValue = outputSides(side.ordinal())
     outputSides(side.ordinal()) = args.checkBoolean(1)
     result(oldValue)
@@ -131,10 +131,10 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
     // Pump energy into the internal network.
     if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      for (side <- EnumFacing.values if side != facing) {
+      for (side <- EnumFacing.values if side != getFacing) {
         sidedNode(side) match {
           case connector: Connector =>
-            val demand = snooperNode.globalBufferSize - snooperNode.globalBuffer
+            val demand = snooperNode.getGlobalBufferSize - snooperNode.getGlobalBuffer
             val available = demand + connector.changeBuffer(-demand)
             snooperNode.changeBuffer(available)
           case _ =>
@@ -154,18 +154,18 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // ----------------------------------------------------------------------- //
 
-  override protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network).
+  override protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.NETWORK).
     withConnector().
     create()
 
   override protected def onPlugConnect(plug: Plug, node: Node): Unit = {
     super.onPlugConnect(plug, node)
-    if (node == plug.node) {
+    if (node == plug.getNode) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(snooperNode)
     }
     if (plug.isPrimary)
-      plug.node.connect(componentNodes(plug.side.ordinal()))
+      plug.getNode.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
     connectComponents()
@@ -173,22 +173,22 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
     super.onPlugDisconnect(plug, node)
-    if (plug.isPrimary && node != plug.node)
-      plug.node.connect(componentNodes(plug.side.ordinal()))
+    if (plug.isPrimary && node != plug.getNode)
+      plug.getNode.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
   }
 
   override protected def onPlugMessage(plug: Plug, message: Message): Unit = {
-    if (message.name == "network.message" && message.source.network != snooperNode.network) {
-      snooperNode.sendToReachable(message.name, message.data: _*)
+    if (message.getName == "network.message" && message.getSource.getNetwork != snooperNode.getNetwork) {
+      snooperNode.sendToReachable(message.getName, message.getData: _*)
     }
   }
 
   override def onMessage(message: Message): Unit = {
-    if (message.name == "network.message" && message.source.network == snooperNode.network) {
-      for (side <- EnumFacing.values if outputSides(side.ordinal) && side != facing) {
-        sidedNode(side).sendToReachable(message.name, message.data: _*)
+    if (message.getName == "network.message" && message.getSource.getNetwork == snooperNode.getNetwork) {
+      for (side <- EnumFacing.values if outputSides(side.ordinal) && side != getFacing) {
+        sidedNode(side).sendToReachable(message.getName, message.getData: _*)
       }
     }
   }

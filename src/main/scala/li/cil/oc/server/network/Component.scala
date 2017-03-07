@@ -19,11 +19,11 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 trait Component extends network.Component with Node {
-  def visibility = _visibility
+  def getVisibility = _visibility
 
-  private lazy val callbacks = Callbacks(host)
+  private lazy val callbacks = Callbacks(getEnvironment)
 
-  private lazy val hosts = host match {
+  private lazy val hosts = getEnvironment match {
     case multi: CompoundBlockEnvironment =>
       callbacks.map {
         case (method, callback) => callback match {
@@ -45,34 +45,34 @@ trait Component extends network.Component with Node {
         }
       }
     case _ => callbacks.map {
-      case (method, callback) => method -> Some(host)
+      case (method, callback) => method -> Some(getEnvironment)
     }
   }
 
-  private var _visibility = Visibility.None
+  private var _visibility = Visibility.NONE
 
   def setVisibility(value: Visibility) = {
-    if (value.ordinal() > reachability.ordinal()) {
-      throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
-        "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
+    if (value.ordinal() > getReachability.ordinal()) {
+      throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + getName +
+        "' node with reachability '" + getReachability + "'. It will be limited to the node's reachability.")
     }
     if (SideTracker.isServer) {
-      if (network != null) _visibility match {
-        case Visibility.Neighbors => value match {
-          case Visibility.Network => addTo(reachableNodes)
-          case Visibility.None => removeFrom(neighbors)
+      if (getNetwork != null) _visibility match {
+        case Visibility.NEIGHBORS => value match {
+          case Visibility.NETWORK => addTo(getReachableNodes)
+          case Visibility.NONE => removeFrom(getNeighbors)
           case _ =>
         }
-        case Visibility.Network => value match {
-          case Visibility.Neighbors =>
-            val neighborSet = neighbors.toSet
-            removeFrom(reachableNodes.filterNot(neighborSet.contains))
-          case Visibility.None => removeFrom(reachableNodes)
+        case Visibility.NETWORK => value match {
+          case Visibility.NEIGHBORS =>
+            val neighborSet = getNeighbors.toSet
+            removeFrom(getReachableNodes.filterNot(neighborSet.contains))
+          case Visibility.NONE => removeFrom(getReachableNodes)
           case _ =>
         }
-        case Visibility.None => value match {
-          case Visibility.Neighbors => addTo(neighbors)
-          case Visibility.Network => addTo(reachableNodes)
+        case Visibility.NONE => value match {
+          case Visibility.NEIGHBORS => addTo(getNeighbors)
+          case Visibility.NETWORK => addTo(getReachableNodes)
           case _ =>
         }
       }
@@ -80,27 +80,27 @@ trait Component extends network.Component with Node {
     }
   }
 
-  def canBeSeenFrom(other: ImmutableNode) = visibility match {
-    case Visibility.None => false
-    case Visibility.Network => canBeReachedFrom(other)
-    case Visibility.Neighbors => isNeighborOf(other)
+  def canBeSeenFrom(other: ImmutableNode) = getVisibility match {
+    case Visibility.NONE => false
+    case Visibility.NETWORK => canBeReachedFrom(other)
+    case Visibility.NEIGHBORS => isNeighborOf(other)
   }
 
-  private def addTo(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.host match {
+  private def addTo(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getEnvironment match {
     case machine: Machine => machine.addComponent(this)
     case _ =>
   })
 
-  private def removeFrom(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.host match {
+  private def removeFrom(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getEnvironment match {
     case machine: Machine => machine.removeComponent(this)
     case _ =>
   })
 
   // ----------------------------------------------------------------------- //
 
-  override def methods = callbacks.keySet
+  override def getMethods = callbacks.keySet
 
-  override def annotation(method: String) =
+  override def getAnnotation(method: String) =
     callbacks.get(method) match {
       case Some(callback) => callbacks(method).annotation
       case _ => throw new NoSuchMethodException()
@@ -130,5 +130,5 @@ trait Component extends network.Component with Node {
     nbt.setInteger(NodeData.VisibilityTag, _visibility.ordinal())
   }
 
-  override def toString = super.toString + s"@$name"
+  override def toString = super.toString + s"@$getName"
 }

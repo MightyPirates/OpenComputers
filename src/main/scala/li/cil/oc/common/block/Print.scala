@@ -29,7 +29,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import scala.collection.convert.WrapAsJava._
 import scala.reflect.ClassTag
 
-class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] {
+class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends BlockRedstoneAware with traits.CustomDrops[tileentity.Print] {
   setLightOpacity(1)
   setHardness(1)
   setCreativeTab(null)

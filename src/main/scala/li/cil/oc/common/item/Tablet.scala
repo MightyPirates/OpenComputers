@@ -31,12 +31,8 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
-import li.cil.oc.util.Audio
-import li.cil.oc.util.BlockPosition
+import li.cil.oc.util._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.RotationHelper
-import li.cil.oc.util.Tooltip
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.ModelBakery
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
@@ -85,7 +81,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   override def rarity(stack: ItemStack) = {
     val data = new TabletData(stack)
-    Rarity.byTier(data.tier)
+    RarityUtils.fromTier(data.tier)
   }
 
   override def showDurabilityBar(stack: ItemStack) = true
@@ -229,17 +225,17 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.
-  val world = player.world
+  val getWorld = player.world
 
-  lazy val machine = if (world.isRemote) null else Machine.create(this)
+  lazy val machine = if (getWorld.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet = if (world.isRemote) null else new component.Tablet(this)
+  val tablet = if (getWorld.isRemote) null else new component.Tablet(this)
 
   var autoSave = true
 
-  private var isInitialized = !world.isRemote
+  private var isInitialized = !getWorld.isRemote
 
   private var lastRunning = false
 
@@ -247,19 +243,19 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   def items = data.items
 
-  override def facing = RotationHelper.fromYaw(player.rotationYaw)
+  override def getFacing = RotationUtils.fromYaw(player.rotationYaw)
 
   override def toLocal(value: EnumFacing) =
-    RotationHelper.toLocal(EnumFacing.NORTH, facing, value)
+    RotationUtils.toLocal(EnumFacing.NORTH, getFacing, value)
 
   override def toGlobal(value: EnumFacing) =
-    RotationHelper.toGlobal(EnumFacing.NORTH, facing, value)
+    RotationUtils.toGlobal(EnumFacing.NORTH, getFacing, value)
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
       val data = stack.getTagCompound
       load(data)
-      if (!world.isRemote) {
+      if (!getWorld.isRemote) {
         tablet.load(data.getCompoundTag(Settings.namespace + "component"))
         machine.load(data.getCompoundTag(Settings.namespace + "data"))
       }
@@ -271,7 +267,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       stack.setTagCompound(new NBTTagCompound())
     }
     val data = stack.getTagCompound
-    if (!world.isRemote) {
+    if (!getWorld.isRemote) {
       if (!data.hasKey(Settings.namespace + "data")) {
         data.setTag(Settings.namespace + "data", new NBTTagCompound())
       }
@@ -288,21 +284,21 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   }
 
   readFromNBT()
-  if (!world.isRemote) {
+  if (!getWorld.isRemote) {
     api.Network.joinNewNetwork(machine.node)
-    val charge = Math.max(0, this.data.energy - tablet.node.globalBuffer)
-    tablet.node.changeBuffer(charge)
+    val charge = Math.max(0, this.data.energy - tablet.getNode.getGlobalBuffer)
+    tablet.getNode.changeBuffer(charge)
     writeToNBT()
   }
 
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
-    if (node == this.node) {
+    if (node == this.getNode) {
       connectComponents()
-      node.connect(tablet.node)
+      node.connect(tablet.getNode)
     }
-    else node.host match {
+    else node.getEnvironment match {
       case buffer: api.internal.TextBuffer =>
         buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
@@ -312,21 +308,21 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
-    if (node != null) node.host match {
+    if (node != null) node.getEnvironment match {
       case buffer: api.internal.TextBuffer => components collect {
-        case Some(keyboard: api.internal.Keyboard) => buffer.node.connect(keyboard.node)
+        case Some(keyboard: api.internal.Keyboard) => buffer.getNode.connect(keyboard.getNode)
       }
       case keyboard: api.internal.Keyboard => components collect {
-        case Some(buffer: api.internal.TextBuffer) => keyboard.node.connect(buffer.node)
+        case Some(buffer: api.internal.TextBuffer) => keyboard.getNode.connect(buffer.getNode)
       }
       case _ =>
     }
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) {
+    if (node == this.getNode) {
       disconnectComponents()
-      tablet.node.remove()
+      tablet.getNode.remove()
     }
   }
 
@@ -381,7 +377,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   override def onMachineConnect(node: Node) = onConnect(node)
 
@@ -389,7 +385,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def node = Option(machine).fold(null: Node)(_.node)
+  override def getNode = Option(machine).fold(null: Node)(_.node)
 
   // ----------------------------------------------------------------------- //
 
@@ -415,8 +411,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       machine.update()
       updateComponents()
       data.isRunning = machine.isRunning
-      data.energy = tablet.node.globalBuffer()
-      data.maxEnergy = tablet.node.globalBufferSize()
+      data.energy = tablet.getNode.getGlobalBuffer()
+      data.maxEnergy = tablet.getNode.getGlobalBufferSize()
 
       if (lastRunning != machine.isRunning) {
         lastRunning = machine.isRunning
@@ -510,7 +506,7 @@ object Tablet {
 
         // Force re-load on world change, in case some components store a
         // reference to the world object.
-        if (holder.world != wrapper.world) {
+        if (holder.world != wrapper.getWorld) {
           wrapper.writeToNBT(clearState = false)
           wrapper.autoSave = false
           cache.invalidate(id)
@@ -530,11 +526,11 @@ object Tablet {
 
     def onRemoval(e: RemovalNotification[String, TabletWrapper]) {
       val tablet = e.getValue
-      if (tablet.node != null) {
+      if (tablet.getNode != null) {
         // Server.
         if (tablet.autoSave) tablet.writeToNBT()
         tablet.machine.stop()
-        for (node <- tablet.machine.node.network.nodes) {
+        for (node <- tablet.machine.node.getNetwork.nodes) {
           node.remove()
         }
         if (tablet.autoSave) tablet.writeToNBT()
@@ -543,7 +539,7 @@ object Tablet {
 
     def clear(world: World) {
       cache.synchronized {
-        val tabletsInWorld = cache.asMap.filter(_._2.world == world)
+        val tabletsInWorld = cache.asMap.filter(_._2.getWorld == world)
         cache.invalidateAll(asJavaIterable(tabletsInWorld.keys))
         cache.cleanUp()
       }
@@ -574,7 +570,7 @@ object Tablet {
   object Server extends Cache {
     def saveAll(world: World) {
       cache.synchronized {
-        for (tablet <- cache.asMap.values if tablet.world == world) {
+        for (tablet <- cache.asMap.values if tablet.getWorld == world) {
           tablet.writeToNBT()
         }
       }

@@ -1,9 +1,11 @@
 package li.cil.oc.api.driver;
 
+import li.cil.oc.api.network.Environment;
+
 import java.util.Map;
 
 /**
- * Implement this on {@link li.cil.oc.api.network.Environment}s if you wish to
+ * Implement this on {@link Environment}s if you wish to
  * expose some (typically static) information about the device represented by
  * that environment to a {@link li.cil.oc.api.Machine} connected to it.
  * <p/>

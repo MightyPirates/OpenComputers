@@ -15,7 +15,7 @@ object DriverUpgradeChunkloader extends Item with HostAware {
     api.Items.get(Constants.ItemName.ChunkloaderUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.UpgradeChunkloader(host)
 
   override def slot(stack: ItemStack) = Slot.Upgrade

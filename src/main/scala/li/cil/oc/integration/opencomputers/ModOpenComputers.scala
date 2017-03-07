@@ -9,9 +9,11 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.Wrench
 import li.cil.oc.api.manual.PathProvider
-import li.cil.oc.api.prefab.ItemStackTabIconRenderer
 import li.cil.oc.api.prefab.ResourceContentProvider
 import li.cil.oc.api.prefab.TextureTabIconRenderer
+import li.cil.oc.api.prefab.manual.ItemStackTabIconRenderer
+import li.cil.oc.api.prefab.manual.ResourceContentProvider
+import li.cil.oc.api.prefab.manual.TextureTabIconRenderer
 import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.markdown.segment.render.BlockImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.ItemImageProvider
@@ -21,7 +23,7 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
-import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.common.block.AbstractBlock
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
@@ -41,7 +43,7 @@ import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.util.Color
+import li.cil.oc.util.DyeUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.math.BlockPos
@@ -355,7 +357,7 @@ object ModOpenComputers extends ModProxy {
   }
 
   def dyeInkProvider(stack: ItemStack): Int = {
-    if (Color.isDye(stack))
+    if (DyeUtils.isDye(stack))
       Settings.get.printInkValue / 10
     else
       0
@@ -383,7 +385,7 @@ object ModOpenComputers extends ModProxy {
     }
 
     override def pathFor(world: World, pos: BlockPos): String = world.getBlockState(pos).getBlock match {
-      case block: SimpleBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
+      case block: AbstractBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
       case _ => null
     }
 

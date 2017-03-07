@@ -18,6 +18,7 @@ import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
@@ -59,7 +60,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with traits.RotatableTile with IFluidHandler with internal.Robot with InventorySelection with TankSelection {
+class Robot extends traits.Computer with traits.PowerInformation with RotatableImpl with IFluidHandler with internal.Robot with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
   val info = new RobotData()
@@ -132,7 +133,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override def getComponentInSlot(index: Int) = components(index).orNull
 
   override def player = {
-    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    agent.Player.updatePositionAndRotation(player_, getFacing, getFacing)
     player_
   }
 
@@ -162,7 +163,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def node = if (isServer) machine.node else null
+  override def getNode = if (isServer) machine.node else null
 
   var globalBuffer, globalBufferSize = 0.0
 
@@ -346,12 +347,12 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     if (isServer) {
       if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {
-          bot.node.changeBuffer(Double.PositiveInfinity)
+          bot.getNode.changeBuffer(Double.PositiveInfinity)
         }
-        globalBuffer = bot.node.globalBuffer
-        globalBufferSize = bot.node.globalBufferSize
+        globalBuffer = bot.getNode.getGlobalBuffer
+        globalBufferSize = bot.getNode.getGlobalBufferSize
         info.totalEnergy = globalBuffer.toInt
-        info.robotEnergy = bot.node.localBuffer.toInt
+        info.robotEnergy = bot.getNode.getLocalBuffer.toInt
         updatePowerInformation()
       }
       if (!appliedToolEnchantments) {
@@ -390,7 +391,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     if (isServer) {
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
-      api.Network.joinNewNetwork(node)
+      api.Network.joinNewNetwork(getNode)
     }
   }
 
@@ -530,19 +531,19 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def onMachineConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
-      node.connect(bot.node)
+    if (node == this.getNode) {
+      node.connect(bot.getNode)
       node.asInstanceOf[Connector].setLocalBufferSize(0)
     }
   }
 
   override def onMachineDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       node.remove()
-      bot.node.remove()
+      bot.getNode.remove()
       for (slot <- componentSlots) {
-        Option(getComponentInSlot(slot)).foreach(_.node.remove())
+        Option(getComponentInSlot(slot)).foreach(_.getNode.remove())
       }
     }
   }
@@ -615,18 +616,18 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
-    if (node != null) node.host match {
+    if (node != null) node.getEnvironment match {
       case buffer: api.internal.TextBuffer =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case keyboard: api.internal.Keyboard => buffer.node.connect(keyboard.node)
+            case keyboard: api.internal.Keyboard => buffer.getNode.connect(keyboard.getNode)
             case _ =>
           }
         }
       case keyboard: api.internal.Keyboard =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case buffer: api.internal.TextBuffer => keyboard.node.connect(buffer.node)
+            case buffer: api.internal.TextBuffer => keyboard.getNode.connect(buffer.getNode)
             case _ =>
           }
         }
@@ -672,7 +673,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
 
@@ -708,7 +709,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       if (getWorld != null && isServer) {
         for (stack <- removed) {
           player().inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, Option(facing))
+          spawnStackInWorld(stack, Option(getFacing))
         }
         setSelectedSlot(oldSelected)
       } // else: save is screwed and we potentially lose items. Life is hard.
@@ -738,7 +739,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.getCount > 0 && isServer) {
           player().inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, Option(facing))
+          spawnStackInWorld(stack, Option(getFacing))
         }
       }
       else super.setInventorySlotContents(slot, stack)

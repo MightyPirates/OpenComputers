@@ -8,7 +8,7 @@ import li.cil.oc.api
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
-import li.cil.oc.util.Rarity
+import li.cil.oc.util.RarityUtils
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -20,7 +20,7 @@ import net.minecraft.util.math.Vec3i
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class RobotAfterimage extends SimpleBlock {
+class RobotAfterimage extends AbstractBlock {
   setLightOpacity(0)
   setCreativeTab(null)
   ItemBlacklist.hide(this)
@@ -46,7 +46,7 @@ class RobotAfterimage extends SimpleBlock {
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {
     findMovingRobot(world, pos) match {
       case Some(robot) =>
-        val block = robot.getBlockType.asInstanceOf[SimpleBlock]
+        val block = robot.getBlockType.asInstanceOf[AbstractBlock]
         val bounds = block.getBoundingBox(state, world, robot.getPos)
         val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(vec => {
           val blockPos = robot.getPos
@@ -67,7 +67,7 @@ class RobotAfterimage extends SimpleBlock {
 
   override def rarity(stack: ItemStack) = {
     val data = new RobotData(stack)
-    Rarity.byTier(data.tier)
+    RarityUtils.fromTier(data.tier)
   }
 
   override def isAir(state: IBlockState, world: IBlockAccess, pos: BlockPos): Boolean = true

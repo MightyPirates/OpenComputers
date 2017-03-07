@@ -13,6 +13,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
@@ -24,8 +25,8 @@ import net.minecraft.util.SoundCategory
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Agent with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("drone").
     withConnector(Settings.get.bufferDrone).
     create()

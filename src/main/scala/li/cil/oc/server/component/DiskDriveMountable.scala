@@ -19,6 +19,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
 import li.cil.oc.common.inventory.ComponentInventory
@@ -34,12 +35,12 @@ import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends prefab.ManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
   def filesystemNode = components(0) match {
-    case Some(environment) => Option(environment.node)
+    case Some(environment) => Option(environment.getNode)
     case _ => None
   }
 
@@ -58,7 +59,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // ----------------------------------------------------------------------- //
   // Environment
 
-  override val node = api.Network.newNode(this, Visibility.Network).
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("disk_drive").
     create()
 
@@ -72,11 +73,11 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
     val velocity = args.optDouble(0, 0) max 0 min 1
     val ejected = decrStackSize(0, 1)
     if (ejected != null && ejected.getCount > 0) {
-      val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
+      val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.getFacing))
       if (entity != null) {
-        val vx = rack.facing.getFrontOffsetX * velocity
-        val vy = rack.facing.getFrontOffsetY * velocity
-        val vz = rack.facing.getFrontOffsetZ * velocity
+        val vx = rack.getFacing.getFrontOffsetX * velocity
+        val vy = rack.getFacing.getFrontOffsetY * velocity
+        val vz = rack.getFacing.getFrontOffsetZ * velocity
         entity.addVelocity(vx, vy, vz)
       }
       result(true)
@@ -114,12 +115,12 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     components(slot) match {
-      case Some(environment) => environment.node match {
-        case component: Component => component.setVisibility(Visibility.Network)
+      case Some(environment) => environment.getNode match {
+        case component: Component => component.setVisibility(Visibility.NETWORK)
       }
       case _ =>
     }
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       rack.markChanged(this.slot)
       Sound.playDiskInsert(rack)
     }
@@ -127,7 +128,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       rack.markChanged(this.slot)
       Sound.playDiskEject(rack)
     }
@@ -142,13 +143,13 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // Persistable
 
   override def load(nbt: NBTTagCompound) {
-    super[ManagedEnvironment].load(nbt)
+    super[AbstractManagedEnvironment].load(nbt)
     super[ComponentInventory].load(nbt)
     connectComponents()
   }
 
   override def save(nbt: NBTTagCompound) {
-    super[ManagedEnvironment].save(nbt)
+    super[AbstractManagedEnvironment].save(nbt)
     super[ComponentInventory].save(nbt)
   }
 
@@ -171,8 +172,8 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
       val isDiskInDrive = getStackInSlot(0) != null
       val isHoldingDisk = isItemValidForSlot(0, heldItem)
       if (isDiskInDrive) {
-        if (!rack.world.isRemote) {
-          InventoryUtils.dropSlot(BlockPosition(rack), this, 0, 1, Option(rack.facing))
+        if (!rack.getWorld.isRemote) {
+          InventoryUtils.dropSlot(BlockPosition(rack), this, 0, 1, Option(rack.getFacing))
         }
       }
       if (isHoldingDisk) {

@@ -10,8 +10,7 @@ import li.cil.oc.common.entity
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.Rarity
+import li.cil.oc.util.{BlockPosition, RarityUtils}
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -44,7 +43,7 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
 
   override def rarity(stack: ItemStack) = {
     val data = new DroneData(stack)
-    Rarity.byTier(data.tier)
+    RarityUtils.fromTier(data.tier)
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {

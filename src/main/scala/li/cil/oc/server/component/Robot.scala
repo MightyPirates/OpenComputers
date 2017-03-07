@@ -14,6 +14,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
@@ -26,8 +28,8 @@ import net.minecraft.util.EnumParticleTypes
 
 import scala.collection.convert.WrapAsJava._
 
-class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
-  override val node = api.Network.newNode(this, Visibility.Network).
+class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with Agent with DeviceInfo {
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
     create()
@@ -98,7 +100,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
         result(Unit, what)
       }
       else {
-        if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+        if (!getNode.tryChangeBuffer(-Settings.get.robotMoveCost)) {
           result(Unit, "not enough energy")
         }
         else if (agent.move(direction)) {
@@ -106,7 +108,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
           result(true)
         }
         else {
-          node.changeBuffer(Settings.get.robotMoveCost)
+          getNode.changeBuffer(Settings.get.robotMoveCost)
           context.pause(0.4)
           PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
           result(Unit, "impossible move")
@@ -118,7 +120,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
   @Callback(doc = "function(clockwise:boolean):boolean -- Rotate in the specified direction.")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (getNode.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) agent.rotate(EnumFacing.UP)
       else agent.rotate(EnumFacing.DOWN)
       agent.animateTurn(clockwise, Settings.get.turnDelay)
@@ -134,18 +136,18 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       romRobot.foreach(fs => {
-        fs.node.asInstanceOf[Component].setVisibility(Visibility.Network)
-        node.connect(fs.node)
+        fs.getNode.asInstanceOf[Component].setVisibility(Visibility.NETWORK)
+        node.connect(fs.getNode)
       })
     }
   }
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message" && message.source != agent.node) message.data match {
-      case Array(packet: Packet) => agent.proxy.node.sendToReachable(message.name, packet)
+    if (message.getName == "network.message" && message.getSource != agent.getNode) message.getData match {
+      case Array(packet: Packet) => agent.proxy.getNode.sendToReachable(message.getName, packet)
       case _ =>
     }
   }

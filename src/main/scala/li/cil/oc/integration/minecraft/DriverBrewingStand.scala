@@ -6,8 +6,8 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverSidedTileEntity
-import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeHost}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
@@ -16,7 +16,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-object DriverBrewingStand extends DriverSidedTileEntity {
+object DriverBrewingStand extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityBrewingStand]
 
   override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =

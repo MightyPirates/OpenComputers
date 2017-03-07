@@ -14,6 +14,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
@@ -27,8 +29,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 import scala.util.control.Breaks._
 
-class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("crafting").
     create()
 
@@ -56,10 +58,10 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
       load()
       val cm = CraftingManager.getInstance
       var countCrafted = 0
-      val canCraft = cm.findMatchingRecipe(CraftingInventory, host.world) != null
+      val canCraft = cm.findMatchingRecipe(CraftingInventory, host.getWorld) != null
       breakable {
         while (countCrafted < wantedCount) {
-          val result = cm.findMatchingRecipe(CraftingInventory, host.world)
+          val result = cm.findMatchingRecipe(CraftingInventory, host.getWorld)
           if (result == null || result.getCount < 1) break()
           countCrafted += result.getCount
           FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)

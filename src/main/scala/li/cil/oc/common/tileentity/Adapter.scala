@@ -9,6 +9,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
@@ -27,9 +28,9 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.Network).create()
+  val getNode = api.Network.newNode(this, Visibility.NETWORK).create()
 
-  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
+  private val blocks = Array.fill[Option[(ManagedEnvironment, DriverBlock)]](6)(None)
 
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
@@ -63,7 +64,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
-    case Some(((environment, _))) => environment.node
+    case Some(((environment, _))) => environment.getNode
   }
 
   // ----------------------------------------------------------------------- //
@@ -78,7 +79,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   }
 
   def neighborChanged(d: EnumFacing) {
-    if (node != null && node.network != null) {
+    if (getNode != null && getNode.getNetwork != null) {
       val blockPos = getPos.offset(d)
       getWorld.getTileEntity(blockPos) match {
         case env: traits.Environment =>
@@ -96,7 +97,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                   blocks(d.ordinal()) = None
                   updatingBlocks -= oldEnvironment
                   blocksData(d.ordinal()) = None
-                  node.disconnect(oldEnvironment.node)
+                  getNode.disconnect(oldEnvironment.getNode)
 
                   // Then rebuild - if we have something.
                   val environment = newDriver.createEnvironment(getWorld, blockPos, d)
@@ -106,7 +107,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                       updatingBlocks += environment
                     }
                     blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                    node.connect(environment.node)
+                    getNode.connect(environment.getNode)
                   }
                 } // else: the more things change, the more they stay the same.
               case _ =>
@@ -126,15 +127,15 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
                     case _ =>
                   }
                   blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                  node.connect(environment.node)
+                  getNode.connect(environment.getNode)
                 }
             }
             case _ => blocks(d.ordinal()) match {
               case Some((environment, driver)) =>
                 // We had something there, but it's gone now...
-                node.disconnect(environment.node)
+                getNode.disconnect(environment.getNode)
                 environment.save(blocksData(d.ordinal()).get.data)
-                Option(environment.node).foreach(_.remove())
+                Option(environment.getNode).foreach(_.remove())
                 blocks(d.ordinal()) = None
                 updatingBlocks -= environment
               case _ => // Nothing before, nothing now.
@@ -145,7 +146,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
   }
 
   def neighborChanged() {
-    if (node != null && node.network != null) {
+    if (getNode != null && getNode.getNetwork != null) {
       for (d <- EnumFacing.values) {
         neighborChanged(d)
       }
@@ -156,14 +157,14 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       neighborChanged()
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       updatingBlocks.clear()
     }
   }

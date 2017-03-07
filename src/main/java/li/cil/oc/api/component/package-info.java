@@ -8,6 +8,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Component",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.component;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

@@ -6,6 +6,7 @@ import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.Slot
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
@@ -15,11 +16,11 @@ object DriverUpgradePiston extends Item with HostAware {
     api.Items.get(Constants.ItemName.PistonUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else host match {
       case host: internal.Drone => new component.UpgradePiston.Drone(host)
       case host: internal.Tablet => new component.UpgradePiston.Tablet(host)
-      case host: internal.Rotatable with EnvironmentHost => new component.UpgradePiston.Rotatable(host)
+      case host: Rotatable with EnvironmentHost => new component.UpgradePiston.Rotatable(host)
       case _ => null
     }
 

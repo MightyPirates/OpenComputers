@@ -20,6 +20,8 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -31,9 +33,9 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("filesystem", Visibility.Neighbors).
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("filesystem", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -156,17 +158,17 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   @Callback(direct = true, limit = 4, doc = """function(path:string[, mode:string='r']):userdata -- Opens a new file descriptor and returns its handle.""")
   def open(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
-    if (owners.get(context.node.address).fold(false)(_.size >= Settings.get.maxHandles)) {
+    if (owners.get(context.node.getAddress).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
     }
     val path = args.checkString(0)
     val mode = args.optString(1, "r")
     val handle = fileSystem.open(clean(path), parseMode(mode))
     if (handle > 0) {
-      owners.getOrElseUpdate(context.node.address, mutable.Set.empty[Int]) += handle
+      owners.getOrElseUpdate(context.node.getAddress, mutable.Set.empty[Int]) += handle
     }
     diskActivity()
-    result(new HandleValue(node.address, handle))
+    result(new HandleValue(getNode.getAddress, handle))
   }
 
   @Callback(direct = true, limit = 15, doc = """function(handle:userdata, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
@@ -174,7 +176,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     context.consumeCallBudget(readCosts(speed))
     val handle = checkHandle(args, 0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
-    checkOwner(context.node.address, handle)
+    checkOwner(context.node.getAddress, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         // Limit size of read buffer to avoid crazy allocations.
@@ -189,7 +191,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
-          if (!node.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
+          if (!getNode.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
           diskActivity()
@@ -208,7 +210,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     val handle = checkHandle(args, 0)
     val whence = args.checkString(1)
     val offset = args.checkInteger(2)
-    checkOwner(context.node.address, handle)
+    checkOwner(context.node.getAddress, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         whence match {
@@ -227,10 +229,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     context.consumeCallBudget(writeCosts(speed))
     val handle = checkHandle(args, 0)
     val value = args.checkByteArray(1)
-    if (!node.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
+    if (!getNode.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
       throw new IOException("not enough energy")
     }
-    checkOwner(context.node.address, handle)
+    checkOwner(context.node.getAddress, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         file.write(value)
@@ -254,7 +256,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   def close(context: Context, handle: Int): Unit = {
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
-        owners.get(context.node.address) match {
+        owners.get(context.node.getAddress) match {
           case Some(set) if set.remove(handle) => file.close()
           case _ => throw new IOException("bad file descriptor")
         }
@@ -266,8 +268,8 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   override def onMessage(message: Message) = fileSystem.synchronized {
     super.onMessage(message)
-    if (message.name == "computer.stopped" || message.name == "computer.started") {
-      owners.get(message.source.address) match {
+    if (message.getName == "computer.stopped" || message.getName == "computer.started") {
+      owners.get(message.getSource.getAddress) match {
         case Some(set) =>
           set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
             case Some(file) => file.close()
@@ -281,17 +283,17 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   override def onDisconnect(node: Node) = fileSystem.synchronized {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       fileSystem.close()
     }
-    else if (owners.contains(node.address)) {
-      for (handle <- owners(node.address)) {
+    else if (owners.contains(node.getAddress)) {
+      for (handle <- owners(node.getAddress)) {
         Option(fileSystem.getHandle(handle)) match {
           case Some(file) => file.close()
           case _ =>
         }
       }
-      owners.remove(node.address)
+      owners.remove(node.getAddress)
     }
   }
 
@@ -356,7 +358,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   private def diskActivity() {
     (sound, host) match {
-      case (Some(s), Some(h)) => ServerPacketSender.sendFileSystemActivity(node, h, s)
+      case (Some(s), Some(h)) => ServerPacketSender.sendFileSystemActivity(getNode, h, s)
       case _ =>
     }
   }
@@ -374,10 +376,10 @@ final class HandleValue extends AbstractValue {
 
   override def dispose(context: Context): Unit = {
     super.dispose(context)
-    if (context.node() != null && context.node().network() != null) {
-      val node = context.node().network().node(owner)
+    if (context.node() != null && context.node().getNetwork() != null) {
+      val node = context.node().getNetwork().node(owner)
       if (node != null) {
-        node.host() match {
+        node.getEnvironment() match {
           case fs: FileSystem => try fs.close(context, handle) catch {
             case _: Throwable => // Ignore, already closed.
           }

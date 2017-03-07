@@ -37,21 +37,6 @@ object CallbackDocHandler {
     case stack: ItemStack =>
       val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
-      // TODO remove in OC 1.7
-      if (callbacks.isEmpty) {
-        callbacks ++= (Option(Registry.driverFor(stack)) match {
-          case Some(driver: EnvironmentAware) =>
-            getCallbacks(driver.providedEnvironment(stack))
-          case _ => Registry.blocks.collect {
-            case driver: DriverTileEntity with EnvironmentAware =>
-              if (driver.getTileEntityClass != null && !driver.getTileEntityClass.isInterface)
-                driver.providedEnvironment(stack)
-              else null
-            case driver: EnvironmentAware => driver.providedEnvironment(stack)
-          }.filter(_ != null).flatMap(getCallbacks)
-        })
-      }
-
       if (callbacks.nonEmpty) {
         val pages = mutable.Buffer.empty[String]
         val lastPage = callbacks.toArray.sorted.foldLeft("") {

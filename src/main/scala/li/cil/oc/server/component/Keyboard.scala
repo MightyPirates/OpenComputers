@@ -14,6 +14,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
 import net.minecraft.entity.player.EntityPlayer
 
 import scala.collection.convert.WrapAsJava._
@@ -22,8 +23,8 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.Keyboard with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.Keyboard with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("keyboard").
     create()
 
@@ -64,8 +65,8 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message) = {
-    message.data match {
-      case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
+    message.getData match {
+      case Array(p: EntityPlayer, char: Character, code: Integer) if message.getName == "keyboard.keyDown" =>
         if (isUsableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
           if (Settings.get.inputUsername) {
@@ -75,7 +76,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
             signal(p, "key_down", char, code)
           }
         }
-      case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
+      case Array(p: EntityPlayer, char: Character, code: Integer) if message.getName == "keyboard.keyUp" =>
         pressedKeys.get(p) match {
           case Some(keys) if keys.contains(code) =>
             keys -= code
@@ -87,7 +88,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
             }
           case _ =>
         }
-      case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
+      case Array(p: EntityPlayer, value: String) if message.getName == "keyboard.clipboard" =>
         if (isUsableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
             if (Settings.get.inputUsername) {
@@ -110,5 +111,5 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   }
 
   protected def signal(args: AnyRef*) =
-    node.sendToReachable("computer.checked_signal", args: _*)
+    getNode.sendToReachable("computer.checked_signal", args: _*)
 }

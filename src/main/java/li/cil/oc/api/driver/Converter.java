@@ -26,5 +26,5 @@ public interface Converter {
      * @param value  the value to convert.
      * @param output the map conversion results are accumulated into.
      */
-    void convert(Object value, Map<Object, Object> output);
+    void convert(final Object value, final Map<Object, Object> output);
 }

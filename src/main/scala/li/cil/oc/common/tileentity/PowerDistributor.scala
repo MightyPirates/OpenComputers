@@ -11,13 +11,13 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
-  val node = null
+  val getNode = null
 
-  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.None).
+  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.NONE).
     withConnector(Settings.get.bufferDistributor).
     create())
 
-  override protected def isConnected = nodes.exists(node => node.address != null && node.network != null)
+  override protected def isConnected = nodes.exists(node => node.getAddress != null && node.getNetwork != null)
 
   // ----------------------------------------------------------------------- //
 

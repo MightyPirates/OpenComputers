@@ -6,7 +6,9 @@ import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.capabilities
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
@@ -15,6 +17,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
@@ -25,8 +29,8 @@ import net.minecraft.util.SoundCategory
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+abstract class UpgradePiston(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("piston").
     withConnector().
     create()
@@ -49,9 +53,9 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEn
     val side = pushDirection(args, 0)
     val hostPos = pushOrigin(side)
     val blockPos = hostPos.offset(side)
-    if (!host.world.isAirBlock(blockPos) && node.tryChangeBuffer(-Settings.get.pistonCost) && Blocks.PISTON.doMove(host.world, hostPos.toBlockPos, side, true)) {
-      host.world.setBlockToAir(blockPos)
-      host.world.playSound(null, host.xPosition, host.yPosition, host.zPosition, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, host.world.rand.nextFloat() * 0.25f + 0.6f)
+    if (!host.getWorld.isAirBlock(blockPos) && getNode.tryChangeBuffer(-Settings.get.pistonCost) && Blocks.PISTON.doMove(host.getWorld, hostPos.toBlockPos, side, true)) {
+      host.getWorld.setBlockToAir(blockPos)
+      host.getWorld.playSound(null, host.xPosition, host.yPosition, host.zPosition, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, host.getWorld.rand.nextFloat() * 0.25f + 0.6f)
       context.pause(0.5)
       result(true)
     }
@@ -71,7 +75,7 @@ object UpgradePiston {
       else super.pushOrigin(side)
   }
 
-  class Rotatable(val rotatable: internal.Rotatable with EnvironmentHost) extends UpgradePiston(rotatable) {
+  class Rotatable(val rotatable: tileentity.Rotatable with EnvironmentHost) extends UpgradePiston(rotatable) {
     override def pushDirection(args: Arguments, index: Int) = rotatable.toGlobal(args.optSideForAction(index, EnumFacing.SOUTH))
   }
 

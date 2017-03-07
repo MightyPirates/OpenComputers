@@ -4,6 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.command.SimpleCommand
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
@@ -42,9 +43,9 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
               return
             }
 
-            def rotateProperly(pos: BlockPosition):tileentity.traits.Rotatable = {
+            def rotateProperly(pos: BlockPosition):RotatableImpl = {
               world.getTileEntity(pos) match {
-                case rotatable: tileentity.traits.Rotatable =>
+                case rotatable: RotatableImpl =>
                   rotatable.setFromEntityPitchAndYaw(player)
                   if (!rotatable.validFacings.contains(rotatable.pitch)) {
                     rotatable.pitch = rotatable.validFacings.headOption.getOrElse(EnumFacing.NORTH)
@@ -59,7 +60,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             rotateProperly(casePos)
             world.setBlock(screenPos, api.Items.get(Constants.BlockName.ScreenTier2).block())
             rotateProperly(screenPos) match {
-              case rotatable: tileentity.traits.Rotatable => rotatable.pitch match {
+              case rotatable: RotatableImpl => rotatable.pitch match {
                 case EnumFacing.UP | EnumFacing.DOWN =>
                   rotatable.pitch = EnumFacing.NORTH
                 case _ => // nothing to do here, pitch is fine
@@ -68,7 +69,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             }
             world.setBlock(keyboardPos, api.Items.get(Constants.BlockName.Keyboard).block())
             world.getTileEntity(keyboardPos) match {
-              case t: tileentity.traits.Rotatable =>
+              case t: RotatableImpl =>
                 t.setFromEntityPitchAndYaw(player)
                 t.setFromFacing(EnumFacing.UP)
               case _ => // ???

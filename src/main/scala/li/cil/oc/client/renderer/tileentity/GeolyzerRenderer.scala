@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.Geolyzer
+import li.cil.oc.common.tileentity.{Geolyzer, TileEntityGeolyzer}
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
@@ -9,8 +9,8 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
-  override def renderTileEntityAt(geolyzer: Geolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object GeolyzerRenderer extends TileEntitySpecialRenderer[TileEntityGeolyzer] {
+  override def renderTileEntityAt(geolyzer: TileEntityGeolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     RenderState.pushAttrib()

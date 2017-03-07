@@ -7,14 +7,10 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Packet
-import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.network.DebugNetwork
 import li.cil.oc.server.network.DebugNetwork.DebugNode
@@ -54,8 +50,8 @@ import net.minecraftforge.fml.common.ModAPIManager
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with DebugNode {
-  override val node = Network.newNode(this, Visibility.Neighbors).
+class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with DebugNode {
+  override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
     withComponent("debug").
     withConnector().
     create()
@@ -72,7 +68,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   def player = access.map(_.player)
 
   private lazy val CommandSender = {
-    def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    def defaultFakePlayer = FakePlayerFactory.get(host.getWorld.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
     new CommandSender(host, player match {
       case Some(name) => Option(FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name)).getOrElse(defaultFakePlayer)
       case _ => defaultFakePlayer
@@ -86,7 +82,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   @Callback(doc = """function(value:number):number -- Changes the component network's energy buffer by the specified delta.""")
   def changeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
-    result(node.changeBuffer(args.checkDouble(0)))
+    result(getNode.changeBuffer(args.checkDouble(0)))
   }
 
   @Callback(doc = """function():number -- Get the container's X position in the world.""")
@@ -111,7 +107,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     if (args.count() > 0) result(new DebugCard.WorldValue(DimensionManager.getWorld(args.checkInteger(0))))
-    else result(new DebugCard.WorldValue(host.world))
+    else result(new DebugCard.WorldValue(host.getWorld))
   }
 
   @Callback(doc = """function():table -- Get a list of all world IDs, loaded and unloaded.""")
@@ -135,7 +131,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   @Callback(doc = """function():userdata -- Get the scoreboard object for the world""")
   def getScoreboard(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
-    result(new DebugCard.ScoreboardValue(Option(host.world)))
+    result(new DebugCard.ScoreboardValue(Option(host.getWorld)))
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
@@ -170,10 +166,10 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
     val z = args.checkInteger(2)
     findNode(BlockPosition(x, y, z)) match {
       case Some(other) =>
-        remoteNode.foreach(other => node.disconnect(other))
+        remoteNode.foreach(other => getNode.disconnect(other))
         remoteNode = Some(other)
         remoteNodePosition = Some((x, y, z))
-        node.connect(other)
+        getNode.connect(other)
         result(true)
       case _ =>
         result(Unit, "no node found at this position")
@@ -181,10 +177,10 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   }
 
   private def findNode(position: BlockPosition) =
-    if (host.world.blockExists(position)) {
-      host.world.getTileEntity(position) match {
+    if (host.getWorld.blockExists(position)) {
+      host.getWorld.getTileEntity(position) match {
         case env: SidedEnvironment => EnumFacing.values.map(env.sidedNode).find(_ != null)
-        case env: Environment => Option(env.node)
+        case env: Environment => Option(env.getNode)
         case _ => None
       }
     }
@@ -198,7 +194,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
     val v2 = Map(10 -> "zxc", false -> v1)
     v1 += "c" -> v2
 
-    result(v2, new DebugCard.TestValue(), host.world)
+    result(v2, new DebugCard.TestValue(), host.getWorld)
   }
 
   // ----------------------------------------------------------------------- //
@@ -221,7 +217,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
     val destination = args.checkString(0)
     DebugNetwork.getEndpoint(destination).filter(_ != this).foreach{endpoint =>
       // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
-      val packet = Network.newPacket(node.address, destination, 0, args.drop(1).asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
+      val packet = Network.newPacket(getNode.getAddress, destination, 0, args.drop(1).asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
       endpoint.receivePacket(packet)
     }
     result()
@@ -229,16 +225,16 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   override def receivePacket(packet: Packet) {
     val distance = 0
-    node.sendToReachable("computer.signal", Seq("debug_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+    getNode.sendToReachable("computer.signal", Seq("debug_message", packet.getSource, Int.box(packet.getPort), Double.box(distance)) ++ packet.getData: _*)
   }
 
-  override def address: String = if(node != null) node.address() else "debug"
+  override def address: String = if(getNode != null) getNode.getAddress() else "debug"
 
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node): Unit = {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       DebugNetwork.add(this)
       remoteNodePosition.foreach {
         case (x, y, z) =>
@@ -253,7 +249,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   override def onDisconnect(node: Node): Unit = {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       DebugNetwork.remove(this)
       remoteNode.foreach(other => other.disconnect(node))
     }
@@ -847,7 +843,7 @@ object DebugCard {
 
     override def getName = underlying.getName
 
-    override def getEntityWorld = host.world
+    override def getEntityWorld = host.getWorld
 
     override def sendMessage(message: ITextComponent) {
       messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)

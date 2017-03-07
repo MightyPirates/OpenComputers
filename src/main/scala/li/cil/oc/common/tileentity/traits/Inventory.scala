@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.common.inventory
+import li.cil.oc.common.inventory.InventoryImpl
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
@@ -9,14 +10,14 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.text.ITextComponent
 
-trait Inventory extends TileEntity with inventory.Inventory {
+trait Inventory extends TileEntity with InventoryImpl {
   private lazy val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
 
   def items = inventory
 
   // ----------------------------------------------------------------------- //
 
-  override def getDisplayName: ITextComponent = super[Inventory].getDisplayName
+  override def getDisplayName: ITextComponent = super[InventoryImpl].getDisplayName
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)

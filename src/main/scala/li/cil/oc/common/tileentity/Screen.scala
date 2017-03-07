@@ -5,8 +5,8 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.Color
+import li.cil.oc.common.tileentity.traits.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.util.{BlockPosition, DyeUtils}
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
@@ -21,7 +21,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.mutable
 import scala.language.postfixOps
 
-class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with RotatableImpl with RedstoneAwareImpl with ColoredImpl with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
   // Enable redstone functionality.
@@ -60,13 +60,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   private val lastWalked = mutable.WeakHashMap.empty[Entity, (Int, Int)]
 
-  setColor(Color.rgbValues(Color.byTier(tier)))
+  setColor(DyeUtils.rgbValues(DyeUtils.byTier(tier)))
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = side != facing
 
   // Allow connections from front for keyboards, and keyboards only...
-  override def sidedNode(side: EnumFacing) = if (side != facing || (getWorld.isBlockLoaded(getPos.offset(side)) && getWorld.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard])) node else null
+  override def sidedNode(side: EnumFacing) = if (side != facing || (getWorld.isBlockLoaded(getPos.offset(side)) && getWorld.getTileEntity(getPos.offset(side)).isInstanceOf[TileEntityKeyboard])) getNode else null
 
   // ----------------------------------------------------------------------- //
 
@@ -84,7 +84,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       if (getWorld.blockExists(blockPos)) getWorld.getTileEntity(blockPos)
       else null
     })).exists {
-      case (side, keyboard: Keyboard) => keyboard.hasNodeOnSide(side.getOpposite)
+      case (side, keyboard: TileEntityKeyboard) => keyboard.hasNodeOnSide(side.getOpposite)
       case _ => false
     })
 
@@ -170,9 +170,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       case Some((oldX, oldY)) if oldX == x && oldY == y => // Ignore
       case _ => entity match {
         case player: EntityPlayer if Settings.get.inputUsername =>
-          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
+          origin.getNode.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
         case _ =>
-          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
+          origin.getNode.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
       }
     }
   }
@@ -228,14 +228,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val buffer = screen.buffer
         if (screen.isOrigin) {
           if (isServer) {
-            buffer.node.asInstanceOf[Component].setVisibility(Visibility.Network)
+            buffer.getNode.asInstanceOf[Component].setVisibility(Visibility.NETWORK)
             buffer.setEnergyCostPerTick(Settings.get.screenCost * screen.width * screen.height)
             buffer.setAspectRatio(screen.width, screen.height)
           }
         }
         else {
           if (isServer) {
-            buffer.node.asInstanceOf[Component].setVisibility(Visibility.None)
+            buffer.getNode.asInstanceOf[Component].setVisibility(Visibility.NONE)
             buffer.setEnergyCostPerTick(Settings.get.screenCost)
           }
           buffer.setAspectRatio(1, 1)
@@ -291,7 +291,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(TierTag) max 0 min 2
-    setColor(Color.rgbValues(Color.byTier(tier)))
+    setColor(DyeUtils.rgbValues(DyeUtils.byTier(tier)))
     super.readFromNBTForServer(nbt)
     hadRedstoneInput = nbt.getBoolean(HadRedstoneInputTag)
     invertTouchMode = nbt.getBoolean(InvertTouchModeTag)
@@ -342,7 +342,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.getNode)
 
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)

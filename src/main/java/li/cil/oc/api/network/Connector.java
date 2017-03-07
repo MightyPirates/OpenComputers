@@ -28,22 +28,22 @@ public interface Connector extends Node {
     /**
      * The energy stored in the local buffer.
      */
-    double localBuffer();
+    double getLocalBuffer();
 
     /**
      * The size of the local buffer.
      */
-    double localBufferSize();
+    double getLocalBufferSize();
 
     /**
      * The accumulative energy stored across all buffers in the node's network.
      */
-    double globalBuffer();
+    double getGlobalBuffer();
 
     /**
      * The accumulative size of all buffers in the node's network.
      */
-    double globalBufferSize();
+    double getGlobalBufferSize();
 
     /**
      * Try to apply the specified delta to the <em>global</em> buffer.
@@ -67,7 +67,7 @@ public interface Connector extends Node {
      * @param delta the amount of energy to consume or store.
      * @return the remainder of the delta that could not be applied.
      */
-    double changeBuffer(double delta);
+    double changeBuffer(final double delta);
 
     /**
      * Like {@link #changeBuffer}, but will only store/consume the specified
@@ -76,7 +76,7 @@ public interface Connector extends Node {
      * @param delta the amount of energy to consume or store.
      * @return <tt>true</tt> if the energy was successfully consumed or stored.
      */
-    boolean tryChangeBuffer(double delta);
+    boolean tryChangeBuffer(final double delta);
 
     /**
      * Change the size of the connectors local buffer.
@@ -93,5 +93,5 @@ public interface Connector extends Node {
      *             to a minimum of zero, i.e. if a negative value is passed the
      *             size will be set to zero.
      */
-    void setLocalBufferSize(double size);
+    void setLocalBufferSize(final double size);
 }

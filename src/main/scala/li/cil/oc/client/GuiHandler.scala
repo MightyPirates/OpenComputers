@@ -12,6 +12,7 @@ import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.TileEntityWaypoint
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -58,7 +59,7 @@ object GuiHandler extends CommonGuiHandler {
             }, Option(t), slot)
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
-          case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
+          case t: TileEntityWaypoint if id == GuiType.Waypoint.id =>
             new gui.Waypoint(t)
           case _ => null
         }

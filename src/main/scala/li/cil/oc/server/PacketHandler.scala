@@ -253,7 +253,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(proxy) => proxy.world.notifyBlockUpdate(proxy.getPos, proxy.world.getBlockState(proxy.getPos), proxy.world.getBlockState(proxy.getPos), 3)
+      case Some(proxy) => proxy.getWorld.notifyBlockUpdate(proxy.getPos, proxy.getWorld.getBlockState(proxy.getPos), proxy.getWorld.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
     }
 
@@ -282,7 +282,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onWaypointLabel(p: PacketParser) =
-    p.readTileEntity[Waypoint]() match {
+    p.readTileEntity[TileEntityWaypoint]() match {
       case Some(waypoint) => p.player match {
         case player: EntityPlayerMP if player.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) <= 64 =>
           val label = p.readUTF().take(32)

@@ -9,9 +9,9 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Color
-import li.cil.oc.util.ItemColorizer
-import li.cil.oc.util.ItemCosts
+import li.cil.oc.common.tileentity.TileEntityKeyboard
+import li.cil.oc.common.tileentity.traits.RotatableImpl
+import li.cil.oc.util.{DyeUtils, ItemColorizer, ItemCosts}
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -30,7 +30,7 @@ class Item(value: Block) extends ItemBlock(value) {
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     block match {
-      case (simple: SimpleBlock) =>
+      case (simple: AbstractBlock) =>
         simple.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip, advanced)
 
         if (KeyBindings.showMaterialCosts) {
@@ -46,7 +46,7 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getRarity(stack: ItemStack) = block match {
-    case simple: SimpleBlock => simple.rarity(stack)
+    case simple: AbstractBlock => simple.rarity(stack)
     case _ => EnumRarity.COMMON
   }
 
@@ -61,7 +61,7 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getUnlocalizedName = block match {
-    case simple: SimpleBlock => simple.getUnlocalizedName
+    case simple: AbstractBlock => simple.getUnlocalizedName
     case _ => Settings.namespace + "tile"
   }
 
@@ -70,7 +70,7 @@ class Item(value: Block) extends ItemBlock(value) {
       if (ItemColorizer.hasColor(stack)) {
         ItemColorizer.getColor(stack)
       }
-      else Color.rgbValues(EnumDyeColor.SILVER)
+      else DyeUtils.rgbValues(EnumDyeColor.SILVER)
     }
     else super.getDamage(stack)
   }
@@ -86,10 +86,10 @@ class Item(value: Block) extends ItemBlock(value) {
     if (super.placeBlockAt(stackToUse, player, world, pos, side, hitX, hitY, hitZ, newState)) {
       // If it's a rotatable block try to make it face the player.
       world.getTileEntity(pos) match {
-        case keyboard: tileentity.Keyboard =>
+        case keyboard: TileEntityKeyboard =>
           keyboard.setFromEntityPitchAndYaw(player)
           keyboard.setFromFacing(side)
-        case rotatable: tileentity.traits.Rotatable =>
+        case rotatable: RotatableImpl =>
           rotatable.setFromEntityPitchAndYaw(player)
           if (!rotatable.validFacings.contains(rotatable.pitch)) {
             rotatable.pitch = rotatable.validFacings.headOption.getOrElse(EnumFacing.NORTH)

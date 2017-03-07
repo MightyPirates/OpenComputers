@@ -4,7 +4,6 @@ import java.util
 
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
@@ -19,7 +18,7 @@ import net.minecraft.world.World
 
 import scala.reflect.ClassTag
 
-class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends AbstractBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
@@ -54,7 +53,7 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   override protected def doCustomInit(tileEntity: tileentity.Raid, player: EntityLivingBase, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
-    if (!tileEntity.world.isRemote) {
+    if (!tileEntity.getWorld.isRemote) {
       val data = new RaidData(stack)
       for (i <- 0 until math.min(data.disks.length, tileEntity.getSizeInventory)) {
         tileEntity.setInventorySlotContents(i, data.disks(i))
@@ -77,6 +76,6 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
       data.label = Option(tileEntity.label.getLabel)
       data.save(stack)
     }
-    Block.spawnAsEntity(tileEntity.world, tileEntity.getPos, stack)
+    Block.spawnAsEntity(tileEntity.getWorld, tileEntity.getPos, stack)
   }
 }

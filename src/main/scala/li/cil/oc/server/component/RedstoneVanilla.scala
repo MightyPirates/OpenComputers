@@ -12,7 +12,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.tileentity.traits.RedstoneAware
+import li.cil.oc.common.tileentity.traits.{RedstoneAware, RedstoneAwareImpl}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
@@ -21,7 +21,7 @@ import net.minecraft.util.EnumFacing
 import scala.collection.convert.WrapAsJava._
 
 trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
-  def redstone: EnvironmentHost with RedstoneAware
+  def redstone: EnvironmentHost with RedstoneAwareImpl
 
   // ----------------------------------------------------------------------- //
 
@@ -64,9 +64,9 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
   def getComparatorInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val blockPos = BlockPosition(redstone).offset(side)
-    if (redstone.world.blockExists(blockPos)) {
-      val block = redstone.world.getBlock(blockPos)
-      if (block.hasComparatorInputOverride(redstone.world.getBlockState(blockPos.toBlockPos))) {
+    if (redstone.getWorld.blockExists(blockPos)) {
+      val block = redstone.getWorld.getBlock(blockPos)
+      if (block.hasComparatorInputOverride(redstone.getWorld.getBlockState(blockPos.toBlockPos))) {
         val comparatorOverride = block.getComparatorInputOverride(blockPos, side.getOpposite)
         return result(comparatorOverride)
       }
@@ -78,7 +78,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.name == "redstone.changed") message.data match {
+    if (message.getName == "redstone.changed") message.getData match {
       case Array(side: EnumFacing, oldMaxValue: Number, newMaxValue: Number) =>
         onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
       case _ =>

@@ -47,7 +47,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     component.set("methods", (args: Varargs) => {
       withComponent(args.checkjstring(1), component => {
         val table = LuaValue.tableOf()
-        for ((name, annotation) <- machine.methods(component.host)) {
+        for ((name, annotation) <- machine.methods(component.getEnvironment)) {
           table.set(name, LuaValue.tableOf(Array(
             LuaValue.valueOf("direct"),
             LuaValue.valueOf(annotation.direct),
@@ -70,7 +70,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     component.set("doc", (args: Varargs) => {
       withComponent(args.checkjstring(1), component => {
         val method = args.checkjstring(2)
-        val methods = machine.methods(component.host)
+        val methods = machine.methods(component.getEnvironment)
         owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
@@ -78,7 +78,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     lua.set("component", component)
   }
 
-  private def withComponent(address: String, f: (Component) => Varargs) = Option(node.network.node(address)) match {
+  private def withComponent(address: String, f: (Component) => Varargs) = Option(node.getNetwork.node(address)) match {
     case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
       f(component)
     case _ =>

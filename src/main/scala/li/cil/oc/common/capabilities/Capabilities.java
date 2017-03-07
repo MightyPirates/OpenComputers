@@ -1,8 +1,7 @@
 package li.cil.oc.common.capabilities;
 
-import li.cil.oc.api.internal.Colored;
 import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.SidedEnvironment;
+import li.cil.oc.api.tileentity.Colored;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;

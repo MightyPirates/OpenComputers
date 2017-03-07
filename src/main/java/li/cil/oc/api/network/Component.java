@@ -34,12 +34,12 @@ public interface Component extends Node {
      * that those nodes all have the same underlying type (i.e. there can be
      * multiple "filesystem" nodes, but they should all behave the same way).
      */
-    String name();
+    String getName();
 
     /**
      * Get the visibility of this component.
      */
-    Visibility visibility();
+    Visibility getVisibility();
 
     /**
      * Set the visibility of this component.
@@ -47,11 +47,10 @@ public interface Component extends Node {
      * Note that this cannot be higher / more visible than the reachability of
      * the node. Trying to set it to a higher value will generate an exception.
      *
-     * @throws java.lang.IllegalArgumentException if the specified value is
-     *                                            more visible than the node's
-     *                                            reachability.
+     * @throws IllegalArgumentException if the specified value is more visible
+     *                                  than the node's reachability.
      */
-    void setVisibility(Visibility value);
+    void setVisibility(final Visibility value);
 
     /**
      * Tests whether this component can be seen by the specified node,
@@ -63,7 +62,7 @@ public interface Component extends Node {
      * @param other the computer node to check for.
      * @return true if the computer can see this node; false otherwise.
      */
-    boolean canBeSeenFrom(Node other);
+    boolean canBeSeenFrom(final Node other);
 
     // ----------------------------------------------------------------------- //
 
@@ -76,7 +75,7 @@ public interface Component extends Node {
      * <p/>
      * The returned collection is read-only.
      */
-    Collection<String> methods();
+    Collection<String> getMethods();
 
     /**
      * Get the annotation information of a method.
@@ -87,12 +86,12 @@ public interface Component extends Node {
      * @param method the method to the the info for.
      * @return the annotation of the specified method or <tt>null</tt>.
      */
-    Callback annotation(String method);
+    Callback getAnnotation(final String method);
 
     /**
      * Tries to call a function with the specified name on this component.
      * <p/>
-     * The name of the method must be one of the names in {@link #methods()}.
+     * The name of the method must be one of the names in {@link #getMethods()}.
      * The returned array may be <tt>null</tt> if there is no return value.
      *
      * @param method    the name of the method to call.
@@ -103,5 +102,5 @@ public interface Component extends Node {
      * @return the list of results, or <tt>null</tt> if there is no result.
      * @throws NoSuchMethodException if there is no method with that name.
      */
-    Object[] invoke(String method, Context context, Object... arguments) throws Exception;
+    Object[] invoke(final String method, final Context context, final Object... arguments) throws Exception;
 }

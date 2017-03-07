@@ -15,7 +15,7 @@ import scala.collection.convert.WrapAsScala._
 object EventHandlerVanilla {
   @SubscribeEvent
   def onGeolyzerScan(e: GeolyzerEvent.Scan) {
-    val world = e.host.world
+    val world = e.host.getWorld
     val blockPos = BlockPosition(e.host)
     val includeReplaceable = e.options.get("includeReplaceable") match {
       case value: java.lang.Boolean => value.booleanValue()
@@ -51,7 +51,7 @@ object EventHandlerVanilla {
 
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
-    val world = e.host.world
+    val world = e.host.getWorld
     val blockState = world.getBlockState(e.pos)
     val block = blockState.getBlock
 

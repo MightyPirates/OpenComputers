@@ -10,8 +10,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Color
-import li.cil.oc.util.ExtendedAABB
+import li.cil.oc.util.{DyeUtils, ExtendedAABB}
 import li.cil.oc.util.ExtendedAABB._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
@@ -74,7 +73,7 @@ object PrintModel extends SmartBlockModelBase {
       if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds
         val texture = resolveTexture(Settings.resourceDomain + ":blocks/white")
-        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), Color.rgbValues(EnumDyeColor.LIME))
+        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), DyeUtils.rgbValues(EnumDyeColor.LIME))
       }
 
       bufferAsJavaList(faces)

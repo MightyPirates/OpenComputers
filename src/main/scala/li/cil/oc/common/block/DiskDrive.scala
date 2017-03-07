@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
@@ -14,7 +13,7 @@ import net.minecraft.util.EnumHand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class DiskDrive extends SimpleBlock with traits.GUI {
+class DiskDrive extends AbstractBlock with traits.GUI {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))

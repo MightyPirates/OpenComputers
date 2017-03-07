@@ -29,12 +29,12 @@ object Nanomachines extends api.detail.NanomachinesAPI {
   }
 
   def hasController(player: EntityPlayer) = {
-    PlayerUtils.persistedData(player).getBoolean(Settings.namespace + "hasNanomachines")
+    PlayerUtils.getPersistedData(player).getBoolean(Settings.namespace + "hasNanomachines")
   }
 
   def installController(player: EntityPlayer) = {
     if (!hasController(player)) {
-      PlayerUtils.persistedData(player).setBoolean(Settings.namespace + "hasNanomachines", true)
+      PlayerUtils.getPersistedData(player).setBoolean(Settings.namespace + "hasNanomachines", true)
     }
     getController(player) // Initialize controller instance.
   }
@@ -44,7 +44,7 @@ object Nanomachines extends api.detail.NanomachinesAPI {
       case controller: ControllerImpl =>
         controller.dispose()
         controllers(player) -= player
-        PlayerUtils.persistedData(player).removeTag(Settings.namespace + "hasNanomachines")
+        PlayerUtils.getPersistedData(player).removeTag(Settings.namespace + "hasNanomachines")
         if (!player.getEntityWorld.isRemote) {
           PacketSender.sendNanomachineConfiguration(player)
         }

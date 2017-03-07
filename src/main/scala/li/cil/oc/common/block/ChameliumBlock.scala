@@ -10,7 +10,7 @@ object ChameliumBlock {
   final val Color = PropertyEnum.create("color", classOf[EnumDyeColor])
 }
 
-class ChameliumBlock extends SimpleBlock(Material.ROCK) {
+class ChameliumBlock extends AbstractBlock(Material.ROCK) {
   setDefaultState(blockState.getBaseState.withProperty(ChameliumBlock.Color, EnumDyeColor.BLACK))
 
   override def damageDropped(state: IBlockState): Int = getMetaFromState(state)

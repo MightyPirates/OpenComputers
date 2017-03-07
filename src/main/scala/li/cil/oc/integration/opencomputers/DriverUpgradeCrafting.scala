@@ -16,7 +16,7 @@ object DriverUpgradeCrafting extends Item with HostAware {
     api.Items.get(Constants.ItemName.CraftingUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else host match {
       case robot: EnvironmentHost with Robot => new component.UpgradeCrafting(robot)
       case _ => null

@@ -7,17 +7,17 @@ import li.cil.oc.common.item.data.NodeData
 import net.minecraft.nbt.NBTTagCompound
 
 trait Connector extends network.Connector with Node {
-  var localBufferSize = 0.0
+  var getLocalBufferSize = 0.0
 
-  var localBuffer = 0.0
+  var getLocalBuffer = 0.0
 
   var distributor: Option[Distributor] = None
 
   // ----------------------------------------------------------------------- //
 
-  def globalBuffer = distributor.fold(localBuffer)(_.globalBuffer)
+  def getGlobalBuffer = distributor.fold(getLocalBuffer)(_.globalBuffer)
 
-  def globalBufferSize = distributor.fold(localBufferSize)(_.globalBufferSize)
+  def getGlobalBufferSize = distributor.fold(getLocalBufferSize)(_.globalBufferSize)
 
   // ----------------------------------------------------------------------- //
 
@@ -36,23 +36,23 @@ trait Connector extends network.Connector with Node {
   }
 
   private def change(delta: Double): Double = {
-    if (localBufferSize <= 0) return delta
-    val oldBuffer = localBuffer
-    localBuffer += delta
-    val remaining = if (localBuffer < 0) {
-      val remaining = localBuffer
-      localBuffer = 0
+    if (getLocalBufferSize <= 0) return delta
+    val oldBuffer = getLocalBuffer
+    getLocalBuffer += delta
+    val remaining = if (getLocalBuffer < 0) {
+      val remaining = getLocalBuffer
+      getLocalBuffer = 0
       remaining
     }
-    else if (localBuffer > localBufferSize) {
-      val remaining = localBuffer - localBufferSize
-      localBuffer = localBufferSize
+    else if (getLocalBuffer > getLocalBufferSize) {
+      val remaining = getLocalBuffer - getLocalBufferSize
+      getLocalBuffer = getLocalBufferSize
       remaining
     }
     else 0
-    if (localBuffer != oldBuffer) {
+    if (getLocalBuffer != oldBuffer) {
       distributor match {
-        case Some(d) => d.globalBuffer = math.max(0, math.min(d.globalBufferSize, d.globalBuffer - oldBuffer + localBuffer))
+        case Some(d) => d.globalBuffer = math.max(0, math.min(d.globalBufferSize, d.globalBuffer - oldBuffer + getLocalBuffer))
         case _ =>
       }
     }
@@ -65,20 +65,20 @@ trait Connector extends network.Connector with Node {
     else {
       this.synchronized(distributor match {
         case Some(d) => d.synchronized {
-          if (localBuffer > localBufferSize) {
-            d.changeBuffer(localBuffer - localBufferSize)
-            localBuffer = localBufferSize
+          if (getLocalBuffer > getLocalBufferSize) {
+            d.changeBuffer(getLocalBuffer - getLocalBufferSize)
+            getLocalBuffer = getLocalBufferSize
           }
-          val newGlobalBuffer = globalBuffer + delta
-          (delta > 0 || newGlobalBuffer >= 0) && (delta < 0 || newGlobalBuffer <= globalBufferSize) && d.changeBuffer(delta) == 0
+          val newGlobalBuffer = getGlobalBuffer + delta
+          (delta > 0 || newGlobalBuffer >= 0) && (delta < 0 || newGlobalBuffer <= getGlobalBufferSize) && d.changeBuffer(delta) == 0
         }
         case _ =>
-          val newLocalBuffer = localBuffer + delta
-          if ((delta < 0 && newLocalBuffer < 0) || (delta > 0 && newLocalBuffer > localBufferSize)) {
+          val newLocalBuffer = getLocalBuffer + delta
+          if ((delta < 0 && newLocalBuffer < 0) || (delta > 0 && newLocalBuffer > getLocalBufferSize)) {
             false
           }
           else {
-            localBuffer = newLocalBuffer
+            getLocalBuffer = newLocalBuffer
             true
           }
       })
@@ -89,22 +89,22 @@ trait Connector extends network.Connector with Node {
     val clampedSize = math.max(size, 0)
     this.synchronized(distributor match {
       case Some(d) => d.synchronized {
-        val oldSize = localBufferSize
+        val oldSize = getLocalBufferSize
         // Must apply new size before trying to register with distributor, else
         // we get ignored if our size is zero.
-        localBufferSize = clampedSize
-        if (network != null) {
+        getLocalBufferSize = clampedSize
+        if (getNetwork != null) {
           if (oldSize <= 0 && clampedSize > 0) d.addConnector(this)
           else if (oldSize > 0 && clampedSize == 0) d.removeConnector(this)
           else d.globalBufferSize = math.max(d.globalBufferSize - oldSize + clampedSize, 0)
         }
-        val surplus = math.max(localBuffer - clampedSize, 0)
+        val surplus = math.max(getLocalBuffer - clampedSize, 0)
         changeBuffer(-surplus)
         d.changeBuffer(surplus)
       }
       case _ =>
-        localBufferSize = clampedSize
-        localBuffer = math.min(localBuffer, localBufferSize)
+        getLocalBufferSize = clampedSize
+        getLocalBuffer = math.min(getLocalBuffer, getLocalBufferSize)
     })
   }
 
@@ -121,11 +121,11 @@ trait Connector extends network.Connector with Node {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = nbt.getDouble(NodeData.BufferTag)
+    getLocalBuffer = nbt.getDouble(NodeData.BufferTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble(NodeData.BufferTag, math.min(localBuffer, localBufferSize))
+    nbt.setDouble(NodeData.BufferTag, math.min(getLocalBuffer, getLocalBufferSize))
   }
 }

@@ -13,10 +13,7 @@ import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
@@ -41,7 +38,7 @@ import scala.collection.convert.WrapAsJava._
 class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
   lazy val machine = Machine.create(this)
 
-  val node = if (!rack.world.isRemote) machine.node else null
+  val getNode = if (!rack.getWorld.isRemote) machine.node else null
 
   var wasRunning = false
   var hadErrored = false
@@ -62,13 +59,13 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // Environment
 
   override def onConnect(node: Node) {
-    if (node == this.node) {
+    if (node == this.getNode) {
       connectComponents()
     }
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) {
+    if (node == this.getNode) {
       disconnectComponents()
     }
   }
@@ -80,14 +77,14 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       machine.load(nbt.getCompoundTag(MachineTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       nbt.setNewCompoundTag(MachineTag, machine.save)
     }
   }
@@ -99,7 +96,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case i if getStackInSlot(i) != null && isComponentSlot(i, getStackInSlot(i)) => getStackInSlot(i)
   }
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   override def onMachineConnect(node: Node) = onConnect(node)
 
@@ -114,7 +111,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
 
   override def zPosition = rack.zPosition
 
-  override def world = rack.world
+  override def getWorld = rack.getWorld
 
   override def markChanged() = rack.markChanged()
 
@@ -147,7 +144,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
     super.onItemRemoved(slot, stack)
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       val slotType = InventorySlots.server(tier)(slot).slot
       if (slotType == Slot.CPU) {
         machine.stop()
@@ -187,7 +184,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
       }
       else {
         val position = BlockPosition(rack)
-        player.openGui(OpenComputers, GuiType.ServerInRack.id, world, position.x, GuiType.embedSlot(position.y, slot), position.z)
+        player.openGui(OpenComputers, GuiType.ServerInRack.id, getWorld, position.x, GuiType.embedSlot(position.y, slot), position.z)
       }
     }
     true
@@ -199,7 +196,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    if (!rack.world.isRemote) {
+    if (!rack.getWorld.isRemote) {
       machine.update()
 
       val isRunning = machine.isRunning
@@ -209,7 +206,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
       }
       wasRunning = isRunning
       hadErrored = hasErrored
-      if (tier == Tier.Four) node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+      if (tier == Tier.Four) getNode.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
 
     updateComponents()

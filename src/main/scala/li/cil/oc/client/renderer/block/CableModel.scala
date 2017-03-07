@@ -5,13 +5,12 @@ import java.util.Collections
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
-import li.cil.oc.common.block.Cable
+import li.cil.oc.common.block.BlockCable
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.TileEntityCable
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.Color
+import li.cil.oc.util.{BlockPosition, DyeUtils, ItemColorizer}
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.ItemColorizer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
@@ -36,11 +35,11 @@ class CableModel extends SmartBlockModelBase {
     state match {
       case extended: IExtendedBlockState =>
         extended.getValue(block.property.PropertyTile.Tile) match {
-          case t: tileentity.Cable =>
+          case t: TileEntityCable =>
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
             val color = Some(t.getColor)
-            val mask = Cable.neighbors(t.world, t.getPos)
+            val mask = BlockCable.neighbors(t.getWorld, t.getPos)
             faces ++= bakeQuads(Middle, cableTexture, color)
             for (side <- EnumFacing.values) {
               val connected = (mask & (1 << side.getIndex)) != 0
@@ -68,7 +67,7 @@ class CableModel extends SmartBlockModelBase {
   protected def isCable(pos: BlockPosition) = {
     pos.world match {
       case Some(world) =>
-        world.getTileEntity(pos).isInstanceOf[tileentity.Cable]
+        world.getTileEntity(pos).isInstanceOf[TileEntityCable]
       case _ => false
     }
   }
@@ -116,7 +115,7 @@ class CableModel extends SmartBlockModelBase {
       override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
         val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-        val color = if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else Color.rgbValues(EnumDyeColor.SILVER)
+        val color = if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else DyeUtils.rgbValues(EnumDyeColor.SILVER)
 
         faces ++= bakeQuads(Middle, cableTexture, Some(color))
         faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(color))

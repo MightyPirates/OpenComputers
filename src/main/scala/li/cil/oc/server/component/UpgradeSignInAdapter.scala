@@ -9,8 +9,8 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedArguments._
 
 class UpgradeSignInAdapter(val host: EnvironmentHost) extends UpgradeSign {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("sign", Visibility.Network).
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("sign", Visibility.NETWORK).
     withConnector().
     create()
 

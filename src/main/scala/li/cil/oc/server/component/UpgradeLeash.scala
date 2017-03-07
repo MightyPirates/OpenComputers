@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
@@ -29,8 +30,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with traits.WorldAware with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("leash").
     create()
 
@@ -75,7 +76,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       unleashAll()
     }
   }

@@ -3,9 +3,7 @@ package li.cil.oc.server.network
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.api.network.{Environment, NodeHost, Visibility, Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
@@ -16,51 +14,51 @@ trait Node extends ImmutableNode {
 
   def reachability: Visibility
 
-  final var address: String = null
+  final var getAddress: String = null
 
-  final var network: api.network.Network = null
+  final var getNetwork: api.network.Network = null
 
-  def canBeReachedFrom(other: ImmutableNode) = reachability match {
-    case Visibility.None => false
-    case Visibility.Neighbors => isNeighborOf(other)
-    case Visibility.Network => isInSameNetwork(other)
+  def canBeReachedFrom(other: ImmutableNode) = getReachability match {
+    case Visibility.NONE => false
+    case Visibility.NEIGHBORS => isNeighborOf(other)
+    case Visibility.NETWORK => isInSameNetwork(other)
   }
 
   def isNeighborOf(other: ImmutableNode) =
-    isInSameNetwork(other) && network.neighbors(this).exists(_ == other)
+    isInSameNetwork(other) && getNetwork.neighbors(this).exists(_ == other)
 
-  def reachableNodes: java.lang.Iterable[ImmutableNode] =
-    if (network == null) Iterable.empty[ImmutableNode].toSeq
-    else network.nodes(this)
+  def getReachableNodes: java.lang.Iterable[ImmutableNode] =
+    if (getNetwork == null) Iterable.empty[ImmutableNode].toSeq
+    else getNetwork.nodes(this)
 
-  def neighbors: java.lang.Iterable[ImmutableNode] =
-    if (network == null) Iterable.empty[ImmutableNode].toSeq
-    else network.neighbors(this)
+  def getNeighbors: java.lang.Iterable[ImmutableNode] =
+    if (getNetwork == null) Iterable.empty[ImmutableNode].toSeq
+    else getNetwork.neighbors(this)
 
-  def connect(node: ImmutableNode) = network.connect(this, node)
+  def connect(node: ImmutableNode) = getNetwork.connect(this, node)
 
   def disconnect(node: ImmutableNode) =
-    if (network != null && isInSameNetwork(node)) network.disconnect(this, node)
+    if (getNetwork != null && isInSameNetwork(node)) getNetwork.disconnect(this, node)
 
-  def remove() = if (network != null) network.remove(this)
+  def remove() = if (getNetwork != null) getNetwork.remove(this)
 
-  private def isInSameNetwork(other: ImmutableNode) = network != null && other != null && network == other.network
+  private def isInSameNetwork(other: ImmutableNode) = getNetwork != null && other != null && getNetwork == other.getNetwork
 
   // ----------------------------------------------------------------------- //
 
   def onConnect(node: ImmutableNode) {
     try {
-      host.onConnect(node)
+      getEnvironment.onConnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn(s"A component of type '${host.getClass.getName}' threw an error while being connected to the component network.", e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getEnvironment.getClass.getName}' threw an error while being connected to the component network.", e)
     }
   }
 
   def onDisconnect(node: ImmutableNode) {
     try {
-      host.onDisconnect(node)
+      getEnvironment.onDisconnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn(s"A component of type '${host.getClass.getName}' threw an error while being disconnected from the component network.", e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getEnvironment.getClass.getName}' threw an error while being disconnected from the component network.", e)
     }
   }
 
@@ -69,20 +67,20 @@ trait Node extends ImmutableNode {
   def load(nbt: NBTTagCompound) = {
     if (nbt.hasKey("address")) {
       val newAddress = nbt.getString("address")
-      if (!Strings.isNullOrEmpty(newAddress) && newAddress != address) network match {
+      if (!Strings.isNullOrEmpty(newAddress) && newAddress != getAddress) getNetwork match {
         case wrapper: Network.Wrapper => wrapper.network.remap(this, newAddress)
-        case _ => address = newAddress
+        case _ => getAddress = newAddress
       }
     }
   }
 
   def save(nbt: NBTTagCompound) = {
-    if (address != null) {
-      nbt.setString("address", address)
+    if (getAddress != null) {
+      nbt.setString("address", getAddress)
     }
   }
 
-  override def toString = s"Node($address, $host)"
+  override def toString = s"Node($getAddress, $getEnvironment)"
 }
 
 // We have to mixin the vararg methods individually in the actual
@@ -90,14 +88,14 @@ trait Node extends ImmutableNode {
 // for some reason it fails compiling on Linux otherwise (no clue why).
 trait NodeVarargPart extends ImmutableNode {
   def sendToAddress(target: String, name: String, data: AnyRef*) =
-    if (network != null) network.sendToAddress(this, target, name, data: _*)
+    if (getNetwork != null) getNetwork.sendToAddress(this, target, name, data: _*)
 
   def sendToNeighbors(name: String, data: AnyRef*) =
-    if (network != null) network.sendToNeighbors(this, name, data: _*)
+    if (getNetwork != null) getNetwork.sendToNeighbors(this, name, data: _*)
 
   def sendToReachable(name: String, data: AnyRef*) =
-    if (network != null) network.sendToReachable(this, name, data: _*)
+    if (getNetwork != null) getNetwork.sendToReachable(this, name, data: _*)
 
   def sendToVisible(name: String, data: AnyRef*) =
-    if (network != null) network.sendToVisible(this, name, data: _*)
+    if (getNetwork != null) getNetwork.sendToVisible(this, name, data: _*)
 }

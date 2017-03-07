@@ -9,8 +9,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
-import li.cil.oc.common.tileentity.traits.RedstoneAware
+import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAwareImpl}
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
@@ -21,14 +20,14 @@ object DriverRedstoneCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.RedstoneCardTier2))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else {
       val isAdvanced = tier(stack) == Tier.Two
       val hasBundled = BundledRedstone.isAvailable && isAdvanced
       host match {
         case redstone: BundledRedstoneAware if hasBundled =>
           new component.Redstone.Bundled(redstone)
-        case redstone: RedstoneAware =>
+        case redstone: RedstoneAwareImpl =>
           new component.Redstone.Vanilla(redstone)
         case _ => null
       }

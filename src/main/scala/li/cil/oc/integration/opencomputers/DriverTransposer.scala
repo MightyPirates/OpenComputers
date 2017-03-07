@@ -14,7 +14,7 @@ object DriverTransposer extends Item with HostAware {
     api.Items.get(Constants.BlockName.Transposer))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.Transposer.Upgrade(host)
 
   override def slot(stack: ItemStack) = Slot.Upgrade

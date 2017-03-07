@@ -24,15 +24,16 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Neighbors).
-    withComponent("data", Visibility.Neighbors).
+abstract class DataCard extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
+    withComponent("data", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -42,13 +43,13 @@ abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
     val data = args.checkByteArray(0)
     if (data.length > Settings.get.dataCardHardLimit) throw new IllegalArgumentException("data size limit exceeded")
     val cost = baseCost + data.length * byteCost
-    if (!node.tryChangeBuffer(-cost)) throw new Exception("not enough energy")
+    if (!getNode.tryChangeBuffer(-cost)) throw new Exception("not enough energy")
     if (data.length > Settings.get.dataCardSoftLimit) context.pause(Settings.get.dataCardTimeout)
     data
   }
 
   protected def checkCost(baseCost: Double): Unit = {
-    if (!node.tryChangeBuffer(-baseCost)) throw new Exception("not enough energy")
+    if (!getNode.tryChangeBuffer(-baseCost)) throw new Exception("not enough energy")
   }
 
   protected def trivialCost(context: Context, args: Arguments) =

@@ -31,7 +31,7 @@ class ServerRackModel(val parent: IBakedModel) extends SmartBlockModelBase {
       case extended: IExtendedBlockState =>
         extended.getValue(block.property.PropertyTile.Tile) match {
           case rack: tileentity.Rack =>
-            val facing = rack.facing
+            val facing = rack.getFacing
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
             for (side <- EnumFacing.values if side != facing) {

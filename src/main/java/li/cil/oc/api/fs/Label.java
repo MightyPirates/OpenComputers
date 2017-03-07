@@ -1,7 +1,5 @@
 package li.cil.oc.api.fs;
 
-import li.cil.oc.api.Persistable;
-
 /**
  * Used by file system components to get and set the file system's label.
  *

@@ -23,7 +23,7 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     computer.set("uptime", (_: Varargs) => LuaValue.valueOf(machine.upTime()))
 
     // Allow the computer to figure out its own id in the component network.
-    computer.set("address", (_: Varargs) => Option(node.address) match {
+    computer.set("address", (_: Varargs) => Option(node.getAddress) match {
       case Some(address) => LuaValue.valueOf(address)
       case _ => LuaValue.NIL
     })
@@ -55,9 +55,9 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       if (Settings.get.ignorePower)
         LuaValue.valueOf(Double.PositiveInfinity)
       else
-        LuaValue.valueOf(node.asInstanceOf[Connector].globalBuffer))
+        LuaValue.valueOf(node.asInstanceOf[Connector].getGlobalBuffer))
 
-    computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.asInstanceOf[Connector].globalBufferSize))
+    computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.asInstanceOf[Connector].getGlobalBufferSize))
 
     computer.set("getArchitectures", (args: Varargs) => {
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {

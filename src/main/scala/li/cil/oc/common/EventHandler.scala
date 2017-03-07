@@ -5,19 +5,14 @@ import java.util.Calendar
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.SidedComponent
-import li.cil.oc.api.network.SidedEnvironment
+import li.cil.oc.api.network.{Environment, Environment, SidedComponent, SidedEnvironment}
+import li.cil.oc.api.tileentity.Colored
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
-import li.cil.oc.common.capabilities.CapabilityColored
-import li.cil.oc.common.capabilities.CapabilityEnvironment
-import li.cil.oc.common.capabilities.CapabilitySidedComponent
-import li.cil.oc.common.capabilities.CapabilitySidedEnvironment
+import li.cil.oc.common.capabilities.{CapabilityColored, CapabilityEnvironment}
 import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
@@ -155,7 +150,7 @@ object EventHandler {
     val invalid = mutable.ArrayBuffer.empty[Robot]
     runningRobots.foreach(robot => {
       if (robot.isInvalid) invalid += robot
-      else if (robot.world != null) robot.machine.update()
+      else if (robot.getWorld != null) robot.machine.update()
     })
     runningRobots --= invalid
   }
@@ -164,8 +159,8 @@ object EventHandler {
     val closed = mutable.ArrayBuffer.empty[Machine]
     machines.foreach(machine => if (machine.tryClose()) {
       closed += machine
-      if (machine.host.world == null || !machine.host.world.blockExists(BlockPosition(machine.host))) {
-        if (machine.node != null) machine.node.remove()
+      if (machine.host.getWorld == null || !machine.host.getWorld.blockExists(BlockPosition(machine.host))) {
+        if (machine.getNode != null) machine.getNode.remove()
       }
     })
     machines --= closed
@@ -270,7 +265,7 @@ object EventHandler {
   def onEntityJoinWorld(e: EntityJoinWorldEvent): Unit = {
     if (Settings.get.giveManualToNewPlayers && !e.getWorld.isRemote) e.getEntity match {
       case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
-        val persistedData = PlayerUtils.persistedData(player)
+        val persistedData = PlayerUtils.getPersistedData(player)
         if (!persistedData.getBoolean(Settings.namespace + "receivedManual")) {
           persistedData.setBoolean(Settings.namespace + "receivedManual", true)
           player.inventory.addItemStackToInventory(api.Items.get(Constants.ItemName.Manual).createItemStack(1))

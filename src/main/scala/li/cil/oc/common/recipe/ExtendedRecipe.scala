@@ -12,9 +12,8 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.SideTracker
+import li.cil.oc.util.{DyeUtils, SideTracker}
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
@@ -80,7 +79,7 @@ object ExtendedRecipe {
         for (stack <- getItems(inventory)) {
           if (api.Items.get(stack) != null && (api.Items.get(stack) == floppy || api.Items.get(stack).name == "lootDisk") && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
-            if (oldData.hasKey(colorKey) && oldData.getInteger(colorKey) != Color.dyes.indexOf("lightGray")) {
+            if (oldData.hasKey(colorKey) && oldData.getInteger(colorKey) != DyeUtils.dyes.indexOf("lightGray")) {
               nbt.setTag(colorKey, oldData.getTag(colorKey).copy())
             }
           }

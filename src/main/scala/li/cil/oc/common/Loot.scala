@@ -10,7 +10,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common.init.Items
-import li.cil.oc.util.Color
+import li.cil.oc.util.DyeUtils
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -139,7 +139,7 @@ object Loot {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
-          acc += ((createLootDisk(name, key, external, Color.byOreName.get(color)), count.toInt))
+          acc += ((createLootDisk(name, key, external, DyeUtils.byOreName.get(color)), count.toInt))
         case Array(name, count) =>
           acc += ((createLootDisk(name, key, external), count.toInt))
         case _ =>

@@ -13,15 +13,17 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.server.network.QuantumNetwork
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNode with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("tunnel", Visibility.Neighbors).
+class LinkedCard extends AbstractManagedEnvironment with QuantumNetwork.QuantumNode with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("tunnel", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -45,8 +47,8 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
     // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
-    val packet = Network.newPacket(node.address, null, 0, args.asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
-    if (node.tryChangeBuffer(-(packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
+    val packet = Network.newPacket(getNode.getAddress, null, 0, args.asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
+    if (getNode.tryChangeBuffer(-(packet.getSize / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
       for (endpoint <- endpoints) {
         endpoint.receivePacket(packet)
       }
@@ -60,21 +62,21 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
 
   def receivePacket(packet: Packet) {
     val distance = 0
-    node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+    getNode.sendToReachable("computer.signal", Seq("modem_message", packet.getSource, Int.box(packet.getPort), Double.box(distance)) ++ packet.getData: _*)
   }
 
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       QuantumNetwork.add(this)
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       QuantumNetwork.remove(this)
     }
   }

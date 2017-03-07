@@ -18,6 +18,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
@@ -33,8 +35,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.language.existentials
 
-class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = api.Network.newNode(this, Visibility.Network).
+class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("geolyzer").
     withConnector().
     create()
@@ -63,7 +65,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
       throw new IllegalArgumentException("location out of bounds")
     }
 
-    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val event = new GeolyzerEvent.Scan(host, options, minX, minY, minZ, maxX, maxY, maxZ)
@@ -97,12 +99,12 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val side = args.checkSideAny(0)
     val globalSide = host match {
-      case rotatable: internal.Rotatable => rotatable.toGlobal(side)
+      case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
 
-    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val globalPos = BlockPosition(host).offset(globalSide)
@@ -117,22 +119,22 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   def store(computer: Context, args: Arguments): Array[AnyRef] = {
     val side = args.checkSideAny(0)
     val globalSide = host match {
-      case rotatable: internal.Rotatable => rotatable.toGlobal(side)
+      case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
 
-    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val blockPos = BlockPosition(host).offset(globalSide)
-    val block = host.world.getBlock(blockPos)
+    val block = host.getWorld.getBlock(blockPos)
     val item = Item.getItemFromBlock(block)
     if (item == null) result(Unit, "block has no registered item representation")
     else {
-      val metadata = host.world.getBlockMetadata(blockPos)
+      val metadata = host.getWorld.getBlockMetadata(blockPos)
       val damage = block.damageDropped(metadata)
       val stack = new ItemStack(item, 1, damage)
-      DatabaseAccess.withDatabase(node, args.checkString(1), database => {
+      DatabaseAccess.withDatabase(getNode, args.checkString(1), database => {
         val toSlot = args.checkSlot(database.data, 2)
         val nonEmpty = database.getStackInSlot(toSlot) != null
         database.setStackInSlot(toSlot, stack)
@@ -143,10 +145,10 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.name == "tablet.use") message.source.host match {
-      case machine: api.machine.Machine => (machine.host, message.data) match {
+    if (message.getName == "tablet.use") message.getSource.getEnvironment match {
+      case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
-          if (node.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
+          if (getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
             val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.toBlockPos)
             MinecraftForge.EVENT_BUS.post(event)
             if (!event.isCanceled) {

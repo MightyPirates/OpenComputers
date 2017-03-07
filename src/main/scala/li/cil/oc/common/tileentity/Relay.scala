@@ -46,7 +46,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   var tunnel = "creative"
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.NETWORK).
     withComponent("relay").
     create())
 
@@ -125,9 +125,9 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
     val tryChangeBuffer = sourceSide match {
       case Some(side) =>
-        (amount: Double) => plugs(side.ordinal).node.asInstanceOf[Connector].tryChangeBuffer(amount)
+        (amount: Double) => plugs(side.ordinal).getNode.asInstanceOf[Connector].tryChangeBuffer(amount)
       case _ =>
-        (amount: Double) => plugs.exists(_.node.asInstanceOf[Connector].tryChangeBuffer(amount))
+        (amount: Double) => plugs.exists(_.getNode.asInstanceOf[Connector].tryChangeBuffer(amount))
     }
 
     if (isWirelessEnabled && strength > 0 && (sourceSide.isDefined || isRepeater)) {
@@ -138,7 +138,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
 
     if (isLinkedEnabled && sourceSide.isDefined) {
-      val cost = packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5
+      val cost = packet.getSize / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5
       if (tryChangeBuffer(-cost)) {
         val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
         for (endpoint <- endpoints) {
@@ -152,28 +152,28 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   // ----------------------------------------------------------------------- //
 
-  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
+  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.NETWORK).
     withConnector(math.round(Settings.get.bufferAccessPoint)).
     create()
 
   override protected def onPlugConnect(plug: Plug, node: Node) {
     super.onPlugConnect(plug, node)
-    if (node == plug.node) {
+    if (node == plug.getNode) {
       api.Network.joinWirelessNetwork(this)
     }
     if (plug.isPrimary)
-      plug.node.connect(componentNodes(plug.side.ordinal()))
+      plug.getNode.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
   }
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
     super.onPlugDisconnect(plug, node)
-    if (node == plug.node) {
+    if (node == plug.getNode) {
       api.Network.leaveWirelessNetwork(this)
     }
-    if (plug.isPrimary && node != plug.node)
-      plug.node.connect(componentNodes(plug.side.ordinal()))
+    if (plug.isPrimary && node != plug.getNode)
+      plug.getNode.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
   }

@@ -14,6 +14,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
@@ -41,8 +43,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
-  override val node = api.Network.newNode(this, Visibility.Network).
+class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("screen").
     withConnector().
     create()
@@ -74,7 +76,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   private def pendingCommands = _pendingCommands.getOrElse {
     val pb = new CompressedPacketBuilder(PacketType.TextBufferMulti)
-    pb.writeUTF(node.address)
+    pb.writeUTF(getNode.getAddress)
     _pendingCommands = Some(pb)
     pb
   }
@@ -122,7 +124,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def update() {
     super.update()
-    if (isDisplaying && host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isDisplaying && host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
@@ -146,12 +148,12 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         }
         relativeLitArea = acc / (w * h).toDouble
       }
-      if (node != null) {
+      if (getNode != null) {
         val hadPower = hasPower
         val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
-        hasPower = node.tryChangeBuffer(-neededPower)
+        hasPower = getNode.tryChangeBuffer(-neededPower)
         if (hasPower != hadPower) {
-          ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, host)
+          ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
         }
       }
     }
@@ -199,9 +201,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     context.pause(0.25)
     host match {
       case screen: tileentity.Screen =>
-        Array(screen.screens.map(_.node).flatMap(_.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address)).toArray)
+        Array(screen.screens.map(_.getNode).flatMap(_.getNeighbors.filter(_.getHost.isInstanceOf[Keyboard]).map(_.getAddress)).toArray)
       case _ =>
-        Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
+        Array(getNode.getNeighbors.filter(_.getEnvironment.isInstanceOf[Keyboard]).map(_.getAddress).toArray)
     }
   }
 
@@ -234,9 +236,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       isDisplaying = value
       if (isDisplaying) {
         val neededPower = fullyLitCost * Settings.get.tickFrequency
-        hasPower = node.changeBuffer(-neededPower) == 0
+        hasPower = getNode.changeBuffer(-neededPower) == 0
       }
-      ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, host)
+      ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
     }
   }
 
@@ -269,8 +271,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     val sizeChanged = data.size = (w, h)
     val viewportChanged = setViewport(w, h)
     if (sizeChanged || viewportChanged) {
-      if (!viewportChanged && node != null) {
-        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
+      if (!viewportChanged && getNode != null) {
+        getNode.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
       true
     }
@@ -290,8 +292,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     val (cw, ch) = viewport
     if (w != cw || h != ch) {
       viewport = (w, h)
-      if (node != null) {
-        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
+      if (getNode != null) {
+        getNode.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
       true
     }
@@ -491,21 +493,21 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
-      ServerComponentTracker.add(host.world, node.address, this)
+    if (node == this.getNode) {
+      ServerComponentTracker.add(host.getWorld, node.getAddress, this)
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
-      ServerComponentTracker.remove(host.world, this)
+    if (node == this.getNode) {
+      ServerComponentTracker.remove(host.getWorld, this)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  private def bufferPath = node.address + "_buffer"
+  private def bufferPath = getNode.getAddress + "_buffer"
   private final val IsOnTag = Settings.namespace + "isOn"
   private final val HasPowerTag = Settings.namespace + "hasPower"
   private final val MaxWidthTag = Settings.namespace + "maxWidth"
@@ -525,7 +527,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       if (nbt.hasKey(NodeData.BufferTag)) {
         data.load(nbt.getCompoundTag(NodeData.BufferTag))
       }
-      else if (!Strings.isNullOrEmpty(node.address)) {
+      else if (!Strings.isNullOrEmpty(getNode.getAddress)) {
         data.load(SaveHandler.loadNBT(nbt, bufferPath))
       }
     }
@@ -553,7 +555,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   }
 
   // Null check for Waila (and other mods that may call this client side).
-  override def save(nbt: NBTTagCompound) = if (node != null) {
+  override def save(nbt: NBTTagCompound) = if (getNode != null) {
     super.save(nbt)
     // Happy thread synchronization hack! Here's the problem: GPUs allow direct
     // calls for modifying screens to give a more responsive experience. This
@@ -564,8 +566,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     // wait for all computers the screen is connected to to finish their current
     // execution and pausing them (which will make them resume in the next tick
     // when their update() runs).
-    if (node.network != null) {
-      for (node <- node.network.nodes) node.host match {
+    if (getNode.getNetwork != null) {
+      for (node <- getNode.getNetwork.nodes) node.getEnvironment match {
         case computer: tileentity.traits.Computer if !computer.machine.isPaused =>
           computer.machine.pause(0.1)
         case _ =>
@@ -591,9 +593,9 @@ object TextBuffer {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
       val blockPos = BlockPosition(t.host)
-      val keep = t.host.world != e.getWorld || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
+      val keep = t.host.getWorld != e.getWorld || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
-        ClientComponentTracker.remove(t.host.world, t)
+        ClientComponentTracker.remove(t.host.getWorld, t)
       }
       keep
     })
@@ -602,9 +604,9 @@ object TextBuffer {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.host.world != e.getWorld
+      val keep = t.host.getWorld != e.getWorld
       if (!keep) {
-        ClientComponentTracker.remove(t.host.world, t)
+        ClientComponentTracker.remove(t.host.getWorld, t)
       }
       keep
     })
@@ -612,7 +614,7 @@ object TextBuffer {
 
   def registerClientBuffer(t: TextBuffer) {
     ClientPacketSender.sendTextBufferInit(t.proxy.nodeAddress)
-    ClientComponentTracker.add(t.host.world, t.proxy.nodeAddress, t)
+    ClientComponentTracker.add(t.host.getWorld, t.proxy.nodeAddress, t)
     clientBuffers += t
   }
 
@@ -830,7 +832,7 @@ object TextBuffer {
     }
 
     override def onBufferMaxResolutionChange(w: Int, h: Int) {
-      if (owner.node.network != null) {
+      if (owner.getNode.getNetwork != null) {
         super.onBufferMaxResolutionChange(w, h)
         owner.host.markChanged()
         owner.synchronized(ServerPacketSender.appendTextBufferMaxResolutionChange(owner.pendingCommands, w, h))
@@ -928,15 +930,15 @@ object TextBuffer {
         args += player.getName
       }
 
-      owner.node.sendToReachable("computer.checked_signal", args: _*)
+      owner.getNode.sendToReachable("computer.checked_signal", args: _*)
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {
       owner.host match {
         case screen: tileentity.Screen =>
-          screen.screens.foreach(_.node.sendToNeighbors(name, values: _*))
+          screen.screens.foreach(_.getNode.sendToNeighbors(name, values: _*))
         case _ =>
-          owner.node.sendToNeighbors(name, values: _*)
+          owner.getNode.sendToNeighbors(name, values: _*)
       }
     }
   }

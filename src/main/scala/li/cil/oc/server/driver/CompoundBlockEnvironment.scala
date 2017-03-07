@@ -9,12 +9,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
-// TODO Remove block in OC 1.7.
 class CompoundBlockEnvironment(val name: String, val environments: (String, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,
   // but let's play it safe and use the least possible visibility based on
   // the drivers we encapsulate.
-  val node = api.Network.newNode(this, (environments.filter(_._2.node != null).map(_._2.node.reachability) ++ Seq(Visibility.None)).max).
+  val getNode = api.Network.newNode(this, (environments.filter(_._2.getNode != null).map(_._2.getNode.getReachability) ++ Seq(Visibility.NONE)).max).
     withComponent(name).
     create()
 
@@ -22,8 +21,8 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
 
   // Force all wrapped components to be neighbor visible, since we as their
   // only neighbor will take care of all component-related interaction.
-  for ((_, environment) <- environments) environment.node match {
-    case component: Component => component.setVisibility(Visibility.Neighbors)
+  for ((_, environment) <- environments) environment.getNode match {
+    case component: Component => component.setVisibility(Visibility.NEIGHBORS)
     case _ =>
   }
 
@@ -38,17 +37,17 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
   override def onMessage(message: Message) {}
 
   override def onConnect(node: Node) {
-    if (node == this.node) {
-      for ((_, environment) <- environments if environment.node != null) {
-        node.connect(environment.node)
+    if (node == this.getNode) {
+      for ((_, environment) <- environments if environment.getNode != null) {
+        node.connect(environment.getNode)
       }
     }
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) {
-      for ((_, environment) <- environments if environment.node != null) {
-        environment.node.remove()
+    if (node == this.getNode) {
+      for ((_, environment) <- environments if environment.getNode != null) {
+        environment.getNode.remove()
       }
     }
   }
@@ -58,7 +57,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
   override def load(nbt: NBTTagCompound) {
     // Ignore existing data if the underlying type is different.
     if (nbt.hasKey(TypeHashTag) && nbt.getLong(TypeHashTag) != typeHash) return
-    node.load(nbt)
+    getNode.load(nbt)
     for ((driver, environment) <- environments) {
       if (nbt.hasKey(driver)) {
         try {
@@ -72,7 +71,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
 
   override def save(nbt: NBTTagCompound) {
     nbt.setLong(TypeHashTag, typeHash)
-    node.save(nbt)
+    getNode.save(nbt)
     for ((driver, environment) <- environments) {
       try {
         nbt.setNewCompoundTag(driver, environment.save)

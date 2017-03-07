@@ -14,7 +14,7 @@ object DriverUpgradeAngel extends Item with HostAware {
     api.Items.get(Constants.ItemName.AngelUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.UpgradeAngel()
 
   override def slot(stack: ItemStack) = Slot.Upgrade

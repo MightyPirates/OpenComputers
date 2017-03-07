@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -24,10 +25,10 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.RotatableTile with traits.Tickable with DeviceInfo {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with RotatableImpl with traits.Tickable with DeviceInfo {
   def this() = this(0)
 
-  val node = api.Network.newNode(this, Visibility.Network).
+  val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("hologram").
     withConnector().
     create()
@@ -133,10 +134,10 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = toLocal(side) == EnumFacing.DOWN
 
-  override def sidedNode(side: EnumFacing) = if (toLocal(side) == EnumFacing.DOWN) node else null
+  override def sidedNode(side: EnumFacing) = if (toLocal(side) == EnumFacing.DOWN) getNode else null
 
   // Override automatic analyzer implementation for sided environments.
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(getNode)
 
   // ----------------------------------------------------------------------- //
 
@@ -417,7 +418,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
         val hadPower = hasPower
         val neededPower = Settings.get.hologramCost * litRatio * scale * Settings.get.tickFrequency
-        hasPower = node.tryChangeBuffer(-neededPower)
+        hasPower = getNode.tryChangeBuffer(-neededPower)
         if (hasPower != hadPower) {
           ServerPacketSender.sendHologramPowerChange(this)
         }
@@ -453,7 +454,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   // ----------------------------------------------------------------------- //
 
-  private def dataPath = node.address + "_data"
+  private def dataPath = getNode.getAddress + "_data"
 
   private final val TierTag = Settings.namespace + "tier"
   private final val VolumeTag = "volume"

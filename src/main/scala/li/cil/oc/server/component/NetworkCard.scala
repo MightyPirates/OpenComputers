@@ -18,6 +18,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
@@ -25,14 +27,14 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable with DeviceInfo {
+class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo {
   protected val visibility = host match {
-    case _: Rack => Visibility.Neighbors
-    case _ => Visibility.Network
+    case _: Rack => Visibility.NEIGHBORS
+    case _ => Visibility.NETWORK
   }
 
-  override val node = Network.newNode(this, visibility).
-    withComponent("modem", Visibility.Neighbors).
+  override val getNode = Network.newNode(this, visibility).
+    withComponent("modem", Visibility.NEIGHBORS).
     create()
 
   protected val openPorts = mutable.Set.empty[Int]
@@ -91,7 +93,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
-    val packet = api.Network.newPacket(node.address, address, port, args.drop(2).toArray)
+    val packet = api.Network.newPacket(getNode.getAddress, address, port, args.drop(2).toArray)
     doSend(packet)
     networkActivity()
     result(true)
@@ -100,15 +102,11 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   @Callback(doc = """function(port:number, data...) -- Broadcasts the specified data on the specified port.""")
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
-    val packet = api.Network.newPacket(node.address, null, port, args.drop(1).toArray)
+    val packet = api.Network.newPacket(getNode.getAddress, null, port, args.drop(1).toArray)
     doBroadcast(packet)
     networkActivity()
     result(true)
   }
-
-  // TODO 1.7 Remove, covered by device info now
-  @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
-  def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   @Callback(direct = true, doc = """function():string, boolean -- Get the current wake-up message.""")
   def getWakeMessage(context: Context, args: Arguments): Array[AnyRef] = result(wakeMessage.orNull, wakeMessageFuzzy)
@@ -128,14 +126,14 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   }
 
   protected def doSend(packet: Packet) = visibility match {
-    case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
-    case Visibility.Network => node.sendToReachable("network.message", packet)
+    case Visibility.NEIGHBORS => getNode.sendToNeighbors("network.message", packet)
+    case Visibility.NETWORK => getNode.sendToReachable("network.message", packet)
     case _ => // Ignore.
   }
 
   protected def doBroadcast(packet: Packet) = visibility match {
-    case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
-    case Visibility.Network => node.sendToReachable("network.message", packet)
+    case Visibility.NEIGHBORS => getNode.sendToNeighbors("network.message", packet)
+    case Visibility.NETWORK => getNode.sendToReachable("network.message", packet)
     case _ => // Ignore.
   }
 
@@ -143,38 +141,38 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       openPorts.clear()
     }
   }
 
   override def onMessage(message: Message) = {
     super.onMessage(message)
-    if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
+    if ((message.getName == "computer.stopped" || message.getName == "computer.started") && getNode.isNeighborOf(message.getSource))
       openPorts.clear()
-    if (message.name == "network.message") message.data match {
+    if (message.getName == "network.message") message.getData match {
       case Array(packet: Packet) => receivePacket(packet, 0)
       case _ =>
     }
   }
 
   protected def receivePacket(packet: Packet, distance: Double) {
-    if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
-      if (openPorts.contains(packet.port)) {
-        node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+    if (packet.getSource != getNode.getAddress && Option(packet.getDestination).forall(_ == getNode.getAddress)) {
+      if (openPorts.contains(packet.getPort)) {
+        getNode.sendToReachable("computer.signal", Seq("modem_message", packet.getSource, Int.box(packet.getPort), Double.box(distance)) ++ packet.getData: _*)
         networkActivity()
       }
       // Accept wake-up messages regardless of port because we close all ports
       // when our computer shuts down.
-      packet.data match {
+      packet.getData match {
         case Array(message: Array[Byte]) if wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
-          node.sendToNeighbors("computer.start")
+          getNode.sendToNeighbors("computer.start")
         case Array(message: String) if wakeMessage.contains(message) =>
-          node.sendToNeighbors("computer.start")
+          getNode.sendToNeighbors("computer.start")
         case Array(message: Array[Byte], _*) if wakeMessageFuzzy && wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
-          node.sendToNeighbors("computer.start")
+          getNode.sendToNeighbors("computer.start")
         case Array(message: String, _*) if wakeMessageFuzzy && wakeMessage.contains(message) =>
-          node.sendToNeighbors("computer.start")
+          getNode.sendToNeighbors("computer.start")
         case _ =>
       }
     }
@@ -217,7 +215,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   private def networkActivity() {
     host match {
-      case h: EnvironmentHost => ServerPacketSender.sendNetworkActivity(node, h)
+      case h: EnvironmentHost => ServerPacketSender.sendNetworkActivity(getNode, h)
       case _ =>
     }
   }

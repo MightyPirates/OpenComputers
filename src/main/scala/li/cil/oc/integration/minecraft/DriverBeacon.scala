@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverSidedTileEntity
-import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.api.network.{ManagedEnvironment, ManagedEnvironment}
+import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityEnvironment}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
@@ -18,7 +18,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-object DriverBeacon extends DriverSidedTileEntity {
+object DriverBeacon extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityBeacon]
 
   override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =

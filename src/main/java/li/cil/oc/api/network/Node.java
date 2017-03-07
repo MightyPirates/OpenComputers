@@ -1,6 +1,8 @@
 package li.cil.oc.api.network;
 
-import li.cil.oc.api.Persistable;
+import li.cil.oc.api.driver.DriverItem;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.INBTSerializable;
 
 /**
  * A single node in a {@link Network}.
@@ -17,7 +19,7 @@ import li.cil.oc.api.Persistable;
  * All other kinds of nodes you may come up with will also have to be
  * handled manually.
  * <p/>
- * Items have to be handled by a corresponding {@link li.cil.oc.api.driver.Item}.
+ * Items have to be handled by a corresponding {@link DriverItem}.
  * Existing blocks may be interfaced with the adapter block if a
  * {@link li.cil.oc.api.driver.Block} exists that supports the block.
  * <p/>
@@ -27,7 +29,7 @@ import li.cil.oc.api.Persistable;
  *
  * @see Component
  */
-public interface Node extends Persistable {
+public interface Node extends INBTSerializable<NBTTagCompound> {
     /**
      * The environment hosting this node.
      * <p/>
@@ -35,7 +37,7 @@ public interface Node extends Persistable {
      * be the tile entity. For all other implementations this will be a managed
      * environment.
      */
-    Environment host();
+    Environment getEnvironment();
 
     /**
      * The reachability of this node.
@@ -56,7 +58,7 @@ public interface Node extends Persistable {
      * A different matter is a {@link Component}'s <tt>visibility</tt>, which is
      * checked before delivering messages a computer tries to send.
      */
-    Visibility reachability();
+    Visibility getReachability();
 
     /**
      * The address of the node, so that it can be found in the network.
@@ -67,7 +69,7 @@ public interface Node extends Persistable {
      * they have is to *not* have an address, which can be useful for "dummy"
      * nodes, such as cables. In that case they may ignore the address being set.
      */
-    String address();
+    String getAddress();
 
     /**
      * The network this node is currently in.
@@ -79,7 +81,7 @@ public interface Node extends Persistable {
      * This will always be set automatically by the network manager. Do not
      * change this value and do not return anything that it wasn't set to.
      */
-    Network network();
+    Network getNetwork();
 
     // ----------------------------------------------------------------------- //
 
@@ -110,11 +112,11 @@ public interface Node extends Persistable {
      *
      * @return the list of nodes directly connected to this node.
      */
-    Iterable<Node> neighbors();
+    Iterable<Node> getNeighbors();
 
     /**
      * Get the list of nodes reachable from this node, based on their
-     * {@link #reachability()}.
+     * {@link #getReachability()}.
      * <p/>
      * This is a shortcut for <tt>node.network.nodes(node)</tt>.
      * <p/>
@@ -123,7 +125,7 @@ public interface Node extends Persistable {
      *
      * @return the list of nodes reachable from this node.
      */
-    Iterable<Node> reachableNodes();
+    Iterable<Node> getReachableNodes();
 
     // ----------------------------------------------------------------------- //
 

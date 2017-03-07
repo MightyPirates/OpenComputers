@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Adapter extends SimpleBlock with traits.GUI {
+class Adapter extends AbstractBlock with traits.GUI {
   override def guiType = GuiType.Adapter
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Adapter()

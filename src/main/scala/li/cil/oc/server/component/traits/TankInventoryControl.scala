@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.FluidUtils
+import li.cil.oc.util.FluidUtil
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.FluidStack
@@ -38,7 +38,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(into) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>
-          Option(FluidUtils.fluidHandlerOf(stack)) match {
+          Option(FluidUtil.fluidHandlerOf(stack)) match {
             case Some(handler) =>
               val drained = handler.drain(amount, false)
               val transferred = into.fill(drained, true)
@@ -61,7 +61,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(from) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>
-          Option(FluidUtils.fluidHandlerOf(stack)) match {
+          Option(FluidUtil.fluidHandlerOf(stack)) match {
             case Some(handler) =>
               val drained = from.drain(amount, false)
               val transferred = handler.fill(drained, true)
@@ -79,7 +79,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
   }
 
   private def withFluidInfo(slot: Int, f: (Option[FluidStack], Int) => Array[AnyRef]) = {
-    def fluidInfo(stack: ItemStack) = Option(FluidUtils.fluidHandlerOf(stack)) match {
+    def fluidInfo(stack: ItemStack) = Option(FluidUtil.fluidHandlerOf(stack)) match {
       case Some(handler) if handler.getTankProperties.length > 0 =>
         val props = handler.getTankProperties()(0)
         Option((Option(props.getContents), props.getCapacity))

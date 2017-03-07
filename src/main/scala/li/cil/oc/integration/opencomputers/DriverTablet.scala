@@ -18,16 +18,16 @@ object DriverTablet extends Item {
     api.Items.get(Constants.ItemName.Tablet))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else {
       Tablet.Server.cache.invalidate(Tablet.getId(stack))
       val data = new TabletData(stack)
       data.items.collect {
         case Some(fs) if DriverFileSystem.worksWith(fs) => fs
       }.headOption.map(DriverFileSystem.createEnvironment(_, host)) match {
-        case Some(environment) => environment.node match {
+        case Some(environment) => environment.getNode match {
           case component: Component =>
-            component.setVisibility(Visibility.Network)
+            component.setVisibility(Visibility.NETWORK)
             environment.save(dataTag(stack))
             environment
           case _ => null

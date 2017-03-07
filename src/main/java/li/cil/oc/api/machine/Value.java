@@ -1,7 +1,5 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.Persistable;
-
 /**
  * A value object can be pushed to a machine like a primitive value.
  * <p/>

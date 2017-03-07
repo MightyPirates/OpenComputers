@@ -1,5 +1,6 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.util.math.Vec3d;
 

@@ -4,10 +4,8 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{RarityUtils, Tooltip}
 import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -17,7 +15,7 @@ import net.minecraft.util.EnumHand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Case(val tier: Int) extends BlockRedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta >> 1))
@@ -26,7 +24,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = RarityUtils.fromTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName, slots))

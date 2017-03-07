@@ -8,6 +8,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Network",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.network;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

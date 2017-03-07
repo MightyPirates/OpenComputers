@@ -16,7 +16,7 @@ public enum Visibility {
      * <p/>
      * Components with this visibility cannot be seen nor reached by computers.
      */
-    None,
+    NONE,
 
     /**
      * Nodes with this visibility only receive messages from their immediate
@@ -28,7 +28,7 @@ public enum Visibility {
      * component is placed directly next to the computer, or an item installed
      * in the computer (i.e. it is in the computer's inventory).
      */
-    Neighbors,
+    NEIGHBORS,
 
     /**
      * Nodes with this visibility can receive messages from any node in its
@@ -38,5 +38,5 @@ public enum Visibility {
      * in their network. For example, a screen only indirectly connected to a
      * computer will still be addressable by that computer.
      */
-    Network
+    NETWORK
 }

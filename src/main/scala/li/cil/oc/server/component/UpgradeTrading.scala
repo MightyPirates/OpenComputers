@@ -14,6 +14,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.Entity
 import net.minecraft.entity.IMerchant
@@ -22,8 +23,8 @@ import net.minecraft.util.math.Vec3d
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldAware with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("trading").
     create()
 

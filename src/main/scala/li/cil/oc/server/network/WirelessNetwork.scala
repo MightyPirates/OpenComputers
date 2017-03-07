@@ -41,7 +41,7 @@ object WirelessNetwork {
   }
 
   def add(endpoint: WirelessEndpoint) {
-    dimensions.getOrElseUpdate(dimension(endpoint), new RTree[WirelessEndpoint](Settings.get.rTreeMaxEntries)((endpoint) => (endpoint.x + 0.5, endpoint.y + 0.5, endpoint.z + 0.5))).add(endpoint)
+    dimensions.getOrElseUpdate(dimension(endpoint), new RTree[WirelessEndpoint](Settings.get.rTreeMaxEntries)((endpoint) => (endpoint.getX + 0.5, endpoint.getY + 0.5, endpoint.getZ + 0.5))).add(endpoint)
   }
 
   def update(endpoint: WirelessEndpoint) {
@@ -49,9 +49,9 @@ object WirelessNetwork {
       case Some(tree) =>
         tree(endpoint) match {
           case Some((x, y, z)) =>
-            val dx = math.abs(endpoint.x + 0.5 - x)
-            val dy = math.abs(endpoint.y + 0.5 - y)
-            val dz = math.abs(endpoint.z + 0.5 - z)
+            val dx = math.abs(endpoint.getX + 0.5 - x)
+            val dy = math.abs(endpoint.getY + 0.5 - y)
+            val dz = math.abs(endpoint.getZ + 0.5 - z)
             if (dx > 0.5 || dy > 0.5 || dz > 0.5) {
               tree.remove(endpoint)
               tree.add(endpoint)
@@ -91,16 +91,16 @@ object WirelessNetwork {
     }
   }
 
-  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.getDimension
+  private def dimension(endpoint: WirelessEndpoint) = endpoint.getWorld.provider.getDimension
 
   private def offset(endpoint: WirelessEndpoint, value: Double) =
-    (endpoint.x + 0.5 + value, endpoint.y + 0.5 + value, endpoint.z + 0.5 + value)
+    (endpoint.getX + 0.5 + value, endpoint.getY + 0.5 + value, endpoint.getZ + 0.5 + value)
 
   private def zipWithSquaredDistance(reference: WirelessEndpoint)(endpoint: WirelessEndpoint) =
     (endpoint, {
-      val dx = endpoint.x - reference.x
-      val dy = endpoint.y - reference.y
-      val dz = endpoint.z - reference.z
+      val dx = endpoint.getX - reference.getX
+      val dy = endpoint.getY - reference.getY
+      val dz = endpoint.getZ - reference.getZ
       dx * dx + dy * dy + dz * dz
     })
 
@@ -115,10 +115,10 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
-      val world = endpoint.world
+      val world = endpoint.getWorld
 
-      val origin = new Vec3d(reference.x, reference.y, reference.z)
-      val target = new Vec3d(endpoint.x, endpoint.y, endpoint.z)
+      val origin = new Vec3d(reference.getX, reference.getY, reference.getZ)
+      val target = new Vec3d(endpoint.getX, endpoint.getY, endpoint.getZ)
 
       // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)

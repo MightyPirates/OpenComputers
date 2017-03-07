@@ -17,6 +17,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|FileSystem",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.fs;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

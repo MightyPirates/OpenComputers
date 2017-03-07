@@ -1,5 +1,7 @@
 package li.cil.oc.api.manual;
 
+import li.cil.oc.api.prefab.manual.ItemStackTabIconRenderer;
+import li.cil.oc.api.prefab.manual.TextureTabIconRenderer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -11,8 +13,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * multiple tab renderer instances.
  * <p/>
  *
- * @see li.cil.oc.api.prefab.ItemStackTabIconRenderer
- * @see li.cil.oc.api.prefab.TextureTabIconRenderer
+ * @see ItemStackTabIconRenderer
+ * @see TextureTabIconRenderer
  */
 public interface TabIconRenderer {
     /**

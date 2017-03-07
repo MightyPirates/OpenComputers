@@ -29,7 +29,7 @@ object DriverFileSystem extends Item {
     (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else Delegator.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
       case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
@@ -78,8 +78,8 @@ object DriverFileSystem extends Item {
         val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity max 0, Settings.get.bufferChanges)
         oc.api.FileSystem.asManagedEnvironment(fs, label, host, sound, speed)
       }
-      if (environment != null && environment.node != null) {
-        environment.node.asInstanceOf[oc.server.network.Node].address = address
+      if (environment != null && environment.getNode != null) {
+        environment.getNode.asInstanceOf[oc.server.network.Node].getAddress = address
       }
       environment
     }

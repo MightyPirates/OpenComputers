@@ -1,13 +1,12 @@
 package li.cil.oc.util;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class Reflection {
-    private Reflection() {
-    }
-
+    @Nullable
     public static Class<?> getClass(final String name) {
         try {
             return Class.forName(name);
@@ -16,13 +15,12 @@ public final class Reflection {
         }
     }
 
+    @Nullable
     public static Object get(final Object instance, final String fieldName) {
         try {
             final Field field = instance.getClass().getField(fieldName);
             return field.get(instance);
-        } catch (final IllegalAccessException ignored) {
-            return null;
-        } catch (final NoSuchFieldException ignored) {
+        } catch (final IllegalAccessException | NoSuchFieldException ignored) {
             return null;
         }
     }
@@ -31,16 +29,16 @@ public final class Reflection {
         try {
             final Field field = instance.getClass().getField(fieldName);
             field.set(instance, value);
-        } catch (final IllegalAccessException ignored) {
-        } catch (final NoSuchFieldException ignored) {
+        } catch (final IllegalAccessException | NoSuchFieldException ignored) {
         }
     }
 
     @SuppressWarnings("unchecked")
+    @Nullable
     public static <T> T invoke(final Object instance, final String methodName, final Object... args) throws Throwable {
         try {
             outer:
-            for (Method method : instance.getClass().getMethods()) {
+            for (final Method method : instance.getClass().getMethods()) {
                 if (method.getName().equals(methodName) && method.getParameterTypes().length == args.length) {
                     final Class<?>[] argTypes = method.getParameterTypes();
                     for (int i = 0; i < argTypes.length; ++i) {
@@ -63,20 +61,24 @@ public final class Reflection {
                 }
             }
             return null;
-        } catch (InvocationTargetException e) {
+        } catch (final InvocationTargetException e) {
             throw e.getCause();
-        } catch (IllegalAccessException e) {
-            return null;
-        } catch (ClassCastException e) {
+        } catch (final IllegalAccessException | ClassCastException e) {
             return null;
         }
     }
 
+    @Nullable
     public static <T> T tryInvoke(final Object instance, final String methodName, final Object... args) {
         try {
             return invoke(instance, methodName, args);
-        } catch (Throwable ignored) {
+        } catch (final Throwable ignored) {
             return null;
         }
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    private Reflection() {
     }
 }

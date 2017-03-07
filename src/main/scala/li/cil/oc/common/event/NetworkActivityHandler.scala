@@ -14,7 +14,7 @@ object NetworkActivityHandler {
         for (slot <- 0 until t.getSizeInventory) {
           t.getMountable(slot) match {
             case server: Server =>
-              val containsNode = server.componentSlot(e.getNode.address) >= 0
+              val containsNode = server.componentSlot(e.getNode.getAddress) >= 0
               if (containsNode) {
                 server.lastNetworkActivity = System.currentTimeMillis()
                 t.markChanged(slot)

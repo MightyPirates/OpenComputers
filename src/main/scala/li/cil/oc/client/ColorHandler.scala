@@ -2,11 +2,10 @@ package li.cil.oc.client
 
 import li.cil.oc.Constants
 import li.cil.oc.api
-import li.cil.oc.api.internal.Colored
+import li.cil.oc.api.tileentity.Colored
 import li.cil.oc.common.block
-import li.cil.oc.util.Color
-import li.cil.oc.util.ItemColorizer
-import li.cil.oc.util.ItemUtils
+import li.cil.oc.common.block.BlockCable
+import li.cil.oc.util.{DyeUtils, ItemColorizer, ItemUtils}
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
@@ -21,7 +20,7 @@ import net.minecraft.world.IBlockAccess
 object ColorHandler {
   def init(): Unit = {
     register((state, world, pos, tintIndex) => state.getBlock match {
-      case block: block.Cable => block.colorMultiplierOverride.getOrElse(0xFFFFFFFF)
+      case block: BlockCable => block.colorMultiplierOverride.getOrElse(0xFFFFFFFF)
       case _ => 0xFFFFFFFF
     },
       api.Items.get(Constants.BlockName.Cable).block())
@@ -29,7 +28,7 @@ object ColorHandler {
     register((state, world, pos, tintIndex) => if (pos == null) 0xFFFFFFFF else world.getTileEntity(pos) match {
       case colored: Colored => colored.getColor
       case _ => state.getBlock match {
-        case block: block.Case => Color.rgbValues(Color.byTier(block.tier))
+        case block: block.Case => DyeUtils.rgbValues(DyeUtils.byTier(block.tier))
         case _ => 0xFFFFFFFF
       }
     },
@@ -38,14 +37,14 @@ object ColorHandler {
       api.Items.get(Constants.BlockName.CaseTier3).block(),
       api.Items.get(Constants.BlockName.CaseCreative).block())
 
-    register((state, world, pos, tintIndex) => Color.rgbValues(Color.byOreName(Color.dyes(state.getBlock.getMetaFromState(state) max 0 min Color.dyes.length))),
+    register((state, world, pos, tintIndex) => DyeUtils.rgbValues(DyeUtils.byOreName(DyeUtils.dyes(state.getBlock.getMetaFromState(state) max 0 min DyeUtils.dyes.length))),
       api.Items.get(Constants.BlockName.ChameliumBlock).block())
 
     register((state, world, pos, tintIndex) => tintIndex,
       api.Items.get(Constants.BlockName.Print).block())
 
     register((state, world, pos, tintIndex) => state.getBlock match {
-      case block: block.Screen => Color.rgbValues(Color.byTier(block.tier))
+      case block: block.Screen => DyeUtils.rgbValues(DyeUtils.byTier(block.tier))
       case _ => 0xFFFFFFFF
     },
       api.Items.get(Constants.BlockName.ScreenTier1).block(),
@@ -55,13 +54,13 @@ object ColorHandler {
     register((stack, tintIndex) => if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else tintIndex,
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.Cable).block()))
 
-    register((stack, tintIndex) => Color.rgbValues(Color.byTier(ItemUtils.caseTier(stack))),
+    register((stack, tintIndex) => DyeUtils.rgbValues(DyeUtils.byTier(ItemUtils.caseTier(stack))),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.CaseTier1).block()),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.CaseTier2).block()),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.CaseTier3).block()),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.CaseCreative).block()))
 
-    register((stack, tintIndex) => Color.rgbValues(EnumDyeColor.byDyeDamage(stack.getItemDamage)),
+    register((stack, tintIndex) => DyeUtils.rgbValues(EnumDyeColor.byDyeDamage(stack.getItemDamage)),
       Item.getItemFromBlock(api.Items.get(Constants.BlockName.ChameliumBlock).block()))
 
     register((stack, tintIndex) => tintIndex,

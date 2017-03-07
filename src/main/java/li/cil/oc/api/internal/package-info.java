@@ -17,6 +17,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Internal",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

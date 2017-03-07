@@ -113,7 +113,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Adapter]() match {
       case Some(t) =>
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.notifyBlockUpdate(t.getPos)
+        t.getWorld.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
@@ -130,7 +130,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
-        t.world.notifyBlockUpdate(t.position)
+        t.getWorld.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -143,7 +143,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onColorChange(p: PacketParser) =
-    p.readTileEntity[Colored]() match {
+    p.readTileEntity[ColoredImpl]() match {
       case Some(t) =>
         t.setColor(p.readInt())
         t.getWorld.notifyBlockUpdate(t.position)
@@ -384,11 +384,11 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onNetSplitterState(p: PacketParser) =
-    p.readTileEntity[NetSplitter]() match {
+    p.readTileEntity[TileEntityNetSplitter]() match {
       case Some(t) =>
         t.isInverted = p.readBoolean()
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.notifyBlockUpdate(t.getPos)
+        t.getWorld.notifyBlockUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
@@ -496,7 +496,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRedstoneState(p: PacketParser) =
-    p.readTileEntity[RedstoneAware]() match {
+    p.readTileEntity[RedstoneAwareImpl]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
         for (d <- EnumFacing.values) {
@@ -566,7 +566,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableState(p: PacketParser) =
-    p.readTileEntity[Rotatable]() match {
+    p.readTileEntity[RotatableImpl]() match {
       case Some(t) =>
         t.pitch = p.readDirection().get
         t.yaw = p.readDirection().get
@@ -800,13 +800,13 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTransposerActivity(p: PacketParser) =
-    p.readTileEntity[Transposer]() match {
+    p.readTileEntity[TileEntityTransposer]() match {
       case Some(transposer) => transposer.lastOperation = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
 
   def onWaypointLabel(p: PacketParser) =
-    p.readTileEntity[Waypoint]() match {
+    p.readTileEntity[TileEntityWaypoint]() match {
       case Some(waypoint) => waypoint.label = p.readUTF()
       case _ => // Invalid packet.
     }

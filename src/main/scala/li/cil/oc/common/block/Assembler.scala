@@ -9,7 +9,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Assembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Assembler extends AbstractBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def isOpaqueCube(state: IBlockState): Boolean = false
 
   override def isFullCube(state: IBlockState): Boolean = false

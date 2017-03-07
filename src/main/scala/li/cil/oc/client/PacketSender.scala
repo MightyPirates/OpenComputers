@@ -198,7 +198,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendWaypointLabel(t: Waypoint): Unit = {
+  def sendWaypointLabel(t: TileEntityWaypoint): Unit = {
     val pb = new SimplePacketBuilder(PacketType.WaypointLabel)
 
     pb.writeTileEntity(t)

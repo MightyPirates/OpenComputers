@@ -10,17 +10,13 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 
 import scala.collection.convert.WrapAsJava._
 
 // Note-to-self: this has a component to allow the robot telling it has the
 // upgrade.
-// TODO Remove component in OC 1.7 (device info is sufficient)
-class UpgradeAngel extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("angel").
-    create()
-
+class UpgradeAngel extends AbstractManagedEnvironment with DeviceInfo {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Angel upgrade",

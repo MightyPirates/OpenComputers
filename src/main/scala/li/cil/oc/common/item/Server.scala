@@ -6,8 +6,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{RarityUtils, Tooltip}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
@@ -22,7 +21,7 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = RarityUtils.fromTier(tier)
 
   override def maxStackSize = 1
 

@@ -14,7 +14,7 @@ object DriverNetworkCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.NetworkCard))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.NetworkCard(host)
 
   override def slot(stack: ItemStack) = Slot.Card

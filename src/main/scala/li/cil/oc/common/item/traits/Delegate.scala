@@ -6,12 +6,10 @@ import javax.annotation.Nonnull
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ItemCosts
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{BlockPosition, ItemCosts, RarityUtils, Tooltip}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -65,11 +63,11 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def rarity(stack: ItemStack) = Rarity.byTier(tierFromDriver(stack))
+  def rarity(stack: ItemStack) = RarityUtils.fromTier(tierFromDriver(stack))
 
   protected def tierFromDriver(stack: ItemStack) =
     api.Driver.driverFor(stack) match {
-      case driver: api.driver.Item => driver.tier(stack)
+      case driver: DriverItem => driver.tier(stack)
       case _ => 0
     }
 

@@ -33,7 +33,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   override def fakePlayer = agent.player
 
-  protected def rotatedPlayer(facing: EnumFacing = agent.facing, side: EnumFacing = agent.facing) = {
+  protected def rotatedPlayer(facing: EnumFacing = agent.getFacing, side: EnumFacing = agent.getFacing) = {
     val player = agent.player.asInstanceOf[Player]
     Player.updatePositionAndRotation(player, facing, side)
     player

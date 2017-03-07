@@ -1,5 +1,8 @@
 package li.cil.oc.api.network;
 
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
@@ -16,37 +19,40 @@ import net.minecraft.world.World;
  */
 public interface EnvironmentHost {
     /**
-     * The world the container lives in.
+     * The world the host lives in.
      */
-    World world();
+    World getWorld();
 
     /**
-     * The container's X position in the world.
+     * The host's position in the world.
      * <p/>
      * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 0.5.
+     * if the tile entity is located at (0, -2, 3) this will be (0.5, -1.5, 3.5).
      */
-    double xPosition();
+    Vec3d getHostPosition();
 
     /**
-     * The container's Y position in the world.
+     * The host's block position in the world.
      * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 2.5.
+     * For entities this is the <em>containing</em> block position. For example,
+     * if the entity is located at (0.3, -2.5, 3.3) this will be (0, -3, 3).
      */
-    double yPosition();
+    BlockPos getHostBlockPosition();
 
     /**
-     * The container's Z position in the world.
-     * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 3.5.
+     * Marks the host as "changed" so that it knows it has to be saved again
+     * in the next world save. Typically only needed for tile entity hosts,
+     * where this should mark the tile entity's chunk as dirty.
+     * <p>
+     * <em>NB</em>: this may be called from execution threads, so <em>do not</em>
+     * directly call {@link TileEntity#markDirty()} in the implementation! Instead,
+     * do something like this:
+     * <pre>
+     * final IThreadListener thread = getWorld().getMinecraftServer();
+     * if (thread != null) {
+     *     thread.addScheduledTask(this::markDirty);
+     * }
+     * </pre>
      */
-    double zPosition();
-
-    /**
-     * Marks the container as "changed" so that it knows it has to be saved
-     * again in the next world save.
-     */
-    void markChanged();
+    void markHostChanged();
 }

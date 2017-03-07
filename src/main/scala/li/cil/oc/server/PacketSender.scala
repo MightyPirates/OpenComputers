@@ -7,7 +7,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.nanomachines.ControllerImpl
-import li.cil.oc.common.tileentity.Waypoint
+import li.cil.oc.common.tileentity.{TileEntityWaypoint, Waypoint}
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
@@ -71,7 +71,7 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendColorChange(t: Colored) {
+  def sendColorChange(t: ColoredImpl) {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
     pb.writeTileEntity(t)
@@ -129,7 +129,7 @@ object PacketSender {
       case _ =>
         val event = host match {
           case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
-          case _ => new FileSystemAccessEvent.Server(name, host.world, host.xPosition, host.yPosition, host.zPosition, node)
+          case _ => new FileSystemAccessEvent.Server(name, host.getWorld, host.xPosition, host.yPosition, host.zPosition, node)
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
@@ -160,7 +160,7 @@ object PacketSender {
 
     val event = host match {
       case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
-      case _ => new NetworkActivityEvent.Server(host.world, host.xPosition, host.yPosition, host.zPosition, node)
+      case _ => new NetworkActivityEvent.Server(host.getWorld, host.xPosition, host.yPosition, host.zPosition, node)
     }
     MinecraftForge.EVENT_BUS.post(event)
     if (!event.isCanceled) {
@@ -362,7 +362,7 @@ object PacketSender {
     }
   }
 
-  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
+  def sendNetSplitterState(t: tileentity.TileEntityNetSplitter): Unit = {
     val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
 
     pb.writeTileEntity(t)
@@ -473,7 +473,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendRedstoneState(t: RedstoneAware) {
+  def sendRedstoneState(t: RedstoneAwareImpl) {
     val pb = new SimplePacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)
@@ -498,7 +498,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
-    pb.writeInt(t.world.provider.getDimension)
+    pb.writeInt(t.getWorld.provider.getDimension)
     pb.writeInt(position.getX)
     pb.writeInt(position.getY)
     pb.writeInt(position.getZ)
@@ -554,7 +554,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t, Option(16))
   }
 
-  def sendRotatableState(t: Rotatable) {
+  def sendRotatableState(t: RotatableImpl) {
     val pb = new SimplePacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
@@ -758,7 +758,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(world, x, y, z, Option(32))
   }
 
-  def sendTransposerActivity(t: tileentity.Transposer) {
+  def sendTransposerActivity(t: tileentity.TileEntityTransposer) {
     val pb = new SimplePacketBuilder(PacketType.TransposerActivity)
 
     pb.writeTileEntity(t)
@@ -766,7 +766,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t, Option(32))
   }
 
-  def sendWaypointLabel(t: Waypoint): Unit = {
+  def sendWaypointLabel(t: TileEntityWaypoint): Unit = {
     val pb = new SimplePacketBuilder(PacketType.WaypointLabel)
 
     pb.writeTileEntity(t)

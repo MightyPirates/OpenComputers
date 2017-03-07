@@ -22,8 +22,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("modem", Visibility.Neighbors).
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("modem", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -46,16 +46,16 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   def position = BlockPosition(host)
 
-  override def x = position.x
+  override def getX = position.x
 
-  override def y = position.y
+  override def getY = position.y
 
-  override def z = position.z
+  override def getZ = position.z
 
-  override def world = host.world
+  override def getWorld = host.getWorld
 
   def receivePacket(packet: Packet, source: WirelessEndpoint) {
-    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
+    val (dx, dy, dz) = ((source.getX + 0.5) - host.xPosition, (source.getY + 0.5) - host.yPosition, (source.getZ + 0.5) - host.zPosition)
     val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
     receivePacket(packet, distance)
   }
@@ -92,7 +92,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
   private def checkPower() {
     val cost = Settings.get.wirelessCostPerRange
     if (cost > 0 && !Settings.get.ignorePower) {
-      if (!node.tryChangeBuffer(-strength * cost)) {
+      if (!getNode.tryChangeBuffer(-strength * cost)) {
         throw new IOException("not enough energy")
       }
     }
@@ -104,21 +104,21 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   override def update() {
     super.update()
-    if (world.getTotalWorldTime % 20 == 0) {
+    if (getWorld.getTotalWorldTime % 20 == 0) {
       api.Network.updateWirelessNetwork(this)
     }
   }
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       api.Network.joinWirelessNetwork(this)
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node || !world.isBlockLoaded(position)) {
+    if (node == this.getNode || !getWorld.isBlockLoaded(position)) {
       api.Network.leaveWirelessNetwork(this)
     }
   }

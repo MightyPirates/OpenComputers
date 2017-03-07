@@ -1,7 +1,7 @@
 package li.cil.oc.server.network
 
 import li.cil.oc.Settings
-import li.cil.oc.common.tileentity.Waypoint
+import li.cil.oc.common.tileentity.{TileEntityWaypoint, Waypoint}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.RTree
 import net.minecraftforge.event.world.ChunkEvent
@@ -12,7 +12,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object Waypoints {
-  val dimensions = mutable.Map.empty[Int, RTree[Waypoint]]
+  val dimensions = mutable.Map.empty[Int, RTree[TileEntityWaypoint]]
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
@@ -32,23 +32,23 @@ object Waypoints {
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload) {
     e.getChunk.getTileEntityMap.values.foreach {
-      case waypoint: Waypoint => remove(waypoint)
+      case waypoint: TileEntityWaypoint => remove(waypoint)
       case _ =>
     }
   }
 
-  def add(waypoint: Waypoint): Unit = if (!waypoint.isInvalid && waypoint.world != null && !waypoint.world.isRemote) {
-    dimensions.getOrElseUpdate(dimension(waypoint), new RTree[Waypoint](Settings.get.rTreeMaxEntries)((waypoint) => (waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5))).add(waypoint)
+  def add(waypoint: TileEntityWaypoint): Unit = if (!waypoint.isInvalid && waypoint.getWorld != null && !waypoint.getWorld.isRemote) {
+    dimensions.getOrElseUpdate(dimension(waypoint), new RTree[TileEntityWaypoint](Settings.get.rTreeMaxEntries)((waypoint) => (waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5))).add(waypoint)
   }
 
-  def remove(waypoint: Waypoint): Unit = if (waypoint.world != null && !waypoint.world.isRemote) {
+  def remove(waypoint: TileEntityWaypoint): Unit = if (waypoint.getWorld != null && !waypoint.getWorld.isRemote) {
     dimensions.get(dimension(waypoint)) match {
       case Some(set) => set.remove(waypoint)
       case _ =>
     }
   }
 
-  def findWaypoints(pos: BlockPosition, range: Double): Iterable[Waypoint] = {
+  def findWaypoints(pos: BlockPosition, range: Double): Iterable[TileEntityWaypoint] = {
     dimensions.get(pos.world.get.provider.getDimension) match {
       case Some(set) =>
         val bounds = pos.bounds.expand(range * 0.5, range * 0.5, range * 0.5)
@@ -57,5 +57,5 @@ object Waypoints {
     }
   }
 
-  private def dimension(waypoint: Waypoint) = waypoint.world.provider.getDimension
+  private def dimension(waypoint: TileEntityWaypoint) = waypoint.getWorld.provider.getDimension
 }

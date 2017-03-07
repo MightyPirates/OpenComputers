@@ -16,10 +16,8 @@ import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.item.data.NanomachineData
 import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.{BlockPosition, InventoryUtils, PlayerUtils}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.PlayerUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
@@ -55,21 +53,21 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   var activeBehaviorsDirty = true
   var hasSentConfiguration = false
 
-  override def world: World = player.getEntityWorld
+  override def getWorld: World = player.getEntityWorld
 
-  override def x: Int = BlockPosition(player).x
+  override def getX: Int = BlockPosition(player).x
 
-  override def y: Int = BlockPosition(player).y
+  override def getY: Int = BlockPosition(player).y
 
-  override def z: Int = BlockPosition(player).z
+  override def getZ: Int = BlockPosition(player).z
 
   override def receivePacket(packet: Packet, sender: WirelessEndpoint): Unit = {
     if (getLocalBuffer > 0 && commandDelay < 1 && !player.isDead) {
-      val (dx, dy, dz) = ((sender.x + 0.5) - player.posX, (sender.y + 0.5) - player.posY, (sender.z + 0.5) - player.posZ)
+      val (dx, dy, dz) = ((sender.getX + 0.5) - player.posX, (sender.getY + 0.5) - player.posY, (sender.getZ + 0.5) - player.posZ)
       val dSquared = dx * dx + dy * dy + dz * dz
-      if (dSquared <= CommandRange) packet.data.headOption match {
+      if (dSquared <= CommandRange) packet.getData.headOption match {
         case Some(header: Array[Byte]) if new String(header, Charsets.UTF_8) == "nanomachines" =>
-          val command = packet.data.drop(1).map {
+          val command = packet.getData.drop(1).map {
             case value: Array[Byte] => new String(value, Charsets.UTF_8)
             case value => value
           }
@@ -356,7 +354,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   // ----------------------------------------------------------------------- //
 
-  private def isClient = world.isRemote
+  private def isClient = getWorld.isRemote
 
   private def isServer = !isClient
 

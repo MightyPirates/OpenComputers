@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.{ManagedEnvironment, ManagedEnvironment}
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

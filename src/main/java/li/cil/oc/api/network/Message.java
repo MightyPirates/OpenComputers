@@ -12,21 +12,21 @@ public interface Message {
      *
      * @return the source node.
      */
-    Node source();
+    Node getSource();
 
     /**
      * The name of this message.
      *
      * @return the name of the message.
      */
-    String name();
+    String getName();
 
     /**
      * The values passed along in the message.
      *
      * @return the message data.
      */
-    Object[] data();
+    Object[] getData();
 
     /**
      * Stop further propagation of a broadcast message.

@@ -1,5 +1,7 @@
 package li.cil.oc.client.renderer.font;
 
+import li.cil.oc.util.FontUtils;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -39,7 +41,7 @@ public interface IGlyphProvider {
      * <p/>
      * Each glyph provided is expected to have the same width multiplier; i.e.
      * a glyphs actual width (in pixels) is expected to be this value times
-     * {@link li.cil.oc.util.FontUtils#wcwidth(int)} (for a specific char).
+     * {@link FontUtils#wcwidth(int)} (for a specific char).
      */
     int getGlyphWidth();
 

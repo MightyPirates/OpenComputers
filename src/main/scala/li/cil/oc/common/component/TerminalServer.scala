@@ -12,12 +12,7 @@ import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal.Keyboard.UsabilityChecker
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
 import li.cil.oc.api.util.Lifecycle
 import li.cil.oc.api.util.StateAware
 import li.cil.oc.api.util.StateAware.State
@@ -37,7 +32,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.None).create()
+  val getNode = api.Network.newNode(this, Visibility.NONE).create()
 
   lazy val buffer = {
     val screenItem = api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)
@@ -69,7 +64,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   def address = rack.getMountableData(slot).getString("terminalAddress")
 
   def sidedKeys = {
-    if (!rack.world.isRemote) keys
+    if (!rack.getWorld.isRemote) keys
     else rack.getMountableData(slot).getTagList("keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
   }
 
@@ -89,17 +84,17 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // Environment
 
   override def onConnect(node: Node) {
-    if (node == this.node) {
-      node.connect(buffer.node)
-      node.connect(keyboard.node)
-      buffer.node.connect(keyboard.node)
+    if (node == this.getNode) {
+      node.connect(buffer.getNode)
+      node.connect(keyboard.getNode)
+      buffer.getNode.connect(keyboard.getNode)
     }
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) {
-      buffer.node.remove()
-      keyboard.node.remove()
+    if (node == this.getNode) {
+      buffer.getNode.remove()
+      keyboard.getNode.remove()
     }
   }
 
@@ -109,7 +104,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // EnvironmentHost
 
-  override def world = rack.world
+  override def getWorld = rack.getWorld
 
   override def xPosition = rack.xPosition
 
@@ -123,11 +118,11 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // RackMountable
 
   override def getData: NBTTagCompound = {
-    if (node.address == null) api.Network.joinNewNetwork(node)
+    if (getNode.getAddress == null) api.Network.joinNewNetwork(getNode)
 
     val nbt = new NBTTagCompound()
     nbt.setNewTagList("keys", keys)
-    nbt.setString("terminalAddress", node.address)
+    nbt.setString("terminalAddress", getNode.getAddress)
     nbt
   }
 
@@ -137,7 +132,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
 
   override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.Terminal)) {
-      if (!world.isRemote) {
+      if (!getWorld.isRemote) {
         val key = UUID.randomUUID().toString
         if (!heldItem.hasTagCompound) {
           heldItem.setTagCompound(new NBTTagCompound())
@@ -151,7 +146,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
         }
         keys += key
         heldItem.getTagCompound.setString(Settings.namespace + "key", key)
-        heldItem.getTagCompound.setString(Settings.namespace + "server", node.address)
+        heldItem.getTagCompound.setString(Settings.namespace + "server", getNode.getAddress)
         rack.markChanged(slot)
         player.inventory.markDirty()
       }
@@ -168,8 +163,8 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   private final val KeysTag = Settings.namespace + "keys"
 
   override def load(nbt: NBTTagCompound): Unit = {
-    if (!rack.world.isRemote) {
-      node.load(nbt)
+    if (!rack.getWorld.isRemote) {
+      getNode.load(nbt)
     }
     buffer.load(nbt.getCompoundTag(BufferTag))
     keyboard.load(nbt.getCompoundTag(KeyboardTag))
@@ -178,7 +173,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
-    node.save(nbt)
+    getNode.save(nbt)
     nbt.setNewCompoundTag(BufferTag, buffer.save)
     nbt.setNewCompoundTag(KeyboardTag, keyboard.save)
     nbt.setNewTagList(KeysTag, keys)
@@ -190,7 +185,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    if (world.isRemote || (node.address != null && node.network != null)) {
+    if (getWorld.isRemote || (getNode.getAddress != null && getNode.getNetwork != null)) {
       buffer.update()
     }
   }
@@ -205,12 +200,12 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(buffer.node, keyboard.node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(buffer.getNode, keyboard.getNode)
 
   // ----------------------------------------------------------------------- //
   // LifeCycle
 
-  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.world.isRemote) state match {
+  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.getWorld.isRemote) state match {
     case Lifecycle.LifecycleState.Initialized =>
       TerminalServer.loaded += this
     case Lifecycle.LifecycleState.Disposed =>

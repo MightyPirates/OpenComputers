@@ -15,6 +15,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedInventory._
@@ -29,7 +30,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
+class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with RotatableImpl with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
   var isRelayEnabled = true
   val lastData = new Array[NBTTagCompound](getSizeInventory)
   val hasChanged = Array.fill(getSizeInventory)(true)
@@ -42,7 +43,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // messages.
   // mountable -> connectable -> side
   val nodeMapping = Array.fill(getSizeInventory)(Array.fill[Option[EnumFacing]](4)(None))
-  val snifferNodes = Array.fill(getSizeInventory)(Array.fill(3)(api.Network.newNode(this, Visibility.Neighbors).create()))
+  val snifferNodes = Array.fill(getSizeInventory)(Array.fill(3)(api.Network.newNode(this, Visibility.NEIGHBORS).create()))
 
   def connect(slot: Int, connectableIndex: Int, side: Option[EnumFacing]): Unit = {
     val newSide = side match {
@@ -57,7 +58,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     val mountable = getMountable(slot)
     if (mountable != null && oldSide.isDefined) {
       if (connectableIndex == 0) {
-        val node = mountable.node
+        val node = mountable.getNode
         val plug = sidedNode(toGlobal(oldSide.get))
         if (node != null && plug != null) {
           node.disconnect(plug)
@@ -73,7 +74,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     // Establish connection / add sniffer node.
     if (mountable != null && newSide.isDefined) {
       if (connectableIndex == 0) {
-        val node = mountable.node
+        val node = mountable.getNode
         val plug = sidedNode(toGlobal(newSide.get))
         if (node != null && plug != null) {
           node.connect(plug)
@@ -81,11 +82,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       }
       else if (connectableIndex < mountable.getConnectableCount) {
         val connectable = mountable.getConnectableAt(connectableIndex)
-        if (connectable != null && connectable.node != null) {
-          if (connectable.node.network == null) {
-            api.Network.joinNewNetwork(connectable.node)
+        if (connectable != null && connectable.getNode != null) {
+          if (connectable.getNode.getNetwork == null) {
+            api.Network.joinNewNetwork(connectable.getNode)
           }
-          connectable.node.connect(snifferNodes(slot)(connectableIndex))
+          connectable.getNode.connect(snifferNodes(slot)(connectableIndex))
         }
       }
     }
@@ -98,9 +99,9 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
         case Some(side) if toGlobal(side) == plugSide =>
           val mountable = getMountable(slot)
           val busNode = sidedNode(plugSide)
-          if (busNode != null && mountable != null && mountable.node != null && busNode != mountable.node) {
-            api.Network.joinNewNetwork(mountable.node)
-            busNode.connect(mountable.node)
+          if (busNode != null && mountable != null && mountable.getNode != null && busNode != mountable.getNode) {
+            api.Network.joinNewNetwork(mountable.getNode)
+            busNode.connect(mountable.getNode)
           }
         case _ => // Not connected to this side.
       }
@@ -110,11 +111,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
             val mountable = getMountable(slot)
             if (mountable != null && connectableIndex < mountable.getConnectableCount) {
               val connectable = mountable.getConnectableAt(connectableIndex)
-              if (connectable != null && connectable.node != null) {
-                if (connectable.node.network == null) {
-                  api.Network.joinNewNetwork(connectable.node)
+              if (connectable != null && connectable.getNode != null) {
+                if (connectable.getNode.getNetwork == null) {
+                  api.Network.joinNewNetwork(connectable.getNode)
                 }
-                connectable.node.connect(snifferNodes(slot)(connectableIndex))
+                connectable.getNode.connect(snifferNodes(slot)(connectableIndex))
               }
             }
           case _ => // Not connected to this side.
@@ -156,7 +157,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     reconnect(plug.side)
   }
 
-  protected override def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network)
+  protected override def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.NETWORK)
     .withConnector(Settings.get.bufferDistributor)
     .create()
 
@@ -170,7 +171,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.name == "network.message") message.data match {
+    if (message.getName == "network.message") message.getData match {
       case Array(packet: Packet) => relayIfMessageFromConnectable(message, packet)
       case _ =>
     }
@@ -186,7 +187,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
             case Some(side) =>
               if (connectableIndex < mountable.getConnectableCount) {
                 val connectable = mountable.getConnectableAt(connectableIndex)
-                if (connectable != null && connectable.node == message.source) {
+                if (connectable != null && connectable.getNode == message.getSource) {
                   sidedNode(toGlobal(side)).sendToReachable("network.message", packet)
                   relayToConnectablesOnSide(message, packet, side)
                   return
@@ -209,7 +210,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
             case Some(side) if side == sourceSide =>
               if (connectableIndex < mountable.getConnectableCount) {
                 val connectable = mountable.getConnectableAt(connectableIndex)
-                if (connectable != null && connectable.node != message.source) {
+                if (connectable != null && connectable.getNode != message.getSource) {
                   snifferNodes(slot)(connectableIndex).sendToNeighbors("network.message", packet)
                 }
               }
@@ -223,17 +224,17 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // SidedEnvironment
 
-  override def canConnect(side: EnumFacing) = side != facing
+  override def canConnect(side: EnumFacing) = side != getFacing
 
-  override def sidedNode(side: EnumFacing): Node = if (side != facing) super.sidedNode(side) else null
+  override def sidedNode(side: EnumFacing): Node = if (side != getFacing) super.sidedNode(side) else null
 
   // ----------------------------------------------------------------------- //
   // power.Common
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[Connector] else null)
 
   override def energyThroughput = Settings.get.serverRackRate
 
@@ -287,13 +288,13 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   }
 
   // ----------------------------------------------------------------------- //
-  // RedstoneAware
+  // RedstoneAwareImpl
 
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     components.collect {
-      case Some(mountable: RackMountable) if mountable.node != null =>
-        mountable.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+      case Some(mountable: RackMountable) if mountable.getNode != null =>
+        mountable.getNode.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
     }
   }
 
@@ -371,7 +372,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
           }
 
           // Power mountables without requiring them to be connected to the outside.
-          mountable.node match {
+          mountable.getNode match {
             case connector: Connector =>
               var remaining = Settings.get.serverRackRate
               for (outside <- connectors if remaining > 0) {
@@ -437,7 +438,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
 
   def slotAt(side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (side == facing) {
+    if (side == getFacing) {
       val globalY = (hitY * 16).toInt // [0, 15]
       val l = 2
       val h = 14

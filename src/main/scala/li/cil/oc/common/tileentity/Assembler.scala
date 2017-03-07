@@ -24,7 +24,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 
 class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
     create()
@@ -49,12 +49,12 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = side != EnumFacing.UP
 
-  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
+  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) getNode else null
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = canConnect(side)
 
-  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) getNode else null)
 
   override def energyThroughput = Settings.get.assemblerRate
 
@@ -125,7 +125,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     super.updateEntity()
     if (output.isDefined && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
-      val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
+      val have = want + (if (Settings.get.ignorePower) 0 else getNode.changeBuffer(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         setInventorySlotContents(0, output.get)

@@ -3,8 +3,7 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{RarityUtils, Tooltip}
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -16,7 +15,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Hologram(val tier: Int) extends SimpleBlock {
+class Hologram(val tier: Int) extends AbstractBlock {
   val bounds = new AxisAlignedBB(0, 0, 0, 1, 0.5f, 1)
 
   // ----------------------------------------------------------------------- //
@@ -38,7 +37,7 @@ class Hologram(val tier: Int) extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = RarityUtils.fromTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName + tier))

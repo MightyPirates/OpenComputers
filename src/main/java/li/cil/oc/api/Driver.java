@@ -4,11 +4,11 @@ import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
 import li.cil.oc.api.driver.InventoryProvider;
-import li.cil.oc.api.driver.Item;
-import li.cil.oc.api.driver.SidedBlock;
+import li.cil.oc.api.driver.DriverItem;
+import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -24,7 +24,7 @@ import java.util.Set;
  * Drivers are used to make items and third-party blocks available in the mod's
  * component network, and optionally to user programs. If you implement a new
  * block that should interact with the mod's component network it is enough to
- * have it implement {@link li.cil.oc.api.network.Environment} - no driver is
+ * have it implement {@link Environment} - no driver is
  * needed in that case.
  * <p/>
  * Note that these methods should <em>not</em> be called in the pre-init phase,
@@ -32,29 +32,10 @@ import java.util.Set;
  * at that time. Only start calling these methods in the init phase or later.
  *
  * @see Network
- * @see SidedBlock
- * @see Item
+ * @see DriverBlock
+ * @see DriverItem
  */
 public final class Driver {
-    /**
-     * Registers a new block driver.
-     * <p/>
-     * Whenever the neighboring blocks of an Adapter block change, it checks if
-     * there exists a driver for the changed block, and if it is configured to
-     * interface that block type connects it to the component network.
-     * <p/>
-     * This must be called in the init phase, <em>not</em> the pre- or post-init
-     * phases.
-     *
-     * @param driver the driver to register.
-     * @deprecated Use {@link SidedBlock} instead.
-     */
-    @Deprecated // TODO Remove in OC 1.7
-    public static void add(final Block driver) {
-        if (API.driver != null)
-            API.driver.add(driver);
-    }
-
     /**
      * Registers a new side-aware block driver.
      * <p/>
@@ -67,7 +48,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(final SidedBlock driver) {
+    public static void add(final DriverBlock driver) {
         if (API.driver != null)
             API.driver.add(driver);
     }
@@ -83,7 +64,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(final Item driver) {
+    public static void add(final DriverItem driver) {
         if (API.driver != null)
             API.driver.add(driver);
     }
@@ -144,30 +125,8 @@ public final class Driver {
      * @param world the world containing the block.
      * @param pos   the position of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
-     * @deprecated Use {@link #driverFor(World, BlockPos, EnumFacing)},
-     * passing <tt>null</tt> if the side is to be ignored.
      */
-    @Deprecated // TODO Remove in OC 1.7
-    public static Block driverFor(World world, BlockPos pos) {
-        if (API.driver != null)
-            return API.driver.driverFor(world, pos);
-        return null;
-    }
-
-    /**
-     * Looks up a driver for the block at the specified position in the
-     * specified world.
-     * <p/>
-     * Note that several drivers for a single block can exist. Because of this
-     * block drivers are always encapsulated in a 'compound' driver, which is
-     * what will be returned here. In other words, you should will <em>not</em>
-     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
-     *
-     * @param world the world containing the block.
-     * @param pos   the position of the block.
-     * @return a driver for the block, or <tt>null</tt> if there is none.
-     */
-    public static SidedBlock driverFor(World world, BlockPos pos, EnumFacing side) {
+    public static DriverBlock driverFor(World world, BlockPos pos, EnumFacing side) {
         if (API.driver != null)
             return API.driver.driverFor(world, pos, side);
         return null;
@@ -184,7 +143,7 @@ public final class Driver {
      * @param host  the type that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
+    public static DriverItem driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
         if (API.driver != null)
             return API.driver.driverFor(stack, host);
         return null;
@@ -203,7 +162,7 @@ public final class Driver {
      * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static Item driverFor(ItemStack stack) {
+    public static DriverItem driverFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.driverFor(stack);
         return null;
@@ -240,16 +199,6 @@ public final class Driver {
     public static Set<Class<?>> environmentsFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.environmentsFor(stack);
-        return null;
-    }
-
-    /**
-     * @deprecated Use {@link #itemHandlerFor(ItemStack, EntityPlayer)} instead.
-     */
-    @Deprecated // TODO Remove in OC 1.7
-    public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
-        if (API.driver != null)
-            return API.driver.inventoryFor(stack, player);
         return null;
     }
 
@@ -299,7 +248,7 @@ public final class Driver {
      *
      * @return the list of all registered item drivers.
      */
-    public static Collection<Item> itemDrivers() {
+    public static Collection<DriverItem> itemDrivers() {
         if (API.driver != null)
             return API.driver.itemDrivers();
         return null;

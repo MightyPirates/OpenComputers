@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.init.Items
@@ -23,10 +24,10 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
   final val MaxLevel = 30
 
-  override val node = api.Network.newNode(this, Visibility.Network).
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("experience").
     withConnector(30 * Settings.get.bufferPerLevel).
     create()
@@ -65,11 +66,11 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     // pow(xp(level) - base, 1/exp) / const = level
     val oldLevel = level
     level = math.min((Math.pow(experience - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
-    if (node != null) {
+    if (getNode != null) {
       if (level != oldLevel) {
         updateClient()
       }
-      node.setLocalBufferSize(Settings.get.bufferPerLevel * level)
+      getNode.setLocalBufferSize(Settings.get.bufferPerLevel * level)
     }
   }
 
@@ -91,7 +92,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     }
     var xp = 0
     if (stack.getItem == Items.EXPERIENCE_BOTTLE) {
-      xp += 3 + host.world.rand.nextInt(5) + host.world.rand.nextInt(5)
+      xp += 3 + host.getWorld.rand.nextInt(5) + host.getWorld.rand.nextInt(5)
     }
     else {
       for ((enchantment, level) <- EnchantmentHelper.getEnchantments(stack)) {
@@ -112,7 +113,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
   }
 
   private def updateClient() = host match {
-    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
+    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(getNode.getAddress))
     case _ =>
   }
 

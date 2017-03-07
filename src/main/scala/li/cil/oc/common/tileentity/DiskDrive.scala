@@ -18,6 +18,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
@@ -30,12 +31,12 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
+class DiskDrive extends traits.Environment with traits.ComponentInventory with RotatableImpl with Analyzable with DeviceInfo {
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
   def filesystemNode = components(0) match {
-    case Some(environment) => Option(environment.node)
+    case Some(environment) => Option(environment.getNode)
     case _ => None
   }
 
@@ -51,7 +52,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   // ----------------------------------------------------------------------- //
   // Environment
 
-  val node = api.Network.newNode(this, Visibility.Network).
+  val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("disk_drive").
     create()
 
@@ -98,8 +99,8 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     components(slot) match {
-      case Some(environment) => environment.node match {
-        case component: Component => component.setVisibility(Visibility.Network)
+      case Some(environment) => environment.getNode match {
+        case component: Component => component.setVisibility(Visibility.NETWORK)
       }
       case _ =>
     }

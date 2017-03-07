@@ -14,6 +14,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ItemUtils
@@ -22,8 +23,8 @@ import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment with internal.Database with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment with internal.Database with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("database").
     create()
 
@@ -79,13 +80,13 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
       inventory.setInventorySlotContents(toSlot, entry.copy())
       result(nonEmpty)
     }
-    if (args.count > 2) DatabaseAccess.withDatabase(node, args.checkString(2), database => set(database.data))
+    if (args.count > 2) DatabaseAccess.withDatabase(getNode, args.checkString(2), database => set(database.data))
     else set(data)
   }
 
   @Callback(doc = "function(address:string):number -- Copies the data stored in this database to another database with the specified address.")
   def clone(context: Context, args: Arguments): Array[AnyRef] = {
-    DatabaseAccess.withDatabase(node, args.checkString(0), database => {
+    DatabaseAccess.withDatabase(getNode, args.checkString(0), database => {
       val numberToCopy = math.min(data.getSizeInventory, database.data.getSizeInventory)
       for (slot <- 0 until numberToCopy) {
         database.data.setInventorySlotContents(slot, data.getStackInSlot(slot).copy())

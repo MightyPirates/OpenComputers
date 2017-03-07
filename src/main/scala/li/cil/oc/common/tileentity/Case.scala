@@ -15,7 +15,8 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRunning
-import li.cil.oc.util.Color
+import li.cil.oc.common.tileentity.traits.ColoredImpl
+import li.cil.oc.util.DyeUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -25,14 +26,14 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with ColoredImpl with internal.Case with DeviceInfo {
   def this() = this(0)
 
   // Used on client side to check whether to render disk activity/network indicators.
   var lastFileSystemAccess = 0L
   var lastNetworkActivity = 0L
 
-  setColor(Color.rgbValues(Color.byTier(tier)))
+  setColor(DyeUtils.rgbValues(DyeUtils.byTier(tier)))
 
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
@@ -47,9 +48,9 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
@@ -57,14 +58,14 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   // ----------------------------------------------------------------------- //
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
-      node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+      getNode.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
     super.updateEntity()
   }
@@ -85,7 +86,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(TierTag) max 0 min 3
-    setColor(Color.rgbValues(Color.byTier(tier)))
+    setColor(DyeUtils.rgbValues(DyeUtils.byTier(tier)))
     super.readFromNBTForServer(nbt)
   }
 

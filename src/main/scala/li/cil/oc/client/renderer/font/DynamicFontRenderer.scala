@@ -2,8 +2,7 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
-import li.cil.oc.util.FontUtils
-import li.cil.oc.util.RenderState
+import li.cil.oc.util.{FontUtils, RenderState}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.resources.IReloadableResourceManager

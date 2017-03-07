@@ -6,11 +6,12 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import net.minecraft.nbt.NBTTagCompound
 
-trait RedstoneSignaller extends prefab.ManagedEnvironment {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("redstone", Visibility.Neighbors).
+trait RedstoneSignaller extends AbstractManagedEnvironment {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("redstone", Visibility.NEIGHBORS).
     create()
 
   var wakeThreshold = 0
@@ -32,12 +33,12 @@ trait RedstoneSignaller extends prefab.ManagedEnvironment {
   // ----------------------------------------------------------------------- //
 
   def onRedstoneChanged(side: AnyRef, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    node.sendToReachable("computer.signal", "redstone_changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
+    getNode.sendToReachable("computer.signal", "redstone_changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
     if (oldMaxValue < wakeThreshold && newMaxValue >= wakeThreshold) {
       if (wakeNeighborsOnly)
-        node.sendToNeighbors("computer.start")
+        getNode.sendToNeighbors("computer.start")
       else
-        node.sendToReachable("computer.start")
+        getNode.sendToReachable("computer.start")
     }
   }
 

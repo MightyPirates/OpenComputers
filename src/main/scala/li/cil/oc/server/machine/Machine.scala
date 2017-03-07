@@ -25,6 +25,7 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
@@ -48,9 +49,9 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("computer", Visibility.Neighbors).
+class Machine(val host: MachineHost) extends AbstractManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("computer", Visibility.NEIGHBORS).
     withConnector(Settings.get.bufferComputer).
     create()
 
@@ -143,7 +144,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // architecture changing while it is currently being executed.
     if (newArchitecture != architecture) this.synchronized {
       architecture = newArchitecture
-      if (architecture != null && node.network != null) architecture.onConnect()
+      if (architecture != null && getNode.getNetwork != null) architecture.onConnect()
     }
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
@@ -152,9 +153,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   def componentCount = (_components.foldLeft(0.0)((acc, entry) => entry match {
     case (_, name) => acc + (if (name != "filesystem") 1.0 else 0.25)
-  }) + addedComponents.foldLeft(0.0)((acc, component) => acc + (if (component.name != "filesystem") 1 else 0.25)) - 1).toInt // -1 = this computer
+  }) + addedComponents.foldLeft(0.0)((acc, component) => acc + (if (component.getName != "filesystem") 1 else 0.25)) - 1).toInt // -1 = this computer
 
-  override def tmpAddress = tmp.fold(null: String)(_.node.address)
+  override def tmpAddress = tmp.fold(null: String)(_.getNode.getAddress)
 
   def lastError = message.orNull
 
@@ -199,11 +200,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
   override def start(): Boolean = state.synchronized(state.top match {
-    case Machine.State.Stopped if node.network != null =>
+    case Machine.State.Stopped if getNode.getNetwork != null =>
       onHostChanged()
       processAddedComponents()
       verifyComponents()
-      if (!Settings.get.ignorePower && node.globalBuffer < cost) {
+      if (!Settings.get.ignorePower && getNode.getGlobalBuffer < cost) {
         // No beep! We have no energy after all :P
         crash("gui.Error.NoEnergy")
         false
@@ -230,7 +231,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       else {
         switchTo(Machine.State.Starting)
         uptime = 0
-        node.sendToReachable("computer.started")
+        getNode.sendToReachable("computer.started")
         true
       }
     case Machine.State.Paused if remainingPause > 0 =>
@@ -287,11 +288,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def beep(frequency: Short, duration: Short): Unit = {
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
+    PacketSender.sendSound(host.getWorld, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
   }
 
   override def beep(pattern: String) {
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
+    PacketSender.sendSound(host.getWorld, host.xPosition, host.yPosition, host.zPosition, pattern)
   }
 
   override def crash(message: String) = {
@@ -348,10 +349,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   override def invoke(address: String, method: String, args: Array[AnyRef]): Array[AnyRef] = {
-    if (node != null && node.network != null) {
-      Option(node.network.node(address)) match {
-        case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-          val annotation = component.annotation(method)
+    if (getNode != null && getNode.getNetwork != null) {
+      Option(getNode.getNetwork.node(address)) match {
+        case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(getNode) || component == getNode =>
+          val annotation = component.getAnnotation(method)
           if (annotation.direct) {
             consumeCallBudget(1.0 / annotation.limit)
           }
@@ -427,26 +428,26 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     val duration = args.optDouble(1, 0.1)
     val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
     context.pause(durationInMilliseconds / 1000.0)
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
+    PacketSender.sendSound(host.getWorld, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
     null
   }
 
   @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
   def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
-    Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {
+    Array[AnyRef](getNode.getNetwork.nodes.map(n => (n, n.getEnvironment)).collect {
       case (n: Component, deviceInfo: DeviceInfo) =>
-        if (n.canBeSeenFrom(node) || n == node) {
+        if (n.canBeSeenFrom(getNode) || n == getNode) {
           Option(deviceInfo.getDeviceInfo) match {
-            case Some(info) => Option(n.address -> info)
+            case Some(info) => Option(n.getAddress -> info)
             case _ => None
           }
         }
         else None
       case (n, deviceInfo: DeviceInfo) =>
-        if (n.canBeReachedFrom(node)) {
+        if (n.canBeReachedFrom(getNode)) {
           Option(deviceInfo.getDeviceInfo) match {
-            case Some(info) => Option(n.address -> info)
+            case Some(info) => Option(n.getAddress -> info)
             case _ => None
           }
         }
@@ -483,7 +484,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
 
     // Update world time for time() and uptime().
-    worldTime = host.world.getWorldTime
+    worldTime = host.getWorld.getWorldTime
     uptime += 1
 
     if (remainIdle > 0) {
@@ -494,25 +495,25 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     callBudget = maxCallBudget
 
     // Make sure we have enough power.
-    if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       state.synchronized(state.top match {
         case Machine.State.Paused |
              Machine.State.Restarting |
              Machine.State.Stopping |
              Machine.State.Stopped => // No power consumption.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
-          if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
+          if (!getNode.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
             crash("gui.Error.NoEnergy")
           }
         case _ =>
-          if (!node.tryChangeBuffer(-cost)) {
+          if (!getNode.tryChangeBuffer(-cost)) {
             crash("gui.Error.NoEnergy")
           }
       })
     }
 
     // Avoid spamming user list across the network.
-    if (host.world.getTotalWorldTime % 20 == 0 && usersChanged) {
+    if (host.getWorld.getTotalWorldTime % 20 == 0 && usersChanged) {
       val list = _users.synchronized {
         usersChanged = false
         users
@@ -534,10 +535,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case Machine.State.Restarting =>
         close()
         if (Settings.get.eraseTmpOnReboot) {
-          tmp.foreach(_.node.remove()) // To force deleting contents.
-          tmp.foreach(tmp => node.connect(tmp.node))
+          tmp.foreach(_.getNode.remove()) // To force deleting contents.
+          tmp.foreach(tmp => getNode.connect(tmp.getNode))
         }
-        node.sendToReachable("computer.stopped")
+        getNode.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
       case Machine.State.Sleeping if remainIdle <= 0 || signals.nonEmpty =>
@@ -602,22 +603,22 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message) {
-    message.data match {
-      case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        signal(name, Seq(message.source.address) ++ args: _*)
-      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
+    message.getData match {
+      case Array(name: String, args@_*) if message.getName == "computer.signal" =>
+        signal(name, Seq(message.getSource.getAddress) ++ args: _*)
+      case Array(player: EntityPlayer, name: String, args@_*) if message.getName == "computer.checked_signal" =>
         if (canInteract(player.getName))
-          signal(name, Seq(message.source.address) ++ args: _*)
+          signal(name, Seq(message.getSource.getAddress) ++ args: _*)
       case _ =>
-        if (message.name == "computer.start" && !isPaused) start()
-        else if (message.name == "computer.stop") stop()
+        if (message.getName == "computer.start" && !isPaused) start()
+        else if (message.getName == "computer.stop") stop()
     }
   }
 
   override def onConnect(node: Node) {
-    if (node == this.node) {
-      _components += this.node.address -> this.node.name
-      tmp.foreach(fs => node.connect(fs.node))
+    if (node == this.getNode) {
+      _components += this.getNode.getAddress -> this.getNode.getName
+      tmp.foreach(fs => node.connect(fs.getNode))
       Option(architecture).foreach(_.onConnect())
     }
     else {
@@ -631,9 +632,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) {
+    if (node == this.getNode) {
       close()
-      tmp.foreach(_.node.remove())
+      tmp.foreach(_.getNode.remove())
     }
     else {
       node match {
@@ -648,15 +649,15 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   // ----------------------------------------------------------------------- //
 
   def addComponent(component: Component) {
-    if (!_components.contains(component.address)) {
+    if (!_components.contains(component.getAddress)) {
       addedComponents += component
     }
   }
 
   def removeComponent(component: Component) {
-    if (_components.contains(component.address)) {
-      _components.synchronized(_components -= component.address)
-      signal("component_removed", component.address, component.name)
+    if (_components.contains(component.getAddress)) {
+      _components.synchronized(_components -= component.getAddress)
+      signal("component_removed", component.getAddress, component.getName)
     }
     addedComponents -= component
   }
@@ -664,12 +665,12 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   private def processAddedComponents() {
     if (addedComponents.nonEmpty) {
       for (component <- addedComponents) {
-        if (component.canBeSeenFrom(node)) {
-          _components.synchronized(_components += component.address -> component.name)
+        if (component.canBeSeenFrom(getNode)) {
+          _components.synchronized(_components += component.getAddress -> component.getName)
           // Skip the signal if we're not initialized yet, since we'd generate a
           // duplicate in the startup script otherwise.
           if (architecture != null && architecture.isInitialized) {
-            signal("component_added", component.address, component.name)
+            signal("component_added", component.getAddress, component.getName)
           }
         }
       }
@@ -680,8 +681,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   private def verifyComponents() {
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- _components) {
-      node.network.node(address) match {
-        case component: Component if component.name == name => // All is well.
+      getNode.getNetwork.node(address) match {
+        case component: Component if component.getName == name => // All is well.
         case _ =>
           if (name == "filesystem") {
             OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
@@ -699,7 +700,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  private def tmpPath = node.address + "_tmp"
+  private def tmpPath = getNode.getAddress + "_tmp"
   private final val StateTag = "state"
   private final val UsersTag = "users"
   private final val MessageTag = "message"
@@ -874,8 +875,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     // Connect the `/tmp` node to our owner. We're not in a network in
     // case we're loading, which is why we have to check it here.
-    if (node.network != null) {
-      tmp.foreach(fs => node.connect(fs.node))
+    if (getNode.getNetwork != null) {
+      tmp.foreach(fs => getNode.connect(fs.getNode))
     }
 
     try {
@@ -893,11 +894,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (isExecuting) false
     else {
       close()
-      tmp.foreach(_.node.remove()) // To force deleting contents.
-      if (node.network != null) {
-        tmp.foreach(tmp => node.connect(tmp.node))
+      tmp.foreach(_.getNode.remove()) // To force deleting contents.
+      if (getNode.getNetwork != null) {
+        tmp.foreach(tmp => getNode.connect(tmp.getNode))
       }
-      node.sendToReachable("computer.stopped")
+      getNode.sendToReachable("computer.stopped")
       true
     }
 

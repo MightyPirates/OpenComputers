@@ -15,24 +15,24 @@ public interface Packet {
     /**
      * The address of the <em>original</em> sender of this packet.
      */
-    String source();
+    String getSource();
 
     /**
      * The address of the destination of the packet. This is <tt>null</tt> for
      * broadcast packets.
      */
-    String destination();
+    String getDestination();
 
     /**
      * The port this packet is being sent to.
      */
-    int port();
+    int getPort();
 
     /**
      * The payload of the packet. This will usually only contain simple types,
      * to allow persisting the packet.
      */
-    Object[] data();
+    Object[] getData();
 
     /**
      * The size of the packet's payload.
@@ -41,14 +41,14 @@ public interface Packet {
      * for primitive types, i.e. null, boolean, integer, boolean byte array and
      * string. All other types do <em>not</em> contribute to the packet's size.
      */
-    int size();
+    int getSize();
 
     /**
      * The remaining 'time to live' for this packet. When a packet with a TTL of
      * zero is received it will not be relayed by switches and access points. It
      * will however still be received by a network card.
      */
-    int ttl();
+    int getTTL();
 
     /**
      * Generates a copy of the packet, with a reduced time to live.
@@ -57,7 +57,7 @@ public interface Packet {
      *
      * @return a copy of this packet with a reduced TTL.
      */
-    Packet hop();
+    Packet getHop();
 
     /**
      * Saves the packet's data to the specified compound tag.

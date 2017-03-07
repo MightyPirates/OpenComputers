@@ -3,14 +3,16 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.Tier
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-trait Item extends driver.Item {
+trait Item extends DriverItem {
   def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
     worksWith(stack) && !Registry.blacklist.exists {
       case (blacklistedStack, blacklistedHost) =>
@@ -30,7 +32,7 @@ trait Item extends driver.Item {
 
   protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[internal.Robot].isAssignableFrom(host)
 
-  protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[internal.Rotatable].isAssignableFrom(host)
+  protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[Rotatable].isAssignableFrom(host)
 
   protected def isServer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Server].isAssignableFrom(host)
 

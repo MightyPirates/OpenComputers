@@ -20,6 +20,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Machine",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.machine;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

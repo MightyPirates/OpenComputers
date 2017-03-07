@@ -1,5 +1,10 @@
 package li.cil.oc.api.network;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.INBTSerializable;
+
+import javax.annotation.Nullable;
+
 /**
  * The environment of a node.
  * <p/>
@@ -7,20 +12,25 @@ package li.cil.oc.api.network;
  * this will usually be an object created when a component is added to a
  * compatible inventory (e.g. put into a computer).
  * <p/>
- * Tile entities should implement this interface if they want to be connected
- * to the component network of their neighboring blocks. If you cannot do that,
- * as mentioned above, you will have to provide a driver that creates a managed
- * environment for the block you wish to connect instead.
+ * Tile entities should provide this capability if they want to be connected
+ * to the component network of their neighboring blocks.
  * <p/>
  * To get some more control over which sides of your block may connect to a
- * network, see {@link SidedEnvironment}.
+ * network, make sure to only provide this capability on the relevant sides.
  * <p/>
- * When a tile entity implements this interface a good way of connecting and
+ * When a tile entity provides this capability a good way of connecting and
  * disconnecting is the following pattern:
  * <pre>
+ *     // In the TileEntity:
  *     void updateEntity() {
- *         super.updateEntity()
- *         if (node != null && node.network == null) {
+ *         super.updateEntity();
+ *         if (Loader.isModLoaded("opencomputers"))
+ *             env.connect();
+ *     }
+ *
+ *     // In the Environment:
+ *     void connect() {
+ *         if (getNode() != null && getNode().getNetwork() == null) {
  *             api.Network.joinOrCreateNetwork(this);
  *         }
  *     }
@@ -37,26 +47,35 @@ package li.cil.oc.api.network;
  * </pre>
  * <p/>
  * Item environments are always managed, so you will always have to provide a
- * driver for items that should interact with the component network.
+ * driver as a capability of the item for it to interact with the component network.
  * <p/>
  * To interact with environments from user code you will have to do two things:
  * <ol>
- * <li>Make the environment's {@link #node} a {@link Component} and ensure
- * its {@link Component#visibility} is set to a value where it can
+ * <li>Make the environment's {@link #getNode} a {@link Component} and ensure
+ * its {@link Component#getVisibility} is set to a value where it can
  * be seen by computers in the network.</li>
  * <li>Annotate methods in the environment as {@link li.cil.oc.api.machine.Callback}s.</li>
  * </ol>
  */
-public interface Environment {
+public interface Environment extends INBTSerializable<NBTTagCompound> {
     /**
-     * The node this environment wraps.
+     * Get the host of this environment, giving context information about the
+     * environment's position in the world.
+     *
+     * @return the environment's host.
+     */
+    EnvironmentHost getHost();
+
+    /**
+     * The node this environment hosts.
      * <p/>
      * The node is the environments gateway to the component network, and thus
      * its preferred way to interact with other components in the same network.
      *
      * @return the node this environment wraps.
      */
-    Node node();
+    @Nullable
+    Node getNode();
 
     /**
      * This is called when a node is added to a network.
@@ -77,7 +96,7 @@ public interface Environment {
      * <li>C.onConnect(A)</li>
      * </ul>
      */
-    void onConnect(Node node);
+    void onConnect(final Node node);
 
     /**
      * This is called when a node is removed from the network.
@@ -98,7 +117,7 @@ public interface Environment {
      * <li>C.onDisconnect(A)</li>
      * </ul>
      */
-    void onDisconnect(Node node);
+    void onDisconnect(final Node node);
 
     /**
      * This is the generic message handler.
@@ -109,5 +128,5 @@ public interface Environment {
      *
      * @param message the message to handle.
      */
-    void onMessage(Message message);
+    void onMessage(final Message message);
 }

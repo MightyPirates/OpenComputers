@@ -32,7 +32,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
       Option(getStackInSlot(slot)) match {
-        case Some(stack) => try stack.updateAnimation(agent.world, if (!agent.world.isRemote) agent.player else null, slot, slot == 0) catch {
+        case Some(stack) => try stack.updateAnimation(agent.getWorld, if (!agent.getWorld.isRemote) agent.player else null, slot, slot == 0) catch {
           case ignored: NullPointerException => // Client side item updates that need a player instance...
         }
         case _ =>

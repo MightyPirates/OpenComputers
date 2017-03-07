@@ -66,7 +66,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 
   def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None): Unit = sendToNearbyPlayers(t.getWorld, t.getPos.getX + 0.5, t.getPos.getY + 0.5, t.getPos.getZ + 0.5, range)
 
-  def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
+  def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.getWorld, host.xPosition, host.yPosition, host.zPosition, range)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Option[Double]) {
     val dimension = world.provider.getDimension

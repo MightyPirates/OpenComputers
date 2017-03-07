@@ -3,7 +3,7 @@ package li.cil.oc.common.nanomachines.provider
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.DisableReason
-import li.cil.oc.api.prefab.AbstractBehavior
+import li.cil.oc.api.prefab.nanomachines.AbstractBehavior
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block

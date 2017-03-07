@@ -5,12 +5,13 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.DriverBlock
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.{EnvironmentHost, ManagedEnvironment}
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
@@ -41,11 +42,9 @@ import scala.math.ScalaNumber
  * the computer, but may also provide context-free functions.
  */
 private[oc] object Registry extends api.detail.DriverAPI {
-  val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
+  val sidedBlocks = mutable.ArrayBuffer.empty[DriverBlock]
 
-  val sidedBlocks = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
-
-  val items = mutable.ArrayBuffer.empty[api.driver.Item]
+  val items = mutable.ArrayBuffer.empty[DriverItem]
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
 
@@ -58,15 +57,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
 
-  override def add(driver: api.driver.Block) {
-    if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) {
-      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
-      blocks += driver
-    }
-  }
-
-  override def add(driver: api.driver.SidedBlock) {
+  override def add(driver: DriverBlock) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!sidedBlocks.contains(driver)) {
       OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
@@ -74,7 +65,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def add(driver: api.driver.Item) {
+  override def add(driver: DriverItem) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!items.contains(driver)) {
       OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
@@ -106,21 +97,9 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  // TODO Remove in OC 1.7
-  override def driverFor(world: World, pos: BlockPos) = {
-    driverFor(world, pos, null) match {
-      case driver: api.driver.SidedBlock => new api.driver.Block {
-        override def worksWith(world: World, pos: BlockPos): Boolean = driver.worksWith(world, pos, null)
-
-        override def createEnvironment(world: World, pos: BlockPos): ManagedEnvironment = driver.createEnvironment(world, pos, null)
-      }
-      case _ => null
-    }
-  }
-
-  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): api.driver.SidedBlock =
-    (sidedBlocks.filter(_.worksWith(world, pos, side)), blocks.filter(_.worksWith(world, pos))) match {
-      case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
+  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): DriverBlock =
+    sidedBlocks.filter(_.worksWith(world, pos, side)) match {
+      case sidedDrivers if sidedDrivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray)
       case _ => null
     }
 
@@ -165,7 +144,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       }
   }
 
-  override def blockDrivers = blocks.toSeq
+  override def blockDrivers = sidedBlocks.toSeq
 
   override def itemDrivers = items.toSeq
 

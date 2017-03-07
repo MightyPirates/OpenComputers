@@ -15,6 +15,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
@@ -23,9 +25,9 @@ import net.minecraft.tileentity.TileEntityFurnace
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("generator", Visibility.Neighbors).
+class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("generator", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -124,12 +126,12 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
       if (remainingTicks == 0 && inventory.isEmpty) {
         updateClient()
       }
-      node.changeBuffer(Settings.get.generatorEfficiency)
+      getNode.changeBuffer(Settings.get.generatorEfficiency)
     }
   }
 
   private def updateClient() = host match {
-    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
+    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(getNode.getAddress))
     case _ =>
   }
 
@@ -137,10 +139,10 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       inventory match {
         case Some(stack) =>
-          val world = host.world
+          val world = host.getWorld
           val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
           entity.setPickupDelay(5)

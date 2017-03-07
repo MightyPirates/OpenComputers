@@ -30,7 +30,7 @@ object NetSplitterModel extends SmartBlockModelBase {
     state match {
       case extended: IExtendedBlockState =>
         extended.getValue(block.property.PropertyTile.Tile) match {
-          case t: tileentity.NetSplitter =>
+          case t: tileentity.TileEntityNetSplitter =>
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
             faces ++= BaseModel

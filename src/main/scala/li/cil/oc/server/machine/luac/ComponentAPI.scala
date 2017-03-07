@@ -55,7 +55,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       withComponent(lua.checkString(1), component => {
         lua.newTable()
-        for ((name, annotation) <- machine.methods(component.host)) {
+        for ((name, annotation) <- machine.methods(component.getEnvironment)) {
           lua.pushString(name)
           lua.newTable()
           lua.pushBoolean(annotation.direct)
@@ -82,7 +82,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       withComponent(lua.checkString(1), component => {
         val method = lua.checkString(2)
-        val methods = machine.methods(component.host)
+        val methods = machine.methods(component.getEnvironment)
         owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
@@ -91,7 +91,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setGlobal("component")
   }
 
-  private def withComponent(address: String, f: (Component) => Int) = Option(node.network.node(address)) match {
+  private def withComponent(address: String, f: (Component) => Int) = Option(node.getNetwork.node(address)) match {
     case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
       f(component)
     case _ =>

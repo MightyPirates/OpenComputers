@@ -26,7 +26,7 @@ public interface Builder<T extends Node> {
      * Builder for basic nodes. These nodes merely allow network access and
      * take on no special role.
      */
-    public static interface NodeBuilder extends Builder<Node> {
+    interface NodeBuilder extends Builder<Node> {
         /**
          * Makes the node a component.
          * <p/>

@@ -111,7 +111,7 @@ object ExperienceUpgradeHandler {
   }
 
   private def foreachUpgrade(node: Node, f: (component.UpgradeExperience) => Unit): Unit = {
-    node.reachableNodes.foreach(_.host match {
+    node.getReachableNodes.foreach(_.getEnvironment match {
       case upgrade: component.UpgradeExperience => f(upgrade)
       case _ =>
     })

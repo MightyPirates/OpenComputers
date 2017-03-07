@@ -4,7 +4,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.FluidUtils
+import li.cil.oc.util.FluidUtil
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraftforge.fluids.FluidStack
 
@@ -14,7 +14,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
-        FluidUtils.fluidHandlerAt(position.offset(side), side.getOpposite) match {
+        FluidUtil.fluidHandlerAt(position.offset(side), side.getOpposite) match {
           case Some(handler) => result(Option(handler.getTankProperties).exists(_.exists(other => stack.isFluidEqual(other.getContents))))
           case _ => result(false)
         }
@@ -31,7 +31,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
         val space = tank.getCapacity - tank.getFluidAmount
         val amount = math.min(count, space)
         if (count < 1 || amount > 0) {
-          FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
+          FluidUtil.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
@@ -61,7 +61,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
       case Some(tank) =>
         val amount = math.min(count, tank.getFluidAmount)
         if (count < 1 || amount > 0) {
-          FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
+          FluidUtil.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>

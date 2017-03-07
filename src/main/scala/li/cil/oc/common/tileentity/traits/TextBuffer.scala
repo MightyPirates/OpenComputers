@@ -17,7 +17,7 @@ trait TextBuffer extends Environment with Tickable {
     buffer
   }
 
-  override def node = buffer.node
+  override def getNode = buffer.getNode
 
   def tier: Int
 

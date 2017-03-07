@@ -15,14 +15,16 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = api.Network.newNode(this, Visibility.Network).
+class UpgradeChunkloader(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("chunkloader").
     withConnector().
     create()
@@ -42,8 +44,8 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   override def update() {
     super.update()
-    if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
-      if (!node.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
+    if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
+      if (!getNode.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
         ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
           case _: Throwable => // Ignored.
         })
@@ -60,12 +62,12 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
-      if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
-        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
+    if (node == this.getNode) {
+      if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.getAddress)) {
+        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.getWorld().provider.getDimension}.")
       }
-      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
-        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
+      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.getAddress).orElse(host match {
+        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.getWorld, ForgeChunkManager.Type.NORMAL))
         case _ => None
       })
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
@@ -74,7 +76,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
         case _: Throwable => // Ignored.
       })
@@ -84,17 +86,17 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "computer.stopped") {
+    if (message.getName == "computer.stopped") {
       setActive(enabled = false)
     }
-    else if (message.name == "computer.started") {
+    else if (message.getName == "computer.started") {
       setActive(enabled = true)
     }
   }
 
   private def setActive(enabled: Boolean) = {
     if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
+      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.getWorld, ForgeChunkManager.Type.NORMAL))
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
     }
     else if (!enabled && ticket.isDefined) {

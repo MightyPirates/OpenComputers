@@ -1,8 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
-import li.cil.oc.api.driver.Item
-import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.driver.DriverItem
+import li.cil.oc.api.network.{ManagedEnvironment, ManagedNodeHost, Node}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.inventory
 import li.cil.oc.util.ExtendedInventory._
@@ -115,7 +114,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     }
   }
 
-  override protected def save(component: ManagedEnvironment, driver: Item, stack: ItemStack): Unit = {
+  override protected def save(component: ManagedEnvironment, driver: DriverItem, stack: ItemStack): Unit = {
     if (isServer) {
       super.save(component, driver, stack)
     }
@@ -139,21 +138,21 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       connectComponents()
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       disconnectComponents()
     }
   }
 
   override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
     val localFacing = this match {
-      case rotatable: Rotatable => rotatable.toLocal(facing)
+      case rotatable: RotatableImpl => rotatable.toLocal(facing)
       case _ => facing
     }
     super.hasCapability(capability, facing) || components.exists {
@@ -164,7 +163,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
 
   override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
     val localFacing = this match {
-      case rotatable: Rotatable => rotatable.toLocal(facing)
+      case rotatable: RotatableImpl => rotatable.toLocal(facing)
       case _ => facing
     }
     (if (super.hasCapability(capability, facing)) Option(super.getCapability(capability, facing)) else None).orElse(components.collectFirst {

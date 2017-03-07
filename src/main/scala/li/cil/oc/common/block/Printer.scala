@@ -8,7 +8,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Printer extends SimpleBlock with traits.StateAware with traits.GUI {
+class Printer extends AbstractBlock with traits.StateAware with traits.GUI {
   override def isOpaqueCube(state: IBlockState): Boolean = false
 
   override def isFullCube(state: IBlockState): Boolean = false

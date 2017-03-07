@@ -13,6 +13,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.inventory.ISidedInventory
@@ -25,8 +26,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.Network).
+class Printer extends traits.Environment with traits.Inventory with RotatableImpl with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
+  val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
     create()
@@ -61,7 +62,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = side != EnumFacing.UP
 
-  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
+  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) getNode else null
 
   override def getCurrentState = {
     if (isPrinting) util.EnumSet.of(api.util.StateAware.State.IsWorking)
@@ -259,7 +260,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
     if (output.isDefined) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.printerTickAmount))
-      val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
+      val have = want + (if (Settings.get.ignorePower) 0 else getNode.changeBuffer(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)

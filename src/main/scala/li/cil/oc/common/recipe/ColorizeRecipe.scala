@@ -1,7 +1,6 @@
 package li.cil.oc.common.recipe
 
-import li.cil.oc.util.Color
-import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.{DyeUtils, ItemColorizer}
 import net.minecraft.block.Block
 import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
@@ -23,7 +22,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
     val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => sourceItems.contains(stack.getItem) || stack.getItem == targetItem)
     val other = stacks.filterNot(targets.contains)
-    targets.size == 1 && other.nonEmpty && other.forall(Color.isDye)
+    targets.size == 1 && other.nonEmpty && other.forall(DyeUtils.isDye)
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
@@ -38,11 +37,11 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         targetStack = stack.copy()
         targetStack.setCount(1)
       } else {
-        val dye = Color.findDye(stack)
+        val dye = DyeUtils.findDyeName(stack)
         if (dye.isEmpty)
           return null
 
-        val itemColor = EntitySheep.getDyeRgb(Color.byOreName(dye.get))
+        val itemColor = EntitySheep.getDyeRgb(DyeUtils.byOreName(dye.get))
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt

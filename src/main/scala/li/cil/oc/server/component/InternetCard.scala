@@ -29,6 +29,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
 import net.minecraftforge.fml.common.FMLCommonHandler
@@ -37,9 +39,9 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("internet", Visibility.Neighbors).
+class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("internet", Visibility.NEIGHBORS).
     create()
 
   protected var owner: Option[Context] = None
@@ -115,14 +117,14 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
-      owner = Some(node.host.asInstanceOf[Context])
+    if (owner.isEmpty && node.getEnvironment.isInstanceOf[Context] && node.isNeighborOf(this.getNode)) {
+      owner = Some(node.getEnvironment.asInstanceOf[Context])
     }
   }
 
   override def onDisconnect(node: Node) = this.synchronized {
     super.onDisconnect(node)
-    if (owner.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get))) {
+    if (owner.isDefined && (node == this.getNode || node.getEnvironment.isInstanceOf[Context] && (node.getEnvironment.asInstanceOf[Context] == owner.get))) {
       owner = None
       this.synchronized {
         connections.foreach(_.close())
@@ -133,8 +135,8 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
 
   override def onMessage(message: Message) = this.synchronized {
     super.onMessage(message)
-    message.data match {
-      case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>
+    message.getData match {
+      case Array() if (message.getName == "computer.stopped" || message.getName == "computer.started") && owner.isDefined && message.getSource.getAddress == owner.get.node.getAddress =>
         this.synchronized {
           connections.foreach(_.close())
           connections.clear()
@@ -251,7 +253,7 @@ object InternetCard {
       TCPNotifier.add((channel, () => {
         owner match {
           case Some(internetCard) =>
-            internetCard.node.sendToVisible("computer.signal", "internet_ready", id.toString)
+            internetCard.getNode.sendToVisible("computer.signal", "internet_ready", id.toString)
           case _ =>
             channel.close()
         }

@@ -15,9 +15,9 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.mutable
 
 trait Hub extends traits.Environment with SidedEnvironment with Tickable {
-  override def node: Node = null
+  override def getNode: Node = null
 
-  override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
+  override protected def isConnected = plugs.exists(plug => plug.getNode.getAddress != null && plug.getNode.getNetwork != null)
 
   protected val plugs = EnumFacing.values.map(side => createPlug(side))
 
@@ -53,7 +53,7 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = side != null
 
-  override def sidedNode(side: EnumFacing) = if (side != null) plugs(side.ordinal).node else null
+  override def sidedNode(side: EnumFacing) = if (side != null) plugs(side.ordinal).getNode else null
 
   // ----------------------------------------------------------------------- //
 
@@ -81,8 +81,8 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   }
 
   def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet) = queue.synchronized {
-    if (packet.ttl > 0 && queue.size < maxQueueSize) {
-      queue += sourceSide -> packet.hop()
+    if (packet.getTTL > 0 && queue.size < maxQueueSize) {
+      queue += sourceSide -> packet.getHop()
       if (relayCooldown < 0) {
         relayCooldown = relayDelay - 1
       }
@@ -108,7 +108,7 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
     super.readFromNBTForServer(nbt)
     nbt.getTagList(PlugsTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
-      case (tag, index) => plugs(index).node.load(tag)
+      case (tag, index) => plugs(index).getNode.load(tag)
     }
     nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).foreach(
       (tag: NBTTagCompound) => {
@@ -127,7 +127,7 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
     if (isServer) {
       nbt.setNewTagList(PlugsTag, plugs.map(plug => {
         val plugNbt = new NBTTagCompound()
-        plug.node.save(plugNbt)
+        plug.getNode.save(plugNbt)
         plugNbt
       }))
       nbt.setNewTagList(QueueTag, queue.map {
@@ -147,8 +147,8 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
 
   protected def createPlug(side: EnumFacing) = new Plug(side)
 
-  protected class Plug(val side: EnumFacing) extends api.network.Environment {
-    val node = createNode(this)
+  protected class Plug(val side: EnumFacing) extends Environment {
+    val getNode = createNode(this)
 
     override def onMessage(message: Message) {
       if (isPrimary) {
@@ -160,9 +160,9 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
 
     override def onDisconnect(node: Node) = onPlugDisconnect(this, node)
 
-    def isPrimary = plugs(plugs.indexWhere(_.node.network == node.network)) == this
+    def isPrimary = plugs(plugs.indexWhere(_.getNode.getNetwork == getNode.getNetwork)) == this
 
-    def plugsInOtherNetworks = plugs.filter(_.node.network != node.network)
+    def plugsInOtherNetworks = plugs.filter(_.getNode.getNetwork != getNode.getNetwork)
   }
 
   protected def onPlugConnect(plug: Plug, node: Node) {}
@@ -170,11 +170,11 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   protected def onPlugDisconnect(plug: Plug, node: Node) {}
 
   protected def onPlugMessage(plug: Plug, message: Message) {
-    if (message.name == "network.message" && !plugs.exists(_.node == message.source)) message.data match {
+    if (message.getName == "network.message" && !plugs.exists(_.getNode == message.getSource)) message.getData match {
       case Array(packet: Packet) => tryEnqueuePacket(Option(plug.side), packet)
       case _ =>
     }
   }
 
-  protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network).create()
+  protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.NETWORK).create()
 }

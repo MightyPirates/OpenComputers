@@ -51,7 +51,7 @@ object Analyzer {
         true
       case host: Environment =>
         if (!world.isRemote) {
-          analyzeNodes(Array(host.node), player)
+          analyzeNodes(Array(host.getNode), player)
         }
         true
       case _ =>
@@ -63,7 +63,7 @@ object Analyzer {
     player match {
       case _: FakePlayer => // Nope
       case playerMP: EntityPlayerMP =>
-        if (node != null) node.host match {
+        if (node != null) node.getEnvironment match {
           case machine: Machine =>
             if (machine != null) {
               if (machine.lastError != null) {
@@ -79,18 +79,18 @@ object Analyzer {
         }
         node match {
           case connector: Connector =>
-            if (connector.localBufferSize > 0) {
-              playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.localBuffer}%.2f/${connector.localBufferSize}%.2f"))
+            if (connector.getLocalBufferSize > 0) {
+              playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.getLocalBuffer}%.2f/${connector.getLocalBufferSize}%.2f"))
             }
-            playerMP.sendMessage(Localization.Analyzer.TotalEnergy(f"${connector.globalBuffer}%.2f/${connector.globalBufferSize}%.2f"))
+            playerMP.sendMessage(Localization.Analyzer.TotalEnergy(f"${connector.getGlobalBuffer}%.2f/${connector.getGlobalBufferSize}%.2f"))
           case _ =>
         }
         node match {
           case component: Component =>
-            playerMP.sendMessage(Localization.Analyzer.ComponentName(component.name))
+            playerMP.sendMessage(Localization.Analyzer.ComponentName(component.getName))
           case _ =>
         }
-        val address = node.address()
+        val address = node.getAddress()
         if (address != null && !address.isEmpty) {
           playerMP.sendMessage(Localization.Analyzer.Address(address))
           PacketSender.sendAnalyze(address, playerMP)

@@ -15,6 +15,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
@@ -33,8 +35,8 @@ import scala.util.matching.Regex
 // saved, but before the computer was saved, leading to mismatching states in
 // the save file - a Bad Thing (TM).
 
-class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Neighbors).
+class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
     withComponent("gpu").
     withConnector().
     create()
@@ -85,11 +87,11 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val reset = args.optBoolean(1, true)
-    node.network.node(address) match {
+    getNode.getNetwork.node(address) match {
       case null => result(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[api.internal.TextBuffer] =>
+      case node: Node if node.getEnvironment.isInstanceOf[api.internal.TextBuffer] =>
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
+        screenInstance = Some(node.getEnvironment.asInstanceOf[api.internal.TextBuffer])
         screen(s => {
           if (reset) {
             val (gmw, gmh) = maxResolution
@@ -108,7 +110,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   }
 
   @Callback(direct = true, doc = """function():string -- Get the address of the screen the GPU is currently bound to.""")
-  def getScreen(context: Context, args: Arguments): Array[AnyRef] = screen(s => result(s.node.address))
+  def getScreen(context: Context, args: Arguments): Array[AnyRef] = screen(s => result(s.getNode.getAddress))
 
   @Callback(direct = true, doc = """function():number, boolean -- Get the current background color and whether it's from the palette or not.""")
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
@@ -330,13 +332,13 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     else throw new Exception("invalid fill value")
   }
 
-  private def consumePower(n: Double, cost: Double) = node.tryChangeBuffer(-n * cost)
+  private def consumePower(n: Double, cost: Double) = getNode.tryChangeBuffer(-n * cost)
 
   // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
+    if (message.getName == "computer.stopped" && getNode.isNeighborOf(message.getSource)) {
       screen(s => {
         val (gmw, gmh) = maxResolution
         val smw = s.getMaximumWidth
@@ -346,7 +348,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
         s.setForegroundColor(0xFFFFFF)
         val w = s.getWidth
         val h = s.getHeight
-        message.source.host match {
+        message.getSource.getEnvironment match {
           case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
             if (s.getColorDepth.ordinal > api.internal.TextBuffer.ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
@@ -380,8 +382,8 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   override def onConnect(node: Node): Unit = {
     super.onConnect(node)
-    if (screenInstance.isEmpty && screenAddress.fold(false)(_ == node.address)) {
-      node.host match {
+    if (screenInstance.isEmpty && screenAddress.fold(false)(_ == node.getAddress)) {
+      node.getEnvironment match {
         case buffer: api.internal.TextBuffer =>
           screenInstance = Some(buffer)
         case _ => // Not the screen node we're looking for.
@@ -391,7 +393,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node || screenAddress.contains(node.address)) {
+    if (node == this.getNode || screenAddress.contains(node.getAddress)) {
       screenAddress = None
       screenInstance = None
     }

@@ -9,7 +9,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Color
+import li.cil.oc.util.DyeUtils
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
@@ -83,9 +83,9 @@ object ScreenModel extends SmartBlockModelBase {
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
     val color = api.Items.get(stack).name() match {
-      case Constants.BlockName.ScreenTier2 => Color.byTier(Tier.Two)
-      case Constants.BlockName.ScreenTier3 => Color.byTier(Tier.Three)
-      case _ => Color.byTier(Tier.One)
+      case Constants.BlockName.ScreenTier2 => DyeUtils.byTier(Tier.Two)
+      case Constants.BlockName.ScreenTier3 => DyeUtils.byTier(Tier.Three)
+      case _ => DyeUtils.byTier(Tier.One)
     }
 
     override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
@@ -94,7 +94,7 @@ object ScreenModel extends SmartBlockModelBase {
           Textures.Block.Screen.SingleFront(0)
         else
           Textures.Block.Screen.Single(side.ordinal())
-      seqAsJavaList(Seq(bakeQuad(if (side != null) side else EnumFacing.SOUTH, Textures.getSprite(result), Some(Color.rgbValues(color)), 0)))
+      seqAsJavaList(Seq(bakeQuad(if (side != null) side else EnumFacing.SOUTH, Textures.getSprite(result), Some(DyeUtils.rgbValues(color)), 0)))
     }
   }
 

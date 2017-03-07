@@ -3,7 +3,7 @@ package li.cil.oc.common.inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-trait ItemStackInventory extends Inventory {
+trait ItemStackInventory extends InventoryImpl {
   // The item stack that provides the inventory.
   def container: ItemStack
 

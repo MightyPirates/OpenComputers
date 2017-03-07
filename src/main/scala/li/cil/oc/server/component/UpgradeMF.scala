@@ -15,6 +15,9 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DriverBlock
+import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -27,13 +30,13 @@ import scala.collection.convert.WrapAsJava._
   *
   * @author Sangar, Vexatos
   */
-class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends prefab.ManagedEnvironment with ChangeListener with DeviceInfo {
-  override val node = api.Network.newNode(this, Visibility.None).
+class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends AbstractManagedEnvironment with ChangeListener with DeviceInfo {
+  override val getNode = api.Network.newNode(this, Visibility.NONE).
     withConnector().
     create()
 
-  private var otherEnv: Option[api.network.Environment] = None
-  private var otherDrv: Option[(ManagedEnvironment, api.driver.SidedBlock)] = None
+  private var otherEnv: Option[Environment] = None
+  private var otherDrv: Option[(ManagedEnvironment, DriverBlock)] = None
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true
@@ -55,13 +58,13 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
   }
 
   private def updateBoundState() {
-    if (node != null && node.network != null && coord.world.exists(_.provider.getDimension == host.world.provider.getDimension)
+    if (getNode != null && getNode.getNetwork != null && coord.world.exists(_.provider.getDimension == host.getWorld.provider.getDimension)
       && coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
-      host.world.getTileEntity(coord) match {
-        case env: TileEntity with api.network.Environment =>
+      host.getWorld.getTileEntity(coord) match {
+        case env: TileEntity with Environment =>
           otherEnv match {
             case Some(environment: TileEntity) =>
-              otherNode(environment, node.disconnect)
+              otherNode(environment, getNode.disconnect)
               otherEnv = None
             case _ => // Nothing to do here.
           }
@@ -69,18 +72,18 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
           // Remove any driver that might be there.
           otherDrv match {
             case Some((environment, driver)) =>
-              node.disconnect(environment.node)
+              getNode.disconnect(environment.getNode)
               environment.save(blockData.get.data)
-              Option(environment.node).foreach(_.remove())
+              Option(environment.getNode).foreach(_.remove())
               otherDrv = None
             case _ => // Nothing to do here.
           }
-          otherNode(env, node.connect)
+          otherNode(env, getNode.connect)
         case _ =>
           // Remove any environment that might have been there.
           otherEnv match {
             case Some(environment: TileEntity) =>
-              otherNode(environment, node.disconnect)
+              otherNode(environment, getNode.disconnect)
               otherEnv = None
             case _ => // Nothing to do here.
           }
@@ -93,14 +96,14 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
                     // This is... odd. Maybe moved by some other mod? First, clean up.
                     otherDrv = None
                     blockData = None
-                    node.disconnect(oldEnvironment.node)
+                    getNode.disconnect(oldEnvironment.getNode)
 
                     // Then rebuild - if we have something.
                     val environment = newDriver.createEnvironment(world, coord.toBlockPos, dir)
                     if (environment != null) {
                       otherDrv = Some((environment, newDriver))
                       blockData = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                      node.connect(environment.node)
+                      getNode.connect(environment.getNode)
                     }
                   } // else: the more things change, the more they stay the same.
                 case _ =>
@@ -114,15 +117,15 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
                       case _ =>
                     }
                     blockData = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                    node.connect(environment.node)
+                    getNode.connect(environment.getNode)
                   }
               }
             case _ => otherDrv match {
               case Some((environment, driver)) =>
                 // We had something there, but it's gone now...
-                node.disconnect(environment.node)
+                getNode.disconnect(environment.getNode)
                 environment.save(blockData.get.data)
-                Option(environment.node).foreach(_.remove())
+                Option(environment.getNode).foreach(_.remove())
                 otherDrv = None
               case _ => // Nothing before, nothing now.
             }
@@ -134,15 +137,15 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
   private def disconnect() {
     otherEnv match {
       case Some(environment: TileEntity) =>
-        otherNode(environment, node.disconnect)
+        otherNode(environment, getNode.disconnect)
         otherEnv = None
       case _ => // Nothing to do here.
     }
     otherDrv match {
       case Some((environment, driver)) =>
-        node.disconnect(environment.node)
+        getNode.disconnect(environment.getNode)
         environment.save(blockData.get.data)
-        Option(environment.node).foreach(_.remove())
+        Option(environment.getNode).foreach(_.remove())
         otherDrv = None
       case _ => // Nothing to do here.
     }
@@ -156,8 +159,8 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
       case Some((env, drv)) if env.canUpdate => env.update()
       case _ => // No driver
     }
-    if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      if (!node.tryChangeBuffer(-Settings.get.mfuCost * Settings.get.tickFrequency
+    if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (!getNode.tryChangeBuffer(-Settings.get.mfuCost * Settings.get.tickFrequency
         * coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)))) {
         disconnect()
       }
@@ -166,7 +169,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
+    if (node == this.getNode) {
       // Not checking for range yet because host may be a moving adapter, who knows?
       BlockChangeHandler.addListener(this, coord)
 
@@ -181,10 +184,10 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
       case _ => // No environment
     }
     otherDrv match {
-      case Some((env, drv)) if node == env.node => otherDrv = None
+      case Some((env, drv)) if node == env.getNode => otherDrv = None
       case _ => // No driver
     }
-    if (node == this.node) {
+    if (node == this.getNode) {
       BlockChangeHandler.removeListener(this)
     }
   }

@@ -1,11 +1,13 @@
 package li.cil.oc.api.util;
 
+import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Node;
 
 /**
- * Implement this on {@link li.cil.oc.api.network.ManagedEnvironment}s to be
+ * Implement this on {@link ManagedEnvironment}s to be
  * notified with proper lifecycle changes, instead of relying on something
- * like {@link li.cil.oc.api.network.Environment#onDisconnect(Node)}.
+ * like {@link Environment#onDisconnect(Node)}.
  * <p/>
  * This is primarily intended to be used on the client side, where there
  * are no nodes, to allow components to know when they are being unloaded.

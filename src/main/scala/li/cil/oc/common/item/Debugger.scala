@@ -25,12 +25,12 @@ class Debugger(val parent: Delegator) extends traits.Delegate {
             true
           case host: Environment =>
             if (!world.isRemote) {
-              Debugger.reconnect(Array(host.node))
+              Debugger.reconnect(Array(host.getNode))
             }
             true
           case _ =>
             if (!world.isRemote) {
-              Debugger.node.remove()
+              Debugger.getNode.remove()
             }
             true
         }
@@ -40,7 +40,7 @@ class Debugger(val parent: Delegator) extends traits.Delegate {
 }
 
 object Debugger extends Environment {
-  var node = api.Network.newNode(this, Visibility.Network).create()
+  var getNode = api.Network.newNode(this, Visibility.NETWORK).create()
 
   override def onConnect(node: Node) {
     OpenComputers.log.info(s"[NETWORK DEBUGGER] New node in network: ${nodeInfo(node)}")
@@ -55,23 +55,23 @@ object Debugger extends Environment {
   }
 
   def reconnect(nodes: Array[Node]) {
-    node.remove()
-    api.Network.joinNewNetwork(node)
+    getNode.remove()
+    api.Network.joinNewNetwork(getNode)
     for (node <- nodes if node != null) {
-      this.node.connect(node)
+      this.getNode.connect(node)
     }
   }
 
-  private def nodeInfo(node: Node) = s"{address = ${node.address}, reachability = ${node.reachability.name}" + (node match {
+  private def nodeInfo(node: Node) = s"{address = ${node.getAddress}, reachability = ${node.getReachability.name}" + (node match {
     case componentConnector: ComponentConnector => componentInfo(componentConnector) + connectorInfo(componentConnector)
     case component: Component => componentInfo(component)
     case connector: Connector => connectorInfo(connector)
     case _ =>
   }) + "}"
 
-  private def componentInfo(component: Component) = s", type = component, name = ${component.name}, visibility = ${component.visibility.name}"
+  private def componentInfo(component: Component) = s", type = component, name = ${component.getName}, visibility = ${component.getVisibility.name}"
 
-  private def connectorInfo(connector: Connector) = s", type = connector, buffer = ${connector.localBuffer}, bufferSize = ${connector.localBufferSize}"
+  private def connectorInfo(connector: Connector) = s", type = connector, buffer = ${connector.getLocalBuffer}, bufferSize = ${connector.getLocalBufferSize}"
 
-  private def messageInfo(message: Message) = s"{name = ${message.name()}, source = ${nodeInfo(message.source)}, data = [${message.data.mkString(", ")}]}"
+  private def messageInfo(message: Message) = s"{name = ${message.getName()}, source = ${nodeInfo(message.getSource)}, data = [${message.getData.mkString(", ")}]}"
 }

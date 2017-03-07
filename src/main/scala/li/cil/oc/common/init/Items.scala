@@ -12,7 +12,7 @@ import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.common.block.AbstractBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.DroneData
@@ -56,7 +56,7 @@ object Items extends ItemAPI {
   def registerBlock[T <: Block](instance: T, id: String) = {
     if (!descriptors.contains(id)) {
       instance match {
-        case simple: SimpleBlock =>
+        case simple: AbstractBlock =>
           instance.setUnlocalizedName("oc." + id)
           instance.setRegistryName(id)
           GameRegistry.register(instance)
@@ -77,7 +77,7 @@ object Items extends ItemAPI {
         override def item = null
 
         override def createItemStack(size: Int) = instance match {
-          case simple: SimpleBlock => simple.createItemStack(size)
+          case simple: AbstractBlock => simple.createItemStack(size)
           case _ => new ItemStack(instance, size)
         }
       }

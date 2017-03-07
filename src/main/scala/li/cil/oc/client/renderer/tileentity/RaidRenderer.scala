@@ -54,7 +54,7 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
     {
       val icon = Textures.getSprite(Textures.Block.RaidFrontActivity)
       for (slot <- 0 until raid.getSizeInventory) {
-        if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.world.rand.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getSizeInventory) {
+        if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.getWorld.rand.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getSizeInventory) {
           renderSlot(r, slot, icon)
         }
       }

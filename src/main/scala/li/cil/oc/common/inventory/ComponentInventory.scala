@@ -3,11 +3,9 @@ package li.cil.oc.common.inventory
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.driver.{DriverItem => ItemDriver}
 import li.cil.oc.api.network
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network._
 import li.cil.oc.api.util.Lifecycle
 import li.cil.oc.integration.opencomputers.Item
 import net.minecraft.item.ItemStack
@@ -16,7 +14,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-trait ComponentInventory extends Inventory with network.Environment {
+trait ComponentInventory extends InventoryImpl with Environment {
   lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
   protected val updatingComponents = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
@@ -70,11 +68,11 @@ trait ComponentInventory extends Inventory with network.Environment {
       }
     }
     // Make sure our node is connected.
-    api.Network.joinNewNetwork(node)
+    api.Network.joinNewNetwork(getNode)
     components collect {
       case Some(component) =>
         applyLifecycleState(component, Lifecycle.LifecycleState.Initializing)
-        connectItemNode(component.node)
+        connectItemNode(component.getNode)
         applyLifecycleState(component, Lifecycle.LifecycleState.Initialized)
     }
   }
@@ -83,7 +81,7 @@ trait ComponentInventory extends Inventory with network.Environment {
     components collect {
       case Some(component) =>
         applyLifecycleState(component, Lifecycle.LifecycleState.Disposing)
-        if (component.node != null) component.node.remove()
+        if (component.getNode != null) component.getNode.remove()
         applyLifecycleState(component, Lifecycle.LifecycleState.Disposed)
     }
   }
@@ -129,7 +127,7 @@ trait ComponentInventory extends Inventory with network.Environment {
             updatingComponents += component
           }
           applyLifecycleState(component, Lifecycle.LifecycleState.Initializing)
-          connectItemNode(component.node)
+          connectItemNode(component.getNode)
           applyLifecycleState(component, Lifecycle.LifecycleState.Initialized)
           save(component, driver, stack)
         }
@@ -148,13 +146,13 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         updatingComponents -= component
         applyLifecycleState(component, Lifecycle.LifecycleState.Disposing)
-        Option(component.node).foreach(_.remove())
+        Option(component.getNode).foreach(_.remove())
         Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
         // However, nodes then may add themselves to a network again, to
         // ensure they have an address that gets sent to the client, used
         // for associating some components with each other. So we do it again.
         // TODO Should be possible to avoid this with lifecycle state now.
-        Option(component.node).foreach(_.remove())
+        Option(component.getNode).foreach(_.remove())
         applyLifecycleState(component, Lifecycle.LifecycleState.Disposed)
       }
       case _ => // Nothing to do.
@@ -164,8 +162,8 @@ trait ComponentInventory extends Inventory with network.Environment {
   def isComponentSlot(slot: Int, stack: ItemStack) = true
 
   protected def connectItemNode(node: Node) {
-    if (this.node != null && node != null) {
-      this.node.connect(node)
+    if (this.getNode != null && node != null) {
+      this.getNode.connect(node)
     }
   }
 

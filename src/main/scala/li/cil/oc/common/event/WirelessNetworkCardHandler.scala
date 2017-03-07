@@ -11,7 +11,7 @@ object WirelessNetworkCardHandler {
   @SubscribeEvent
   def onMove(e: RobotMoveEvent.Post) {
     val machineNode = e.agent.machine.node
-    machineNode.reachableNodes.foreach(_.host match {
+    machineNode.getReachableNodes.foreach(_.getEnvironment match {
       case card: WirelessNetworkCard => api.Network.updateWirelessNetwork(card)
       case _ =>
     })

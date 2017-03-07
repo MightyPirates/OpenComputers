@@ -1,7 +1,5 @@
 package li.cil.oc.api.network;
 
-import li.cil.oc.api.Persistable;
-
 /**
  * This kind of environment is managed by either a compatible inventory, such
  * as a computer or floppy drive, or by an adapter block or similar.
@@ -16,7 +14,7 @@ import li.cil.oc.api.Persistable;
  * weird things may happen (e.g. update and save/load being called multiple
  * times).
  */
-public interface ManagedEnvironment extends Environment, Persistable {
+public interface ManagedEnvironment extends Environment {
     /**
      * Like the method of the same name on tile entities, this is used to
      * decide whether to put a component in the list of components that need

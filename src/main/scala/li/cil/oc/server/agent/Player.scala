@@ -53,7 +53,7 @@ import scala.collection.convert.WrapAsScala._
 object Player {
   def profileFor(agent: internal.Agent) = {
     val uuid = agent.ownerUUID
-    val randomId = (agent.world.rand.nextInt(0xFFFFFF) + 1).toString
+    val randomId = (agent.getWorld.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
       replace("$player$", agent.ownerName).
       replace("$random$", randomId)
@@ -87,7 +87,7 @@ object Player {
   }
 }
 
-class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
+class Player(val agent: internal.Agent) extends FakePlayer(agent.getWorld.asInstanceOf[WorldServer], Player.profileFor(agent)) {
   connection= new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
 
   capabilities.allowFlying = true

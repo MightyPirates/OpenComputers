@@ -13,10 +13,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.agent
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{BlockPosition, InventoryUtils, RarityUtils, Tooltip}
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -30,7 +27,7 @@ import net.minecraft.util.math.Vec3d
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class RobotProxy extends RedstoneAware with traits.StateAware {
+class RobotProxy extends BlockRedstoneAware with traits.StateAware {
   setLightOpacity(0)
   setCreativeTab(null)
   ItemBlacklist.hide(this)
@@ -80,7 +77,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   override def rarity(stack: ItemStack) = {
     val data = new RobotData(stack)
-    Rarity.byTier(data.tier)
+    RarityUtils.fromTier(data.tier)
   }
 
   override protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
@@ -154,13 +151,13 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
-        if (robot.node != null) {
+        if (robot.getNode != null) {
           // Update: even more special hack! As discussed here http://git.io/IcNAyg
           // some mods call this even when they're not about to actually break the
           // block... soooo we need a whitelist to know when to generate a *proper*
           // drop (i.e. with file systems closed / open handles not saved, e.g.).
           if (gettingDropsForActualDrop) {
-            robot.node.remove()
+            robot.getNode.remove()
             robot.saveComponents()
           }
           list.add(robot.info.createItemStack())
@@ -194,7 +191,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
         // change since this player got into range he might have the wrong one,
         // so we send him the current one just in case.
         world.getTileEntity(pos) match {
-          case proxy: tileentity.RobotProxy if proxy.robot.node.network != null =>
+          case proxy: tileentity.RobotProxy if proxy.robot.getNode.getNetwork != null =>
             PacketSender.sendRobotSelectedSlotChange(proxy.robot)
             player.openGui(OpenComputers, GuiType.Robot.id, world, pos.getX, pos.getY, pos.getZ)
           case _ =>
@@ -227,7 +224,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
         robot.ownerName = owner
         robot.ownerUUID = agent.Player.determineUUID(Option(uuid))
         robot.info.load(stack)
-        robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
+        robot.bot.getNode.changeBuffer(robot.info.robotEnergy - robot.bot.getNode.getLocalBuffer)
         robot.updateInventorySize()
       case _ =>
     }
@@ -244,7 +241,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
         if (robot.isCreative && (!player.capabilities.isCreativeMode || !robot.canInteract(player.getName))) return false
         if (!world.isRemote) {
           if (robot.player == player) return false
-          robot.node.remove()
+          robot.getNode.remove()
           robot.saveComponents()
           InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
         }

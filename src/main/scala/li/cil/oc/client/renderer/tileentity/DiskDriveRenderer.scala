@@ -39,11 +39,11 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
         GlStateManager.rotate(90, -1, 0, 0)
         GlStateManager.scale(0.5f, 0.5f, 0.5f)
 
-        val brightness = drive.world.getCombinedLight(drive.getPos.offset(drive.facing), 0)
+        val brightness = drive.getWorld.getCombinedLight(drive.getPos.offset(drive.facing), 0)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
 
         // This is very 'meh', but item frames do it like this, too!
-        val entity = new EntityItem(drive.world, 0, 0, 0, stack)
+        val entity = new EntityItem(drive.getWorld, 0, 0, 0, stack)
         entity.hoverStart = 0
         Textures.Block.bind()
         Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
@@ -51,7 +51,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
       case _ =>
     }
 
-    if (System.currentTimeMillis() - drive.lastAccess < 400 && drive.world.rand.nextDouble() > 0.1) {
+    if (System.currentTimeMillis() - drive.lastAccess < 400 && drive.getWorld.rand.nextDouble() > 0.1) {
       GlStateManager.translate(-0.5, 0.5, 0.505)
       GlStateManager.scale(1, -1, 1)
 

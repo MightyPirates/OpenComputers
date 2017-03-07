@@ -19,7 +19,7 @@ object DriverUpgradeTractorBeam extends Item with HostAware {
     api.Items.get(Constants.ItemName.TractorBeamUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.getWorld != null && host.getWorld.isRemote) null
     else host match {
       case drone: Drone => new UpgradeTractorBeam.Drone(drone)
       case robot: Robot => new component.UpgradeTractorBeam.Player(host, robot.player)

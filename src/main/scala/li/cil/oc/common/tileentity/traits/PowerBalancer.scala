@@ -14,7 +14,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
     super.updateEntity()
     if (isServer && isConnected && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val nodes = connectors
-      def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
+      def network(connector: Connector) = if (connector != null && connector.getNetwork != null) connector.getNetwork else this
       // Yeeeeah, so that just happened... it's not a beauty, but it works. This
       // is necessary because power in networks can be updated asynchronously,
       // i.e. in separate threads (e.g. to allow screens to consume energy when
@@ -31,7 +31,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
                   if (sumSize > 0) {
                     val ratio = sumBuffer / sumSize
                     for (node <- connectors if isPrimary(node)) {
-                      node.changeBuffer(node.globalBufferSize * ratio - node.globalBuffer)
+                      node.changeBuffer(node.getGlobalBufferSize * ratio - node.getGlobalBuffer)
                     }
                   }
                   globalBuffer = sumBuffer
@@ -49,8 +49,8 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
   protected def distribute() = {
     var sumBuffer, sumSize = 0.0
     for (node <- connectors if isPrimary(node)) {
-      sumBuffer += node.globalBuffer
-      sumSize += node.globalBufferSize
+      sumBuffer += node.getGlobalBuffer
+      sumSize += node.getGlobalBufferSize
     }
     (sumBuffer, sumSize)
   }
@@ -62,6 +62,6 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
 
   private def isPrimary(connector: Connector) = {
     val nodes = connectors
-    connector != null && nodes(nodes.indexWhere(node => node != null && node.network == connector.network)) == connector
+    connector != null && nodes(nodes.indexWhere(node => node != null && node.getNetwork == connector.getNetwork)) == connector
   }
 }

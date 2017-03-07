@@ -58,14 +58,14 @@ trait Common extends TileEntity {
   def globalBuffer(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
-      case Some(node) => node.globalBuffer
+      case Some(node) => node.getGlobalBuffer
       case _ => 0
     }
 
   def globalBufferSize(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
-      case Some(node) => node.globalBufferSize
+      case Some(node) => node.getGlobalBufferSize
       case _ => 0
     }
 

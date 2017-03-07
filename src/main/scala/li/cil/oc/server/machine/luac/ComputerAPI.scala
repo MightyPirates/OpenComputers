@@ -31,7 +31,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     // Allow the computer to figure out its own id in the component network.
     lua.pushScalaFunction(lua => {
-      Option(node.address) match {
+      Option(node.getAddress) match {
         case None => lua.pushNil()
         case Some(address) => lua.pushString(address)
       }
@@ -99,13 +99,13 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       if (Settings.get.ignorePower)
         lua.pushNumber(Double.PositiveInfinity)
       else
-        lua.pushNumber(node.asInstanceOf[Connector].globalBuffer)
+        lua.pushNumber(node.asInstanceOf[Connector].getGlobalBuffer)
       1
     })
     lua.setField(-2, "energy")
 
     lua.pushScalaFunction(lua => {
-      lua.pushNumber(node.asInstanceOf[Connector].globalBufferSize)
+      lua.pushNumber(node.asInstanceOf[Connector].getGlobalBufferSize)
       1
     })
     lua.setField(-2, "maxEnergy")

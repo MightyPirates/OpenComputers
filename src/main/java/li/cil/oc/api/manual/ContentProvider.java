@@ -1,5 +1,7 @@
 package li.cil.oc.api.manual;
 
+import li.cil.oc.api.prefab.manual.ResourceContentProvider;
+
 /**
  * This interface allows implementation of content providers for the manual.
  * <p/>
@@ -9,7 +11,7 @@ package li.cil.oc.api.manual;
  * queried for missing pages, so to speak.
  * <p/>
  *
- * @see li.cil.oc.api.prefab.ResourceContentProvider
+ * @see ResourceContentProvider
  */
 public interface ContentProvider {
     /**

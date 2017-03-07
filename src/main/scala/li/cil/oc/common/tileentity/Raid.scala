@@ -10,6 +10,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.data.NodeData
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import li.cil.oc.server.component.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -20,8 +21,8 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Raid extends traits.Environment with traits.Inventory with traits.Rotatable with Analyzable {
-  val node = api.Network.newNode(this, Visibility.None).create()
+class Raid extends traits.Environment with traits.Inventory with RotatableImpl with Analyzable {
+  val getNode = api.Network.newNode(this, Visibility.NONE).create()
 
   var filesystem: Option[FileSystem] = None
 
@@ -35,7 +36,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.getNode).orNull)
 
   // ----------------------------------------------------------------------- //
 
@@ -70,26 +71,26 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
         fs.fileSystem.close()
         fs.fileSystem.list("/").foreach(fs.fileSystem.delete)
         fs.save(new NBTTagCompound()) // Flush buffered fs.
-        fs.node.remove()
+        fs.getNode.remove()
         filesystem = None
       })
     }
   }
 
   def tryCreateRaid(id: String) {
-    if (items.count(_.isDefined) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
-      filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
+    if (items.count(_.isDefined) == items.length && filesystem.fold(true)(fs => fs.getNode == null || fs.getNode.getAddress != id)) {
+      filesystem.foreach(fs => if (fs.getNode != null) fs.getNode.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
         label, this, Settings.resourceDomain + ":hdd_access", 6).
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
       nbtToSetAddress.setString(NodeData.AddressTag, id)
-      fs.node.load(nbtToSetAddress)
-      fs.node.setVisibility(Visibility.Network)
+      fs.getNode.load(nbtToSetAddress)
+      fs.getNode.setVisibility(Visibility.NETWORK)
       // Ensure we're in a network before connecting the raid fs.
-      api.Network.joinNewNetwork(node)
-      node.connect(fs.node)
+      api.Network.joinNewNetwork(getNode)
+      getNode.connect(fs.getNode)
       filesystem = Option(fs)
     }
   }

@@ -3,8 +3,7 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.{EnvironmentHost, ManagedEnvironment}
 import li.cil.oc.common.Slot
 import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.util.ExtendedInventory._

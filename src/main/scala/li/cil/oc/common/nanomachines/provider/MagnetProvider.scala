@@ -2,7 +2,7 @@ package li.cil.oc.common.nanomachines.provider
 
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.prefab.AbstractBehavior
+import li.cil.oc.api.prefab.nanomachines.AbstractBehavior
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound

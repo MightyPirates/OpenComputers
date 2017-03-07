@@ -4,13 +4,13 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
 
 /**
- * This interface can be used with an {@link li.cil.oc.api.network.Environment}
+ * This interface can be used with an {@link Environment}
  * and is intended to be used for environments wrapping a ComputerCraft
  * peripheral. It could be used for other purposes as well, though. It allows
  * providing method names in addition to those defined via the
  * {@link li.cil.oc.api.machine.Callback} annotation, and invoking said methods.
  */
-public interface ManagedPeripheral {
+public interface ManagedPeripheral extends Environment {
     /**
      * Get the list of methods provided by this environment, in
      * <em>addition</em> to methods marked as callbacks.
@@ -34,5 +34,5 @@ public interface ManagedPeripheral {
      * @throws java.lang.NoSuchMethodException if there is no method with the
      *                                         specified name.
      */
-    Object[] invoke(String method, Context context, Arguments args) throws Exception;
+    Object[] invoke(final String method, final Context context, final Arguments args) throws Exception;
 }

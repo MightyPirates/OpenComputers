@@ -2,7 +2,6 @@ package li.cil.oc.common.block
 
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.PacketSender
@@ -17,7 +16,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Charger extends BlockRedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))

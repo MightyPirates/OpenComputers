@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Constants
 import li.cil.oc.Settings
-import li.cil.oc.util.Color
+import li.cil.oc.util.DyeUtils
 import net.minecraft.client.renderer.block.model.ModelBakery
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
@@ -31,12 +31,12 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
         stack.getTagCompound.getInteger(Settings.namespace + "color")
       else
         8
-    modelLocationFromDyeName(Color.dyes(dyeIndex max 0 min 15))
+    modelLocationFromDyeName(DyeUtils.dyes(dyeIndex max 0 min 15))
   }
 
   @SideOnly(Side.CLIENT)
   override def registerModelLocations(): Unit = {
-    for (dyeName <- Color.dyes) {
+    for (dyeName <- DyeUtils.dyes) {
       val location = modelLocationFromDyeName(dyeName)
       ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
     }

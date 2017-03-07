@@ -6,6 +6,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.common.tileentity.traits.RotatableImpl
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
 import net.minecraftforge.fluids.capability.FluidTankProperties
@@ -26,7 +27,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with RotatableImpl with ISidedInventory with IFluidHandler with internal.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
@@ -37,8 +38,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     else super.getCapability(capability, facing)
   }
 
-  override val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("robot", Visibility.Neighbors).
+  override val getNode = api.Network.newNode(this, Visibility.NETWORK).
+    withComponent("robot", Visibility.NEIGHBORS).
     create()
 
   override def machine = robot.machine
@@ -105,8 +106,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message" && message.source != this.node) message.data match {
-      case Array(packet: Packet) => robot.node.sendToReachable(message.name, packet)
+    if (message.getName == "network.message" && message.getSource != this.getNode) message.getData match {
+      case Array(packet: Packet) => robot.getNode.sendToReachable(message.getName, packet)
       case _ =>
     }
   }
@@ -129,8 +130,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       // Use the same address we use internally on the outside.
       val nbt = new NBTTagCompound()
-      nbt.setString("address", robot.node.address)
-      node.load(nbt)
+      nbt.setString("address", robot.getNode.getAddress)
+      getNode.load(nbt)
     }
   }
 
@@ -227,7 +228,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def invertRotation() = robot.invertRotation()
 
-  override def facing = robot.facing
+  override def getFacing = robot.getFacing
 
   override def rotate(axis: EnumFacing) = robot.rotate(axis)
 

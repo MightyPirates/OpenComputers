@@ -14,13 +14,15 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class EEPROM extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Neighbors).
-    withComponent("eeprom", Visibility.Neighbors).
+class EEPROM extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
+    withComponent("eeprom", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -57,7 +59,7 @@ class EEPROM extends prefab.ManagedEnvironment with DeviceInfo {
     if (readonly) {
       return result(Unit, "storage is readonly")
     }
-    if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
+    if (!getNode.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
       return result(Unit, "not enough energy")
     }
     val newData = args.optByteArray(0, Array.empty[Byte])
@@ -103,7 +105,7 @@ class EEPROM extends prefab.ManagedEnvironment with DeviceInfo {
 
   @Callback(doc = """function(data:string) -- Overwrite the currently stored byte array.""")
   def setData(context: Context, args: Arguments): Array[AnyRef] = {
-    if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
+    if (!getNode.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
       return result(Unit, "not enough energy")
     }
     val newData = args.optByteArray(0, Array.empty[Byte])

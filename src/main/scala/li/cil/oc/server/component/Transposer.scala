@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -22,8 +23,8 @@ import scala.language.existentials
 
 object Transposer {
 
-  abstract class Common extends prefab.ManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
-    override val node = api.Network.newNode(this, Visibility.Network).
+  abstract class Common extends AbstractManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
+    override val getNode = api.Network.newNode(this, Visibility.NETWORK).
       withComponent("transposer").
       withConnector().
       create()
@@ -41,12 +42,12 @@ object Transposer {
       args.checkSideAny(n)
 
     override def onTransferContents(): Option[String] = {
-      if (node.tryChangeBuffer(-Settings.get.transposerCost)) None
+      if (getNode.tryChangeBuffer(-Settings.get.transposerCost)) None
       else Option("not enough energy")
     }
   }
 
-  class Block(val host: tileentity.Transposer) extends Common {
+  class Block(val host: tileentity.TileEntityTransposer) extends Common {
     override def position = BlockPosition(host)
 
     override def onTransferContents(): Option[String] = {
@@ -57,7 +58,7 @@ object Transposer {
   }
 
   class Upgrade(val host: EnvironmentHost) extends Common {
-    node.setVisibility(Visibility.Neighbors)
+    getNode.setVisibility(Visibility.NEIGHBORS)
 
     override def position = BlockPosition(host)
   }

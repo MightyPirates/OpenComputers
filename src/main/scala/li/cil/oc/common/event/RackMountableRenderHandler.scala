@@ -44,18 +44,18 @@ object RackMountableRenderHandler {
           GlStateManager.rotate(90, -1, 0, 0)
           GlStateManager.scale(0.5f, 0.5f, 0.5f)
 
-          val brightness = e.rack.world.getLightBrightnessForSkyBlocks(BlockPosition(e.rack).offset(e.rack.facing), 0)
+          val brightness = e.rack.getWorld.getLightBrightnessForSkyBlocks(BlockPosition(e.rack).offset(e.rack.getFacing), 0)
           OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
 
           // This is very 'meh', but item frames do it like this, too!
-          val entity = new EntityItem(e.rack.world, 0, 0, 0, stack)
+          val entity = new EntityItem(e.rack.getWorld, 0, 0, 0, stack)
           entity.hoverStart = 0
           Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
           GlStateManager.popMatrix()
         }
       }
 
-      if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
+      if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.getWorld.rand.nextDouble() > 0.1) {
         RenderState.disableEntityLighting()
         RenderState.makeItBlend()
 
@@ -76,7 +76,7 @@ object RackMountableRenderHandler {
       if (e.data.getBoolean("hasErrored") && RenderUtil.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
         e.renderOverlayFromAtlas(Textures.Block.RackServerError)
       }
-      if (System.currentTimeMillis() - e.data.getLong("lastFileSystemAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
+      if (System.currentTimeMillis() - e.data.getLong("lastFileSystemAccess") < 400 && e.rack.getWorld.rand.nextDouble() > 0.1) {
         e.renderOverlayFromAtlas(Textures.Block.RackServerActivity)
       }
       if ((System.currentTimeMillis() - e.data.getLong("lastNetworkActivity") < 300 && System.currentTimeMillis() % 200 > 100) && e.data.getBoolean("isRunning")) {

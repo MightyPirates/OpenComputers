@@ -16,10 +16,10 @@ import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.inventory.ComponentInventory
-import li.cil.oc.common.inventory.Inventory
+import li.cil.oc.common.inventory.{ComponentInventory, Inventory, InventoryImpl}
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.agent
@@ -64,8 +64,8 @@ object Drone {
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
-  override def world = getEntityWorld
+class Drone(world: World) extends Entity(world) with MachineHost with internal.Drone with Rotatable with Analyzable with Context {
+  override def getWorld = getEntityWorld
 
   // Some basic constants.
   val gravity = 0.05f
@@ -107,7 +107,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
     override def isUsableByPlayer(player: EntityPlayer) = true
 
-    override def node = Option(machine).map(_.node).orNull
+    override def getNode = Option(machine).map(_.node).orNull
 
     override def onConnect(node: Node) {}
 
@@ -115,7 +115,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
     override def onMessage(message: Message) {}
   }
-  val equipmentInventory = new Inventory {
+  val equipmentInventory = new InventoryImpl {
     val items = Array.empty[Option[ItemStack]]
 
     override def getSizeInventory = 0
@@ -128,7 +128,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
     override def isUsableByPlayer(player: EntityPlayer) = false
   }
-  val mainInventory = new Inventory {
+  val mainInventory = new InventoryImpl {
     val items = Array.fill[Option[ItemStack]](8)(None)
 
     override def getSizeInventory = inventorySize
@@ -158,7 +158,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
   override def tier = info.tier
 
   override def player(): EntityPlayer = {
-    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    agent.Player.updatePositionAndRotation(player_, getFacing, getFacing)
     player_
   }
 
@@ -222,7 +222,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   // ----------------------------------------------------------------------- //
 
-  override def facing = EnumFacing.SOUTH
+  override def getFacing = EnumFacing.SOUTH
 
   override def toLocal(value: EnumFacing) = value
 
@@ -236,7 +236,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   override def internalComponents(): Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def componentSlot(address: String) = components.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.components.indexWhere(_.exists(env => env.getNode != null && env.getNode.getAddress == address))
 
   override def onMachineConnect(node: Node) {}
 
@@ -268,7 +268,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3d) {
     info.load(stack)
-    control.node.changeBuffer(info.storedEnergy - control.node.localBuffer)
+    control.getNode.changeBuffer(info.storedEnergy - control.getNode.getLocalBuffer)
     wireThingsTogether()
     inventorySize = computeInventorySize()
     setPosition(position.xCoord, position.yCoord, position.zCoord)
@@ -285,7 +285,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   private def wireThingsTogether(): Unit = {
     api.Network.joinNewNetwork(machine.node)
-    machine.node.connect(control.node)
+    machine.node.connect(control.getNode)
     machine.setCostPerTick(Settings.get.droneCost)
     components.connectComponents()
   }
@@ -361,11 +361,11 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
       components.updateComponents()
       setRunning(machine.isRunning)
 
-      val buffer = math.round(machine.node.asInstanceOf[Connector].globalBuffer).toInt
+      val buffer = math.round(machine.node.asInstanceOf[Connector].getGlobalBuffer).toInt
       if (math.abs(lastEnergyUpdate - buffer) > 1 || world.getTotalWorldTime % 200 == 0) {
         lastEnergyUpdate = buffer
         globalBuffer = buffer
-        globalBufferSize = machine.node.asInstanceOf[Connector].globalBufferSize.toInt
+        globalBufferSize = machine.node.asInstanceOf[Connector].getGlobalBufferSize.toInt
       }
     }
     else {
@@ -551,7 +551,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     super.kill()
     if (!world.isRemote) {
       val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
-      info.storedEnergy = control.node.localBuffer.toInt
+      info.storedEnergy = control.getNode.getLocalBuffer.toInt
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.setPickupDelay(15)

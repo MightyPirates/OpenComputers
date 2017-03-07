@@ -8,6 +8,11 @@
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Driver|Item",
         apiVersion = API.VERSION)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 package li.cil.oc.api.driver.item;
 
 import li.cil.oc.api.API;
+import mcp.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

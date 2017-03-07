@@ -3,7 +3,6 @@ package li.cil.oc.common.block
 import li.cil.oc.Settings
 import li.cil.oc.api.component.RackMountable
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -21,7 +20,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
 
-class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Rack extends BlockRedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Facing), Array(property.PropertyTile.Tile))
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
@@ -96,7 +95,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
         }
         val facings = EnumFacing.VALUES
         for (i <- 0 until facings.length) {
-          if (rack.facing != facings(i)) {
+          if (rack.getFacing != facings(i)) {
             intersect(collisionBounds(i))
           }
         }

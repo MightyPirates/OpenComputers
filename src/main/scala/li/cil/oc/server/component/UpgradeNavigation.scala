@@ -10,13 +10,15 @@ import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
-import li.cil.oc.api.internal.Rotatable
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.network
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.item.data.NavigationUpgradeData
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
@@ -27,9 +29,9 @@ import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("navigation", Visibility.Neighbors).
+class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends AbstractManagedEnvironment with DeviceInfo {
+  override val getNode = Network.newNode(this, Visibility.NETWORK).
+    withComponent("navigation", Visibility.NEIGHBORS).
     withConnector().
     create()
 
@@ -40,7 +42,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
     DeviceAttribute.Description -> "Navigation upgrade",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "PathFinder v3",
-    DeviceAttribute.Capacity -> data.getSize(host.world).toString
+    DeviceAttribute.Capacity -> data.getSize(host.getWorld).toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
@@ -49,8 +51,8 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
 
   @Callback(doc = """function():number, number, number -- Get the current relative position of the robot.""")
   def getPosition(context: Context, args: Arguments): Array[AnyRef] = {
-    val info = data.mapData(host.world)
-    val size = data.getSize(host.world)
+    val info = data.mapData(host.getWorld)
+    val size = data.getSize(host.getWorld)
     val relativeX = host.xPosition - info.xCenter
     val relativeZ = host.zPosition - info.zCenter
 
@@ -61,16 +63,16 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
   }
 
   @Callback(doc = """function():number -- Get the current orientation of the robot.""")
-  def getFacing(context: Context, args: Arguments): Array[AnyRef] = result(host.facing.ordinal)
+  def getFacing(context: Context, args: Arguments): Array[AnyRef] = result(host.getFacing.ordinal)
 
   @Callback(doc = """function():number -- Get the operational range of the navigation upgrade.""")
-  def getRange(context: Context, args: Arguments): Array[AnyRef] = result(data.getSize(host.world) / 2)
+  def getRange(context: Context, args: Arguments): Array[AnyRef] = result(data.getSize(host.getWorld) / 2)
 
   @Callback(doc = """function(range:number):table -- Find waypoints in the specified range.""")
   def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
     val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange
     if (range <= 0) return result(Array.empty)
-    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
+    if (!getNode.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
     context.pause(0.5)
     val position = BlockPosition(host)
     val positionVec = position.toVec3
@@ -89,10 +91,10 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.name == "tablet.use") message.source.host match {
-      case machine: api.machine.Machine => (machine.host, message.data) match {
+    if (message.getName == "tablet.use") message.getSource.getEnvironment match {
+      case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
-          val info = data.mapData(host.world)
+          val info = data.mapData(host.getWorld)
           nbt.setInteger("posX", blockPos.x - info.xCenter)
           nbt.setInteger("posY", blockPos.y)
           nbt.setInteger("posZ", blockPos.z - info.zCenter)

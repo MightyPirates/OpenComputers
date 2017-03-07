@@ -4,14 +4,14 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidTank;
 
-public final class DriverFluidTank extends DriverSidedTileEntity {
+public final class DriverFluidTank extends AbstractDriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IFluidTank.class;

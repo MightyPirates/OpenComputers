@@ -1,7 +1,7 @@
 package li.cil.oc.server.driver
 
 import com.google.common.base.Strings
-import li.cil.oc.api.driver
+import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.inventory.IInventory
@@ -13,15 +13,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 // TODO Remove blocks in OC 1.7.
-class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock], val blocks: Array[driver.Block]) extends driver.SidedBlock {
+class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlock {
   override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = {
     val list = sidedBlocks.map {
       driver => Option(driver.createEnvironment(world, pos, side)) match {
-        case Some(environment) => (driver.getClass.getName, environment)
-        case _ => null
-      }
-    } ++ blocks.map {
-      driver => Option(driver.createEnvironment(world, pos)) match {
         case Some(environment) => (driver.getClass.getName, environment)
         case _ => null
       }

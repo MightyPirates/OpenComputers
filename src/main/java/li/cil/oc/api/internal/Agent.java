@@ -1,5 +1,6 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.api.machine.MachineHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
