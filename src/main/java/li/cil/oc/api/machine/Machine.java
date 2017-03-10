@@ -1,7 +1,7 @@
 package li.cil.oc.api.machine;
 
 import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import java.util.Map;
  * method {@link li.cil.oc.api.Machine#create(MachineHost)}.
  */
 @SuppressWarnings("unused")
-public interface Machine extends ManagedEnvironment, Context {
+public interface Machine extends EnvironmentItem, Context {
     /**
      * The owner of the machine, usually a tile entity hosting the machine.
      *

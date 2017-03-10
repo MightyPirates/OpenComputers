@@ -13,7 +13,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
-import li.cil.oc.common.tileentity.traits.RotatableImpl
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.inventory.ISidedInventory

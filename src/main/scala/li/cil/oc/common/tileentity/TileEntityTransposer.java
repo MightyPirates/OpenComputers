@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.server.component.Transposer;
 
-public final class TileEntityTransposer extends AbstractTileEntityEnvironmentHost {
+public final class TileEntityTransposer extends AbstractTileEntitySingleEnvironment {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 

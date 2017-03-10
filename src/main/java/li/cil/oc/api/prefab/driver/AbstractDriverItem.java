@@ -2,7 +2,7 @@ package li.cil.oc.api.prefab.driver;
 
 import li.cil.oc.api.driver.DriverItem;
 import li.cil.oc.api.network.EnvironmentHost;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.api.tileentity.Rotatable;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,7 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * You still have to specify your component's slot type and provide the
  * implementation for creating its environment, if any.
  *
- * @see ManagedEnvironment
+ * @see EnvironmentItem
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class AbstractDriverItem implements DriverItem {

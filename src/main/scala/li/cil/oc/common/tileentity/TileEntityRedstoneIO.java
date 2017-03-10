@@ -2,11 +2,11 @@ package li.cil.oc.common.tileentity;
 
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
-import li.cil.oc.common.tileentity.traits.RedstoneAwareImpl;
+import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 
-public final class TileEntityRedstoneIO extends AbstractTileEntityEnvironmentHost implements RedstoneAwareImpl.RedstoneAwareHost {
+public final class TileEntityRedstoneIO extends AbstractTileEntitySingleEnvironment implements RedstoneAwareImpl.RedstoneAwareHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 

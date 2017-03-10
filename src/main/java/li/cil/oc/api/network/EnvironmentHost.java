@@ -21,7 +21,7 @@ public interface EnvironmentHost {
     /**
      * The world the host lives in.
      */
-    World getWorld();
+    World getHostWorld();
 
     /**
      * The host's position in the world.

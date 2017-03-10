@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity.traits;
+package li.cil.oc.common.tileentity.capabilities;
 
 import li.cil.oc.api.tileentity.Colored;
 import net.minecraft.nbt.NBTTagInt;

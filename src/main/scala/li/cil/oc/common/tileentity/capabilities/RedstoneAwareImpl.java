@@ -1,5 +1,6 @@
-package li.cil.oc.common.tileentity.traits;
+package li.cil.oc.common.tileentity.capabilities;
 
+import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.tileentity.RedstoneAware;
 import li.cil.oc.integration.util.BundledRedstone;
 import net.minecraft.nbt.NBTTagCompound;
@@ -9,7 +10,7 @@ import net.minecraft.util.IThreadListener;
 import java.util.Arrays;
 
 public final class RedstoneAwareImpl implements RedstoneAware {
-    public interface RedstoneAwareHost extends TileEntityAccess {
+    public interface RedstoneAwareHost extends EnvironmentHost {
         default void onRedstoneInputChanged(final EnumFacing side, final int oldValue, final int newValue) {
         }
 
@@ -114,7 +115,7 @@ public final class RedstoneAwareImpl implements RedstoneAware {
 
         isInputUpdateScheduled = true;
 
-        final IThreadListener thread = host.getTileEntity().getWorld().getMinecraftServer();
+        final IThreadListener thread = host.getHostWorld().getMinecraftServer();
         if (thread != null) {
             thread.addScheduledTask(this::updateRedstoneInput);
         }
@@ -148,7 +149,7 @@ public final class RedstoneAwareImpl implements RedstoneAware {
 
     private void updateRedstoneInput() {
         for (final EnumFacing side : EnumFacing.VALUES) {
-            setInput(side, BundledRedstone.computeInput(host.getTileEntity().getPos(), side));
+            setInput(side, BundledRedstone.computeInput(host.getHostBlockPosition(), side));
         }
     }
 

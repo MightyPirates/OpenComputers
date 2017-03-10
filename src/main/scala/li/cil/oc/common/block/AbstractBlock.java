@@ -8,6 +8,7 @@ import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.common.capabilities.CapabilityColored;
 import li.cil.oc.common.capabilities.CapabilityRedstoneAware;
 import li.cil.oc.common.capabilities.CapabilityRotatable;
+import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.traits.*;
 import li.cil.oc.util.*;
 import net.minecraft.block.Block;
@@ -33,11 +34,12 @@ import java.util.List;
 
 public abstract class AbstractBlock extends Block {
     private static final EnumFacing[] VALID_ROTATIONS = new EnumFacing[0];
-    private final boolean tileEntityHasComparatorOverride = getTileEntityClass() != null && BlockComparatorOverride.class.isAssignableFrom(getTileEntityClass());
+    private final boolean tileEntityHasComparatorOverride = getTileEntityClass() != null && ComparatorOutputOverride.class.isAssignableFrom(getTileEntityClass());
     private final boolean tileEntityIsActivationListener = getTileEntityClass() != null && BlockActivationListener.class.isAssignableFrom(getTileEntityClass());
-    private final boolean tileEntityIsBlockChangeListener = getTileEntityClass() != null && BlockChangeListener.class.isAssignableFrom(getTileEntityClass());
+    private final boolean tileEntityIsBlockChangeListener = getTileEntityClass() != null && NeighborBlockChangeListener.class.isAssignableFrom(getTileEntityClass());
     private final boolean tileEntityIsItemStackSerializable = getTileEntityClass() != null && ItemStackSerializable.class.isAssignableFrom(getTileEntityClass());
     private final boolean tileEntityIsRedstoneAware = getTileEntityClass() != null && RedstoneAwareImpl.RedstoneAwareHost.class.isAssignableFrom(getTileEntityClass());
+    private final boolean tileEntityIsTileEntityChangeListener = getTileEntityClass() != null && NeighborTileEntityChangeListener.class.isAssignableFrom(getTileEntityClass());
 
     // ----------------------------------------------------------------------- //
 
@@ -85,8 +87,8 @@ public abstract class AbstractBlock extends Block {
 
         if (tileEntityIsBlockChangeListener) {
             final TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity instanceof BlockChangeListener) {
-                final BlockChangeListener listener = (BlockChangeListener) tileEntity;
+            if (tileEntity instanceof NeighborBlockChangeListener) {
+                final NeighborBlockChangeListener listener = (NeighborBlockChangeListener) tileEntity;
                 listener.onBlockChanged(neighborPos);
             }
         }
@@ -95,6 +97,19 @@ public abstract class AbstractBlock extends Block {
             final RedstoneAware redstoneAware = CapabilityUtils.getCapability(world, pos, CapabilityRedstoneAware.REDSTONE_AWARE_CAPABILITY, BlockPosUtils.getNeighborSide(pos, neighborPos));
             if (redstoneAware != null) {
                 redstoneAware.scheduleInputUpdate();
+            }
+        }
+    }
+
+    @Override
+    public void onNeighborChange(final IBlockAccess world, final BlockPos pos, final BlockPos neighborPos) {
+        super.onNeighborChange(world, pos, neighborPos);
+
+        if (tileEntityIsTileEntityChangeListener) {
+            final TileEntity tileEntity = world.getTileEntity(pos);
+            if (tileEntity instanceof NeighborTileEntityChangeListener) {
+                final NeighborTileEntityChangeListener listener = (NeighborTileEntityChangeListener) tileEntity;
+                listener.onTileEntityChanged(neighborPos);
             }
         }
     }
@@ -110,8 +125,8 @@ public abstract class AbstractBlock extends Block {
     public int getComparatorInputOverride(final IBlockState state, final World world, final BlockPos pos) {
         if (tileEntityHasComparatorOverride) {
             final TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity instanceof BlockComparatorOverride) {
-                final BlockComparatorOverride comparatorOverride = (BlockComparatorOverride) tileEntity;
+            if (tileEntity instanceof ComparatorOutputOverride) {
+                final ComparatorOutputOverride comparatorOverride = (ComparatorOutputOverride) tileEntity;
                 return comparatorOverride.getComparatorValue();
             }
         }

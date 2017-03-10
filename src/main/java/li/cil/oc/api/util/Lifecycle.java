@@ -1,11 +1,11 @@
 package li.cil.oc.api.util;
 
 import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.api.network.Node;
 
 /**
- * Implement this on {@link ManagedEnvironment}s to be
+ * Implement this on {@link EnvironmentItem}s to be
  * notified with proper lifecycle changes, instead of relying on something
  * like {@link Environment#onDisconnect(Node)}.
  * <p/>

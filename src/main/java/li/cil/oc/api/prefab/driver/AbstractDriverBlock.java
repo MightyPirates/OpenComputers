@@ -1,7 +1,7 @@
 package li.cil.oc.api.prefab.driver;
 
 import li.cil.oc.api.driver.DriverBlock;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
@@ -26,7 +26,7 @@ import net.minecraftforge.oredict.OreDictionary;
  * To limit sidedness, I recommend overriding {@link #worksWith(World, BlockPos, EnumFacing)}
  * and calling <code>super.worksWith</code> in addition to the side check.
  *
- * @see ManagedEnvironment
+ * @see EnvironmentItem
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class AbstractDriverBlock implements DriverBlock {

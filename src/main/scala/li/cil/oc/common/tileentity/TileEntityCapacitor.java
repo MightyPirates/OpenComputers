@@ -6,8 +6,8 @@ import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
 import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.network.AbstractEnvironment;
-import li.cil.oc.common.tileentity.traits.BlockChangeListener;
-import li.cil.oc.common.tileentity.traits.BlockComparatorOverride;
+import li.cil.oc.common.tileentity.traits.NeighborBlockChangeListener;
+import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IThreadListener;
 import net.minecraft.util.math.BlockPos;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class TileEntityCapacitor extends AbstractTileEntityEnvironmentHost implements BlockComparatorOverride, BlockChangeListener {
+public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironment implements ComparatorOutputOverride, NeighborBlockChangeListener {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -54,7 +54,7 @@ public final class TileEntityCapacitor extends AbstractTileEntityEnvironmentHost
     }
 
     // ----------------------------------------------------------------------- //
-    // BlockComparatorOverride
+    // ComparatorOutputOverride
 
     @Override
     public int getComparatorValue() {
@@ -67,7 +67,7 @@ public final class TileEntityCapacitor extends AbstractTileEntityEnvironmentHost
     }
 
     // ----------------------------------------------------------------------- //
-    // BlockChangeListener
+    // NeighborBlockChangeListener
 
     @Override
     public void onBlockChanged(final BlockPos neighborPos) {
@@ -76,7 +76,7 @@ public final class TileEntityCapacitor extends AbstractTileEntityEnvironmentHost
 
     // ----------------------------------------------------------------------- //
 
-    public void scheduleCapacityUpdate() {
+    private void scheduleCapacityUpdate() {
         final IThreadListener thread = getWorld().getMinecraftServer();
         if (thread != null) {
             thread.addScheduledTask(this::updateCapacity);

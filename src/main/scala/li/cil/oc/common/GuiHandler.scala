@@ -15,7 +15,7 @@ abstract class GuiHandler extends IGuiHandler {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
         world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
-          case t: tileentity.Adapter if id == GuiType.Adapter.id =>
+          case t: tileentity.TileEntityAdapter if id == GuiType.Adapter.id =>
             new container.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
             new container.Assembler(player.inventory, t)
@@ -25,7 +25,7 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Case(player.inventory, t)
           case t: tileentity.Disassembler if id == GuiType.Disassembler.id =>
             new container.Disassembler(player.inventory, t)
-          case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
+          case t: tileentity.TileEntityDiskDrive if id == GuiType.DiskDrive.id =>
             new container.DiskDrive(player.inventory, t)
           case t: tileentity.Printer if id == GuiType.Printer.id =>
             new container.Printer(player.inventory, t)

@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.agent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}

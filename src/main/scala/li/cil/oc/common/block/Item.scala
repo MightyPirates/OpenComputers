@@ -10,7 +10,7 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.TileEntityKeyboard
-import li.cil.oc.common.tileentity.traits.RotatableImpl
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.util.{DyeUtils, ItemColorizer, ItemCosts}
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState

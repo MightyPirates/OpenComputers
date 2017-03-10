@@ -10,7 +10,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.data.NodeData
-import li.cil.oc.common.tileentity.traits.RotatableImpl
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.server.component.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._

@@ -13,7 +13,7 @@ import li.cil.oc.api.prefab.network.AbstractEnvironment;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class TileEntityPowerConverter extends AbstractTileEntityEnvironmentHost /* traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo*/ {
+public final class TileEntityPowerConverter extends AbstractTileEntitySingleEnvironment /* traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo*/ {
     private final EnvironmentPowerConverter environment = new EnvironmentPowerConverter(this);
 
     @Override

@@ -1,5 +1,5 @@
 package li.cil.oc.common.tileentity.traits;
 
-public interface BlockComparatorOverride {
+public interface ComparatorOutputOverride {
     int getComparatorValue();
 }

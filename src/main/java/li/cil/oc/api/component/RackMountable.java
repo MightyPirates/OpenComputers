@@ -2,7 +2,7 @@ package li.cil.oc.api.component;
 
 import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ComponentHost;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.api.util.StateAware;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -29,7 +29,7 @@ import net.minecraft.util.EnumHand;
  * Furthermore, implementing {@link Analyzable} will allow specifying more
  * information when the analyzer is used on the mountable while it's in a rack.
  */
-public interface RackMountable extends ManagedEnvironment, StateAware {
+public interface RackMountable extends EnvironmentItem, StateAware {
     /**
      * Returns some data describing the state of the mountable.
      * <p/>

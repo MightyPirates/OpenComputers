@@ -4,6 +4,8 @@ import li.cil.oc.api.driver.DriverItem;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
 
+import javax.annotation.Nullable;
+
 /**
  * A single node in a {@link Network}.
  * <p/>
@@ -81,6 +83,7 @@ public interface Node extends INBTSerializable<NBTTagCompound> {
      * This will always be set automatically by the network manager. Do not
      * change this value and do not return anything that it wasn't set to.
      */
+    @Nullable
     Network getNetwork();
 
     // ----------------------------------------------------------------------- //

@@ -1,20 +1,15 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.driver.Block;
-import li.cil.oc.api.driver.Converter;
-import li.cil.oc.api.driver.EnvironmentProvider;
-import li.cil.oc.api.driver.InventoryProvider;
-import li.cil.oc.api.driver.DriverItem;
-import li.cil.oc.api.driver.DriverBlock;
+import li.cil.oc.api.driver.*;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -31,7 +26,7 @@ public interface DriverAPI {
      *
      * @param driver the driver to register.
      */
-    void add(DriverBlock driver);
+    void add(final DriverBlock driver);
 
     /**
      * Registers a new driver for an item component.
@@ -44,7 +39,7 @@ public interface DriverAPI {
      *
      * @param driver the driver for an item component.
      */
-    void add(DriverItem driver);
+    void add(final DriverItem driver);
 
     /**
      * Registers a new type converter.
@@ -57,7 +52,7 @@ public interface DriverAPI {
      *
      * @param converter the converter to register.
      */
-    void add(Converter converter);
+    void add(final Converter converter);
 
     /**
      * Register a new environment provider.
@@ -69,7 +64,7 @@ public interface DriverAPI {
      *
      * @param provider the provider to register.
      */
-    void add(EnvironmentProvider provider);
+    void add(final EnvironmentProvider provider);
 
     /**
      * Register a new inventory provider.
@@ -79,7 +74,7 @@ public interface DriverAPI {
      *
      * @param provider the provider to register.
      */
-    void add(InventoryProvider provider);
+    void add(final InventoryProvider provider);
 
     /**
      * Looks up a driver for the block at the specified position in the
@@ -88,14 +83,15 @@ public interface DriverAPI {
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you should will <em>not</em>
-     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
+     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.DriverBlock)}.
      *
      * @param world the world containing the block.
      * @param pos   the position of the block.
      * @param side  the side of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
-    DriverBlock driverFor(World world, BlockPos pos, EnumFacing side);
+    @Nullable
+    DriverBlock driverFor(final World world, final BlockPos pos, final EnumFacing side);
 
     /**
      * Looks up a driver for the specified item stack.
@@ -108,7 +104,8 @@ public interface DriverAPI {
      * @param host  the type that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    DriverItem driverFor(ItemStack stack, Class<? extends EnvironmentHost> host);
+    @Nullable
+    DriverItem driverFor(final ItemStack stack, final Class<? extends EnvironmentHost> host);
 
     /**
      * Looks up a driver for the specified item stack.
@@ -123,21 +120,8 @@ public interface DriverAPI {
      * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    DriverItem driverFor(ItemStack stack);
-
-    /**
-     * Looks up the environment associated with the specified item stack.
-     * <p/>
-     * This will use the registered {@link EnvironmentProvider}s to find
-     * an environment type for the specified item stack. If none can be
-     * found, returns <tt>null</tt>.
-     *
-     * @param stack the item stack to get the environment type for.
-     * @return the type of environment associated with the stack, or <tt>null</tt>.
-     * @deprecated Use {@link #environmentsFor(ItemStack)} instead.
-     */
-    @Deprecated
-    Class<?> environmentFor(ItemStack stack);
+    @Nullable
+    DriverItem driverFor(final ItemStack stack);
 
     /**
      * Looks up the environments associated with the specified item stack.
@@ -149,7 +133,7 @@ public interface DriverAPI {
      * @param stack the item stack to get the environment type for.
      * @return the type of environment associated with the stack, or an empty Set.
      */
-    Set<Class<?>> environmentsFor(ItemStack stack);
+    Set<Class<?>> environmentsFor(final ItemStack stack);
 
     /**
      * Get an IItemHandler implementation providing access to an item inventory.
@@ -165,7 +149,8 @@ public interface DriverAPI {
      * @param player the player holding the item. May be <tt>null</tt>.
      * @return the IItemHandler implementation interfacing the stack, or <tt>null</tt>.
      */
-    IItemHandler itemHandlerFor(ItemStack stack, EntityPlayer player);
+    @Nullable
+    IItemHandler itemHandlerFor(final ItemStack stack, final EntityPlayer player);
 
     /**
      * Get a list of all registered block drivers.

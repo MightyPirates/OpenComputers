@@ -3,7 +3,7 @@ package li.cil.oc.server.driver
 import com.google.common.base.Strings
 import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.driver.NamedBlock
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.EnvironmentItem
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -33,7 +33,7 @@ class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlo
   }
 
   // TODO rework this method
-  private def tryGetName(world: World, pos: BlockPos, environments: Seq[ManagedEnvironment]): String = {
+  private def tryGetName(world: World, pos: BlockPos, environments: Seq[EnvironmentItem]): String = {
     environments.collect {
       case named: NamedBlock => named
     }.sortBy(_.priority).lastOption match {

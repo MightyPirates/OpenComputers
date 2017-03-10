@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object AdapterRenderer extends TileEntitySpecialRenderer[tileentity.Adapter] {
-  override def renderTileEntityAt(adapter: tileentity.Adapter, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object AdapterRenderer extends TileEntitySpecialRenderer[tileentity.TileEntityAdapter] {
+  override def renderTileEntityAt(adapter: tileentity.TileEntityAdapter, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     if (adapter.openSides.contains(true)) {

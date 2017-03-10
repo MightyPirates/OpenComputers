@@ -191,7 +191,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   }
 
   // ----------------------------------------------------------------------- //
-  // ManagedEnvironment
+  // EnvironmentItem
 
   override def canUpdate: Boolean = true
 

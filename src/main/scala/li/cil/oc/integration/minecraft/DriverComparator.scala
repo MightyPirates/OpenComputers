@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{ManagedEnvironment, ManagedEnvironment}
+import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment}
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityEnvironment}
+import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
@@ -19,7 +19,7 @@ import net.minecraft.world.World
 object DriverComparator extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityComparator]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
     new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityComparator])
 
   final class Environment(tileEntity: TileEntityComparator) extends ManagedTileEntityEnvironment[TileEntityComparator](tileEntity, "comparator") with NamedBlock {

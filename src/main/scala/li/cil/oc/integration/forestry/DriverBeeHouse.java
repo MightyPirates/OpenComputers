@@ -11,7 +11,7 @@ import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.item.ItemStack;
@@ -30,7 +30,7 @@ public class DriverBeeHouse extends AbstractDriverTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(World world, BlockPos pos, EnumFacing side) {
+    public EnvironmentItem createEnvironment(World world, BlockPos pos, EnumFacing side) {
         return new Environment((IBeeHousing) world.getTileEntity(pos));
     }
 

@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.DiskDrive
+import li.cil.oc.common.tileentity.TileEntityDiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
@@ -14,8 +14,8 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
-  override def renderTileEntityAt(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object DiskDriveRenderer extends TileEntitySpecialRenderer[TileEntityDiskDrive] {
+  override def renderTileEntityAt(drive: TileEntityDiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     RenderState.pushAttrib()

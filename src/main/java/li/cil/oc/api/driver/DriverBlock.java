@@ -1,10 +1,13 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentBlock;
+import li.cil.oc.api.network.EnvironmentItem;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+
+import javax.annotation.Nullable;
 
 /**
  * Interface for side-aware block component drivers.
@@ -17,7 +20,7 @@ import net.minecraft.world.World;
  * <p/>
  * A block driver is used by <tt>Adapter</tt> blocks to check its neighbors and
  * whether those neighbors should be treated as components or not. If a driver
- * is present, it will be used to create a {@link ManagedEnvironment} that is
+ * is present, it will be used to create a {@link EnvironmentItem} that is
  * managed by the adapter.
  * <p/>
  * Note that it is possible to write one driver that supports as many different
@@ -47,6 +50,8 @@ public interface DriverBlock {
      */
     boolean worksWith(final World world, final BlockPos pos, final EnumFacing side);
 
+    boolean isValid(final World world, final BlockPos pos, final EnumFacing side, final EnvironmentBlock environmentBlock);
+
     /**
      * Create a new managed environment interfacing the specified block.
      * <p/>
@@ -68,5 +73,6 @@ public interface DriverBlock {
      * @param side  the side of the block to check.
      * @return the environment for the block at that location.
      */
-    ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side);
+    @Nullable
+    EnvironmentBlock createEnvironment(final World world, final BlockPos pos, final EnumFacing side);
 }

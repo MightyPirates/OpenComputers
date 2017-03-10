@@ -1,21 +1,18 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.driver.Block;
-import li.cil.oc.api.driver.Converter;
-import li.cil.oc.api.driver.EnvironmentProvider;
-import li.cil.oc.api.driver.InventoryProvider;
-import li.cil.oc.api.driver.DriverItem;
-import li.cil.oc.api.driver.DriverBlock;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.driver.*;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -126,7 +123,8 @@ public final class Driver {
      * @param pos   the position of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
-    public static DriverBlock driverFor(World world, BlockPos pos, EnumFacing side) {
+    @Nullable
+    public static DriverBlock driverFor(final World world, final BlockPos pos, final EnumFacing side) {
         if (API.driver != null)
             return API.driver.driverFor(world, pos, side);
         return null;
@@ -143,7 +141,8 @@ public final class Driver {
      * @param host  the type that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static DriverItem driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
+    @Nullable
+    public static DriverItem driverFor(final ItemStack stack, final Class<? extends EnvironmentHost> host) {
         if (API.driver != null)
             return API.driver.driverFor(stack, host);
         return null;
@@ -162,27 +161,10 @@ public final class Driver {
      * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static DriverItem driverFor(ItemStack stack) {
+    @Nullable
+    public static DriverItem driverFor(final ItemStack stack) {
         if (API.driver != null)
             return API.driver.driverFor(stack);
-        return null;
-    }
-
-    /**
-     * Looks up the environment associated with the specified item stack.
-     * <p/>
-     * This will use the registered {@link EnvironmentProvider}s to find
-     * an environment type for the specified item stack. If none can be
-     * found, returns <tt>null</tt>.
-     *
-     * @param stack the item stack to get the environment type for.
-     * @return the type of environment associated with the stack, or <tt>null</tt>.
-     * @deprecated Use {@link #environmentsFor(ItemStack)} instead.
-     */
-    @Deprecated
-    public static Class<?> environmentFor(ItemStack stack) {
-        if (API.driver != null)
-            return API.driver.environmentFor(stack);
         return null;
     }
 
@@ -196,10 +178,10 @@ public final class Driver {
      * @param stack the item stack to get the environment type for.
      * @return the type of environment associated with the stack, or an empty Set, or null if the API is not present.
      */
-    public static Set<Class<?>> environmentsFor(ItemStack stack) {
+    public static Set<Class<?>> environmentsFor(final ItemStack stack) {
         if (API.driver != null)
             return API.driver.environmentsFor(stack);
-        return null;
+        return Collections.emptySet();
     }
 
     /**
@@ -216,7 +198,8 @@ public final class Driver {
      * @param player the player holding the item. May be <tt>null</tt>.
      * @return the IItemHandler implementation interfacing the stack, or <tt>null</tt>.
      */
-    public static IItemHandler itemHandlerFor(ItemStack stack, EntityPlayer player) {
+    @Nullable
+    public static IItemHandler itemHandlerFor(final ItemStack stack, final EntityPlayer player) {
         if (API.driver != null)
             return API.driver.itemHandlerFor(stack, player);
         return null;
@@ -232,10 +215,10 @@ public final class Driver {
      *
      * @return the list of all registered block drivers.
      */
-    public static Collection<Block> blockDrivers() {
+    public static Collection<DriverBlock> blockDrivers() {
         if (API.driver != null)
             return API.driver.blockDrivers();
-        return null;
+        return Collections.emptyList();
     }
 
     /**
@@ -251,7 +234,7 @@ public final class Driver {
     public static Collection<DriverItem> itemDrivers() {
         if (API.driver != null)
             return API.driver.itemDrivers();
-        return null;
+        return Collections.emptyList();
     }
 
     // ----------------------------------------------------------------------- //

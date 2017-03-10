@@ -26,7 +26,7 @@ object GuiHandler extends CommonGuiHandler {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
         world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
-          case t: tileentity.Adapter if id == GuiType.Adapter.id =>
+          case t: tileentity.TileEntityAdapter if id == GuiType.Adapter.id =>
             new gui.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
             new gui.Assembler(player.inventory, t)
@@ -36,7 +36,7 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Charger(player.inventory, t)
           case t: tileentity.Disassembler if id == GuiType.Disassembler.id =>
             new gui.Disassembler(player.inventory, t)
-          case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
+          case t: tileentity.TileEntityDiskDrive if id == GuiType.DiskDrive.id =>
             new gui.DiskDrive(player.inventory, t)
           case t: tileentity.Printer if id == GuiType.Printer.id =>
             new gui.Printer(player.inventory, t)

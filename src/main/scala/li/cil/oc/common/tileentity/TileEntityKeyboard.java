@@ -4,7 +4,7 @@ import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.common.capabilities.CapabilityEnvironment;
-import li.cil.oc.common.tileentity.traits.RotatableImpl;
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -12,7 +12,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public final class TileEntityKeyboard extends AbstractTileEntityEnvironmentHost implements RotatableImpl.RotatableHost, Analyzable {
+public final class TileEntityKeyboard extends AbstractTileEntitySingleEnvironment implements RotatableImpl.RotatableHost, Analyzable {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 

@@ -26,7 +26,7 @@ trait SimpleItem extends Item {
 
   override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = {
     world.getTileEntity(pos) match {
-      case drive: tileentity.DiskDrive => true
+      case drive: tileentity.TileEntityDiskDrive => true
       case _ => super.doesSneakBypassUse(stack, world, pos, player)
     }
   }

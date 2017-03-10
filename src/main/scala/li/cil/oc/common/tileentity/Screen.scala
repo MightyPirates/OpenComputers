@@ -5,7 +5,8 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.tileentity.traits.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.capabilities.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.traits.{ColoredImpl, RotatableImpl}
 import li.cil.oc.util.{BlockPosition, DyeUtils}
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft

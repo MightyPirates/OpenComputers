@@ -1,8 +1,10 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.EnvironmentItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+
+import javax.annotation.Nullable;
 
 /**
  * Interface for item component drivers.
@@ -37,7 +39,9 @@ public interface DriverItem {
      * @param stack the item to check.
      * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(ItemStack stack);
+    boolean worksWith(final ItemStack stack);
+
+    boolean isValid(final ItemStack stack, final EnvironmentItem environment);
 
     /**
      * Create a new managed environment interfacing the specified item.
@@ -62,7 +66,8 @@ public interface DriverItem {
      * @param host  the host the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, li.cil.oc.api.network.EnvironmentHost host);
+    @Nullable
+    EnvironmentItem createEnvironment(final ItemStack stack, final EnvironmentHost host);
 
     /**
      * The slot type of the specified item this driver supports.
@@ -75,7 +80,7 @@ public interface DriverItem {
      * @return the slot type of the specified item.
      * @see li.cil.oc.api.driver.item.Slot
      */
-    String slot(ItemStack stack);
+    String slot(final ItemStack stack);
 
     /**
      * The tier of the specified item this driver supports.
@@ -89,26 +94,5 @@ public interface DriverItem {
      * @param stack the item stack to get the tier for.
      * @return the tier of the specified item.
      */
-    int tier(ItemStack stack);
-
-    /**
-     * Get the tag compound based on the item stack to use for persisting the
-     * environment associated with the specified item stack.
-     * <p/>
-     * This is only used if the item has an environment. This must always be a
-     * child tag of the item stack's own tag compound, it will not be saved
-     * otherwise. Use this in the unlikely case that the default name collides
-     * with something. The built-in components use a child tag-compound with
-     * the name <tt>oc:data</tt>, which will also be used if this returns
-     * <tt>null</tt>.
-     * <p/>
-     * This tag will be passed to the environment's <tt>save</tt> and
-     * <tt>load</tt> methods when appropriate (world save / load and when
-     * removed from their hosting inventory).
-     *
-     * @param stack the item to get the child tag from.
-     * @return the tag to use for saving and loading, or <tt>null</tt> to use
-     * the default tag <tt>oc:data</tt>.
-     */
-    NBTTagCompound dataTag(ItemStack stack);
+    int tier(final ItemStack stack);
 }

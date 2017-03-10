@@ -7,10 +7,9 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.network.AbstractEnvironment;
 import li.cil.oc.common.capabilities.CapabilityEnvironment;
+import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.common.tileentity.traits.OpenSides;
-import li.cil.oc.common.tileentity.traits.RedstoneAwareImpl;
-import li.cil.oc.integration.util.Wrench;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.nbt.NBTTagByte;
@@ -25,7 +24,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public final class TileEntityNetSplitter extends AbstractTileEntityEnvironmentHost implements BlockActivationListener, OpenSides.OpenSidesHost, RedstoneAwareImpl.RedstoneAwareHost {
+public final class TileEntityNetSplitter extends AbstractTileEntitySingleEnvironment implements BlockActivationListener, OpenSides.OpenSidesHost, RedstoneAwareImpl.RedstoneAwareHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -90,15 +89,7 @@ public final class TileEntityNetSplitter extends AbstractTileEntityEnvironmentHo
 
     @Override
     public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        if (Wrench.holdsApplicableWrench(player, getPos())) {
-            if (isServer()) {
-                final EnumFacing sideToToggle = player.isSneaking() ? side.getOpposite() : side;
-                sides.toggleSide(sideToToggle);
-            }
-            return true;
-        }
-
-        return false;
+        return sides.onActivated(player, hand, getPos(), side);
     }
 
     // ----------------------------------------------------------------------- //

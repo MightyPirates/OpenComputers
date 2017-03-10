@@ -7,6 +7,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.nanomachines.ControllerImpl
+import li.cil.oc.common.tileentity.capabilities.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
 import li.cil.oc.common.tileentity.{TileEntityWaypoint, Waypoint}
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
@@ -28,7 +29,7 @@ import net.minecraftforge.common.MinecraftForge
 import scala.collection.mutable
 
 object PacketSender {
-  def sendAdapterState(t: tileentity.Adapter): Unit = {
+  def sendAdapterState(t: tileentity.TileEntityAdapter): Unit = {
     val pb = new SimplePacketBuilder(PacketType.AdapterState)
 
     pb.writeTileEntity(t)
@@ -184,7 +185,7 @@ object PacketSender {
     }
   }
 
-  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = null) {
+  def sendFloppyChange(t: tileentity.TileEntityDiskDrive, stack: ItemStack = null) {
     val pb = new SimplePacketBuilder(PacketType.FloppyChange)
 
     pb.writeTileEntity(t)

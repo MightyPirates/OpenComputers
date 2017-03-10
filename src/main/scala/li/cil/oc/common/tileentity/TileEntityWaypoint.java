@@ -13,7 +13,7 @@ import li.cil.oc.api.prefab.network.AbstractEnvironment;
 import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.common.GuiType$;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
-import li.cil.oc.common.tileentity.traits.RotatableImpl;
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
 import li.cil.oc.server.network.Waypoints;
 import li.cil.oc.util.WorldUtils;
 import net.minecraft.block.state.IBlockState;
@@ -28,7 +28,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Random;
 
-public final class TileEntityWaypoint extends AbstractTileEntityEnvironmentHost implements ITickable, BlockActivationListener, RotatableImpl.RotatableHost {
+public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironment implements ITickable, BlockActivationListener, RotatableImpl.RotatableHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 

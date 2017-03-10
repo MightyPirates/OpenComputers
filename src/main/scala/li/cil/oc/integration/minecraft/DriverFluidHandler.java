@@ -4,7 +4,7 @@ import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -25,7 +25,7 @@ public final class DriverFluidHandler implements DriverBlock {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+    public EnvironmentItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
         return new Environment(world.getTileEntity(pos).getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side));
     }
 

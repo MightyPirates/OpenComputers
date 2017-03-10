@@ -9,6 +9,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAwareImpl}
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component

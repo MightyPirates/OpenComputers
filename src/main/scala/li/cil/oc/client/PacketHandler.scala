@@ -14,6 +14,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
 import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity.capabilities.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.integration.Mods
@@ -110,7 +111,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onAdapterState(p: PacketParser) =
-    p.readTileEntity[Adapter]() match {
+    p.readTileEntity[TileEntityAdapter]() match {
       case Some(t) =>
         t.openSides = t.uncompressSides(p.readByte())
         t.getWorld.notifyBlockUpdate(t.getPos)
@@ -218,7 +219,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onFloppyChange(p: PacketParser) =
-    p.readTileEntity[DiskDrive]() match {
+    p.readTileEntity[TileEntityDiskDrive]() match {
       case Some(t) => t.setInventorySlotContents(0, p.readItemStack())
       case _ => // Invalid packet.
     }

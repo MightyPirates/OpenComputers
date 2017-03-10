@@ -10,8 +10,8 @@ import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.network.AbstractEnvironment;
 import li.cil.oc.common.block.BlockCable;
 import li.cil.oc.common.capabilities.CapabilityColored;
-import li.cil.oc.common.tileentity.traits.BlockChangeListener;
-import li.cil.oc.common.tileentity.traits.ColoredImpl;
+import li.cil.oc.common.tileentity.traits.NeighborBlockChangeListener;
+import li.cil.oc.common.tileentity.capabilities.ColoredImpl;
 import li.cil.oc.common.tileentity.traits.ItemStackSerializable;
 import li.cil.oc.common.tileentity.traits.NotAnalyzable;
 import li.cil.oc.util.DyeUtils;
@@ -29,7 +29,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public final class TileEntityCable extends AbstractTileEntityEnvironmentHost implements ItemStackSerializable, BlockChangeListener, ColoredImpl.ColoredHost, NotAnalyzable {
+public final class TileEntityCable extends AbstractTileEntitySingleEnvironment implements ItemStackSerializable, NeighborBlockChangeListener, ColoredImpl.ColoredHost, NotAnalyzable {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -90,7 +90,7 @@ public final class TileEntityCable extends AbstractTileEntityEnvironmentHost imp
     }
 
     // ----------------------------------------------------------------------- //
-    // BlockChangeListener
+    // NeighborBlockChangeListener
 
     @Override
     public void onBlockChanged(final BlockPos neighborPos) {

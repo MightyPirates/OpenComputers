@@ -4,7 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.network.{ManagedEnvironment, ManagedNodeHost}
+import li.cil.oc.api.network.{EnvironmentItem, ManagedNodeHost}
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -25,7 +25,7 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
     api.Items.get(Constants.ItemName.CPUTier2),
     api.Items.get(Constants.ItemName.CPUTier3))
 
-  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost): ManagedEnvironment = new component.CPU(tier(stack))
+  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost): EnvironmentItem = new component.CPU(tier(stack))
 
   override def slot(stack: ItemStack) = Slot.CPU
 

@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity;
 
 import li.cil.oc.client.Sound;
 import li.cil.oc.common.SaveHandler;
-import li.cil.oc.common.tileentity.traits.TileEntityAccess;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
@@ -10,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractTileEntity extends TileEntity implements TileEntityAccess {
+public abstract class AbstractTileEntity extends TileEntity {
     public boolean isClient() {
         return !isServer();
     }
@@ -78,14 +77,6 @@ public abstract class AbstractTileEntity extends TileEntity implements TileEntit
         }
         writeToNBTForClient(nbt);
         return nbt;
-    }
-
-    // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
     }
 
     // ----------------------------------------------------------------------- //

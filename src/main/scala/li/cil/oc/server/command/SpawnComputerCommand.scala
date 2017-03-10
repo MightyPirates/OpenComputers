@@ -4,7 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.command.SimpleCommand
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.traits.RotatableImpl
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils

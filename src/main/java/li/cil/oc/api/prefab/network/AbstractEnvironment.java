@@ -138,9 +138,5 @@ public abstract class AbstractEnvironment implements Environment {
      *       .create();
      * </pre>
      */
-    protected Node createNode() {
-        return Network.newNode(this, Visibility.NETWORK).
-                withComponent(getClass().getSimpleName().toLowerCase()).
-                create();
-    }
+    protected abstract Node createNode();
 }

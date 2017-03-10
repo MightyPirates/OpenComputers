@@ -135,7 +135,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   }
 
   // ----------------------------------------------------------------------- //
-  // ManagedEnvironment
+  // EnvironmentItem
 
   override def canUpdate: Boolean = false
 

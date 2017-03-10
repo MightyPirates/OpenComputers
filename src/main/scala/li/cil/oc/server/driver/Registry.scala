@@ -11,7 +11,7 @@ import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
-import li.cil.oc.api.network.{EnvironmentHost, ManagedEnvironment}
+import li.cil.oc.api.network.{EnvironmentHost, EnvironmentItem}
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory

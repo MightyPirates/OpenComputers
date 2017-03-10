@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.common.tileentity.Case
-import li.cil.oc.common.tileentity.DiskDrive
+import li.cil.oc.common.tileentity.TileEntityDiskDrive
 import li.cil.oc.common.tileentity.Raid
 import li.cil.oc.server.component.DiskDriveMountable
 import li.cil.oc.server.component.Server
@@ -45,7 +45,7 @@ object FileSystemAccessHandler {
     val sound = new SoundEvent(new ResourceLocation(e.getSound))
     e.getWorld.playSound(e.getX, e.getY, e.getZ, sound, SoundCategory.BLOCKS, volume, 1, false)
     e.getTileEntity match {
-      case t: DiskDrive => t.lastAccess = System.currentTimeMillis()
+      case t: TileEntityDiskDrive => t.lastAccess = System.currentTimeMillis()
       case t: Case => t.lastFileSystemAccess = System.currentTimeMillis()
       case t: Raid => t.lastAccess = System.currentTimeMillis()
       case _ =>

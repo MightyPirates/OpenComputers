@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class TileEntityMotionSensor extends AbstractTileEntityEnvironmentHost implements ITickable {
+public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnvironment implements ITickable {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -139,7 +139,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntityEnvironmentH
         // ----------------------------------------------------------------------- //
 
         public void update() {
-            final World world = getHost().getWorld();
+            final World world = getHost().getHostWorld();
             if (world.getTotalWorldTime() % 10 == 0) {
                 // Get a list of all living entities we could possibly detect, using a rough
                 // bounding box check, then refining it using the actual distance and an
@@ -187,7 +187,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntityEnvironmentH
             // Start trace outside of this block.
             final Vec3d origin = sensorPos.add(entityPos.subtract(sensorPos).normalize());
 
-            return getHost().getWorld().rayTraceBlocks(origin, entityPos) == null;
+            return getHost().getHostWorld().rayTraceBlocks(origin, entityPos) == null;
         }
 
         private void sendSignal(final EntityLivingBase entity) {

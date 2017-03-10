@@ -9,8 +9,8 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.PowerDistributor] {
-  override def renderTileEntityAt(distributor: tileentity.PowerDistributor, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.TileEntityPowerDistributor] {
+  override def renderTileEntityAt(distributor: tileentity.TileEntityPowerDistributor, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     if (distributor.globalBuffer > 0) {

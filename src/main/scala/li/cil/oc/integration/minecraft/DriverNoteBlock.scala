@@ -5,7 +5,7 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment}
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
 import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeHost}
 import li.cil.oc.util.ResultWrapper.result
@@ -21,7 +21,7 @@ import net.minecraft.world.World
 object DriverNoteBlock extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityNote]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
     new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityNote])
 
   final class Environment(tileEntity: TileEntityNote) extends ManagedTileEntityEnvironment[TileEntityNote](tileEntity, "note_block") with NamedBlock {

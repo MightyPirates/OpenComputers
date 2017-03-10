@@ -7,7 +7,8 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.PrintData
-import li.cil.oc.common.tileentity.traits.{RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.capabilities.{RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.traits.RedstoneAwareImpl
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._

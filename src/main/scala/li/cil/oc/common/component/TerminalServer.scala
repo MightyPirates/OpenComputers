@@ -180,7 +180,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   }
 
   // ----------------------------------------------------------------------- //
-  // ManagedEnvironment
+  // EnvironmentItem
 
   override def canUpdate: Boolean = true
 

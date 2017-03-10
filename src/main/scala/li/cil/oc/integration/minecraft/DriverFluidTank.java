@@ -3,7 +3,7 @@ package li.cil.oc.integration.minecraft;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.util.math.BlockPos;
@@ -18,7 +18,7 @@ public final class DriverFluidTank extends AbstractDriverTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+    public EnvironmentItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
         return new Environment((IFluidTank) world.getTileEntity(pos));
     }
 

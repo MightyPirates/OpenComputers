@@ -15,7 +15,7 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRunning
-import li.cil.oc.common.tileentity.traits.ColoredImpl
+import li.cil.oc.common.tileentity.capabilities.ColoredImpl
 import li.cil.oc.util.DyeUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack

@@ -29,7 +29,7 @@
  * This API provides interfaces that allow interacting with the internal network
  * and creating nodes, components and power connectors for said network. If you
  * implement <tt>Environment</tt> in your tile entity or provide a
- * {@link li.cil.oc.api.network.ManagedEnvironment} via a driver you'll want to
+ * {@link li.cil.oc.api.network.EnvironmentItem} via a driver you'll want to
  * create a node. This API provides factory methods for creating it.
  * </dd>
  * </dl>

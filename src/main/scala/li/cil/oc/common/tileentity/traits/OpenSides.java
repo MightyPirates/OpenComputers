@@ -1,7 +1,11 @@
 package li.cil.oc.common.tileentity.traits;
 
+import li.cil.oc.integration.util.Wrench;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import javax.annotation.Nullable;
@@ -50,6 +54,18 @@ public final class OpenSides implements INBTSerializable<NBTTagByte> {
     public void toggleSide(final EnumFacing side) {
         openSides[side.ordinal()] = !openSides[side.ordinal()];
         host.onSideOpenChanged(side);
+    }
+
+    public boolean onActivated(final EntityPlayer player, final EnumHand hand, final BlockPos pos, final EnumFacing side) {
+        if (Wrench.holdsApplicableWrench(player, pos)) {
+            if (player.isServerWorld()) {
+                final EnumFacing sideToToggle = player.isSneaking() ? side.getOpposite() : side;
+                toggleSide(sideToToggle);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     // ----------------------------------------------------------------------- //

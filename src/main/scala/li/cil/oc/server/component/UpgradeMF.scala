@@ -36,7 +36,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
     create()
 
   private var otherEnv: Option[Environment] = None
-  private var otherDrv: Option[(ManagedEnvironment, DriverBlock)] = None
+  private var otherDrv: Option[(EnvironmentItem, DriverBlock)] = None
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true

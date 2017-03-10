@@ -14,7 +14,8 @@ import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.tileentity.traits.{RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.capabilities.{RedstoneAwareImpl, RotatableImpl}
+import li.cil.oc.common.tileentity.traits.RedstoneAwareImpl
 import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition

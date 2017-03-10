@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.api.driver.DriverItem
-import li.cil.oc.api.network.{ManagedEnvironment, ManagedNodeHost, Node}
+import li.cil.oc.api.network.{EnvironmentItem, ManagedNodeHost, Node}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.inventory
+import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.util.ExtendedInventory._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -114,7 +115,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     }
   }
 
-  override protected def save(component: ManagedEnvironment, driver: DriverItem, stack: ItemStack): Unit = {
+  override protected def save(component: EnvironmentItem, driver: DriverItem, stack: ItemStack): Unit = {
     if (isServer) {
       super.save(component, driver, stack)
     }

@@ -3,7 +3,7 @@ package li.cil.oc.api.detail;
 import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
-import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.EnvironmentItem;
 
 public interface FileSystemAPI {
     /**
@@ -114,7 +114,7 @@ public interface FileSystemAPI {
      * @param speed       the speed multiplier for this file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound, int speed);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound, int speed);
 
     /**
      * Creates a network node that makes the specified file system available via
@@ -133,35 +133,35 @@ public interface FileSystemAPI {
      * @param speed       the speed multiplier for this file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound, int speed);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound, int speed);
 
     /**
      * @deprecated Don't use this directly, use the wrapper in {@link li.cil.oc.api.FileSystem}.
      */
     @Deprecated
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound);
 
     /**
      * @deprecated Don't use this directly, use the wrapper in {@link li.cil.oc.api.FileSystem}.
      */
     @Deprecated
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound);
 
     /**
      * @deprecated Don't use this directly, use the wrapper in {@link li.cil.oc.api.FileSystem}.
      */
     @Deprecated
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, Label label);
 
     /**
      * @deprecated Don't use this directly, use the wrapper in {@link li.cil.oc.api.FileSystem}.
      */
     @Deprecated
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem, String label);
 
     /**
      * @deprecated Don't use this directly, use the wrapper in {@link li.cil.oc.api.FileSystem}.
      */
     @Deprecated
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem);
+    EnvironmentItem asManagedEnvironment(FileSystem fileSystem);
 }
