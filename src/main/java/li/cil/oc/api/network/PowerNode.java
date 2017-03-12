@@ -24,7 +24,7 @@ package li.cil.oc.api.network;
  * avoid floating point errors causing trouble). Distribute the collected energy
  * equally among the below-average buffers (as good as possible).
  */
-public interface Connector extends Node {
+public interface PowerNode extends Node {
     /**
      * The energy stored in the local buffer.
      */

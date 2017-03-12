@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.PowerNode
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
@@ -55,9 +55,9 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       if (Settings.get.ignorePower)
         LuaValue.valueOf(Double.PositiveInfinity)
       else
-        LuaValue.valueOf(node.asInstanceOf[Connector].getGlobalBuffer))
+        LuaValue.valueOf(node.asInstanceOf[PowerNode].getGlobalBuffer))
 
-    computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.asInstanceOf[Connector].getGlobalBufferSize))
+    computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.asInstanceOf[PowerNode].getGlobalBufferSize))
 
     computer.set("getArchitectures", (args: Varargs) => {
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {

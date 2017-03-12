@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.server.component.Transposer;
 
-public final class TileEntityTransposer extends AbstractTileEntitySingleEnvironment {
+public final class TileEntityTransposer extends AbstractTileEntitySingleNodeContainer {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final Environment environment = new Transposer.Block(this);
+    private final NodeContainer nodeContainer = new Transposer.Block(this);
 
     // ----------------------------------------------------------------------- //
     // Computed data.
@@ -16,10 +16,10 @@ public final class TileEntityTransposer extends AbstractTileEntitySingleEnvironm
     public long lastOperation = 0L;
 
     // ----------------------------------------------------------------------- //
-    // AbstractTileEntityEnvironmentHost
+    // AbstractTileEntitySingleNodeContainer
 
     @Override
-    protected Environment getEnvironment() {
-        return environment;
+    protected NodeContainer getNodeContainer() {
+        return nodeContainer;
     }
 }

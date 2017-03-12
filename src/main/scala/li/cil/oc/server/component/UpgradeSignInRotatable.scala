@@ -1,14 +1,14 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Rotatable
+import li.cil.oc.api.util.Location
 
-class UpgradeSignInRotatable(val host: EnvironmentHost with Rotatable) extends UpgradeSign {
+class UpgradeSignInRotatable(val host: Location with Rotatable) extends UpgradeSign {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("sign", Visibility.NEIGHBORS).
     withConnector().

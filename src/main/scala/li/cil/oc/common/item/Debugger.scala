@@ -23,7 +23,7 @@ class Debugger(val parent: Delegator) extends traits.Delegate {
               Debugger.reconnect(Array(host.sidedNode(side)))
             }
             true
-          case host: Environment =>
+          case host: NodeContainer =>
             if (!world.isRemote) {
               Debugger.reconnect(Array(host.getNode))
             }
@@ -39,7 +39,7 @@ class Debugger(val parent: Delegator) extends traits.Delegate {
   }
 }
 
-object Debugger extends Environment {
+object Debugger extends NodeContainer {
   var getNode = api.Network.newNode(this, Visibility.NETWORK).create()
 
   override def onConnect(node: Node) {
@@ -63,15 +63,15 @@ object Debugger extends Environment {
   }
 
   private def nodeInfo(node: Node) = s"{address = ${node.getAddress}, reachability = ${node.getReachability.name}" + (node match {
-    case componentConnector: ComponentConnector => componentInfo(componentConnector) + connectorInfo(componentConnector)
-    case component: Component => componentInfo(component)
-    case connector: Connector => connectorInfo(connector)
+    case componentConnector: ComponentPowerNode => componentInfo(componentConnector) + connectorInfo(componentConnector)
+    case component: ComponentNode => componentInfo(component)
+    case connector: PowerNode => connectorInfo(connector)
     case _ =>
   }) + "}"
 
-  private def componentInfo(component: Component) = s", type = component, name = ${component.getName}, visibility = ${component.getVisibility.name}"
+  private def componentInfo(component: ComponentNode) = s", type = component, name = ${component.getName}, visibility = ${component.getVisibility.name}"
 
-  private def connectorInfo(connector: Connector) = s", type = connector, buffer = ${connector.getLocalBuffer}, bufferSize = ${connector.getLocalBufferSize}"
+  private def connectorInfo(connector: PowerNode) = s", type = connector, buffer = ${connector.getLocalBuffer}, bufferSize = ${connector.getLocalBufferSize}"
 
   private def messageInfo(message: Message) = s"{name = ${message.getName()}, source = ${nodeInfo(message.getSource)}, data = [${message.getData.mkString(", ")}]}"
 }

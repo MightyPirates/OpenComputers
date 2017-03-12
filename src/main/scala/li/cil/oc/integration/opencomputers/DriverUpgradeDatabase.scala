@@ -3,6 +3,7 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.DatabaseInventory
@@ -18,7 +19,7 @@ object DriverUpgradeDatabase extends Item with api.driver.item.HostAware {
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier2),
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier3))
 
-  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.UpgradeDatabase(new DatabaseInventory {
       override def container = stack

@@ -15,11 +15,11 @@ import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
@@ -27,7 +27,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo {
+class NetworkCard(val host: Location) extends AbstractManagedNodeContainer with RackBusConnectable with DeviceInfo {
   protected val visibility = host match {
     case _: Rack => Visibility.NEIGHBORS
     case _ => Visibility.NETWORK
@@ -215,7 +215,7 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
 
   private def networkActivity() {
     host match {
-      case h: EnvironmentHost => ServerPacketSender.sendNetworkActivity(getNode, h)
+      case h: Location => ServerPacketSender.sendNetworkActivity(getNode, h)
       case _ =>
     }
   }

@@ -1,14 +1,14 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.ExtendedArguments._
 
-class UpgradeSignInAdapter(val host: EnvironmentHost) extends UpgradeSign {
+class UpgradeSignInAdapter(val host: Location) extends UpgradeSign {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("sign", Visibility.NETWORK).
     withConnector().

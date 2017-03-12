@@ -11,8 +11,8 @@ package li.cil.oc.api.network;
  * There are three types of nodes:
  * <ul>
  * <li>{@link Node}, the most basic form.</li>
- * <li>{@link Component}, used to expose callbacks to user code.</li>
- * <li>{@link Connector}, used for consuming of producing energy.</li>
+ * <li>{@link ComponentNode}, used to expose callbacks to user code.</li>
+ * <li>{@link PowerNode}, used for consuming of producing energy.</li>
  * </ul>
  * <p/>
  * See <tt>Node</tt> for more details on the behavior of single nodes, and in
@@ -219,7 +219,7 @@ public interface Network {
      * @param data   the message to send.
      * @throws IllegalArgumentException if the source node is not in this network.
      * @see #nodes(Node)
-     * @see Component#canBeSeenFrom(Node)
+     * @see ComponentNode#canBeSeenFrom(Node)
      */
     void sendToVisible(Node source, String name, Object... data);
 }

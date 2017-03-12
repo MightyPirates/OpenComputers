@@ -4,6 +4,7 @@ import li.cil.oc.api.nanomachines.BehaviorProvider;
 import li.cil.oc.api.nanomachines.Controller;
 import net.minecraft.entity.player.EntityPlayer;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 
 /**
@@ -12,7 +13,7 @@ import java.util.Collections;
  * It allows registering custom behavior providers as well as querying for all
  * presently registered providers and getting a controller for a player.
  */
-public class Nanomachines {
+public final class Nanomachines {
     /**
      * Register a new behavior provider.
      * <p/>
@@ -22,7 +23,7 @@ public class Nanomachines {
      *
      * @param provider the provider to add.
      */
-    public static void addProvider(BehaviorProvider provider) {
+    public static void addProvider(final BehaviorProvider provider) {
         if (API.nanomachines != null)
             API.nanomachines.addProvider(provider);
     }
@@ -44,7 +45,7 @@ public class Nanomachines {
      * @param player the player to check for.
      * @return <tt>true</tt> if the player has a controller, <tt>false</tt> otherwise.
      */
-    public static boolean hasController(EntityPlayer player) {
+    public static boolean hasController(final EntityPlayer player) {
         if (API.nanomachines != null)
             return API.nanomachines.hasController(player);
         return false;
@@ -60,7 +61,8 @@ public class Nanomachines {
      * @param player the player to get the controller for.
      * @return the controller for the specified player.
      */
-    public static Controller getController(EntityPlayer player) {
+    @Nullable
+    public static Controller getController(final EntityPlayer player) {
         if (API.nanomachines != null)
             return API.nanomachines.getController(player);
         return null;
@@ -75,7 +77,7 @@ public class Nanomachines {
      *
      * @param player the player to install a nanomachine controller for.
      */
-    public static Controller installController(EntityPlayer player) {
+    public static Controller installController(final EntityPlayer player) {
         if (API.nanomachines != null)
             return API.nanomachines.installController(player);
         return null;
@@ -88,7 +90,7 @@ public class Nanomachines {
      *
      * @param player the player to uninstall a nanomachine controller from.
      */
-    public static void uninstallController(EntityPlayer player) {
+    public static void uninstallController(final EntityPlayer player) {
         if (API.nanomachines != null)
             API.nanomachines.uninstallController(player);
     }

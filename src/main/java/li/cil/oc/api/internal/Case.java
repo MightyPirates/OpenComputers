@@ -1,10 +1,10 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.util.Location;
 import li.cil.oc.api.tileentity.Colored;
 import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.api.machine.MachineHost;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.NodeContainer;
 import net.minecraft.inventory.IInventory;
 
 /**
@@ -20,5 +20,5 @@ import net.minecraft.inventory.IInventory;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Case extends Environment, EnvironmentHost, MachineHost, Colored, Rotatable, Tiered, IInventory {
+public interface Case extends NodeContainer, Location, MachineHost, Colored, Rotatable, Tiered, IInventory {
 }

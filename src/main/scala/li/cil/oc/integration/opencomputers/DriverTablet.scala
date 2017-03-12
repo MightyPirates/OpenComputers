@@ -3,9 +3,8 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.network.Component
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.item.data.TabletData
@@ -17,7 +16,7 @@ object DriverTablet extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.Tablet))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else {
       Tablet.Server.cache.invalidate(Tablet.getId(stack))
@@ -26,7 +25,7 @@ object DriverTablet extends Item {
         case Some(fs) if DriverFileSystem.worksWith(fs) => fs
       }.headOption.map(DriverFileSystem.createEnvironment(_, host)) match {
         case Some(environment) => environment.getNode match {
-          case component: Component =>
+          case component: ComponentNode =>
             component.setVisibility(Visibility.NETWORK)
             environment.save(dataTag(stack))
             environment

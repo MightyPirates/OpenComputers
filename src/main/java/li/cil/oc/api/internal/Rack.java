@@ -1,8 +1,8 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.util.Location;
 import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.api.component.RackMountable;
-import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -20,7 +20,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * i.e. without having to link against internal classes. This also means that
  * <em>you should not implement this</em>.
  */
-public interface Rack extends SidedEnvironment, EnvironmentHost, Rotatable, IInventory {
+public interface Rack extends SidedEnvironment, Location, Rotatable, IInventory {
     /**
      * Determine the index of the specified mountable.
      *

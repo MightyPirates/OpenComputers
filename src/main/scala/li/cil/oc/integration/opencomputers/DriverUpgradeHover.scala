@@ -2,8 +2,9 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
 import li.cil.oc.api
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost}
 import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -15,7 +16,7 @@ object DriverUpgradeHover extends Item with HostAware {
     api.Items.get(Constants.ItemName.HoverUpgradeTier1),
     api.Items.get(Constants.ItemName.HoverUpgradeTier2))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
+  override def createEnvironment(stack: ItemStack, host: Location) = null
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 

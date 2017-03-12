@@ -1,8 +1,9 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentBlock;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.network.NodeContainerBlock;
+import li.cil.oc.api.network.NodeContainerHost;
+import li.cil.oc.api.network.NodeContainerItem;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -15,12 +16,12 @@ import javax.annotation.Nullable;
  * This driver type is used for components that are blocks, i.e. that can be
  * placed in the world, but cannot be modified to or don't want to have their
  * {@link net.minecraft.tileentity.TileEntity} implement one of the interfaces
- * for environments ({@link Environment} or
+ * for environments ({@link NodeContainer} or
  * {@link li.cil.oc.api.network.SidedEnvironment}).
  * <p/>
  * A block driver is used by <tt>Adapter</tt> blocks to check its neighbors and
  * whether those neighbors should be treated as components or not. If a driver
- * is present, it will be used to create a {@link EnvironmentItem} that is
+ * is present, it will be used to create a {@link NodeContainerItem} that is
  * managed by the adapter.
  * <p/>
  * Note that it is possible to write one driver that supports as many different
@@ -50,7 +51,7 @@ public interface DriverBlock {
      */
     boolean worksWith(final World world, final BlockPos pos, final EnumFacing side);
 
-    boolean isValid(final World world, final BlockPos pos, final EnumFacing side, final EnvironmentBlock environmentBlock);
+    boolean isValid(final World world, final BlockPos pos, final EnumFacing side, final NodeContainerBlock container);
 
     /**
      * Create a new managed environment interfacing the specified block.
@@ -74,5 +75,5 @@ public interface DriverBlock {
      * @return the environment for the block at that location.
      */
     @Nullable
-    EnvironmentBlock createEnvironment(final World world, final BlockPos pos, final EnumFacing side);
+    NodeContainerBlock createEnvironment(final World world, final BlockPos pos, final EnumFacing side, final NodeContainerHost host);
 }

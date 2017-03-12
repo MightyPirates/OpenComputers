@@ -9,11 +9,11 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.nbt.NBTTagCompound
@@ -21,7 +21,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
+class WirelessNetworkCard(host: Location) extends NetworkCard(host) with WirelessEndpoint {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("modem", Visibility.NEIGHBORS).
     withConnector().

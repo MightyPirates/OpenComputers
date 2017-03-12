@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -20,7 +21,7 @@ object DriverRedstoneCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.RedstoneCardTier1),
     api.Items.get(Constants.ItemName.RedstoneCardTier2))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else {
       val isAdvanced = tier(stack) == Tier.Two

@@ -16,12 +16,12 @@ import li.cil.oc.api.fs.{FileSystem => IFileSystem}
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -33,7 +33,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends AbstractManagedEnvironment with DeviceInfo {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[Location], val sound: Option[String], val speed: Int) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("filesystem", Visibility.NEIGHBORS).
     withConnector().
@@ -379,7 +379,7 @@ final class HandleValue extends AbstractValue {
     if (context.node() != null && context.node().getNetwork() != null) {
       val node = context.node().getNetwork().node(owner)
       if (node != null) {
-        node.getEnvironment() match {
+        node.getContainer() match {
           case fs: FileSystem => try fs.close(context, handle) catch {
             case _: Throwable => // Ignore, already closed.
           }

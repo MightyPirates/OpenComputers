@@ -7,7 +7,6 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network._
@@ -15,7 +14,8 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
 import li.cil.oc.api.prefab.network
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
@@ -35,7 +35,7 @@ object UpgradeTankController {
     override def getDeviceInfo: util.Map[String, String] = deviceInfo
   }
 
-  class Adapter(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldTankAnalytics with Common {
+  class Adapter(val host: Location) extends AbstractManagedNodeContainer with traits.WorldTankAnalytics with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("tank_controller", Visibility.NETWORK).
       create()
@@ -47,7 +47,7 @@ object UpgradeTankController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Drone(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
+  class Drone(val host: Location with internal.Agent) extends AbstractManagedNodeContainer with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("tank_controller", Visibility.NEIGHBORS).
       create()
@@ -69,7 +69,7 @@ object UpgradeTankController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Robot(val host: EnvironmentHost with tileentity.Robot) extends AbstractManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
+  class Robot(val host: Location with tileentity.Robot) extends AbstractManagedNodeContainer with traits.TankInventoryControl with traits.WorldTankAnalytics with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("tank_controller", Visibility.NEIGHBORS).
       create()

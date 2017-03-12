@@ -1,20 +1,21 @@
 package li.cil.oc.common.tileentity;
 
 import li.cil.oc.Constants;
+import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
@@ -26,17 +27,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnvironment implements ITickable {
+public final class TileEntityMotionSensor extends AbstractTileEntitySingleNodeContainer implements ITickable {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final EnvironmentMotionSensor environment = new EnvironmentMotionSensor(this);
+    private final NodeContainerMotionSensor environment = new NodeContainerMotionSensor(this);
 
     // ----------------------------------------------------------------------- //
-    // AbstractTileEntityEnvironmentHost
+    // AbstractTileEntitySingleNodeContainer
 
     @Override
-    protected Environment getEnvironment() {
+    protected NodeContainer getNodeContainer() {
         return environment;
     }
 
@@ -52,7 +53,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
 
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentMotionSensor extends AbstractEnvironment implements DeviceInfo {
+    private static final class NodeContainerMotionSensor extends AbstractTileEntityNodeContainer implements DeviceInfo {
         // ----------------------------------------------------------------------- //
         // Persisted data.
 
@@ -62,7 +63,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
         // Computed data.
 
         // NBT tag names.
-        private static final String SENSITIVITY_TAG = "sensitivity";
+        private static final String TAG_SENSITIVITY = "sensitivity";
 
         private static final float RADIUS = 8;
         private static final AxisAlignedBB BOUNDS = new AxisAlignedBB(-RADIUS, -RADIUS, -RADIUS, RADIUS, RADIUS, RADIUS);
@@ -83,7 +84,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
 
         // ----------------------------------------------------------------------- //
 
-        EnvironmentMotionSensor(final EnvironmentHost host) {
+        NodeContainerMotionSensor(final TileEntity host) {
             super(host);
         }
 
@@ -115,18 +116,18 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
         @Override
         public NBTTagCompound serializeNBT() {
             final NBTTagCompound nbt = super.serializeNBT();
-            nbt.setFloat(SENSITIVITY_TAG, sensitivity);
+            nbt.setFloat(TAG_SENSITIVITY, sensitivity);
             return nbt;
         }
 
         @Override
         public void deserializeNBT(final NBTTagCompound nbt) {
             super.deserializeNBT(nbt);
-            sensitivity = nbt.getFloat(SENSITIVITY_TAG);
+            sensitivity = nbt.getFloat(TAG_SENSITIVITY);
         }
 
         // ----------------------------------------------------------------------- //
-        // AbstractEnvironment
+        // AbstractNodeContainer
 
         @Override
         protected Node createNode() {
@@ -139,7 +140,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
         // ----------------------------------------------------------------------- //
 
         public void update() {
-            final World world = getHost().getHostWorld();
+            final World world = getLocation().getHostWorld();
             if (world.getTotalWorldTime() % 10 == 0) {
                 // Get a list of all living entities we could possibly detect, using a rough
                 // bounding box check, then refining it using the actual distance and an
@@ -168,34 +169,39 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleEnviro
         }
 
         private AxisAlignedBB sensorBounds() {
-            return BOUNDS.offset(getHost().getHostBlockPosition());
+            return BOUNDS.offset(getLocation().getHostBlockPosition());
         }
 
         private boolean isInRange(final EntityLivingBase entity) {
-            return entity.getPositionVector().distanceTo(getHost().getHostPosition()) <= RADIUS * RADIUS;
+            return entity.getPositionVector().distanceTo(getLocation().getHostPosition()) <= RADIUS * RADIUS;
         }
 
         private boolean isVisible(final EntityLivingBase entity) {
-            final boolean isInvisible = entity.getActivePotionEffect(Potion.getPotionFromResourceLocation("invisibility")) != null;
+            final Potion potion = Potion.getPotionFromResourceLocation("invisibility");
+            if (potion == null) {
+                OpenComputers.log().warn("Failed looking up invisibility potion.");
+                return false;
+            }
+            final boolean isInvisible = entity.getActivePotionEffect(potion) != null;
             if (isInvisible) {
                 return false;
             }
 
-            final Vec3d sensorPos = getHost().getHostPosition();
+            final Vec3d sensorPos = getLocation().getHostPosition();
             final Vec3d entityPos = entity.getPositionVector();
 
             // Start trace outside of this block.
             final Vec3d origin = sensorPos.add(entityPos.subtract(sensorPos).normalize());
 
-            return getHost().getHostWorld().rayTraceBlocks(origin, entityPos) == null;
+            return getLocation().getHostWorld().rayTraceBlocks(origin, entityPos) == null;
         }
 
         private void sendSignal(final EntityLivingBase entity) {
             final Node node = getNode();
             assert node != null : "sendSignal called on client side? Don't.";
 
-            final Vec3d relativePos = entity.getPositionVector().subtract(getHost().getHostPosition());
-            if (Settings.get().inputUsername()) {
+            final Vec3d relativePos = entity.getPositionVector().subtract(getLocation().getHostPosition());
+            if (Settings.get().inputUsername) {
                 node.sendToReachable(COMPUTER_SIGNAL_NAME, MOTION_SIGNAL_NAME, relativePos.xCoord, relativePos.yCoord, relativePos.zCoord, entity.getName());
             } else {
                 node.sendToReachable(COMPUTER_SIGNAL_NAME, MOTION_SIGNAL_NAME, relativePos.xCoord, relativePos.yCoord, relativePos.zCoord);

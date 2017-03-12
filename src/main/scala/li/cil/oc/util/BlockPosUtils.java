@@ -2,6 +2,7 @@ package li.cil.oc.util;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 public final class BlockPosUtils {
     public static EnumFacing getNeighborSide(final BlockPos pos, final BlockPos neighborPos) {
@@ -28,6 +29,10 @@ public final class BlockPosUtils {
         }
 
         throw new IllegalArgumentException(String.format("neighborPos (%s) is not a neighbor of pos (%s).", neighborPos, pos));
+    }
+
+    public static Vec3d getCenter(final BlockPos pos) {
+        return new Vec3d(pos).addVector(0.5, 0.5, 0.5);
     }
 
     // ----------------------------------------------------------------------- //

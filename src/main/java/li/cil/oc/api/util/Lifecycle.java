@@ -1,13 +1,13 @@
 package li.cil.oc.api.util;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.network.NodeContainerItem;
 import li.cil.oc.api.network.Node;
 
 /**
- * Implement this on {@link EnvironmentItem}s to be
+ * Implement this on {@link NodeContainerItem}s to be
  * notified with proper lifecycle changes, instead of relying on something
- * like {@link Environment#onDisconnect(Node)}.
+ * like {@link NodeContainer#onDisconnect(Node)}.
  * <p/>
  * This is primarily intended to be used on the client side, where there
  * are no nodes, to allow components to know when they are being unloaded.

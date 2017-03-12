@@ -4,7 +4,7 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityEnvironment}
+import li.cil.oc.integration.{ManagedTileEntityNodeContainer, ManagedTileEntityNodeContainer}
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.world.World
 import net.minecraft.util.EnumFacing
@@ -15,9 +15,9 @@ import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
 class DriverAnalyzer extends AbstractDriverTileEntity {
   override def getTileEntityClass = classOf[TileAnalyzer]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = new Environment(world.getTileEntity(pos).asInstanceOf[TileAnalyzer])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = new NodeContainer(world.getTileEntity(pos).asInstanceOf[TileAnalyzer])
 
-  final class Environment(tileEntity: TileAnalyzer) extends ManagedTileEntityEnvironment[TileAnalyzer](tileEntity, "forestry_analyzer") with NamedBlock {
+  final class NodeContainer(tileEntity: TileAnalyzer) extends ManagedTileEntityNodeContainer[TileAnalyzer](tileEntity, "forestry_analyzer") with NamedBlock {
     override def preferredName = "forestry_analyzer"
 
     override def priority = 0

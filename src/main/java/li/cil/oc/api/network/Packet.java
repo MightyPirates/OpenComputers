@@ -1,6 +1,9 @@
 package li.cil.oc.api.network;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.INBTSerializable;
+
+import javax.annotation.Nullable;
 
 /**
  * These packets represent messages sent using a network card or wireless
@@ -11,7 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * <em>Important</em>: do <em>not</em> implement this interface. Use the factory
  * methods in {@link li.cil.oc.api.Network} instead.
  */
-public interface Packet {
+public interface Packet extends INBTSerializable<NBTTagCompound> {
     /**
      * The address of the <em>original</em> sender of this packet.
      */
@@ -44,26 +47,12 @@ public interface Packet {
     int getSize();
 
     /**
-     * The remaining 'time to live' for this packet. When a packet with a TTL of
-     * zero is received it will not be relayed by switches and access points. It
-     * will however still be received by a network card.
-     */
-    int getTTL();
-
-    /**
      * Generates a copy of the packet, with a reduced time to live.
      * <p/>
      * This is called by switches and access points to generate relayed packets.
      *
      * @return a copy of this packet with a reduced TTL.
      */
-    Packet getHop();
-
-    /**
-     * Saves the packet's data to the specified compound tag.
-     * <p/>
-     * Restore a packet saved like this using the factory method in the
-     * {@link li.cil.oc.api.Network} class.
-     */
-    void save(NBTTagCompound nbt);
+    @Nullable
+    Packet getHop(final Node via);
 }

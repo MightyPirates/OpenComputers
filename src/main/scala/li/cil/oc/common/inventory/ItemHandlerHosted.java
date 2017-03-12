@@ -12,6 +12,8 @@ public class ItemHandlerHosted extends ItemHandlerImpl {
 
         default void onItemRemoved(final int slot, final ItemStack stack) {
         }
+
+        void markHostChanged();
     }
 
     // ----------------------------------------------------------------------- //
@@ -36,15 +38,18 @@ public class ItemHandlerHosted extends ItemHandlerImpl {
     @Override
     protected void onItemAdded(final int slot, final ItemStack stack) {
         host.onItemAdded(slot, stack);
+        host.markHostChanged();
     }
 
     @Override
     protected void onItemChanged(final int slot, final ItemStack stack) {
         host.onItemChanged(slot, stack);
+        host.markHostChanged();
     }
 
     @Override
     protected void onItemRemoved(final int slot, final ItemStack stack) {
         host.onItemRemoved(slot, stack);
+        host.markHostChanged();
     }
 }

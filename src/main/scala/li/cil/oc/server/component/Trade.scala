@@ -4,8 +4,9 @@ import java.util.UUID
 
 import li.cil.oc.Settings
 import li.cil.oc.api.machine._
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost}
 import li.cil.oc.api.prefab.AbstractValue
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
@@ -112,10 +113,10 @@ class Trade(val info: TradeInfo) extends AbstractValue {
   }
 }
 
-class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[IMerchant], var recipeID: Int) {
+class TradeInfo(var host: Option[Location], var merchant: WeakReference[IMerchant], var recipeID: Int) {
   def this() = this(None, new WeakReference[IMerchant](null), -1)
 
-  def this(host: EnvironmentHost, merchant: IMerchant, recipeID: Int) =
+  def this(host: Location, merchant: IMerchant, recipeID: Int) =
     this(Option(host), new WeakReference[IMerchant](merchant), recipeID)
 
   def recipe = merchant.get.map(_.getRecipes(null).get(recipeID))
@@ -181,14 +182,14 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
     }
   }
 
-  private def loadHostEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
+  private def loadHostEntity(nbt: NBTTagCompound): Option[Location] = {
     loadEntity(nbt, new UUID(nbt.getLong(HostUUIDMost), nbt.getLong(HostUUIDLeast))) match {
-      case Some(entity: Entity with li.cil.oc.api.internal.Agent) => Option(entity: EnvironmentHost)
+      case Some(entity: Entity with li.cil.oc.api.internal.Agent) => Option(entity: Location)
       case _ => None
     }
   }
 
-  private def loadHostTileEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
+  private def loadHostTileEntity(nbt: NBTTagCompound): Option[Location] = {
     val dimension = nbt.getInteger(DimensionIDTag)
     val world = DimensionManager.getWorld(dimension)
 

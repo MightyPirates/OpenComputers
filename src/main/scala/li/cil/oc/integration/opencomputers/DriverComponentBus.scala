@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -17,7 +18,7 @@ object DriverComponentBus extends Item with Processor {
     api.Items.get(Constants.ItemName.ComponentBusTier2),
     api.Items.get(Constants.ItemName.ComponentBusTier3))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
+  override def createEnvironment(stack: ItemStack, host: Location) = null
 
   override def slot(stack: ItemStack) = Slot.ComponentBus
 

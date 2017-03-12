@@ -7,10 +7,10 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{EnvironmentHost, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.FluidTank
@@ -18,7 +18,7 @@ import net.minecraftforge.fluids.IFluidTank
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends AbstractManagedEnvironment with IFluidTank with DeviceInfo {
+class UpgradeTank(val owner: Location, val capacity: Int) extends AbstractManagedNodeContainer with IFluidTank with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NONE).create()
 
   private final lazy val deviceInfo = Map(

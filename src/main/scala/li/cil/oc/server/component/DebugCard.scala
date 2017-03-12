@@ -10,7 +10,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.network.DebugNetwork
 import li.cil.oc.server.network.DebugNetwork.DebugNode
@@ -50,7 +51,7 @@ import net.minecraftforge.fml.common.ModAPIManager
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with DebugNode {
+class DebugCard(host: Location) extends AbstractManagedNodeContainer with DebugNode {
   override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
     withComponent("debug").
     withConnector().
@@ -180,7 +181,7 @@ class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with D
     if (host.getWorld.blockExists(position)) {
       host.getWorld.getTileEntity(position) match {
         case env: SidedEnvironment => EnumFacing.values.map(env.sidedNode).find(_ != null)
-        case env: Environment => Option(env.getNode)
+        case env: NodeContainer => Option(env.getNode)
         case _ => None
       }
     }
@@ -830,7 +831,7 @@ object DebugCard {
     }
   }
 
-  class CommandSender(val host: EnvironmentHost, val underlying: EntityPlayerMP) extends FakePlayer(underlying.getEntityWorld.asInstanceOf[WorldServer], underlying.getGameProfile) {
+  class CommandSender(val host: Location, val underlying: EntityPlayerMP) extends FakePlayer(underlying.getEntityWorld.asInstanceOf[WorldServer], underlying.getGameProfile) {
     var messages: Option[String] = None
 
     def prepare(): Unit = {

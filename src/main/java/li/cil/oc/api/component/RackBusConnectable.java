@@ -1,6 +1,6 @@
 package li.cil.oc.api.component;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Packet;
 
 /**
@@ -14,7 +14,7 @@ import li.cil.oc.api.network.Packet;
  * to be 'connected' to the buses, so that they can receive network messages
  * arriving on the respective side of the rack.
  */
-public interface RackBusConnectable extends Environment {
+public interface RackBusConnectable extends NodeContainer {
     /**
      * Called to inject a network packet that arrived on the bus this
      * environment is connected to in the hosting rack.

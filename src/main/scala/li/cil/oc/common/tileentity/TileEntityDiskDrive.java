@@ -1,17 +1,14 @@
 package li.cil.oc.common.tileentity;
 
 import li.cil.oc.Constants;
-import li.cil.oc.api.Driver;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
-import li.cil.oc.api.driver.DriverItem;
-import li.cil.oc.api.driver.item.Slot;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.*;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
-import li.cil.oc.common.GuiType;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
+import li.cil.oc.common.InventorySlots;
 import li.cil.oc.common.Sound;
 import li.cil.oc.common.inventory.ComponentInventory;
 import li.cil.oc.common.inventory.ItemHandlerComponents;
@@ -19,7 +16,7 @@ import li.cil.oc.common.inventory.ItemHandlerHosted;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
-import li.cil.oc.util.GUIUtils;
+import li.cil.oc.common.tileentity.traits.NodeContainerHostTileEntity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -36,15 +33,23 @@ import net.minecraftforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironment implements BlockActivationListener, ComparatorOutputOverride, Analyzable, RotatableImpl.RotatableHost, ComponentInventory.ComponentInventoryHost, ItemHandlerHosted.ItemHandlerHost {
+/**
+ * The disk drive is a single-slot item component hosting block which only
+ * accepts floppy disk items.
+ * <p>
+ * Network topology consists of a single, network-visible node providing
+ * the disk drive's device information and component callbacks. Nodes created
+ * for inserted floppy disks are directly connected to this single node, and
+ * their component part is forced into a network-visible state.
+ */
+public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ComponentInventory.ComponentInventoryHost, ItemHandlerHosted.ItemHandlerHost, RotatableImpl.RotatableHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final Environment environment = new EnvironmentDiskDrive(this);
+    private final NodeContainer nodeContainer = new NodeContainerDiskDrive(this);
     private final RotatableImpl rotatable = new RotatableImpl(this);
-    private final ComponentInventory components = new ComponentInventory(this);
+    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
     private final ItemHandlerDiskDrive inventory = new ItemHandlerDiskDrive(this, 1);
 
     // ----------------------------------------------------------------------- //
@@ -59,14 +64,6 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
 
     // Used on client side to check whether to render disk activity indicators.
     public long lastAccess;
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntitySingleEnvironment
-
-    @Override
-    protected Environment getEnvironment() {
-        return environment;
-    }
 
     // ----------------------------------------------------------------------- //
     // AbstractTileEntity
@@ -88,29 +85,44 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
     }
 
     // ----------------------------------------------------------------------- //
+    // AbstractTileEntitySingleNodeContainer
+
+    @Override
+    protected NodeContainer getNodeContainer() {
+        return nodeContainer;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // Analyzable
+
+    @Nullable
+    @Override
+    public Node[] onAnalyze(final EntityPlayer player, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
+        final NodeContainer nodeContainer = components.getEnvironment(FLOPPY_SLOT);
+        if (nodeContainer != null) {
+            return new Node[]{nodeContainer.getNode()};
+        }
+        return new Node[0];
+    }
+
+    // ----------------------------------------------------------------------- //
     // BlockActivationListener
 
     @Override
     public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
-        if (player.isSneaking()) {
-            final ItemStack heldItem = player.getHeldItem(hand);
-            final boolean isDiskInDrive = !inventory.getStackInSlot(FLOPPY_SLOT).isEmpty();
-            final boolean isHoldingDisk = inventory.isItemValidForSlot(FLOPPY_SLOT, heldItem);
-            if (isDiskInDrive) {
-                if (!world.isRemote) {
-                    dropSlot(FLOPPY_SLOT, 1, rotatable.getFacing());
-                }
+        final ItemStack heldItem = player.getHeldItem(hand);
+        final boolean isDiskInDrive = !inventory.getStackInSlot(FLOPPY_SLOT).isEmpty();
+        final boolean isHoldingDisk = inventory.isItemValidForSlot(FLOPPY_SLOT, heldItem);
+        if (isDiskInDrive) {
+            if (!world.isRemote) {
+                dropSlot(FLOPPY_SLOT, 1, rotatable.getFacing());
             }
-            if (isHoldingDisk) {
-                // Insert the disk.
-                inventory.setStackInSlot(FLOPPY_SLOT, player.inventory.decrStackSize(player.inventory.currentItem, 1));
-            }
-            return isDiskInDrive || isHoldingDisk;
-        } else {
-            GUIUtils.openGUI(this, GuiType.DiskDrive());
-            return true;
         }
+        if (isHoldingDisk) {
+            // Insert the disk.
+            inventory.setStackInSlot(FLOPPY_SLOT, player.inventory.decrStackSize(player.inventory.currentItem, 1));
+        }
+        return isDiskInDrive || isHoldingDisk;
     }
 
     // ----------------------------------------------------------------------- //
@@ -126,7 +138,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
 
     @Override
     public Node getItemNode() {
-        final Node node = environment.getNode();
+        final Node node = nodeContainer.getNode();
         assert node != null : "getItemNode called on client? Don't.";
         return node;
     }
@@ -136,27 +148,17 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
         return inventory;
     }
 
-    @Nullable
-    @Override
-    public Node[] onAnalyze(final EntityPlayer player, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        final Environment environment = components.getEnvironment(FLOPPY_SLOT);
-        if (environment != null) {
-            return new Node[]{environment.getNode()};
-        }
-        return new Node[0];
-    }
-
     // ----------------------------------------------------------------------- //
     // ItemHandlerHost
 
     @Override
     public void onItemAdded(final int slot, final ItemStack stack) {
         components.onItemAdded(slot, stack);
-        final Environment environment = components.getEnvironment(FLOPPY_SLOT);
-        if (environment != null) {
-            final Node node = environment.getNode();
-            if (node instanceof Component) {
-                final Component component = (Component) node;
+        final NodeContainer nodeContainer = components.getEnvironment(FLOPPY_SLOT);
+        if (nodeContainer != null) {
+            final Node node = nodeContainer.getNode();
+            if (node instanceof ComponentNode) {
+                final ComponentNode component = (ComponentNode) node;
                 component.setVisibility(Visibility.NETWORK);
             }
         }
@@ -176,9 +178,14 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
         Sound.playDiskEject(this);
     }
 
+    @Override
+    public void markHostChanged() {
+        markDirty();
+    }
+
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentDiskDrive extends AbstractEnvironment implements DeviceInfo {
+    private static final class NodeContainerDiskDrive extends AbstractTileEntityNodeContainer implements DeviceInfo {
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
 
         static {
@@ -190,7 +197,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
 
         private final TileEntityDiskDrive diskDrive;
 
-        EnvironmentDiskDrive(final TileEntityDiskDrive host) {
+        NodeContainerDiskDrive(final TileEntityDiskDrive host) {
             super(host);
             this.diskDrive = host;
         }
@@ -208,9 +215,9 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
                 return new Object[]{false};
             }
 
-            final World world = getHost().getHostWorld();
+            final World world = getLocation().getHostWorld();
             final EnumFacing facing = diskDrive.rotatable.getFacing();
-            final Vec3d pos = getHost().getHostPosition().addVector(facing.getFrontOffsetX(), facing.getFrontOffsetY(), facing.getFrontOffsetZ());
+            final Vec3d pos = getLocation().getHostPosition().addVector(facing.getFrontOffsetX(), facing.getFrontOffsetY(), facing.getFrontOffsetZ());
             final EntityItem entity = new EntityItem(world, pos.xCoord, pos.yCoord, pos.zCoord, ejected);
             entity.setPickupDelay(15);
             entity.addVelocity(
@@ -222,7 +229,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
         }
 
         // ----------------------------------------------------------------------- //
-        // Environment
+        // NodeContainer
 
         @Override
         public void onConnect(final Node node) {
@@ -230,7 +237,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
         }
 
         // ----------------------------------------------------------------------- //
-        // AbstractEnvironment
+        // AbstractNodeContainer
 
         @Override
         protected Node createNode() {
@@ -253,8 +260,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleEnvironme
 
         @Override
         public boolean isItemValidForSlot(final int slot, final ItemStack stack) {
-            final DriverItem driver = Driver.driverFor(stack, TileEntityDiskDrive.class);
-            return driver != null && Objects.equals(driver.slot(stack), Slot.Floppy);
+            return InventorySlots.isValidForSlot(InventorySlots.diskDrive(), slot, stack, TileEntityDiskDrive.class);
         }
     }
 }

@@ -7,15 +7,11 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.internal
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Connector
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Packet
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl
+import li.cil.oc.common.tileentity.traits.PowerBridge
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedInventory._
@@ -30,7 +26,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with RotatableImpl with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
+class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBridge with traits.ComponentInventory with RotatableImpl with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
   var isRelayEnabled = true
   val lastData = new Array[NBTTagCompound](getSizeInventory)
   val hasChanged = Array.fill(getSizeInventory)(true)
@@ -162,7 +158,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     .create()
 
   // ----------------------------------------------------------------------- //
-  // Environment
+  // NodeContainer
 
   override def dispose(): Unit = {
     super.dispose()
@@ -234,7 +230,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[PowerNode] else null)
 
   override def energyThroughput = Settings.get.serverRackRate
 
@@ -358,7 +354,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     super.updateEntity()
     if (isServer && isConnected) {
       lazy val connectors = EnumFacing.VALUES.map(sidedNode).collect {
-        case connector: Connector => connector
+        case connector: PowerNode => connector
       }
       components.zipWithIndex.collect {
         case (Some(mountable: RackMountable), slot) =>
@@ -373,7 +369,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
           // Power mountables without requiring them to be connected to the outside.
           mountable.getNode match {
-            case connector: Connector =>
+            case connector: PowerNode =>
               var remaining = Settings.get.serverRackRate
               for (outside <- connectors if remaining > 0) {
                 val received = remaining + outside.changeBuffer(-remaining)
@@ -451,7 +447,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   def isWorking(mountable: RackMountable) = mountable.getCurrentState.contains(api.util.StateAware.State.IsWorking)
 
   def hasRedstoneCard = components.exists {
-    case Some(mountable: EnvironmentHost with RackMountable with IInventory) if isWorking(mountable) =>
+    case Some(mountable: Location with RackMountable with IInventory) if isWorking(mountable) =>
       mountable.exists(stack => DriverRedstoneCard.worksWith(stack, mountable.getClass))
     case _ => false
   }

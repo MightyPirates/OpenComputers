@@ -229,14 +229,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         val buffer = screen.buffer
         if (screen.isOrigin) {
           if (isServer) {
-            buffer.getNode.asInstanceOf[Component].setVisibility(Visibility.NETWORK)
+            buffer.getNode.asInstanceOf[ComponentNode].setVisibility(Visibility.NETWORK)
             buffer.setEnergyCostPerTick(Settings.get.screenCost * screen.width * screen.height)
             buffer.setAspectRatio(screen.width, screen.height)
           }
         }
         else {
           if (isServer) {
-            buffer.getNode.asInstanceOf[Component].setVisibility(Visibility.NONE)
+            buffer.getNode.asInstanceOf[ComponentNode].setVisibility(Visibility.NONE)
             buffer.setEnergyCostPerTick(Settings.get.screenCost)
           }
           buffer.setAspectRatio(1, 1)

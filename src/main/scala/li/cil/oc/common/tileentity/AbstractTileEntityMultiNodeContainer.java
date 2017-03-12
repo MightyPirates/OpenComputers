@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity;
 
 import li.cil.oc.OpenComputers;
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.common.capabilities.CapabilityEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractTileEntityMultiEnvironment extends AbstractTileEntityEnvironmentHost {
+public abstract class AbstractTileEntityMultiNodeContainer extends AbstractTileEntity {
     // ----------------------------------------------------------------------- //
     // Computed data.
 
@@ -43,8 +43,8 @@ public abstract class AbstractTileEntityMultiEnvironment extends AbstractTileEnt
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
         final NBTTagList nbtList = new NBTTagList();
-        for (final Environment environment : getEnvironments()) {
-            nbtList.appendTag(environment.serializeNBT());
+        for (final NodeContainer nodeContainer : getEnvironments()) {
+            nbtList.appendTag(nodeContainer.serializeNBT());
         }
         nbt.setTag(TAG_ENVIRONMENTS, nbtList);
     }
@@ -53,17 +53,17 @@ public abstract class AbstractTileEntityMultiEnvironment extends AbstractTileEnt
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
         final NBTTagList nbtList = nbt.getTagList(TAG_ENVIRONMENTS, Constants.NBT.TAG_COMPOUND);
-        final Environment[] environments = getEnvironments();
-        if (nbtList.tagCount() == environments.length) {
-            for (int i = 0; i < environments.length; i++) {
-                environments[i].deserializeNBT(nbtList.getCompoundTagAt(i));
+        final NodeContainer[] nodeContainers = getEnvironments();
+        if (nbtList.tagCount() == nodeContainers.length) {
+            for (int i = 0; i < nodeContainers.length; i++) {
+                nodeContainers[i].deserializeNBT(nbtList.getCompoundTagAt(i));
             }
         } else {
-            OpenComputers.log().warn("Environment count mismatch (got {}, expected {}). Not loading environments.", nbtList.tagCount(), environments.length);
+            OpenComputers.log().warn("NodeContainer count mismatch (got {}, expected {}). Not loading nodeContainers.", nbtList.tagCount(), nodeContainers.length);
         }
     }
 
     // ----------------------------------------------------------------------- //
 
-    protected abstract Environment[] getEnvironments();
+    protected abstract NodeContainer[] getEnvironments();
 }

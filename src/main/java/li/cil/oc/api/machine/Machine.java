@@ -1,7 +1,7 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.network.NodeContainerItem;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import java.util.Map;
  * method {@link li.cil.oc.api.Machine#create(MachineHost)}.
  */
 @SuppressWarnings("unused")
-public interface Machine extends EnvironmentItem, Context {
+public interface Machine extends NodeContainerItem, Context {
     /**
      * The owner of the machine, usually a tile entity hosting the machine.
      *
@@ -213,7 +213,7 @@ public interface Machine extends EnvironmentItem, Context {
      * Get a list of all methods and their annotations of the specified object.
      * <p/>
      * The specified object can be either a {@link li.cil.oc.api.machine.Value}
-     * or a {@link Environment}. This is useful for
+     * or a {@link NodeContainer}. This is useful for
      * custom architectures, to allow providing a list of callback methods to
      * evaluated programs.
      *

@@ -7,7 +7,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal
-import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.PowerNode
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
@@ -482,7 +482,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.getWorld.asInst
   override def addExhaustion(amount: Float) {
     if (Settings.get.robotExhaustionCost > 0) {
       agent.machine.node match {
-        case connector: Connector => connector.changeBuffer(-Settings.get.robotExhaustionCost * amount)
+        case connector: PowerNode => connector.changeBuffer(-Settings.get.robotExhaustionCost * amount)
         case _ => // This shouldn't happen... oh well.
       }
     }

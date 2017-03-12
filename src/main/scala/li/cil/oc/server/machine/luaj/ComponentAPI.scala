@@ -1,6 +1,6 @@
 package li.cil.oc.server.machine.luaj
 
-import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.{Component, ComponentNode, NodeComponent}
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
@@ -47,7 +47,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     component.set("methods", (args: Varargs) => {
       withComponent(args.checkjstring(1), component => {
         val table = LuaValue.tableOf()
-        for ((name, annotation) <- machine.methods(component.getEnvironment)) {
+        for ((name, annotation) <- machine.methods(component.getContainer)) {
           table.set(name, LuaValue.tableOf(Array(
             LuaValue.valueOf("direct"),
             LuaValue.valueOf(annotation.direct),
@@ -70,7 +70,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     component.set("doc", (args: Varargs) => {
       withComponent(args.checkjstring(1), component => {
         val method = args.checkjstring(2)
-        val methods = machine.methods(component.getEnvironment)
+        val methods = machine.methods(component.getContainer)
         owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
@@ -78,8 +78,8 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     lua.set("component", component)
   }
 
-  private def withComponent(address: String, f: (Component) => Varargs) = Option(node.getNetwork.node(address)) match {
-    case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
+  private def withComponent(address: String, f: (ComponentNode) => Varargs) = Option(node.getNetwork.node(address)) match {
+    case Some(component: ComponentNode) if component.canBeSeenFrom(node) || component == node =>
       f(component)
     case _ =>
       LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))

@@ -13,8 +13,7 @@ import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal.Keyboard.UsabilityChecker
 import li.cil.oc.api.network._
-import li.cil.oc.api.util.Lifecycle
-import li.cil.oc.api.util.StateAware
+import li.cil.oc.api.util.{Lifecycle, Location, StateAware}
 import li.cil.oc.api.util.StateAware.State
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -31,7 +30,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle with DeviceInfo {
+class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends NodeContainer with Location with Analyzable with RackMountable with Lifecycle with DeviceInfo {
   val getNode = api.Network.newNode(this, Visibility.NONE).create()
 
   lazy val buffer = {
@@ -81,7 +80,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
-  // Environment
+  // NodeContainer
 
   override def onConnect(node: Node) {
     if (node == this.getNode) {
@@ -102,7 +101,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   }
 
   // ----------------------------------------------------------------------- //
-  // EnvironmentHost
+  // Environment
 
   override def getWorld = rack.getWorld
 
@@ -180,7 +179,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   }
 
   // ----------------------------------------------------------------------- //
-  // EnvironmentItem
+  // NodeContainerItem
 
   override def canUpdate: Boolean = true
 

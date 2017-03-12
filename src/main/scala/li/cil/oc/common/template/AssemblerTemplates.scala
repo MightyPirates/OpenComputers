@@ -6,6 +6,7 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
@@ -71,7 +72,7 @@ object AssemblerTemplates {
     }
   }
 
-  class Slot(val kind: String, val tier: Int, val validator: Option[Method], val hostClass: Option[Class[_ <: EnvironmentHost]]) {
+  class Slot(val kind: String, val tier: Int, val validator: Option[Method], val hostClass: Option[Class[_ <: Location]]) {
     def validate(inventory: IInventory, slot: Int, stack: ItemStack) = validator match {
       case Some(method) => IMC.tryInvokeStatic(method, inventory, slot.underlying(), tier.underlying(), stack)(false)
       case _ => Option(hostClass.fold(api.Driver.driverFor(stack))(api.Driver.driverFor(stack, _))) match {
@@ -85,7 +86,7 @@ object AssemblerTemplates {
     }
   }
 
-  private def parseSlot(nbt: NBTTagCompound, kindOverride: Option[String], hostClass: Option[Class[_ <: EnvironmentHost]]) = {
+  private def parseSlot(nbt: NBTTagCompound, kindOverride: Option[String], hostClass: Option[Class[_ <: Location]]) = {
     val kind = kindOverride.getOrElse(if (nbt.hasKey("type")) nbt.getString("type") else Slot.None)
     val tier = if (nbt.hasKey("tier")) nbt.getInteger("tier") else Tier.Any
     val validator = if (nbt.hasKey("validate")) Option(IMC.getStaticMethod(nbt.getString("validate"), classOf[IInventory], classOf[Int], classOf[Int], classOf[ItemStack])) else None
@@ -94,5 +95,5 @@ object AssemblerTemplates {
 
   private def tryGetHostClass(name: String) =
     if (Strings.isNullOrEmpty(name)) None
-    else Option(Class.forName(name).asSubclass(classOf[EnvironmentHost]))
+    else Option(Class.forName(name).asSubclass(classOf[Location]))
 }

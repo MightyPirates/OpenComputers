@@ -1,7 +1,7 @@
 package li.cil.oc.api.network;
 
 /**
- * This interface can be added to {@link Environment}s with a number of
+ * This interface can be added to {@link NodeContainer}s with a number of
  * {@link li.cil.oc.api.machine.Callback}s on them, to select which of these
  * callbacks should be exposed to machines dynamically.
  * <p/>

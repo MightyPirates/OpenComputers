@@ -9,9 +9,9 @@ trait Distributor {
 
   def globalBufferSize_=(value: Double): Unit
 
-  def addConnector(connector: Connector): Unit
+  def addConnector(connector: PowerNode): Unit
 
-  def removeConnector(connector: Connector): Unit
+  def removeConnector(connector: PowerNode): Unit
 
   def changeBuffer(delta: Double): Double
 }

@@ -3,7 +3,7 @@ package li.cil.oc.server.driver
 import com.google.common.base.Strings
 import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.driver.NamedBlock
-import li.cil.oc.api.network.EnvironmentItem
+import li.cil.oc.api.network.NodeContainerItem
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -22,7 +22,7 @@ class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlo
       }
     } filter (_ != null)
     if (list.isEmpty) null
-    else new CompoundBlockEnvironment(cleanName(tryGetName(world, pos, list.map(_._2))), list: _*)
+    else new CompoundBlockNodeContainer(cleanName(tryGetName(world, pos, list.map(_._2))), list: _*)
   }
 
   override def worksWith(world: World, pos: BlockPos, side: EnumFacing) = sidedBlocks.forall(_.worksWith(world, pos, side)) && blocks.forall(_.worksWith(world, pos))
@@ -33,7 +33,7 @@ class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlo
   }
 
   // TODO rework this method
-  private def tryGetName(world: World, pos: BlockPos, environments: Seq[EnvironmentItem]): String = {
+  private def tryGetName(world: World, pos: BlockPos, environments: Seq[NodeContainerItem]): String = {
     environments.collect {
       case named: NamedBlock => named
     }.sortBy(_.priority).lastOption match {

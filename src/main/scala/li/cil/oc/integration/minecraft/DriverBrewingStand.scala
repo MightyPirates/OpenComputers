@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment}
+import li.cil.oc.api.network.{ManagedEnvironment, NodeContainerItem}
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeHost}
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeContainer, ManagedTileEntityNodeHost}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
@@ -19,10 +19,10 @@ import net.minecraft.world.World
 object DriverBrewingStand extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityBrewingStand]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityBrewingStand])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): NodeContainerItem =
+    new NodeContainer(world.getTileEntity(pos).asInstanceOf[TileEntityBrewingStand])
 
-  final class Environment(tileEntity: TileEntityBrewingStand) extends ManagedTileEntityEnvironment[TileEntityBrewingStand](tileEntity, "brewing_stand") with NamedBlock {
+  final class NodeContainer(tileEntity: TileEntityBrewingStand) extends ManagedTileEntityNodeContainer[TileEntityBrewingStand](tileEntity, "brewing_stand") with NamedBlock {
     override def preferredName = "brewing_stand"
 
     override def priority = 0
@@ -36,7 +36,7 @@ object DriverBrewingStand extends AbstractDriverTileEntity {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
       if (stack != null && stack.getItem == Items.BREWING_STAND)
-        classOf[Environment]
+        classOf[NodeContainer]
       else null
     }
   }

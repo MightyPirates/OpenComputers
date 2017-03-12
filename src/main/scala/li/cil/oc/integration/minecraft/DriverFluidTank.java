@@ -3,9 +3,9 @@ package li.cil.oc.integration.minecraft;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerItem;
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
-import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.integration.ManagedTileEntityNodeContainer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
@@ -18,12 +18,12 @@ public final class DriverFluidTank extends AbstractDriverTileEntity {
     }
 
     @Override
-    public EnvironmentItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment((IFluidTank) world.getTileEntity(pos));
+    public NodeContainerItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+        return new NodeContainer((IFluidTank) world.getTileEntity(pos));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IFluidTank> {
-        public Environment(final IFluidTank tileEntity) {
+    public static final class NodeContainer extends ManagedTileEntityNodeContainer<IFluidTank> {
+        public NodeContainer(final IFluidTank tileEntity) {
             super(tileEntity, "fluid_tank");
         }
 

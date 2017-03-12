@@ -6,7 +6,7 @@ import li.cil.oc.api.internal.Adapter
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{Message, Node, Environment, Visibility}
+import li.cil.oc.api.network.{Message, Node, NodeContainer, Visibility}
 import li.cil.oc.util.ResultWrapper.result
 import li.cil.tis3d.api.ManualAPI
 import li.cil.tis3d.api.SerialAPI
@@ -38,7 +38,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     case _ => false
   }
 
-  class SerialInterfaceAdapter(val tileEntity: Adapter) extends Environment with SerialInterface {
+  class SerialInterfaceAdapter(val tileEntity: Adapter) extends NodeContainer with SerialInterface {
     final val BufferCapacity = 128
     final val readBuffer = mutable.Queue.empty[Short]
     final val writeBuffer = mutable.Queue.empty[Short]

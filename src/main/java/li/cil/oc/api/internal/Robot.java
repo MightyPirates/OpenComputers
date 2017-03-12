@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.util.Location;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -28,7 +28,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Agent, Environment, EnvironmentHost, Tiered, ISidedInventory {
+public interface Robot extends Agent, NodeContainer, Location, Tiered, ISidedInventory {
     /**
      * The number of built-in components in this robot.
      */
@@ -46,7 +46,7 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Tiered, ISid
      * @param index the index of the slot from which to get the environment.
      * @return the environment for that slot, or <tt>null</tt>.
      */
-    Environment getComponentInSlot(int index);
+    NodeContainer getComponentInSlot(int index);
 
     /**
      * Sends the state of the <em>item</em> in the specified slot to the client

@@ -33,13 +33,13 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   var globalBufferSize = 0.0
 
-  private val connectors = mutable.ArrayBuffer.empty[Connector]
+  private val connectors = mutable.ArrayBuffer.empty[PowerNode]
 
   private lazy val wrapper = new Network.Wrapper(this)
 
   data.values.foreach(node => {
     node.data match {
-      case connector: Connector => addConnector(connector)
+      case connector: PowerNode => addConnector(connector)
       case _ =>
     }
     node.data.getNetwork = wrapper
@@ -131,7 +131,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     data.remove(node.getAddress) match {
       case Some(entry) =>
         node match {
-          case connector: Connector => removeConnector(connector)
+          case connector: PowerNode => removeConnector(connector)
           case _ =>
         }
         node.getNetwork = null
@@ -208,7 +208,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     if (source.getNetwork != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, reachableNodes(source) collect {
-      case component: api.network.Component if component.canBeSeenFrom(source) => component
+      case component: NodeComponent if component.canBeSeenFrom(source) => component
     }, name, args: _*)
   }
 
@@ -224,7 +224,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       node.getAddress = java.util.UUID.randomUUID().toString
     data += node.getAddress -> newNode
     node match {
-      case connector: Connector => addConnector(connector)
+      case connector: PowerNode => addConnector(connector)
       case _ =>
     }
     node.getNetwork = wrapper
@@ -314,7 +314,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
         globalBufferSize += otherNetworkAfterReaddress.globalBufferSize
         otherNetworkAfterReaddress.data.values.foreach(node => {
           node.data match {
-            case connector: Connector => connector.distributor = Some(wrapper)
+            case connector: PowerNode => connector.distributor = Some(wrapper)
             case _ =>
           }
           node.data.getNetwork = wrapper
@@ -343,7 +343,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       globalBufferSize = 0
       data ++= subGraphs.head
       for (node <- data.values) node.data match {
-        case connector: Connector => addConnector(connector)
+        case connector: PowerNode => addConnector(connector)
         case _ =>
       }
       subGraphs.tail.foreach(new Network(_))
@@ -362,12 +362,12 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   private def send(source: ImmutableNode, targets: Iterable[ImmutableNode], name: String, args: AnyRef*) {
     val message = new Network.Message(source, name, Array(args: _*))
-    targets.foreach(_.getEnvironment.onMessage(message))
+    targets.foreach(_.getContainer.onMessage(message))
   }
 
   // ----------------------------------------------------------------------- //
 
-  def addConnector(connector: Connector) {
+  def addConnector(connector: PowerNode) {
     if (connector.getLocalBufferSize > 0) {
       assert(!connectors.contains(connector))
       connectors += connector
@@ -377,7 +377,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     connector.distributor = Some(wrapper)
   }
 
-  def removeConnector(connector: Connector) {
+  def removeConnector(connector: PowerNode) {
     if (connector.getLocalBufferSize > 0) {
       assert(connectors.contains(connector))
       val bufferSize = connector.getLocalBufferSize
@@ -550,7 +550,7 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def newNode(host: Environment, reachability: Visibility) = new NodeBuilder(host, reachability)
+  def newNode(host: NodeContainer, reachability: Visibility) = new NodeBuilder(host, reachability)
 
   override def newPacket(source: String, destination: String, port: Int, data: Array[AnyRef]) = {
     val packet = new Packet(source, destination, port, data)
@@ -586,7 +586,7 @@ object Network extends api.detail.NetworkAPI {
 
   var isServer = SideTracker.isServer _
 
-  class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
+  class NodeBuilder(val _host: NodeContainer, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
     def withComponent(name: String, visibility: Visibility) = new Network.ComponentBuilder(_host, _reachability, name, visibility)
 
     def withComponent(name: String) = withComponent(name, _reachability)
@@ -602,13 +602,13 @@ object Network extends api.detail.NetworkAPI {
     else null
   }
 
-  class ComponentBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility) extends api.detail.Builder.ComponentBuilder {
+  class ComponentBuilder(val _host: NodeContainer, val _reachability: Visibility, val _name: String, val _visibility: Visibility) extends api.detail.Builder.ComponentBuilder {
     def withConnector(bufferSize: Double) = new Network.ComponentConnectorBuilder(_host, _reachability, _name, _visibility, bufferSize)
 
     def withConnector() = withConnector(0)
 
-    def create() = if (isServer()) new Component with NodeVarargPart {
-      val getEnvironment = _host
+    def create() = if (isServer()) new NodeComponent with NodeVarargPart {
+      val getContainer = _host
       val getReachability = _reachability
       val getName = _name
       setVisibility(_visibility)
@@ -616,22 +616,22 @@ object Network extends api.detail.NetworkAPI {
     else null
   }
 
-  class ConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _bufferSize: Double) extends api.detail.Builder.ConnectorBuilder {
+  class ConnectorBuilder(val _host: NodeContainer, val _reachability: Visibility, val _bufferSize: Double) extends api.detail.Builder.ConnectorBuilder {
     def withComponent(name: String, visibility: Visibility) = new Network.ComponentConnectorBuilder(_host, _reachability, name, visibility, _bufferSize)
 
     def withComponent(name: String) = withComponent(name, _reachability)
 
-    def create() = if (isServer()) new Connector with NodeVarargPart {
-      val getEnvironment = _host
+    def create() = if (isServer()) new PowerNode with NodeVarargPart {
+      val getContainer = _host
       val getReachability = _reachability
       getLocalBufferSize = _bufferSize
     }
     else null
   }
 
-  class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
-    def create() = if (isServer()) new ComponentConnector with NodeVarargPart {
-      val getEnvironment = _host
+  class ComponentConnectorBuilder(val _host: NodeContainer, val _reachability: Visibility, val _name: String, val _visibility: Visibility, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
+    def create() = if (isServer()) new ComponentPowerNode with NodeVarargPart {
+      val getContainer = _host
       val getReachability = _reachability
       val getName = _name
       getLocalBufferSize = _bufferSize
@@ -717,7 +717,13 @@ object Network extends api.detail.NetworkAPI {
       })
     })
 
-    override def getHop() = new Packet(getSource, getDestination, getPort, getData, getTTL - 1)
+    override def getHop(via: Node) = {
+      if (getTTL < 1) null
+      else {
+        // TODO track nodes this packet went through, return null if the node is already in our trail
+        new Packet(getSource, getDestination, getPort, getData, getTTL - 1)
+      }
+    }
 
     override def save(nbt: NBTTagCompound) {
       nbt.setString("source", getSource)
@@ -780,9 +786,9 @@ object Network extends api.detail.NetworkAPI {
 
     def globalBufferSize_=(value: Double) = network.globalBufferSize = value
 
-    def addConnector(connector: Connector) = network.addConnector(connector)
+    def addConnector(connector: PowerNode) = network.addConnector(connector)
 
-    def removeConnector(connector: Connector) = network.removeConnector(connector)
+    def removeConnector(connector: PowerNode) = network.removeConnector(connector)
 
     def changeBuffer(delta: Double) = network.changeBuffer(delta)
   }

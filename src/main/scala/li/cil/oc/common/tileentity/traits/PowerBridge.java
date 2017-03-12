@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity.traits;
 
 import li.cil.oc.Settings;
-import li.cil.oc.api.network.Connector;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.PowerNode;
+import li.cil.oc.api.util.Location;
 import li.cil.oc.api.network.Network;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -12,14 +12,18 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public final class PowerBalancer {
-    public interface PowerBalancerHost extends EnvironmentHost {
-        Iterable<Connector> getConnectorsToBalance();
+/**
+ * Bridges power across multiple sub-networks by distributing it so that
+ * each sub-network has the same relative amount of energy.
+ */
+public final class PowerBridge {
+    public interface PowerBalancerHost extends Location {
+        Iterable<PowerNode> getConnectorsToBalance();
     }
 
     private final PowerBalancerHost host;
 
-    public PowerBalancer(final PowerBalancerHost host) {
+    public PowerBridge(final PowerBalancerHost host) {
         this.host = host;
     }
 
@@ -30,10 +34,10 @@ public final class PowerBalancer {
             return;
         }
 
-        final Iterable<Connector> connectors = host.getConnectorsToBalance();
+        final Iterable<PowerNode> connectors = host.getConnectorsToBalance();
 
         final Set<Network> networks = new HashSet<>();
-        for (final Connector connector : connectors) {
+        for (final PowerNode connector : connectors) {
             final Network network = connector.getNetwork();
             if (network == null) {
                 continue;

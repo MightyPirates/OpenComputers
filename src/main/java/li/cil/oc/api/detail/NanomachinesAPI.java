@@ -4,6 +4,8 @@ import li.cil.oc.api.nanomachines.BehaviorProvider;
 import li.cil.oc.api.nanomachines.Controller;
 import net.minecraft.entity.player.EntityPlayer;
 
+import javax.annotation.Nullable;
+
 public interface NanomachinesAPI {
     /**
      * Register a new behavior provider.
@@ -41,6 +43,7 @@ public interface NanomachinesAPI {
      * @param player the player to get the controller for.
      * @return the controller for the specified player.
      */
+    @Nullable
     Controller getController(EntityPlayer player);
 
     /**

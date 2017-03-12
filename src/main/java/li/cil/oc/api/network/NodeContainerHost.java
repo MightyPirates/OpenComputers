@@ -1,9 +1,7 @@
 package li.cil.oc.api.network;
 
+import li.cil.oc.api.util.Location;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 /**
  * To be implemented by 'hosts' of components.
@@ -17,28 +15,7 @@ import net.minecraft.world.World;
  * in most cases you should be able to cast this to <tt>TileEntity</tt> for
  * more options, if necessary.
  */
-public interface EnvironmentHost {
-    /**
-     * The world the host lives in.
-     */
-    World getHostWorld();
-
-    /**
-     * The host's position in the world.
-     * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, -2, 3) this will be (0.5, -1.5, 3.5).
-     */
-    Vec3d getHostPosition();
-
-    /**
-     * The host's block position in the world.
-     * <p/>
-     * For entities this is the <em>containing</em> block position. For example,
-     * if the entity is located at (0.3, -2.5, 3.3) this will be (0, -3, 3).
-     */
-    BlockPos getHostBlockPosition();
-
+public interface NodeContainerHost extends Location {
     /**
      * Marks the host as "changed" so that it knows it has to be saved again
      * in the next world save. Typically only needed for tile entity hosts,
@@ -48,9 +25,26 @@ public interface EnvironmentHost {
      * directly call {@link TileEntity#markDirty()} in the implementation! Instead,
      * do something like this:
      * <pre>
-     * final IThreadListener thread = getWorld().getMinecraftServer();
-     * if (thread != null) {
-     *     thread.addScheduledTask(this::markDirty);
+     * private final Object lock = new Object();
+     * private boolean isMarkDirtyScheduled;
+     *
+     * &#064;Override
+     * public void markHostChanged() {
+     *     final IThreadListener thread = getWorld().getMinecraftServer();
+     *     if (thread != null) {
+     *         synchronized (lock) {
+     *             if (!isMarkDirtyScheduled) {
+     *                 isMarkDirtyScheduled = true;
+     *                 thread.addScheduledTask(this::markDirty);
+     *             }
+     *         }
+     *     }
+     * }
+     *
+     * &#064;Override
+     * public void markDirty() {
+     *     isMarkDirtyScheduled = false;
+     *     super.markDirty();
      * }
      * </pre>
      */

@@ -3,6 +3,8 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -26,7 +28,7 @@ object DriverMemory extends Item with api.driver.item.Memory with api.driver.ite
     api.Items.get(Constants.ItemName.RAMTier5),
     api.Items.get(Constants.ItemName.RAMTier6))
 
-  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) = new component.Memory(tier(stack))
+  override def createEnvironment(stack: ItemStack, host: Location) = new component.Memory(tier(stack))
 
   override def slot(stack: ItemStack) = Slot.Memory
 

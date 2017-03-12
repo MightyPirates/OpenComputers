@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import li.cil.oc.Settings
-import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.PowerNode
 import li.cil.oc.common.tileentity.traits.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
@@ -11,7 +11,7 @@ trait Common extends TileEntity {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: EnumFacing) = false
 
-  protected def connector(side: EnumFacing): Option[Connector] = None
+  protected def connector(side: EnumFacing): Option[PowerNode] = None
 
   // ----------------------------------------------------------------------- //
 

@@ -10,10 +10,10 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.event.SignChangeEvent
 import li.cil.oc.api.internal
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.{EnvironmentHost, Message}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
@@ -30,7 +30,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
+abstract class UpgradeSign extends AbstractManagedNodeContainer with DeviceInfo {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Sign upgrade",
@@ -40,7 +40,7 @@ abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  def host: EnvironmentHost
+  def host: Location
 
   protected def getValue(tileEntity: Option[TileEntitySign]): Array[AnyRef] = {
     tileEntity match {
@@ -101,7 +101,7 @@ abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.getName == "tablet.use") message.getSource.getEnvironment match {
+    if (message.getName == "tablet.use") message.getSource.getContainer match {
       case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           host.getWorld.getTileEntity(blockPos) match {

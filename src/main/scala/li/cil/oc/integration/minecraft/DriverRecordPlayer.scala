@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentItem
+import li.cil.oc.api.network.NodeContainerItem
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeHost}
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeContainer, ManagedTileEntityNodeHost}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.block.BlockJukebox
@@ -22,10 +22,10 @@ import net.minecraft.world.World
 object DriverRecordPlayer extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[BlockJukebox.TileEntityJukebox]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
-    new Environment(world.getTileEntity(pos).asInstanceOf[BlockJukebox.TileEntityJukebox])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): NodeContainerItem =
+    new NodeContainer(world.getTileEntity(pos).asInstanceOf[BlockJukebox.TileEntityJukebox])
 
-  final class Environment(tileEntity: BlockJukebox.TileEntityJukebox) extends ManagedTileEntityEnvironment[BlockJukebox.TileEntityJukebox](tileEntity, "jukebox") with NamedBlock {
+  final class NodeContainer(tileEntity: BlockJukebox.TileEntityJukebox) extends ManagedTileEntityNodeContainer[BlockJukebox.TileEntityJukebox](tileEntity, "jukebox") with NamedBlock {
     override def preferredName = "jukebox"
 
     override def priority = 0
@@ -60,7 +60,7 @@ object DriverRecordPlayer extends AbstractDriverTileEntity {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
       if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.JUKEBOX)
-        classOf[Environment]
+        classOf[NodeContainer]
       else null
     }
   }

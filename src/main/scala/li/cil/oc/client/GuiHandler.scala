@@ -32,7 +32,7 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Assembler(player.inventory, t)
           case t: tileentity.Case if id == GuiType.Case.id =>
             new gui.Case(player.inventory, t)
-          case t: tileentity.Charger if id == GuiType.Charger.id =>
+          case t: tileentity.TileEntityCharger if id == GuiType.Charger.id =>
             new gui.Charger(player.inventory, t)
           case t: tileentity.Disassembler if id == GuiType.Disassembler.id =>
             new gui.Disassembler(player.inventory, t)

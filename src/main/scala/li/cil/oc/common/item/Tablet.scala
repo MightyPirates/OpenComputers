@@ -20,9 +20,7 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.Connector
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{Connector, Message, Node, PowerNode}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
@@ -298,7 +296,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       connectComponents()
       node.connect(tablet.getNode)
     }
-    else node.getEnvironment match {
+    else node.getContainer match {
       case buffer: api.internal.TextBuffer =>
         buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
@@ -308,7 +306,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
-    if (node != null) node.getEnvironment match {
+    if (node != null) node.getContainer match {
       case buffer: api.internal.TextBuffer => components collect {
         case Some(keyboard: api.internal.Keyboard) => buffer.getNode.connect(keyboard.getNode)
       }
@@ -406,7 +404,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     }
     if (!world.isRemote) {
       if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-        machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+        machine.node.asInstanceOf[PowerNode].changeBuffer(Double.PositiveInfinity)
       }
       machine.update()
       updateComponents()

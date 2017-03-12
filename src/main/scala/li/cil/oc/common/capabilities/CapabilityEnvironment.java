@@ -1,7 +1,7 @@
 package li.cil.oc.common.capabilities;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.util.Location;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Node;
 import net.minecraft.nbt.NBTBase;
@@ -14,23 +14,23 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import javax.annotation.Nullable;
 
 public final class CapabilityEnvironment {
-    @CapabilityInject(Environment.class)
-    public static Capability<Environment> ENVIRONMENT_CAPABILITY;
+    @CapabilityInject(NodeContainer.class)
+    public static Capability<NodeContainer> ENVIRONMENT_CAPABILITY;
 
     public static void register() {
-        CapabilityManager.INSTANCE.register(Environment.class, new Capability.IStorage<Environment>() {
+        CapabilityManager.INSTANCE.register(NodeContainer.class, new Capability.IStorage<NodeContainer>() {
             @Nullable
             @Override
-            public NBTBase writeNBT(final Capability<Environment> capability, final Environment instance, final EnumFacing side) {
+            public NBTBase writeNBT(final Capability<NodeContainer> capability, final NodeContainer instance, final EnumFacing side) {
                 return null;
             }
 
             @Override
-            public void readNBT(final Capability<Environment> capability, final Environment instance, final EnumFacing side, final NBTBase nbt) {
+            public void readNBT(final Capability<NodeContainer> capability, final NodeContainer instance, final EnumFacing side, final NBTBase nbt) {
             }
-        }, () -> new Environment() {
+        }, () -> new NodeContainer() {
             @Override
-            public EnvironmentHost getHost() {
+            public Location getLocation() {
                 return null;
             }
 

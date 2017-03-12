@@ -17,7 +17,8 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -30,13 +31,13 @@ import scala.collection.convert.WrapAsJava._
   *
   * @author Sangar, Vexatos
   */
-class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends AbstractManagedEnvironment with ChangeListener with DeviceInfo {
+class UpgradeMF(val host: Location, val coord: BlockPosition, val dir: EnumFacing) extends AbstractManagedNodeContainer with ChangeListener with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NONE).
     withConnector().
     create()
 
-  private var otherEnv: Option[Environment] = None
-  private var otherDrv: Option[(EnvironmentItem, DriverBlock)] = None
+  private var otherEnv: Option[NodeContainer] = None
+  private var otherDrv: Option[(NodeContainerItem, DriverBlock)] = None
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true
@@ -61,7 +62,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: En
     if (getNode != null && getNode.getNetwork != null && coord.world.exists(_.provider.getDimension == host.getWorld.provider.getDimension)
       && coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
       host.getWorld.getTileEntity(coord) match {
-        case env: TileEntity with Environment =>
+        case env: TileEntity with NodeContainer =>
           otherEnv match {
             case Some(environment: TileEntity) =>
               otherNode(environment, getNode.disconnect)

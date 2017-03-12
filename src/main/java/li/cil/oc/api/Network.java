@@ -2,7 +2,7 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.detail.Builder;
 import li.cil.oc.api.network.*;
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +30,7 @@ public final class Network {
     /**
      * Convenience overload for {@link #joinOrCreateNetwork(IBlockAccess, BlockPos)}.
      * <p/>
-     * If the tile entity implements {@link Environment} its one node will be
+     * If the tile entity implements {@link NodeContainer} its one node will be
      * connected to any existing adjacent tile entity nodes. If none exist a
      * new network with the specified tile entity's node as its sole entry.
      *
@@ -165,8 +165,8 @@ public final class Network {
      * <p/>
      * Example use:
      * <pre>
-     * class YourThing extends TileEntity implements Environment {
-     *     private ComponentConnector node_ =
+     * class YourThing extends TileEntity implements NodeContainer {
+     *     private ComponentPowerNode node_ =
      *         api.Network.newNode(this, Visibility.Network).
      *             withComponent("your_thing").
      *             withConnector(32).
@@ -192,7 +192,7 @@ public final class Network {
      * @param reachability the reachability of the node.
      * @return a new node builder.
      */
-    public static Builder.NodeBuilder newNode(final Environment host, final Visibility reachability) {
+    public static Builder.NodeBuilder newNode(final NodeContainer host, final Visibility reachability) {
         if (API.network != null)
             return API.network.newNode(host, reachability);
         throw new IllegalStateException("Trying to use the OpenComputers API before OpenComputers was initialized.");

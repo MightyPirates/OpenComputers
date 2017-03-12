@@ -2,7 +2,7 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.machine.MachineHost;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.util.Location;
 
 /**
  * This interface is implemented as a marker by servers in racks.
@@ -21,7 +21,7 @@ import li.cil.oc.api.network.EnvironmentHost;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Server extends EnvironmentHost, MachineHost, Tiered, RackMountable {
+public interface Server extends Location, MachineHost, Tiered, RackMountable {
     /**
      * The server rack this server is in.
      */

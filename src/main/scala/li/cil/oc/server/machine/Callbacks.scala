@@ -11,7 +11,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.FilteredEnvironment
 import li.cil.oc.api.network.ManagedPeripheral
-import li.cil.oc.server.driver.CompoundBlockEnvironment
+import li.cil.oc.server.driver.CompoundBlockNodeContainer
 
 import scala.collection.immutable
 import scala.collection.mutable
@@ -20,7 +20,7 @@ object Callbacks {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
   def apply(host: Any) = host match {
-    case multi: CompoundBlockEnvironment => dynamicAnalyze(host)
+    case multi: CompoundBlockNodeContainer => dynamicAnalyze(host)
     case peripheral: ManagedPeripheral => dynamicAnalyze(host)
     case filtered: FilteredEnvironment => dynamicAnalyze(host)
     case _ => cache.getOrElseUpdate(host.getClass, dynamicAnalyze(host))
@@ -72,7 +72,7 @@ object Callbacks {
     // First collect whitelist and priority information, then sort and
     // fetch callbacks.
     (host match {
-      case multi: CompoundBlockEnvironment => multi.environments.map(env => process(env._2))
+      case multi: CompoundBlockNodeContainer => multi.environments.map(env => process(env._2))
       case single => Seq(process(single))
     }).sortBy(-_._1).map(_._2).foreach(_ ())
 

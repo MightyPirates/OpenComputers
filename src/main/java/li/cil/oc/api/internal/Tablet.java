@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.util.Location;
 import li.cil.oc.api.tileentity.Rotatable;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.machine.MachineHost;
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -25,7 +25,7 @@ import net.minecraft.entity.player.EntityPlayer;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Tablet extends EnvironmentHost, MachineHost, Rotatable {
+public interface Tablet extends Location, MachineHost, Rotatable {
     /**
      * Returns the player last holding the tablet.
      * <p/>

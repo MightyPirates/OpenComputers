@@ -1,6 +1,6 @@
 package li.cil.oc.server.machine.luac
 
-import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.{Component, ComponentNode, NodeComponent}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 import scala.collection.convert.WrapAsScala._
@@ -55,7 +55,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       withComponent(lua.checkString(1), component => {
         lua.newTable()
-        for ((name, annotation) <- machine.methods(component.getEnvironment)) {
+        for ((name, annotation) <- machine.methods(component.getContainer)) {
           lua.pushString(name)
           lua.newTable()
           lua.pushBoolean(annotation.direct)
@@ -82,7 +82,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       withComponent(lua.checkString(1), component => {
         val method = lua.checkString(2)
-        val methods = machine.methods(component.getEnvironment)
+        val methods = machine.methods(component.getContainer)
         owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
@@ -91,8 +91,8 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setGlobal("component")
   }
 
-  private def withComponent(address: String, f: (Component) => Int) = Option(node.getNetwork.node(address)) match {
-    case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
+  private def withComponent(address: String, f: (ComponentNode) => Int) = Option(node.getNetwork.node(address)) match {
+    case Some(component: ComponentNode) if component.canBeSeenFrom(node) || component == node =>
       f(component)
     case _ =>
       lua.pushNil()

@@ -1,8 +1,8 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.util.Location;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.tileentity.Rotatable;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.machine.MachineHost;
 
 /**
@@ -18,5 +18,5 @@ import li.cil.oc.api.machine.MachineHost;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Microcontroller extends Environment, EnvironmentHost, MachineHost, Rotatable, Tiered {
+public interface Microcontroller extends NodeContainer, Location, MachineHost, Rotatable, Tiered {
 }

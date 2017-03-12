@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{EnvironmentItem, EnvironmentItem}
+import li.cil.oc.api.network.{EnvironmentItem, NodeContainerItem}
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityEnvironment}
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeContainer}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
@@ -21,10 +21,10 @@ import net.minecraft.world.World
 object DriverBeacon extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityBeacon]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityBeacon])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): NodeContainerItem =
+    new NodeContainer(world.getTileEntity(pos).asInstanceOf[TileEntityBeacon])
 
-  final class Environment(tileEntity: TileEntityBeacon) extends ManagedTileEntityEnvironment[TileEntityBeacon](tileEntity, "beacon") with NamedBlock {
+  final class NodeContainer(tileEntity: TileEntityBeacon) extends ManagedTileEntityNodeContainer[TileEntityBeacon](tileEntity, "beacon") with NamedBlock {
     override def preferredName = "beacon"
 
     override def priority = 0
@@ -55,7 +55,7 @@ object DriverBeacon extends AbstractDriverTileEntity {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
       if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.BEACON)
-        classOf[Environment]
+        classOf[NodeContainer]
       else null
     }
   }

@@ -4,20 +4,20 @@ import li.cil.oc.Constants;
 import li.cil.oc.Settings;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
+import net.minecraft.tileentity.TileEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public final class TileEntityPowerConverter extends AbstractTileEntitySingleEnvironment /* traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo*/ {
-    private final EnvironmentPowerConverter environment = new EnvironmentPowerConverter(this);
+public final class TileEntityPowerConverter extends AbstractTileEntitySingleNodeContainer /* traits.PowerAcceptor with traits.NodeContainer with traits.NotAnalyzable with DeviceInfo*/ {
+    private final NodeContainerPowerConverter environment = new NodeContainerPowerConverter(this);
 
     @Override
-    protected Environment getEnvironment() {
+    protected NodeContainer getNodeContainer() {
         return environment;
     }
 
@@ -28,7 +28,7 @@ public final class TileEntityPowerConverter extends AbstractTileEntitySingleEnvi
 //
 //  override def energyThroughput = Settings.get.powerConverterRate
 
-    private static final class EnvironmentPowerConverter extends AbstractEnvironment implements DeviceInfo {
+    private static final class NodeContainerPowerConverter extends AbstractTileEntityNodeContainer implements DeviceInfo {
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
 
         static {
@@ -39,7 +39,7 @@ public final class TileEntityPowerConverter extends AbstractTileEntitySingleEnvi
             DEVICE_INFO.put(DeviceAttribute.Capacity, energyThroughput.toString);
         }
 
-        EnvironmentPowerConverter(final EnvironmentHost host) {
+        NodeContainerPowerConverter(final TileEntity host) {
             super(host);
         }
 
@@ -50,7 +50,7 @@ public final class TileEntityPowerConverter extends AbstractTileEntitySingleEnvi
 
         @Override
         protected Node createNode() {
-            return Network.newNode(this, Visibility.NONE).withConnector(Settings.get().bufferConverter()).create();
+            return Network.newNode(this, Visibility.NONE).withConnector(Settings.get().bufferConverter).create();
         }
     }
 }

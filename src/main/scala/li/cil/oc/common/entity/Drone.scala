@@ -90,7 +90,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
   val info = new DroneData()
   val machine = if (!world.isRemote) {
     val m = Machine.create(this)
-    m.node.asInstanceOf[Connector].setLocalBufferSize(0)
+    m.node.asInstanceOf[PowerNode].setLocalBufferSize(0)
     m
   } else null
   val control = if (!world.isRemote) new component.Drone(this) else null
@@ -361,11 +361,11 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
       components.updateComponents()
       setRunning(machine.isRunning)
 
-      val buffer = math.round(machine.node.asInstanceOf[Connector].getGlobalBuffer).toInt
+      val buffer = math.round(machine.node.asInstanceOf[PowerNode].getGlobalBuffer).toInt
       if (math.abs(lastEnergyUpdate - buffer) > 1 || world.getTotalWorldTime % 200 == 0) {
         lastEnergyUpdate = buffer
         globalBuffer = buffer
-        globalBufferSize = machine.node.asInstanceOf[Connector].getGlobalBufferSize.toInt
+        globalBufferSize = machine.node.asInstanceOf[PowerNode].getGlobalBufferSize.toInt
       }
     }
     else {

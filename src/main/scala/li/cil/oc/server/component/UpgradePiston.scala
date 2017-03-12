@@ -10,15 +10,15 @@ import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.capabilities
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost, Visibility}
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
 import li.cil.oc.api.tileentity
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
@@ -29,7 +29,7 @@ import net.minecraft.util.SoundCategory
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class UpgradePiston(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+abstract class UpgradePiston(val host: Location) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("piston").
     withConnector().
@@ -75,7 +75,7 @@ object UpgradePiston {
       else super.pushOrigin(side)
   }
 
-  class Rotatable(val rotatable: tileentity.Rotatable with EnvironmentHost) extends UpgradePiston(rotatable) {
+  class Rotatable(val rotatable: tileentity.Rotatable with Location) extends UpgradePiston(rotatable) {
     override def pushDirection(args: Arguments, index: Int) = rotatable.toGlobal(args.optSideForAction(index, EnumFacing.SOUTH))
   }
 

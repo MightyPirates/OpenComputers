@@ -20,12 +20,9 @@ import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.api.machine.LimitReachedException
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.machine.Value
-import li.cil.oc.api.network.Component
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeHost}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
@@ -49,7 +46,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends AbstractManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
+class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with machine.Machine with Runnable with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("computer", Visibility.NEIGHBORS).
     withConnector(Settings.get.bufferComputer).
@@ -66,7 +63,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
 
   private val _components = mutable.Map.empty[String, String]
 
-  private val addedComponents = mutable.Set.empty[Component]
+  private val addedComponents = mutable.Set.empty[ComponentNode]
 
   private val _users = mutable.Set.empty[String]
 
@@ -351,7 +348,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
   override def invoke(address: String, method: String, args: Array[AnyRef]): Array[AnyRef] = {
     if (getNode != null && getNode.getNetwork != null) {
       Option(getNode.getNetwork.node(address)) match {
-        case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(getNode) || component == getNode =>
+        case Some(component: li.cil.oc.server.network.NodeComponent) if component.canBeSeenFrom(getNode) || component == getNode =>
           val annotation = component.getAnnotation(method)
           if (annotation.direct) {
             consumeCallBudget(1.0 / annotation.limit)
@@ -435,8 +432,8 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
   @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
   def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
-    Array[AnyRef](getNode.getNetwork.nodes.map(n => (n, n.getEnvironment)).collect {
-      case (n: Component, deviceInfo: DeviceInfo) =>
+    Array[AnyRef](getNode.getNetwork.nodes.map(n => (n, n.getContainer)).collect {
+      case (n: ComponentNode, deviceInfo: DeviceInfo) =>
         if (n.canBeSeenFrom(getNode) || n == getNode) {
           Option(deviceInfo.getDeviceInfo) match {
             case Some(info) => Option(n.getAddress -> info)
@@ -623,7 +620,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     }
     else {
       node match {
-        case component: Component => addComponent(component)
+        case component: ComponentNode => addComponent(component)
         case _ =>
       }
     }
@@ -638,7 +635,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     }
     else {
       node match {
-        case component: Component => removeComponent(component)
+        case component: ComponentNode => removeComponent(component)
         case _ =>
       }
     }
@@ -648,13 +645,13 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
 
   // ----------------------------------------------------------------------- //
 
-  def addComponent(component: Component) {
+  def addComponent(component: ComponentNode) {
     if (!_components.contains(component.getAddress)) {
       addedComponents += component
     }
   }
 
-  def removeComponent(component: Component) {
+  def removeComponent(component: ComponentNode) {
     if (_components.contains(component.getAddress)) {
       _components.synchronized(_components -= component.getAddress)
       signal("component_removed", component.getAddress, component.getName)
@@ -682,7 +679,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- _components) {
       getNode.getNetwork.node(address) match {
-        case component: Component if component.getName == name => // All is well.
+        case component: ComponentNode if component.getName == name => // All is well.
         case _ =>
           if (name == "filesystem") {
             OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")

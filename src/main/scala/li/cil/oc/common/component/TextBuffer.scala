@@ -11,11 +11,11 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
@@ -43,7 +43,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
+class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with api.internal.TextBuffer with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("screen").
     withConnector().
@@ -203,7 +203,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
       case screen: tileentity.Screen =>
         Array(screen.screens.map(_.getNode).flatMap(_.getNeighbors.filter(_.getHost.isInstanceOf[Keyboard]).map(_.getAddress)).toArray)
       case _ =>
-        Array(getNode.getNeighbors.filter(_.getEnvironment.isInstanceOf[Keyboard]).map(_.getAddress).toArray)
+        Array(getNode.getNeighbors.filter(_.getContainer.isInstanceOf[Keyboard]).map(_.getAddress).toArray)
     }
   }
 
@@ -567,7 +567,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
     // execution and pausing them (which will make them resume in the next tick
     // when their update() runs).
     if (getNode.getNetwork != null) {
-      for (node <- getNode.getNetwork.nodes) node.getEnvironment match {
+      for (node <- getNode.getNetwork.nodes) node.getContainer match {
         case computer: tileentity.traits.Computer if !computer.machine.isPaused =>
           computer.machine.pause(0.1)
         case _ =>

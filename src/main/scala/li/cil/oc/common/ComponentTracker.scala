@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment}
+import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment, NodeContainerItem}
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -17,30 +17,30 @@ import scala.collection.mutable
  * containers. For now this is only used for screens / text buffer components.
  */
 abstract class ComponentTracker {
-  private val worlds = mutable.Map.empty[Int, Cache[String, EnvironmentItem]]
+  private val worlds = mutable.Map.empty[Int, Cache[String, NodeContainerItem]]
 
   private def components(world: World) = {
     worlds.getOrElseUpdate(world.provider.getDimension,
       com.google.common.cache.CacheBuilder.newBuilder().
         weakValues().
-        asInstanceOf[CacheBuilder[String, EnvironmentItem]].
-        build[String, EnvironmentItem]())
+        asInstanceOf[CacheBuilder[String, NodeContainerItem]].
+        build[String, NodeContainerItem]())
   }
 
-  def add(world: World, address: String, component: EnvironmentItem) {
+  def add(world: World, address: String, component: NodeContainerItem) {
     this.synchronized {
       components(world).put(address, component)
     }
   }
 
-  def remove(world: World, component: EnvironmentItem) {
+  def remove(world: World, component: NodeContainerItem) {
     this.synchronized {
       components(world).invalidateAll(asJavaIterable(components(world).asMap().filter(_._2 == component).keys))
       components(world).cleanUp()
     }
   }
 
-  def get(world: World, address: String): Option[EnvironmentItem] = this.synchronized {
+  def get(world: World, address: String): Option[NodeContainerItem] = this.synchronized {
     components(world).cleanUp()
     Option(components(world).getIfPresent(address))
   }

@@ -4,9 +4,9 @@ import li.cil.oc.Settings;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerItem;
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
-import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.integration.ManagedTileEntityNodeContainer;
 import li.cil.oc.util.BlockPosition;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -29,15 +29,15 @@ public final class DriverInventory extends AbstractDriverTileEntity {
     }
 
     @Override
-    public EnvironmentItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment(world.getTileEntity(pos), world);
+    public NodeContainerItem createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+        return new NodeContainer(world.getTileEntity(pos), world);
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
+    public static final class NodeContainer extends ManagedTileEntityNodeContainer<IInventory> {
         private final EntityPlayer fakePlayer;
         private final BlockPosition position;
 
-        public Environment(final TileEntity tileEntity, final World world) {
+        public NodeContainer(final TileEntity tileEntity, final World world) {
             super((IInventory) tileEntity, "inventory");
             fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.get().fakePlayerProfile());
             position = BlockPosition.apply(tileEntity.getPos(), world);

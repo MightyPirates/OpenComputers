@@ -5,21 +5,22 @@ import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.common.GuiType$;
-import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
+import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.server.network.Waypoints;
+import li.cil.oc.util.BlockPosUtils;
 import li.cil.oc.util.WorldUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
@@ -28,26 +29,18 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Random;
 
-public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironment implements ITickable, BlockActivationListener, RotatableImpl.RotatableHost {
+public final class TileEntityWaypoint extends AbstractTileEntitySingleNodeContainer implements BlockActivationListener, ITickable, RotatableImpl.RotatableHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
     private final Rotatable rotatable = new RotatableImpl(this);
-    private final Environment waypoint = new EnvironmentWaypoint(this);
+    private final NodeContainer waypoint = new NodeContainerWaypoint(this);
 
     // ----------------------------------------------------------------------- //
     // Computed data.
 
     // NBT tag names.
-    private static final String ROTATABLE_TAG = "rotatable";
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntityEnvironmentHost
-
-    @Override
-    protected Environment getEnvironment() {
-        return waypoint;
-    }
+    private static final String TAG_ROTATABLE = "rotatable";
 
     // ----------------------------------------------------------------------- //
     // TileEntity
@@ -67,6 +60,29 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
         if (isServer()) {
             Waypoints.remove(this);
         }
+    }
+
+    // ----------------------------------------------------------------------- //
+    // AbstractTileEntity
+
+    @Override
+    protected void readFromNBTCommon(final NBTTagCompound nbt) {
+        super.readFromNBTCommon(nbt);
+        nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
+    }
+
+    @Override
+    protected void writeToNBTCommon(final NBTTagCompound nbt) {
+        super.writeToNBTCommon(nbt);
+        rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
+    }
+
+    // ----------------------------------------------------------------------- //
+    // AbstractTileEntitySingleNodeContainer
+
+    @Override
+    protected NodeContainer getNodeContainer() {
+        return waypoint;
     }
 
     // ----------------------------------------------------------------------- //
@@ -93,7 +109,7 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
         }
 
         final EnumFacing facing = rotatable.getFacing();
-        final Vec3d origin = getHostPosition().addVector(
+        final Vec3d origin = BlockPosUtils.getCenter(getPos()).addVector(
                 facing.getFrontOffsetX() * 0.5,
                 facing.getFrontOffsetY() * 0.5,
                 facing.getFrontOffsetZ() * 0.5);
@@ -123,28 +139,13 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
 
     @Override
     public void onRotationChanged() {
-        final IBlockState state = getWorld().getBlockState(getPos());
-        getWorld().notifyBlockUpdate(getPos(), state, state, WorldUtils.FLAG_REGULAR_UPDATE);
-    }
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntity
-
-    @Override
-    protected void readFromNBTCommon(final NBTTagCompound nbt) {
-        super.readFromNBTCommon(nbt);
-        nbt.setTag(ROTATABLE_TAG, rotatable.serializeNBT());
-    }
-
-    @Override
-    protected void writeToNBTCommon(final NBTTagCompound nbt) {
-        super.writeToNBTCommon(nbt);
-        rotatable.deserializeNBT((NBTTagByte) nbt.getTag(ROTATABLE_TAG));
+//        final IBlockState state = getWorld().getBlockState(getPos());
+//        getWorld().notifyBlockUpdate(getPos(), state, state, WorldUtils.FLAG_REGULAR_UPDATE);
     }
 
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentWaypoint extends AbstractEnvironment {
+    private static final class NodeContainerWaypoint extends AbstractTileEntityNodeContainer {
         // ----------------------------------------------------------------------- //
         // Persisted data.
 
@@ -154,12 +155,13 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
         // Computed data.
 
         // NBT tag names.
-        private static final String WAYPOINT_NAME = "waypoint";
-        private static final String LABEL_TAG = "label";
+        private static final String TAG_LABEL = "label";
+
+        private static final String NAME_WAYPOINT = "waypoint";
 
         // ----------------------------------------------------------------------- //
 
-        EnvironmentWaypoint(final EnvironmentHost host) {
+        NodeContainerWaypoint(final TileEntity host) {
             super(host);
         }
 
@@ -181,11 +183,11 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
         }
 
         // ----------------------------------------------------------------------- //
-        // AbstractEnvironment
+        // AbstractNodeContainer
 
         @Override
         protected Node createNode() {
-            return Network.newNode(this, Visibility.NETWORK).withComponent(WAYPOINT_NAME).create();
+            return Network.newNode(this, Visibility.NETWORK).withComponent(NAME_WAYPOINT).create();
         }
 
         // ----------------------------------------------------------------------- //
@@ -194,14 +196,14 @@ public final class TileEntityWaypoint extends AbstractTileEntitySingleEnvironmen
         @Override
         public NBTTagCompound serializeNBT() {
             final NBTTagCompound nbt = super.serializeNBT();
-            nbt.setString(LABEL_TAG, label);
+            nbt.setString(TAG_LABEL, label);
             return nbt;
         }
 
         @Override
         public void deserializeNBT(final NBTTagCompound nbt) {
             super.deserializeNBT(nbt);
-            label = nbt.getString(LABEL_TAG);
+            label = nbt.getString(TAG_LABEL);
         }
     }
 }

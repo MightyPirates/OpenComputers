@@ -3,7 +3,7 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
@@ -17,7 +17,7 @@ object DriverDataCard extends Item {
     api.Items.get(Constants.ItemName.DataCardTier2),
     api.Items.get(Constants.ItemName.DataCardTier3))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else tier(stack) match {
     case Tier.One => new component.DataCard.Tier1()

@@ -3,7 +3,7 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
-import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.NodeContainer
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.{TileEntityMotionSensor, TileEntityWaypoint}
@@ -30,13 +30,13 @@ object EnvironmentProviderBlocks extends EnvironmentProvider {
       else if (isOneOf(block.getBlock, Constants.BlockName.MotionSensor)) classOf[TileEntityMotionSensor]
       else if (isOneOf(block.getBlock, Constants.BlockName.Printer)) classOf[tileentity.Printer]
       else if (isOneOf(block.getBlock, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
-      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]
+      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: NodeContainer]
       else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)) classOf[common.component.Screen]
-      else if (isOneOf(block.getBlock, Constants.BlockName.Robot)) classOf[component.Robot]: Class[_ <: Environment]
-      else if (isOneOf(block.getBlock, Constants.BlockName.Waypoint)) classOf[TileEntityWaypoint]: Class[_ <: Environment]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Robot)) classOf[component.Robot]: Class[_ <: NodeContainer]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Waypoint)) classOf[TileEntityWaypoint]: Class[_ <: NodeContainer]
       else null
     case _ =>
-      if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)) classOf[component.Drone]: Class[_ <: Environment]
+      if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)) classOf[component.Drone]: Class[_ <: NodeContainer]
       else null
   }
 

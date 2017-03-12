@@ -3,8 +3,8 @@ package li.cil.oc.server
 import li.cil.oc.api
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.event.NetworkActivityEvent
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{Environment, EnvironmentHost, Node}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common._
 import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity.capabilities.{ColoredImpl, RedstoneAwareImpl, RotatableImpl}
@@ -46,7 +46,7 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendChargerState(t: tileentity.Charger) {
+  def sendChargerState(t: tileentity.TileEntityCharger) {
     val pb = new SimplePacketBuilder(PacketType.ChargerState)
 
     pb.writeTileEntity(t)
@@ -124,7 +124,7 @@ object PacketSender {
   // Avoid spamming the network with disk activity notices.
   val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
 
-  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
+  def sendFileSystemActivity(node: Node, host: Location, name: String) = fileSystemAccessTimeouts.synchronized {
     fileSystemAccessTimeouts.get(node) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
@@ -157,7 +157,7 @@ object PacketSender {
     }
   }
 
-  def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
+  def sendNetworkActivity(node: Node, host: Location) = {
 
     val event = host match {
       case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
@@ -700,7 +700,7 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendTextBufferPowerChange(address: String, hasPower: Boolean, host: EnvironmentHost) {
+  def sendTextBufferPowerChange(address: String, hasPower: Boolean, host: Location) {
     val pb = new SimplePacketBuilder(PacketType.TextBufferPowerChange)
 
     pb.writeUTF(address)

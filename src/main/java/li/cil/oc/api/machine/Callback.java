@@ -1,6 +1,8 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.ComponentNode;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.network.PowerNode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be used for methods in an {@link Environment} to mark
+ * This annotation can be used for methods in an {@link NodeContainer} to mark
  * them for exposure to computers.
  * <p/>
  * Any method exposed like this can be enumerated and called from a computer
@@ -55,7 +57,7 @@ public @interface Callback {
      * Be sure you know what you're doing if you're working with a node's
      * network in a direct callback.
      * <p/>
-     * An exception to that rule is {@link li.cil.oc.api.network.Connector#changeBuffer(double)},
+     * An exception to that rule is {@link PowerNode#changeBuffer(double)},
      * which is synchronized, so you can consume/produce power in direct calls.
      */
     boolean direct() default false;
@@ -75,7 +77,7 @@ public @interface Callback {
      * manner.
      * <p/>
      * Note that the limit does <em>not</em> apply when the method is invoked
-     * via a direct call to {@link li.cil.oc.api.network.Component#invoke(String, Context, Object...)}
+     * via a direct call to {@link ComponentNode#invoke(String, Context, Object...)}
      * from the host side. Also, this limit is per-computer, so the method may
      * be invoked more often than this per tick, if different computers call it.
      * <p/>

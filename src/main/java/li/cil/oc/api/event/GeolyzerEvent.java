@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.util.Location;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
@@ -20,14 +20,14 @@ public abstract class GeolyzerEvent extends Event {
      * The container of the geolyzer component. This can either be the
      * geolyzer block, or something with the geolyzer upgrade (a robot).
      */
-    public final EnvironmentHost host;
+    public final Location host;
 
     /**
      * The options the operation was invoked with.
      */
     public final Map<?, ?> options;
 
-    protected GeolyzerEvent(EnvironmentHost host, Map<?, ?> options) {
+    protected GeolyzerEvent(Location host, Map<?, ?> options) {
         this.host = host;
         this.options = options;
     }
@@ -81,7 +81,7 @@ public abstract class GeolyzerEvent extends Event {
          */
         public final float[] data = new float[64];
 
-        public Scan(EnvironmentHost host, Map<?, ?> options, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        public Scan(Location host, Map<?, ?> options, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
             super(host, options);
             this.minX = minX;
             this.minY = minY;
@@ -110,7 +110,7 @@ public abstract class GeolyzerEvent extends Event {
          */
         public final Map<String, Object> data = new HashMap<String, Object>();
 
-        public Analyze(EnvironmentHost host, Map<?, ?> options, BlockPos pos) {
+        public Analyze(Location host, Map<?, ?> options, BlockPos pos) {
             super(host, options);
             this.pos = pos;
         }

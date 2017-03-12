@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.capabilities;
 
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.tileentity.RedstoneAware;
+import li.cil.oc.api.util.Location;
 import li.cil.oc.integration.util.BundledRedstone;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -10,7 +10,7 @@ import net.minecraft.util.IThreadListener;
 import java.util.Arrays;
 
 public final class RedstoneAwareImpl implements RedstoneAware {
-    public interface RedstoneAwareHost extends EnvironmentHost {
+    public interface RedstoneAwareHost extends Location {
         default void onRedstoneInputChanged(final EnumFacing side, final int oldValue, final int newValue) {
         }
 

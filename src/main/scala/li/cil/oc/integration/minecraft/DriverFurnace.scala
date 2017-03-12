@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment}
+import li.cil.oc.api.network.{EnvironmentItem, ManagedEnvironment, NodeContainerItem}
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeContainer}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
@@ -20,10 +20,10 @@ import net.minecraft.world.World
 object DriverFurnace extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityFurnace]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityFurnace])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): NodeContainerItem =
+    new NodeContainer(world.getTileEntity(pos).asInstanceOf[TileEntityFurnace])
 
-  final class Environment(tileEntity: TileEntityFurnace) extends ManagedTileEntityEnvironment[TileEntityFurnace](tileEntity, "furnace") with NamedBlock {
+  final class NodeContainer(tileEntity: TileEntityFurnace) extends ManagedTileEntityNodeContainer[TileEntityFurnace](tileEntity, "furnace") with NamedBlock {
     override def preferredName = "furnace"
 
     override def priority = 0
@@ -57,7 +57,7 @@ object DriverFurnace extends AbstractDriverTileEntity {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
       if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.FURNACE)
-        classOf[Environment]
+        classOf[NodeContainer]
       else null
     }
   }

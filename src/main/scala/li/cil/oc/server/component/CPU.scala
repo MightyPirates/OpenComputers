@@ -10,11 +10,11 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeContainer}
 
 import scala.collection.convert.WrapAsJava._
 
-class CPU(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo {
+class CPU(val tier: Int) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
     create()
 

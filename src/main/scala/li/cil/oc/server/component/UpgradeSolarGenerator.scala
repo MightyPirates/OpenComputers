@@ -8,16 +8,16 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Environment, EnvironmentHost, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer, AbstractManagedNodeHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeSolarGenerator(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+class UpgradeSolarGenerator(val host: Location) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withConnector().
     create()

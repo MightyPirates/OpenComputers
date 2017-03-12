@@ -1,7 +1,6 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.driver.*;
-import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -57,7 +56,7 @@ public interface DriverAPI {
     /**
      * Register a new environment provider.
      * <p/>
-     * Environment providers are used for mapping item stacks to the type of
+     * NodeContainer providers are used for mapping item stacks to the type of
      * environment that will be created by the stack, either by it being
      * placed in the world and acting as a block component, or by being
      * placed in an component inventory and created by the item's driver.
@@ -105,7 +104,7 @@ public interface DriverAPI {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     @Nullable
-    DriverItem driverFor(final ItemStack stack, final Class<? extends EnvironmentHost> host);
+    DriverItem driverFor(final ItemStack stack, final Class<?> host);
 
     /**
      * Looks up a driver for the specified item stack.

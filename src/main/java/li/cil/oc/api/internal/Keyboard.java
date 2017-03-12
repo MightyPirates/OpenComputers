@@ -1,6 +1,6 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
@@ -14,7 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
  *     final Keyboard keyboard = (Keyboard) li.cil.oc.api.Driver.driverFor(stack).createEnvironment(stack, this);
  * </pre>
  */
-public interface Keyboard extends Environment, Persistable {
+public interface Keyboard extends NodeContainer, Persistable {
     /**
      * Sets a custom usability override.
      * <p/>

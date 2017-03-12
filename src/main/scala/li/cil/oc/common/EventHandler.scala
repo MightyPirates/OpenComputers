@@ -8,7 +8,7 @@ import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.{Environment, Environment, SidedComponent, SidedEnvironment}
+import li.cil.oc.api.network.{NodeContainer, SidedComponent, SidedEnvironment}
 import li.cil.oc.api.tileentity.Colored
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
@@ -107,13 +107,13 @@ object EventHandler {
   @SubscribeEvent
   def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
     event.getTileEntity match {
-      case tileEntity: TileEntity with Environment =>
+      case tileEntity: TileEntity with NodeContainer =>
         event.addCapability(CapabilityEnvironment.ProviderEnvironment, new CapabilityEnvironment.Provider(tileEntity))
       case _ =>
     }
 
     event.getTileEntity match {
-      case tileEntity: TileEntity with Environment with SidedComponent =>
+      case tileEntity: TileEntity with NodeContainer with SidedComponent =>
         event.addCapability(CapabilitySidedComponent.SidedComponent, new CapabilitySidedComponent.Provider(tileEntity))
       case tileEntity: TileEntity with SidedEnvironment =>
         event.addCapability(CapabilitySidedEnvironment.ProviderSidedEnvironment, new CapabilitySidedEnvironment.Provider(tileEntity))

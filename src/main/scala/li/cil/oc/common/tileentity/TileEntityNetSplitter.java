@@ -1,19 +1,20 @@
 package li.cil.oc.common.tileentity;
 
 import li.cil.oc.api.Network;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import li.cil.oc.common.capabilities.CapabilityEnvironment;
 import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
+import li.cil.oc.common.tileentity.traits.LocationTileEntityProxy;
 import li.cil.oc.common.tileentity.traits.OpenSides;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
@@ -24,11 +25,11 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public final class TileEntityNetSplitter extends AbstractTileEntitySingleEnvironment implements BlockActivationListener, OpenSides.OpenSidesHost, RedstoneAwareImpl.RedstoneAwareHost {
+public final class TileEntityNetSplitter extends AbstractTileEntitySingleNodeContainer implements BlockActivationListener, LocationTileEntityProxy, OpenSides.OpenSidesHost, RedstoneAwareImpl.RedstoneAwareHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final Environment environment = new EnvironmentNetSplitter(this);
+    private final NodeContainer nodeContainer = new NodeContainerNetSplitter(this);
     private final RedstoneAwareImpl redstone = new RedstoneAwareImpl(this);
     private final OpenSides sides = new OpenSides(this);
 
@@ -36,36 +37,17 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleEnviron
     // Computed data.
 
     // NBT tag names.
-    private static final String REDSTONE_TAG = "redstone";
-    private static final String SIDES_TAG = "sides";
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntityEnvironmentHost
-
-    @Override
-    protected Environment getEnvironment() {
-        return environment;
-    }
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntity
-
-    @Override
-    protected void readFromNBTCommon(final NBTTagCompound nbt) {
-        super.readFromNBTCommon(nbt);
-        sides.deserializeNBT((NBTTagByte) nbt.getTag(SIDES_TAG));
-        redstone.deserializeNBT((NBTTagCompound) nbt.getTag(REDSTONE_TAG));
-    }
-
-    @Override
-    protected void writeToNBTCommon(final NBTTagCompound nbt) {
-        super.writeToNBTCommon(nbt);
-        nbt.setTag(SIDES_TAG, sides.serializeNBT());
-        nbt.setTag(REDSTONE_TAG, redstone.serializeNBT());
-    }
+    private static final String TAG_REDSTONE = "redstone";
+    private static final String TAG_SIDES = "sides";
 
     // ----------------------------------------------------------------------- //
     // TileEntity
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        redstone.scheduleInputUpdate();
+    }
 
     @Override
     public boolean hasCapability(final Capability<?> capability, @Nullable final EnumFacing facing) {
@@ -85,11 +67,44 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleEnviron
     }
 
     // ----------------------------------------------------------------------- //
+    // AbstractTileEntity
+
+    @Override
+    protected void readFromNBTCommon(final NBTTagCompound nbt) {
+        super.readFromNBTCommon(nbt);
+        sides.deserializeNBT((NBTTagByte) nbt.getTag(TAG_SIDES));
+        redstone.deserializeNBT((NBTTagCompound) nbt.getTag(TAG_REDSTONE));
+    }
+
+    @Override
+    protected void writeToNBTCommon(final NBTTagCompound nbt) {
+        super.writeToNBTCommon(nbt);
+        nbt.setTag(TAG_SIDES, sides.serializeNBT());
+        nbt.setTag(TAG_REDSTONE, redstone.serializeNBT());
+    }
+
+    // ----------------------------------------------------------------------- //
+    // AbstractTileEntitySingleNodeContainer
+
+    @Override
+    protected NodeContainer getNodeContainer() {
+        return nodeContainer;
+    }
+
+    // ----------------------------------------------------------------------- //
     // BlockActivationListener
 
     @Override
     public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
         return sides.onActivated(player, hand, getPos(), side);
+    }
+
+    // ----------------------------------------------------------------------- //
+    // LocationTileEntityProxy
+
+    @Override
+    public TileEntity getTileEntity() {
+        return this;
     }
 
     // ----------------------------------------------------------------------- //
@@ -128,8 +143,8 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleEnviron
 
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentNetSplitter extends AbstractEnvironment {
-        EnvironmentNetSplitter(final EnvironmentHost host) {
+    private static final class NodeContainerNetSplitter extends AbstractTileEntityNodeContainer {
+        NodeContainerNetSplitter(final TileEntity host) {
             super(host);
         }
 

@@ -19,17 +19,17 @@ import li.cil.oc.api.fs.Label
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
 
 import scala.collection.convert.WrapAsJava._
 
-class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends AbstractManagedEnvironment with DeviceInfo {
+class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[Location], val sound: Option[String], val speed: Int) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("drive", Visibility.NEIGHBORS).
     withConnector().

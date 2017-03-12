@@ -30,7 +30,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeContainer}
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
 import net.minecraftforge.fml.common.FMLCommonHandler
@@ -39,7 +39,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
+class InternetCard extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("internet", Visibility.NEIGHBORS).
     create()
@@ -117,14 +117,14 @@ class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (owner.isEmpty && node.getEnvironment.isInstanceOf[Context] && node.isNeighborOf(this.getNode)) {
-      owner = Some(node.getEnvironment.asInstanceOf[Context])
+    if (owner.isEmpty && node.getContainer.isInstanceOf[Context] && node.isNeighborOf(this.getNode)) {
+      owner = Some(node.getContainer.asInstanceOf[Context])
     }
   }
 
   override def onDisconnect(node: Node) = this.synchronized {
     super.onDisconnect(node)
-    if (owner.isDefined && (node == this.getNode || node.getEnvironment.isInstanceOf[Context] && (node.getEnvironment.asInstanceOf[Context] == owner.get))) {
+    if (owner.isDefined && (node == this.getNode || node.getContainer.isInstanceOf[Context] && (node.getContainer.asInstanceOf[Context] == owner.get))) {
       owner = None
       this.synchronized {
         connections.foreach(_.close())

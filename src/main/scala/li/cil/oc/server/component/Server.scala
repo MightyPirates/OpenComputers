@@ -22,7 +22,7 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.server.network.Connector
+import li.cil.oc.server.network.PowerNode
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -35,7 +35,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
+class Server(val rack: api.internal.Rack, val slot: Int) extends NodeContainer with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
   lazy val machine = Machine.create(this)
 
   val getNode = if (!rack.getWorld.isRemote) machine.node else null
@@ -56,7 +56,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
-  // Environment
+  // NodeContainer
 
   override def onConnect(node: Node) {
     if (node == this.getNode) {
@@ -103,7 +103,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def onMachineDisconnect(node: Node) = onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
-  // EnvironmentHost
+  // Environment
 
   override def xPosition = rack.xPosition
 
@@ -191,7 +191,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   }
 
   // ----------------------------------------------------------------------- //
-  // EnvironmentItem
+  // NodeContainerItem
 
   override def canUpdate: Boolean = true
 
@@ -206,7 +206,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
       }
       wasRunning = isRunning
       hadErrored = hasErrored
-      if (tier == Tier.Four) getNode.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+      if (tier == Tier.Four) getNode.asInstanceOf[PowerNode].changeBuffer(Double.PositiveInfinity)
     }
 
     updateComponents()

@@ -13,12 +13,12 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
 import li.cil.oc.api.tileentity.Rotatable
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.item.data.NavigationUpgradeData
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
@@ -29,7 +29,7 @@ import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends AbstractManagedEnvironment with DeviceInfo {
+class UpgradeNavigation(val host: Location with Rotatable) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("navigation", Visibility.NEIGHBORS).
     withConnector().
@@ -91,7 +91,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.getName == "tablet.use") message.getSource.getEnvironment match {
+    if (message.getName == "tablet.use") message.getSource.getContainer match {
       case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           val info = data.mapData(host.getWorld)

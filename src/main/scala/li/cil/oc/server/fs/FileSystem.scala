@@ -11,6 +11,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -116,16 +117,16 @@ object FileSystem extends api.detail.FileSystemAPI {
     if (fileSystem.isReadOnly) fileSystem
     else new ReadOnlyWrapper(fileSystem)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, accessSound: String, speed: Int) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(accessSound), (speed - 1) max 0 min 5))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, accessSound: String, speed: Int) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, accessSound: String, speed: Int) =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, accessSound, speed)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, sound: String) =
     asManagedEnvironment(fileSystem, label, host, sound, 1)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, sound: String) =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =

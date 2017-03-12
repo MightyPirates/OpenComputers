@@ -9,10 +9,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Environment, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -23,7 +23,7 @@ import scala.language.existentials
 
 object Transposer {
 
-  abstract class Common extends AbstractManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
+  abstract class Common extends AbstractManagedNodeContainer with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
     override val getNode = api.Network.newNode(this, Visibility.NETWORK).
       withComponent("transposer").
       withConnector().
@@ -57,7 +57,7 @@ object Transposer {
     }
   }
 
-  class Upgrade(val host: EnvironmentHost) extends Common {
+  class Upgrade(val host: Location) extends Common {
     getNode.setVisibility(Visibility.NEIGHBORS)
 
     override def position = BlockPosition(host)

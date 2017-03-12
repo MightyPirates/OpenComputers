@@ -4,6 +4,8 @@ import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
@@ -29,7 +31,7 @@ abstract class Template {
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
 
-  protected def hostClass: Class[_ <: api.network.EnvironmentHost]
+  protected def hostClass: Class[_ <: Location]
 
   protected def validateComputer(inventory: IInventory): Array[AnyRef] = {
     val hasCase = caseTier(inventory) != Tier.None

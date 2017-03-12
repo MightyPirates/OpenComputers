@@ -5,7 +5,7 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network._
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
-import li.cil.oc.server.driver.CompoundBlockEnvironment
+import li.cil.oc.server.driver.CompoundBlockNodeContainer
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.server.machine.Callbacks
@@ -18,13 +18,13 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-trait Component extends network.Component with Node {
+trait NodeComponent extends NodeComponent with Node {
   def getVisibility = _visibility
 
-  private lazy val callbacks = Callbacks(getEnvironment)
+  private lazy val callbacks = Callbacks(getContainer)
 
-  private lazy val hosts = getEnvironment match {
-    case multi: CompoundBlockEnvironment =>
+  private lazy val hosts = getContainer match {
+    case multi: CompoundBlockNodeContainer =>
       callbacks.map {
         case (method, callback) => callback match {
           case component: ComponentCallback =>
@@ -45,7 +45,7 @@ trait Component extends network.Component with Node {
         }
       }
     case _ => callbacks.map {
-      case (method, callback) => method -> Some(getEnvironment)
+      case (method, callback) => method -> Some(getContainer)
     }
   }
 
@@ -86,12 +86,12 @@ trait Component extends network.Component with Node {
     case Visibility.NEIGHBORS => isNeighborOf(other)
   }
 
-  private def addTo(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getEnvironment match {
+  private def addTo(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getContainer match {
     case machine: Machine => machine.addComponent(this)
     case _ =>
   })
 
-  private def removeFrom(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getEnvironment match {
+  private def removeFrom(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.getContainer match {
     case machine: Machine => machine.removeComponent(this)
     case _ =>
   })

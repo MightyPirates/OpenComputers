@@ -3,14 +3,14 @@ package li.cil.oc.server.network
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api.network.{Environment, NodeHost, Visibility, Node => ImmutableNode}
+import li.cil.oc.api.network.{NodeContainer, NodeHost, Visibility, Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 trait Node extends ImmutableNode {
-  def host: Environment
+  def host: NodeContainer
 
   def reachability: Visibility
 
@@ -48,17 +48,17 @@ trait Node extends ImmutableNode {
 
   def onConnect(node: ImmutableNode) {
     try {
-      getEnvironment.onConnect(node)
+      getContainer.onConnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getEnvironment.getClass.getName}' threw an error while being connected to the component network.", e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getContainer.getClass.getName}' threw an error while being connected to the component network.", e)
     }
   }
 
   def onDisconnect(node: ImmutableNode) {
     try {
-      getEnvironment.onDisconnect(node)
+      getContainer.onDisconnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getEnvironment.getClass.getName}' threw an error while being disconnected from the component network.", e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${getContainer.getClass.getName}' threw an error while being disconnected from the component network.", e)
     }
   }
 
@@ -80,7 +80,7 @@ trait Node extends ImmutableNode {
     }
   }
 
-  override def toString = s"Node($getAddress, $getEnvironment)"
+  override def toString = s"Node($getAddress, $getContainer)"
 }
 
 // We have to mixin the vararg methods individually in the actual

@@ -11,10 +11,10 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Environment, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.Entity
 import net.minecraft.entity.IMerchant
@@ -23,7 +23,7 @@ import net.minecraft.util.math.Vec3d
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
+class UpgradeTrading(val host: Location) extends AbstractManagedNodeContainer with traits.WorldAware with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("trading").
     create()

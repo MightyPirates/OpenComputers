@@ -5,7 +5,8 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Delegator
@@ -28,7 +29,7 @@ object DriverFileSystem extends Item {
     api.Items.get(Constants.ItemName.Floppy)) &&
     (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else Delegator.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
@@ -49,7 +50,7 @@ object DriverFileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
+  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: Location, speed: Int) = if (DimensionManager.getWorld(0) != null) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
       Loot.factories.get(stack.getTagCompound.getString(Settings.namespace + "lootFactory")) match {

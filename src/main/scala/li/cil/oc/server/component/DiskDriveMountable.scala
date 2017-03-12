@@ -13,13 +13,10 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Component
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeHost}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer, AbstractManagedNodeHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
 import li.cil.oc.common.inventory.ComponentInventory
@@ -35,7 +32,7 @@ import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedNodeContainer with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
@@ -57,7 +54,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
-  // Environment
+  // NodeContainer
 
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("disk_drive").
@@ -93,7 +90,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
 
-  override def host: EnvironmentHost = rack
+  override def host: Location = rack
 
   // ----------------------------------------------------------------------- //
   // IInventory
@@ -116,7 +113,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
     super.onItemAdded(slot, stack)
     components(slot) match {
       case Some(environment) => environment.getNode match {
-        case component: Component => component.setVisibility(Visibility.NETWORK)
+        case component: ComponentNode => component.setVisibility(Visibility.NETWORK)
       }
       case _ =>
     }
@@ -135,7 +132,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   }
 
   // ----------------------------------------------------------------------- //
-  // EnvironmentItem
+  // NodeContainerItem
 
   override def canUpdate: Boolean = false
 
@@ -143,13 +140,13 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   // Persistable
 
   override def load(nbt: NBTTagCompound) {
-    super[AbstractManagedEnvironment].load(nbt)
+    super[AbstractManagedNodeContainer].load(nbt)
     super[ComponentInventory].load(nbt)
     connectComponents()
   }
 
   override def save(nbt: NBTTagCompound) {
-    super[AbstractManagedEnvironment].save(nbt)
+    super[AbstractManagedNodeContainer].save(nbt)
     super[ComponentInventory].save(nbt)
   }
 

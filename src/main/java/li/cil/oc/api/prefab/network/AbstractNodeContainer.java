@@ -2,10 +2,11 @@ package li.cil.oc.api.prefab.network;
 
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.*;
+import li.cil.oc.api.util.Location;
 import net.minecraft.nbt.NBTTagCompound;
 
 @SuppressWarnings("UnusedDeclaration")
-public abstract class AbstractEnvironment implements Environment {
+public abstract class AbstractNodeContainer implements NodeContainer {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -15,23 +16,23 @@ public abstract class AbstractEnvironment implements Environment {
     // Computed data.
 
     // NBT tag names.
-    private static final String NODE_TAG = "node";
+    private static final String TAG_NODE = "node";
 
-    private final EnvironmentHost host;
+    private final Location location;
 
     // ----------------------------------------------------------------------- //
 
-    protected AbstractEnvironment(final EnvironmentHost host) {
+    protected AbstractNodeContainer(final Location location) {
         node = createNode();
-        this.host = host;
+        this.location = location;
     }
 
     // ----------------------------------------------------------------------- //
-    // Environment
+    // NodeContainer
 
     @Override
-    public EnvironmentHost getHost() {
-        return host;
+    public Location getLocation() {
+        return location;
     }
 
     @Override
@@ -85,7 +86,7 @@ public abstract class AbstractEnvironment implements Environment {
                 n.remove();
             }
 
-            nbt.setTag(NODE_TAG, n.serializeNBT());
+            nbt.setTag(TAG_NODE, n.serializeNBT());
         }
 
         return nbt;
@@ -108,7 +109,7 @@ public abstract class AbstractEnvironment implements Environment {
      * will be made available) using the lower-cased class name.
      * <p/>
      * You must only create new nodes using the factory method in the network
-     * API, {@link li.cil.oc.api.Network#newNode(Environment, Visibility)}.
+     * API, {@link li.cil.oc.api.Network#newNode(NodeContainer, Visibility)}.
      * <p/>
      * For example:
      * <pre>

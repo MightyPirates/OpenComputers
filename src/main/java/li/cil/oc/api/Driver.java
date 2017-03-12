@@ -1,8 +1,7 @@
 package li.cil.oc.api;
 
 import li.cil.oc.api.driver.*;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.network.NodeContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -21,7 +20,7 @@ import java.util.Set;
  * Drivers are used to make items and third-party blocks available in the mod's
  * component network, and optionally to user programs. If you implement a new
  * block that should interact with the mod's component network it is enough to
- * have it implement {@link Environment} - no driver is
+ * have it implement {@link NodeContainer} - no driver is
  * needed in that case.
  * <p/>
  * Note that these methods should <em>not</em> be called in the pre-init phase,
@@ -85,7 +84,7 @@ public final class Driver {
     /**
      * Register a new environment provider.
      * <p/>
-     * Environment providers are used for mapping item stacks to the type of
+     * NodeContainer providers are used for mapping item stacks to the type of
      * environment that will be created by the stack, either by it being
      * placed in the world and acting as a block component, or by being
      * placed in an component inventory and created by the item's driver.
@@ -142,7 +141,7 @@ public final class Driver {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     @Nullable
-    public static DriverItem driverFor(final ItemStack stack, final Class<? extends EnvironmentHost> host) {
+    public static DriverItem driverFor(final ItemStack stack, final Class<?> host) {
         if (API.driver != null)
             return API.driver.driverFor(stack, host);
         return null;

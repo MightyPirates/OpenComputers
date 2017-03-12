@@ -3,7 +3,8 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -17,7 +18,7 @@ object DriverUpgradeBattery extends Item with HostAware {
     api.Items.get(Constants.ItemName.BatteryUpgradeTier2),
     api.Items.get(Constants.ItemName.BatteryUpgradeTier3))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else new component.UpgradeBattery(tier(stack))
 

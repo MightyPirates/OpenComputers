@@ -27,7 +27,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
+class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge with traits.Computer with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
   override def getNode = null
@@ -44,7 +44,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     create())
 
   if (machine != null) {
-    machine.node.asInstanceOf[Connector].setLocalBufferSize(0)
+    machine.node.asInstanceOf[PowerNode].setLocalBufferSize(0)
     machine.setCostPerTick(Settings.get.microcontrollerCost)
   }
 
@@ -133,7 +133,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- EnumFacing.values if side != getFacing) {
         sidedNode(side) match {
-          case connector: Connector =>
+          case connector: PowerNode =>
             val demand = snooperNode.getGlobalBufferSize - snooperNode.getGlobalBuffer
             val available = demand + connector.changeBuffer(-demand)
             snooperNode.changeBuffer(available)

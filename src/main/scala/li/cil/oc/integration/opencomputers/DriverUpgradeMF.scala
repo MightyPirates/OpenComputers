@@ -2,7 +2,8 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.api.network.{EnvironmentHost, EnvironmentItem, EnvironmentItem}
+import li.cil.oc.api.network.{Environment, EnvironmentHost, NodeContainerItem}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
@@ -18,14 +19,14 @@ object DriverUpgradeMF extends Item with HostAware {
   override def worksWith(stack: ItemStack): Boolean = isOneOf(stack,
     api.Items.get(Constants.ItemName.MFU))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
+  override def worksWith(stack: ItemStack, host: Class[_ <: Location]): Boolean =
     worksWith(stack) && isAdapter(host)
 
   override def slot(stack: ItemStack): String = Slot.Upgrade
 
   override def tier(stack: ItemStack) = Tier.Three
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost): EnvironmentItem = {
+  override def createEnvironment(stack: ItemStack, host: Location): NodeContainerItem = {
     if (host.getWorld != null && !host.getWorld.isRemote) {
       if (stack.hasTagCompound) {
         stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {

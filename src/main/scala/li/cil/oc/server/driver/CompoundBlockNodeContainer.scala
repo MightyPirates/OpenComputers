@@ -9,7 +9,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
-class CompoundBlockEnvironment(val name: String, val environments: (String, EnvironmentItem)*) extends EnvironmentItem {
+class CompoundBlockNodeContainer(val name: String, val environments: (String, NodeContainerItem)*) extends NodeContainerItem {
   // Block drivers with visibility < network usually won't make much sense,
   // but let's play it safe and use the least possible visibility based on
   // the drivers we encapsulate.
@@ -22,7 +22,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Envi
   // Force all wrapped components to be neighbor visible, since we as their
   // only neighbor will take care of all component-related interaction.
   for ((_, environment) <- environments) environment.getNode match {
-    case component: Component => component.setVisibility(Visibility.NEIGHBORS)
+    case component: ComponentNode => component.setVisibility(Visibility.NEIGHBORS)
     case _ =>
   }
 

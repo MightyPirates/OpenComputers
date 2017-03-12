@@ -15,12 +15,12 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class EEPROM extends AbstractManagedEnvironment with DeviceInfo {
+class EEPROM extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NEIGHBORS).
     withComponent("eeprom", Visibility.NEIGHBORS).
     withConnector().

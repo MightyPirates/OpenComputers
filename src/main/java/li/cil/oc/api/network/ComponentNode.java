@@ -24,7 +24,7 @@ import java.util.Collection;
  * according to the component's visibility. Therefore nodes won't receive
  * messages from computer's that should not be able to see them.
  */
-public interface Component extends Node {
+public interface ComponentNode extends Node {
     /**
      * The name of the node.
      * <p/>

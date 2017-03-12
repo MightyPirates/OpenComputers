@@ -49,7 +49,7 @@ object Analyzer {
           analyzeNodes(Array(host.sidedNode(side)), player)
         }
         true
-      case host: Environment =>
+      case host: NodeContainer =>
         if (!world.isRemote) {
           analyzeNodes(Array(host.getNode), player)
         }
@@ -63,7 +63,7 @@ object Analyzer {
     player match {
       case _: FakePlayer => // Nope
       case playerMP: EntityPlayerMP =>
-        if (node != null) node.getEnvironment match {
+        if (node != null) node.getContainer match {
           case machine: Machine =>
             if (machine != null) {
               if (machine.lastError != null) {
@@ -78,7 +78,7 @@ object Analyzer {
           case _ =>
         }
         node match {
-          case connector: Connector =>
+          case connector: PowerNode =>
             if (connector.getLocalBufferSize > 0) {
               playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.getLocalBuffer}%.2f/${connector.getLocalBufferSize}%.2f"))
             }
@@ -86,7 +86,7 @@ object Analyzer {
           case _ =>
         }
         node match {
-          case component: Component =>
+          case component: ComponentNode =>
             playerMP.sendMessage(Localization.Analyzer.ComponentName(component.getName))
           case _ =>
         }

@@ -11,13 +11,13 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
 import li.cil.oc.api.prefab.network
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
@@ -37,7 +37,7 @@ object UpgradeInventoryController {
     override def getDeviceInfo: util.Map[String, String] = deviceInfo
   }
 
-  class Adapter(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldInventoryAnalytics with Common {
+  class Adapter(val host: Location) extends AbstractManagedNodeContainer with traits.WorldInventoryAnalytics with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("inventory_controller", Visibility.NETWORK).
       create()
@@ -49,7 +49,7 @@ object UpgradeInventoryController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Drone(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics with traits.ItemInventoryControl with Common {
+  class Drone(val host: Location with internal.Agent) extends AbstractManagedNodeContainer with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics with traits.ItemInventoryControl with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("inventory_controller", Visibility.NEIGHBORS).
       create()
@@ -67,7 +67,7 @@ object UpgradeInventoryController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
-  class Robot(val host: EnvironmentHost with tileentity.Robot) extends AbstractManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics with traits.ItemInventoryControl with Common {
+  class Robot(val host: Location with tileentity.Robot) extends AbstractManagedNodeContainer with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics with traits.ItemInventoryControl with Common {
     override val getNode = Network.newNode(this, Visibility.NETWORK).
       withComponent("inventory_controller", Visibility.NEIGHBORS).
       create()

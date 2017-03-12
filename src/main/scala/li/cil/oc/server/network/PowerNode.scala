@@ -2,11 +2,11 @@ package li.cil.oc.server.network
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.api.network.{PowerNode, Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
 import net.minecraft.nbt.NBTTagCompound
 
-trait Connector extends network.Connector with Node {
+trait PowerNode extends PowerNode with Node {
   var getLocalBufferSize = 0.0
 
   var getLocalBuffer = 0.0

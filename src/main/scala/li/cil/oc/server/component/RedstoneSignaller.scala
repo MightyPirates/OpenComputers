@@ -6,10 +6,10 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeContainer}
 import net.minecraft.nbt.NBTTagCompound
 
-trait RedstoneSignaller extends AbstractManagedEnvironment {
+trait RedstoneSignaller extends AbstractManagedNodeContainer {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("redstone", Visibility.NEIGHBORS).
     create()

@@ -6,10 +6,10 @@ import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
 import scala.collection.convert.WrapAsJava._
@@ -28,7 +28,7 @@ trait RedstoneBundled extends RedstoneVanilla {
 
   // ----------------------------------------------------------------------- //
 
-  override def redstone: EnvironmentHost with BundledRedstoneAware
+  override def redstone: Location with BundledRedstoneAware
 
   @Callback(direct = true, doc = """function(side:number[, color:number]):number or table -- Get the bundled redstone input on the specified side and with the specified color.""")
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {

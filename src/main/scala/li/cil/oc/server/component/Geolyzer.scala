@@ -8,18 +8,17 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{EnvironmentHost, Message, NodeContainerHost, Visibility}
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.api.event.GeolyzerEvent.Analyze
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
 import li.cil.oc.api.tileentity.Rotatable
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
@@ -35,7 +34,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.language.existentials
 
-class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+class Geolyzer(val host: NodeContainerHost) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("geolyzer").
     withConnector().
@@ -145,7 +144,7 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
-    if (message.getName == "tablet.use") message.getSource.getEnvironment match {
+    if (message.getName == "tablet.use") message.getSource.getContainer match {
       case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           if (getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {

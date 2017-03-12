@@ -16,6 +16,10 @@ object QuantumNetwork {
     tunnels.get(card.tunnel).foreach(_.remove(card))
   }
 
+  def send(from: QuantumNode, packet: Packet) {
+    getEndpoints(from.tunnel).foreach(node => if (node != from) node.receivePacket(packet))
+  }
+
   def getEndpoints(tunnel: String) = tunnels.get(tunnel).fold(Iterable.empty[QuantumNode])(_.keys)
 
   trait QuantumNode {

@@ -1,5 +1,6 @@
 package li.cil.oc.api.network;
 
+import li.cil.oc.api.util.Location;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -28,7 +29,7 @@ import javax.annotation.Nullable;
  *             env.connect();
  *     }
  *
- *     // In the Environment:
+ *     // In the NodeContainer:
  *     void connect() {
  *         if (getNode() != null && getNode().getNetwork() == null) {
  *             api.Network.joinOrCreateNetwork(this);
@@ -51,20 +52,20 @@ import javax.annotation.Nullable;
  * <p/>
  * To interact with environments from user code you will have to do two things:
  * <ol>
- * <li>Make the environment's {@link #getNode} a {@link Component} and ensure
- * its {@link Component#getVisibility} is set to a value where it can
+ * <li>Make the environment's {@link #getNode} a {@link ComponentNode} and ensure
+ * its {@link ComponentNode#getVisibility} is set to a value where it can
  * be seen by computers in the network.</li>
  * <li>Annotate methods in the environment as {@link li.cil.oc.api.machine.Callback}s.</li>
  * </ol>
  */
-public interface Environment extends INBTSerializable<NBTTagCompound> {
+public interface NodeContainer extends INBTSerializable<NBTTagCompound> {
     /**
-     * Get the host of this environment, giving context information about the
+     * Get the location of this instance, giving context information about the
      * environment's position in the world.
      *
-     * @return the environment's host.
+     * @return the container's location.
      */
-    EnvironmentHost getHost();
+    Location getLocation();
 
     /**
      * The node this environment hosts.

@@ -533,7 +533,7 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
     super.onConnect(node)
     if (node == this.getNode) {
       node.connect(bot.getNode)
-      node.asInstanceOf[Connector].setLocalBufferSize(0)
+      node.asInstanceOf[PowerNode].setLocalBufferSize(0)
     }
   }
 
@@ -616,7 +616,7 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
 
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
-    if (node != null) node.getEnvironment match {
+    if (node != null) node.getContainer match {
       case buffer: api.internal.TextBuffer =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {

@@ -12,18 +12,18 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeChunkloader(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
+class UpgradeChunkloader(val host: Location) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("chunkloader").
     withConnector().

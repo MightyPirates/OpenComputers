@@ -8,14 +8,14 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost, Visibility}
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.init.Items
@@ -24,7 +24,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
+class UpgradeExperience(val host: Location with internal.Agent) extends AbstractManagedNodeContainer with DeviceInfo {
   final val MaxLevel = 30
 
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).

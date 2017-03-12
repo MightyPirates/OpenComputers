@@ -1,7 +1,7 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.util.Location;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Node;
 import net.minecraft.item.ItemStack;
 
@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
  * It provides some context for the machine, in particular which world it is
  * running in, to allow querying the time of day, for example.
  */
-public interface MachineHost extends EnvironmentHost {
+public interface MachineHost extends Location {
     /**
      * The machine currently hosted.
      */
@@ -37,7 +37,7 @@ public interface MachineHost extends EnvironmentHost {
     int componentSlot(String address);
 
     /**
-     * This is called on the owner when the machine's {@link Environment#onConnect(Node)}
+     * This is called on the owner when the machine's {@link NodeContainer#onConnect(Node)}
      * method gets called. This can be useful for reacting to network events
      * when the owner does not have its own node (for example, computer cases
      * expose their machine's node as their own node). This callback allows it
@@ -50,7 +50,7 @@ public interface MachineHost extends EnvironmentHost {
 
     /**
      * Like {@link #onMachineConnect(Node)}, except that this is called whenever
-     * the machine's {@link Environment#onDisconnect(Node)} method is called.
+     * the machine's {@link NodeContainer#onDisconnect(Node)} method is called.
      *
      * @param node the node that was disconnected from the network.
      */

@@ -11,7 +11,8 @@ import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
-import li.cil.oc.api.network.{EnvironmentHost, EnvironmentItem}
+import li.cil.oc.api.network.{Environment, EnvironmentHost, NodeContainerItem}
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
@@ -103,7 +104,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case _ => null
     }
 
-  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
+  override def driverFor(stack: ItemStack, host: Class[_ <: Location]) =
     if (stack != null) {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver

@@ -8,14 +8,14 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Environment, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
@@ -27,7 +27,7 @@ import scala.collection.convert.WrapAsScala._
 
 object UpgradeTractorBeam {
 
-  abstract class Common extends AbstractManagedEnvironment with DeviceInfo {
+  abstract class Common extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("tractor_beam").
     create()
@@ -68,7 +68,7 @@ object UpgradeTractorBeam {
   }
   }
 
-  class Player(val owner: EnvironmentHost, val player: () => EntityPlayer) extends Common {
+  class Player(val owner: Location, val player: () => EntityPlayer) extends Common {
     override protected def position = BlockPosition(owner)
 
     override protected def collectItem(item: EntityItem) = item.onCollideWithPlayer(player())

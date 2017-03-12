@@ -1,10 +1,7 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.network.Component;
-import li.cil.oc.api.network.ComponentConnector;
-import li.cil.oc.api.network.Connector;
-import li.cil.oc.api.network.Node;
-import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.*;
+import li.cil.oc.api.network.ComponentNode;
 
 /**
  * Used for building {@link Node}s via {@link li.cil.oc.api.Network#newNode}.
@@ -37,7 +34,7 @@ public interface Builder<T extends Node> {
          * @param name       the name of the component.
          * @param visibility the visibility of the component.
          * @return a builder for a node that is also a component.
-         * @see li.cil.oc.api.network.Component
+         * @see ComponentNode
          */
         ComponentBuilder withComponent(String name, Visibility visibility);
 
@@ -49,7 +46,7 @@ public interface Builder<T extends Node> {
          *
          * @param name the name of the component.
          * @return a builder for a node that is also a component.
-         * @see li.cil.oc.api.network.Component
+         * @see ComponentNode
          */
         ComponentBuilder withComponent(String name);
 
@@ -63,7 +60,7 @@ public interface Builder<T extends Node> {
          *
          * @param bufferSize the size of the local energy buffer.
          * @return a builder for a node that is also a connector.
-         * @see li.cil.oc.api.network.Connector
+         * @see PowerNode
          */
         ConnectorBuilder withConnector(double bufferSize);
 
@@ -74,7 +71,7 @@ public interface Builder<T extends Node> {
          * of zero.
          *
          * @return a builder for a node that is also a connector.
-         * @see li.cil.oc.api.network.Connector
+         * @see PowerNode
          */
         ConnectorBuilder withConnector();
     }
@@ -83,7 +80,7 @@ public interface Builder<T extends Node> {
      * Builder for component nodes. These node can be interacted with from
      * computers in the same network, that can <em>see</em> the component.
      */
-    public static interface ComponentBuilder extends Builder<Component> {
+    public static interface ComponentBuilder extends Builder<ComponentNode> {
         /**
          * Makes the node a connector.
          * <p/>
@@ -94,7 +91,7 @@ public interface Builder<T extends Node> {
          *
          * @param bufferSize the size of the local energy buffer.
          * @return a builder for a node that is also a connector.
-         * @see li.cil.oc.api.network.Connector
+         * @see PowerNode
          */
         ComponentConnectorBuilder withConnector(double bufferSize);
 
@@ -105,7 +102,7 @@ public interface Builder<T extends Node> {
          * of zero.
          *
          * @return a builder for a node that is also a connector.
-         * @see li.cil.oc.api.network.Connector
+         * @see PowerNode
          */
         ComponentConnectorBuilder withConnector();
     }
@@ -114,7 +111,7 @@ public interface Builder<T extends Node> {
      * Builder for connector nodes. These nodes can interact with the energy
      * stored in the network, i.e. increase or reduce it.
      */
-    public static interface ConnectorBuilder extends Builder<Connector> {
+    public static interface ConnectorBuilder extends Builder<PowerNode> {
         /**
          * Makes the node a component.
          * <p/>
@@ -125,7 +122,7 @@ public interface Builder<T extends Node> {
          * @param name       the name of the component.
          * @param visibility the visibility of the component.
          * @return a builder for a node that is also a component.
-         * @see li.cil.oc.api.network.Component
+         * @see ComponentNode
          */
         ComponentConnectorBuilder withComponent(String name, Visibility visibility);
 
@@ -137,7 +134,7 @@ public interface Builder<T extends Node> {
          *
          * @param name the name of the component.
          * @return a builder for a node that is also a component.
-         * @see li.cil.oc.api.network.Component
+         * @see ComponentNode
          */
         ComponentConnectorBuilder withComponent(String name);
     }
@@ -145,6 +142,6 @@ public interface Builder<T extends Node> {
     /**
      * Builder for nodes that are both component <em>and</em> connector node.
      */
-    public static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {
+    public static interface ComponentConnectorBuilder extends Builder<ComponentPowerNode> {
     }
 }

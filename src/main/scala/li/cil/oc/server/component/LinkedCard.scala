@@ -14,14 +14,14 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedNodeContainer}
 import li.cil.oc.server.network.QuantumNetwork
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class LinkedCard extends AbstractManagedEnvironment with QuantumNetwork.QuantumNode with DeviceInfo {
+class LinkedCard extends AbstractManagedNodeContainer with QuantumNetwork.QuantumNode with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("tunnel", Visibility.NEIGHBORS).
     withConnector().

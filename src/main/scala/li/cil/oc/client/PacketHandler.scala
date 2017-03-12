@@ -127,7 +127,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onChargerState(p: PacketParser) =
-    p.readTileEntity[Charger]() match {
+    p.readTileEntity[TileEntityCharger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()

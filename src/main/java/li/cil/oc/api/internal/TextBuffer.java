@@ -1,6 +1,6 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  *     final TextBuffer buffer = (TextBuffer) li.cil.oc.api.Driver.driverFor(stack).createEnvironment(stack, this);
  * </pre>
  */
-public interface TextBuffer extends EnvironmentItem, Persistable {
+public interface TextBuffer extends NodeContainerItem, Persistable {
     /**
      * Controls how much energy the buffer will consume per tick.
      * <p/>

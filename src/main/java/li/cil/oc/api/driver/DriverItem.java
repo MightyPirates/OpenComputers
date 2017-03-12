@@ -1,7 +1,7 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.EnvironmentHost;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerHost;
+import li.cil.oc.api.network.NodeContainerItem;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -41,8 +41,6 @@ public interface DriverItem {
      */
     boolean worksWith(final ItemStack stack);
 
-    boolean isValid(final ItemStack stack, final EnvironmentItem environment);
-
     /**
      * Create a new managed environment interfacing the specified item.
      * <p/>
@@ -67,7 +65,7 @@ public interface DriverItem {
      * @return the environment for that item.
      */
     @Nullable
-    EnvironmentItem createEnvironment(final ItemStack stack, final EnvironmentHost host);
+    NodeContainerItem createEnvironment(final ItemStack stack, final NodeContainerHost host);
 
     /**
      * The slot type of the specified item this driver supports.

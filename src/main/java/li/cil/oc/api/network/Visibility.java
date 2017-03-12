@@ -8,7 +8,7 @@ package li.cil.oc.api.network;
  * avoid unnecessary messages and unauthorized access).
  * <p/>
  * Note that there is a more specific kind of visibility for components. See
- * {@link Component} for more details on that.
+ * {@link ComponentNode} for more details on that.
  */
 public enum Visibility {
     /**

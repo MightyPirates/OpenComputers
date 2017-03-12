@@ -5,7 +5,8 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.internal
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.{Environment, EnvironmentHost}
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.server.component
@@ -15,7 +16,7 @@ object DriverUpgradeExperience extends Item with HostAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.ExperienceUpgrade))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     host match {
       case host: internal.Agent => new component.UpgradeExperience(host)
       case _ => null

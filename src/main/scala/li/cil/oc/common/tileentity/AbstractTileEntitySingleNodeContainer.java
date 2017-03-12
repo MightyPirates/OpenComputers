@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity;
 
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.common.capabilities.CapabilityEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -8,7 +8,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractTileEntitySingleEnvironment extends AbstractTileEntityEnvironmentHost {
+public abstract class AbstractTileEntitySingleNodeContainer extends AbstractTileEntity {
     // ----------------------------------------------------------------------- //
     // Computed data.
 
@@ -29,7 +29,7 @@ public abstract class AbstractTileEntitySingleEnvironment extends AbstractTileEn
     @Override
     public <T> T getCapability(final Capability<T> capability, @Nullable final EnumFacing facing) {
         if (capability == CapabilityEnvironment.ENVIRONMENT_CAPABILITY)
-            return (T) getEnvironment();
+            return (T) getNodeContainer();
         return super.getCapability(capability, facing);
     }
 
@@ -39,16 +39,16 @@ public abstract class AbstractTileEntitySingleEnvironment extends AbstractTileEn
     @Override
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
-        nbt.setTag(TAG_ENVIRONMENT, getEnvironment().serializeNBT());
+        nbt.setTag(TAG_ENVIRONMENT, getNodeContainer().serializeNBT());
     }
 
     @Override
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
-        getEnvironment().deserializeNBT((NBTTagCompound) nbt.getTag(TAG_ENVIRONMENT));
+        getNodeContainer().deserializeNBT((NBTTagCompound) nbt.getTag(TAG_ENVIRONMENT));
     }
 
     // ----------------------------------------------------------------------- //
 
-    protected abstract Environment getEnvironment();
+    protected abstract NodeContainer getNodeContainer();
 }

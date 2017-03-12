@@ -1,8 +1,8 @@
 package li.cil.oc.api.prefab.network;
 
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerItem;
 
-public abstract class AbstractManagedEnvironment extends AbstractEnvironment implements EnvironmentItem {
+public abstract class AbstractManagedNodeContainer extends AbstractNodeContainer implements NodeContainerItem {
     @Override
     public boolean canUpdate() {
         return false;

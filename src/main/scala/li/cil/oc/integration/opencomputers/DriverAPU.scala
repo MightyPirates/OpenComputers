@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.common
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.Delegator
@@ -17,7 +18,7 @@ object DriverAPU extends DriverCPU with HostAware {
     api.Items.get(Constants.ItemName.APUTier2),
     api.Items.get(Constants.ItemName.APUCreative))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
     else gpuTier(stack) match {
       case Tier.One => new component.APU(Tier.One)

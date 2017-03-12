@@ -1,7 +1,7 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.network.*;
-import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.NodeContainer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -11,7 +11,7 @@ public interface NetworkAPI {
     /**
      * Convenience overload for {@link #joinOrCreateNetwork(IBlockAccess, BlockPos)}.
      * <p/>
-     * If the tile entity implements {@link Environment} its one node will be
+     * If the tile entity implements {@link NodeContainer} its one node will be
      * connected to any existing adjacent tile entity nodes. If none exist a
      * new network with the specified tile entity's node as its sole entry.
      *
@@ -122,7 +122,7 @@ public interface NetworkAPI {
      * <p/>
      * Example use:
      * <pre>
-     * class YourThing extends TileEntity implements Environment {
+     * class YourThing extends TileEntity implements NodeContainer {
      *     private ComponentConnector node_ =
      *         api.Network.newNode(this, Visibility.Network).
      *             withComponent("your_thing").
@@ -149,7 +149,7 @@ public interface NetworkAPI {
      * @param reachability the reachability of the node.
      * @return a new node builder.
      */
-    Builder.NodeBuilder newNode(Environment host, Visibility reachability);
+    Builder.NodeBuilder newNode(NodeContainer host, Visibility reachability);
 
     /**
      * Creates a new network packet as it would be sent or received by a

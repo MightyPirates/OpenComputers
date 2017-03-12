@@ -15,7 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManagedEnvironment}
+import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeContainer}
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
@@ -28,7 +28,7 @@ import net.minecraft.util.EnumParticleTypes
 
 import scala.collection.convert.WrapAsJava._
 
-class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with Agent with DeviceInfo {
+class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer with Agent with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
@@ -138,7 +138,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
     super.onConnect(node)
     if (node == this.getNode) {
       romRobot.foreach(fs => {
-        fs.getNode.asInstanceOf[Component].setVisibility(Visibility.NETWORK)
+        fs.getNode.asInstanceOf[ComponentNode].setVisibility(Visibility.NETWORK)
         node.connect(fs.getNode)
       })
     }

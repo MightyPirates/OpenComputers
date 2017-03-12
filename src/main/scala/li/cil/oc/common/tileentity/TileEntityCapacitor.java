@@ -4,10 +4,14 @@ import li.cil.oc.Constants;
 import li.cil.oc.Settings;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
-import li.cil.oc.api.network.*;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
-import li.cil.oc.common.tileentity.traits.NeighborBlockChangeListener;
+import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
+import li.cil.oc.api.network.PowerNode;
+import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
+import li.cil.oc.common.tileentity.traits.NeighborBlockChangeListener;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IThreadListener;
 import net.minecraft.util.math.BlockPos;
@@ -18,18 +22,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironment implements ComparatorOutputOverride, NeighborBlockChangeListener {
+/**
+ * The capacitor provides a varying amount of energy storage, depending on
+ * the number of (directly and indirectly) adjacent other capacitor blocks.
+ * <p>
+ * Network topology consists of a single network-reachable node providing
+ * the capacitor's device information and managing its stored energy.
+ */
+public final class TileEntityCapacitor extends AbstractTileEntitySingleNodeContainer implements ComparatorOutputOverride, NeighborBlockChangeListener {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final EnvironmentCapacitor environment = new EnvironmentCapacitor(this);
+    private final NodeContainerCapacitor environment = new NodeContainerCapacitor(this);
 
     // ----------------------------------------------------------------------- //
-    // AbstractTileEntityEnvironmentHost
+    // TileEntity
 
     @Override
-    protected Environment getEnvironment() {
-        return environment;
+    public void onLoad() {
+        super.onLoad();
+        scheduleCapacityUpdate();
     }
 
     // ----------------------------------------------------------------------- //
@@ -45,12 +57,11 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
     }
 
     // ----------------------------------------------------------------------- //
-    // TileEntity
+    // AbstractTileEntitySingleNodeContainer
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        scheduleCapacityUpdate();
+    protected NodeContainer getNodeContainer() {
+        return environment;
     }
 
     // ----------------------------------------------------------------------- //
@@ -58,7 +69,7 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
 
     @Override
     public int getComparatorValue() {
-        final Connector connector = (Connector) environment.getNode();
+        final PowerNode connector = (PowerNode) environment.getNode();
         if (connector != null) {
             return (int) Math.round(15 * connector.getLocalBuffer() / connector.getLocalBufferSize());
         } else {
@@ -88,11 +99,11 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
             return;
         }
 
-        final double baseBufferSize = Settings.get().bufferCapacitor();
-        final double directAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus() * getCapacitors(getDirectNeighbors()).count();
-        final double indirectAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus() * getCapacitors(getIndirectNeighbors()).count();
+        final double baseBufferSize = Settings.get().bufferCapacitor;
+        final double directAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus * getCapacitors(getDirectNeighbors()).count();
+        final double indirectAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus * getCapacitors(getIndirectNeighbors()).count();
 
-        final Connector connector = (Connector) getEnvironment().getNode();
+        final PowerNode connector = (PowerNode) getNodeContainer().getNode();
         assert connector != null : "updateCapacity called on client side? Don't.";
         connector.setLocalBufferSize(baseBufferSize + directAdjacencyBonus + indirectAdjacencyBonus);
     }
@@ -116,7 +127,7 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
 
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentCapacitor extends AbstractEnvironment implements DeviceInfo {
+    private static final class NodeContainerCapacitor extends AbstractTileEntityNodeContainer implements DeviceInfo {
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
 
         static {
@@ -127,7 +138,7 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
             DEVICE_INFO.put(DeviceAttribute.Capacity, String.valueOf(getMaxCapacity()));
         }
 
-        EnvironmentCapacitor(final EnvironmentHost host) {
+        NodeContainerCapacitor(final TileEntity host) {
             super(host);
         }
 
@@ -144,7 +155,7 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleEnvironme
         }
 
         private static double getMaxCapacity() {
-            return Settings.get().bufferCapacitor() + Settings.get().bufferCapacitorAdjacencyBonus() * (6 + 6 / 2);
+            return Settings.get().bufferCapacitor + Settings.get().bufferCapacitorAdjacencyBonus * (6 + 6 / 2);
         }
     }
 }

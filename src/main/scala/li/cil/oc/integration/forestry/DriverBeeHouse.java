@@ -11,9 +11,9 @@ import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
-import li.cil.oc.api.network.EnvironmentItem;
+import li.cil.oc.api.network.NodeContainerItem;
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity;
-import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.integration.ManagedTileEntityNodeContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -30,12 +30,12 @@ public class DriverBeeHouse extends AbstractDriverTileEntity {
     }
 
     @Override
-    public EnvironmentItem createEnvironment(World world, BlockPos pos, EnumFacing side) {
-        return new Environment((IBeeHousing) world.getTileEntity(pos));
+    public NodeContainerItem createEnvironment(World world, BlockPos pos, EnumFacing side) {
+        return new NodeContainer((IBeeHousing) world.getTileEntity(pos));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> implements NamedBlock {
-        public Environment(final IBeeHousing tileEntity) {
+    public static final class NodeContainer extends ManagedTileEntityNodeContainer<IBeeHousing> implements NamedBlock {
+        public NodeContainer(final IBeeHousing tileEntity) {
             super(tileEntity, "bee_housing");
         }
 

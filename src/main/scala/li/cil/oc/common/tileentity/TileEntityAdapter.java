@@ -8,16 +8,15 @@ import li.cil.oc.api.driver.DeviceInfo;
 import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.internal.Adapter;
 import li.cil.oc.api.network.*;
-import li.cil.oc.api.prefab.network.AbstractEnvironment;
-import li.cil.oc.common.tileentity.traits.BlockActivationListener;
-import li.cil.oc.common.tileentity.traits.NeighborBlockChangeListener;
-import li.cil.oc.common.tileentity.traits.OpenSides;
-import li.cil.oc.common.tileentity.traits.NeighborTileEntityChangeListener;
+import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
+import li.cil.oc.common.tileentity.traits.*;
+import li.cil.oc.util.BlockPosUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -30,22 +29,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment implements Adapter, BlockActivationListener, NeighborBlockChangeListener, NeighborTileEntityChangeListener, Analyzable, ITickable, OpenSides.OpenSidesHost {
+/**
+ * The adapter maintains node containers for blocks ({@link NodeContainerBlock}) for
+ * any block adjacent to the adapter block.
+ * <p>
+ * Network topology consists of the adapter block itself having a network-reachable
+ * node providing the adapter's device information. All created block node containers
+ * are directly connected to this single node.
+ */
+public final class TileEntityAdapter extends AbstractTileEntitySingleNodeContainer implements Adapter, Analyzable, BlockActivationListener, ITickable, NeighborBlockChangeListener, NeighborTileEntityChangeListener, OpenSides.OpenSidesHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final Environment environment = new EnvironmentAdapter(this);
+    private final NodeContainer nodeContainer = new NodeContainerAdapter(this);
     private final OpenSides sides = new OpenSides(this, true);
     private final NBTTagCompound[] blockData = new NBTTagCompound[EnumFacing.VALUES.length];
-    private final EnvironmentBlock[] blockEnvironments = new EnvironmentBlock[EnumFacing.VALUES.length];
+    private final NodeContainerBlock[] blockEnvironments = new NodeContainerBlock[EnumFacing.VALUES.length];
 
     // ----------------------------------------------------------------------- //
     // Computed data.
 
     // NBT tag names.
-    private static final String SIDES_TAG = "sides";
-    private static final String BLOCKS_TAG = "blocks";
+    private static final String TAG_SIDES = "sides";
+    private static final String TAG_BLOCKS = "blocks";
 
+    private final NodeContainerHostTileEntity nodeContainerHost = new NodeContainerHostTileEntity(this);
     private final List<ITickable> updatingEnvironments = new ArrayList<>();
 
     // ----------------------------------------------------------------------- //
@@ -54,55 +62,6 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
         for (int i = 0; i < blockData.length; i++) {
             blockData[i] = new NBTTagCompound();
         }
-    }
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntitySingleEnvironment
-
-    @Override
-    protected Environment getEnvironment() {
-        return environment;
-    }
-
-    // ----------------------------------------------------------------------- //
-    // AbstractTileEntity
-
-    @Override
-    protected void dispose() {
-        super.dispose();
-        for (final EnumFacing side : EnumFacing.VALUES) {
-            disposeEnvironment(side);
-        }
-    }
-
-    @Override
-    protected void readFromNBTCommon(final NBTTagCompound nbt) {
-        super.readFromNBTCommon(nbt);
-        sides.deserializeNBT((NBTTagByte) nbt.getTag(SIDES_TAG));
-        final NBTTagList blocks = nbt.getTagList(BLOCKS_TAG, NBT.TAG_COMPOUND);
-        if (blocks.tagCount() == blockData.length) {
-            for (int i = 0; i < blockData.length; i++) {
-                blockData[i] = blocks.getCompoundTagAt(i);
-            }
-        } else if (blocks.tagCount() > 0) {
-            OpenComputers.log().warn("blockData length mismatch. Not loading data.");
-        }
-    }
-
-    @Override
-    protected void writeToNBTCommon(final NBTTagCompound nbt) {
-        super.writeToNBTCommon(nbt);
-        nbt.setTag(SIDES_TAG, sides.serializeNBT());
-
-        for (final EnumFacing side : EnumFacing.VALUES) {
-            writeToBlockData(side);
-        }
-
-        final NBTTagList blocks = new NBTTagList();
-        for (final NBTTagCompound data : blockData) {
-            blocks.appendTag(data);
-        }
-        nbt.setTag(BLOCKS_TAG, blocks);
     }
 
     // ----------------------------------------------------------------------- //
@@ -119,6 +78,78 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
     }
 
     // ----------------------------------------------------------------------- //
+    // AbstractTileEntity
+
+    @Override
+    protected void dispose() {
+        super.dispose();
+        for (final EnumFacing side : EnumFacing.VALUES) {
+            disposeEnvironment(side);
+        }
+    }
+
+    @Override
+    protected void readFromNBTCommon(final NBTTagCompound nbt) {
+        super.readFromNBTCommon(nbt);
+        sides.deserializeNBT((NBTTagByte) nbt.getTag(TAG_SIDES));
+        final NBTTagList blocks = nbt.getTagList(TAG_BLOCKS, NBT.TAG_COMPOUND);
+        if (blocks.tagCount() == blockData.length) {
+            for (int i = 0; i < blockData.length; i++) {
+                blockData[i] = blocks.getCompoundTagAt(i);
+            }
+        } else if (blocks.tagCount() > 0) {
+            OpenComputers.log().warn("blockData length mismatch. Not loading data.");
+        }
+    }
+
+    @Override
+    protected void writeToNBTCommon(final NBTTagCompound nbt) {
+        super.writeToNBTCommon(nbt);
+        nbt.setTag(TAG_SIDES, sides.serializeNBT());
+
+        for (final EnumFacing side : EnumFacing.VALUES) {
+            writeToBlockData(side);
+        }
+
+        final NBTTagList blocks = new NBTTagList();
+        for (final NBTTagCompound data : blockData) {
+            blocks.appendTag(data);
+        }
+        nbt.setTag(TAG_BLOCKS, blocks);
+    }
+
+    // ----------------------------------------------------------------------- //
+    // AbstractTileEntitySingleNodeContainer
+
+    @Override
+    protected NodeContainer getNodeContainer() {
+        return nodeContainer;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // Analyzable
+
+    @Nullable
+    @Override
+    public Node[] onAnalyze(final EntityPlayer player, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
+        final Node[] nodes = new Node[blockEnvironments.length];
+        for (int i = 0; i < nodes.length; i++) {
+            if (blockEnvironments[i] != null) {
+                nodes[i] = blockEnvironments[i].getNode();
+            }
+        }
+        return nodes;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // BlockActivationListener
+
+    @Override
+    public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
+        return sides.onActivated(player, hand, getPos(), side);
+    }
+
+    // ----------------------------------------------------------------------- //
     // ITickable
 
     @Override
@@ -131,31 +162,6 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
                 updatingEnvironments.get(i).update();
             }
         }
-    }
-
-    // ----------------------------------------------------------------------- //
-    // OpenSidesHost
-
-    @Override
-    public void onSideOpenChanged(final EnumFacing side) {
-        checkEnvironment(side);
-
-        final World world = getWorld();
-        final SoundEvent sound = sides.isSideOpen(side) ? SoundEvents.BLOCK_PISTON_EXTEND : SoundEvents.BLOCK_PISTON_CONTRACT;
-        final Vec3d position = getHostPosition();
-        world.playSound(null, position.xCoord, position.yCoord, position.zCoord, sound, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f);
-        world.notifyNeighborsOfStateChange(getPos(), getBlockType(), false);
-
-//      ServerPacketSender.sendAdapterState(this)
-//      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
-    }
-
-    // ----------------------------------------------------------------------- //
-    // BlockActivationListener
-
-    @Override
-    public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        return sides.onActivated(player, hand, getPos(), side);
     }
 
     // ----------------------------------------------------------------------- //
@@ -179,18 +185,20 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
     }
 
     // ----------------------------------------------------------------------- //
-    // Analyzable
+    // OpenSidesHost
 
-    @Nullable
     @Override
-    public Node[] onAnalyze(final EntityPlayer player, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        final Node[] nodes = new Node[blockEnvironments.length];
-        for (int i = 0; i < nodes.length; i++) {
-            if (blockEnvironments[i] != null) {
-                nodes[i] = blockEnvironments[i].getNode();
-            }
-        }
-        return nodes;
+    public void onSideOpenChanged(final EnumFacing side) {
+        checkEnvironment(side);
+
+        final World world = getWorld();
+        final SoundEvent sound = sides.isSideOpen(side) ? SoundEvents.BLOCK_PISTON_EXTEND : SoundEvents.BLOCK_PISTON_CONTRACT;
+        final Vec3d position = BlockPosUtils.getCenter(getPos());
+        world.playSound(null, position.xCoord, position.yCoord, position.zCoord, sound, SoundCategory.BLOCKS, 0.5f, world.rand.nextFloat() * 0.25f + 0.7f);
+        world.notifyNeighborsOfStateChange(getPos(), getBlockType(), false);
+
+//      ServerPacketSender.sendAdapterState(this)
+//      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
 
     // ----------------------------------------------------------------------- //
@@ -200,7 +208,7 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
             return;
         }
 
-        final Node node = environment.getNode();
+        final Node node = nodeContainer.getNode();
         if (node == null) {
             return;
         }
@@ -218,7 +226,7 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
             return;
         }
 
-        final Node node = environment.getNode();
+        final Node node = nodeContainer.getNode();
         if (node == null || node.getNetwork() == null) {
             return;
         }
@@ -241,13 +249,13 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
 
         if (blockEnvironments[side.ordinal()] != null) {
             if (driver.isValid(world, blockPos, side.getOpposite(), blockEnvironments[side.ordinal()])) {
-                return; // Nothing to change, current environment is still valid.
+                return; // Nothing to change, current nodeContainer is still valid.
             }
             disposeEnvironment(side);
             clearBlockData(side);
         }
 
-        final EnvironmentBlock blockEnvironment = driver.createEnvironment(world, blockPos, side.getOpposite());
+        final NodeContainerBlock blockEnvironment = driver.createEnvironment(world, blockPos, side.getOpposite(), nodeContainerHost);
         if (blockEnvironment == null) {
             return;
         }
@@ -268,7 +276,7 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
 
     private void disposeEnvironment(final EnumFacing side) {
         if (blockEnvironments[side.ordinal()] != null) {
-            final EnvironmentBlock blockEnvironment = blockEnvironments[side.ordinal()];
+            final NodeContainerBlock blockEnvironment = blockEnvironments[side.ordinal()];
 
             blockEnvironments[side.ordinal()] = null;
 
@@ -303,7 +311,7 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
 
     // ----------------------------------------------------------------------- //
 
-    private static final class EnvironmentAdapter extends AbstractEnvironment implements DeviceInfo {
+    private static final class NodeContainerAdapter extends AbstractTileEntityNodeContainer implements DeviceInfo {
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
 
         static {
@@ -315,12 +323,12 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleEnvironment
 
         // ----------------------------------------------------------------------- //
 
-        EnvironmentAdapter(final EnvironmentHost host) {
+        NodeContainerAdapter(final TileEntity host) {
             super(host);
         }
 
         // ----------------------------------------------------------------------- //
-        // AbstractEnvironment
+        // AbstractNodeContainer
 
         @Override
         protected Node createNode() {

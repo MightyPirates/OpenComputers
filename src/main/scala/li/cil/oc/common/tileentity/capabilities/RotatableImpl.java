@@ -1,11 +1,9 @@
 package li.cil.oc.common.tileentity.capabilities;
 
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.tileentity.Rotatable;
 import li.cil.oc.api.util.Pitch;
 import li.cil.oc.api.util.Yaw;
 import li.cil.oc.util.RotationUtils;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.util.EnumFacing;
@@ -14,7 +12,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Arrays;
 
 public final class RotatableImpl implements Rotatable {
-    public interface RotatableHost extends EnvironmentHost {
+    public interface RotatableHost {
         default void onRotationChanged() {
         }
     }
@@ -105,9 +103,8 @@ public final class RotatableImpl implements Rotatable {
 
     @Override
     public boolean rotate(final EnumFacing.Axis around) {
-        final IBlockState state = host.getHostWorld().getBlockState(host.getHostBlockPosition());
-        final EnumFacing[] valid = state.getBlock().getValidRotations(host.getHostWorld(), host.getHostBlockPosition());
-        if (valid != null && ArrayUtils.contains(valid, around)) {
+        final EnumFacing[] valid = getValidRotations();
+        if (ArrayUtils.contains(valid, around)) {
             final EnumFacing rotated = getFacing().rotateAround(around);
             if (rotated == EnumFacing.UP || rotated == EnumFacing.DOWN) {
                 return setPitch(Pitch.fromFacing(rotated));

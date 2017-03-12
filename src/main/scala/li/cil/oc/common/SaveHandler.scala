@@ -9,6 +9,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.util.Location
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
@@ -56,7 +57,7 @@ object SaveHandler {
     scheduleSave(host, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(host: Location, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
     scheduleSave(BlockPosition(host), nbt, name, writeNBT(save))
   }
 

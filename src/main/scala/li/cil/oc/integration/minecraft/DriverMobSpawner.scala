@@ -5,9 +5,9 @@ import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.{EnvironmentItem, EnvironmentItem}
+import li.cil.oc.api.network.NodeContainerItem
 import li.cil.oc.api.prefab.driver.AbstractDriverTileEntity
-import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityEnvironment}
+import li.cil.oc.integration.{ManagedTileEntityEnvironment, ManagedTileEntityNodeContainer}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
@@ -20,10 +20,10 @@ import net.minecraft.world.World
 object DriverMobSpawner extends AbstractDriverTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityMobSpawner]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): EnvironmentItem =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityMobSpawner])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): NodeContainerItem =
+    new NodeContainer(world.getTileEntity(pos).asInstanceOf[TileEntityMobSpawner])
 
-  final class Environment(tileEntity: TileEntityMobSpawner) extends ManagedTileEntityEnvironment[TileEntityMobSpawner](tileEntity, "mob_spawner") with NamedBlock {
+  final class NodeContainer(tileEntity: TileEntityMobSpawner) extends ManagedTileEntityNodeContainer[TileEntityMobSpawner](tileEntity, "mob_spawner") with NamedBlock {
     override def preferredName = "mob_spawner"
 
     override def priority = 0
@@ -37,7 +37,7 @@ object DriverMobSpawner extends AbstractDriverTileEntity {
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
       if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
-        classOf[Environment]
+        classOf[NodeContainer]
       else null
     }
   }

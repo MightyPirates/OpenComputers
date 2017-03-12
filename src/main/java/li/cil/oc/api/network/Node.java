@@ -29,17 +29,17 @@ import javax.annotation.Nullable;
  * your own implementations of this interface. Use the factory methods in the
  * network API to create new node instances and store them in your environment.
  *
- * @see Component
+ * @see ComponentNode
  */
 public interface Node extends INBTSerializable<NBTTagCompound> {
     /**
      * The environment hosting this node.
      * <p/>
-     * For blocks whose tile entities implement {@link Environment} this will
+     * For blocks whose tile entities implement {@link NodeContainer} this will
      * be the tile entity. For all other implementations this will be a managed
      * environment.
      */
-    Environment getEnvironment();
+    NodeContainer getContainer();
 
     /**
      * The reachability of this node.
@@ -57,7 +57,7 @@ public interface Node extends INBTSerializable<NBTTagCompound> {
      * it. Therefore nodes should still verify themselves that they want to
      * accept a message from the message's source.
      * <p/>
-     * A different matter is a {@link Component}'s <tt>visibility</tt>, which is
+     * A different matter is a {@link ComponentNode}'s <tt>visibility</tt>, which is
      * checked before delivering messages a computer tries to send.
      */
     Visibility getReachability();

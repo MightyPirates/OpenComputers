@@ -19,7 +19,7 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
             new container.Assembler(player.inventory, t)
-          case t: tileentity.Charger if id == GuiType.Charger.id =>
+          case t: tileentity.TileEntityCharger if id == GuiType.Charger.id =>
             new container.Charger(player.inventory, t)
           case t: tileentity.Case if id == GuiType.Case.id =>
             new container.Case(player.inventory, t)

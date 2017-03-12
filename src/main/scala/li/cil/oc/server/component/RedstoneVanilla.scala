@@ -7,11 +7,11 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.Location
 import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl
 import li.cil.oc.common.tileentity.traits.{RedstoneAware, RedstoneAwareImpl}
 import li.cil.oc.util.BlockPosition
@@ -22,7 +22,7 @@ import net.minecraft.util.EnumFacing
 import scala.collection.convert.WrapAsJava._
 
 trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
-  def redstone: EnvironmentHost with RedstoneAwareImpl
+  def redstone: Location with RedstoneAwareImpl
 
   // ----------------------------------------------------------------------- //
 

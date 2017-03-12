@@ -60,7 +60,7 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
   @SubscribeEvent
   def onMove(e: RobotMoveEvent.Post) {
     val machineNode = e.agent.machine.node
-    machineNode.getReachableNodes.foreach(_.getEnvironment match {
+    machineNode.getReachableNodes.foreach(_.getContainer match {
       case loader: UpgradeChunkloader => updateLoadedChunk(loader)
       case _ =>
     })

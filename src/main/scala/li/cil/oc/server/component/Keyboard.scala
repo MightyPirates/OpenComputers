@@ -10,11 +10,10 @@ import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal.Keyboard.UsabilityChecker
-import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Message, Visibility}
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network.AbstractManagedEnvironment
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.api.util.Location
 import net.minecraft.entity.player.EntityPlayer
 
 import scala.collection.convert.WrapAsJava._
@@ -23,7 +22,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.Keyboard with DeviceInfo {
+class Keyboard(val host: Location) extends AbstractManagedNodeContainer with api.internal.Keyboard with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("keyboard").
     create()
