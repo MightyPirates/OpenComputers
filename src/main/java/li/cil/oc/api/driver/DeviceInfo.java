@@ -69,7 +69,8 @@ public interface DeviceInfo {
         public static final String Size = "size"; // actual size of the device, e.g. actual usable space on a disk
         public static final String Clock = "clock"; // bus clock (in Hz) of the device, e.g. call speed(s) of a component
         public static final String Width = "width"; // address width of the device, in the broadest sense
-
+		public static final String MaxParts = "maxparts"; // Maximum number of parts for, e.g. a network packet.
+		
         private DeviceAttribute() {
         }
     }
