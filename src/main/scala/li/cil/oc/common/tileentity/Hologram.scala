@@ -418,7 +418,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
         val hadPower = hasPower
         val neededPower = Settings.get.hologramCost * litRatio * scale * Settings.get.tickFrequency
-        hasPower = getNode.tryChangeBuffer(-neededPower)
+        hasPower = getNode.tryChangeEnergy(-neededPower)
         if (hasPower != hadPower) {
           ServerPacketSender.sendHologramPowerChange(this)
         }

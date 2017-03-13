@@ -161,7 +161,7 @@ class UpgradeMF(val host: Location, val coord: BlockPosition, val dir: EnumFacin
       case _ => // No driver
     }
     if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      if (!getNode.tryChangeBuffer(-Settings.get.mfuCost * Settings.get.tickFrequency
+      if (!getNode.tryChangeEnergy(-Settings.get.mfuCost * Settings.get.tickFrequency
         * coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)))) {
         disconnect()
       }

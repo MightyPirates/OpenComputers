@@ -100,14 +100,6 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleNodeCon
     }
 
     // ----------------------------------------------------------------------- //
-    // LocationTileEntityProxy
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
     // OpenSidesHost
 
     @Override
@@ -121,6 +113,14 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleNodeCon
     @Override
     public void onRedstoneInputChanged(final EnumFacing side, final int oldValue, final int newValue) {
         handleStateChanged(redstone.getMaxInput() > 0);
+    }
+
+    // ----------------------------------------------------------------------- //
+    // TileEntityAccess
+
+    @Override
+    public TileEntity getTileEntity() {
+        return this;
     }
 
     // ----------------------------------------------------------------------- //

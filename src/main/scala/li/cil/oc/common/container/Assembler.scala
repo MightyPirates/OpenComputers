@@ -10,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends Player(playerInventory, assembler) {
+class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.TileEntityAssembler) extends Player(playerInventory, assembler) {
   // Computer case.
   {
     val index = inventorySlots.size

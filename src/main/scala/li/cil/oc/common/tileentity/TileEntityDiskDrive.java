@@ -47,18 +47,18 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
+    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
+    private final ItemHandlerDiskDrive inventory = new ItemHandlerDiskDrive(this);
     private final NodeContainer nodeContainer = new NodeContainerDiskDrive(this);
     private final RotatableImpl rotatable = new RotatableImpl(this);
-    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
-    private final ItemHandlerDiskDrive inventory = new ItemHandlerDiskDrive(this, 1);
 
     // ----------------------------------------------------------------------- //
     // Computed data.
 
     // NBT tag names.
-    private static final String TAG_ROTATABLE = "rotatable";
-    private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_COMPONENTS = "components";
+    private static final String TAG_INVENTORY = "inventory";
+    private static final String TAG_ROTATABLE = "rotatable";
 
     private static final int FLOPPY_SLOT = 0;
 
@@ -66,22 +66,37 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
     public long lastAccess;
 
     // ----------------------------------------------------------------------- //
+    // TileEntity
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        components.initialize();
+    }
+
+    // ----------------------------------------------------------------------- //
     // AbstractTileEntity
+
+    @Override
+    protected void dispose() {
+        super.dispose();
+        components.dispose();
+    }
 
     @Override
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
-        nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
-        nbt.setTag(TAG_INVENTORY, inventory.serializeNBT());
-        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
+        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
+        inventory.deserializeNBT((NBTTagList) nbt.getTag(TAG_INVENTORY));
+        rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
     }
 
     @Override
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
-        rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
-        inventory.deserializeNBT((NBTTagList) nbt.getTag(TAG_INVENTORY));
-        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
+        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
+        nbt.setTag(TAG_INVENTORY, inventory.serializeNBT());
+        nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
     }
 
     // ----------------------------------------------------------------------- //
@@ -234,6 +249,9 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
         @Override
         public void onConnect(final Node node) {
             super.onConnect(node);
+            if (node == getNode()) {
+                diskDrive.components.connect();
+            }
         }
 
         // ----------------------------------------------------------------------- //
@@ -254,8 +272,8 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
     }
 
     private static final class ItemHandlerDiskDrive extends ItemHandlerComponents {
-        ItemHandlerDiskDrive(final ItemHandlerHost host, final int size) {
-            super(host, size);
+        ItemHandlerDiskDrive(final ItemHandlerHost host) {
+            super(host, InventorySlots.diskDrive().length);
         }
 
         @Override

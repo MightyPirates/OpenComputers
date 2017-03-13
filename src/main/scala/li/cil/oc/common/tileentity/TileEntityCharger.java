@@ -1,43 +1,50 @@
 package li.cil.oc.common.tileentity;
 
+import com.google.common.collect.Sets;
 import li.cil.oc.Constants;
+import li.cil.oc.Localization;
 import li.cil.oc.Settings;
 import li.cil.oc.api.Nanomachines;
-import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
 import li.cil.oc.api.nanomachines.Controller;
-import li.cil.oc.api.network.Node;
-import li.cil.oc.api.network.NodeContainer;
-import li.cil.oc.api.network.PowerNode;
-import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.network.AbstractNodeContainer;
-import li.cil.oc.api.util.Location;
 import li.cil.oc.common.InventorySlots;
 import li.cil.oc.common.entity.Drone;
+import li.cil.oc.common.inventory.ComponentInventory;
 import li.cil.oc.common.inventory.ItemHandlerComponents;
 import li.cil.oc.common.inventory.ItemHandlerHosted;
 import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
+import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
 import li.cil.oc.common.tileentity.traits.LocationTileEntityProxy;
+import li.cil.oc.common.tileentity.traits.NodeContainerHostTileEntity;
+import li.cil.oc.integration.util.ItemCharge;
 import li.cil.oc.integration.util.Wrench;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.items.IItemHandler;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.*;
 
-public final class TileEntityCharger extends AbstractTileEntitySingleNodeContainer implements BlockActivationListener, ITickable, LocationTileEntityProxy, ItemHandlerHosted.ItemHandlerHost, RedstoneAwareImpl.RedstoneAwareHost, RotatableImpl.RotatableHost {
+public final class TileEntityCharger extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ITickable, LocationTileEntityProxy, ItemHandlerHosted.ItemHandlerHost, RedstoneAwareImpl.RedstoneAwareHost, RotatableImpl.RotatableHost, ComponentInventory.ComponentInventoryHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
+    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
     private final ItemHandlerCharger inventory = new ItemHandlerCharger(this);
     private final NodeContainerCharger nodeContainer = new NodeContainerCharger(this);
     private final RedstoneAwareImpl redstone = new RedstoneAwareImpl(this);
@@ -47,13 +54,17 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     // Computed data.
 
     // NBT tag names.
+    private static final String TAG_COMPONENTS = "components";
     private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_REDSTONE = "redstone";
     private static final String TAG_ROTATABLE = "rotatable";
 
+    private static final int TABLET_SLOT = 0;
+
     private final Set<Chargeable> chargeables = new HashSet<>();
     private boolean invertSignal;
     private double chargeSpeed;
+    private boolean hasEnergy;
 
     // ----------------------------------------------------------------------- //
     // TileEntity
@@ -61,7 +72,35 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     @Override
     public void onLoad() {
         super.onLoad();
+        components.initialize();
         redstone.scheduleInputUpdate();
+    }
+
+    // ----------------------------------------------------------------------- //
+    // AbstractTileEntity
+
+    @Override
+    protected void dispose() {
+        super.dispose();
+        components.dispose();
+    }
+
+    @Override
+    protected void readFromNBTCommon(final NBTTagCompound nbt) {
+        super.readFromNBTCommon(nbt);
+        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
+        inventory.deserializeNBT((NBTTagList) nbt.getTag(TAG_INVENTORY));
+        redstone.deserializeNBT((NBTTagCompound) nbt.getTag(TAG_REDSTONE));
+        rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
+    }
+
+    @Override
+    protected void writeToNBTCommon(final NBTTagCompound nbt) {
+        super.writeToNBTCommon(nbt);
+        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
+        nbt.setTag(TAG_INVENTORY, inventory.serializeNBT());
+        nbt.setTag(TAG_REDSTONE, redstone.serializeNBT());
+        nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
     }
 
     // ----------------------------------------------------------------------- //
@@ -72,35 +111,54 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         return nodeContainer;
     }
 
-//  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-//    player.sendMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
-//    null
-//  }
+    // ----------------------------------------------------------------------- //
+    // Analyzable
+
+    @Nullable
+    @Override
+    public Node[] onAnalyze(final EntityPlayer player, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
+        player.sendMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed));
+        return null;
+    }
 
     // ----------------------------------------------------------------------- //
     // BlockActivationListener
 
     @Override
     public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        if (Wrench.holdsApplicableWrench(player, getPos())) {
+        if (Wrench.holdsApplicableWrench(player, hand, getPos())) {
             if (isServer()) {
                 invertSignal = !invertSignal;
                 updateConfiguration();
-                Wrench.wrenchUsed(player, getPos());
+                Wrench.wrenchUsed(player, hand, getPos());
             }
             return true;
         }
         return false;
     }
 
-//  override def getCurrentState = {
-//    // TODO Refine to only report working if present robots/drones actually *need* power.
-//    if (connectors.nonEmpty) {
-//      if (hasPower) util.EnumSet.of(api.util.StateAware.State.IsWorking)
-//      else util.EnumSet.of(api.util.StateAware.State.CanWork)
-//    }
-//    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
-//  }
+    // ----------------------------------------------------------------------- //
+    // ComparatorOutputOverride
+
+    @Override
+    public int getComparatorValue() {
+        return chargeables.isEmpty() ? 0 : 15;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // ComponentInventoryHost
+
+    @Override
+    public Node getItemNode() {
+        final Node node = nodeContainer.getNode();
+        assert node != null : "getItemNode called on client? Don't.";
+        return node;
+    }
+
+    @Override
+    public IItemHandler getComponentItems() {
+        return inventory;
+    }
 
     // ----------------------------------------------------------------------- //
     // ItemHandlerHost
@@ -115,65 +173,106 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
 
     @Override
     public void update() {
-    // Offset by hashcode to avoid all chargers ticking at the same time.
-    if ((getWorld().getTotalWorldTime() + Math.abs(hashCode())) % 20 == 0) {
-      updateConnectors();
+        // Offset by hashcode to avoid all chargers ticking at the same time.
+        if ((getWorld().getTotalWorldTime() + Math.abs(hashCode())) % 20 == 0) {
+            updateConnectors();
+        }
+
+        if (isServer()) {
+            components.update();
+
+            if (!mayTickEnergy()) {
+                return;
+            }
+
+            final Node node = getNodeContainer().getNode();
+            assert node != null : "Charger node is null. Wat.";
+            final Network network = node.getNetwork();
+            if (network == null) {
+                return;
+            }
+
+            final boolean newHasEnergy = network.getEnergyStored() > 0;
+            if (!newHasEnergy) {
+                if (hasEnergy) {
+                    hasEnergy = false;
+//                    ServerPacketSender.sendChargerState(this);
+                }
+                return;
+            } else {
+                if (!hasEnergy) {
+                    hasEnergy = true;
+//                    ServerPacketSender.sendChargerState(this);
+                }
+            }
+
+            chargeExternal(network);
+
+            chargeInternal(network);
+        }
+
+        if (isClient()) {
+            if (chargeSpeed <= 0) {
+                return;
+            }
+
+            if (!hasEnergy) {
+                return;
+            }
+
+            final boolean shouldEmitParticle = getWorld().getTotalWorldTime() % 10 == 0;
+            if (!shouldEmitParticle) {
+                return;
+            }
+
+            for (final Chargeable chargeable : chargeables) {
+                final Random rng = getWorld().rand;
+                final Vec3d position = chargeable.getPosition();
+                final double radius = chargeable.getRadius();
+                final double theta = rng.nextDouble() * Math.PI;
+                final double phi = rng.nextDouble() * Math.PI * 2;
+                final double dx = radius * Math.sin(theta) * Math.cos(phi);
+                final double dy = radius * Math.sin(theta) * Math.sin(phi);
+                final double dz = radius * Math.cos(theta);
+                getWorld().spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0);
+            }
+        }
     }
 
-//    if (isServer && getWorld.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-//      var canCharge = Settings.get.ignorePower
-//
-//      // Charging of external devices.
-//      {
-//        val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
-//        canCharge ||= charge > 0 && getNode.getGlobalBuffer >= charge * 0.5
-//        if (canCharge) {
-//          connectors.foreach(connector => getNode.changeBuffer(connector.changeBuffer(charge + getNode.changeBuffer(-charge))))
-//        }
-//      }
-//
-//      // Charging of internal devices.
-//      {
-//        val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
-//        canCharge ||= charge > 0 && getNode.getGlobalBuffer >= charge * 0.5
-//        if (canCharge) {
-//          (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (stack != null) {
-//            val offered = charge + getNode.changeBuffer(-charge)
-//            val surplus = ItemCharge.charge(stack, offered)
-//            getNode.changeBuffer(surplus)
-//          })
-//        }
-//      }
-//
-//      if (hasPower && !canCharge) {
-//        hasPower = false
-//        ServerPacketSender.sendChargerState(this)
-//      }
-//      if (!hasPower && canCharge) {
-//        hasPower = true
-//        ServerPacketSender.sendChargerState(this)
-//      }
-//    }
-//
-//    if (isClient && chargeSpeed > 0 && hasPower && getWorld.getWorldInfo.getWorldTotalTime % 10 == 0) {
-//      connectors.foreach(connector => {
-//        val position = connector.pos
-//        val theta = getWorld.rand.nextDouble * Math.PI
-//        val phi = getWorld.rand.nextDouble * Math.PI * 2
-//        val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
-//        val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
-//        val dz = 0.45 * Math.cos(theta)
-//        getWorld.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
-//      })
-//    }
+    private void chargeExternal(final Network network) {
+        if (chargeables.isEmpty()) {
+            return;
+        }
+
+        final double energyAvailable = network.getEnergyStored();
+        final double energyAllowed = Settings.get().chargeRateExternal * chargeSpeed * Settings.get().tickFrequency;
+        final double energyProvided = Math.min(energyAvailable, energyAllowed);
+        if (energyProvided > 0) {
+            final double energyPerChargeable = energyAvailable / chargeables.size();
+            for (final Chargeable chargeable : chargeables) {
+                final double remainder = chargeable.changeEnergy(energyPerChargeable);
+                network.changeEnergy(-(energyPerChargeable - remainder));
+            }
+        }
     }
 
-    // ----------------------------------------------------------------------- //
-    // LocationTileEntityProxy
+    private void chargeInternal(final Network network) {
+        if (inventory.getStackInSlot(TABLET_SLOT).isEmpty()) {
+            return;
+        }
 
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
+        final ItemStack itemStack = inventory.getStackInSlot(TABLET_SLOT);
+        if (!ItemCharge.canCharge(itemStack)) {
+            return;
+        }
+
+        final double energyAvailable = network.getEnergyStored();
+        final double energyAllowed = Settings.get().chargeRateTablet * chargeSpeed * Settings.get().tickFrequency;
+        final double energyProvided = Math.min(energyAvailable, energyAllowed);
+        if (energyProvided > 0) {
+            final double remainder = ItemCharge.charge(itemStack, energyProvided);
+            network.changeEnergy(-(energyProvided - remainder));
+        }
     }
 
     // ----------------------------------------------------------------------- //
@@ -182,6 +281,14 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     @Override
     public void onRedstoneInputChanged(final EnumFacing side, final int oldValue, final int newValue) {
         updateConfiguration();
+    }
+
+    // ----------------------------------------------------------------------- //
+    // TileEntityAccess
+
+    @Override
+    public TileEntity getTileEntity() {
+        return this;
     }
 
     // ----------------------------------------------------------------------- //
@@ -195,36 +302,60 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
 //      ServerPacketSender.sendChargerState(this)
     }
 
-  private void updateConnectors() {
-//    val robots = EnumFacing.values.map(side => {
-//      val blockPos = BlockPosition(this).offset(side)
-//      if (getWorld.blockExists(blockPos)) Option(getWorld.getTileEntity(blockPos))
-//      else None
-//    }).collect {
-//      case Some(t: RobotProxy) => new RobotChargeable(t.robot)
-//    }
-//    val bounds = BlockPosition(this).bounds.expand(1, 1, 1)
-//    val drones = getWorld.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
-//      case drone: Drone => new DroneChargeable(drone)
-//    }
-//
-//    val players = getWorld.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
-//      case player: EntityPlayer if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
-//    }
-//
-//    // Only update list when we have to, keeps pointless block updates to a minimum.
-//
-//    val newConnectors = robots ++ drones ++ players
-//    if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
-//      connectors.clear()
-//      connectors ++= newConnectors
-//      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
-//    }
-  }
+    private void updateConnectors() {
+        final Set<Chargeable> newChargeables = new HashSet<>();
+
+        for (final EnumFacing side : EnumFacing.VALUES) {
+            final BlockPos blockPos = getPos().offset(side);
+            if (getWorld().isBlockLoaded(blockPos)) {
+                final TileEntity tileEntity = getWorld().getTileEntity(blockPos);
+                if (tileEntity instanceof TileEntityRobot) {
+                    final TileEntityRobot robot = (TileEntityRobot) tileEntity;
+                    newChargeables.add(new ChargeableRobot(robot));
+                }
+            }
+        }
+
+        final AxisAlignedBB bounds = new AxisAlignedBB(getPos()).expand(1, 1, 1);
+        final List<Drone> drones = getWorld().getEntitiesWithinAABB(Drone.class, bounds);
+        for (final Drone drone : drones) {
+            newChargeables.add(new ChargeableDrone(drone));
+        }
+
+        final List<EntityPlayer> players = getWorld().getEntitiesWithinAABB(EntityPlayer.class, bounds);
+        for (final EntityPlayer player : players) {
+            newChargeables.add(new ChargeablePlayer(player));
+        }
+
+        // Only update list when we have to, keeps pointless block updates for comparators to a minimum.
+        if (chargeables.isEmpty() && newChargeables.isEmpty()) {
+            return;
+        }
+
+        if (chargeables.size() != newChargeables.size() || !Sets.difference(chargeables, newChargeables).isEmpty()) {
+            chargeables.clear();
+            chargeables.addAll(newChargeables);
+            getWorld().notifyNeighborsOfStateChange(getPos(), getBlockType(), false);
+        }
+    }
 
     // ----------------------------------------------------------------------- //
 
+    private static final class ItemHandlerCharger extends ItemHandlerComponents {
+        ItemHandlerCharger(final ItemHandlerHost host) {
+            super(host, InventorySlots.charger().length);
+        }
+
+        @Override
+        public boolean isItemValidForSlot(final int slot, final ItemStack stack) {
+            return InventorySlots.isValidForSlot(InventorySlots.charger(), slot, stack, TileEntityCharger.class);
+        }
+    }
+
     private static final class NodeContainerCharger extends AbstractNodeContainer implements DeviceInfo {
+        // ----------------------------------------------------------------------- //
+        // Computed data.
+
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
 
         static {
@@ -234,8 +365,24 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
             DEVICE_INFO.put(DeviceAttribute.Product, "PowerUpper");
         }
 
-        NodeContainerCharger(final Location location) {
-            super(location);
+        private final TileEntityCharger charger;
+
+        // ----------------------------------------------------------------------- //
+
+        NodeContainerCharger(final TileEntityCharger charger) {
+            super(charger);
+            this.charger = charger;
+        }
+
+        // ----------------------------------------------------------------------- //
+        // NodeContainer
+
+        @Override
+        public void onConnect(final Node node) {
+            super.onConnect(node);
+            if (node == getNode()) {
+                charger.components.connect();
+            }
         }
 
         // ----------------------------------------------------------------------- //
@@ -243,7 +390,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
 
         @Override
         protected Node createNode() {
-            return Network.newNode(this, Visibility.NONE).withConnector(Settings.get().bufferConverter).create();
+            return li.cil.oc.api.Network.newNode(this, Visibility.NONE).withConnector(Settings.get().bufferConverter).create();
         }
 
         // ----------------------------------------------------------------------- //
@@ -255,38 +402,34 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         }
     }
 
-    private static final class ItemHandlerCharger extends ItemHandlerComponents {
-        ItemHandlerCharger(final ItemHandlerHost host) {
-            super(host, 1);
-        }
-
-        @Override
-        public boolean isItemValidForSlot(final int slot, final ItemStack stack) {
-            return InventorySlots.isValidForSlot(InventorySlots.charger(), slot, stack, TileEntityCharger.class);
-        }
-    }
-
     private interface Chargeable {
         Vec3d getPosition();
 
-        double changeBuffer(final double delta);
+        double getRadius();
+
+        double changeEnergy(final double delta);
     }
 
     private static abstract class AbstractChargeablePowerNode implements Chargeable {
         @Override
-        public double changeBuffer(final double delta) {
-            return getPowerNode().changeBuffer(delta);
+        public double changeEnergy(final double delta) {
+            final Network network = getNetwork();
+            if (network == null) {
+                return delta;
+            }
+            return getNetwork().changeEnergy(delta);
         }
 
-        abstract protected PowerNode getPowerNode();
+        @Nullable
+        abstract protected Network getNetwork();
     }
 
     private static final class ChargeableRobot extends AbstractChargeablePowerNode {
-        private final Robot robot;
+        private final TileEntityRobot robot;
 
         // ----------------------------------------------------------------------- //
 
-        public ChargeableRobot(final Robot robot) {
+        ChargeableRobot(final TileEntityRobot robot) {
             this.robot = robot;
         }
 
@@ -311,9 +454,14 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         // ----------------------------------------------------------------------- //
         // AbstractChargeablePowerNode
 
+        @Nullable
         @Override
-        protected PowerNode getPowerNode() {
-            return (PowerNode) robot.getNode();
+        protected Network getNetwork() {
+            final Node node = robot.getNode();
+            if (node == null) {
+                return null;
+            }
+            return node.getNetwork();
         }
 
         // ----------------------------------------------------------------------- //
@@ -323,6 +471,11 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         public Vec3d getPosition() {
             return robot.getHostPosition();
         }
+
+        @Override
+        public double getRadius() {
+            return 0.45;
+        }
     }
 
     private static final class ChargeableDrone extends AbstractChargeablePowerNode {
@@ -330,7 +483,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
 
         // ----------------------------------------------------------------------- //
 
-        public ChargeableDrone(final Drone drone) {
+        ChargeableDrone(final Drone drone) {
             this.drone = drone;
         }
 
@@ -355,9 +508,14 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         // ----------------------------------------------------------------------- //
         // AbstractChargeablePowerNode
 
+        @Nullable
         @Override
-        protected PowerNode getPowerNode() {
-            return (PowerNode) drone.node();
+        protected Network getNetwork() {
+            final Node node = drone.node();
+            if (node == null) {
+                return null;
+            }
+            return node.getNetwork();
         }
 
         // ----------------------------------------------------------------------- //
@@ -367,6 +525,11 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         public Vec3d getPosition() {
             return drone.getPositionVector();
         }
+
+        @Override
+        public double getRadius() {
+            return 0.25;
+        }
     }
 
     private static final class ChargeablePlayer implements Chargeable {
@@ -374,7 +537,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
 
         // ----------------------------------------------------------------------- //
 
-        public ChargeablePlayer(final EntityPlayer player) {
+        ChargeablePlayer(final EntityPlayer player) {
             this.player = player;
         }
 
@@ -405,7 +568,12 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         }
 
         @Override
-        public double changeBuffer(final double delta) {
+        public double getRadius() {
+            return 1;
+        }
+
+        @Override
+        public double changeEnergy(final double delta) {
             final Controller controller = Nanomachines.getController(player);
             if (controller == null) {
                 return delta;

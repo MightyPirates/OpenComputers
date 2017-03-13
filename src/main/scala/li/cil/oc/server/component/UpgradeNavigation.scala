@@ -72,7 +72,7 @@ class UpgradeNavigation(val host: Location with Rotatable) extends AbstractManag
   def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
     val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange
     if (range <= 0) return result(Array.empty)
-    if (!getNode.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
+    if (!getNode.tryChangeEnergy(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
     context.pause(0.5)
     val position = BlockPosition(host)
     val positionVec = position.toVec3

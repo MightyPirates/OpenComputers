@@ -104,7 +104,7 @@ class RobotAfterimage extends AbstractBlock {
         case world: World => world.isBlockLoaded(tpos)
         case _ => true
       }) world.getTileEntity(tpos) match {
-        case proxy: tileentity.RobotProxy if proxy.robot.moveFrom.contains(pos) => return Some(proxy.robot)
+        case proxy: tileentity.TileEntityRobot if proxy.robot.moveFrom.contains(pos) => return Some(proxy.robot)
         case _ =>
       }
     }

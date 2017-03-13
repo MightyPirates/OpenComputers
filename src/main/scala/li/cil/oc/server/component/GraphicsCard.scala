@@ -332,7 +332,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedNodeContainer with Devi
     else throw new Exception("invalid fill value")
   }
 
-  private def consumePower(n: Double, cost: Double) = getNode.tryChangeBuffer(-n * cost)
+  private def consumePower(n: Double, cost: Double) = getNode.tryChangeEnergy(-n * cost)
 
   // ----------------------------------------------------------------------- //
 

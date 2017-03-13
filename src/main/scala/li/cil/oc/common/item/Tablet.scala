@@ -20,7 +20,7 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.{Connector, Message, Node, PowerNode}
+import li.cil.oc.api.network._
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
@@ -285,7 +285,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   if (!getWorld.isRemote) {
     api.Network.joinNewNetwork(machine.node)
     val charge = Math.max(0, this.data.energy - tablet.getNode.getGlobalBuffer)
-    tablet.getNode.changeBuffer(charge)
+    tablet.getNode.changeEnergy(charge)
     writeToNBT()
   }
 
@@ -404,7 +404,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     }
     if (!world.isRemote) {
       if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-        machine.node.asInstanceOf[PowerNode].changeBuffer(Double.PositiveInfinity)
+        machine.node.asInstanceOf[EnergyNode].changeEnergy(Double.PositiveInfinity)
       }
       machine.update()
       updateComponents()

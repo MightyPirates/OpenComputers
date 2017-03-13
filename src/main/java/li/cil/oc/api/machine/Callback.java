@@ -2,7 +2,7 @@ package li.cil.oc.api.machine;
 
 import li.cil.oc.api.network.ComponentNode;
 import li.cil.oc.api.network.NodeContainer;
-import li.cil.oc.api.network.PowerNode;
+import li.cil.oc.api.network.EnergyNode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -57,7 +57,7 @@ public @interface Callback {
      * Be sure you know what you're doing if you're working with a node's
      * network in a direct callback.
      * <p/>
-     * An exception to that rule is {@link PowerNode#changeBuffer(double)},
+     * An exception to that rule is {@link EnergyNode#changeEnergy(double)},
      * which is synchronized, so you can consume/produce power in direct calls.
      */
     boolean direct() default false;

@@ -2,7 +2,7 @@ package li.cil.oc.server.network
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{PowerNode, Node => ImmutableNode}
+import li.cil.oc.api.network.{EnergyNode, Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
 import net.minecraft.nbt.NBTTagCompound
 

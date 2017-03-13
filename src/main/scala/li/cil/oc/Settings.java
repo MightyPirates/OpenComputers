@@ -3,6 +3,8 @@ package li.cil.oc;
 import com.mojang.authlib.GameProfile;
 import li.cil.oc.integration.Mods;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public final class Settings {
@@ -306,7 +308,7 @@ public final class Settings {
     // ----------------------------------------------------------------------- //
     // integration
     public String[] modBlacklist;
-    public String[] peripheralBlacklist;
+    public Set<String> peripheralBlacklist;
     public String fakePlayerUuid;
     public String fakePlayerName;
     public GameProfile fakePlayerProfile = new GameProfile(UUID.fromString(fakePlayerUuid), fakePlayerName);

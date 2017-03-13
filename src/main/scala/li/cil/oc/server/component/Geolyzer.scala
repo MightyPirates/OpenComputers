@@ -64,7 +64,7 @@ class Geolyzer(val host: NodeContainerHost) extends AbstractManagedNodeContainer
       throw new IllegalArgumentException("location out of bounds")
     }
 
-    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeEnergy(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val event = new GeolyzerEvent.Scan(host, options, minX, minY, minZ, maxX, maxY, maxZ)
@@ -103,7 +103,7 @@ class Geolyzer(val host: NodeContainerHost) extends AbstractManagedNodeContainer
     }
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
 
-    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeEnergy(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val globalPos = BlockPosition(host).offset(globalSide)
@@ -122,7 +122,7 @@ class Geolyzer(val host: NodeContainerHost) extends AbstractManagedNodeContainer
       case _ => side
     }
 
-    if (!getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+    if (!getNode.tryChangeEnergy(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
     val blockPos = BlockPosition(host).offset(globalSide)
@@ -147,7 +147,7 @@ class Geolyzer(val host: NodeContainerHost) extends AbstractManagedNodeContainer
     if (message.getName == "tablet.use") message.getSource.getContainer match {
       case machine: api.machine.Machine => (machine.host, message.getData) match {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
-          if (getNode.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
+          if (getNode.tryChangeEnergy(-Settings.get.geolyzerScanCost)) {
             val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.toBlockPos)
             MinecraftForge.EVENT_BUS.post(event)
             if (!event.isCanceled) {

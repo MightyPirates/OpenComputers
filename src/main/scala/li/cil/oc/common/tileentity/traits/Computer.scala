@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Sound
-import li.cil.oc.common.tileentity.RobotProxy
+import li.cil.oc.common.tileentity.TileEntityRobot
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.agent
@@ -127,7 +127,7 @@ trait Computer extends Environment with ComponentInventory with RotatableImpl wi
 
   override def dispose(): Unit = {
     super.dispose()
-    if (machine != null && !this.isInstanceOf[RobotProxy]) {
+    if (machine != null && !this.isInstanceOf[TileEntityRobot]) {
       machine.stop()
     }
   }
@@ -145,7 +145,7 @@ trait Computer extends Environment with ComponentInventory with RotatableImpl wi
     // This is required for loading auxiliary data (kernel state), because the
     // coordinates in the actual robot won't be set properly, otherwise.
     this match {
-      case proxy: RobotProxy => proxy.robot.setPos(getPos)
+      case proxy: TileEntityRobot => proxy.robot.setPos(getPos)
       case _ =>
     }
     machine.load(nbt.getCompoundTag(ComputerTag))

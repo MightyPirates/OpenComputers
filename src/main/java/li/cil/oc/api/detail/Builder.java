@@ -60,7 +60,7 @@ public interface Builder<T extends Node> {
          *
          * @param bufferSize the size of the local energy buffer.
          * @return a builder for a node that is also a connector.
-         * @see PowerNode
+         * @see EnergyNode
          */
         ConnectorBuilder withConnector(double bufferSize);
 
@@ -71,7 +71,7 @@ public interface Builder<T extends Node> {
          * of zero.
          *
          * @return a builder for a node that is also a connector.
-         * @see PowerNode
+         * @see EnergyNode
          */
         ConnectorBuilder withConnector();
     }
@@ -91,7 +91,7 @@ public interface Builder<T extends Node> {
          *
          * @param bufferSize the size of the local energy buffer.
          * @return a builder for a node that is also a connector.
-         * @see PowerNode
+         * @see EnergyNode
          */
         ComponentConnectorBuilder withConnector(double bufferSize);
 
@@ -102,7 +102,7 @@ public interface Builder<T extends Node> {
          * of zero.
          *
          * @return a builder for a node that is also a connector.
-         * @see PowerNode
+         * @see EnergyNode
          */
         ComponentConnectorBuilder withConnector();
     }
@@ -111,7 +111,7 @@ public interface Builder<T extends Node> {
      * Builder for connector nodes. These nodes can interact with the energy
      * stored in the network, i.e. increase or reduce it.
      */
-    public static interface ConnectorBuilder extends Builder<PowerNode> {
+    public static interface ConnectorBuilder extends Builder<EnergyNode> {
         /**
          * Makes the node a component.
          * <p/>
@@ -142,6 +142,6 @@ public interface Builder<T extends Node> {
     /**
      * Builder for nodes that are both component <em>and</em> connector node.
      */
-    public static interface ComponentConnectorBuilder extends Builder<ComponentPowerNode> {
+    public static interface ComponentConnectorBuilder extends Builder<ComponentEnergyNode> {
     }
 }

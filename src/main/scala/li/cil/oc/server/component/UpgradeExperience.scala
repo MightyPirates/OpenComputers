@@ -70,7 +70,7 @@ class UpgradeExperience(val host: Location with internal.Agent) extends Abstract
       if (level != oldLevel) {
         updateClient()
       }
-      getNode.setLocalBufferSize(Settings.get.bufferPerLevel * level)
+      getNode.setEnergyCapacity(Settings.get.bufferPerLevel * level)
     }
   }
 

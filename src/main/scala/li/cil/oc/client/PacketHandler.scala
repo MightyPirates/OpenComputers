@@ -507,19 +507,19 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotAnimateSwing(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(t) => t.robot.setAnimateSwing(p.readInt())
       case _ => // Invalid packet.
     }
 
   def onRobotAnimateTurn(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(t) => t.robot.setAnimateTurn(p.readByte(), p.readInt())
       case _ => // Invalid packet.
     }
 
   def onRobotAssemblingState(p: PacketParser) =
-    p.readTileEntity[Assembler]() match {
+    p.readTileEntity[TileEntityAssembler]() match {
       case Some(t) =>
         if (p.readBoolean()) t.requiredEnergy = 9001
         else t.requiredEnergy = 0
@@ -527,7 +527,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotInventoryChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(t) =>
         val robot = t.robot
         val slot = p.readInt()
@@ -540,7 +540,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotLightChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(t) => t.robot.info.lightColor = p.readInt()
       case _ => // Invalid packet.
     }
@@ -551,7 +551,7 @@ object PacketHandler extends CommonPacketHandler {
     val y = p.readInt()
     val z = p.readInt()
     val direction = p.readDirection()
-    (p.getTileEntity[RobotProxy](dimension, x, y, z), direction) match {
+    (p.getTileEntity[TileEntityRobot](dimension, x, y, z), direction) match {
       case (Some(t), Some(d)) => t.robot.move(d)
       case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
@@ -561,7 +561,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onRobotSelectedSlotChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(t) => t.robot.selectedSlot = p.readInt()
       case _ => // Invalid packet.
     }

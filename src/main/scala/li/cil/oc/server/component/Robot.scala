@@ -2,29 +2,18 @@ package li.cil.oc.server.component
 
 import java.util
 
-import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{Constants, OpenComputers, Settings, api}
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.network
-import li.cil.oc.api.prefab.network.{AbstractManagedNodeContainer, AbstractManagedNodeContainer}
-import li.cil.oc.common.ToolDurabilityProviders
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.prefab.network.AbstractManagedNodeContainer
+import li.cil.oc.common.{ToolDurabilityProviders, tileentity}
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.{EnumFacing, EnumParticleTypes}
 
 import scala.collection.convert.WrapAsJava._
 
@@ -74,10 +63,9 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
     Option(agent.equipmentInventory.getStackInSlot(0)) match {
       case Some(item) =>
-        ToolDurabilityProviders.getDurability(item) match {
-          case Some(durability) => result(durability)
-          case _ => result(Unit, "tool cannot be damaged")
-        }
+        val durability = ToolDurabilityProviders.getDurability(item)
+        if (!Double.isNaN(durability)) result(durability)
+        else result(Unit, "tool cannot be damaged")
       case _ => result(Unit, "no tool equipped")
     }
   }
@@ -100,7 +88,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
         result(Unit, what)
       }
       else {
-        if (!getNode.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+        if (!getNode.tryChangeEnergy(-Settings.get.robotMoveCost)) {
           result(Unit, "not enough energy")
         }
         else if (agent.move(direction)) {
@@ -108,7 +96,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
           result(true)
         }
         else {
-          getNode.changeBuffer(Settings.get.robotMoveCost)
+          getNode.changeEnergy(Settings.get.robotMoveCost)
           context.pause(0.4)
           PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
           result(Unit, "impossible move")
@@ -120,7 +108,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
   @Callback(doc = "function(clockwise:boolean):boolean -- Rotate in the specified direction.")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (getNode.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (getNode.tryChangeEnergy(-Settings.get.robotTurnCost)) {
       if (clockwise) agent.rotate(EnumFacing.UP)
       else agent.rotate(EnumFacing.DOWN)
       agent.animateTurn(clockwise, Settings.get.turnDelay)

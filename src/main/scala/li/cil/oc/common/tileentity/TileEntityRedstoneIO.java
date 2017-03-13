@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity;
 
-import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.traits.LocationTileEntityProxy;
 import net.minecraft.nbt.NBTTagCompound;
@@ -61,14 +61,6 @@ public final class TileEntityRedstoneIO extends AbstractTileEntitySingleNodeCont
     }
 
     // ----------------------------------------------------------------------- //
-    // LocationTileEntityProxy
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
     // RedstoneAwareHost
 
     @Override
@@ -85,5 +77,13 @@ public final class TileEntityRedstoneIO extends AbstractTileEntitySingleNodeCont
 
     @Override
     public void onRedstoneOutputEnabledChanged() {
+    }
+
+    // ----------------------------------------------------------------------- //
+    // TileEntityAccess
+
+    @Override
+    public TileEntity getTileEntity() {
+        return this;
     }
 }

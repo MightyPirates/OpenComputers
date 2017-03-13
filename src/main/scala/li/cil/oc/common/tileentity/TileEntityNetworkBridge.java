@@ -153,14 +153,6 @@ public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeCo
     }
 
     // ----------------------------------------------------------------------- //
-    // LocationTileEntityProxy
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
     // NetworkBridgeHost
 
     @Override
@@ -192,6 +184,14 @@ public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeCo
         final Node node = nodeContainers[0].getNode();
         assert node != null : "getPacketHopNode called on client side? Don't.";
         return node;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // TileEntityAccess
+
+    @Override
+    public TileEntity getTileEntity() {
+        return this;
     }
 
     // ----------------------------------------------------------------------- //

@@ -166,7 +166,7 @@ public final class Network {
      * Example use:
      * <pre>
      * class YourThing extends TileEntity implements NodeContainer {
-     *     private ComponentPowerNode node_ =
+     *     private ComponentEnergyNode node_ =
      *         api.Network.newNode(this, Visibility.Network).
      *             withComponent("your_thing").
      *             withConnector(32).

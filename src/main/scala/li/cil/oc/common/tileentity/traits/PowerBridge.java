@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits;
 
 import li.cil.oc.Settings;
-import li.cil.oc.api.network.PowerNode;
+import li.cil.oc.api.network.EnergyNode;
 import li.cil.oc.api.util.Location;
 import li.cil.oc.api.network.Network;
 import net.minecraft.util.math.MathHelper;
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  */
 public final class PowerBridge {
     public interface PowerBalancerHost extends Location {
-        Iterable<PowerNode> getConnectorsToBalance();
+        Iterable<EnergyNode> getConnectorsToBalance();
     }
 
     private final PowerBalancerHost host;
@@ -34,10 +34,10 @@ public final class PowerBridge {
             return;
         }
 
-        final Iterable<PowerNode> connectors = host.getConnectorsToBalance();
+        final Iterable<EnergyNode> connectors = host.getConnectorsToBalance();
 
         final Set<Network> networks = new HashSet<>();
-        for (final PowerNode connector : connectors) {
+        for (final EnergyNode connector : connectors) {
             final Network network = connector.getNetwork();
             if (network == null) {
                 continue;

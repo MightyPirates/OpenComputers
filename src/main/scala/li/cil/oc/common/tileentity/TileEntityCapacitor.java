@@ -4,9 +4,9 @@ import li.cil.oc.Constants;
 import li.cil.oc.Settings;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.DeviceInfo;
+import li.cil.oc.api.network.EnergyNode;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.NodeContainer;
-import li.cil.oc.api.network.PowerNode;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
@@ -69,9 +69,9 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleNodeConta
 
     @Override
     public int getComparatorValue() {
-        final PowerNode connector = (PowerNode) environment.getNode();
+        final EnergyNode connector = (EnergyNode) environment.getNode();
         if (connector != null) {
-            return (int) Math.round(15 * connector.getLocalBuffer() / connector.getLocalBufferSize());
+            return (int) Math.round(15 * connector.getEnergyStored() / connector.getEnergyCapacity());
         } else {
             return 0;
         }
@@ -103,9 +103,9 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleNodeConta
         final double directAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus * getCapacitors(getDirectNeighbors()).count();
         final double indirectAdjacencyBonus = Settings.get().bufferCapacitorAdjacencyBonus * getCapacitors(getIndirectNeighbors()).count();
 
-        final PowerNode connector = (PowerNode) getNodeContainer().getNode();
+        final EnergyNode connector = (EnergyNode) getNodeContainer().getNode();
         assert connector != null : "updateCapacity called on client side? Don't.";
-        connector.setLocalBufferSize(baseBufferSize + directAdjacencyBonus + indirectAdjacencyBonus);
+        connector.setEnergyCapacity(baseBufferSize + directAdjacencyBonus + indirectAdjacencyBonus);
     }
 
     private Stream<TileEntityCapacitor> getCapacitors(final Stream<BlockPos> positions) {

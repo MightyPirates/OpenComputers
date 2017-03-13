@@ -52,13 +52,13 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
 
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
+      case proxy: tileentity.TileEntityRobot => proxy.robot.info.copyItemStack()
       case _ => null
     }
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy =>
+      case proxy: tileentity.TileEntityRobot =>
         val robot = proxy.robot
         val bounds = new AxisAlignedBB(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
         if (robot.isAnimatingMove) {
@@ -125,8 +125,8 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
 
   override def createNewTileEntity(world: World, metadata: Int) = {
     moving.get match {
-      case Some(robot) => new tileentity.RobotProxy(robot)
-      case _ => new tileentity.RobotProxy()
+      case Some(robot) => new tileentity.TileEntityRobot(robot)
+      case _ => new tileentity.TileEntityRobot()
     }
   }
 
@@ -149,7 +149,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
     // this will lead to dupes, but in some initial testing this wasn't the
     // case anywhere (TE autonomous activator, CC turtles).
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy =>
+      case proxy: tileentity.TileEntityRobot =>
         val robot = proxy.robot
         if (robot.getNode != null) {
           // Update: even more special hack! As discussed here http://git.io/IcNAyg
@@ -177,7 +177,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
   override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d) = {
     val bounds = getCollisionBoundingBox(state, world, pos)
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
+      case proxy: tileentity.TileEntityRobot if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
       case _ => super.collisionRayTrace(state, world, pos, start, end)
     }
   }
@@ -191,7 +191,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
         // change since this player got into range he might have the wrong one,
         // so we send him the current one just in case.
         world.getTileEntity(pos) match {
-          case proxy: tileentity.RobotProxy if proxy.robot.getNode.getNetwork != null =>
+          case proxy: tileentity.TileEntityRobot if proxy.robot.getNode.getNetwork != null =>
             PacketSender.sendRobotSelectedSlotChange(proxy.robot)
             player.openGui(OpenComputers, GuiType.Robot.id, world, pos.getX, pos.getY, pos.getZ)
           case _ =>
@@ -202,7 +202,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
     else if (heldItem == null) {
       if (!world.isRemote) {
         world.getTileEntity(pos) match {
-          case proxy: tileentity.RobotProxy if !proxy.machine.isRunning && proxy.isUsableByPlayer(player) => proxy.machine.start()
+          case proxy: tileentity.TileEntityRobot if !proxy.machine.isRunning && proxy.isUsableByPlayer(player) => proxy.machine.start()
           case _ =>
         }
       }
@@ -214,9 +214,9 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
   override def onBlockPlacedBy(world: World, pos: BlockPos, state: IBlockState, entity: EntityLivingBase, stack: ItemStack) {
     super.onBlockPlacedBy(world, pos, state, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(pos)) match {
-      case (player: agent.Player, proxy: tileentity.RobotProxy) =>
+      case (player: agent.Player, proxy: tileentity.TileEntityRobot) =>
         Some((proxy.robot, player.agent.ownerName, player.agent.ownerUUID))
-      case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
+      case (player: EntityPlayer, proxy: tileentity.TileEntityRobot) =>
         Some((proxy.robot, player.getName, player.getGameProfile.getId))
       case _ => None
     }) match {
@@ -224,7 +224,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
         robot.ownerName = owner
         robot.ownerUUID = agent.Player.determineUUID(Option(uuid))
         robot.info.load(stack)
-        robot.bot.getNode.changeBuffer(robot.info.robotEnergy - robot.bot.getNode.getLocalBuffer)
+        robot.bot.getNode.changeEnergy(robot.info.robotEnergy - robot.bot.getNode.getEnergyStored)
         robot.updateInventorySize()
       case _ =>
     }
@@ -232,7 +232,7 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
 
   override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean = {
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy =>
+      case proxy: tileentity.TileEntityRobot =>
         val robot = proxy.robot
         // Only allow breaking creative tier robots by allowed users.
         // Unlike normal robots, griefing isn't really a valid concern

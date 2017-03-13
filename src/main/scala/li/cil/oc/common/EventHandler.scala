@@ -237,7 +237,7 @@ object EventHandler {
         if (c.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !c.canInteract(e.getPlayer.getName))) {
           e.setCanceled(true)
         }
-      case r: tileentity.RobotProxy =>
+      case r: tileentity.TileEntityRobot =>
         val robot = r.robot
         if (robot.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !robot.canInteract(e.getPlayer.getName))) {
           e.setCanceled(true)

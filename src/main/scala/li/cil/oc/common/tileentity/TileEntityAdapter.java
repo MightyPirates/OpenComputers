@@ -41,17 +41,17 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleNodeContain
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final NodeContainer nodeContainer = new NodeContainerAdapter(this);
-    private final OpenSides sides = new OpenSides(this, true);
     private final NBTTagCompound[] blockData = new NBTTagCompound[EnumFacing.VALUES.length];
     private final NodeContainerBlock[] blockEnvironments = new NodeContainerBlock[EnumFacing.VALUES.length];
+    private final NodeContainer nodeContainer = new NodeContainerAdapter(this);
+    private final OpenSides sides = new OpenSides(this, true);
 
     // ----------------------------------------------------------------------- //
     // Computed data.
 
     // NBT tag names.
-    private static final String TAG_SIDES = "sides";
     private static final String TAG_BLOCKS = "blocks";
+    private static final String TAG_SIDES = "sides";
 
     private final NodeContainerHostTileEntity nodeContainerHost = new NodeContainerHostTileEntity(this);
     private final List<ITickable> updatingEnvironments = new ArrayList<>();
@@ -91,7 +91,6 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleNodeContain
     @Override
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
-        sides.deserializeNBT((NBTTagByte) nbt.getTag(TAG_SIDES));
         final NBTTagList blocks = nbt.getTagList(TAG_BLOCKS, NBT.TAG_COMPOUND);
         if (blocks.tagCount() == blockData.length) {
             for (int i = 0; i < blockData.length; i++) {
@@ -100,22 +99,21 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleNodeContain
         } else if (blocks.tagCount() > 0) {
             OpenComputers.log().warn("blockData length mismatch. Not loading data.");
         }
+        sides.deserializeNBT((NBTTagByte) nbt.getTag(TAG_SIDES));
     }
 
     @Override
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
-        nbt.setTag(TAG_SIDES, sides.serializeNBT());
-
         for (final EnumFacing side : EnumFacing.VALUES) {
             writeToBlockData(side);
         }
-
         final NBTTagList blocks = new NBTTagList();
         for (final NBTTagCompound data : blockData) {
             blocks.appendTag(data);
         }
         nbt.setTag(TAG_BLOCKS, blocks);
+        nbt.setTag(TAG_SIDES, sides.serializeNBT());
     }
 
     // ----------------------------------------------------------------------- //

@@ -13,7 +13,7 @@ object Blocks {
   def init() {
     GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "accessPoint")
     GameRegistry.registerTileEntity(classOf[tileentity.TileEntityAdapter], Settings.namespace + "adapter")
-    GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
+    GameRegistry.registerTileEntity(classOf[tileentity.TileEntityAssembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[TileEntityCable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[TileEntityCapacitor], Settings.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
@@ -33,7 +33,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[TileEntityRedstoneIO], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.Relay], Settings.namespace + "relay")
-    GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
+    GameRegistry.registerTileEntity(classOf[tileentity.TileEntityRobot], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Rack], Settings.namespace + "rack", Settings.namespace + "serverRack")
@@ -42,7 +42,7 @@ object Blocks {
 
     Items.registerBlock(new AccessPoint(), Constants.BlockName.AccessPoint)
     Recipes.addBlock(new BlockAdapter(), Constants.BlockName.Adapter, "oc:adapter")
-    Recipes.addBlock(new Assembler(), Constants.BlockName.Assembler, "oc:assembler")
+    Recipes.addBlock(new BlockAssembler(), Constants.BlockName.Assembler, "oc:assembler")
     Recipes.addBlock(new BlockCable(), Constants.BlockName.Cable, "oc:cable")
     Recipes.addBlock(new BlockCapacitor(), Constants.BlockName.Capacitor, "oc:capacitor")
     Recipes.addBlock(new Case(Tier.One), Constants.BlockName.CaseTier1, "oc:case1")

@@ -43,13 +43,13 @@ abstract class DataCard extends AbstractManagedNodeContainer with DeviceInfo {
     val data = args.checkByteArray(0)
     if (data.length > Settings.get.dataCardHardLimit) throw new IllegalArgumentException("data size limit exceeded")
     val cost = baseCost + data.length * byteCost
-    if (!getNode.tryChangeBuffer(-cost)) throw new Exception("not enough energy")
+    if (!getNode.tryChangeEnergy(-cost)) throw new Exception("not enough energy")
     if (data.length > Settings.get.dataCardSoftLimit) context.pause(Settings.get.dataCardTimeout)
     data
   }
 
   protected def checkCost(baseCost: Double): Unit = {
-    if (!getNode.tryChangeBuffer(-baseCost)) throw new Exception("not enough energy")
+    if (!getNode.tryChangeEnergy(-baseCost)) throw new Exception("not enough energy")
   }
 
   protected def trivialCost(context: Context, args: Arguments) =

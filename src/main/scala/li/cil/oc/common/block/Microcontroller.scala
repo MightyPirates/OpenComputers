@@ -104,14 +104,14 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
     super.doCustomInit(tileEntity, player, stack)
     if (!tileEntity.getWorld.isRemote) {
       tileEntity.info.load(stack)
-      tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.getLocalBuffer)
+      tileEntity.snooperNode.changeEnergy(tileEntity.info.storedEnergy - tileEntity.snooperNode.getEnergyStored)
     }
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Microcontroller, player: EntityPlayer, willHarvest: Boolean): Unit = {
     super.doCustomDrops(tileEntity, player, willHarvest)
     tileEntity.saveComponents()
-    tileEntity.info.storedEnergy = tileEntity.snooperNode.getLocalBuffer.toInt
+    tileEntity.info.storedEnergy = tileEntity.snooperNode.getEnergyStored.toInt
     Block.spawnAsEntity(tileEntity.getWorld, tileEntity.getPos, tileEntity.info.createItemStack())
   }
 }

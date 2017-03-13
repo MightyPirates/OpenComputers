@@ -48,7 +48,7 @@ class UpgradeSolarGenerator(val host: Location) extends AbstractManagedNodeConta
       isSunShining = isSunVisible
     }
     if (isSunShining) {
-      getNode.changeBuffer(Settings.get.solarGeneratorEfficiency)
+      getNode.changeEnergy(Settings.get.solarGeneratorEfficiency)
     }
   }
 

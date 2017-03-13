@@ -499,11 +499,11 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
              Machine.State.Stopping |
              Machine.State.Stopped => // No power consumption.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
-          if (!getNode.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
+          if (!getNode.tryChangeEnergy(-cost * Settings.get.sleepCostFactor)) {
             crash("gui.Error.NoEnergy")
           }
         case _ =>
-          if (!getNode.tryChangeBuffer(-cost)) {
+          if (!getNode.tryChangeEnergy(-cost)) {
             crash("gui.Error.NoEnergy")
           }
       })

@@ -17,7 +17,7 @@ abstract class GuiHandler extends IGuiHandler {
         world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
           case t: tileentity.TileEntityAdapter if id == GuiType.Adapter.id =>
             new container.Adapter(player.inventory, t)
-          case t: tileentity.Assembler if id == GuiType.Assembler.id =>
+          case t: tileentity.TileEntityAssembler if id == GuiType.Assembler.id =>
             new container.Assembler(player.inventory, t)
           case t: tileentity.TileEntityCharger if id == GuiType.Charger.id =>
             new container.Charger(player.inventory, t)
@@ -33,7 +33,7 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Raid(player.inventory, t)
           case t: tileentity.Relay if id == GuiType.Relay.id =>
             new container.Relay(player.inventory, t)
-          case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
+          case t: tileentity.TileEntityRobot if id == GuiType.Robot.id =>
             new container.Robot(player.inventory, t.robot)
           case t: tileentity.Rack if id == GuiType.Rack.id =>
             new container.Rack(player.inventory, t)

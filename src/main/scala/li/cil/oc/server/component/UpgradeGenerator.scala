@@ -126,7 +126,7 @@ class UpgradeGenerator(val host: Location with internal.Agent) extends AbstractM
       if (remainingTicks == 0 && inventory.isEmpty) {
         updateClient()
       }
-      getNode.changeBuffer(Settings.get.generatorEfficiency)
+      getNode.changeEnergy(Settings.get.generatorEfficiency)
     }
   }
 

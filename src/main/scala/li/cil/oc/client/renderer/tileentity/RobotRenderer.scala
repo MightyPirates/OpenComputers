@@ -32,7 +32,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 import scala.language.implicitConversions
 
-object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
+object RobotRenderer extends TileEntitySpecialRenderer[tileentity.TileEntityRobot] {
   private val displayList = GLAllocation.generateDisplayLists(2)
 
   private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
@@ -289,7 +289,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
     }
   }
 
-  override def renderTileEntityAt(proxy: tileentity.RobotProxy, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(proxy: tileentity.TileEntityRobot, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val robot = proxy.robot

@@ -486,7 +486,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendRobotAssembling(t: tileentity.Assembler, assembling: Boolean) {
+  def sendRobotAssembling(t: tileentity.TileEntityAssembler, assembling: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.RobotAssemblingState)
 
     pb.writeTileEntity(t)

@@ -161,7 +161,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRobotAssemblerStart(t: Assembler) {
+  def sendRobotAssemblerStart(t: TileEntityAssembler) {
     val pb = new SimplePacketBuilder(PacketType.RobotAssemblerStart)
 
     pb.writeTileEntity(t)

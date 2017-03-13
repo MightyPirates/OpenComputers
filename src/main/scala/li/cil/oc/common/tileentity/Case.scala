@@ -9,7 +9,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
-import li.cil.oc.api.network.{Connector, PowerNode}
+import li.cil.oc.api.network.{Connector, EnergyNode, PowerNode}
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
@@ -50,7 +50,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != getFacing && machine != null) machine.node.asInstanceOf[PowerNode] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing && machine != null) machine.node.asInstanceOf[EnergyNode] else null)
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
@@ -65,7 +65,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def updateEntity() {
     if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
-      getNode.asInstanceOf[PowerNode].changeBuffer(Double.PositiveInfinity)
+      getNode.asInstanceOf[EnergyNode].changeEnergy(Double.PositiveInfinity)
     }
     super.updateEntity()
   }

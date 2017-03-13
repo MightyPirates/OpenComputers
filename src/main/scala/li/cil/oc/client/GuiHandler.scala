@@ -28,7 +28,7 @@ object GuiHandler extends CommonGuiHandler {
         world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
           case t: tileentity.TileEntityAdapter if id == GuiType.Adapter.id =>
             new gui.Adapter(player.inventory, t)
-          case t: tileentity.Assembler if id == GuiType.Assembler.id =>
+          case t: tileentity.TileEntityAssembler if id == GuiType.Assembler.id =>
             new gui.Assembler(player.inventory, t)
           case t: tileentity.Case if id == GuiType.Case.id =>
             new gui.Case(player.inventory, t)
@@ -46,7 +46,7 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Raid(player.inventory, t)
           case t: tileentity.Relay if id == GuiType.Relay.id =>
             new gui.Relay(player.inventory, t)
-          case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
+          case t: tileentity.TileEntityRobot if id == GuiType.Robot.id =>
             new gui.Robot(player.inventory, t.robot)
           case t: tileentity.Screen if id == GuiType.Screen.id =>
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)

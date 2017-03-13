@@ -56,7 +56,7 @@ private[oc] class Proxy extends CommonProxy {
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityAdapter], AdapterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], AssemblerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityAssembler], AssemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityCharger], ChargerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
@@ -75,7 +75,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], new SwitchRenderer[tileentity.Switch])
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], new SwitchRenderer[tileentity.AccessPoint])
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], new SwitchRenderer[tileentity.Relay])
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityRobot], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityTransposer], TransposerRenderer)
 

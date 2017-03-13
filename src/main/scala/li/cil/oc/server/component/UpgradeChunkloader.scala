@@ -45,7 +45,7 @@ class UpgradeChunkloader(val host: Location) extends AbstractManagedNodeContaine
   override def update() {
     super.update()
     if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
-      if (!getNode.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
+      if (!getNode.tryChangeEnergy(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
         ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
           case _: Throwable => // Ignored.
         })

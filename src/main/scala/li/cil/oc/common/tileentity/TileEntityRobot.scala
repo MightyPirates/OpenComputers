@@ -27,7 +27,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with RotatableImpl with ISidedInventory with IFluidHandler with internal.Robot {
+class TileEntityRobot(val robot: Robot) extends traits.Computer with traits.PowerInformation with RotatableImpl with ISidedInventory with IFluidHandler with internal.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //

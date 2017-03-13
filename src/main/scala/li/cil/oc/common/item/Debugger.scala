@@ -63,15 +63,15 @@ object Debugger extends NodeContainer {
   }
 
   private def nodeInfo(node: Node) = s"{address = ${node.getAddress}, reachability = ${node.getReachability.name}" + (node match {
-    case componentConnector: ComponentPowerNode => componentInfo(componentConnector) + connectorInfo(componentConnector)
+    case componentConnector: ComponentEnergyNode => componentInfo(componentConnector) + connectorInfo(componentConnector)
     case component: ComponentNode => componentInfo(component)
-    case connector: PowerNode => connectorInfo(connector)
+    case connector: EnergyNode => connectorInfo(connector)
     case _ =>
   }) + "}"
 
   private def componentInfo(component: ComponentNode) = s", type = component, name = ${component.getName}, visibility = ${component.getVisibility.name}"
 
-  private def connectorInfo(connector: PowerNode) = s", type = connector, buffer = ${connector.getLocalBuffer}, bufferSize = ${connector.getLocalBufferSize}"
+  private def connectorInfo(connector: EnergyNode) = s", type = connector, buffer = ${connector.getEnergyStored}, bufferSize = ${connector.getEnergyCapacity}"
 
   private def messageInfo(message: Message) = s"{name = ${message.getName()}, source = ${nodeInfo(message.getSource)}, data = [${message.getData.mkString(", ")}]}"
 }

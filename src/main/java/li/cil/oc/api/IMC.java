@@ -157,50 +157,6 @@ public final class IMC {
     }
 
     /**
-     * Register a new template for the disassembler.
-     * <p/>
-     * The <tt>disassemble</tt> callback gets passed the item stack to
-     * disassemble, and a list of inferred ingredients (based on crafting
-     * recipes). This is useful for not having to compute those yourself when
-     * you just want to add a number of items from an internal inventory to
-     * the output (e.g. for servers it's the components in the server).
-     * <p/>
-     * Signature of callbacks must be:
-     * <pre>
-     * boolean select(ItemStack stack)
-     * Object disassemble(ItemStack stack, ItemStack[] ingredients)
-     * </pre>
-     * <p/>
-     * Where the <code>Object</code> returned from the <code>disassemble</code>
-     * method must be one of the following:
-     * <ul>
-     * <li><code>ItemStack[]</code>: list of resulting items, subject to random failure.</li>
-     * <li><code>Object[]{ItemStack[],ItemStack[]}</code>: two lists of resulting items, the first being subject to
-     * random failure, the second being guaranteed drops (e.g. for item inventory contents).</li>
-     * </ul>
-     * <p/>
-     * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
-     * For example: <tt>com.example.Integration.callbackMethod</tt>.
-     *
-     * @param name        the name of the handler (e.g. name of the item
-     *                    being handled). Optional, only used in logging.
-     * @param select      callback used to determine if the template
-     *                    applies to an item.
-     * @param disassemble callback used to apply a template and extract
-     *                    ingredients from an item.
-     */
-    public static void registerDisassemblerTemplate(final String name, final String select, final String disassemble) {
-        final NBTTagCompound nbt = new NBTTagCompound();
-        if (name != null) {
-            nbt.setString("name", name);
-        }
-        nbt.setString("select", select);
-        nbt.setString("disassemble", disassemble);
-
-        FMLInterModComms.sendMessage(MOD_ID, "registerDisassemblerTemplate", nbt);
-    }
-
-    /**
      * Register a callback for providing tool durability information.
      * <p/>
      * If your provider does not handle a tool/item, return <tt>Double.NaN</tt>

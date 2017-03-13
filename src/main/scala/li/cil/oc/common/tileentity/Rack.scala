@@ -230,7 +230,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != getFacing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[PowerNode] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[EnergyNode] else null)
 
   override def energyThroughput = Settings.get.serverRackRate
 
@@ -354,7 +354,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
     super.updateEntity()
     if (isServer && isConnected) {
       lazy val connectors = EnumFacing.VALUES.map(sidedNode).collect {
-        case connector: PowerNode => connector
+        case connector: EnergyNode => connector
       }
       components.zipWithIndex.collect {
         case (Some(mountable: RackMountable), slot) =>
@@ -369,12 +369,12 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
 
           // Power mountables without requiring them to be connected to the outside.
           mountable.getNode match {
-            case connector: PowerNode =>
+            case connector: EnergyNode =>
               var remaining = Settings.get.serverRackRate
               for (outside <- connectors if remaining > 0) {
-                val received = remaining + outside.changeBuffer(-remaining)
-                val rejected = connector.changeBuffer(received)
-                outside.changeBuffer(rejected)
+                val received = remaining + outside.changeEnergy(-remaining)
+                val rejected = connector.changeEnergy(received)
+                outside.changeEnergy(rejected)
                 remaining -= received - rejected
               }
             case _ => // Nothing using energy.

@@ -78,9 +78,9 @@ object Analyzer {
           case _ =>
         }
         node match {
-          case connector: PowerNode =>
-            if (connector.getLocalBufferSize > 0) {
-              playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.getLocalBuffer}%.2f/${connector.getLocalBufferSize}%.2f"))
+          case connector: EnergyNode =>
+            if (connector.getEnergyCapacity > 0) {
+              playerMP.sendMessage(Localization.Analyzer.StoredEnergy(f"${connector.getEnergyStored}%.2f/${connector.getEnergyCapacity}%.2f"))
             }
             playerMP.sendMessage(Localization.Analyzer.TotalEnergy(f"${connector.getGlobalBuffer}%.2f/${connector.getGlobalBufferSize}%.2f"))
           case _ =>

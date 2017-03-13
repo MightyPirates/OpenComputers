@@ -198,7 +198,7 @@ class TradeInfo(var host: Option[Location], var merchant: WeakReference[IMerchan
     val z = nbt.getInteger(HostZTag)
 
     world.getTileEntity(new BlockPos(x, y, z)) match {
-      case robotProxy: li.cil.oc.common.tileentity.RobotProxy => Option(robotProxy.robot)
+      case robotProxy: li.cil.oc.common.tileentity.TileEntityRobot => Option(robotProxy.robot)
       case agent: li.cil.oc.api.internal.Agent => Option(agent)
       case null => None
     }

@@ -242,7 +242,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotAssemblerStart(p: PacketParser) =
-    p.readTileEntity[Assembler]() match {
+    p.readTileEntity[TileEntityAssembler]() match {
       case Some(assembler) =>
         if (assembler.start(p.player match {
           case player: EntityPlayerMP => player.capabilities.isCreativeMode
@@ -252,7 +252,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotStateRequest(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
+    p.readTileEntity[TileEntityRobot]() match {
       case Some(proxy) => proxy.getWorld.notifyBlockUpdate(proxy.getPos, proxy.getWorld.getBlockState(proxy.getPos), proxy.getWorld.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
     }

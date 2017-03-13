@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity;
 
+import li.cil.oc.Settings;
 import li.cil.oc.client.Sound;
 import li.cil.oc.common.SaveHandler;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,6 +17,42 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     public boolean isServer() {
         return hasWorld() && getWorld().isRemote;
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    protected void dispose() {
+        if (isClient()) {
+            Sound.stopLoop(this);
+        }
+    }
+
+    protected boolean mayTickEnergy() {
+        // We use hashCode() as a (shitty but good enough) random value to
+        // distribute updates of different tile entities across ticks.
+        return (getWorld().getTotalWorldTime() + hashCode()) % Settings.get().tickFrequency == 0;
+    }
+
+    protected void readFromNBTForServer(final NBTTagCompound nbt) {
+        readFromNBTCommon(nbt);
+    }
+
+    protected void writeToNBTForServer(final NBTTagCompound nbt) {
+        writeToNBTCommon(nbt);
+    }
+
+    protected void readFromNBTForClient(final NBTTagCompound nbt) {
+        readFromNBTCommon(nbt);
+    }
+
+    protected void writeToNBTForClient(final NBTTagCompound nbt) {
+        writeToNBTCommon(nbt);
+    }
+
+    protected void readFromNBTCommon(final NBTTagCompound nbt) {
+    }
+
+    protected void writeToNBTCommon(final NBTTagCompound nbt) {
     }
 
     // ----------------------------------------------------------------------- //
@@ -77,37 +114,5 @@ public abstract class AbstractTileEntity extends TileEntity {
         }
         writeToNBTForClient(nbt);
         return nbt;
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    protected void dispose() {
-        if (isClient()) {
-            Sound.stopLoop(this);
-        }
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    protected void readFromNBTForServer(final NBTTagCompound nbt) {
-        readFromNBTCommon(nbt);
-    }
-
-    protected void writeToNBTForServer(final NBTTagCompound nbt) {
-        writeToNBTCommon(nbt);
-    }
-
-    protected void readFromNBTForClient(final NBTTagCompound nbt) {
-        readFromNBTCommon(nbt);
-    }
-
-    protected void writeToNBTForClient(final NBTTagCompound nbt) {
-        writeToNBTCommon(nbt);
-    }
-
-    protected void readFromNBTCommon(final NBTTagCompound nbt) {
-    }
-
-    protected void writeToNBTCommon(final NBTTagCompound nbt) {
     }
 }

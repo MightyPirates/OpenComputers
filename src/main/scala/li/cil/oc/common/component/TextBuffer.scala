@@ -151,7 +151,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
       if (getNode != null) {
         val hadPower = hasPower
         val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
-        hasPower = getNode.tryChangeBuffer(-neededPower)
+        hasPower = getNode.tryChangeEnergy(-neededPower)
         if (hasPower != hadPower) {
           ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
         }
@@ -236,7 +236,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
       isDisplaying = value
       if (isDisplaying) {
         val neededPower = fullyLitCost * Settings.get.tickFrequency
-        hasPower = getNode.changeBuffer(-neededPower) == 0
+        hasPower = getNode.changeEnergy(-neededPower) == 0
       }
       ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
     }

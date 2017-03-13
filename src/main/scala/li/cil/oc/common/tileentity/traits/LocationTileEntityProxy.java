@@ -2,14 +2,11 @@ package li.cil.oc.common.tileentity.traits;
 
 import li.cil.oc.api.util.Location;
 import li.cil.oc.util.BlockPosUtils;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public interface LocationTileEntityProxy extends Location {
-    TileEntity getTileEntity();
-
+public interface LocationTileEntityProxy extends Location, TileEntityAccess {
     @Override
     default World getHostWorld() {
         return getTileEntity().getWorld();

@@ -18,7 +18,7 @@ import net.minecraft.util.text.ITextComponent
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends DynamicGuiContainer(new container.Assembler(playerInventory, assembler)) {
+class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.TileEntityAssembler) extends DynamicGuiContainer(new container.Assembler(playerInventory, assembler)) {
   xSize = 176
   ySize = 192
 

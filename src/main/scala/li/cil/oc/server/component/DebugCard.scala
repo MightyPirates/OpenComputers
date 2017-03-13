@@ -83,7 +83,7 @@ class DebugCard(host: Location) extends AbstractManagedNodeContainer with DebugN
   @Callback(doc = """function(value:number):number -- Changes the component network's energy buffer by the specified delta.""")
   def changeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
-    result(getNode.changeBuffer(args.checkDouble(0)))
+    result(getNode.changeEnergy(args.checkDouble(0)))
   }
 
   @Callback(doc = """function():number -- Get the container's X position in the world.""")

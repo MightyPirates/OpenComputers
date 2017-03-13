@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.Assembler
+import li.cil.oc.common.tileentity.TileEntityAssembler
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
@@ -9,9 +9,9 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
+object AssemblerRenderer extends TileEntitySpecialRenderer[TileEntityAssembler] {
 
-  override def renderTileEntityAt(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(assembler: TileEntityAssembler, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     RenderState.pushAttrib()

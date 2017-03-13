@@ -1,6 +1,7 @@
 package li.cil.oc.util;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,6 +75,33 @@ public final class Reflection {
             return invoke(instance, methodName, args);
         } catch (final Throwable ignored) {
             return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T> T getStaticMethod(final String name, final Class<T> fInterface) {
+        try {
+            final Method fMethod = fInterface.getDeclaredMethods()[0];
+
+            final int nameSplit = name.lastIndexOf('.');
+            final String className = name.substring(0, nameSplit);
+            final String methodName = name.substring(nameSplit + 1);
+            final Class<?> clazz = Class.forName(className);
+
+            final MethodHandles.Lookup caller = MethodHandles.lookup();
+            final MethodType methodType = MethodType.methodType(fMethod.getReturnType(), fMethod.getParameterTypes());
+            final MethodHandle methodHandle = caller.findStatic(clazz, methodName, methodType);
+            final CallSite site = LambdaMetafactory.metafactory(caller,
+                    fMethod.getName(),
+                    MethodType.methodType(fInterface),
+                    methodType,
+                    methodHandle,
+                    methodType);
+            final MethodHandle factory = site.getTarget();
+            return (T) factory.invoke();
+        } catch (final Throwable t) {
+            throw new IllegalArgumentException("Failed resolving method '" + name + "' to functional interface '" + fInterface.getSimpleName() + "'.", t);
         }
     }
 

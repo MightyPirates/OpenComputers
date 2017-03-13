@@ -61,7 +61,7 @@ import scala.collection.mutable
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
 class Robot extends traits.Computer with traits.PowerInformation with RotatableImpl with IFluidHandler with internal.Robot with InventorySelection with TankSelection {
-  var proxy: RobotProxy = _
+  var proxy: TileEntityRobot = _
 
   val info = new RobotData()
 
@@ -347,12 +347,12 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
     if (isServer) {
       if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {
-          bot.getNode.changeBuffer(Double.PositiveInfinity)
+          bot.getNode.changeEnergy(Double.PositiveInfinity)
         }
         globalBuffer = bot.getNode.getGlobalBuffer
         globalBufferSize = bot.getNode.getGlobalBufferSize
         info.totalEnergy = globalBuffer.toInt
-        info.robotEnergy = bot.getNode.getLocalBuffer.toInt
+        info.robotEnergy = bot.getNode.getEnergyStored.toInt
         updatePowerInformation()
       }
       if (!appliedToolEnchantments) {
@@ -533,7 +533,7 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
     super.onConnect(node)
     if (node == this.getNode) {
       node.connect(bot.getNode)
-      node.asInstanceOf[PowerNode].setLocalBufferSize(0)
+      node.asInstanceOf[EnergyNode].setEnergyCapacity(0)
     }
   }
 

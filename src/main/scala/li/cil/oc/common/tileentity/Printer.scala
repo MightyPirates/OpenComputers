@@ -260,7 +260,7 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
 
     if (output.isDefined) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.printerTickAmount))
-      val have = want + (if (Settings.get.ignorePower) 0 else getNode.changeBuffer(-want))
+      val have = want + (if (Settings.get.ignorePower) 0 else getNode.changeEnergy(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)

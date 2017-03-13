@@ -44,7 +44,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
     create())
 
   if (machine != null) {
-    machine.node.asInstanceOf[PowerNode].setLocalBufferSize(0)
+    machine.node.asInstanceOf[EnergyNode].setEnergyCapacity(0)
     machine.setCostPerTick(Settings.get.microcontrollerCost)
   }
 
@@ -133,10 +133,10 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
     if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- EnumFacing.values if side != getFacing) {
         sidedNode(side) match {
-          case connector: PowerNode =>
+          case connector: EnergyNode =>
             val demand = snooperNode.getGlobalBufferSize - snooperNode.getGlobalBuffer
-            val available = demand + connector.changeBuffer(-demand)
-            snooperNode.changeBuffer(available)
+            val available = demand + connector.changeEnergy(-demand)
+            snooperNode.changeEnergy(available)
           case _ =>
         }
       }

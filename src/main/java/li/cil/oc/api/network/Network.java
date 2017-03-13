@@ -12,7 +12,7 @@ package li.cil.oc.api.network;
  * <ul>
  * <li>{@link Node}, the most basic form.</li>
  * <li>{@link ComponentNode}, used to expose callbacks to user code.</li>
- * <li>{@link PowerNode}, used for consuming of producing energy.</li>
+ * <li>{@link EnergyNode}, used for consuming of producing energy.</li>
  * </ul>
  * <p/>
  * See <tt>Node</tt> for more details on the behavior of single nodes, and in
@@ -136,6 +136,57 @@ public interface Network {
      * @throws IllegalArgumentException if the specified node is not in this network.
      */
     Iterable<Node> neighbors(Node node);
+
+    // ----------------------------------------------------------------------- //
+
+    /**
+     * The total amount of energy stored in this network, across all {@link EnergyNode}s
+     * currently in this network.
+     *
+     * @return the total amount of energy stored in this network.
+     */
+    double getEnergyStored();
+
+    /**
+     * The total amount of energy that <em>can</em> be stored in this network,
+     * across all {@link EnergyNode}s currently in this network.
+     *
+     * @return the total amount of energt that can be stored in this network.
+     */
+    double getEnergyCapacity();
+
+    /**
+     * Try to apply the specified delta to the <em>global</em> buffer.
+     * <p/>
+     * This can be used to apply reactionary power changes. For example, a
+     * screen may require a certain amount of energy to refresh its display when
+     * a program tries to display text on it. For running costs just apply the
+     * same delta each tick.
+     * <p/>
+     * If the specified delta cannot be completely applied to the buffer, the
+     * remaining delta will be returned. This means that for negative values
+     * a part of the energy will have been consumed, though.
+     * <p/>
+     * If there is enough energy or no overflow this will return <tt>0</tt>.
+     * <p/>
+     * Keep in mind that this change is applied to the <em>global</em> buffer,
+     * i.e. energy from multiple buffers may be consumed / multiple buffers may
+     * be filled. The buffer for which this method is called (i.e. this node
+     * instance) will be prioritized, though.
+     *
+     * @param delta the amount of energy to consume or store.
+     * @return the remainder of the delta that could not be applied.
+     */
+    double changeEnergy(final double delta);
+
+    /**
+     * Like {@link #changeEnergy}, but will only store/consume the specified
+     * amount of energy if there is enough capacity/energy available.
+     *
+     * @param delta the amount of energy to consume or store.
+     * @return <tt>true</tt> if the energy was successfully consumed or stored.
+     */
+    boolean tryChangeEnergy(final double delta);
 
     // ----------------------------------------------------------------------- //
 

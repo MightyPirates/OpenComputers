@@ -11,7 +11,7 @@ package li.cil.oc.api.network;
  * Each connector can take two roles: it can be a <em>producer</em>, feeding
  * power into the network, or it can be a <em>consumer</em>, requiring power
  * from the network to power something (or it can be both). This depends
- * entirely on how you call {@link #changeBuffer}, i.e. on whether you
+ * entirely on how you call {@link #changeEnergy}, i.e. on whether you
  * fill up the connectors buffer or drain it.
  * <p/>
  * To feed power into the network, simply fill up the buffer, to consume power
@@ -24,59 +24,16 @@ package li.cil.oc.api.network;
  * avoid floating point errors causing trouble). Distribute the collected energy
  * equally among the below-average buffers (as good as possible).
  */
-public interface PowerNode extends Node {
+public interface EnergyNode extends Node {
     /**
      * The energy stored in the local buffer.
      */
-    double getLocalBuffer();
+    double getEnergyStored();
 
     /**
      * The size of the local buffer.
      */
-    double getLocalBufferSize();
-
-    /**
-     * The accumulative energy stored across all buffers in the node's network.
-     */
-    double getGlobalBuffer();
-
-    /**
-     * The accumulative size of all buffers in the node's network.
-     */
-    double getGlobalBufferSize();
-
-    /**
-     * Try to apply the specified delta to the <em>global</em> buffer.
-     * <p/>
-     * This can be used to apply reactionary power changes. For example, a
-     * screen may require a certain amount of energy to refresh its display when
-     * a program tries to display text on it. For running costs just apply the
-     * same delta each tick.
-     * <p/>
-     * If the specified delta cannot be completely applied to the buffer, the
-     * remaining delta will be returned. This means that for negative values
-     * a part of the energy will have been consumed, though.
-     * <p/>
-     * If there is enough energy or no overflow this will return <tt>0</tt>.
-     * <p/>
-     * Keep in mind that this change is applied to the <em>global</em> buffer,
-     * i.e. energy from multiple buffers may be consumed / multiple buffers may
-     * be filled. The buffer for which this method is called (i.e. this node
-     * instance) will be prioritized, though.
-     *
-     * @param delta the amount of energy to consume or store.
-     * @return the remainder of the delta that could not be applied.
-     */
-    double changeBuffer(final double delta);
-
-    /**
-     * Like {@link #changeBuffer}, but will only store/consume the specified
-     * amount of energy if there is enough capacity/energy available.
-     *
-     * @param delta the amount of energy to consume or store.
-     * @return <tt>true</tt> if the energy was successfully consumed or stored.
-     */
-    boolean tryChangeBuffer(final double delta);
+    double getEnergyCapacity();
 
     /**
      * Change the size of the connectors local buffer.
@@ -93,5 +50,5 @@ public interface PowerNode extends Node {
      *             to a minimum of zero, i.e. if a negative value is passed the
      *             size will be set to zero.
      */
-    void setLocalBufferSize(final double size);
+    void setEnergyCapacity(final double size);
 }

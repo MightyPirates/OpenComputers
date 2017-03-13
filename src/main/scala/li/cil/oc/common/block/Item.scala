@@ -94,7 +94,7 @@ class Item(value: Block) extends ItemBlock(value) {
           if (!rotatable.validFacings.contains(rotatable.pitch)) {
             rotatable.pitch = rotatable.validFacings.headOption.getOrElse(EnumFacing.NORTH)
           }
-          if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
+          if (!rotatable.isInstanceOf[tileentity.TileEntityRobot]) {
             rotatable.invertRotation()
           }
         case _ => // Ignore.

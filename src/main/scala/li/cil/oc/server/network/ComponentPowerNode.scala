@@ -1,6 +1,6 @@
 package li.cil.oc.server.network
 
 import li.cil.oc.api.network
-import li.cil.oc.api.network.ComponentPowerNode
+import li.cil.oc.api.network.ComponentEnergyNode
 
 trait ComponentPowerNode extends ComponentPowerNode with NodeComponent with PowerNode
