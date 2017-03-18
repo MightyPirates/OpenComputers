@@ -116,14 +116,6 @@ public final class TileEntityNetSplitter extends AbstractTileEntitySingleNodeCon
     }
 
     // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
 
     private void handleStateChanged(final boolean open) {
         final World world = getWorld();

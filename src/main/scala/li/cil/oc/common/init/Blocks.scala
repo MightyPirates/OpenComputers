@@ -16,7 +16,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.TileEntityAssembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[TileEntityCable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[TileEntityCapacitor], Settings.namespace + "capacitor")
-    GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
+    GameRegistry.registerTileEntity(classOf[tileentity.TileEntityCase], Settings.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.TileEntityCharger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.TileEntityDiskDrive], Settings.namespace + "diskDrive")
     GameRegistry.registerTileEntity(classOf[tileentity.Disassembler], Settings.namespace + "disassembler")

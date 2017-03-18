@@ -18,8 +18,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.inventory.ComponentInventory
-import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.inventory.{ComponentManager, ServerInventory}
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.network.PowerNode
@@ -35,7 +34,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: api.internal.Rack, val slot: Int) extends NodeContainer with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
+class Server(val rack: api.internal.Rack, val slot: Int) extends NodeContainer with MachineHost with ServerInventory with ComponentManager with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
   lazy val machine = Machine.create(this)
 
   val getNode = if (!rack.getWorld.isRemote) machine.node else null
@@ -131,7 +130,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends NodeContainer w
   override def host = rack
 
   // ----------------------------------------------------------------------- //
-  // ComponentInventory
+  // ComponentManager
 
   override def container = rack.getStackInSlot(slot)
 

@@ -30,7 +30,7 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Adapter(player.inventory, t)
           case t: tileentity.TileEntityAssembler if id == GuiType.Assembler.id =>
             new gui.Assembler(player.inventory, t)
-          case t: tileentity.Case if id == GuiType.Case.id =>
+          case t: tileentity.TileEntityCase if id == GuiType.Case.id =>
             new gui.Case(player.inventory, t)
           case t: tileentity.TileEntityCharger if id == GuiType.Charger.id =>
             new gui.Charger(player.inventory, t)

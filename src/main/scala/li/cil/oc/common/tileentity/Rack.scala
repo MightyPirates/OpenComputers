@@ -318,7 +318,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
   }
 
   // ----------------------------------------------------------------------- //
-  // ComponentInventory
+  // ComponentManager
 
   override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
     if (isServer) {

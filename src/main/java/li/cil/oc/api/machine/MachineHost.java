@@ -1,8 +1,6 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.util.Location;
-import li.cil.oc.api.network.NodeContainer;
-import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.NodeContainerHost;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -11,11 +9,11 @@ import net.minecraft.item.ItemStack;
  * It provides some context for the machine, in particular which world it is
  * running in, to allow querying the time of day, for example.
  */
-public interface MachineHost extends Location {
+public interface MachineHost extends NodeContainerHost {
     /**
      * The machine currently hosted.
      */
-    Machine machine();
+    Machine getMachine();
 
     /**
      * List of all components that are built into this machine directly.
@@ -23,36 +21,4 @@ public interface MachineHost extends Location {
      * This is used to find CPUs, component buses and memory.
      */
     Iterable<ItemStack> internalComponents();
-
-    /**
-     * Get the slot a component with the specified address is in.
-     * <p/>
-     * This is intended to allow determining the slot of <em>item</em>
-     * components sitting in computers. For other components this returns
-     * negative values.
-     *
-     * @param address the address of the component to get the slot for.
-     * @return the index of the slot the component is in.
-     */
-    int componentSlot(String address);
-
-    /**
-     * This is called on the owner when the machine's {@link NodeContainer#onConnect(Node)}
-     * method gets called. This can be useful for reacting to network events
-     * when the owner does not have its own node (for example, computer cases
-     * expose their machine's node as their own node). This callback allows it
-     * to connect its components (graphics cards and the like) when it is
-     * connected to a node network (when added to the world, for example).
-     *
-     * @param node the node that was connected to the network.
-     */
-    void onMachineConnect(Node node);
-
-    /**
-     * Like {@link #onMachineConnect(Node)}, except that this is called whenever
-     * the machine's {@link NodeContainer#onDisconnect(Node)} method is called.
-     *
-     * @param node the node that was disconnected from the network.
-     */
-    void onMachineDisconnect(Node node);
 }

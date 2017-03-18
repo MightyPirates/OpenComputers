@@ -11,7 +11,7 @@ import net.minecraft.entity.player.InventoryPlayer
 
 import scala.collection.convert.WrapAsJava._
 
-class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
+class Case(playerInventory: InventoryPlayer, val computer: tileentity.TileEntityCase) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected var powerButton: ImageButton = _
 
   protected override def actionPerformed(button: GuiButton) {

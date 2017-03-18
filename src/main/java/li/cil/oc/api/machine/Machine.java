@@ -3,6 +3,7 @@ package li.cil.oc.api.machine;
 import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.NodeContainerItem;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -17,6 +18,8 @@ public interface Machine extends NodeContainerItem, Context {
      * @return the owner of the machine.
      */
     MachineHost host();
+
+    void update();
 
     /**
      * This must be called from the host when something relevant to the
@@ -114,6 +117,7 @@ public interface Machine extends NodeContainerItem, Context {
      *
      * @return the last error message, or <tt>null</tt>.
      */
+    @Nullable
     String lastError();
 
     /**

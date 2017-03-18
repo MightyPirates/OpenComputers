@@ -3,10 +3,12 @@ package li.cil.oc.common.inventory;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.api.Driver;
 import li.cil.oc.api.driver.DriverItem;
+import li.cil.oc.api.driver.item.Slot;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.NodeContainerHost;
 import li.cil.oc.api.network.NodeContainerItem;
+import li.cil.oc.common.Sound;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -21,14 +23,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public final class ComponentInventory implements ItemHandlerHosted.ItemHandlerHost, ICapabilityProvider, INBTSerializable<NBTTagList> {
+public final class ComponentManager implements ICapabilityProvider, INBTSerializable<NBTTagList> {
     public interface ComponentInventoryHost {
         Node getItemNode();
 
         IItemHandler getComponentItems();
-
-        void markHostChanged();
     }
 
     // ----------------------------------------------------------------------- //
@@ -45,7 +46,7 @@ public final class ComponentInventory implements ItemHandlerHosted.ItemHandlerHo
 
     // ----------------------------------------------------------------------- //
 
-    public ComponentInventory(final ComponentInventoryHost host, final NodeContainerHost nodeContainerHost) {
+    public ComponentManager(final ComponentInventoryHost host, final NodeContainerHost nodeContainerHost) {
         this.host = host;
         this.nodeContainerHost = nodeContainerHost;
         environments = new NodeContainerItem[host.getComponentItems().getSlots()];
@@ -133,10 +134,9 @@ public final class ComponentInventory implements ItemHandlerHosted.ItemHandlerHo
     // ----------------------------------------------------------------------- //
     // ItemHandlerHost
 
-    @Override
-    public void onItemAdded(final int slot, final ItemStack stack) {
+    public void initializeComponent(final int slot, final ItemStack stack) {
         assert environments[slot] == null : "adding item without having removed previous one";
-        onItemRemoved(slot, ItemStack.EMPTY.copy()); // Handle assert not holding as gracefully as possible.
+        disposeComponent(slot, ItemStack.EMPTY.copy()); // Handle assert not holding as gracefully as possible.
 
         final DriverItem driver = Driver.driverFor(stack, nodeContainerHost.getClass());
         if (driver == null) {
@@ -155,10 +155,13 @@ public final class ComponentInventory implements ItemHandlerHosted.ItemHandlerHo
         }
 
         environment.onInstalled(stack);
+
+        if (Objects.equals(driver.slot(stack), Slot.Floppy)) {
+            Sound.playDiskInsert(this);
+        }
     }
 
-    @Override
-    public void onItemRemoved(final int slot, final ItemStack stack) {
+    public void disposeComponent(final int slot, final ItemStack stack) {
         final NodeContainerItem environment = environments[slot];
         if (environment != null) {
             if (environment instanceof ITickable) {
@@ -176,11 +179,11 @@ public final class ComponentInventory implements ItemHandlerHosted.ItemHandlerHo
 
             environment.onDispose();
         }
-    }
 
-    @Override
-    public void markHostChanged() {
-        host.markHostChanged();
+        final DriverItem driver = Driver.driverFor(stack, nodeContainerHost.getClass());
+        if (driver != null && Objects.equals(driver.slot(stack), Slot.Floppy)) {
+            Sound.playDiskEject(this);
+        }
     }
 
     // ----------------------------------------------------------------------- //

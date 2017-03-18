@@ -19,7 +19,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.inventory.{ComponentInventory, Inventory, InventoryImpl}
+import li.cil.oc.common.inventory.{ComponentInventory, ComponentManager, Inventory, InventoryImpl}
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.agent
@@ -94,7 +94,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     m
   } else null
   val control = if (!world.isRemote) new component.Drone(this) else null
-  val components = new ComponentInventory {
+  val components = new ComponentManager {
     override def host = Drone.this
 
     override def items = info.components.map(Option(_))

@@ -19,8 +19,7 @@ import li.cil.oc.api.prefab.network.{AbstractManagedEnvironment, AbstractManaged
 import li.cil.oc.api.util.Location
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
-import li.cil.oc.common.inventory.ComponentInventory
-import li.cil.oc.common.inventory.ItemStackInventory
+import li.cil.oc.common.inventory.{ComponentManager, ItemStackInventory}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
@@ -32,7 +31,7 @@ import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedNodeContainer with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedNodeContainer with ItemStackInventory with ComponentManager with RackMountable with Analyzable with DeviceInfo {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
@@ -105,7 +104,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   override def isUsableByPlayer(player: EntityPlayer): Boolean = rack.isUsableByPlayer(player)
 
   // ----------------------------------------------------------------------- //
-  // ComponentInventory
+  // ComponentManager
 
   override def container: ItemStack = rack.getStackInSlot(slot)
 
@@ -141,13 +140,13 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
 
   override def load(nbt: NBTTagCompound) {
     super[AbstractManagedNodeContainer].load(nbt)
-    super[ComponentInventory].load(nbt)
+    super[ComponentManager].load(nbt)
     connectComponents()
   }
 
   override def save(nbt: NBTTagCompound) {
     super[AbstractManagedNodeContainer].save(nbt)
-    super[ComponentInventory].save(nbt)
+    super[ComponentManager].save(nbt)
   }
 
   // ----------------------------------------------------------------------- //

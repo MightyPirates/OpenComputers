@@ -10,12 +10,12 @@ import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.network.AbstractTileEntityNodeContainer;
 import li.cil.oc.common.InventorySlots;
 import li.cil.oc.common.Sound;
-import li.cil.oc.common.inventory.ComponentInventory;
+import li.cil.oc.common.inventory.ComponentManager;
 import li.cil.oc.common.inventory.ItemHandlerComponents;
-import li.cil.oc.common.inventory.ItemHandlerHosted;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
 import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
+import li.cil.oc.common.tileentity.traits.ItemHandlerHostTileEntityProxy;
 import li.cil.oc.common.tileentity.traits.NodeContainerHostTileEntity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -43,13 +43,13 @@ import java.util.Map;
  * for inserted floppy disks are directly connected to this single node, and
  * their component part is forced into a network-visible state.
  */
-public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ComponentInventory.ComponentInventoryHost, ItemHandlerHosted.ItemHandlerHost, RotatableImpl.RotatableHost {
+public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ComponentManager.ComponentInventoryHost, ItemHandlerHostTileEntityProxy, RotatableImpl.RotatableHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
-    private final ItemHandlerDiskDrive inventory = new ItemHandlerDiskDrive(this);
     private final NodeContainer nodeContainer = new NodeContainerDiskDrive(this);
+    private final ItemHandlerDiskDrive inventory = new ItemHandlerDiskDrive(this);
+    private final ComponentManager components = new ComponentManager(this, new NodeContainerHostTileEntity(this));
     private final RotatableImpl rotatable = new RotatableImpl(this);
 
     // ----------------------------------------------------------------------- //
@@ -86,16 +86,16 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
     @Override
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
-        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
         inventory.deserializeNBT((NBTTagList) nbt.getTag(TAG_INVENTORY));
+        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
         rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
     }
 
     @Override
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
-        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
         nbt.setTag(TAG_INVENTORY, inventory.serializeNBT());
+        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
         nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
     }
 
@@ -168,7 +168,8 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
 
     @Override
     public void onItemAdded(final int slot, final ItemStack stack) {
-        components.onItemAdded(slot, stack);
+        components.initializeComponent(slot, stack);
+
         final NodeContainer nodeContainer = components.getEnvironment(FLOPPY_SLOT);
         if (nodeContainer != null) {
             final Node node = nodeContainer.getNode();
@@ -178,24 +179,12 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
             }
         }
 //      ServerPacketSender.sendFloppyChange(this, stack)
-        Sound.playDiskInsert(this);
-    }
-
-    @Override
-    public void onItemChanged(final int slot, final ItemStack stack) {
-        components.onItemChanged(slot, stack);
     }
 
     @Override
     public void onItemRemoved(final int slot, final ItemStack stack) {
-        components.onItemRemoved(slot, stack);
+        components.disposeComponent(slot, stack);
 //      ServerPacketSender.sendFloppyChange(this)
-        Sound.playDiskEject(this);
-    }
-
-    @Override
-    public void markHostChanged() {
-        markDirty();
     }
 
     // ----------------------------------------------------------------------- //

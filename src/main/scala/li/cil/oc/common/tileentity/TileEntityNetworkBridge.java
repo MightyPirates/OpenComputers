@@ -35,7 +35,7 @@ import net.minecraft.util.EnumHand;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeContainer implements Analyzable, BlockActivationListener, ItemHandlerHosted.ItemHandlerHost, LocationTileEntityProxy, NetworkBridge.NetworkBridgeHost {
+public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeContainer implements Analyzable, BlockActivationListener, ItemHandlerHostTileEntityProxy, LocationTileEntityProxy, NetworkBridge.NetworkBridgeHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
@@ -147,11 +147,6 @@ public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeCo
         updateConfiguration();
     }
 
-    @Override
-    public void markHostChanged() {
-        markDirty();
-    }
-
     // ----------------------------------------------------------------------- //
     // NetworkBridgeHost
 
@@ -184,14 +179,6 @@ public final class TileEntityNetworkBridge extends AbstractTileEntityMultiNodeCo
         final Node node = nodeContainers[0].getNode();
         assert node != null : "getPacketHopNode called on client side? Don't.";
         return node;
-    }
-
-    // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
     }
 
     // ----------------------------------------------------------------------- //

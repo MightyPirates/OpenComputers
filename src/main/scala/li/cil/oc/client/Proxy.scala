@@ -57,7 +57,7 @@ private[oc] class Proxy extends CommonProxy {
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityAdapter], AdapterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityAssembler], AssemblerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityCase], CaseRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityCharger], ChargerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.TileEntityDiskDrive], DiskDriveRenderer)

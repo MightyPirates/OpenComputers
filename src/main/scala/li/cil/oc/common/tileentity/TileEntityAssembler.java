@@ -212,14 +212,6 @@ public final class TileEntityAssembler extends AbstractTileEntitySingleNodeConta
     }
 
     // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
 
     private static final class ItemHandlerAssembler extends ItemHandlerHosted {
         private final TileEntityAssembler assembler;

@@ -43,14 +43,14 @@ class Case(val tier: Int) extends BlockRedstoneAware with traits.PowerAcceptor w
 
   override def guiType = GuiType.Case
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.TileEntityCase(tier)
 
   // ----------------------------------------------------------------------- //
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking) {
       if (!world.isRemote) world.getTileEntity(pos) match {
-        case computer: tileentity.Case if !computer.machine.isRunning && computer.isUsableByPlayer(player) => computer.machine.start()
+        case computer: tileentity.TileEntityCase if !computer.machine.isRunning && computer.isUsableByPlayer(player) => computer.machine.start()
         case _ =>
       }
       true
@@ -60,7 +60,7 @@ class Case(val tier: Int) extends BlockRedstoneAware with traits.PowerAcceptor w
 
   override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean =
     world.getTileEntity(pos) match {
-      case c: tileentity.Case =>
+      case c: tileentity.TileEntityCase =>
         if (c.isCreative && (!player.capabilities.isCreativeMode || !c.canInteract(player.getName))) false
         else c.canInteract(player.getName) && super.removedByPlayer(state, world, pos, player, willHarvest)
       case _ => super.removedByPlayer(state, world, pos, player, willHarvest)

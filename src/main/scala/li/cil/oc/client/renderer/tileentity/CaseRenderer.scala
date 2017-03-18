@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.Case
+import li.cil.oc.common.tileentity.TileEntityCase
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
@@ -12,8 +12,8 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
-object CaseRenderer extends TileEntitySpecialRenderer[Case] {
-  override def renderTileEntityAt(computer: Case, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object CaseRenderer extends TileEntitySpecialRenderer[TileEntityCase] {
+  override def renderTileEntityAt(computer: TileEntityCase, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     RenderState.pushAttrib()

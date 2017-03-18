@@ -25,7 +25,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.inventory.ComponentManager
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
@@ -219,7 +219,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentInventory with MachineHost with internal.Tablet {
+class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentManager with MachineHost with internal.Tablet {
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.

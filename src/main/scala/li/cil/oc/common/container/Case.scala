@@ -6,7 +6,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 
-class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends Player(playerInventory, computer) {
+class Case(playerInventory: InventoryPlayer, computer: tileentity.TileEntityCase) extends Player(playerInventory, computer) {
   for (i <- 0 to (if (computer.tier >= Tier.Three) 2 else 1)) {
     val slot = InventorySlots.computer(computer.tier)(getInventory.size)
     addSlotToContainer(98, 16 + i * slotSize, slot.slot, slot.tier)

@@ -11,15 +11,11 @@ import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.network.AbstractNodeContainer;
 import li.cil.oc.common.InventorySlots;
 import li.cil.oc.common.entity.Drone;
-import li.cil.oc.common.inventory.ComponentInventory;
+import li.cil.oc.common.inventory.ComponentManager;
 import li.cil.oc.common.inventory.ItemHandlerComponents;
-import li.cil.oc.common.inventory.ItemHandlerHosted;
 import li.cil.oc.common.tileentity.capabilities.RedstoneAwareImpl;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
-import li.cil.oc.common.tileentity.traits.BlockActivationListener;
-import li.cil.oc.common.tileentity.traits.ComparatorOutputOverride;
-import li.cil.oc.common.tileentity.traits.LocationTileEntityProxy;
-import li.cil.oc.common.tileentity.traits.NodeContainerHostTileEntity;
+import li.cil.oc.common.tileentity.traits.*;
 import li.cil.oc.integration.util.ItemCharge;
 import li.cil.oc.integration.util.Wrench;
 import net.minecraft.entity.player.EntityPlayer;
@@ -40,13 +36,13 @@ import net.minecraftforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public final class TileEntityCharger extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ITickable, LocationTileEntityProxy, ItemHandlerHosted.ItemHandlerHost, RedstoneAwareImpl.RedstoneAwareHost, RotatableImpl.RotatableHost, ComponentInventory.ComponentInventoryHost {
+public final class TileEntityCharger extends AbstractTileEntitySingleNodeContainer implements Analyzable, BlockActivationListener, ComparatorOutputOverride, ITickable, LocationTileEntityProxy, ItemHandlerHostTileEntityProxy, RedstoneAwareImpl.RedstoneAwareHost, RotatableImpl.RotatableHost, ComponentManager.ComponentInventoryHost {
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private final ComponentInventory components = new ComponentInventory(this, new NodeContainerHostTileEntity(this));
-    private final ItemHandlerCharger inventory = new ItemHandlerCharger(this);
     private final NodeContainerCharger nodeContainer = new NodeContainerCharger(this);
+    private final ItemHandlerCharger inventory = new ItemHandlerCharger(this);
+    private final ComponentManager components = new ComponentManager(this, new NodeContainerHostTileEntity(this));
     private final RedstoneAwareImpl redstone = new RedstoneAwareImpl(this);
     private final RotatableImpl rotatable = new RotatableImpl(this);
 
@@ -88,8 +84,8 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     @Override
     protected void readFromNBTCommon(final NBTTagCompound nbt) {
         super.readFromNBTCommon(nbt);
-        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
         inventory.deserializeNBT((NBTTagList) nbt.getTag(TAG_INVENTORY));
+        components.deserializeNBT((NBTTagList) nbt.getTag(TAG_COMPONENTS));
         redstone.deserializeNBT((NBTTagCompound) nbt.getTag(TAG_REDSTONE));
         rotatable.deserializeNBT((NBTTagByte) nbt.getTag(TAG_ROTATABLE));
     }
@@ -97,8 +93,8 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     @Override
     protected void writeToNBTCommon(final NBTTagCompound nbt) {
         super.writeToNBTCommon(nbt);
-        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
         nbt.setTag(TAG_INVENTORY, inventory.serializeNBT());
+        nbt.setTag(TAG_COMPONENTS, components.serializeNBT());
         nbt.setTag(TAG_REDSTONE, redstone.serializeNBT());
         nbt.setTag(TAG_ROTATABLE, rotatable.serializeNBT());
     }
@@ -164,8 +160,13 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     // ItemHandlerHost
 
     @Override
-    public void markHostChanged() {
-        markDirty();
+    public void onItemAdded(final int slot, final ItemStack stack) {
+        components.initializeComponent(slot, stack);
+    }
+
+    @Override
+    public void onItemRemoved(final int slot, final ItemStack stack) {
+        components.disposeComponent(slot, stack);
     }
 
     // ----------------------------------------------------------------------- //
@@ -281,14 +282,6 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
     @Override
     public void onRedstoneInputChanged(final EnumFacing side, final int oldValue, final int newValue) {
         updateConfiguration();
-    }
-
-    // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
     }
 
     // ----------------------------------------------------------------------- //

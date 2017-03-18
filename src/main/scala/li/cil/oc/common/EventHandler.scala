@@ -233,7 +233,7 @@ object EventHandler {
   @SubscribeEvent
   def onBlockBreak(e: BlockEvent.BreakEvent): Unit = {
     e.getWorld.getTileEntity(e.getPos) match {
-      case c: tileentity.Case =>
+      case c: tileentity.TileEntityCase =>
         if (c.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !c.canInteract(e.getPlayer.getName))) {
           e.setCanceled(true)
         }

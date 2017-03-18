@@ -55,14 +55,6 @@ public final class TileEntityPowerDistributor extends AbstractTileEntityMultiNod
     }
 
     // ----------------------------------------------------------------------- //
-    // TileEntityAccess
-
-    @Override
-    public TileEntity getTileEntity() {
-        return this;
-    }
-
-    // ----------------------------------------------------------------------- //
     // PowerBalancerHost
 
     @Override
