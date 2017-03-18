@@ -2179,7 +2179,7 @@ public enum Settings {
 					return;
 				}
 
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(noncesFile), StandardCharsets.UTF_8))
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(noncesFile), StandardCharsets.UTF_8));
 				for(String line = reader.readLine(); line != null; line = reader.readLine()) {
 					String[] data = line.split(" ", 2);
 					if(data.length == 2) {
