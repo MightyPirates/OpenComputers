@@ -34,7 +34,7 @@ class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
     checkForBrokenJavaVersion()
 
-    Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
+    Settings.initialize(e.getSuggestedConfigurationFile)
 
     OpenComputers.log.info("Initializing blocks and items.")
 
