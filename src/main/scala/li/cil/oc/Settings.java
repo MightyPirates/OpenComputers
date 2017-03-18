@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -35,8 +36,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public enum Settings {
-	Client("Client side settings, presentation and performance related stuff.") {
+public final class Settings {
+
+	public static final Client Client = new Client("Client", "Client side settings, presentation and performance related stuff.");
+
+	public static final class Client extends Category {
+
 		public double screenTextFadeStartDistance;
 		public double maxScreenTextRenderDistance;
 		public boolean textLinearFiltering;
@@ -54,6 +59,10 @@ public enum Settings {
 		public double beepRadius;
 		public double[] nanomachineHudPos;
 		public boolean enableNanomachinePfx;
+
+		private Client(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -159,8 +168,12 @@ public enum Settings {
 			);
 
 		}
-	},
-	Computer("Computer related settings, concerns server performance and security.") {
+	}
+
+	public static final Computer Computer = new Computer("Computer", "Computer related settings, concerns server performance and security.");
+
+	public static final class Computer extends Category {
+
 		public int threads;
 		public double timeout;
 		public double startupDelay;
@@ -173,6 +186,10 @@ public enum Settings {
 		public int maxUsernameLength;
 		public boolean eraseTmpOnReboot;
 		public int executionDelay;
+
+		private Computer(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -268,14 +285,22 @@ public enum Settings {
 					+ "never exceed 50, a single tick, though) to reduce CPU load even more."
 			);
 		}
-	},
-	Lua(Computer, "Settings specific to the Lua architecture.") {
+	}
+
+	public static final Lua Lua = new Lua("Lua", Computer, "Settings specific to the Lua architecture.");
+
+	public static final class Lua extends Category {
+
 		public boolean allowBytecode;
 		public boolean allowGC;
 		public boolean enableLua53;
 		public int[] ramSizes;
 		public double ramScaleFor64Bit;
 		public int maxTotalRam;
+
+		private Lua(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -337,8 +362,12 @@ public enum Settings {
 					+ "IN PARTICULAR, DO NOT REPORT ISSUES AFTER MESSING WITH THIS!"
 			);
 		}
-	},
-	Robot("Robot related settings, what they may do and general balancing.") {
+	}
+
+	public static final Robot Robot = new Robot("Robot", "Robot related settings, what they may do and general balancing.");
+
+	public static final class Robot extends Category {
+
 		public boolean allowActivateBlocks;
 		public boolean allowUseItemsWithDuration;
 		public boolean canAttackPlayers;
@@ -350,6 +379,10 @@ public enum Settings {
 		public String nameFormat;
 		public String uuidFormat;
 		public int[] upgradeFlightHeight;
+
+		private Robot(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -450,8 +483,12 @@ public enum Settings {
 					+ "$random$."
 			);
 		}
-	},
-	RobotXP(Robot, "This controls how fast robots gain experience, and how that experience alters the stats.") {
+	}
+
+	public static final RobotXP RobotXP = new RobotXP("RobotXP", Robot, "This controls how fast robots gain experience, and how that experience alters the stats.");
+
+	public static final class RobotXP extends Category {
+
 		public double baseValue;
 		public double constantGrowth;
 		public double exponentialGrowth;
@@ -461,6 +498,10 @@ public enum Settings {
 		public double bufferPerLevel;
 		public double toolEfficiencyPerLevel;
 		public double harvestSpeedBoostPerLevel;
+
+		private RobotXP(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -514,8 +555,12 @@ public enum Settings {
 					+ "0.12 seconds."
 			);
 		}
-	},
-	RobotDelays(Robot, "Allows fine-tuning of delays for robot actions.") {
+	}
+
+	public static final RobotDelays RobotDelays = new RobotDelays("RobotDelays", Robot, "Allows fine-tuning of delays for robot actions.");
+
+	public static final class RobotDelays extends Category {
+
 		// Note: all delays are reduced by one tick to account for the tick they are
 		// performed in (since all actions are delegated to the server thread).
 		public double turn;
@@ -526,6 +571,10 @@ public enum Settings {
 		public double drop;
 		public double suck;
 		public double harvestRatio;
+
+		private RobotDelays(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -579,8 +628,12 @@ public enum Settings {
 					+ "Breaking a block will always at least take one tick, 0.05 seconds."
 			);
 		}
-	},
-	Power("Power settings, buffer sizes and power consumption.") {
+	}
+
+	public static final Power Power = new Power("Power", "Power settings, buffer sizes and power consumption.");
+
+	public static final class Power extends Category {
+
 		public boolean is3rdPartyPowerSystemPresent = false;
 		public boolean pureIgnorePower;
 
@@ -597,6 +650,10 @@ public enum Settings {
 		public double disassemblerTickAmount;
 		public double printerTickAmount;
 		public String[] powerModBlacklist;
+
+		private Power(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -668,8 +725,12 @@ public enum Settings {
 					+ "`BuildCraftAPI|power`, `IC2`, `factorization`, ..."
 			);
 		}
-	},
-	PowerBuffer(Power, "Default \"buffer\" sizes, i.e. how much energy certain blocks can store.") {
+	}
+
+	public static final PowerBuffer PowerBuffer = new PowerBuffer("PowerBuffer", Power, "Default \"buffer\" sizes, i.e. how much energy certain blocks can store.");
+
+	public static final class PowerBuffer extends Category {
+
 		public double capacitor;
 		public double capacitorAdjacencyBonus;
 		public double computer;
@@ -683,6 +744,10 @@ public enum Settings {
 		public double microcontroller;
 		public double hoverBoots;
 		public double nanomachines;
+
+		private PowerBuffer(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -746,8 +811,12 @@ public enum Settings {
 					+ "where all that energy is stored. It's quite fascinating."
 			);
 		}
-	},
-	PowerCost(Power, "Default \"costs\", i.e. how much energy certain operations consume.") {
+	}
+
+	public static final PowerCost PowerCost = new PowerCost("PowerCost", Power, "Default \"costs\", i.e. how much energy certain operations consume.");
+
+	public static final class PowerCost extends Category {
+
 		public double computer;
 		public double microcontroller;
 		public double robot;
@@ -794,6 +863,10 @@ public enum Settings {
 		public double nanomachineInput;
 		public double nanomachineReconfigure;
 		public double mfuRelay;
+
+		private PowerCost(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1010,8 +1083,12 @@ public enum Settings {
 					+ "Similarly to `wirelessCostPerRange`, this is multiplied with the distance to the bound block."
 			);
 		}
-	},
-	PowerRates(Power, "The rate at which different blocks accept external power. All of these\nvalues are in OC energy / tick.") {
+	}
+
+	public static final PowerRates PowerRates = new PowerRates("PowerRates", Power, "The rate at which different blocks accept external power. All of these\nvalues are in OC energy / tick.");
+
+	public static final class PowerRates extends Category {
+
 		public double accessPoint;
 		public double assembler;
 		public double[] caseRate;
@@ -1020,6 +1097,10 @@ public enum Settings {
 		public double disassembler;
 		public double powerConverter;
 		public double serverRack;
+
+		private PowerRates(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1050,13 +1131,16 @@ public enum Settings {
 				""
 			);
 		}
-	},
-	ConversionRates(Power,
+	}
+
+	public static final ConversionRates ConversionRates = new ConversionRates("ConversionRates", Power,
 		"Power values for different power systems. For reference, the value of\n"
 			+ "OC's internal energy type is 1000. I.e. the conversion ratios are the\n"
 			+ "values here divided by 1000. This is mainly to avoid small floating\n"
-			+ "point numbers in the config, due to potential loss of precision."
-	) {
+			+ "point numbers in the config, due to potential loss of precision.");
+
+	public static final class ConversionRates extends Category {
+
 		private double AppliedEnergistics2;
 		private double Factorization;
 		private double Galacticraft;
@@ -1067,6 +1151,10 @@ public enum Settings {
 		private double RotaryCraft;
 
 		private double Internal = 1000;
+
+		private ConversionRates(String name, Category parent, String comment) {
+			super(name, parent, comment);
+		}
 
 		public double ratioAppliedEnergistics2() {
 			return AppliedEnergistics2 / Internal;
@@ -1127,8 +1215,12 @@ public enum Settings {
 				""
 			); // 11256, same as AE2
 		}
-	},
-	Filesystem("File system related settings, performance and and balancing.") {
+	}
+
+	public static final Filesystem Filesystem = new Filesystem("Filesystem", "File system related settings, performance and and balancing.");
+
+	public static final class Filesystem extends Category {
+
 		public int fileCost;
 		public boolean bufferChanges;
 		public int[] hddSizes;
@@ -1139,6 +1231,10 @@ public enum Settings {
 		public int maxReadBuffer;
 		public int sectorSeekThreshold;
 		public double sectorSeekTime;
+
+		private Filesystem(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1209,8 +1305,12 @@ public enum Settings {
 				"The time to pause when the head movement threshold is exceeded."
 			);
 		}
-	},
-	Internet("Internet settings, security related.") {
+	}
+
+	public static final Internet Internet = new Internet("Internet", "Internet settings, security related.");
+
+	public static final class Internet extends Category {
+
 		public boolean enableHttp;
 		public boolean enableHttpHeaders;
 		public boolean enableTcp;
@@ -1219,6 +1319,10 @@ public enum Settings {
 		public int httpTimeout;
 		public int maxTcpConnections;
 		public int internetThreads;
+
+		private Internet(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1263,7 +1367,6 @@ public enum Settings {
 					+ "Entries are of the same format as in the blacklist. Examples:"
 					+ "\"gist.github.com\", \"www.pastebin.com\""
 			)).map(AddressValidator::create).collect(Collectors.toList());
-			;
 			httpTimeout = getInt("requestTimeout", 0, 0, Integer.MAX_VALUE,
 				"The time in seconds to wait for a response to a request before timing"
 					+ "out and returning an error message. If this is zero (the default) the"
@@ -1281,14 +1384,22 @@ public enum Settings {
 			);
 		}
 
-	},
-	Relay("Relay network message forwarding logic related stuff.") {
+	}
+
+	public static final Relay Relay = new Relay("Relay", "Relay network message forwarding logic related stuff.");
+
+	public static final class Relay extends Category {
+
 		public int defaultMaxQueueSize;
 		public int queueSizeUpgrade;
 		public int defaultRelayDelay;
 		public double relayDelayUpgrade;
 		public int defaultRelayAmount;
 		public int relayAmountUpgrade;
+
+		private Relay(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1321,8 +1432,9 @@ public enum Settings {
 					+ "two per item tier."
 			);
 		}
-	},
-	Nanomachines(
+	}
+
+	public static final Nanomachines Nanomachines = new Nanomachines("Nanomachines",
 		"Nanomachine related values. Note that most of these are relative, as\n"
 			+ "they scale with the number of total effects controlled by nanomachines,\n"
 			+ "which may very much vary depending on other mods used together with OC.\n"
@@ -1337,8 +1449,10 @@ public enum Settings {
 			+ "Behavior nodes get signals from both the connector and the input layers.\n"
 			+ "Reconfiguring builds up random connections. Some behaviors change what\n"
 			+ "they do based on the number of active inputs (e.g. potion effects will\n"
-			+ "increase their amplification value)."
-	) {
+			+ "increase their amplification value).");
+
+	public static final class Nanomachines extends Category {
+
 		public double triggerQuota;
 		public double connectorQuota;
 		public int maxInputs;
@@ -1352,6 +1466,10 @@ public enum Settings {
 		public String[] potionWhitelist;
 		public double hungryDamage;
 		public double hungryEnergyRestored;
+
+		private Nanomachines(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1434,8 +1552,12 @@ public enum Settings {
 					+ "player."
 			);
 		}
-	},
-	Printer("3D printer related stuff.") {
+	}
+
+	public static final Printer Printer = new Printer("Printer", "3D printer related stuff.");
+
+	public static final class Printer extends Category {
+
 		public int maxPrintComplexity;
 		public double printRecycleRate;
 		public boolean chameliumEdible;
@@ -1445,6 +1567,10 @@ public enum Settings {
 		public int printInkValue;
 		public boolean printsHaveOpacity;
 		public double noclipMultiplier;
+
+		private Printer(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1501,13 +1627,20 @@ public enum Settings {
 					+ "This only influences the chamelium cost."
 			);
 		}
-	},
-	Hologram("Hologram related stuff.") {
+	}
+
+	public static final Hologram Hologram = new Hologram("Hologram", "Hologram related stuff.");
+
+	public static final class Hologram extends Category {
 
 		public double[] maxScaleByTier;
 		public double[] maxTranslationByTier;
 		public double rawDelay;
 		public boolean light;
+
+		private Hologram(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1547,8 +1680,12 @@ public enum Settings {
 					+ "when off, because having state-based light in MC is... painful."
 			);
 		}
-	},
-	Misc("Other settings that you might find useful to tweak.") {
+	}
+
+	public static final Misc Misc = new Misc("Misc", "Other settings that you might find useful to tweak.");
+
+	public static final class Misc extends Category {
+
 		public int maxScreenWidth;
 		public int maxScreenHeight;
 		public boolean inputUsername;
@@ -1581,6 +1718,10 @@ public enum Settings {
 		public double redstoneDelay;
 		public double tradingRange;
 		public int mfuRange;
+
+		private Misc(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1748,14 +1889,22 @@ public enum Settings {
 				"Radius the MFU is able to operate in"
 			);
 		}
-	},
-	Integration("Settings for mod integration (the mod previously known as OpenComponents).") {
+	}
+
+	public static final Integration Integration = new Integration("Integration", "Settings for mod integration (the mod previously known as OpenComponents).");
+
+	public static final class Integration extends Category {
+
 		public String[] modBlacklist;
 		public String[] peripheralBlacklist;
 		public String fakePlayerUuid;
 		public String fakePlayerName;
 		public GameProfile fakePlayerProfile;
 		public double buildcraftCostProgrammingTable;
+
+		private Integration(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1789,12 +1938,20 @@ public enum Settings {
 			);
 		}
 
-	},
-	IntegrationVanilla(Integration, "Vanilla integration related settings.") {
+	}
+
+	public static final IntegrationVanilla IntegrationVanilla = new IntegrationVanilla("IntegrationVanilla", Integration, "Vanilla integration related settings.");
+
+	public static final class IntegrationVanilla extends Category {
+
 		public boolean enableInventoryDriver;
 		public boolean enableTankDriver;
 		public boolean enableCommandBlockDriver;
 		public boolean allowItemStackNBTTags;
+
+		private IntegrationVanilla(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1827,11 +1984,14 @@ public enum Settings {
 					+ "The recommended method is to use the database component instead."
 			);
 		}
-	},
-	Debug(
+	}
+
+	public static final Debug Debug = new Debug("Debug",
 		"Settings that are intended for debugging issues, not for normal use.\n"
-			+ "You usually don't want to touch these unless asked to do so by a developer."
-	) {
+			+ "You usually don't want to touch these unless asked to do so by a developer.");
+
+	public static final class Debug extends Category {
+
 		public boolean logLuaCallbackErrors;
 		public boolean forceLuaJ;
 		public boolean allowUserdata;
@@ -1852,6 +2012,10 @@ public enum Settings {
 
 		public boolean registerLuaJArchitecture;
 		public boolean disableLocaleChanging;
+
+		private Debug(String name, String comment) {
+			super(name, comment);
+		}
 
 		@Override
 		protected void load() {
@@ -1991,91 +2155,99 @@ public enum Settings {
 			);
 		}
 
-	};
-
-	@Nullable
-	private final Settings parent;
-	private final String comment;
-
-	Settings(String comment) {
-		this.parent = null;
-		this.comment = comment;
 	}
 
-	Settings(Settings parent, String comment) {
-		this.parent = parent;
-		this.comment = comment;
-	}
+	public static abstract class Category {
 
-	protected String getCategory() {
-		return (this.parent != null ? this.parent.getCategory() + "." : "") + this.name();
-	}
+		@Nullable
+		private final Category parent;
+		private final String name;
+		private final String comment;
 
-	protected String getComment() {
-		return this.comment;
-	}
-
-	protected abstract void load();
-
-	protected final boolean getBoolean(String name, boolean def, String comment) {
-		return config.getBoolean(name, getCategory(), def, comment);
-	}
-
-	protected final int getInt(String name, int def, int min, int max, String comment) {
-		return config.getInt(name, getCategory(), def, min, max, comment);
-	}
-
-	protected final int getInt(String name, int def, String comment) {
-		return config.get(getCategory(), name, def, comment).getInt();
-	}
-
-	protected final double getDouble(String name, double def, double min, double max, String comment) {
-		return config.get(getCategory(), name, def, comment, min, max).getDouble();
-	}
-
-	protected final double getDouble(String name, double def, String comment) {
-		return config.get(getCategory(), name, def, comment).getDouble();
-	}
-
-	protected final String getString(String name, String def, String comment) {
-		return config.getString(name, getCategory(), def, comment);
-	}
-
-	protected final String[] getStringList(String name, String[] def, String comment) {
-		return config.getStringList(name, getCategory(), def, comment);
-	}
-
-	protected final double[] getDoubleList(String name, double[] def, String comment, String errorMsg) {
-		double[] list = config.get(getCategory(), name, def, comment).getDoubleList();
-		if(list.length != def.length) {
-			OpenComputers.log().warn(errorMsg);
-			return def;
+		private Category(String name, String comment) {
+			this.name = name;
+			this.comment = comment;
+			this.parent = null;
+			Categories.add(this);
 		}
-		return list;
-	}
 
-	protected final int[] getIntList(String name, int[] def, String comment, String errorMsg) {
-		int[] list = config.get(getCategory(), name, def, comment).getIntList();
-		if(list.length != def.length) {
-			OpenComputers.log().warn(errorMsg);
-			return def;
+		private Category(String name, Category parent, String comment) {
+			this.parent = parent;
+			this.name = name;
+			this.comment = comment;
+			Categories.add(this);
 		}
-		return list;
-	}
 
-	protected final boolean[] getBooleanList(String name, boolean[] def, String comment, String errorMsg) {
-		boolean[] list = config.get(getCategory(), name, def, comment).getBooleanList();
-		if(list.length != def.length) {
-			OpenComputers.log().warn(errorMsg);
-			return def;
+		protected String getCategory() {
+			return (this.parent != null ? this.parent.getCategory() + "." : "") + this.name;
 		}
-		return list;
+
+		protected String getComment() {
+			return this.comment;
+		}
+
+		protected abstract void load();
+
+		protected final boolean getBoolean(String name, boolean def, String comment) {
+			return config.getBoolean(name, getCategory(), def, comment);
+		}
+
+		protected final int getInt(String name, int def, int min, int max, String comment) {
+			return config.getInt(name, getCategory(), def, min, max, comment);
+		}
+
+		protected final int getInt(String name, int def, String comment) {
+			return config.get(getCategory(), name, def, comment).getInt();
+		}
+
+		protected final double getDouble(String name, double def, double min, double max, String comment) {
+			return config.get(getCategory(), name, def, comment, min, max).getDouble();
+		}
+
+		protected final double getDouble(String name, double def, String comment) {
+			return config.get(getCategory(), name, def, comment).getDouble();
+		}
+
+		protected final String getString(String name, String def, String comment) {
+			return config.getString(name, getCategory(), def, comment);
+		}
+
+		protected final String[] getStringList(String name, String[] def, String comment) {
+			return config.getStringList(name, getCategory(), def, comment);
+		}
+
+		protected final double[] getDoubleList(String name, double[] def, String comment, String errorMsg) {
+			double[] list = config.get(getCategory(), name, def, comment).getDoubleList();
+			if(list.length != def.length) {
+				OpenComputers.log().warn(errorMsg);
+				return def;
+			}
+			return list;
+		}
+
+		protected final int[] getIntList(String name, int[] def, String comment, String errorMsg) {
+			int[] list = config.get(getCategory(), name, def, comment).getIntList();
+			if(list.length != def.length) {
+				OpenComputers.log().warn(errorMsg);
+				return def;
+			}
+			return list;
+		}
+
+		protected final boolean[] getBooleanList(String name, boolean[] def, String comment, String errorMsg) {
+			boolean[] list = config.get(getCategory(), name, def, comment).getBooleanList();
+			if(list.length != def.length) {
+				OpenComputers.log().warn(errorMsg);
+				return def;
+			}
+			return list;
+		}
 	}
 
 	// Main values
 
 	public static Configuration config;
-	public static final Settings[] Categories = values();
+	public static final Set<Category> Categories = new HashSet<>();
 
 	public static final String resourceDomain = "opencomputers";
 	public static final String namespace = "oc:";
@@ -2095,7 +2267,7 @@ public enum Settings {
 		config = new Configuration(file, OpenComputers.Version());
 		config.load();
 
-		for(Settings category : Categories) {
+		for(Category category : Categories) {
 			config.setCategoryComment(category.getCategory(), category.getComment());
 			category.load();
 		}
