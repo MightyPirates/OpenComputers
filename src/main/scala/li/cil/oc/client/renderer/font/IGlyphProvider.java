@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.font;
 
 import li.cil.oc.util.FontUtils;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 
 /**
@@ -34,6 +35,7 @@ public interface IGlyphProvider {
      * @return the RGBA byte array representing the char.
      * @see FontParserHex#getGlyph(int) See the hexfont parser for a reference implementation.
      */
+    @Nullable
     ByteBuffer getGlyph(int charCode);
 
     /**

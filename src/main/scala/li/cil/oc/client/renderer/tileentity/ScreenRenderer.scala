@@ -18,9 +18,9 @@ import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GLContext
 
 object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
-  private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
+  private val maxRenderDistanceSq = Settings.Client.maxScreenTextRenderDistance * Settings.Client.maxScreenTextRenderDistance
 
-  private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
+  private val fadeDistanceSq = Settings.Client.screenTextFadeStartDistance * Settings.Client.screenTextFadeStartDistance
 
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 

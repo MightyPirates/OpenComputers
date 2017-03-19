@@ -108,7 +108,7 @@ object Items extends ItemAPI {
       instance match {
         case simple: SimpleItem =>
           simple.setUnlocalizedName("oc." + id)
-          GameRegistry.register(simple, new ResourceLocation(Settings.resourceDomain, id))
+          GameRegistry.register(simple, new ResourceLocation(Constants.resourceDomain, id))
           OpenComputers.proxy.registerModel(instance, id)
         case _ =>
       }
@@ -173,18 +173,18 @@ object Items extends ItemAPI {
   override def registerEEPROM(name: String, code: Array[Byte], data: Array[Byte], readonly: Boolean): ItemStack = {
     val nbt = new NBTTagCompound()
     if (name != null) {
-      nbt.setString(Settings.namespace + "label", name.trim.take(24))
+      nbt.setString(Constants.namespace + "label", name.trim.take(24))
     }
     if (code != null) {
-      nbt.setByteArray(Settings.namespace + "eeprom", code.take(Settings.get.eepromSize))
+      nbt.setByteArray(Constants.namespace + "eeprom", code.take(Settings.Computer.eepromSize))
     }
     if (data != null) {
-      nbt.setByteArray(Settings.namespace + "userdata", data.take(Settings.get.eepromDataSize))
+      nbt.setByteArray(Constants.namespace + "userdata", data.take(Settings.Computer.eepromDataSize))
     }
-    nbt.setBoolean(Settings.namespace + "readonly", readonly)
+    nbt.setBoolean(Constants.namespace + "readonly", readonly)
 
     val stackNbt = new NBTTagCompound()
-    stackNbt.setTag(Settings.namespace + "data", nbt)
+    stackNbt.setTag(Constants.namespace + "data", nbt)
 
     val stack = get(Constants.ItemName.EEPROM).createItemStack(1)
     stack.setTagCompound(stackNbt)
@@ -203,7 +203,7 @@ object Items extends ItemAPI {
 
     data.name = "Crecopter"
     data.tier = Tier.Four
-    data.storedEnergy = Settings.get.bufferDrone.toInt
+    data.storedEnergy = Settings.Power.Buffer.drone.toInt
     data.components = Array(
       safeGetStack(Constants.ItemName.InventoryUpgrade),
       safeGetStack(Constants.ItemName.InventoryUpgrade),
@@ -226,7 +226,7 @@ object Items extends ItemAPI {
     val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
-    data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
+    data.storedEnergy = Settings.Power.Buffer.microcontroller.toInt
     data.components = Array(
       safeGetStack(Constants.ItemName.SignUpgrade),
       safeGetStack(Constants.ItemName.PistonUpgrade),
@@ -247,7 +247,7 @@ object Items extends ItemAPI {
 
     data.name = "Creatix"
     data.tier = Tier.Four
-    data.robotEnergy = Settings.get.bufferRobot.toInt
+    data.robotEnergy = Settings.Power.Buffer.robot.toInt
     data.totalEnergy = data.robotEnergy
     data.components = Array(
       safeGetStack(Constants.BlockName.ScreenTier1),
@@ -287,7 +287,7 @@ object Items extends ItemAPI {
     val data = new TabletData()
 
     data.tier = Tier.Four
-    data.energy = Settings.get.bufferTablet
+    data.energy = Settings.Power.Buffer.tablet
     data.maxEnergy = data.energy
     data.items = Array(
       Option(safeGetStack(Constants.BlockName.ScreenTier1)),
@@ -317,7 +317,7 @@ object Items extends ItemAPI {
 
   def createChargedHoverBoots() = {
     val data = new HoverBootsData()
-    data.charge = Settings.get.bufferHoverBoots
+    data.charge = Settings.Power.Buffer.hoverBoots
 
     data.createItemStack()
   }
@@ -540,7 +540,7 @@ object Items extends ItemAPI {
 
   private def newItem[T <: Item](item: T, name: String): T = {
     item.setUnlocalizedName("oc." + name)
-    GameRegistry.register(item, new ResourceLocation(Settings.resourceDomain, name))
+    GameRegistry.register(item, new ResourceLocation(Constants.resourceDomain, name))
     item
   }
 }

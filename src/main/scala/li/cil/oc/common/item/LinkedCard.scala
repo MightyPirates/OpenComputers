@@ -9,10 +9,10 @@ import net.minecraft.item.ItemStack
 
 class LinkedCard(val parent: Delegator) extends traits.Delegate with traits.ItemTier {
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-      if (data.hasKey(Settings.namespace + "tunnel")) {
-        val channel = data.getString(Settings.namespace + "tunnel")
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "data")) {
+      val data = stack.getTagCompound.getCompoundTag(Constants.namespace + "data")
+      if (data.hasKey(Constants.namespace + "tunnel")) {
+        val channel = data.getString(Constants.namespace + "tunnel")
         if (channel.length > 13) {
           tooltip.addAll(Tooltip.get(unlocalizedName + "_Channel", channel.substring(0, 13) + "..."))
         }

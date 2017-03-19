@@ -1,8 +1,8 @@
 package li.cil.oc.server.command
 
 import li.cil.oc.Settings
-import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.command.SimpleCommand
+import li.cil.oc.util.DebugCardAccess
 import net.minecraft.command.{ICommandSender, WrongUsageException}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.text.TextComponentString
@@ -36,7 +36,7 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
       case Array("revoke") => revokeUser(sender.getName)
       case Array("revoke", player) if isOp(sender) => revokeUser(player)
       case Array("list") if isOp(sender) =>
-        val players = wl.whitelist
+        val players = wl.getWhitelist
         if (players.nonEmpty)
           sender.sendMessage(new TextComponentString("§aCurrently whitelisted players: §e" + players.mkString(", ")))
         else

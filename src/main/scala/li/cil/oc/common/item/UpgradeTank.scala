@@ -13,7 +13,7 @@ class UpgradeTank(val parent: Delegator) extends traits.Delegate with traits.Ite
   @SideOnly(Side.CLIENT) override
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {
-      FluidStack.loadFluidStackFromNBT(stack.getTagCompound.getCompoundTag(Settings.namespace + "data")) match {
+      FluidStack.loadFluidStackFromNBT(stack.getTagCompound.getCompoundTag(Constants.namespace + "data")) match {
         case stack: FluidStack =>
           tooltip.add(stack.getFluid.getLocalizedName(stack) + ": " + stack.amount + "/16000")
         case _ =>

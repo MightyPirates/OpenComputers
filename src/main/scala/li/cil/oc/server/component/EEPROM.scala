@@ -117,10 +117,10 @@ class EEPROM extends AbstractManagedNodeContainer with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  private final val EEPROMTag = Settings.namespace + "eeprom"
-  private final val LabelTag = Settings.namespace + "label"
-  private final val ReadonlyTag = Settings.namespace + "readonly"
-  private final val UserdataTag = Settings.namespace + "userdata"
+  private final val EEPROMTag = Constants.namespace + "eeprom"
+  private final val LabelTag = Constants.namespace + "label"
+  private final val ReadonlyTag = Constants.namespace + "readonly"
+  private final val UserdataTag = Constants.namespace + "userdata"
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)

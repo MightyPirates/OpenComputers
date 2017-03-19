@@ -354,7 +354,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Generic);
             DEVICE_INFO.put(DeviceAttribute.Description, "Charger");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "PowerUpper");
         }
 

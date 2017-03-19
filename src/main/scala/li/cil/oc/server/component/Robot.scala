@@ -24,7 +24,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
     create()
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+    fromClass(OpenComputers.getClass, Constants.resourceDomain, "lua/component/robot"), "robot"))
 
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
@@ -92,7 +92,8 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
           result(Unit, "not enough energy")
         }
         else if (agent.move(direction)) {
-          context.pause(Settings.get.moveDelay)
+          val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.move)
+          context.pause(delay)
           result(true)
         }
         else {
@@ -111,8 +112,9 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
     if (getNode.tryChangeEnergy(-Settings.get.robotTurnCost)) {
       if (clockwise) agent.rotate(EnumFacing.UP)
       else agent.rotate(EnumFacing.DOWN)
-      agent.animateTurn(clockwise, Settings.get.turnDelay)
-      context.pause(Settings.get.turnDelay)
+      val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.turn)
+      agent.animateTurn(clockwise, delay)
+      context.pause(delay)
       result(true)
     }
     else {

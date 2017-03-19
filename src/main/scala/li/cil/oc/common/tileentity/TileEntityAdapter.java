@@ -315,7 +315,7 @@ public final class TileEntityAdapter extends AbstractTileEntitySingleNodeContain
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Bus);
             DEVICE_INFO.put(DeviceAttribute.Description, "Adapter");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Multiplug Ext.1");
         }
 

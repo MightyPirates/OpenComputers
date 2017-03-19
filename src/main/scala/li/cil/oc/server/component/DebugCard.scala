@@ -265,10 +265,10 @@ class DebugCard(host: Location) extends AbstractManagedNodeContainer with DebugN
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
     access = AccessContext.load(nbt)
-    if (nbt.hasKey(Settings.namespace + "remoteX")) {
-      val x = nbt.getInteger(Settings.namespace + "remoteX")
-      val y = nbt.getInteger(Settings.namespace + "remoteY")
-      val z = nbt.getInteger(Settings.namespace + "remoteZ")
+    if (nbt.hasKey(Constants.namespace + "remoteX")) {
+      val x = nbt.getInteger(Constants.namespace + "remoteX")
+      val y = nbt.getInteger(Constants.namespace + "remoteY")
+      val z = nbt.getInteger(Constants.namespace + "remoteZ")
       remoteNodePosition = Some((x, y, z))
     }
   }
@@ -278,9 +278,9 @@ class DebugCard(host: Location) extends AbstractManagedNodeContainer with DebugN
     access.foreach(_.save(nbt))
     remoteNodePosition.foreach {
       case (x, y, z) =>
-        nbt.setInteger(Settings.namespace + "remoteX", x)
-        nbt.setInteger(Settings.namespace + "remoteY", y)
-        nbt.setInteger(Settings.namespace + "remoteZ", z)
+        nbt.setInteger(Constants.namespace + "remoteX", x)
+        nbt.setInteger(Constants.namespace + "remoteY", y)
+        nbt.setInteger(Constants.namespace + "remoteZ", z)
     }
   }
 }
@@ -292,15 +292,15 @@ object DebugCard {
 
   object AccessContext {
     def remove(nbt: NBTTagCompound): Unit = {
-      nbt.removeTag(Settings.namespace + "player")
-      nbt.removeTag(Settings.namespace + "accessNonce")
+      nbt.removeTag(Constants.namespace + "player")
+      nbt.removeTag(Constants.namespace + "accessNonce")
     }
 
     def load(nbt: NBTTagCompound): Option[AccessContext] = {
-      if (nbt.hasKey(Settings.namespace + "player"))
+      if (nbt.hasKey(Constants.namespace + "player"))
         Some(AccessContext(
-          nbt.getString(Settings.namespace + "player"),
-          nbt.getString(Settings.namespace + "accessNonce")
+          nbt.getString(Constants.namespace + "player"),
+          nbt.getString(Constants.namespace + "accessNonce")
         ))
       else
         None
@@ -309,8 +309,8 @@ object DebugCard {
 
   case class AccessContext(player: String, nonce: String) {
     def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString(Settings.namespace + "player", player)
-      nbt.setString(Settings.namespace + "accessNonce", nonce)
+      nbt.setString(Constants.namespace + "player", player)
+      nbt.setString(Constants.namespace + "accessNonce", nonce)
     }
   }
 

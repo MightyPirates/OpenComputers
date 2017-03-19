@@ -50,9 +50,9 @@ object Item {
       stack.setTagCompound(new NBTTagCompound())
     }
     val nbt = stack.getTagCompound
-    if (!nbt.hasKey(Settings.namespace + "data")) {
-      nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
+    if (!nbt.hasKey(Constants.namespace + "data")) {
+      nbt.setTag(Constants.namespace + "data", new NBTTagCompound())
     }
-    nbt.getCompoundTag(Settings.namespace + "data")
+    nbt.getCompoundTag(Constants.namespace + "data")
   }
 }

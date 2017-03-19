@@ -43,8 +43,8 @@ object DriverTablet extends Item {
       case Some(fs) => DriverFileSystem.worksWith(fs)
       case _ => false
     }
-    if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {
-      val baseTag = stack.getTagCompound.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).getCompoundTagAt(index)
+    if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "items")) {
+      val baseTag = stack.getTagCompound.getTagList(Constants.namespace + "items", NBT.TAG_COMPOUND).getCompoundTagAt(index)
       if (!baseTag.hasKey("item")) {
         baseTag.setTag("item", new NBTTagCompound())
       }
@@ -53,10 +53,10 @@ object DriverTablet extends Item {
         itemTag.setTag("tag", new NBTTagCompound())
       }
       val stackTag = itemTag.getCompoundTag("tag")
-      if (!stackTag.hasKey(Settings.namespace + "data")) {
-        stackTag.setTag(Settings.namespace + "data", new NBTTagCompound())
+      if (!stackTag.hasKey(Constants.namespace + "data")) {
+        stackTag.setTag(Constants.namespace + "data", new NBTTagCompound())
       }
-      stackTag.getCompoundTag(Settings.namespace + "data")
+      stackTag.getCompoundTag(Constants.namespace + "data")
     }
     else new NBTTagCompound()
   }

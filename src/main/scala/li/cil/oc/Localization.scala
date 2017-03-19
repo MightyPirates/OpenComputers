@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 object Localization {
   private val nl = Regex.quote("[nl]")
 
-  private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
+  private def resolveKey(key: String) = if (canLocalize(Constants.namespace + key)) Constants.namespace + key else key
 
   def canLocalize(key: String) = I18n.canTranslate(key)
 

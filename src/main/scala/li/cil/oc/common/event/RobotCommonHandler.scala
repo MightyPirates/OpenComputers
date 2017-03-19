@@ -31,21 +31,21 @@ object RobotCommonHandler {
 
   @SubscribeEvent
   def onRobotMove(e: RobotMoveEvent.Pre): Unit = {
-    if (Settings.get.limitFlightHeight < 256) e.agent match {
+    if (Settings.Robot.limitFlightHeight < 256) e.agent match {
       case robot: Robot =>
         val world = robot.getWorld
-        var maxFlyingHeight = Settings.get.limitFlightHeight
+        var maxFlyingHeight = Settings.Robot.limitFlightHeight
 
         (0 until robot.equipmentInventory.getSizeInventory).
           map(robot.equipmentInventory.getStackInSlot).
           map(Delegator.subItem).
-          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
+          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.Robot.upgradeFlightHeight(item.tier)) }
 
         (0 until robot.componentCount).
           map(_ + robot.mainInventory.getSizeInventory + robot.equipmentInventory.getSizeInventory).
           map(robot.getStackInSlot).
           map(Delegator.subItem).
-          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
+          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.Robot.upgradeFlightHeight(item.tier)) }
 
         def isMovingDown = e.direction == EnumFacing.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = EnumFacing.values.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))

@@ -18,7 +18,7 @@ import scala.io.Source
 object RobotData {
   val names = try {
     Source.fromInputStream(getClass.getResourceAsStream(
-      "/assets/" + Settings.resourceDomain + "/robot.names"))(Charsets.UTF_8).
+      "/assets/" + Constants.resourceDomain + "/robot.names"))(Charsets.UTF_8).
       getLines().map(_.takeWhile(_ != '#').trim()).filter(_ != "").toArray
   }
   catch {
@@ -52,12 +52,12 @@ class RobotData extends ItemData(Constants.BlockName.Robot) {
 
   var lightColor = 0xF23030
 
-  private final val StoredEnergyTag = Settings.namespace + "storedEnergy"
-  private final val RobotEnergyTag = Settings.namespace + "robotEnergy"
-  private final val TierTag = Settings.namespace + "tier"
-  private final val ComponentsTag = Settings.namespace + "components"
-  private final val ContainersTag = Settings.namespace + "containers"
-  private final val LightColorTag = Settings.namespace + "lightColor"
+  private final val StoredEnergyTag = Constants.namespace + "storedEnergy"
+  private final val RobotEnergyTag = Constants.namespace + "robotEnergy"
+  private final val TierTag = Constants.namespace + "tier"
+  private final val ComponentsTag = Constants.namespace + "components"
+  private final val ContainersTag = Constants.namespace + "containers"
+  private final val LightColorTag = Constants.namespace + "lightColor"
 
   override def load(nbt: NBTTagCompound) {
     name = ItemUtils.getDisplayName(nbt).getOrElse("")

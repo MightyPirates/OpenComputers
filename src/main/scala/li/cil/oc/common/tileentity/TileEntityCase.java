@@ -189,7 +189,7 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.System);
             DEVICE_INFO.put(DeviceAttribute.Description, "Computer");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Blocker");
             DEVICE_INFO.put(DeviceAttribute.Capacity, getSizeInventory.toString);
         }
@@ -220,7 +220,7 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
     private static final class ItemHandlerCase extends ItemHandlerComponents {
         private final int tier;
 
-        public ItemHandlerCase(final ItemHandlerHost host, final int tier) {
+        ItemHandlerCase(final ItemHandlerHost host, final int tier) {
             super(host, InventorySlots.computer()[tier].length);
             this.tier = tier;
         }

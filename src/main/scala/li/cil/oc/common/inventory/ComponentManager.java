@@ -8,6 +8,7 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.NodeContainerHost;
 import li.cil.oc.api.network.NodeContainerItem;
+import li.cil.oc.api.util.Location;
 import li.cil.oc.common.Sound;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 public final class ComponentManager implements ICapabilityProvider, INBTSerializable<NBTTagList> {
-    public interface ComponentInventoryHost {
+    public interface ComponentInventoryHost extends Location {
         Node getItemNode();
 
         IItemHandler getComponentItems();
@@ -157,7 +158,7 @@ public final class ComponentManager implements ICapabilityProvider, INBTSerializ
         environment.onInstalled(stack);
 
         if (Objects.equals(driver.slot(stack), Slot.Floppy)) {
-            Sound.playDiskInsert(this);
+            Sound.playDiskInsert(host);
         }
     }
 
@@ -182,7 +183,7 @@ public final class ComponentManager implements ICapabilityProvider, INBTSerializ
 
         final DriverItem driver = Driver.driverFor(stack, nodeContainerHost.getClass());
         if (driver != null && Objects.equals(driver.slot(stack), Slot.Floppy)) {
-            Sound.playDiskEject(this);
+            Sound.playDiskEject(host);
         }
     }
 

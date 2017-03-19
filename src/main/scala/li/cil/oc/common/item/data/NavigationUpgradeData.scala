@@ -25,8 +25,8 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
     128 * (1 << info.scale)
   }
 
-  private final val DataTag = Settings.namespace + "data"
-  private final val MapTag = Settings.namespace + "map"
+  private final val DataTag = Constants.namespace + "data"
+  private final val MapTag = Constants.namespace + "map"
 
   override def load(stack: ItemStack) {
     if (stack.hasTagCompound) {

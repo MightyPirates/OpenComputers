@@ -59,7 +59,7 @@ class Rack extends BlockRedstoneAware with traits.PowerAcceptor with traits.Stat
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.serverRackRate
+  override def energyThroughput = Settings.Power.Rate.serverRackRate
 
   override def guiType = GuiType.Rack
 

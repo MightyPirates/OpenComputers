@@ -55,7 +55,7 @@ object Loot {
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
 
-  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
+  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "lootFactory", NBT.TAG_STRING)
 
   def randomDisk(rng: Random) =
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
@@ -69,14 +69,14 @@ object Loot {
     val modSpecificName = mod + ":" + name
 
     val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", name)
+    data.setString(Constants.namespace + "fs.label", name)
 
     val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
+    nbt.setTag(Constants.namespace + "data", data)
 
     // Store this top level, so it won't get wiped on save.
-    nbt.setString(Settings.namespace + "lootFactory", modSpecificName)
-    nbt.setInteger(Settings.namespace + "color", color.getDyeDamage)
+    nbt.setString(Constants.namespace + "lootFactory", modSpecificName)
+    nbt.setInteger(Constants.namespace + "color", color.getDyeDamage)
 
     val stack = Items.get(Constants.ItemName.Floppy).createItemStack(1)
     stack.setTagCompound(nbt)
@@ -96,7 +96,7 @@ object Loot {
 //    }
 
     val list = new java.util.Properties()
-    val listStream = getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/loot/loot.properties")
+    val listStream = getClass.getResourceAsStream("/assets/" + Constants.resourceDomain + "/loot/loot.properties")
     list.load(listStream)
     listStream.close()
     parseLootDisks(list, globalDisks, external = false)
@@ -155,7 +155,7 @@ object Loot {
     val callable = if (external) new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.asReadOnly(api.FileSystem.fromSaveDirectory("loot/" + path, 0, false))
     } else new Callable[FileSystem] {
-      override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
+      override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Constants.resourceDomain, "loot/" + path)
     }
     val stack = registerLootDisk(path, color.getOrElse(EnumDyeColor.SILVER), callable, doRecipeCycling = true)
     stack.setStackDisplayName(name)

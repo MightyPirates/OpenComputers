@@ -111,7 +111,7 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
       (hologram.translation.zCoord * hologram.width / 16 - 1.5) * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
-    if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
+    if (Settings.Client.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.Client.hologramFlickerFrequency) {
       GlStateManager.scale(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
       GlStateManager.translate(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }

@@ -140,12 +140,12 @@ object PrintData {
   def computeCosts(data: PrintData) = {
     val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
     val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
-    val multiplier = if (data.noclipOff || data.noclipOn) Settings.get.noclipMultiplier else 1
+    val multiplier = if (data.noclipOff || data.noclipOn) Settings.Printer.noclipMultiplier else 1
 
     if (totalVolume > 0) {
       val baseMaterialRequired = (totalVolume / 2) max 1
       val materialRequired =
-        if (data.redstoneLevel > 0 && data.redstoneLevel < 15) baseMaterialRequired + Settings.get.printCustomRedstone
+        if (data.redstoneLevel > 0 && data.redstoneLevel < 15) baseMaterialRequired + Settings.Printer.printCustomRedstone
         else baseMaterialRequired
       val inkRequired = (totalSurface / 6) max 1
 
@@ -154,7 +154,7 @@ object PrintData {
     else None
   }
 
-  private val materialPerItem = Settings.get.printMaterialValue
+  private val materialPerItem = Settings.Printer.printMaterialValue
 
   def materialValue(stack: ItemStack) = {
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
@@ -162,7 +162,7 @@ object PrintData {
     else if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
       val data = new PrintData(stack)
       computeCosts(data) match {
-        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
+        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.Printer.printRecycleRate).toInt
         case _ => 0
       }
     }

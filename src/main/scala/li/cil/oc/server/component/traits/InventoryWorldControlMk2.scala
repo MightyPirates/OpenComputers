@@ -34,7 +34,8 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
           this.inventory.markDirty()
         }
 
-        context.pause(Settings.get.dropDelay)
+        val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.drop)
+        context.pause(delay)
 
         result(true)
       })
@@ -50,7 +51,8 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     withInventory(position.offset(facing), fromSide, inventory => {
       val slot = args.checkSlot(inventory, 1)
       if (InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots)), inventory, slot, count)) {
-        context.pause(Settings.get.suckDelay)
+        val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.suck)
+        context.pause(delay)
         result(true)
       }
       else result(false)

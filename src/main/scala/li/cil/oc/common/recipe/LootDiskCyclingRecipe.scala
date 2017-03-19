@@ -27,7 +27,7 @@ class LootDiskCyclingRecipe extends IRecipe {
     }
   }
 
-  def getLootFactoryName(stack: ItemStack) = stack.getTagCompound.getString(Settings.namespace + "lootFactory")
+  def getLootFactoryName(stack: ItemStack) = stack.getTagCompound.getString(Constants.namespace + "lootFactory")
 
   def collectStacks(crafting: InventoryCrafting) = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
 

@@ -24,8 +24,8 @@ object MFUTargetRenderer {
     player.getHeldItemMainhand match {
       case stack: ItemStack if api.Items.get(stack) == mfu && stack.hasTagCompound =>
         val data = stack.getTagCompound
-        if (data.hasKey(Settings.namespace + "coord", NBT.TAG_INT_ARRAY)) {
-          val Array(x, y, z, dimension, side) = data.getIntArray(Settings.namespace + "coord")
+        if (data.hasKey(Constants.namespace + "coord", NBT.TAG_INT_ARRAY)) {
+          val Array(x, y, z, dimension, side) = data.getIntArray(Constants.namespace + "coord")
           if (player.getEntityWorld.provider.getDimension != dimension) return
           if (player.getDistance(x, y, z) > 64) return
 

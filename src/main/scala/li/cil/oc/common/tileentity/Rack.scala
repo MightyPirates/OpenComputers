@@ -387,10 +387,10 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
 
   // ----------------------------------------------------------------------- //
 
-  private final val IsRelayEnabledTag = Settings.namespace + "isRelayEnabled"
-  private final val NodeMappingTag = Settings.namespace + "nodeMapping"
-  private final val LastDataTag = Settings.namespace + "lastData"
-  private final val RackDataTag = Settings.namespace + "rackData"
+  private final val IsRelayEnabledTag = Constants.namespace + "isRelayEnabled"
+  private final val NodeMappingTag = Constants.namespace + "nodeMapping"
+  private final val LastDataTag = Constants.namespace + "lastData"
+  private final val RackDataTag = Constants.namespace + "rackData"
 
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)

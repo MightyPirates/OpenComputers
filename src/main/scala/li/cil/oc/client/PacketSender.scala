@@ -136,7 +136,7 @@ object PacketSender {
   def sendPetVisibility() {
     val pb = new SimplePacketBuilder(PacketType.PetVisibility)
 
-    pb.writeBoolean(!Settings.get.hideOwnPet)
+    pb.writeBoolean(!Settings.Misc.hideOwnPet)
 
     pb.sendToServer()
   }

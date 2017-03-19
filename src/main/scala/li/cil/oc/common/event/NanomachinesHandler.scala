@@ -39,7 +39,7 @@ object NanomachinesHandler {
             val sizeY = 12
             val width = res.getScaledWidth
             val height = res.getScaledHeight
-            val (x, y) = Settings.get.nanomachineHudPos
+            val (x, y) = Settings.Client.nanomachineHudPos
             val left =
               math.min(width - sizeX,
                 if (x < 0) width / 2 - 91 - 12

@@ -101,7 +101,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
       case Some(state) => if (state) "_on" else "_off"
       case _ => ""
     }
-    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Tablet + suffix, "inventory")
+    new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.ItemName.Tablet + suffix, "inventory")
   }
 
   @SideOnly(Side.CLIENT)
@@ -254,8 +254,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       val data = stack.getTagCompound
       load(data)
       if (!getWorld.isRemote) {
-        tablet.load(data.getCompoundTag(Settings.namespace + "component"))
-        machine.load(data.getCompoundTag(Settings.namespace + "data"))
+        tablet.load(data.getCompoundTag(Constants.namespace + "component"))
+        machine.load(data.getCompoundTag(Constants.namespace + "data"))
       }
     }
   }
@@ -266,16 +266,16 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     }
     val data = stack.getTagCompound
     if (!getWorld.isRemote) {
-      if (!data.hasKey(Settings.namespace + "data")) {
-        data.setTag(Settings.namespace + "data", new NBTTagCompound())
+      if (!data.hasKey(Constants.namespace + "data")) {
+        data.setTag(Constants.namespace + "data", new NBTTagCompound())
       }
-      data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
-      data.setNewCompoundTag(Settings.namespace + "data", machine.save)
+      data.setNewCompoundTag(Constants.namespace + "component", tablet.save)
+      data.setNewCompoundTag(Constants.namespace + "data", machine.save)
 
       if (clearState) {
         // Force tablets into stopped state to avoid errors when trying to
         // load deleted machine states.
-        data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+        data.getCompoundTag(Constants.namespace + "data").removeTag("state")
       }
     }
     save(data)
@@ -403,7 +403,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       }
     }
     if (!world.isRemote) {
-      if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (isCreative && world.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
         machine.node.asInstanceOf[EnergyNode].changeEnergy(Double.PositiveInfinity)
       }
       machine.update()
@@ -441,10 +441,10 @@ object Tablet {
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
     }
-    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
+    if (!stack.getTagCompound.hasKey(Constants.namespace + "tablet")) {
+      stack.getTagCompound.setString(Constants.namespace + "tablet", UUID.randomUUID().toString)
     }
-    stack.getTagCompound.getString(Settings.namespace + "tablet")
+    stack.getTagCompound.getString(Constants.namespace + "tablet")
   }
 
   def get(stack: ItemStack, holder: EntityPlayer) = {
@@ -557,8 +557,8 @@ object Tablet {
     override protected def timeout = 5
 
     def get(stack: ItemStack) = {
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-        val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "tablet")) {
+        val id = stack.getTagCompound.getString(Constants.namespace + "tablet")
         cache.synchronized(Option(cache.getIfPresent(id)))
       }
       else None

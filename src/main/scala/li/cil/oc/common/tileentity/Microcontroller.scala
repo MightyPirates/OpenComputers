@@ -195,10 +195,10 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
 
   // ----------------------------------------------------------------------- //
 
-  private final val InfoTag = Settings.namespace + "info"
-  private final val OutputsTag = Settings.namespace + "outputs"
-  private final val ComponentNodesTag = Settings.namespace + "componentNodes"
-  private final val SnooperTag = Settings.namespace + "snooper"
+  private final val InfoTag = Constants.namespace + "info"
+  private final val OutputsTag = Constants.namespace + "outputs"
+  private final val ComponentNodesTag = Constants.namespace + "componentNodes"
+  private final val SnooperTag = Constants.namespace + "snooper"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     // Load info before inventory and such, to avoid initializing components

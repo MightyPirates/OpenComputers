@@ -21,7 +21,7 @@ import scala.language.existentials
 trait CPULike extends Delegate {
   def cpuTier: Int
 
-  override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTier))
+  override protected def tooltipData: Seq[Any] = Seq(Settings.Computer.cpuComponentCount(cpuTier))
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     tooltip.addAll(Tooltip.get("CPU.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack))))
@@ -39,7 +39,7 @@ trait CPULike extends Delegate {
               val archClass = architectures(newIndex)
               val archName = api.Machine.getArchitectureName(archClass)
               driver.setArchitecture(stack, archClass)
-              player.sendMessage(new TextComponentTranslation(Settings.namespace + "tooltip.CPU.Architecture", archName))
+              player.sendMessage(new TextComponentTranslation(Constants.namespace + "tooltip.CPU.Architecture", archName))
             }
             player.swingArm(EnumHand.MAIN_HAND)
           case _ => // No known driver for this processor.

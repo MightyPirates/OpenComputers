@@ -82,7 +82,7 @@ class Raid extends traits.Environment with traits.Inventory with RotatableImpl w
       filesystem.foreach(fs => if (fs.getNode != null) fs.getNode.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
-        label, this, Settings.resourceDomain + ":hdd_access", 6).
+        label, this, Constants.resourceDomain + ":hdd_access", 6).
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
       nbtToSetAddress.setString(NodeData.AddressTag, id)
@@ -114,9 +114,9 @@ class Raid extends traits.Environment with traits.Inventory with RotatableImpl w
 
   // ----------------------------------------------------------------------- //
 
-  private final val FileSystemTag = Settings.namespace + "fs"
-  private final val PresenceTag = Settings.namespace + "presence"
-  private final val LabelTag = Settings.namespace + "label"
+  private final val FileSystemTag = Constants.namespace + "fs"
+  private final val PresenceTag = Constants.namespace + "presence"
+  private final val LabelTag = Constants.namespace + "label"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
@@ -160,13 +160,13 @@ class Raid extends traits.Environment with traits.Inventory with RotatableImpl w
     override def setLabel(value: String) = label = Option(value).map(_.take(16)).orNull
 
     override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "label")) {
-        label = nbt.getString(Settings.namespace + "label")
+      if (nbt.hasKey(Constants.namespace + "label")) {
+        label = nbt.getString(Constants.namespace + "label")
       }
     }
 
     override def save(nbt: NBTTagCompound) {
-      nbt.setString(Settings.namespace + "label", label)
+      nbt.setString(Constants.namespace + "label", label)
     }
   }
 

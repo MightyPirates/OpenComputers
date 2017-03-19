@@ -147,7 +147,7 @@ abstract class LuaStateFactory {
       }
     }
 
-    val libraryUrl = classOf[Machine].getResource(s"/assets/${Settings.resourceDomain}/lib/$version/$libraryName")
+    val libraryUrl = classOf[Machine].getResource(s"/assets/${Constants.resourceDomain}/lib/$version/$libraryName")
     if (libraryUrl == null) {
       OpenComputers.log.warn(s"Native library with name '$version/$libraryName' not found.")
       return

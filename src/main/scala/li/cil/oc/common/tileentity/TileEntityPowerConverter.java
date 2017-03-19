@@ -34,7 +34,7 @@ public final class TileEntityPowerConverter extends AbstractTileEntitySingleNode
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Power);
             DEVICE_INFO.put(DeviceAttribute.Description, "Power converter");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Transgizer-PX5");
             DEVICE_INFO.put(DeviceAttribute.Capacity, energyThroughput.toString);
         }

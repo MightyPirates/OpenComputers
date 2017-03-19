@@ -84,7 +84,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override def getLightOpacity(state: IBlockState, world: IBlockAccess, pos: BlockPos): Int =
     world match {
       case world: World if world.isBlockLoaded(pos) => world.getTileEntity(pos) match {
-        case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
+        case print: tileentity.Print if Settings.Printer.printsHaveOpacity => (print.data.opacity * 4).toInt
         case _ => super.getLightOpacity(state, world, pos)
       }
       case _ => super.getLightOpacity(state, world, pos)

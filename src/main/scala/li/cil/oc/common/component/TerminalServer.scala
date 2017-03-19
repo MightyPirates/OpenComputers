@@ -49,7 +49,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends NodeCon
       override def isUsableByPlayer(keyboard: api.internal.Keyboard, player: EntityPlayer) = {
         val stack = player.getHeldItemMainhand
         Delegator.subItem(stack) match {
-          case Some(t: item.Terminal) if stack.hasTagCompound => sidedKeys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
+          case Some(t: item.Terminal) if stack.hasTagCompound => sidedKeys.contains(stack.getTagCompound.getString(Constants.namespace + "key"))
           case _ => false
         }
       }
@@ -57,7 +57,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends NodeCon
     keyboard
   }
 
-  var range = Settings.get.maxWirelessRange
+  var range = Settings.Misc.maxWirelessRange
   val keys = mutable.ListBuffer.empty[String]
 
   def address = rack.getMountableData(slot).getString("terminalAddress")
@@ -137,15 +137,15 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends NodeCon
           heldItem.setTagCompound(new NBTTagCompound())
         }
         else {
-          keys -= heldItem.getTagCompound.getString(Settings.namespace + "key")
+          keys -= heldItem.getTagCompound.getString(Constants.namespace + "key")
         }
-        val maxSize = Settings.get.terminalsPerServer
+        val maxSize = Settings.Misc.terminalsPerServer
         while (keys.length >= maxSize) {
           keys.remove(0)
         }
         keys += key
-        heldItem.getTagCompound.setString(Settings.namespace + "key", key)
-        heldItem.getTagCompound.setString(Settings.namespace + "server", getNode.getAddress)
+        heldItem.getTagCompound.setString(Constants.namespace + "key", key)
+        heldItem.getTagCompound.setString(Constants.namespace + "server", getNode.getAddress)
         rack.markChanged(slot)
         player.inventory.markDirty()
       }
@@ -157,9 +157,9 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends NodeCon
   // ----------------------------------------------------------------------- //
   // Persistable
 
-  private final val BufferTag = Settings.namespace + "buffer"
-  private final val KeyboardTag = Settings.namespace + "keyboard"
-  private final val KeysTag = Settings.namespace + "keys"
+  private final val BufferTag = Constants.namespace + "buffer"
+  private final val KeyboardTag = Constants.namespace + "keyboard"
+  private final val KeysTag = Constants.namespace + "keys"
 
   override def load(nbt: NBTTagCompound): Unit = {
     if (!rack.getWorld.isRemote) {

@@ -14,7 +14,7 @@ import net.minecraft.world.World
 
 class Chamelium(val parent: Delegator) extends traits.Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (Settings.get.chameliumEdible) {
+    if (Settings.Printer.chameliumEdible) {
       player.setActiveHand(if (player.getHeldItemMainhand == stack) EnumHand.MAIN_HAND else EnumHand.OFF_HAND)
     }
     ActionResult.newResult(EnumActionResult.SUCCESS, stack)

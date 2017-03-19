@@ -10,13 +10,13 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override protected def tooltipData = Seq(Settings.get.bufferCapacitorUpgrades(tier).toInt)
+  override protected def tooltipData = Seq(Settings.Power.Buffer.capacitorUpgrades(tier).toInt)
 
   override def showDurabilityBar(stack: ItemStack) = true
 
   override def durability(stack: ItemStack) = {
     val data = new NodeData(stack)
-    1 - data.buffer.getOrElse(0.0) / Settings.get.bufferCapacitorUpgrades(tier)
+    1 - data.buffer.getOrElse(0.0) / Settings.Power.Buffer.capacitorUpgrades(tier)
   }
 
   // ----------------------------------------------------------------------- //
@@ -31,7 +31,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
     }
     if (amount < 0) amount // TODO support discharging
     else {
-      val charge = math.min(amount, Settings.get.bufferCapacitorUpgrades(tier).toInt - buffer)
+      val charge = math.min(amount, Settings.Power.Buffer.capacitorUpgrades(tier).toInt - buffer)
       if (!simulate) {
         data.buffer = Option(buffer + charge)
         data.save(stack)

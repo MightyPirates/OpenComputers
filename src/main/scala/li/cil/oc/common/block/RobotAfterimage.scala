@@ -75,7 +75,8 @@ class RobotAfterimage extends AbstractBlock {
   // ----------------------------------------------------------------------- //
 
   override def onBlockAdded(world: World, pos: BlockPos, state: IBlockState) {
-    world.scheduleUpdate(pos, this, Math.max((Settings.get.moveDelay * 20).toInt, 1) - 1)
+    val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.move)
+    world.scheduleUpdate(pos, this, Math.max((delay * 20).toInt, 1) - 1)
   }
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random) {

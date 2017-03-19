@@ -101,11 +101,11 @@ object Recipes {
 
   def init() {
     return
-    RecipeSorter.register(Settings.namespace + "extshaped", classOf[ExtendedShapedOreRecipe], Category.SHAPED, "after:forge:shapedore")
-    RecipeSorter.register(Settings.namespace + "extshapeless", classOf[ExtendedShapelessOreRecipe], Category.SHAPELESS, "after:forge:shapelessore")
-    RecipeSorter.register(Settings.namespace + "colorizer", classOf[ColorizeRecipe], Category.SHAPELESS, "after:forge:shapelessore")
-    RecipeSorter.register(Settings.namespace + "decolorizer", classOf[DecolorizeRecipe], Category.SHAPELESS, "after:oc:colorizer")
-    RecipeSorter.register(Settings.namespace + "lootcycler", classOf[LootDiskCyclingRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+    RecipeSorter.register(Constants.namespace + "extshaped", classOf[ExtendedShapedOreRecipe], Category.SHAPED, "after:forge:shapedore")
+    RecipeSorter.register(Constants.namespace + "extshapeless", classOf[ExtendedShapelessOreRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+    RecipeSorter.register(Constants.namespace + "colorizer", classOf[ColorizeRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+    RecipeSorter.register(Constants.namespace + "decolorizer", classOf[DecolorizeRecipe], Category.SHAPELESS, "after:oc:colorizer")
+    RecipeSorter.register(Constants.namespace + "lootcycler", classOf[LootDiskCyclingRecipe], Category.SHAPELESS, "after:forge:shapelessore")
 
     for ((name, stack) <- oreDictEntries) {
       if (!OreDictionary.getOres(name).contains(stack)) {
@@ -175,7 +175,7 @@ object Recipes {
         val lootStacks = Loot.globalDisks.map(_._1)
         for (recipe <- lootRecipes) {
           val name = recipe.getString("name")
-          lootStacks.find(s => s.getTagCompound.getString(Settings.namespace + "lootFactory") == name) match {
+          lootStacks.find(s => s.getTagCompound.getString(Constants.namespace + "lootFactory") == name) match {
             case Some(stack) => addRecipe(stack, recipe, s"loot disk '$name'")
             case _ =>
               OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")
@@ -233,7 +233,7 @@ object Recipes {
       for (dye <- DyeUtils.dyes) {
         val result = floppy.createItemStack(1)
         val tag = new NBTTagCompound()
-        tag.setInteger(Settings.namespace + "color", DyeUtils.dyes.indexOf(dye))
+        tag.setInteger(Constants.namespace + "color", DyeUtils.dyes.indexOf(dye))
         result.setTagCompound(tag)
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
       }

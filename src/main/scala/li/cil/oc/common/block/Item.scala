@@ -38,7 +38,7 @@ class Item(value: Block) extends ItemBlock(value) {
         }
         else {
           tooltip.add(I18n.translateToLocalFormatted(
-            Settings.namespace + "tooltip.MaterialCosts",
+            Constants.namespace + "tooltip.MaterialCosts",
             KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }
       case _ =>
@@ -62,7 +62,7 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def getUnlocalizedName = block match {
     case simple: AbstractBlock => simple.getUnlocalizedName
-    case _ => Settings.namespace + "tile"
+    case _ => Constants.namespace + "tile"
   }
 
   override def getDamage(stack: ItemStack): Int = {

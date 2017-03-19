@@ -39,7 +39,7 @@ class Case(val tier: Int) extends BlockRedstoneAware with traits.PowerAcceptor w
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.caseRate(tier)
+  override def energyThroughput = Settings.Power.Rate.caseRate(tier)
 
   override def guiType = GuiType.Case
 

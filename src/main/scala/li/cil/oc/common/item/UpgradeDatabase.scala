@@ -1,7 +1,6 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.{Constants, OpenComputers, Settings}
 import li.cil.oc.common.GuiType
 import li.cil.oc.util.RarityUtils
 import net.minecraft.entity.player.EntityPlayer
@@ -16,7 +15,7 @@ class UpgradeDatabase(val parent: Delegator, val tier: Int) extends traits.Deleg
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override protected def tooltipData = Seq(Settings.get.databaseEntriesPerTier(tier))
+  override protected def tooltipData = Seq(Constants.databaseEntriesPerTier(tier))
 
   override def rarity(stack: ItemStack) = RarityUtils.fromTier(tier)
 
@@ -25,7 +24,7 @@ class UpgradeDatabase(val parent: Delegator, val tier: Int) extends traits.Deleg
       player.openGui(OpenComputers, GuiType.Database.id, world, 0, 0, 0)
       player.swingArm(EnumHand.MAIN_HAND)
     }
-    else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {
+    else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "items")) {
       stack.setTagCompound(null)
       player.swingArm(EnumHand.MAIN_HAND)
     }

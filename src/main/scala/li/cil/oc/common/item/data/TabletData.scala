@@ -21,14 +21,14 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
   var tier = Tier.One
   var container: Option[ItemStack] = None
 
-  private final val ItemsTag = Settings.namespace + "items"
+  private final val ItemsTag = Constants.namespace + "items"
   private final val SlotTag = "slot"
   private final val ItemTag = "item"
-  private final val IsRunningTag = Settings.namespace + "isRunning"
-  private final val EnergyTag = Settings.namespace + "energy"
-  private final val MaxEnergyTag = Settings.namespace + "maxEnergy"
-  private final val TierTag = Settings.namespace + "tier"
-  private final val ContainerTag = Settings.namespace + "container"
+  private final val IsRunningTag = Constants.namespace + "isRunning"
+  private final val EnergyTag = Constants.namespace + "energy"
+  private final val MaxEnergyTag = Constants.namespace + "maxEnergy"
+  private final val TierTag = Constants.namespace + "tier"
+  private final val ContainerTag = Constants.namespace + "container"
 
   override def load(nbt: NBTTagCompound) {
     nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {

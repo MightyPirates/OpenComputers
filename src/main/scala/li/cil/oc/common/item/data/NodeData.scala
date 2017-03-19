@@ -16,7 +16,7 @@ class NodeData extends ItemData(null) {
   var buffer: Option[Double] = None
   var visibility: Option[Visibility] = None
 
-  private final val DataTag = Settings.namespace + "data"
+  private final val DataTag = Constants.namespace + "data"
 
   override def load(nbt: NBTTagCompound): Unit = {
     val nodeNbt = nbt.getCompoundTag(DataTag).getCompoundTag(NodeData.NodeTag)

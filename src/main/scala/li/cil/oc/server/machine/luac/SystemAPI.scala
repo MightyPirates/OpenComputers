@@ -27,21 +27,21 @@ class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     // Whether bytecode may be loaded directly.
     lua.pushScalaFunction(lua => {
-      lua.pushBoolean(Settings.get.allowBytecode)
+      lua.pushBoolean(Settings.Computer.Lua.allowBytecode)
       1
     })
     lua.setField(-2, "allowBytecode")
 
     // Whether custom __gc callbacks are allowed.
     lua.pushScalaFunction(lua => {
-      lua.pushBoolean(Settings.get.allowGC)
+      lua.pushBoolean(Settings.Computer.Lua.allowGC)
       1
     })
     lua.setField(-2, "allowGC")
 
     // How long programs may run without yielding before we stop them.
     lua.pushScalaFunction(lua => {
-      lua.pushNumber(Settings.get.timeout)
+      lua.pushNumber(Settings.Computer.timeout)
       1
     })
     lua.setField(-2, "timeout")

@@ -1,6 +1,6 @@
 package li.cil.oc.common.event
 
-import li.cil.oc.Settings
+import li.cil.oc.{Constants, Settings}
 import li.cil.oc.common.item.HoverBoots
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.util.FakePlayer
@@ -16,14 +16,14 @@ object HoverBootsHandler {
   def onLivingUpdate(e: LivingUpdateEvent): Unit = e.getEntity match {
     case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
       val nbt = player.getEntityData
-      val hadHoverBoots = nbt.getBoolean(Settings.namespace + "hasHoverBoots")
+      val hadHoverBoots = nbt.getBoolean(Constants.namespace + "hasHoverBoots")
       val hasHoverBoots = !player.isSneaking && equippedArmor(player).exists(stack => stack.getItem match {
         case boots: HoverBoots =>
-          Settings.get.ignorePower || {
-            if (player.onGround && !player.capabilities.isCreativeMode && player.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+          Settings.Power.shouldIgnorePower() || {
+            if (player.onGround && !player.capabilities.isCreativeMode && player.world.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
               val velocity = player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ
               if (velocity > 0.015f) {
-                boots.charge(stack, -Settings.get.hoverBootMove, simulate = false)
+                boots.charge(stack, -Settings.Power.Cost.hoverBootMove, simulate = false)
               }
             }
             boots.getCharge(stack) > 0
@@ -31,7 +31,7 @@ object HoverBootsHandler {
         case _ => false
       })
       if (hasHoverBoots != hadHoverBoots) {
-        nbt.setBoolean(Settings.namespace + "hasHoverBoots", hasHoverBoots)
+        nbt.setBoolean(Constants.namespace + "hasHoverBoots", hasHoverBoots)
         player.stepHeight = if (hasHoverBoots) 1f else 0.5f
       }
       if (hasHoverBoots && !player.onGround && player.fallDistance < 5 && player.motionY < 0) {
@@ -46,8 +46,8 @@ object HoverBootsHandler {
       equippedArmor(player).collectFirst {
         case stack if stack.getItem.isInstanceOf[HoverBoots] =>
           val boots = stack.getItem.asInstanceOf[HoverBoots]
-          val hoverJumpCost = -Settings.get.hoverBootJump
-          val isCreative = Settings.get.ignorePower || player.capabilities.isCreativeMode
+          val hoverJumpCost = -Settings.Power.Cost.hoverBootJump
+          val isCreative = Settings.Power.shouldIgnorePower() || player.capabilities.isCreativeMode
           if (isCreative || boots.charge(stack, hoverJumpCost, simulate = true) == 0) {
             if (!isCreative) boots.charge(stack, hoverJumpCost, simulate = false)
             if (player.isSprinting)
@@ -65,8 +65,8 @@ object HoverBootsHandler {
       equippedArmor(player).collectFirst {
         case stack if stack.getItem.isInstanceOf[HoverBoots] =>
           val boots = stack.getItem.asInstanceOf[HoverBoots]
-          val hoverFallCost = -Settings.get.hoverBootAbsorb
-          val isCreative = Settings.get.ignorePower || player.capabilities.isCreativeMode
+          val hoverFallCost = -Settings.Power.Cost.hoverBootAbsorb
+          val isCreative = Settings.Power.shouldIgnorePower() || player.capabilities.isCreativeMode
           if (isCreative || boots.charge(stack, hoverFallCost, simulate = true) == 0) {
             if (!isCreative) boots.charge(stack, hoverFallCost, simulate = false)
             e.setDistance(e.getDistance * 0.3f)

@@ -27,7 +27,7 @@ object DriverFileSystem extends Item {
     api.Items.get(Constants.ItemName.HDDTier2),
     api.Items.get(Constants.ItemName.HDDTier3),
     api.Items.get(Constants.ItemName.Floppy)) &&
-    (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
+    (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Constants.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: Location) =
     if (host.getWorld != null && host.getWorld.isRemote) null
@@ -51,15 +51,15 @@ object DriverFileSystem extends Item {
     }
 
   private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: Location, speed: Int) = if (DimensionManager.getWorld(0) != null) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory")) {
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
-      Loot.factories.get(stack.getTagCompound.getString(Settings.namespace + "lootFactory")) match {
+      Loot.factories.get(stack.getTagCompound.getString(Constants.namespace + "lootFactory")) match {
         case Some(factory) =>
           val label =
-            if (dataTag(stack).hasKey(Settings.namespace + "fs.label"))
-              dataTag(stack).getString(Settings.namespace + "fs.label")
+            if (dataTag(stack).hasKey(Constants.namespace + "fs.label"))
+              dataTag(stack).getString(Constants.namespace + "fs.label")
             else null
-          api.FileSystem.asManagedEnvironment(factory.call(), label, host, Settings.resourceDomain + ":floppy_access")
+          api.FileSystem.asManagedEnvironment(factory.call(), label, host, Constants.resourceDomain + ":floppy_access")
         case _ => null // Invalid loot disk.
       }
     }
@@ -70,7 +70,7 @@ object DriverFileSystem extends Item {
       val address = addressFromTag(dataTag(stack))
       val label = new ReadWriteItemLabel(stack)
       val isFloppy = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy)
-      val sound = Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access")
+      val sound = Constants.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access")
       val drive = new DriveData(stack)
       val environment = if (drive.isUnmanaged) {
         new Drive(capacity max 0, platterCount, label, Option(host), Option(sound), speed)
@@ -109,7 +109,7 @@ object DriverFileSystem extends Item {
       label = Option(value).map(_.take(16))
     }
 
-    private final val LabelTag = Settings.namespace + "fs.label"
+    private final val LabelTag = Constants.namespace + "fs.label"
 
     override def load(nbt: NBTTagCompound) {
       if (nbt.hasKey(LabelTag)) {

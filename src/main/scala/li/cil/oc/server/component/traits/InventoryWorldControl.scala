@@ -71,7 +71,8 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
           }
       }
 
-      context.pause(Settings.get.dropDelay)
+      val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.drop)
+      context.pause(delay)
 
       result(true)
     }
@@ -87,7 +88,8 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     if (InventoryUtils.inventoryAt(blockPos, facing.getOpposite).exists(inventory => {
       mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots)), inventory, count)
     })) {
-      context.pause(Settings.get.suckDelay)
+      val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.suck)
+      context.pause(delay)
       result(true)
     }
     else {
@@ -96,7 +98,8 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
         val size = stack.getCount
         onSuckCollect(entity)
         if (stack.getCount < size || entity.isDead) {
-          context.pause(Settings.get.suckDelay)
+          val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.suck)
+          context.pause(delay)
           return result(true)
         }
       }

@@ -55,7 +55,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
 
   private var aspectRatio = (1.0, 1.0)
 
-  private var powerConsumptionPerTick = Settings.get.screenCost
+  private var powerConsumptionPerTick = Settings.Power.Cost.screenCost
 
   private var precisionMode = false
 
@@ -124,7 +124,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
 
   override def update() {
     super.update()
-    if (isDisplaying && host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isDisplaying && host.getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
@@ -150,7 +150,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
       }
       if (getNode != null) {
         val hadPower = hasPower
-        val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
+        val neededPower = relativeLitArea * fullyLitCost * Settings.Power.tickFrequency
         hasPower = getNode.tryChangeEnergy(-neededPower)
         if (hasPower != hadPower) {
           ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
@@ -159,7 +159,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange * Settings.get.maxWirelessRange)))
+      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.Misc.maxWirelessRange * Settings.Misc.maxWirelessRange)))
       _pendingCommands = None
     }
 
@@ -235,7 +235,7 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
     if (isDisplaying != value) {
       isDisplaying = value
       if (isDisplaying) {
-        val neededPower = fullyLitCost * Settings.get.tickFrequency
+        val neededPower = fullyLitCost * Settings.Power.tickFrequency
         hasPower = getNode.changeEnergy(-neededPower) == 0
       }
       ServerPacketSender.sendTextBufferPowerChange(getNode.getAddress, isDisplaying && hasPower, host)
@@ -508,13 +508,13 @@ class TextBuffer(val host: Location) extends AbstractManagedNodeContainer with a
   // ----------------------------------------------------------------------- //
 
   private def bufferPath = getNode.getAddress + "_buffer"
-  private final val IsOnTag = Settings.namespace + "isOn"
-  private final val HasPowerTag = Settings.namespace + "hasPower"
-  private final val MaxWidthTag = Settings.namespace + "maxWidth"
-  private final val MaxHeightTag = Settings.namespace + "maxHeight"
-  private final val PreciseTag = Settings.namespace + "precise"
-  private final val ViewportWidthTag = Settings.namespace + "viewportWidth"
-  private final val ViewportHeightTag = Settings.namespace + "viewportHeight"
+  private final val IsOnTag = Constants.namespace + "isOn"
+  private final val HasPowerTag = Constants.namespace + "hasPower"
+  private final val MaxWidthTag = Constants.namespace + "maxWidth"
+  private final val MaxHeightTag = Constants.namespace + "maxHeight"
+  private final val PreciseTag = Constants.namespace + "precise"
+  private final val ViewportWidthTag = Constants.namespace + "viewportWidth"
+  private final val ViewportHeightTag = Constants.namespace + "viewportHeight"
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
@@ -897,12 +897,12 @@ object TextBuffer {
         if (!stack.hasTagCompound) {
           stack.setTagCompound(new NBTTagCompound())
         }
-        stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
+        stack.getTagCompound.removeTag(Constants.namespace + "clipboard")
 
         if (line >= 0 && line < owner.getViewportHeight) {
           val text = new String(owner.data.buffer(line)).trim
           if (!Strings.isNullOrEmpty(text)) {
-            stack.getTagCompound.setString(Settings.namespace + "clipboard", text)
+            stack.getTagCompound.setString(Constants.namespace + "clipboard", text)
           }
         }
 
@@ -926,7 +926,7 @@ object TextBuffer {
         args += Int.box(y.toInt + 1)
       }
       args += Int.box(data)
-      if (Settings.get.inputUsername) {
+      if (Settings.Misc.inputUsername) {
         args += player.getName
       }
 

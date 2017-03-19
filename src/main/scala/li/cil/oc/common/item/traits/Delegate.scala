@@ -98,12 +98,12 @@ trait Delegate {
       }
       else {
         tooltip.add(Localization.localizeImmediately(
-          Settings.namespace + "tooltip.MaterialCosts",
+          Constants.namespace + "tooltip.MaterialCosts",
           KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
       }
     }
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "data")) {
+      val data = stack.getTagCompound.getCompoundTag(Constants.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
         tooltip.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
       }

@@ -23,7 +23,7 @@ import scala.collection.mutable
 
 object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
   def init(): Unit = {
-    ManualAPI.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/tis3d/"))
+    ManualAPI.addProvider(new ResourceContentProvider(Constants.resourceDomain, "doc/tis3d/"))
     SerialAPI.addProvider(this)
   }
 

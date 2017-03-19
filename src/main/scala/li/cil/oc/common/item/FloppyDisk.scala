@@ -17,18 +17,18 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
   // Necessary for anonymous subclasses used for loot disks.
   override def unlocalizedName = "FloppyDisk"
 
-  val kiloBytes = Settings.get.floppySize
+  val kiloBytes = Settings.Filesystem.floppySize
 
   @SideOnly(Side.CLIENT)
   private def modelLocationFromDyeName(name: String) = {
-    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Floppy + "_" + name, "inventory")
+    new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.ItemName.Floppy + "_" + name, "inventory")
   }
 
   @SideOnly(Side.CLIENT)
   override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
     val dyeIndex =
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
-        stack.getTagCompound.getInteger(Settings.namespace + "color")
+      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "color"))
+        stack.getTagCompound.getInteger(Constants.namespace + "color")
       else
         8
     modelLocationFromDyeName(DyeUtils.dyes(dyeIndex max 0 min 15))

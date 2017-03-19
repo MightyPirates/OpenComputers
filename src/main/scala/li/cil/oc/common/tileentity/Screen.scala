@@ -286,9 +286,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  private final val TierTag = Settings.namespace + "tier"
-  private final val HadRedstoneInputTag = Settings.namespace + "hadRedstoneInput"
-  private final val InvertTouchModeTag = Settings.namespace + "invertTouchMode"
+  private final val TierTag = Constants.namespace + "tier"
+  private final val HadRedstoneInputTag = Constants.namespace + "hadRedstoneInput"
+  private final val InvertTouchModeTag = Constants.namespace + "invertTouchMode"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(TierTag) max 0 min 2

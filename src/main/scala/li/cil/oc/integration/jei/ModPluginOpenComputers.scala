@@ -77,8 +77,8 @@ class ModPluginOpenComputers extends IModPlugin {
         val compound: NBTTagCompound = stack.getTagCompound
         val data = new NBTTagCompound
         // Separate loot disks from normal floppies
-        if (compound.hasKey(Settings.namespace + "lootFactory")) {
-          data.setTag(Settings.namespace + "lootFactory", compound.getTag(Settings.namespace + "lootFactory"))
+        if (compound.hasKey(Constants.namespace + "lootFactory")) {
+          data.setTag(Constants.namespace + "lootFactory", compound.getTag(Constants.namespace + "lootFactory"))
         }
         if (data.hasNoTags) null else data.toString
       }

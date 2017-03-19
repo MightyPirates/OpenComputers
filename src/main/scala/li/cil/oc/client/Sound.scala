@@ -9,8 +9,7 @@ import java.util.TimerTask
 import java.util.UUID
 
 import com.google.common.base.Charsets
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.{Constants, OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundManager
 import net.minecraft.server.integrated.IntegratedServer
@@ -36,7 +35,7 @@ object Sound {
   private var lastVolume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
 
   private val updateTimer = new Timer("OpenComputers-SoundUpdater", true)
-  if (Settings.get.soundVolume > 0) {
+  if (Settings.Client.soundVolume > 0) {
     updateTimer.scheduleAtFixedRate(new TimerTask {
       override def run() {
         sources.synchronized(updateCallable = Some(() => {
@@ -90,7 +89,7 @@ object Sound {
   }
 
   def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f, delay: Long = 0) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.Client.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new StartCommand(System.currentTimeMillis() + delay, tileEntity, name, volume)
       }
@@ -98,7 +97,7 @@ object Sound {
   }
 
   def stopLoop(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.Client.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new StopCommand(tileEntity)
       }
@@ -106,7 +105,7 @@ object Sound {
   }
 
   def updatePosition(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.Client.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new UpdatePositionCommand(tileEntity)
       }
@@ -118,7 +117,7 @@ object Sound {
     manager = event.getManager
   }
 
-  private var hasPreloaded = Settings.get.soundVolume <= 0
+  private var hasPreloaded = Settings.Client.soundVolume <= 0
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {
@@ -127,7 +126,7 @@ object Sound {
         hasPreloaded = true
         new Thread(new Runnable() {
           override def run(): Unit = {
-            val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
+            val preloadConfigLocation = new ResourceLocation(Constants.resourceDomain, "sounds/preload.cfg")
             val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
             for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
               val url = getClass.getClassLoader.getResource(location)
@@ -207,7 +206,7 @@ object Sound {
     var initialized = false
 
     def updateVolume() {
-      soundSystem.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
+      soundSystem.setVolume(source, lastVolume * volume * Settings.Client.soundVolume)
     }
 
     def updatePosition() {
@@ -216,7 +215,7 @@ object Sound {
     }
 
     def play(name: String) {
-      val resourceName = s"${Settings.resourceDomain}:$name"
+      val resourceName = s"${Constants.resourceDomain}:$name"
       val sound = manager.sndHandler.getAccessor(new ResourceLocation(resourceName))
       // Specified return type because apparently this is ambiguous according to Jenkins. I don't even.
       val resource = (sound.cloneEntry(): net.minecraft.client.audio.Sound).getSoundAsOggLocation

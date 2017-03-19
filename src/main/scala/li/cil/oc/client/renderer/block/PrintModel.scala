@@ -72,7 +72,7 @@ object PrintModel extends SmartBlockModelBase {
       }
       if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds
-        val texture = resolveTexture(Settings.resourceDomain + ":blocks/white")
+        val texture = resolveTexture(Constants.resourceDomain + ":blocks/white")
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), DyeUtils.rgbValues(EnumDyeColor.LIME))
       }
 

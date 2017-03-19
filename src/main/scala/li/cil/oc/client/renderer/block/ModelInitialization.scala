@@ -27,17 +27,17 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ModelInitialization {
-  final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
-  final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
-  final val NetSplitterBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "normal")
-  final val NetSplitterItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "inventory")
-  final val PrintBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "normal")
-  final val PrintItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "inventory")
-  final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "normal")
-  final val RobotItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
-  final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "normal")
-  final val RobotAfterimageItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "inventory")
-  final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "normal")
+  final val CableBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
+  final val CableItemLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
+  final val NetSplitterBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.NetSplitter, "normal")
+  final val NetSplitterItemLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.NetSplitter, "inventory")
+  final val PrintBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Print, "normal")
+  final val PrintItemLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Print, "inventory")
+  final val RobotBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Robot, "normal")
+  final val RobotItemLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
+  final val RobotAfterimageBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "normal")
+  final val RobotAfterimageItemLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "inventory")
+  final val RackBlockLocation = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.BlockName.Rack, "normal")
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
   private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
@@ -95,7 +95,7 @@ object ModelInitialization {
       override def getModelLocation(stack: ItemStack) = {
         Option(api.Items.get(stack)) match {
           case Some(descriptor) =>
-            val location = Settings.resourceDomain + ":" + descriptor.name()
+            val location = Constants.resourceDomain + ":" + descriptor.name()
             new ModelResourceLocation(location, "inventory")
           case _ => null
         }
@@ -112,7 +112,7 @@ object ModelInitialization {
   private def registerSubItems(): Unit = {
     val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
     for ((id, item) <- itemDelegates) {
-      val location = Settings.resourceDomain + ":" + id
+      val location = Constants.resourceDomain + ":" + id
       modelMeshes.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
       ModelBakery.registerItemVariants(item.parent, new ResourceLocation(location))
     }
@@ -164,7 +164,7 @@ object ModelInitialization {
       case location: ModelResourceLocation => registry.getObject(location) match {
         case parent: IBakedModel =>
           for ((name, model) <- modelOverrides) {
-            val pattern = s"^${Settings.resourceDomain}:$name#.*"
+            val pattern = s"^${Constants.resourceDomain}:$name#.*"
             if (location.toString.matches(pattern)) {
               registry.putObject(location, model(parent))
             }

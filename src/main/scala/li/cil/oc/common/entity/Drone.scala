@@ -166,9 +166,9 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   override def setName(name: String): Unit = info.name = name
 
-  var ownerName = Settings.get.fakePlayerName
+  var ownerName = Settings.Integration.fakePlayerName
 
-  var ownerUUID = Settings.get.fakePlayerProfile.getId
+  var ownerUUID = Settings.Integration.fakePlayerProfile.getId
 
   private lazy val player_ = new agent.Player(this)
 
@@ -286,7 +286,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
   private def wireThingsTogether(): Unit = {
     api.Network.joinNewNetwork(machine.node)
     machine.node.connect(control.getNode)
-    machine.setCostPerTick(Settings.get.droneCost)
+    machine.setCostPerTick(Settings.Power.Cost.drone)
     components.connectComponents()
   }
 
@@ -462,7 +462,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     if (isRunning) {
       val direction = new Vec3d(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
-        if (Settings.get.inputUsername)
+        if (Settings.Misc.inputUsername)
           machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord), entity.getName)
         else
           machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord))

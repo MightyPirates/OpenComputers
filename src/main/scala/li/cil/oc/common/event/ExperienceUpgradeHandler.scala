@@ -24,12 +24,12 @@ object ExperienceUpgradeHandler {
 
   @SubscribeEvent
   def onRobotComputeDamageRate(e: RobotUsedToolEvent.ComputeDamageRate) {
-    e.setDamageRate(e.getDamageRate * math.max(0, 1 - getLevel(e.agent) * Settings.get.toolEfficiencyPerLevel))
+    e.setDamageRate(e.getDamageRate * math.max(0, 1 - getLevel(e.agent) * Settings.Robot.Experience.toolEfficiencyPerLevel))
   }
 
   @SubscribeEvent
   def onRobotBreakBlockPre(e: RobotBreakBlockEvent.Pre) {
-    val boost = math.max(0, 1 - getLevel(e.agent) * Settings.get.harvestSpeedBoostPerLevel)
+    val boost = math.max(0, 1 - getLevel(e.agent) * Settings.Robot.Experience.harvestSpeedBoostPerLevel)
     e.setBreakTime(e.getBreakTime * boost)
   }
 
@@ -38,7 +38,7 @@ object ExperienceUpgradeHandler {
     e.agent match {
       case robot: Robot =>
         if (robot.equipmentInventory.getStackInSlot(0) != null && e.target.isDead) {
-          addExperience(robot, Settings.get.robotActionXp)
+          addExperience(robot, Settings.Robot.Experience.actionXp)
         }
       case _ =>
     }
@@ -46,22 +46,22 @@ object ExperienceUpgradeHandler {
 
   @SubscribeEvent
   def onRobotBreakBlockPost(e: RobotBreakBlockEvent.Post) {
-    addExperience(e.agent, e.experience * Settings.get.robotOreXpRate + Settings.get.robotActionXp)
+    addExperience(e.agent, e.experience * Settings.Robot.Experience.oreXpRate + Settings.Robot.Experience.actionXp)
   }
 
   @SubscribeEvent
   def onRobotPlaceBlockPost(e: RobotPlaceBlockEvent.Post) {
-    addExperience(e.agent, Settings.get.robotActionXp)
+    addExperience(e.agent, Settings.Robot.Experience.actionXp)
   }
 
   @SubscribeEvent
   def onRobotMovePost(e: RobotMoveEvent.Post) {
-    addExperience(e.agent, Settings.get.robotExhaustionXpRate * 0.01)
+    addExperience(e.agent, Settings.Robot.Experience.exhaustionXpRate * 0.01)
   }
 
   @SubscribeEvent
   def onRobotExhaustion(e: RobotExhaustionEvent) {
-    addExperience(e.agent, Settings.get.robotExhaustionXpRate * e.exhaustion)
+    addExperience(e.agent, Settings.Robot.Experience.exhaustionXpRate * e.exhaustion)
   }
 
   @SubscribeEvent

@@ -573,7 +573,7 @@ object Textures {
     }
 
     protected def L(name: String, load: Boolean = true) = {
-      val location = new ResourceLocation(Settings.resourceDomain, String.format(basePath, name))
+      val location = new ResourceLocation(Constants.resourceDomain, String.format(basePath, name))
       if (load) locations += location
       location
     }

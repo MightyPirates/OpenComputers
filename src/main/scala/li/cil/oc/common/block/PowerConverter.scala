@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class PowerConverter extends AbstractBlock with traits.PowerAcceptor {
-  if (Settings.get.ignorePower) {
+  if (Settings.Power.shouldIgnorePower()) {
     setCreativeTab(null)
     ItemBlacklist.hide(this)
   }
@@ -46,7 +46,7 @@ class PowerConverter extends AbstractBlock with traits.PowerAcceptor {
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.powerConverterRate
+  override def energyThroughput = Settings.Power.Rate.powerConverterRate
 
   override def createNewTileEntity(world: World, metadata: Int) = new TileEntityPowerConverter()
 }

@@ -133,7 +133,7 @@ public final class TileEntityCapacitor extends AbstractTileEntitySingleNodeConta
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Power);
             DEVICE_INFO.put(DeviceAttribute.Description, "Battery");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "CapBank3x");
             DEVICE_INFO.put(DeviceAttribute.Capacity, String.valueOf(getMaxCapacity()));
         }

@@ -14,7 +14,7 @@ class DebugCardData extends ItemData(Constants.ItemName.DebugCard) {
 
   var access: Option[AccessContext] = None
 
-  private final val DataTag = Settings.namespace + "data"
+  private final val DataTag = Constants.namespace + "data"
 
   override def load(nbt: NBTTagCompound): Unit = {
     access = AccessContext.load(dataTag(nbt))

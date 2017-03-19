@@ -105,8 +105,8 @@ object GuiHandler extends CommonGuiHandler {
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
             val stack = player.getHeldItemMainhand
             if (stack.hasTagCompound) {
-              val address = stack.getTagCompound.getString(Settings.namespace + "server")
-              val key = stack.getTagCompound.getString(Settings.namespace + "key")
+              val address = stack.getTagCompound.getString(Constants.namespace + "server")
+              val key = stack.getTagCompound.getString(Constants.namespace + "key")
               if (!Strings.isNullOrEmpty(key) && !Strings.isNullOrEmpty(address)) {
                 component.TerminalServer.loaded.find(_.address == address) match {
                   case Some(term) => term.rack match {
@@ -115,7 +115,7 @@ object GuiHandler extends CommonGuiHandler {
                     if (inRange) {
                         if (term.sidedKeys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
                         // Check if someone else bound a term to our server.
-                        if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
+                        if (stack.getTagCompound.getString(Constants.namespace + "key") != key) {
                           Minecraft.getMinecraft.displayGuiScreen(null)
                         }
                         // Check whether we're still in range.

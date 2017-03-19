@@ -92,8 +92,8 @@ public final class IMC {
             } else if (Objects.equals(message.key, BLACKLIST_PERIPHERAL) && message.isStringMessage()) {
                 OpenComputers.log().info("Blacklisting CC peripheral '" + message.getStringValue() + "' as requested by mod " + message.getSender() + ".");
 
-                if (!Settings.get().peripheralBlacklist.contains(message.getStringValue())) {
-                    Settings.get().peripheralBlacklist.add(message.getStringValue());
+                if (!Settings.Integration.peripheralBlacklist.contains(message.getStringValue())) {
+                    Settings.Integration.peripheralBlacklist.add(message.getStringValue());
                 }
             } else if (Objects.equals(message.key, BLACKLIST_HOST) && message.isNBTMessage()) {
                 OpenComputers.log().info("Blacklisting component '" + message.getNBTValue().getString(TAG_NAME) + "' for host '" + message.getNBTValue().getString(TAG_HOST) + "' as requested by mod " + message.getSender() + ".");
@@ -122,7 +122,7 @@ public final class IMC {
             } else if (Objects.equals(message.key, REGISTER_CUSTOM_POWER_SYSTEM) && message.isStringMessage()) {
                 OpenComputers.log().info("Was told there is an unknown power system present by mod " + message.getSender() + ".");
 
-                Settings.get().is3rdPartyPowerSystemPresent = Objects.equals(message.getStringValue(), "true");
+                Settings.Power.is3rdPartyPowerSystemPresent = Objects.equals(message.getStringValue(), "true");
             } else if (Objects.equals(message.key, REGISTER_PROGRAM_DISK_LABEL) && message.isNBTMessage()) {
                 final String program = message.getNBTValue().getString(TAG_PROGRAM);
                 final String label = message.getNBTValue().getString(TAG_LABEL);

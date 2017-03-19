@@ -41,7 +41,7 @@ object FileSystemAccessHandler {
 
   @SubscribeEvent
   def onFileSystemAccess(e: FileSystemAccessEvent.Client) {
-    val volume = Settings.get.soundVolume
+    val volume = Settings.Client.soundVolume
     val sound = new SoundEvent(new ResourceLocation(e.getSound))
     e.getWorld.playSound(e.getX, e.getY, e.getZ, sound, SoundCategory.BLOCKS, volume, 1, false)
     e.getTileEntity match {

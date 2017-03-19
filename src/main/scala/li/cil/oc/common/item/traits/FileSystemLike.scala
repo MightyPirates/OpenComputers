@@ -21,10 +21,10 @@ trait FileSystemLike extends Delegate {
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {
       val nbt = stack.getTagCompound
-      if (nbt.hasKey(Settings.namespace + "data")) {
-        val data = nbt.getCompoundTag(Settings.namespace + "data")
-        if (data.hasKey(Settings.namespace + "fs.label")) {
-          tooltip.add(data.getString(Settings.namespace + "fs.label"))
+      if (nbt.hasKey(Constants.namespace + "data")) {
+        val data = nbt.getCompoundTag(Constants.namespace + "data")
+        if (data.hasKey(Constants.namespace + "fs.label")) {
+          tooltip.add(data.getString(Constants.namespace + "fs.label"))
         }
         if (advanced && data.hasKey("fs")) {
           val fsNbt = data.getCompoundTag("fs")
@@ -34,13 +34,13 @@ trait FileSystemLike extends Delegate {
           }
         }
       }
-      tooltip.add(Localization.Tooltip.DiskMode(nbt.getBoolean(Settings.namespace + "unmanaged")))
+      tooltip.add(Localization.Tooltip.DiskMode(nbt.getBoolean(Constants.namespace + "unmanaged")))
     }
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (!player.isSneaking && (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootFactory"))) {
+    if (!player.isSneaking && (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Constants.namespace + "lootFactory"))) {
       player.openGui(OpenComputers, GuiType.Drive.id, world, 0, 0, 0)
       player.swingArm(EnumHand.MAIN_HAND)
     }

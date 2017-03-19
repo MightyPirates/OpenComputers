@@ -83,7 +83,7 @@ class LinkedCard extends AbstractManagedNodeContainer with QuantumNetwork.Quantu
 
   // ----------------------------------------------------------------------- //
 
-  private final val TunnelTag = Settings.namespace + "tunnel"
+  private final val TunnelTag = Constants.namespace + "tunnel"
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)

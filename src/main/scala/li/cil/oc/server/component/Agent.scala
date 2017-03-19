@@ -86,7 +86,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
-    def triggerDelay(delay: Double = Settings.get.swingDelay) = {
+
+    def triggerDelay(delay: Double = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.swing)) = {
       onWorldInteraction(context, delay)
     }
     def attack(player: Player, entity: Entity) = {
@@ -170,7 +171,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       else 0.0
 
     def triggerDelay() {
-      onWorldInteraction(context, Settings.get.useDelay)
+      val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.use)
+      onWorldInteraction(context, delay)
     }
     def activationResult(activationType: ActivationType.Value) =
       activationType match {
@@ -263,7 +265,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
       player.setSneaking(false)
       if (success) {
-        onWorldInteraction(context, Settings.get.placeDelay)
+        val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.place)
+        onWorldInteraction(context, delay)
         return result(true)
       }
     }

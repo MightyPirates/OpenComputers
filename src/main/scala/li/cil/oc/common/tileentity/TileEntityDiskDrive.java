@@ -195,7 +195,7 @@ public final class TileEntityDiskDrive extends AbstractTileEntitySingleNodeConta
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Disk);
             DEVICE_INFO.put(DeviceAttribute.Description, "Floppy disk drive");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Spinner 520p1");
         }
 

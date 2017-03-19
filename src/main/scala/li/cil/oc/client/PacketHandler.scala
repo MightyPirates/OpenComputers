@@ -433,7 +433,7 @@ object PacketHandler extends CommonPacketHandler {
   def onPetVisibility(p: PacketParser) {
     if (!PetRenderer.isInitialized) {
       PetRenderer.isInitialized = true
-      if (Settings.get.hideOwnPet) {
+      if (Settings.Misc.hideOwnPet) {
         PetRenderer.hidden += Minecraft.getMinecraft.player.getName
       }
       PacketSender.sendPetVisibility()

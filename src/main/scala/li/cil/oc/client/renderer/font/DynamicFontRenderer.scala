@@ -18,9 +18,7 @@ import scala.collection.mutable
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
 class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
-  private val glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
-    case _ => new FontParserHex()
-  }
+  private val glyphProvider: IGlyphProvider = new FontParserHex()
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
@@ -95,7 +93,7 @@ object DynamicFontRenderer {
   class CharTexture(val owner: DynamicFontRenderer) {
     private val id = GlStateManager.generateTexture()
     RenderState.bindTexture(id)
-    if (Settings.get.textLinearFiltering) {
+    if (Settings.Client.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     } else {
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)

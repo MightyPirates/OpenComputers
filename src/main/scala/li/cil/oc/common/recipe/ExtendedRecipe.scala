@@ -54,7 +54,7 @@ object ExtendedRecipe {
           if (stack.getItem == net.minecraft.init.Items.FILLED_MAP) {
             // Store information of the map used for crafting in the result.
             val nbt = driver.dataTag(craftedStack)
-            nbt.setNewCompoundTag(Settings.namespace + "map", stack.writeToNBT)
+            nbt.setNewCompoundTag(Constants.namespace + "map", stack.writeToNBT)
           }
         })
     }
@@ -63,7 +63,7 @@ object ExtendedRecipe {
       if (SideTracker.isServer) {
         Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
           val nbt = driver.dataTag(craftedStack)
-          nbt.setString(Settings.namespace + "tunnel", UUID.randomUUID().toString)
+          nbt.setString(Constants.namespace + "tunnel", UUID.randomUUID().toString)
         })
       }
     }
@@ -75,7 +75,7 @@ object ExtendedRecipe {
       val nbt = craftedStack.getTagCompound
       if (recipe.getRecipeSize == 1) {
         // Formatting / loot to normal disk conversion, only keep coloring.
-        val colorKey = Settings.namespace + "color"
+        val colorKey = Constants.namespace + "color"
         for (stack <- getItems(inventory)) {
           if (api.Items.get(stack) != null && (api.Items.get(stack) == floppy || api.Items.get(stack).name == "lootDisk") && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
@@ -162,7 +162,7 @@ object ExtendedRecipe {
         if (api.Items.get(stack) == eeprom && stack.hasTagCompound) {
           val copy = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]
           // Erase node address, just in case.
-          copy.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").removeTag("address")
+          copy.getCompoundTag(Constants.namespace + "data").getCompoundTag("node").removeTag("address")
           craftedStack.setTagCompound(copy)
           break()
         }

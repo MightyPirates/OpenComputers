@@ -18,7 +18,7 @@ class UpgradeMF(val parent: Delegator) extends traits.Delegate with traits.ItemT
         stack.setTagCompound(new NBTTagCompound())
       }
       val data = stack.getTagCompound
-      data.setIntArray(Settings.namespace + "coord", Array(position.x, position.y, position.z, player.world.provider.getDimension, side.ordinal()))
+      data.setIntArray(Constants.namespace + "coord", Array(position.x, position.y, position.z, player.world.provider.getDimension, side.ordinal()))
       return EnumActionResult.SUCCESS
     }
     super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)
@@ -26,7 +26,7 @@ class UpgradeMF(val parent: Delegator) extends traits.Delegate with traits.ItemT
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     tooltip.add(Localization.Tooltip.MFULinked(stack.getTagCompound match {
-      case data: NBTTagCompound => data.hasKey(Settings.namespace + "coord")
+      case data: NBTTagCompound => data.hasKey(Constants.namespace + "coord")
       case _ => false
     }))
   }

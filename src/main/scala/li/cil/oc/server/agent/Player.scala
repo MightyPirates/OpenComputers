@@ -331,7 +331,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.getWorld.asInst
 
       val strength = getDigSpeed(state, pos)
       val breakTime =
-        if (cobwebOverride) Settings.get.swingDelay
+        if (cobwebOverride) Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.swing)
         else hardness * 1.5 / strength
 
       if (breakTime.isInfinity) return 0

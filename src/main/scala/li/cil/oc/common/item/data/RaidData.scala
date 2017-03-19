@@ -19,9 +19,9 @@ class RaidData extends ItemData(Constants.BlockName.Raid) {
 
   var label: Option[String] = None
 
-  private final val DisksTag = Settings.namespace + "disks"
-  private final val FileSystemTag = Settings.namespace + "filesystem"
-  private final val LabelTag = Settings.namespace + "label"
+  private final val DisksTag = Constants.namespace + "disks"
+  private final val FileSystemTag = Constants.namespace + "filesystem"
+  private final val LabelTag = Constants.namespace + "label"
 
   override def load(nbt: NBTTagCompound): Unit = {
     disks = nbt.getTagList(DisksTag, NBT.TAG_COMPOUND).

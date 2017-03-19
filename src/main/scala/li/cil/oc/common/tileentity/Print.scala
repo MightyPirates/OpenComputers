@@ -162,9 +162,9 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
 
   // ----------------------------------------------------------------------- //
 
-  private final val DataTag = Settings.namespace + "data"
+  private final val DataTag = Constants.namespace + "data"
   private final val DataTagCompat = "data"
-  private final val StateTag = Settings.namespace + "state"
+  private final val StateTag = Constants.namespace + "state"
   private final val StateTagCompat = "state"
 
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {

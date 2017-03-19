@@ -110,7 +110,7 @@ object CallbackDocHandler {
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
-      icon = new DrawableAnimatedIcon(new ResourceLocation(Settings.resourceDomain, "textures/items/tablet_on.png"), 0, 0, 16, 16, 16, 32, new TickTimer(20, 1, countDown = true), 0, 16)
+      icon = new DrawableAnimatedIcon(new ResourceLocation(Constants.resourceDomain, "textures/items/tablet_on.png"), 0, 0, 16, 16, 16, 32, new TickTimer(20, 1, countDown = true), 0, 16)
     }
 
     override def getIcon: IDrawable = icon

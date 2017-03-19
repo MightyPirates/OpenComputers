@@ -71,7 +71,7 @@ abstract class TextureFontRenderer {
 
     GL11.glEnable(GL11.GL_TEXTURE_2D)
 
-    if (Settings.get.textLinearFiltering) {
+    if (Settings.Client.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     }
 

@@ -7,5 +7,5 @@ class ComponentBus(val parent: Delegator, val tier: Int) extends traits.Delegate
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override protected def tooltipData = Seq(Settings.get.cpuComponentSupport(tier))
+  override protected def tooltipData = Seq(Settings.Computer.cpuComponentCount(tier))
 }

@@ -29,7 +29,7 @@ object DriverUpgradeMF extends Item with HostAware {
   override def createEnvironment(stack: ItemStack, host: Location): NodeContainerItem = {
     if (host.getWorld != null && !host.getWorld.isRemote) {
       if (stack.hasTagCompound) {
-        stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {
+        stack.getTagCompound.getIntArray(Constants.namespace + "coord") match {
           case Array(x, y, z, dim, side) =>
             Option(DimensionManager.getWorld(dim)) match {
               case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z, world), EnumFacing.getFront(side))

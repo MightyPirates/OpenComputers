@@ -21,9 +21,9 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
 
   var storedEnergy = 0
 
-  private final val TierTag = Settings.namespace + "tier"
-  private final val ComponentsTag = Settings.namespace + "components"
-  private final val StoredEnergyTag = Settings.namespace + "storedEnergy"
+  private final val TierTag = Constants.namespace + "tier"
+  private final val ComponentsTag = Constants.namespace + "components"
+  private final val StoredEnergyTag = Constants.namespace + "storedEnergy"
 
   override def load(nbt: NBTTagCompound) {
     tier = nbt.getByte(TierTag)

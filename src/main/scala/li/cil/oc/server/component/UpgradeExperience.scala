@@ -117,7 +117,7 @@ class UpgradeExperience(val host: Location with internal.Agent) extends Abstract
     case _ =>
   }
 
-  private final val XpTag = Settings.namespace + "xp"
+  private final val XpTag = Constants.namespace + "xp"
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)

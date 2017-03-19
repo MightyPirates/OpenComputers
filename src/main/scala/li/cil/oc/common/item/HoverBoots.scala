@@ -26,7 +26,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
 
   override def getRarity(stack: ItemStack): EnumRarity = EnumRarity.UNCOMMON
 
-  override def maxCharge(stack: ItemStack) = Settings.get.bufferHoverBoots
+  override def maxCharge(stack: ItemStack) = Settings.Power.Buffer.hoverBoots
 
   override def getCharge(stack: ItemStack): Double =
     new HoverBootsData(stack).charge
@@ -50,9 +50,9 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
       remainder
     }
     else {
-      val remainder = -math.min(0, Settings.get.bufferHoverBoots - (data.charge + amount))
+      val remainder = -math.min(0, Settings.Power.Buffer.hoverBoots - (data.charge + amount))
       if (!simulate) {
-        data.charge = math.min(Settings.get.bufferHoverBoots, data.charge + amount)
+        data.charge = math.min(Settings.Power.Buffer.hoverBoots, data.charge + amount)
         data.save(stack)
       }
       remainder
@@ -75,7 +75,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
 
   override def onArmorTick(world: World, player: EntityPlayer, stack: ItemStack): Unit = {
     super.onArmorTick(world, player, stack)
-    if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.getPotionFromResourceLocation("slowness")) == null && getCharge(stack) == 0) {
+    if (!Settings.Power.shouldIgnorePower() && player.getActivePotionEffect(Potion.getPotionFromResourceLocation("slowness")) == null && getCharge(stack) == 0) {
       player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 20, 1))
     }
   }
@@ -107,10 +107,10 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
 
   override def getDurabilityForDisplay(stack: ItemStack): Double = {
     val data = new HoverBootsData(stack)
-    1 - data.charge / Settings.get.bufferHoverBoots
+    1 - data.charge / Settings.Power.Buffer.hoverBoots
   }
 
-  override def getMaxDamage(stack: ItemStack): Int = Settings.get.bufferHoverBoots.toInt
+  override def getMaxDamage(stack: ItemStack): Int = Settings.Power.Buffer.hoverBoots.toInt
 
   // Always show energy bar.
   override def isDamaged(stack: ItemStack): Boolean = true

@@ -455,7 +455,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.TileEntityRobo
     GlStateManager.popMatrix()
 
     val name = robot.name
-    if (Settings.get.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RenderLivingBase.NAME_TAG_RANGE) {
+    if (Settings.Client.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RenderLivingBase.NAME_TAG_RANGE) {
       GlStateManager.pushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.

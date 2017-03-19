@@ -59,7 +59,8 @@ object UpgradeTractorBeam {
       val size = stack.getCount
       collectItem(item)
       if (stack.getCount < size || item.isDead) {
-        context.pause(Settings.get.suckDelay)
+        val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.suck)
+        context.pause(delay)
         world.playEvent(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
         return result(true)
       }

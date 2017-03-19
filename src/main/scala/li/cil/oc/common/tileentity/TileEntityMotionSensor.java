@@ -75,7 +75,7 @@ public final class TileEntityMotionSensor extends AbstractTileEntitySingleNodeCo
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Generic);
             DEVICE_INFO.put(DeviceAttribute.Description, "Motion sensor");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Blinker M1K0");
             DEVICE_INFO.put(DeviceAttribute.Capacity, String.valueOf(RADIUS));
         }

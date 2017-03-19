@@ -12,7 +12,7 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object HoverBootRenderer extends ModelBiped {
-  val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
+  val texture = new ResourceLocation(Constants.resourceDomain, "textures/model/drone.png")
 
   val bootLeft = new ModelRenderer(this, "bootLeft")
   val bootRight = new ModelRenderer(this, "bootRight")

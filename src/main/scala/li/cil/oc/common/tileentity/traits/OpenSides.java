@@ -57,7 +57,7 @@ public final class OpenSides implements INBTSerializable<NBTTagByte> {
     }
 
     public boolean onActivated(final EntityPlayer player, final EnumHand hand, final BlockPos pos, final EnumFacing side) {
-        if (Wrench.holdsApplicableWrench(player, pos)) {
+        if (Wrench.holdsApplicableWrench(player, hand, pos)) {
             if (player.isServerWorld()) {
                 final EnumFacing sideToToggle = player.isSneaking() ? side.getOpposite() : side;
                 toggleSide(sideToToggle);

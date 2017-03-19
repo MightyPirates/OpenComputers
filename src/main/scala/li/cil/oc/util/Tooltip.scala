@@ -14,7 +14,7 @@ object Tooltip {
   private def font = Minecraft.getMinecraft.fontRenderer
 
   def get(name: String, args: Any*): java.util.List[String] = {
-    if (!Localization.canLocalize(Settings.namespace + "tooltip." + name)) return Seq.empty[String]
+    if (!Localization.canLocalize(Constants.namespace + "tooltip." + name)) return Seq.empty[String]
     val tooltip = Localization.localizeImmediately("tooltip." + name).
       format(args.map(_.toString): _*)
     if (font == null) return tooltip.lines.toList // Some mods request tooltips before font renderer is available.

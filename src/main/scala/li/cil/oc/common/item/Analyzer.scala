@@ -103,7 +103,7 @@ object Analyzer {
 class Analyzer(val parent: Delegator) extends traits.Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (player.isSneaking && stack.hasTagCompound) {
-      stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
+      stack.getTagCompound.removeTag(Constants.namespace + "clipboard")
       if (stack.getTagCompound.hasNoTags) {
         stack.setTagCompound(null)
       }
@@ -118,9 +118,9 @@ class Analyzer(val parent: Delegator) extends traits.Delegate {
         if (player.isSneaking) {
           screen.copyToAnalyzer(hitX, hitY, hitZ)
         }
-        else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "clipboard")) {
+        else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Constants.namespace + "clipboard")) {
           if (!world.isRemote) {
-            screen.origin.buffer.clipboard(stack.getTagCompound.getString(Settings.namespace + "clipboard"), player)
+            screen.origin.buffer.clipboard(stack.getTagCompound.getString(Constants.namespace + "clipboard"), player)
           }
           true
         }

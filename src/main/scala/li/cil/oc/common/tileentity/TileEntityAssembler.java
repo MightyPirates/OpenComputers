@@ -265,7 +265,7 @@ public final class TileEntityAssembler extends AbstractTileEntitySingleNodeConta
         static {
             DEVICE_INFO.put(DeviceAttribute.Class, DeviceClass.Generic);
             DEVICE_INFO.put(DeviceAttribute.Description, "Assembler");
-            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor());
+            DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Factorizer R1D1");
         }
 

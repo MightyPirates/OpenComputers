@@ -481,7 +481,7 @@ object InternetCard {
             if (post.isDefined) {
               http.setRequestMethod("POST")
               http.setDoOutput(true)
-              http.setReadTimeout(Settings.get.httpTimeout)
+              http.setReadTimeout(Settings.Internet.httpTimeout * 1000)
 
               val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
               out.write(post.get)

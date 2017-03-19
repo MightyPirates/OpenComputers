@@ -105,15 +105,15 @@ class RobotProxy extends BlockRedstoneAware with traits.StateAware {
 
   private def addLines(stack: ItemStack, tooltip: util.List[String]) {
     if (stack.hasTagCompound) {
-      if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
-        val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
-        val level = Math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
+      if (stack.getTagCompound.hasKey(Constants.namespace + "xp")) {
+        val xp = stack.getTagCompound.getDouble(Constants.namespace + "xp")
+        val level = Math.min((Math.pow(xp - Settings.Robot.Experience.baseValue, 1 / Settings.Robot.Experience.exponentialGrowth) / Settings.Robot.Experience.constantGrowth).toInt, 30)
         if (level > 0) {
           tooltip.addAll(Tooltip.get(getUnlocalizedName + "_Level", level))
         }
       }
-      if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
-        val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
+      if (stack.getTagCompound.hasKey(Constants.namespace + "storedEnergy")) {
+        val energy = stack.getTagCompound.getInteger(Constants.namespace + "storedEnergy")
         if (energy > 0) {
           tooltip.addAll(Tooltip.get(getUnlocalizedName + "_StoredEnergy", energy))
         }

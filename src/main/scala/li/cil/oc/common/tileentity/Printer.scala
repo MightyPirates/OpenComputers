@@ -302,14 +302,14 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
 
   // ----------------------------------------------------------------------- //
 
-  private final val AmountMaterialTag = Settings.namespace + "amountMaterial"
-  private final val AmountInkTag = Settings.namespace + "amountInk"
-  private final val DataTag = Settings.namespace + "data"
-  private final val IsActiveTag = Settings.namespace + "active"
-  private final val LimitTag = Settings.namespace + "limit"
-  private final val OutputTag = Settings.namespace + "output"
-  private final val TotalTag = Settings.namespace + "total"
-  private final val RemainingTag = Settings.namespace + "remaining"
+  private final val AmountMaterialTag = Constants.namespace + "amountMaterial"
+  private final val AmountInkTag = Constants.namespace + "amountInk"
+  private final val DataTag = Constants.namespace + "data"
+  private final val IsActiveTag = Constants.namespace + "active"
+  private final val LimitTag = Constants.namespace + "limit"
+  private final val OutputTag = Constants.namespace + "output"
+  private final val TotalTag = Constants.namespace + "total"
+  private final val RemainingTag = Constants.namespace + "remaining"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)

@@ -40,8 +40,8 @@ trait PowerInformation extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  private final val GlobalBufferTag = Settings.namespace + "globalBuffer"
-  private final val GlobalBufferSizeTag = Settings.namespace + "globalBufferSize"
+  private final val GlobalBufferTag = Constants.namespace + "globalBuffer"
+  private final val GlobalBufferSizeTag = Constants.namespace + "globalBufferSize"
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {

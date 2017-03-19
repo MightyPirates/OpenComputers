@@ -195,7 +195,7 @@ class UpgradeMF(val host: Location, val coord: BlockPosition, val dir: EnumFacin
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    Option(nbt.getCompoundTag(Settings.namespace + "adapter.block")) match {
+    Option(nbt.getCompoundTag(Constants.namespace + "adapter.block")) match {
       case Some(blockNbt: NBTTagCompound) =>
         if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
           blockData = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
@@ -212,7 +212,7 @@ class UpgradeMF(val host: Location, val coord: BlockPosition, val dir: EnumFacin
       blockNbt.setString("name", data.name)
       blockNbt.setTag("data", data.data)
     })
-    nbt.setTag(Settings.namespace + "adapter.block", blockNbt)
+    nbt.setTag(Constants.namespace + "adapter.block", blockNbt)
   }
 
   // ----------------------------------------------------------------------- //

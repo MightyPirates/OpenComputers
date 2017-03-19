@@ -32,7 +32,7 @@ public final class FontUtils {
         }
     }
 
-    public int wcwidth(final int ch) {
+    public static int wcwidth(final int ch) {
         return (ch < 0 || ch >= WIDTHS.length) ? -1 : WIDTHS[ch];
     }
 

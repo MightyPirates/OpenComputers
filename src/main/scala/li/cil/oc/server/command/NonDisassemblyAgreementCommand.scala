@@ -28,11 +28,11 @@ object NonDisassemblyAgreementCommand extends SimpleCommand("oc_preventDisassemb
             if (command != null && command.length > 0)
               CommandBase.parseBoolean(command(0))
             else
-              !nbt.getBoolean(Settings.namespace + "undisassemblable")
+              !nbt.getBoolean(Constants.namespace + "undisassemblable")
           if (preventDisassembly)
-            nbt.setBoolean(Settings.namespace + "undisassemblable", true)
+            nbt.setBoolean(Constants.namespace + "undisassemblable", true)
           else
-            nbt.removeTag(Settings.namespace + "undisassemblable")
+            nbt.removeTag(Constants.namespace + "undisassemblable")
           if (nbt.hasNoTags) stack.setTagCompound(null)
         }
       case _ => throw new WrongUsageException("Can only be used by players.")

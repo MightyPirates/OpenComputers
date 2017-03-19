@@ -72,7 +72,7 @@ object ManualUsageHandler {
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
-      icon = new DrawableIcon(new ResourceLocation(Settings.resourceDomain, "textures/items/manual.png"), 0, 0, 16, 16, 16, 16)
+      icon = new DrawableIcon(new ResourceLocation(Constants.resourceDomain, "textures/items/manual.png"), 0, 0, 16, 16, 16, 16)
     }
 
     override def getBackground: IDrawable = background

@@ -25,7 +25,7 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
   showInItemList = false
 
   @SideOnly(Side.CLIENT)
-  override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Drone, "inventory")
+  override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(Constants.resourceDomain + ":" + Constants.ItemName.Drone, "inventory")
 
   @SideOnly(Side.CLIENT)
   override def bakeModels(bakeEvent: ModelBakeEvent): Unit = {

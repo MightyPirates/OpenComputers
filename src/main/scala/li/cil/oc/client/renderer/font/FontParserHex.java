@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.font;
 
+import li.cil.oc.Constants;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import li.cil.oc.util.FontUtils;
@@ -7,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.BufferUtils;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +27,7 @@ public class FontParserHex implements IGlyphProvider {
             glyphs[i] = null;
         }
         try {
-            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
+            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Constants.resourceDomain, "font.hex")).getInputStream();
             OpenComputers.log().info("Initialized unicode glyph provider.");
             try {
                 OpenComputers.log().info("Initializing unicode glyph provider.");
@@ -49,7 +51,7 @@ public class FontParserHex implements IGlyphProvider {
                             glyphCount++;
                         }
                         glyphs[charCode] = glyph;
-                    } else if (Settings.get().logHexFontErrors()) {
+                    } else if (Settings.Debug.logHexFontErrors) {
                         OpenComputers.log().warn(String.format("Size of glyph for code point U+%04X (%s) in font (%d) does not match expected width (%d), ignoring.", charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth));
                     }
                 }
@@ -57,22 +59,23 @@ public class FontParserHex implements IGlyphProvider {
             } finally {
                 try {
                     font.close();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     OpenComputers.log().warn("Error parsing font.", ex);
                 }
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             OpenComputers.log().warn("Failed loading glyphs.", ex);
         }
     }
 
+    @Nullable
     @Override
-    public ByteBuffer getGlyph(int charCode) {
+    public ByteBuffer getGlyph(final int charCode) {
         if (charCode < 0 || charCode >= glyphs.length || glyphs[charCode] == null || glyphs[charCode].length == 0)
             return null;
         final byte[] glyph = glyphs[charCode];
         final ByteBuffer buffer = BufferUtils.createByteBuffer(glyph.length * getGlyphWidth() * 4);
-        for (byte aGlyph : glyph) {
+        for (final byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
             // Grab all bits by grabbing the leftmost one then shifting.
             for (int j = 0; j < 8; j++) {

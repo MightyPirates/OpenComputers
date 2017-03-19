@@ -239,7 +239,8 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
         getWorld.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
         assert(getWorld.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
-        val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
+        val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.move)
+        val moveTicks = math.max((delay * 20).toInt, 1)
         setAnimateMove(oldPosition, moveTicks)
         if (isServer) {
           ServerPacketSender.sendRobotMove(this, oldPosition, direction)
@@ -409,18 +410,18 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
 
   // ----------------------------------------------------------------------- //
 
-  private final val RobotTag = Settings.namespace + "robot"
-  private final val OwnerTag = Settings.namespace + "owner"
-  private final val OwnerUUIDTag = Settings.namespace + "ownerUuid"
-  private final val SelectedSlotTag = Settings.namespace + "selectedSlot"
-  private final val SelectedTankTag = Settings.namespace + "selectedTank"
-  private final val AnimationTicksTotalTag = Settings.namespace + "animationTicksTotal"
-  private final val AnimationTicksLeftTag = Settings.namespace + "animationTicksLeft"
-  private final val MoveFromXTag = Settings.namespace + "moveFromX"
-  private final val MoveFromYTag = Settings.namespace + "moveFromY"
-  private final val MoveFromZTag = Settings.namespace + "moveFromZ"
-  private final val SwingingToolTag = Settings.namespace + "swingingTool"
-  private final val TurnAxisTag = Settings.namespace + "turnAxis"
+  private final val RobotTag = Constants.namespace + "robot"
+  private final val OwnerTag = Constants.namespace + "owner"
+  private final val OwnerUUIDTag = Constants.namespace + "ownerUuid"
+  private final val SelectedSlotTag = Constants.namespace + "selectedSlot"
+  private final val SelectedTankTag = Constants.namespace + "selectedTank"
+  private final val AnimationTicksTotalTag = Constants.namespace + "animationTicksTotal"
+  private final val AnimationTicksLeftTag = Constants.namespace + "animationTicksLeft"
+  private final val MoveFromXTag = Constants.namespace + "moveFromX"
+  private final val MoveFromYTag = Constants.namespace + "moveFromY"
+  private final val MoveFromZTag = Constants.namespace + "moveFromZ"
+  private final val SwingingToolTag = Constants.namespace + "swingingTool"
+  private final val TurnAxisTag = Constants.namespace + "turnAxis"
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     updateInventorySize()

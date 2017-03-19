@@ -3,9 +3,9 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.Settings
-import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.item.data.DebugCardData
 import li.cil.oc.server.component.{DebugCard => CDebugCard}
+import li.cil.oc.util.DebugCardAccess
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
@@ -28,8 +28,8 @@ class DebugCard(val parent: Delegator) extends traits.Delegate {
 
       if (data.access.exists(_.player == name)) data.access = None
       else data.access =
-        Some(CDebugCard.AccessContext(name, Settings.get.debugCardAccess match {
-          case wl: DebugCardAccess.Whitelist => wl.nonce(name) match {
+        Some(CDebugCard.AccessContext(name, Settings.Debug.debugCardAccess match {
+          case wl: DebugCardAccess.Whitelist => wl.getNonce(name) match {
             case Some(n) => n
             case None =>
               player.sendMessage(new TextComponentString("§cYou are not whitelisted to use debug card"))

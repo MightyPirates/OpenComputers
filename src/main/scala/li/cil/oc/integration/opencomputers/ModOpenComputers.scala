@@ -311,7 +311,7 @@ object ModOpenComputers extends ModProxy {
     }
 
     api.Manual.addProvider(DefinitionPathProvider)
-    api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/"))
+    api.Manual.addProvider(new ResourceContentProvider(Constants.resourceDomain, "doc/"))
     api.Manual.addProvider("", TextureImageProvider)
     api.Manual.addProvider("item", ItemImageProvider)
     api.Manual.addProvider("block", BlockImageProvider)

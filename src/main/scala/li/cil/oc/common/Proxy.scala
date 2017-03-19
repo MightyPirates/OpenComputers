@@ -68,13 +68,11 @@ class Proxy {
     api.API.nanomachines = nanomachines.Nanomachines
     api.API.network = network.Network
 
-    api.API.config = Settings.get.config
-
     api.Machine.LuaArchitecture =
-      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLua52Architecture]
+      if (LuaStateFactory.isAvailable && !Settings.Debug.forceLuaJ) classOf[NativeLua52Architecture]
       else classOf[LuaJLuaArchitecture]
     api.Machine.add(api.Machine.LuaArchitecture)
-    if (Settings.get.registerLuaJArchitecture)
+    if (Settings.Debug.registerLuaJArchitecture)
       api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
@@ -85,7 +83,7 @@ class Proxy {
     Loot.init()
     Achievement.init()
 
-    EntityRegistry.registerModEntity(new ResourceLocation(Settings.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
+    EntityRegistry.registerModEntity(new ResourceLocation(Constants.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
@@ -96,7 +94,7 @@ class Proxy {
     OpenComputers.log.info("Initializing capabilities.")
     Capabilities.init()
 
-    api.API.isPowerEnabled = !Settings.get.ignorePower
+    api.API.isPowerEnabled = !Settings.Power.shouldIgnorePower()
   }
 
   def postInit(e: FMLPostInitializationEvent) {

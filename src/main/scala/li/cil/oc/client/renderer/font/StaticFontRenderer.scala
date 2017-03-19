@@ -16,7 +16,7 @@ import scala.io.Source
  */
 class StaticFontRenderer extends TextureFontRenderer {
   protected val (chars, charWidth, charHeight) = try {
-    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Constants.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
     val chars = lines.next()
     val (w, h) = if (lines.hasNext) {
       val size = lines.next().split(" ", 2)
@@ -35,14 +35,14 @@ class StaticFontRenderer extends TextureFontRenderer {
   private val uSize = uStep
   private val vStep = (charHeight + 1) / 256.0
   private val vSize = charHeight / 256.0
-  private val s = Settings.get.fontCharScale
+  private val s = Settings.Client.fontCharScale
   private val dw = charWidth * s - charWidth
   private val dh = charHeight * s - charHeight
 
   override protected def textureCount = 1
 
   override protected def bindTexture(index: Int) {
-    if (Settings.get.textAntiAlias) {
+    if (Settings.Client.textAntiAlias) {
       Textures.bind(Textures.Font.AntiAliased)
     }
     else {

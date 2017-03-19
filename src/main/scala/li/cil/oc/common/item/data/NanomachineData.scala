@@ -23,8 +23,8 @@ class NanomachineData extends ItemData(Constants.ItemName.Nanomachines) {
   var uuid = ""
   var configuration: Option[NBTTagCompound] = None
 
-  private final val UUIDTag = Settings.namespace + "uuid"
-  private final val ConfigurationTag = Settings.namespace + "configuration"
+  private final val UUIDTag = Constants.namespace + "uuid"
+  private final val ConfigurationTag = Constants.namespace + "configuration"
 
   override def load(nbt: NBTTagCompound): Unit = {
     uuid = nbt.getString(UUIDTag)
