@@ -15,7 +15,7 @@ public final class NetworkBridgeAdapterWireless extends AbstractNodeBridgeAdapte
     // ----------------------------------------------------------------------- //
     // Persisted data.
 
-    private double strength = Settings.get().maxWirelessRange();
+    private double strength = Settings.Misc.maxWirelessRange;
     private boolean isRepeater = false;
 
     // ----------------------------------------------------------------------- //
@@ -38,7 +38,7 @@ public final class NetworkBridgeAdapterWireless extends AbstractNodeBridgeAdapte
     }
 
     public void setStrength(final double value) {
-        strength = MathHelper.clamp(value, 0, Settings.get().maxWirelessRange());
+        strength = MathHelper.clamp(value, 0, Settings.Misc.maxWirelessRange);
     }
 
     public boolean isRepeater() {

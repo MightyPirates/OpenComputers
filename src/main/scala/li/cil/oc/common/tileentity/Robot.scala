@@ -68,7 +68,7 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
   val bot = if (isServer) new component.Robot(this) else null
 
   if (isServer) {
-    machine.setCostPerTick(Settings.get.robotCost)
+    machine.setCostPerTick(Settings.Power.Cost.robot)
   }
 
 
@@ -346,7 +346,7 @@ class Robot extends traits.Computer with traits.PowerInformation with RotatableI
     }
     super.updateEntity()
     if (isServer) {
-      if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
         if (info.tier == 3) {
           bot.getNode.changeEnergy(Double.PositiveInfinity)
         }

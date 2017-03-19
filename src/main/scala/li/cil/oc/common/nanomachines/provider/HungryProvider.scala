@@ -23,8 +23,8 @@ object HungryProvider extends ScalaProvider("d697c24a-014c-4773-a288-23084a59e9e
   class HungryBehavior(player: EntityPlayer) extends AbstractBehavior(player) {
     override def onDisable(reason: DisableReason): Unit = {
       if (reason == DisableReason.OutOfEnergy) {
-        player.attackEntityFrom(HungryDamage, Settings.get.nanomachinesHungryDamage)
-        api.Nanomachines.getController(player).changeBuffer(Settings.get.nanomachinesHungryEnergyRestored)
+        player.attackEntityFrom(HungryDamage, Settings.Nanomachines.hungryDamage)
+        api.Nanomachines.getController(player).changeBuffer(Settings.Nanomachines.hungryEnergyRestored)
       }
     }
   }

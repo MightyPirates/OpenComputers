@@ -24,7 +24,7 @@ trait Capacity extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override def delete(path: String) = {
-    val freed = Settings.get.fileCost + size(path)
+    val freed = Settings.Filesystem.fileCost + size(path)
     if (super.delete(path)) {
       used = math.max(0, used - freed)
       true
@@ -33,11 +33,11 @@ trait Capacity extends OutputStreamFileSystem {
   }
 
   override def makeDirectory(path: String) = {
-    if (capacity - used < Settings.get.fileCost && !ignoreCapacity) {
+    if (capacity - used < Settings.Filesystem.fileCost && !ignoreCapacity) {
       throw new io.IOException("not enough space")
     }
     if (super.makeDirectory(path)) {
-      used += Settings.get.fileCost
+      used += Settings.Filesystem.fileCost
       true
     }
     else false
@@ -80,7 +80,7 @@ trait Capacity extends OutputStreamFileSystem {
         else
           0 // Append, no immediate changes.
       else
-        Settings.get.fileCost // File creation.
+        Settings.Filesystem.fileCost // File creation.
     if (capacity - used < delta && !ignoreCapacity) {
       throw new io.IOException("not enough space")
     }
@@ -98,7 +98,7 @@ trait Capacity extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   private def computeSize(path: String): Long =
-    Settings.get.fileCost +
+    Settings.Filesystem.fileCost +
       size(path) +
       (if (isDirectory(path))
         list(path).foldLeft(0L)((acc, child) => acc + computeSize(path + child))

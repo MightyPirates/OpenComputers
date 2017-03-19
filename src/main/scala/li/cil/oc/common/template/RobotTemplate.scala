@@ -31,12 +31,12 @@ object RobotTemplate extends Template {
     val data = new RobotData()
     data.tier = caseTier(inventory)
     data.name = RobotData.randomName
-    data.robotEnergy = Settings.get.bufferRobot.toInt
+    data.robotEnergy = Settings.Power.Buffer.robot.toInt
     data.totalEnergy = data.robotEnergy
     data.containers = items.take(3).filter(_ != null).toArray
     data.components = items.drop(3).filter(_ != null).toArray
     val stack = data.createItemStack()
-    val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
+    val energy = Settings.Power.Cost.robotBaseCost + complexity(inventory) * Settings.Power.Cost.robotComplexityCost
 
     Array(stack, Double.box(energy))
   }

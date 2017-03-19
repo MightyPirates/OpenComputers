@@ -154,7 +154,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
   }
 
   protected override def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.NETWORK)
-    .withConnector(Settings.get.bufferDistributor)
+    .withConnector(Settings.Power.Buffer.distributor)
     .create()
 
   // ----------------------------------------------------------------------- //
@@ -232,7 +232,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
 
   override protected def connector(side: EnumFacing) = Option(if (side != getFacing) sidedNode(side).asInstanceOf[EnergyNode] else null)
 
-  override def energyThroughput = Settings.get.serverRackRate
+  override def energyThroughput = Settings.Power.Rate.serverRack
 
   // ----------------------------------------------------------------------- //
   // Analyzable
@@ -370,7 +370,7 @@ class Rack extends traits.PowerAcceptor with traits.NetworkBridge with PowerBrid
           // Power mountables without requiring them to be connected to the outside.
           mountable.getNode match {
             case connector: EnergyNode =>
-              var remaining = Settings.get.serverRackRate
+              var remaining = Settings.Power.Rate.serverRack
               for (outside <- connectors if remaining > 0) {
                 val received = remaining + outside.changeEnergy(-remaining)
                 val rejected = connector.changeEnergy(received)

@@ -391,7 +391,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   def changeBuffer(delta: Double): Double = {
     if (delta == 0) 0
-    else if (Settings.get.ignorePower) {
+    else if (Settings.Power.ignorePower) {
       if (delta < 0) 0
       else /* if (delta > 0) */ delta
     }
@@ -556,8 +556,8 @@ object Network extends api.detail.NetworkAPI {
     val packet = new Packet(source, destination, port, data)
     // We do the size check here instead of in the constructor of the packet
     // itself to avoid errors when loading packets.
-    if (packet.getSize > Settings.get.maxNetworkPacketSize) {
-      throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
+    if (packet.getSize > Settings.Misc.maxNetworkPacketSize) {
+      throw new IllegalArgumentException("packet too big (max " + Settings.Misc.maxNetworkPacketSize + ")")
     }
     packet
   }
@@ -698,7 +698,7 @@ object Network extends api.detail.NetworkAPI {
 
   class Packet(var getSource: String, var getDestination: String, var getPort: Int, var getData: Array[AnyRef], var getTTL: Int = 5) extends api.network.Packet {
     val getSize = Option(getData).fold(0)(values => {
-      if (values.length > Settings.get.maxNetworkPacketParts) {
+      if (values.length > Settings.Misc.maxNetworkPacketParts) {
         throw new IllegalArgumentException("packet has too many parts")
       }
       values.length * 2 + values.foldLeft(0)((acc, arg) => {

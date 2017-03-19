@@ -443,7 +443,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.getWorld.asInst
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
     if (stack != null && oldStack != null && stack.getItem == oldStack.getItem) {
-      val damageRate = new RobotUsedToolEvent.ComputeDamageRate(agent, oldStack, stack, Settings.get.itemDamageRate)
+      val damageRate = new RobotUsedToolEvent.ComputeDamageRate(agent, oldStack, stack, Settings.Robot.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {
         MinecraftForge.EVENT_BUS.post(new RobotUsedToolEvent.ApplyDamageRate(agent, oldStack, stack, damageRate.getDamageRate))
@@ -480,9 +480,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.getWorld.asInst
   // ----------------------------------------------------------------------- //
 
   override def addExhaustion(amount: Float) {
-    if (Settings.get.robotExhaustionCost > 0) {
+    if (Settings.Power.Cost.robotExhaustion > 0) {
       agent.machine.node match {
-        case connector: EnergyNode => connector.changeEnergy(-Settings.get.robotExhaustionCost * amount)
+        case connector: EnergyNode => connector.changeEnergy(-Settings.Power.Cost.robotExhaustion * amount)
         case _ => // This shouldn't happen... oh well.
       }
     }

@@ -14,7 +14,7 @@ import scala.collection.convert.WrapAsScala._
 
 object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784a") {
   // Lazy to give other mods a chance to register their potions.
-  lazy val PotionWhitelist = filterPotions(Settings.get.nanomachinePotionWhitelist)
+  lazy val PotionWhitelist = filterPotions(Settings.Nanomachines.potionWhitelist)
 
   def filterPotions[T](list: Iterable[T]) = {
     list.map {

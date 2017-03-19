@@ -42,7 +42,7 @@ object Transposer {
       args.checkSideAny(n)
 
     override def onTransferContents(): Option[String] = {
-      if (getNode.tryChangeEnergy(-Settings.get.transposerCost)) None
+      if (getNode.tryChangeEnergy(-Settings.Power.Cost.transposer)) None
       else Option("not enough energy")
     }
   }

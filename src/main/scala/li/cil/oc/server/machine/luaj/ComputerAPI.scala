@@ -52,7 +52,7 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     computer.set("removeUser", (args: Varargs) => LuaValue.valueOf(machine.removeUser(args.checkjstring(1))))
 
     computer.set("energy", (_: Varargs) =>
-      if (Settings.get.ignorePower)
+      if (Settings.Power.ignorePower)
         LuaValue.valueOf(Double.PositiveInfinity)
       else
         LuaValue.valueOf(node.asInstanceOf[EnergyNode].getGlobalBuffer))

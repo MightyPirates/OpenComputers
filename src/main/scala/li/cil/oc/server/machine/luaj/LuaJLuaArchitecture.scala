@@ -53,7 +53,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   }
   catch {
     case e: Throwable =>
-      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+      if (Settings.Debug.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
         OpenComputers.log.warn("Exception in Lua callback.", e)
       }
       e match {
@@ -105,7 +105,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
     case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  })).toInt max 0 min Settings.get.maxTotalRam
+  })).toInt max 0 min Settings.Computer.Lua.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 

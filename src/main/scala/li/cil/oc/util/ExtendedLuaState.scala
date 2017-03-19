@@ -49,7 +49,7 @@ object ExtendedLuaState {
           case value: java.lang.String => lua.pushString(value)
           case value: Array[Byte] => lua.pushByteArray(value)
           case value: Array[_] => pushList(value, value.zipWithIndex.iterator, memo)
-          case value: Value if Settings.get.allowUserdata => lua.pushJavaObjectRaw(value)
+          case value: Value if Settings.Debug.allowUserdata => lua.pushJavaObjectRaw(value)
           case value: Product => pushList(value, value.productIterator.zipWithIndex, memo)
           case value: Seq[_] => pushList(value, value.zipWithIndex.iterator, memo)
           case value: java.util.Map[_, _] => pushTable(value, value.toMap, memo)

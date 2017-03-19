@@ -48,7 +48,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
 
           // Check blocks in range.
           val blockPos = BlockPosition(player)
-          val actualRange = Settings.get.nanomachineDisintegrationRange * api.Nanomachines.getController(player).getInputCount(this)
+          val actualRange = Settings.Nanomachines.disintegrationRange * api.Nanomachines.getController(player).getInputCount(this)
           for (x <- -actualRange to actualRange; y <- 0 to actualRange * 2; z <- -actualRange to actualRange) {
             val pos = BlockPosition(blockPos.offset(x, y, z))
             breakingMap.get(pos) match {

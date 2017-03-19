@@ -20,7 +20,7 @@ import scala.collection.convert.WrapAsJava._
 class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer with Agent with DeviceInfo {
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("robot").
-    withConnector(Settings.get.bufferRobot).
+    withConnector(Settings.Power.Buffer.robot).
     create()
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
@@ -88,7 +88,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
         result(Unit, what)
       }
       else {
-        if (!getNode.tryChangeEnergy(-Settings.get.robotMoveCost)) {
+        if (!getNode.tryChangeEnergy(-Settings.Power.Cost.robotMove)) {
           result(Unit, "not enough energy")
         }
         else if (agent.move(direction)) {
@@ -97,7 +97,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
           result(true)
         }
         else {
-          getNode.changeEnergy(Settings.get.robotMoveCost)
+          getNode.changeEnergy(Settings.Power.Cost.robotMove)
           context.pause(0.4)
           PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
           result(Unit, "impossible move")
@@ -109,7 +109,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedNodeContainer wi
   @Callback(doc = "function(clockwise:boolean):boolean -- Rotate in the specified direction.")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (getNode.tryChangeEnergy(-Settings.get.robotTurnCost)) {
+    if (getNode.tryChangeEnergy(-Settings.Power.Cost.robotTurn)) {
       if (clockwise) agent.rotate(EnumFacing.UP)
       else agent.rotate(EnumFacing.DOWN)
       val delay = Settings.Robot.Delays.skipCurrentTick(Settings.Robot.Delays.turn)

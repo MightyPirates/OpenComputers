@@ -16,7 +16,7 @@ import scala.collection.convert.WrapAsJava._
 
 class UpgradeBattery(val tier: Int) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
-    withConnector(Settings.get.bufferCapacitorUpgrades(tier)).
+    withConnector(Settings.Power.Buffer.capacitorUpgrades(tier)).
     create()
 
   private final lazy val deviceInfo = Map(
@@ -24,7 +24,7 @@ class UpgradeBattery(val tier: Int) extends AbstractManagedNodeContainer with De
     DeviceAttribute.Description -> "Battery",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "Unlimited Power (Almost Ed.)",
-    DeviceAttribute.Capacity -> Settings.get.bufferCapacitorUpgrades(tier).toString
+    DeviceAttribute.Capacity -> Settings.Power.Buffer.capacitorUpgrades(tier).toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo

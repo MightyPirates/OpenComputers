@@ -207,7 +207,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
         }
       }
     }
-    context.pause(Settings.get.hologramSetRawDelay)
+    context.pause(Settings.Hologram.rawDelay)
     null
   }
 
@@ -271,7 +271,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   @Callback(doc = """function(value:number) -- Set the render scale. A larger scale consumes more energy.""")
   def setScale(context: Context, args: Arguments): Array[AnyRef] = {
-    scale = math.max(0.333333, math.min(Settings.get.hologramMaxScaleByTier(tier), args.checkDouble(0)))
+    scale = math.max(0.333333, math.min(Settings.Hologram.maxScaleByTier(tier), args.checkDouble(0)))
     ServerPacketSender.sendHologramScale(this)
     null
   }
@@ -284,7 +284,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   @Callback(doc = """function(tx:number, ty:number, tz:number) -- Sets the relative render projection offsets of the hologram.""")
   def setTranslation(context: Context, args: Arguments): Array[AnyRef] = {
     // Validate all axes before setting the values.
-    val maxTranslation = Settings.get.hologramMaxTranslationByTier(tier)
+    val maxTranslation = Settings.Hologram.maxTranslationByTier(tier)
     val tx = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(0)))
     val ty = math.max(0, math.min(maxTranslation * 2, args.checkDouble(1)))
     val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
@@ -407,7 +407,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
           ServerPacketSender.sendHologramValues(this)
         resetDirtyFlag()
       }
-      if (getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      if (getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
         if (litRatio < 0) this.synchronized {
           litRatio = 0
           for (i <- volume.indices) {
@@ -417,7 +417,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
         }
 
         val hadPower = hasPower
-        val neededPower = Settings.get.hologramCost * litRatio * scale * Settings.get.tickFrequency
+        val neededPower = Settings.Power.Cost.hologram * litRatio * scale * Settings.Power.tickFrequency
         hasPower = getNode.tryChangeEnergy(-neededPower)
         if (hasPower != hadPower) {
           ServerPacketSender.sendHologramPowerChange(this)
@@ -430,9 +430,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   override def shouldRenderInPass(pass: Int) = pass == 1
 
-  override def getMaxRenderDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
+  override def getMaxRenderDistanceSquared = scale / Settings.Hologram.maxScaleByTier.max * Settings.Client.hologramRenderDistance * Settings.Client.hologramRenderDistance
 
-  def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
+  def getFadeStartDistanceSquared = scale / Settings.Hologram.maxScaleByTier.max * Settings.Client.hologramFadeStartDistance * Settings.Client.hologramFadeStartDistance
 
   private final val Sqrt2 = Math.sqrt(2)
 

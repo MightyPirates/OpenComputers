@@ -284,7 +284,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedNodeContainer with Devi
     val vertical = args.optBoolean(3, false)
 
     screen(s => {
-      if (consumePower(value.length, Settings.get.gpuSetCost)) {
+      if (consumePower(value.length, Settings.Power.Cost.gpuSet)) {
         s.set(x, y, value, vertical)
         result(true)
       }
@@ -302,7 +302,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedNodeContainer with Devi
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
-      if (consumePower(w * h, Settings.get.gpuCopyCost)) {
+      if (consumePower(w * h, Settings.Power.Cost.gpuCopy)) {
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
@@ -320,7 +320,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedNodeContainer with Devi
     val value = args.checkString(4)
     if (value.length == 1) screen(s => {
       val c = value.charAt(0)
-      val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
+      val cost = if (c == ' ') Settings.Power.Cost.gpuClear else Settings.Power.Cost.gpuFill
       if (consumePower(w * h, cost)) {
         s.fill(x, y, w, h, value.charAt(0))
         result(true)

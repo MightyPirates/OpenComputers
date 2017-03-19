@@ -29,7 +29,7 @@ import scala.collection.convert.WrapAsJava._
 class Printer extends traits.Environment with traits.Inventory with RotatableImpl with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
   val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("printer3d").
-    withConnector(Settings.get.bufferConverter).
+    withConnector(Settings.Power.Buffer.converter).
     create()
 
   val maxAmountMaterial = 256000
@@ -72,13 +72,13 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint = data.stateOff.nonEmpty && data.stateOff.size <= Settings.Printer.maxPrintComplexity && data.stateOn.size <= Settings.Printer.maxPrintComplexity
 
   def isPrinting = output.isDefined
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
-  def timeRemaining = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+  def timeRemaining = (requiredEnergy / Settings.Printer.assemblerTickAmount / 20).toInt
 
   // ----------------------------------------------------------------------- //
 
@@ -117,7 +117,7 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
 
   @Callback(doc = """function(value:number) -- Set what light level the printed block should have.""")
   def setLightLevel(context: Context, args: Arguments): Array[Object] = {
-    data.lightLevel = args.checkInteger(0) max 0 min Settings.get.maxPrintLightLevel
+    data.lightLevel = args.checkInteger(0) max 0 min Settings.Printer.maxPrintLightLevel
     isActive = false // Needs committing.
     null
   }
@@ -167,7 +167,7 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
-    if (data.stateOff.size > Settings.get.maxPrintComplexity || data.stateOn.size > Settings.get.maxPrintComplexity) {
+    if (data.stateOff.size > Settings.Printer.maxPrintComplexity || data.stateOn.size > Settings.Printer.maxPrintComplexity) {
       return result(Unit, "model too complex")
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
@@ -204,7 +204,7 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
   def getShapeCount(context: Context, args: Arguments): Array[Object] = result(data.stateOff.size, data.stateOn.size)
 
   @Callback(doc = """function():number -- Get the maximum allowed number of shapes.""")
-  def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.get.maxPrintComplexity)
+  def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.Printer.maxPrintComplexity)
 
   @Callback(doc = """function([count:number]):boolean -- Commit and begin printing the current configuration.""")
   def commit(context: Context, args: Arguments): Array[Object] = {
@@ -241,7 +241,7 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
     if (isActive && output.isEmpty && canMergeOutput) {
       PrintData.computeCosts(data) match {
         case Some((materialRequired, inkRequired)) =>
-          totalRequiredEnergy = Settings.get.printCost
+          totalRequiredEnergy = Settings.Power.Cost.printerModel
           requiredEnergy = totalRequiredEnergy
 
           if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
@@ -259,8 +259,8 @@ class Printer extends traits.Environment with traits.Inventory with RotatableImp
     }
 
     if (output.isDefined) {
-      val want = math.max(1, math.min(requiredEnergy, Settings.get.printerTickAmount))
-      val have = want + (if (Settings.get.ignorePower) 0 else getNode.changeEnergy(-want))
+      val want = math.max(1, math.min(requiredEnergy, Settings.Power.printerTickAmount))
+      val have = want + (if (Settings.Power.ignorePower) 0 else getNode.changeEnergy(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)

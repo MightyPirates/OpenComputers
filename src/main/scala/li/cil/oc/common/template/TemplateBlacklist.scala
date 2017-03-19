@@ -22,7 +22,7 @@ object TemplateBlacklist {
         Option(new ItemStack(item, 1, meta))
       }
     }
-    Settings.get.assemblerBlacklist.map {
+    Settings.Misc.assemblerBlacklist.map {
       case pattern(id, null) => parseDescriptor(id, 0)
       case pattern(id, meta) => try parseDescriptor(id, meta.toInt) catch {
         case _: NumberFormatException =>

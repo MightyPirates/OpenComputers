@@ -246,7 +246,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         }
 
         final double energyAvailable = network.getEnergyStored();
-        final double energyAllowed = Settings.get().chargeRateExternal * chargeSpeed * Settings.get().tickFrequency;
+        final double energyAllowed = Settings.get().chargeRateExternal * chargeSpeed * Settings.Power.tickFrequency;
         final double energyProvided = Math.min(energyAvailable, energyAllowed);
         if (energyProvided > 0) {
             final double energyPerChargeable = energyAvailable / chargeables.size();
@@ -268,7 +268,7 @@ public final class TileEntityCharger extends AbstractTileEntitySingleNodeContain
         }
 
         final double energyAvailable = network.getEnergyStored();
-        final double energyAllowed = Settings.get().chargeRateTablet * chargeSpeed * Settings.get().tickFrequency;
+        final double energyAllowed = Settings.Power.chargeRateTablet * chargeSpeed * Settings.Power.tickFrequency;
         final double energyProvided = Math.min(energyAvailable, energyAllowed);
         if (energyProvided > 0) {
             final double remainder = ItemCharge.charge(itemStack, energyProvided);

@@ -40,20 +40,20 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       flatMap(pb => pb._2.map(b => new BehaviorNeuron(pb._1, b)))
 
     // Adjust length of trigger list and reset.
-    while (triggers.length > behaviors.length * Settings.get.nanomachineTriggerQuota) {
+    while (triggers.length > behaviors.length * Settings.Nanomachines.triggerQuota) {
       triggers.remove(triggers.length - 1)
     }
     triggers.foreach(_.isActive = false)
-    while (triggers.length < behaviors.length * Settings.get.nanomachineTriggerQuota) {
+    while (triggers.length < behaviors.length * Settings.Nanomachines.triggerQuota) {
       triggers += new TriggerNeuron()
     }
 
     // Adjust length of connector list and reset.
-    while (connectors.length > behaviors.length * Settings.get.nanomachineConnectorQuota) {
+    while (connectors.length > behaviors.length * Settings.Nanomachines.connectorQuota) {
       connectors.remove(connectors.length - 1)
     }
     connectors.foreach(_.inputs.clear())
-    while (connectors.length < behaviors.length * Settings.get.nanomachineConnectorQuota) {
+    while (connectors.length < behaviors.length * Settings.Nanomachines.connectorQuota) {
       connectors += new ConnectorNeuron()
     }
 
@@ -66,7 +66,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       for (sink <- sinkPool if sources.nonEmpty) {
         // Avoid connecting one sink to the same source twice.
         val blacklist = mutable.Set.empty[Source]
-        for (n <- 0 to rng.nextInt(Settings.get.nanomachineMaxInputs) if sources.nonEmpty) {
+        for (n <- 0 to rng.nextInt(Settings.Nanomachines.maxInputs) if sources.nonEmpty) {
           val baseIndex = rng.nextInt(sources.length)
           val sourceIndex = (sources.drop(baseIndex) ++ sources.take(baseIndex)).indexWhere(s => !blacklist.contains(s))
           if (sourceIndex >= 0) {
@@ -79,9 +79,9 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
     }
 
     // Connect connectors to triggers, then behaviors to connectors and/or remaining triggers.
-    val sourcePool = mutable.ArrayBuffer.fill(Settings.get.nanomachineMaxOutputs)(triggers.map(_.asInstanceOf[Neuron])).flatten
+    val sourcePool = mutable.ArrayBuffer.fill(Settings.Nanomachines.maxOutputs)(triggers.map(_.asInstanceOf[Neuron])).flatten
     connect(connectors, sourcePool)
-    sourcePool ++= mutable.ArrayBuffer.fill(Settings.get.nanomachineMaxOutputs)(connectors.map(_.asInstanceOf[Neuron])).flatten
+    sourcePool ++= mutable.ArrayBuffer.fill(Settings.Nanomachines.maxOutputs)(connectors.map(_.asInstanceOf[Neuron])).flatten
     connect(behaviors, sourcePool)
 
     // Clean up dead nodes.

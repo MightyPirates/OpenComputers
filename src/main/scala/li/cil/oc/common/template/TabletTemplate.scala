@@ -43,11 +43,11 @@ object TabletTemplate extends Template {
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
     data.container = items.headOption.getOrElse(None)
     data.items = Array(Option(api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1))) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(_.isDefined)
-    data.energy = Settings.get.bufferTablet
+    data.energy = Settings.Power.Buffer.tablet
     data.maxEnergy = data.energy
     val stack = api.Items.get(Constants.ItemName.Tablet).createItemStack(1)
     data.save(stack)
-    val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
+    val energy = Settings.Power.Cost.tabletBaseCost + complexity(inventory) * Settings.Power.Cost.tabletComplexityCost
 
     Array(stack, Double.box(energy))
   }

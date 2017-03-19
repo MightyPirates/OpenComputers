@@ -29,11 +29,11 @@ import scala.collection.mutable
   * tick handler.
   */
 object Audio {
-  private def sampleRate = Settings.get.beepSampleRate
+  private def sampleRate = Settings.Client.beepSampleRate
 
-  private def amplitude = Settings.get.beepAmplitude
+  private def amplitude = Settings.Client.beepVolume
 
-  private def maxDistance = Settings.get.beepRadius
+  private def maxDistance = Settings.Client.beepRadius
 
   private val sources = mutable.Set.empty[Source]
 

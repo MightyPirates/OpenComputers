@@ -37,7 +37,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
   private[machine] var kernelMemory = 0
 
-  private[machine] val ramScale = if (factory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
+  private[machine] val ramScale = if (factory.is64Bit) Settings.Computer.Lua.ramScaleFor64Bit else 1.0
 
   private val persistence = new PersistenceAPI(this)
 
@@ -64,7 +64,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
   }
   catch {
     case e: Throwable =>
-      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+      if (Settings.Debug.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
         OpenComputers.log.warn("Exception in Lua callback.", e)
       }
       e match {
@@ -78,7 +78,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
           lua.pushBoolean(true)
           lua.pushNil()
           lua.pushString(e.getMessage)
-          if (Settings.get.logLuaCallbackErrors) {
+          if (Settings.Debug.logLuaCallbackErrors) {
             lua.pushString(e.getStackTrace.mkString("", "\n", "\n"))
             4
           }
@@ -147,7 +147,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
   override def recomputeMemory(components: java.lang.Iterable[ItemStack]) = {
     val memory = math.ceil(memoryInBytes(components) * ramScale).toInt
     Option(lua) match {
-      case Some(l) if Settings.get.limitMemory =>
+      case Some(l) if Settings.Debug.limitMemory =>
         l.setTotalMemory(Int.MaxValue)
         if (kernelMemory > 0) {
           l.setTotalMemory(kernelMemory + memory)
@@ -160,7 +160,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
   private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
     case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  })).toInt max 0 min Settings.get.maxTotalRam
+  })).toInt max 0 min Settings.Computer.Lua.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 
@@ -269,7 +269,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
           new ExecutionResult.Shutdown(false)
         }
         else {
-          if (Settings.get.limitMemory) {
+          if (Settings.Debug.limitMemory) {
             lua.setTotalMemory(Int.MaxValue)
           }
           val error =
@@ -323,7 +323,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
   override def close() {
     if (lua != null) {
-      if (Settings.get.limitMemory) {
+      if (Settings.Debug.limitMemory) {
         lua.setTotalMemory(Integer.MAX_VALUE)
       }
       lua.close()
@@ -344,7 +344,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     if (!machine.isRunning) return
 
     // Unlimit memory use while unpersisting.
-    if (Settings.get.limitMemory) {
+    if (Settings.Debug.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)
     }
 
@@ -389,7 +389,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
   override def save(nbt: NBTTagCompound) {
     // Unlimit memory while persisting.
-    if (Settings.get.limitMemory) {
+    if (Settings.Debug.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)
     }
 

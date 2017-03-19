@@ -35,7 +35,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   if (isServer) api.Network.joinWirelessNetwork(this)
   var previousDimension = player.world.provider.getDimension
 
-  lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
+  lazy val CommandRange = Settings.Nanomachines.commandRange * Settings.Nanomachines.commandRange
   final val FullSyncInterval = 20 * 60
 
   final val OverloadDamage = new DamageSourceWithRandomCause("oc.nanomachinesOverload", 3).
@@ -46,7 +46,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   var responsePort = 0
   var commandDelay = 0
   var queuedCommand: Option[() => Unit] = None
-  var storedEnergy = Settings.get.bufferNanomachines * 0.25
+  var storedEnergy = Settings.Power.Buffer.nanomachines * 0.25
   var hadPower = true
   val configuration = new NeuralNetwork(this)
   val activeBehaviors = mutable.Set.empty[Behavior]
@@ -149,7 +149,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   def respond(endpoint: WirelessEndpoint, data: Any*): Unit = {
     queuedCommand = Option(() => {
       if (responsePort > 0) {
-        val cost = Settings.get.wirelessCostPerRange * CommandRange
+        val cost = Settings.Power.Cost.wirelessCostPerRange * CommandRange
         val epsilon = 0.1
         if (changeBuffer(-cost) > -epsilon) {
           val packet = api.Network.newPacket(uuid, null, responsePort, (Iterable("nanomachines") ++ data.map(_.asInstanceOf[AnyRef])).toArray)
@@ -157,7 +157,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         }
       }
     })
-    commandDelay = (Settings.get.nanomachinesCommandDelay * 20).toInt
+    commandDelay = (Settings.Nanomachines.commandDelay * 20).toInt
   }
 
   // ----------------------------------------------------------------------- //
@@ -172,7 +172,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 100))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 150))
           player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 200))
-          changeBuffer(-Settings.get.nanomachineReconfigureCost)
+          changeBuffer(-Settings.Power.Cost.nanomachineReconfigure)
 
           hasSentConfiguration = false
         case _ => // We're still setting up / loading.
@@ -183,15 +183,15 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   override def getTotalInputCount: Int = configuration.synchronized(configuration.triggers.length)
 
-  override def getSafeActiveInputs: Int = Settings.get.nanomachinesSafeInputsActive
+  override def getSafeActiveInputs: Int = Settings.Nanomachines.safeInputsActive
 
-  override def getMaxActiveInputs: Int = Settings.get.nanomachinesMaxInputsActive
+  override def getMaxActiveInputs: Int = Settings.Nanomachines.maxInputsActive
 
   override def getInput(index: Int): Boolean = configuration.synchronized(configuration.triggers(index).isActive)
 
   override def setInput(index: Int, value: Boolean): Boolean = {
     isServer && configuration.synchronized {
-      (!value || configuration.triggers.count(_.isActive) < Settings.get.nanomachinesMaxInputsActive) && {
+      (!value || configuration.triggers.count(_.isActive) < Settings.Nanomachines.maxInputsActive) && {
         configuration.triggers(index).isActive = value
         activeBehaviorsDirty = true
         true
@@ -210,11 +210,11 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   override def getLocalBuffer: Double = storedEnergy
 
-  override def getLocalBufferSize: Double = Settings.get.bufferNanomachines
+  override def getLocalBufferSize: Double = Settings.Power.Buffer.nanomachines
 
   override def changeBuffer(delta: Double): Double = {
     if (isClient) delta
-    else if (delta < 0 && (Settings.get.ignorePower || player.capabilities.isCreativeMode)) 0.0
+    else if (delta < 0 && (Settings.Power.ignorePower || player.capabilities.isCreativeMode)) 0.0
     else {
       val newValue = storedEnergy + delta
       storedEnergy = math.min(math.max(newValue, 0), getLocalBufferSize)
@@ -252,14 +252,14 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       }
     }
 
-    var hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
+    var hasPower = getLocalBuffer > 0 || Settings.Power.ignorePower
     lazy val active = getActiveBehaviors.toIterable // Wrap once.
     lazy val activeInputs = configuration.triggers.count(_.isActive)
 
     if (hasPower != hadPower) {
       if (!hasPower) {
         active.foreach(_.onDisable(DisableReason.OutOfEnergy)) // This may change our energy buffer.
-        hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
+        hasPower = getLocalBuffer > 0 || Settings.Power.ignorePower
       }
       else active.foreach(_.onEnable())
     }
@@ -268,8 +268,8 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       active.foreach(_.update())
 
       if (isServer) {
-        if (player.getEntityWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-          changeBuffer(-Settings.get.nanomachineCost * Settings.get.tickFrequency * (activeInputs + 0.5))
+        if (player.getEntityWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
+          changeBuffer(-Settings.Power.Cost.nanomachineInput * Settings.Power.tickFrequency * (activeInputs + 0.5))
           PacketSender.sendNanomachinePower(player)
         }
 
@@ -279,7 +279,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         }
       }
 
-      if (isClient && Settings.get.enableNanomachinePfx) {
+      if (isClient && Settings.Client.enableNanomachinePfx) {
         val energyRatio = getLocalBuffer / (getLocalBufferSize + 1)
         val triggerRatio = activeInputs / (configuration.triggers.length + 1)
         val intensity = (energyRatio + triggerRatio) * 0.25

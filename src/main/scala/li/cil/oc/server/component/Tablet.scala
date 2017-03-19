@@ -21,7 +21,7 @@ import scala.collection.convert.WrapAsJava._
 class Tablet(val tablet: TabletWrapper) extends AbstractManagedNodeContainer with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("tablet").
-    withConnector(Settings.get.bufferTablet).
+    withConnector(Settings.Power.Buffer.tablet).
     create()
 
   private final lazy val deviceInfo = Map(

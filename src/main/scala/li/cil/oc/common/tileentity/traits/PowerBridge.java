@@ -30,7 +30,7 @@ public final class PowerBridge {
     public void balance() {
         final World world = host.getHostWorld();
 
-        if (world.getTotalWorldTime() % Settings.get().tickFrequency() != 0) {
+        if (world.getTotalWorldTime() % Settings.Power.tickFrequency != 0) {
             return;
         }
 

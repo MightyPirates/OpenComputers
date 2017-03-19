@@ -53,7 +53,7 @@ abstract class UpgradePiston(val host: Location) extends AbstractManagedNodeCont
     val side = pushDirection(args, 0)
     val hostPos = pushOrigin(side)
     val blockPos = hostPos.offset(side)
-    if (!host.getWorld.isAirBlock(blockPos) && getNode.tryChangeEnergy(-Settings.get.pistonCost) && Blocks.PISTON.doMove(host.getWorld, hostPos.toBlockPos, side, true)) {
+    if (!host.getWorld.isAirBlock(blockPos) && getNode.tryChangeEnergy(-Settings.Power.Cost.piston) && Blocks.PISTON.doMove(host.getWorld, hostPos.toBlockPos, side, true)) {
       host.getWorld.setBlockToAir(blockPos)
       host.getWorld.playSound(null, host.xPosition, host.yPosition, host.zPosition, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, host.getWorld.rand.nextFloat() * 0.25f + 0.6f)
       context.pause(0.5)

@@ -46,7 +46,7 @@ object ScalaClosure {
       case value: java.lang.String => LuaValue.valueOf(value)
       case value: Array[Byte] => LuaValue.valueOf(value)
       case value: Array[_] => toLuaList(value)
-      case value: Value if Settings.get.allowUserdata => LuaValue.userdataOf(value)
+      case value: Value if Settings.Debug.allowUserdata => LuaValue.userdataOf(value)
       case value: Product => toLuaList(value.productIterator.toIterable)
       case value: Seq[_] => toLuaList(value)
       case value: java.util.Map[_, _] => toLuaTable(value.toMap)

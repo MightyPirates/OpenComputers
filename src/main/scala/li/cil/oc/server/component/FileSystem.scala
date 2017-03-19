@@ -191,7 +191,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
-          if (!getNode.tryChangeEnergy(-Settings.get.hddReadCost * bytes.length)) {
+          if (!getNode.tryChangeEnergy(-Settings.Power.Cost.hddRead * bytes.length)) {
             throw new IOException("not enough energy")
           }
           diskActivity()
@@ -229,7 +229,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     context.consumeCallBudget(writeCosts(speed))
     val handle = checkHandle(args, 0)
     val value = args.checkByteArray(1)
-    if (!getNode.tryChangeEnergy(-Settings.get.hddWriteCost * value.length)) {
+    if (!getNode.tryChangeEnergy(-Settings.Power.Cost.hddWrite * value.length)) {
       throw new IOException("not enough energy")
     }
     checkOwner(context.node.getAddress, handle)

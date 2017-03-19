@@ -36,7 +36,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
 
   val snooperNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("microcontroller").
-    withConnector(Settings.get.bufferMicrocontroller).
+    withConnector(Settings.Power.Buffer.microcontroller).
     create()
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.NETWORK).
@@ -45,7 +45,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
 
   if (machine != null) {
     machine.node.asInstanceOf[EnergyNode].setEnergyCapacity(0)
-    machine.setCostPerTick(Settings.get.microcontrollerCost)
+    machine.setCostPerTick(Settings.Power.Cost.microcontroller)
   }
 
   override def tier = info.tier
@@ -74,7 +74,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
 
   override protected def connector(side: EnumFacing) = Option(if (side != getFacing) snooperNode else null)
 
-  override def energyThroughput = Settings.get.caseRate(Tier.One)
+  override def energyThroughput = Settings.Power.Rate.caseRate(Tier.One)
 
   // ----------------------------------------------------------------------- //
 
@@ -130,7 +130,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.NetworkBridge wit
     super.updateEntity()
 
     // Pump energy into the internal network.
-    if (isServer && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
       for (side <- EnumFacing.values if side != getFacing) {
         sidedNode(side) match {
           case connector: EnergyNode =>

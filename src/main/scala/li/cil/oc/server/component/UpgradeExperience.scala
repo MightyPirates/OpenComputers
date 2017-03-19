@@ -29,7 +29,7 @@ class UpgradeExperience(val host: Location with internal.Agent) extends Abstract
 
   override val getNode = api.Network.newNode(this, Visibility.NETWORK).
     withComponent("experience").
-    withConnector(30 * Settings.get.bufferPerLevel).
+    withConnector(30 * Settings.Robot.Experience.bufferPerLevel).
     create()
 
   private final lazy val deviceInfo = Map(
@@ -70,7 +70,7 @@ class UpgradeExperience(val host: Location with internal.Agent) extends Abstract
       if (level != oldLevel) {
         updateClient()
       }
-      getNode.setEnergyCapacity(Settings.get.bufferPerLevel * level)
+      getNode.setEnergyCapacity(Settings.Robot.Experience.bufferPerLevel * level)
     }
   }
 

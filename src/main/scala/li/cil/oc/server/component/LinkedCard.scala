@@ -48,7 +48,7 @@ class LinkedCard extends AbstractManagedNodeContainer with QuantumNetwork.Quantu
     val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
     // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
     val packet = Network.newPacket(getNode.getAddress, null, 0, args.asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
-    if (getNode.tryChangeEnergy(-(packet.getSize / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
+    if (getNode.tryChangeEnergy(-(packet.getSize / 32.0 + Settings.Power.Cost.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
       for (endpoint <- endpoints) {
         endpoint.receivePacket(packet)
       }

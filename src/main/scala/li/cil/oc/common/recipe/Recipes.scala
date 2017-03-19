@@ -351,7 +351,7 @@ object Recipes {
       GameRegistry.addRecipe(new DecolorizeRecipe(cable.block()))
 
       // Loot disk cycling.
-      if (Settings.get.lootRecrafting) {
+      if (Settings.Misc.lootRecrafting) {
         GameRegistry.addRecipe(new LootDiskCyclingRecipe())
       }
     }

@@ -172,7 +172,7 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
     @Override
     public void update() {
         machineHost.update();
-//    if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+//    if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
 //      // Creative case, make it generate power.
 //      getNode.asInstanceOf[EnergyNode].changeEnergy(Double.PositiveInfinity)
 //    }

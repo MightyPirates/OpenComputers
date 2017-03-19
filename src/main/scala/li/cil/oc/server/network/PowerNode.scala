@@ -23,7 +23,7 @@ trait PowerNode extends PowerNode with Node {
 
   def changeBuffer(delta: Double): Double = {
     if (delta == 0) 0
-    else if (Settings.get.ignorePower) {
+    else if (Settings.Power.ignorePower) {
       if (delta < 0) 0
       else /* if (delta > 0) */ delta
     }
@@ -61,7 +61,7 @@ trait PowerNode extends PowerNode with Node {
 
   def tryChangeBuffer(delta: Double): Boolean = {
     if (delta == 0) true
-    else if (Settings.get.ignorePower) delta < 0
+    else if (Settings.Power.ignorePower) delta < 0
     else {
       this.synchronized(distributor match {
         case Some(d) => d.synchronized {

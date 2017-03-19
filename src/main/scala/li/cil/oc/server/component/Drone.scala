@@ -28,7 +28,7 @@ import scala.collection.convert.WrapAsScala._
 class Drone(val agent: entity.Drone) extends AbstractManagedNodeContainer with Agent with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("drone").
-    withConnector(Settings.get.bufferDrone).
+    withConnector(Settings.Power.Buffer.drone).
     create()
 
   private final lazy val deviceInfo = Map(

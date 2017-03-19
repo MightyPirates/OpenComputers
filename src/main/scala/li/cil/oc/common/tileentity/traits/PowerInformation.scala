@@ -32,7 +32,7 @@ trait PowerInformation extends TileEntity {
   private def shouldSync(ratio: Double) = {
     ticksUntilSync -= 1
     if (ticksUntilSync <= 0) {
-      ticksUntilSync = (100 / Settings.get.tickFrequency).toInt max 1
+      ticksUntilSync = (100 / Settings.Power.tickFrequency).toInt max 1
       lastSentRatio != ratio
     }
     else false

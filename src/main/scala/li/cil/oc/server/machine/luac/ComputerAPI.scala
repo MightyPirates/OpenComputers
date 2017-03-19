@@ -96,7 +96,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "removeUser")
 
     lua.pushScalaFunction(lua => {
-      if (Settings.get.ignorePower)
+      if (Settings.Power.ignorePower)
         lua.pushNumber(Double.PositiveInfinity)
       else
         lua.pushNumber(node.asInstanceOf[EnergyNode].getGlobalBuffer)

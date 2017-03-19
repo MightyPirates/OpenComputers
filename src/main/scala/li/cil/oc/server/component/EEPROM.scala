@@ -59,7 +59,7 @@ class EEPROM extends AbstractManagedNodeContainer with DeviceInfo {
     if (readonly) {
       return result(Unit, "storage is readonly")
     }
-    if (!getNode.tryChangeEnergy(-Settings.get.eepromWriteCost)) {
+    if (!getNode.tryChangeEnergy(-Settings.Power.Cost.eepromWrite)) {
       return result(Unit, "not enough energy")
     }
     val newData = args.optByteArray(0, Array.empty[Byte])
@@ -105,7 +105,7 @@ class EEPROM extends AbstractManagedNodeContainer with DeviceInfo {
 
   @Callback(doc = """function(data:string) -- Overwrite the currently stored byte array.""")
   def setData(context: Context, args: Arguments): Array[AnyRef] = {
-    if (!getNode.tryChangeEnergy(-Settings.get.eepromWriteCost)) {
+    if (!getNode.tryChangeEnergy(-Settings.Power.Cost.eepromWrite)) {
       return result(Unit, "not enough energy")
     }
     val newData = args.optByteArray(0, Array.empty[Byte])

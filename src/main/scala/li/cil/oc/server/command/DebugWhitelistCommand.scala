@@ -20,7 +20,7 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
     else name + " revoke"
 
   override def execute(server: MinecraftServer, sender: ICommandSender, args: Array[String]): Unit = {
-    val wl = Settings.get.debugCardAccess match {
+    val wl = Settings.Debug.debugCardAccess match {
       case w: DebugCardAccess.Whitelist => w
       case _ => throw new WrongUsageException("§cDebug card whitelisting is not enabled.")
     }

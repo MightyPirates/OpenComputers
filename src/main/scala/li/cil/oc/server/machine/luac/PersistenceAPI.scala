@@ -20,7 +20,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setGlobal("persistKey")
 
-    if (Settings.get.allowPersistence) {
+    if (Settings.Debug.allowPersistence) {
       // These tables must contain all java callbacks (i.e. C functions, since
       // they are wrapped on the native side using a C function, of course).
       // They are used when persisting/unpersisting the state so that the
@@ -112,14 +112,14 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.getField(-1, "settings")
     lua.pushString("path")
-    lua.pushBoolean(Settings.get.debugPersistence)
+    lua.pushBoolean(Settings.Debug.debugPersistence)
     lua.call(2, 0)
 
     lua.pop(1)
   }
 
   def persist(index: Int): Array[Byte] = {
-    if (Settings.get.allowPersistence) {
+    if (Settings.Debug.allowPersistence) {
       configure()
       try {
         lua.gc(LuaState.GcAction.STOP, 0)
@@ -152,7 +152,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   }
 
   def unpersist(value: Array[Byte]): Boolean = {
-    if (Settings.get.allowPersistence) {
+    if (Settings.Debug.allowPersistence) {
       configure()
       try {
         lua.gc(LuaState.GcAction.STOP, 0)

@@ -8,7 +8,7 @@ import li.cil.oc.Settings
 
 object ThreadPoolFactory {
   val priority = {
-    val custom = Settings.get.threadPriority
+    val custom = Settings.Misc.threadPriority
     if (custom < 1) Thread.MIN_PRIORITY + (Thread.NORM_PRIORITY - Thread.MIN_PRIORITY) / 2
     else custom max Thread.MIN_PRIORITY min Thread.MAX_PRIORITY
   }

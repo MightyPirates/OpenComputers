@@ -62,7 +62,7 @@ object PackedColor {
     }
   }
 
-  object SingleBitFormat extends SingleBitFormat(Settings.get.monochromeColor)
+  object SingleBitFormat extends SingleBitFormat(Settings.Client.monochromeColor)
 
   abstract class PaletteFormat extends ColorFormat {
     override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))

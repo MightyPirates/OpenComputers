@@ -193,7 +193,7 @@ public final class TileEntityAssembler extends AbstractTileEntitySingleNodeConta
         }
 
         final double energyAvailable = network.getEnergyStored();
-        final double energyAllowed = Settings.get().assemblerTickAmount * Settings.get().tickFrequency;
+        final double energyAllowed = Settings.Power.assemblerTickAmount * Settings.Power.tickFrequency;
         final double energyProvided = Math.min(energyAvailable, energyAllowed);
         if (energyProvided > 0) {
             if (energyProvided < requiredEnergyRemaining) {

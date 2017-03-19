@@ -170,7 +170,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     origin.lastWalked.put(entity, localPosition) match {
       case Some((oldX, oldY)) if oldX == x && oldY == y => // Ignore
       case _ => entity match {
-        case player: EntityPlayer if Settings.get.inputUsername =>
+        case player: EntityPlayer if Settings.Misc.inputUsername =>
           origin.getNode.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
         case _ =>
           origin.getNode.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
@@ -230,14 +230,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         if (screen.isOrigin) {
           if (isServer) {
             buffer.getNode.asInstanceOf[ComponentNode].setVisibility(Visibility.NETWORK)
-            buffer.setEnergyCostPerTick(Settings.get.screenCost * screen.width * screen.height)
+            buffer.setEnergyCostPerTick(Settings.Power.Cost.screen * screen.width * screen.height)
             buffer.setAspectRatio(screen.width, screen.height)
           }
         }
         else {
           if (isServer) {
             buffer.getNode.asInstanceOf[ComponentNode].setVisibility(Visibility.NONE)
-            buffer.setEnergyCostPerTick(Settings.get.screenCost)
+            buffer.setEnergyCostPerTick(Settings.Power.Cost.screen)
           }
           buffer.setAspectRatio(1, 1)
           val w = buffer.getWidth

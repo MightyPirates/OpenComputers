@@ -18,9 +18,9 @@ trait Common extends TileEntity {
   def energyThroughput: Double
 
   protected def tryAllSides(provider: (Double, EnumFacing) => Double, fromOther: Double => Double, toOther: Double => Double) {
-    // We make sure to only call this every `Settings.get.tickFrequency` ticks,
+    // We make sure to only call this every `Settings.Power.tickFrequency` ticks,
     // but our throughput is per tick, so multiply this up for actual budget.
-    var budget = energyThroughput * Settings.get.tickFrequency
+    var budget = energyThroughput * Settings.Power.tickFrequency
     for (side <- EnumFacing.values) {
       val demand = toOther(math.min(budget, globalDemand(side)))
       if (demand > 1) {
@@ -35,7 +35,7 @@ trait Common extends TileEntity {
   // ----------------------------------------------------------------------- //
 
   def canConnectPower(side: EnumFacing) =
-    !Settings.get.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined)
+    !Settings.Power.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined)
 
   /**
    * Tries to inject the specified amount of energy into the buffer via the specified side.
@@ -46,7 +46,7 @@ trait Common extends TileEntity {
    * @return the amount of energy that was actually injected.
    */
   def tryChangeBuffer(side: EnumFacing, amount: Double, doReceive: Boolean = true): Double =
-    if (isClient || Settings.get.ignorePower) 0
+    if (isClient || Settings.Power.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
         val cappedAmount = math.max(0, math.min(math.min(energyThroughput, amount), globalDemand(side)))

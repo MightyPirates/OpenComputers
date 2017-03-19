@@ -90,8 +90,8 @@ class WirelessNetworkCard(host: Location) extends NetworkCard(host) with Wireles
   }
 
   private def checkPower() {
-    val cost = Settings.get.wirelessCostPerRange
-    if (cost > 0 && !Settings.get.ignorePower) {
+    val cost = Settings.Power.Cost.wirelessCostPerRange
+    if (cost > 0 && !Settings.Power.ignorePower) {
       if (!getNode.tryChangeEnergy(-strength * cost)) {
         throw new IOException("not enough energy")
       }

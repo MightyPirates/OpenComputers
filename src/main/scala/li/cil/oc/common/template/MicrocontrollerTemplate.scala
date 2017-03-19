@@ -32,9 +32,9 @@ object MicrocontrollerTemplate extends Template {
     val data = new MicrocontrollerData()
     data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(_ != null).toArray
-    data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
+    data.storedEnergy = Settings.Power.Buffer.microcontroller.toInt
     val stack = data.createItemStack()
-    val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
+    val energy = Settings.Power.Cost.microcontrollerBaseCost + complexity(inventory) * Settings.Power.Cost.microcontrollerComplexityCost
 
     Array(stack, Double.box(energy))
   }

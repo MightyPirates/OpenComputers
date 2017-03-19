@@ -84,7 +84,7 @@ abstract class LuaStateFactory {
   private var currentLib = ""
 
   private val libraryName = {
-    if (!Strings.isNullOrEmpty(Settings.get.forceNativeLib)) Settings.get.forceNativeLib
+    if (!Strings.isNullOrEmpty(Settings.Debug.forceNativeLib)) Settings.Debug.forceNativeLib
 
     else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X64) "native.64.bsd.so"
     else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X86) "native.32.bsd.so"
@@ -135,7 +135,7 @@ abstract class LuaStateFactory {
       return
     }
 
-    if (SystemUtils.IS_OS_WINDOWS && !Settings.get.alwaysTryNative) {
+    if (SystemUtils.IS_OS_WINDOWS && !Settings.Debug.alwaysTryNative) {
       if (SystemUtils.IS_OS_WINDOWS_XP) {
         OpenComputers.log.warn("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft has stopped supporting Windows XP in April 2014.")
         return
@@ -154,7 +154,7 @@ abstract class LuaStateFactory {
     }
 
     val tmpLibName = s"OpenComputersMod-${OpenComputers.Version}-$version-$libraryName"
-    val tmpBasePath = if (Settings.get.nativeInTmpDir) {
+    val tmpBasePath = if (Settings.Debug.nativeInTmpDir) {
       val path = System.getProperty("java.io.tmpdir")
       if (path == null) ""
       else if (path.endsWith("/") || path.endsWith("\\")) path
@@ -164,7 +164,7 @@ abstract class LuaStateFactory {
     val tmpLibFile = new File(tmpBasePath + tmpLibName)
 
     // Clean up old library files when not in tmp dir.
-    if (!Settings.get.nativeInTmpDir) {
+    if (!Settings.Debug.nativeInTmpDir) {
       val libDir = new File(tmpBasePath)
       if (libDir.isDirectory) {
         for (file <- libDir.listFiles(new PatternFilenameFilter("^" + Pattern.quote("OpenComputersMod-") + ".*" + Pattern.quote("-" + libraryName) + "$"))) {
@@ -259,7 +259,7 @@ abstract class LuaStateFactory {
     }
     catch {
       case t: Throwable =>
-        if (Settings.get.logFullLibLoadErrors) {
+        if (Settings.Debug.logFullLibLoadErrors) {
           OpenComputers.log.trace(s"Could not load native library '${tmpLibFile.getName}'.", t)
         }
         else {
@@ -285,14 +285,14 @@ abstract class LuaStateFactory {
     try {
       val state = LuaStateFactory.synchronized {
         prepareLoad(currentLib)
-        if (Settings.get.limitMemory) create(Some(Int.MaxValue))
+        if (Settings.Debug.limitMemory) create(Some(Int.MaxValue))
         else create()
       }
       try {
         // Load all libraries.
         openLibs(state)
 
-        if (!Settings.get.disableLocaleChanging) {
+        if (!Settings.Debug.disableLocaleChanging) {
           state.openLib(jnlua.LuaState.Library.OS)
           state.getField(-1, "setlocale")
           state.pushString("C")

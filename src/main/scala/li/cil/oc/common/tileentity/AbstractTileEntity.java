@@ -31,7 +31,7 @@ public abstract class AbstractTileEntity extends TileEntity implements TileEntit
     protected boolean mayTickEnergy() {
         // We use hashCode() as a (shitty but good enough) random value to
         // distribute updates of different tile entities across ticks.
-        return (getWorld().getTotalWorldTime() + hashCode()) % Settings.get().tickFrequency == 0;
+        return (getWorld().getTotalWorldTime() + hashCode()) % Settings.Power.tickFrequency == 0;
     }
 
     protected void readFromNBTForServer(final NBTTagCompound nbt) {

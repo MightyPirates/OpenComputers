@@ -35,10 +35,10 @@ object DroneTemplate extends Template {
     data.tier = caseTier(inventory)
     data.name = RobotData.randomName
     data.components = items.drop(1).filter(_ != null).toArray
-    data.storedEnergy = Settings.get.bufferDrone.toInt
+    data.storedEnergy = Settings.Power.Buffer.drone.toInt
     val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
     data.save(stack)
-    val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
+    val energy = Settings.Power.Cost.droneBaseCost + complexity(inventory) * Settings.Power.Cost.droneComplexityCost
 
     Array(stack, Double.box(energy))
   }

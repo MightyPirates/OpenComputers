@@ -21,7 +21,7 @@ object MagnetProvider extends ScalaProvider("9324d5ec-71f1-41c2-b51c-406e527668f
     override def update(): Unit = {
       val world = player.getEntityWorld
       if (!world.isRemote) {
-        val actualRange = Settings.get.nanomachineMagnetRange * api.Nanomachines.getController(player).getInputCount(this)
+        val actualRange = Settings.Nanomachines.magnetRange * api.Nanomachines.getController(player).getInputCount(this)
         val items = world.getEntitiesWithinAABB(classOf[EntityItem], player.getEntityBoundingBox.expand(actualRange, actualRange, actualRange))
         items.collect {
           case item: EntityItem if !item.cannotPickup && item.getEntityItem != null && player.inventory.mainInventory.exists(stack => stack == null || stack.getCount < stack.getMaxStackSize && stack.isItemEqual(item.getEntityItem)) =>

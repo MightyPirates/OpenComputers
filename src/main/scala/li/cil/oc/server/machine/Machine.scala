@@ -49,12 +49,12 @@ import scala.collection.mutable
 class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with machine.Machine with Runnable with DeviceInfo {
   override val getNode = Network.newNode(this, Visibility.NETWORK).
     withComponent("computer", Visibility.NEIGHBORS).
-    withConnector(Settings.get.bufferComputer).
+    withConnector(Settings.Power.Buffer.computer).
     create()
 
-  val tmp = if (Settings.get.tmpSize > 0) {
+  val tmp = if (Settings.Filesystem.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
-      fromMemory(Settings.get.tmpSize * 1024), "tmpfs", null, null, 5))
+      fromMemory(Settings.Filesystem.tmpSize * 1024), "tmpfs", null, null, 5))
   } else None
 
   var architecture: Architecture = _
@@ -98,7 +98,7 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
 
   private var message: Option[String] = None // For error messages.
 
-  private var cost = Settings.get.computerCost * Settings.get.tickFrequency
+  private var cost = Settings.Power.Cost.computer * Settings.Power.tickFrequency
 
   // ----------------------------------------------------------------------- //
 
@@ -156,9 +156,9 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
 
   def lastError = message.orNull
 
-  override def setCostPerTick(value: Double) = cost = value * Settings.get.tickFrequency
+  override def setCostPerTick(value: Double) = cost = value * Settings.Power.tickFrequency
 
-  override def getCostPerTick = cost / Settings.get.tickFrequency
+  override def getCostPerTick = cost / Settings.Power.tickFrequency
 
   override def users = _users.synchronized(_users.toArray)
 
@@ -201,7 +201,7 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
       onHostChanged()
       processAddedComponents()
       verifyComponents()
-      if (!Settings.get.ignorePower && getNode.getGlobalBuffer < cost) {
+      if (!Settings.Power.ignorePower && getNode.getGlobalBuffer < cost) {
         // No beep! We have no energy after all :P
         crash("gui.Error.NoEnergy")
         false
@@ -492,14 +492,14 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
     callBudget = maxCallBudget
 
     // Make sure we have enough power.
-    if (host.getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (host.getWorld.getTotalWorldTime % Settings.Power.tickFrequency == 0) {
       state.synchronized(state.top match {
         case Machine.State.Paused |
              Machine.State.Restarting |
              Machine.State.Stopping |
              Machine.State.Stopped => // No power consumption.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
-          if (!getNode.tryChangeEnergy(-cost * Settings.get.sleepCostFactor)) {
+          if (!getNode.tryChangeEnergy(-cost * Settings.Power.Cost.sleepFactor)) {
             crash("gui.Error.NoEnergy")
           }
         case _ =>
@@ -531,7 +531,7 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
       // Computer is rebooting.
       case Machine.State.Restarting =>
         close()
-        if (Settings.get.eraseTmpOnReboot) {
+        if (Settings.Computer.eraseTmpOnReboot) {
           tmp.foreach(_.getNode.remove()) // To force deleting contents.
           tmp.foreach(tmp => getNode.connect(tmp.getNode))
         }
@@ -765,7 +765,7 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
 
       // Delay execution for a second to allow the world around us to settle.
       if (state.top != Machine.State.Restarting) {
-        pause(Settings.get.startupDelay)
+        pause(Settings.Computer.startupDelay)
       }
     }
     catch {
@@ -928,7 +928,7 @@ class Machine(val host: MachineHost) extends AbstractManagedNodeContainer with m
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
+      Machine.threadPool.schedule(this, Settings.Computer.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -1096,5 +1096,5 @@ object Machine extends MachineAPI {
     def convert() = new Signal(name, Registry.convert(args))
   }
 
-  private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
+  private val threadPool = ThreadPoolFactory.create("Computer", Settings.Computer.threads)
 }

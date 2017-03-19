@@ -26,7 +26,7 @@ public final class TileEntityPowerConverter extends AbstractTileEntitySingleNode
 //
 //  override protected def connector(side: EnumFacing) = Option(getNode)
 //
-//  override def energyThroughput = Settings.get.powerConverterRate
+//  override def energyThroughput = Settings.Power.Rate.powerConverter
 
     private static final class NodeContainerPowerConverter extends AbstractTileEntityNodeContainer implements DeviceInfo {
         private static final Map<String, String> DEVICE_INFO = new HashMap<>();
