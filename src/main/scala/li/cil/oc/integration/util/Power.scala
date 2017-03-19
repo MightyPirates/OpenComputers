@@ -35,9 +35,9 @@ object Power {
 
   // Redstone Flux
 
-  def fromRF(value: Int) = value * Settings.get.ratioRedstoneFlux
+  def fromRF(value: Int) = value * Settings.Power.Value.ratioRedstoneFlux
 
-  def toRF(value: Double): Int = (value / Settings.get.ratioRedstoneFlux).toInt
+  def toRF(value: Double): Int = (value / Settings.Power.Value.ratioRedstoneFlux).toInt
 
   // RotaryCraft
 

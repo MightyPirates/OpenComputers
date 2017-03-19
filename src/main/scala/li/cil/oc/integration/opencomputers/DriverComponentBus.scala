@@ -30,7 +30,7 @@ object DriverComponentBus extends Item with Processor {
 
   override def supportedComponents(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(bus: item.ComponentBus) => Settings.get.cpuComponentSupport(bus.tier)
+      case Some(bus: item.ComponentBus) => Settings.Computer.cpuComponentCount(bus.tier)
       case _ => Tier.One
     }
 

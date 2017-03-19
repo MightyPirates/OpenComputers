@@ -39,7 +39,7 @@ object EventHandlerVanilla {
         val block = world.getBlockState(pos).getBlock
         if (block != Blocks.AIR && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.toBlockPos))) {
           val distance = math.sqrt(rx * rx + ry * ry + rz * rz).toFloat
-          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + block.getBlockHardness(world.getBlockState(pos), world, pos)
+          e.data(index) = e.data(index) * distance * Settings.Misc.geolyzerNoise + block.getBlockHardness(world.getBlockState(pos), world, pos)
         }
         else e.data(index) = 0
       }
@@ -61,7 +61,7 @@ object EventHandlerVanilla {
     e.data += "harvestTool" -> block.getHarvestTool(blockState)
     e.data += "color" -> Int.box(block.getMapColor(blockState).colorValue)
 
-    if (Settings.get.insertIdsInConverters) {
+    if (Settings.Debug.insertIdsInConverters) {
       e.data += "id" -> Int.box(Block.getIdFromBlock(block))
     }
 

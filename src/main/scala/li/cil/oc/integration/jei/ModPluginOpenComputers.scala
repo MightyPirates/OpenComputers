@@ -20,7 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 @JEIPlugin
 class ModPluginOpenComputers extends IModPlugin {
   override def register(registry: IModRegistry) {
-    if (Settings.get.lootRecrafting) {
+    if (Settings.Misc.lootRecrafting) {
       registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
     }
 

@@ -21,7 +21,7 @@ object ConverterItemStack extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
     value match {
       case stack: item.ItemStack =>
-        if (Settings.get.insertIdsInConverters) {
+        if (Settings.Debug.insertIdsInConverters) {
           output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
           output += "oreNames" -> OreDictionary.getOreIDs(stack).map(OreDictionary.getOreName)
         }
@@ -55,7 +55,7 @@ object ConverterItemStack extends api.driver.Converter {
           output += "enchantments" -> enchantments
         }
 
-        if (stack.hasTagCompound && Settings.get.allowItemStackNBTTags) {
+        if (stack.hasTagCompound && Settings.Debug.allowItemStackNBTTags) {
           output += "tag" -> ItemUtils.saveTag(stack.getTagCompound)
         }
       case _ =>

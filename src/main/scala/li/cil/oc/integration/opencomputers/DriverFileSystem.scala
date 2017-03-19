@@ -33,7 +33,7 @@ object DriverFileSystem extends Item {
     if (host.getWorld != null && host.getWorld.isRemote) null
     else Delegator.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.Filesystem.floppySize * 1024, 1, host, 1)
       case _ => null
     }
 
@@ -76,7 +76,7 @@ object DriverFileSystem extends Item {
         new Drive(capacity max 0, platterCount, label, Option(host), Option(sound), speed)
       }
       else {
-        val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity max 0, Settings.get.bufferChanges)
+        val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity max 0, Settings.Filesystem.bufferChanges)
         oc.api.FileSystem.asManagedEnvironment(fs, label, host, sound, speed)
       }
       if (environment != null && environment.getNode != null) {

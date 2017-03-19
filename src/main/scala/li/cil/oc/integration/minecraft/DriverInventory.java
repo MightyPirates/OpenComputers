@@ -39,7 +39,7 @@ public final class DriverInventory extends AbstractDriverTileEntity {
 
         public NodeContainer(final TileEntity tileEntity, final World world) {
             super((IInventory) tileEntity, "inventory");
-            fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.get().fakePlayerProfile());
+            fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.Integration.fakePlayerProfile);
             position = BlockPosition.apply(tileEntity.getPos(), world);
         }
 
@@ -152,7 +152,7 @@ public final class DriverInventory extends AbstractDriverTileEntity {
 
         @Callback(doc = "function():table -- Get a list of descriptions for all item stacks in this inventory.")
         public Object[] getAllStacks(final Context context, final Arguments args) {
-            if (Settings.get().allowItemStackInspection()) {
+            if (Settings.Misc.allowItemStackInspection) {
                 if (notPermitted()) return new Object[]{null, "permission denied"};
                 ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
                 for (int i = 0; i < tileEntity.getSizeInventory(); i++) {

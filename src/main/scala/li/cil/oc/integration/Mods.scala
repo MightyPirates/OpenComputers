@@ -43,7 +43,7 @@ object Mods {
   }
 
   private def tryInit(mod: ModProxy) {
-    val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
+    val isBlacklisted = Settings.Integration.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isModAvailable) && handlers.add(mod)) {
       li.cil.oc.OpenComputers.log.info(s"Initializing mod integration for '${mod.getMod.id}'.")
@@ -71,7 +71,7 @@ object Mods {
 
     private var powerDisabled = false
 
-    protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
+    protected lazy val isPowerModEnabled = !providesPower || (!Settings.Power.ignorePower && !Settings.Power.powerModBlacklist.contains(id))
 
     def isModAvailable: Boolean
 

@@ -38,7 +38,7 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
       case _ => Tier.One
     }
 
-  override def supportedComponents(stack: ItemStack) = Settings.get.cpuComponentSupport(cpuTier(stack))
+  override def supportedComponents(stack: ItemStack) = Settings.Computer.cpuComponentCount(cpuTier(stack))
 
   override def allArchitectures = api.Machine.architectures.toList
 
@@ -68,5 +68,5 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
     stack.getTagCompound.setString(Constants.namespace + "archName", api.Machine.getArchitectureName(architecture))
   }
 
-  override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)
+  override def getCallBudget(stack: ItemStack): Double = Settings.Computer.callBudgets(tier(stack) max Tier.One min Tier.Three)
 }

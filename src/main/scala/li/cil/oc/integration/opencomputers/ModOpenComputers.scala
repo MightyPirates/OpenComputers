@@ -306,7 +306,7 @@ object ModOpenComputers extends ModProxy {
       }
     }
 
-    if (Settings.get.enableLua53 && LuaStateFactory.Lua53.isAvailable) {
+    if (Settings.Computer.Lua.enableLua53 && LuaStateFactory.Lua53.isAvailable) {
       api.Machine.add(classOf[NativeLua53Architecture])
     }
 
@@ -351,14 +351,14 @@ object ModOpenComputers extends ModProxy {
 
   def inkCartridgeInkProvider(stack: ItemStack): Int = {
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
-      Settings.get.printInkValue
+      Settings.Printer.printInkValue
     else
       0
   }
 
   def dyeInkProvider(stack: ItemStack): Int = {
     if (DyeUtils.isDye(stack))
-      Settings.get.printInkValue / 10
+      Settings.Printer.printInkValue / 10
     else
       0
   }
