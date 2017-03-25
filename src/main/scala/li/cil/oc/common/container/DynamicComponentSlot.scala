@@ -8,7 +8,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 
-class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends ComponentSlot(inventory, index, x, y) {
+class DynamicComponentSlot(val container: AbstractContainerPlayer, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends ComponentSlot(inventory, index, x, y) {
   override def tier = {
     val mainTier = containerTierGetter()
     if (mainTier >= 0) info(this).tier

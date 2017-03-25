@@ -12,7 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsScala._
 
 abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) extends Slot(inventory, index, x, y) {
-  def container: Player
+  def container: AbstractContainerPlayer
 
   def slot: String
 

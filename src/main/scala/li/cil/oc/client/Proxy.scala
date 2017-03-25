@@ -91,7 +91,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(MFUTargetRenderer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
-    NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
+    NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandlerClient)
 
     MinecraftForge.EVENT_BUS.register(Audio)
     MinecraftForge.EVENT_BUS.register(HologramRenderer)

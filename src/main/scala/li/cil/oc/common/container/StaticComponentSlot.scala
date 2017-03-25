@@ -4,7 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common
 import net.minecraft.inventory.IInventory
 
-class StaticComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val slot: String, val tier: Int) extends ComponentSlot(inventory, index, x, y) {
+class StaticComponentSlot(val container: AbstractContainerPlayer, inventory: IInventory, index: Int, x: Int, y: Int, val slot: String, val tier: Int) extends ComponentSlot(inventory, index, x, y) {
   if (container.playerInventory.player.getEntityWorld.isRemote) {
     setBackgroundLocation(Textures.Icons.get(slot))
   }

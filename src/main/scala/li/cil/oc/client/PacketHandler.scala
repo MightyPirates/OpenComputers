@@ -171,7 +171,7 @@ object PacketHandler extends CommonPacketHandler {
     val windowId = p.readUnsignedByte()
     if (p.player.openContainer != null && p.player.openContainer.windowId == windowId) {
       p.player.openContainer match {
-        case container: container.Player => container.updateCustomData(p.readNBT())
+        case container: container.AbstractContainerPlayer => container.updateCustomData(p.readNBT())
         case _ => // Invalid packet.
       }
     }

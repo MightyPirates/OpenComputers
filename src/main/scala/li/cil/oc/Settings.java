@@ -1,5 +1,6 @@
 package li.cil.oc;
 
+import com.google.common.net.InetAddresses;
 import com.mojang.authlib.GameProfile;
 import li.cil.oc.common.Tier;
 import li.cil.oc.integration.Mods;
@@ -11,10 +12,14 @@ import net.minecraftforge.fml.common.Loader;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
@@ -1141,7 +1146,7 @@ public final class Settings {
                     },
                     "This is a list of blacklisted domain names. If an HTTP request is made\n"
                             + "or a socket connection is opened the target address will be compared\n"
-                            + "to the addresses / adress ranges in this list. It it is present in this\n"
+                            + "to the addresses / address ranges in this list. It it is present in this\n"
                             + "list, the request will be denied.\n"
                             + "Entries are either domain names (www.example.com) or IP addresses in"
                             + "string format (10.0.0.3), optionally in CIDR notation to make it easier\n"
@@ -1153,7 +1158,7 @@ public final class Settings {
                             + "local machine having players access services in their local network.\n"
                             + "Server hosters are expected to configure their network outside of the\n"
                             + "mod's context in an appropriate manner, e.g. using a system firewall."
-            )).map(AddressValidator::create).collect(Collectors.toList());
+            )).map(Settings::createAddressValidator).collect(Collectors.toList());
             httpHostWhitelist = Arrays.stream(config.getStringList("whitelist", new String[]{},
                     "This is a list of whitelisted domain names. Requests may only be made\n"
                             + "to addresses that are present in this list. If this list is empty,\n"
@@ -1162,7 +1167,7 @@ public final class Settings {
                             + "whitelist and the blacklist, the blacklist will win.\n"
                             + "Entries are of the same format as in the blacklist. Examples:\n"
                             + "\"gist.github.com\", \"www.pastebin.com\""
-            )).map(AddressValidator::create).collect(Collectors.toList());
+            )).map(Settings::createAddressValidator).collect(Collectors.toList());
             httpTimeout = config.getInt("requestTimeout", httpTimeout, 0, 60,
                     "The time in seconds to wait for a response to a request before timing\n"
                             + "out and returning an error message. If this is zero (the default) the\n"
@@ -1907,6 +1912,37 @@ public final class Settings {
         CATEGORIES.add(integration);
         CATEGORIES.add(new Integration.Minecraft(integration));
         CATEGORIES.add(new Debug());
+    }
+
+
+    // ----------------------------------------------------------------------- //
+
+    static AddressValidator createAddressValidator(final String value) {
+        try {
+            final Matcher matcher = Constants.CIDR_PATTERN.matcher(value);
+            if (matcher.find()) {
+                final String address = matcher.group(1);
+                final String prefix = matcher.group(2);
+                final int addr = InetAddresses.coerceToInteger(InetAddresses.forString(address));
+                final int mask = 0xFFFFFFFF << (32 - Integer.valueOf(prefix));
+                final int min = addr & mask;
+                final int max = min | ~mask;
+                return (inetAddress, host) -> {
+                    if (inetAddress instanceof Inet4Address) {
+                        final int numeric = InetAddresses.coerceToInteger(inetAddress);
+                        return min <= numeric && numeric <= max;
+                    } else {
+                        return true; // Can't check IPv6 addresses so we pass them.
+                    }
+                };
+            } else {
+                final InetAddress address = InetAddress.getByName(value);
+                return (inetAddress, host) -> Objects.equals(host, value) || inetAddress == address;
+            }
+        } catch (final Throwable t) {
+            OpenComputers.log().warn("Invalid entry in internet blacklist / whitelist: " + value, t);
+            return (inetAddress, host) -> true;
+        }
     }
 
     // ----------------------------------------------------------------------- //

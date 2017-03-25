@@ -11,21 +11,27 @@ import li.cil.oc.api.network.NodeContainer;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.network.AbstractNodeContainer;
 import li.cil.oc.api.util.Location;
+import li.cil.oc.common.GuiType;
 import li.cil.oc.common.InventorySlots;
 import li.cil.oc.common.inventory.ComponentManager;
 import li.cil.oc.common.inventory.ItemHandlerComponents;
 import li.cil.oc.common.tileentity.capabilities.ColoredImpl;
 import li.cil.oc.common.tileentity.capabilities.RotatableImpl;
+import li.cil.oc.common.tileentity.traits.BlockActivationListener;
 import li.cil.oc.common.tileentity.traits.ItemHandlerHostTileEntityProxy;
 import li.cil.oc.common.tileentity.traits.LocationTileEntityProxy;
 import li.cil.oc.common.tileentity.traits.MachineHostImpl;
 import li.cil.oc.common.tileentity.traits.NodeContainerHostTileEntity;
 import li.cil.oc.util.DyeUtils;
+import li.cil.oc.util.GUIUtils;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.items.IItemHandler;
 
@@ -33,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContainer implements ColoredImpl.ColoredHost, MachineHostImpl.Computer, ItemHandlerHostTileEntityProxy, ITickable, LocationTileEntityProxy, RotatableImpl.RotatableHost, ComponentManager.ComponentInventoryHost {
+public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContainer implements BlockActivationListener, ColoredImpl.ColoredHost, MachineHostImpl.Computer, ItemHandlerHostTileEntityProxy, ITickable, LocationTileEntityProxy, RotatableImpl.RotatableHost, ComponentManager.ComponentInventoryHost {
     protected abstract int getTier();
 
     // ----------------------------------------------------------------------- //
@@ -55,10 +61,12 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
     private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_MACHINE = "machine";
     private static final String TAG_ROTATABLE = "rotatable";
+    private static final String TAG_RUNNING = "running";
 
     // Used on client side to check whether to render disk activity/network indicators.
     private long lastFileSystemActivity = 0;
     private long lastNetworkActivity = 0;
+    private boolean isRunning = false;
 
     // ----------------------------------------------------------------------- //
 
@@ -117,6 +125,23 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
     @Override
     protected NodeContainer getNodeContainer() {
         return nodeContainer;
+    }
+
+    // ----------------------------------------------------------------------- //
+    // BlockActivationListener
+
+    @Override
+    public boolean onActivated(final EntityPlayer player, final EnumHand hand, final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
+        if (player.isSneaking()) {
+            if (isServer()) {
+                if (!machineHost.getMachine().isRunning()) {
+                    machineHost.getMachine().start();
+                }
+            }
+        } else {
+            GUIUtils.openGUI(this, GuiType.Case());
+        }
+        return true;
     }
 
     // ----------------------------------------------------------------------- //
@@ -191,7 +216,6 @@ public abstract class TileEntityCase extends AbstractTileEntitySingleNodeContain
             DEVICE_INFO.put(DeviceAttribute.Description, "Computer");
             DEVICE_INFO.put(DeviceAttribute.Vendor, Constants.DeviceInfo.DefaultVendor);
             DEVICE_INFO.put(DeviceAttribute.Product, "Blocker");
-            DEVICE_INFO.put(DeviceAttribute.Capacity, getSizeInventory.toString);
         }
 
         // ----------------------------------------------------------------------- //

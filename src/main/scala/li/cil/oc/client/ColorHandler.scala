@@ -28,7 +28,7 @@ object ColorHandler {
     register((state, world, pos, tintIndex) => if (pos == null) 0xFFFFFFFF else world.getTileEntity(pos) match {
       case colored: Colored => colored.getColor
       case _ => state.getBlock match {
-        case block: block.Case => DyeUtils.rgbValues(DyeUtils.byTier(block.tier))
+        case block: block.BlockCase => DyeUtils.rgbValues(DyeUtils.byTier(block.tier))
         case _ => 0xFFFFFFFF
       }
     },

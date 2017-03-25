@@ -120,7 +120,7 @@ object Manual extends ManualAPI {
 
   override def navigate(path: String): Unit = {
     Minecraft.getMinecraft.currentScreen match {
-      case manual: gui.Manual => manual.pushPage(path)
+      case manual: gui.GuiManual => manual.pushPage(path)
       case _ => history.push(new History(path))
     }
   }

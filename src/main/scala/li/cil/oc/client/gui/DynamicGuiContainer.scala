@@ -8,7 +8,7 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.container.ComponentSlot
-import li.cil.oc.common.container.Player
+import li.cil.oc.common.container.AbstractContainerPlayer
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.jei.ModJEI
 import li.cil.oc.integration.util.ItemSearch
@@ -180,7 +180,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   private def isInPlayerInventory(slot: Slot) = container match {
-    case player: Player => slot.inventory == player.playerInventory
+    case player: AbstractContainerPlayer => slot.inventory == player.playerInventory
     case _ => false
   }
 
