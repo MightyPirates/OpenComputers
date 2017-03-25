@@ -21,13 +21,13 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
     withFluidInfo(optSlot(args, 0), (_, capacity) => result(capacity))
 
   @Callback(doc = """function([slot:number]):table -- Get a description of the fluid in the tank item in the specified slot or the selected slot.""")
-  def getFluidInTankInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getFluidInTankInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.Misc.allowItemStackInspection) {
     withFluidInfo(optSlot(args, 0), (fluid, _) => result(fluid.orNull))
   }
   else result(Unit, "not enabled in config")
 
   @Callback(doc = """function([tank:number]):table -- Get a description of the fluid in the tank in the specified slot or the selected slot.""")
-  def getFluidInInternalTank(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getFluidInInternalTank(context: Context, args: Arguments): Array[AnyRef] = if (Settings.Misc.allowItemStackInspection) {
     result(Option(tank.getFluidTank(optTank(args, 0))).map(_.getFluid).orNull)
   }
   else result(Unit, "not enabled in config")

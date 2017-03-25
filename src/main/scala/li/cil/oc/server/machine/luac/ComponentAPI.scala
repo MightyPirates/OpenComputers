@@ -1,6 +1,5 @@
 package li.cil.oc.server.machine.luac
 
-import li.cil.oc.api.network.{Component, ComponentNode, NodeComponent}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 import scala.collection.convert.WrapAsScala._

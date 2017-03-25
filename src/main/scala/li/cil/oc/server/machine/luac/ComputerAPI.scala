@@ -4,7 +4,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.network.{Connector, EnergyNode, PowerNode}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 import scala.collection.convert.WrapAsScala._
@@ -99,13 +98,13 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       if (Settings.Power.ignorePower)
         lua.pushNumber(Double.PositiveInfinity)
       else
-        lua.pushNumber(node.asInstanceOf[EnergyNode].getGlobalBuffer)
+        lua.pushNumber(node.getNetwork.getEnergyStored)
       1
     })
     lua.setField(-2, "energy")
 
     lua.pushScalaFunction(lua => {
-      lua.pushNumber(node.asInstanceOf[EnergyNode].getGlobalBufferSize)
+      lua.pushNumber(node.getNetwork.getEnergyCapacity)
       1
     })
     lua.setField(-2, "maxEnergy")

@@ -6,12 +6,12 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.Value
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.INBTSerializable
 
 import scala.collection.convert.WrapAsScala._
 
@@ -20,10 +20,9 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.newTable()
 
     lua.pushScalaFunction(lua => {
-      val nbt = new NBTTagCompound()
-      val persistable = lua.toJavaObjectRaw(1).asInstanceOf[Persistable]
+      val persistable = lua.toJavaObjectRaw(1).asInstanceOf[INBTSerializable]
       lua.pushString(persistable.getClass.getName)
-      persistable.save(nbt)
+      val nbt = persistable.serializeNBT()
       val baos = new ByteArrayOutputStream()
       val dos = new DataOutputStream(baos)
       CompressedStreamTools.write(nbt, dos)
@@ -36,12 +35,12 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       try {
         val className = lua.toString(1)
         val clazz = Class.forName(className)
-        val persistable = clazz.newInstance.asInstanceOf[Persistable]
+        val persistable = clazz.newInstance.asInstanceOf[INBTSerializable]
         val data = lua.toByteArray(2)
         val bais = new ByteArrayInputStream(data)
         val dis = new DataInputStream(bais)
         val nbt = CompressedStreamTools.read(dis)
-        persistable.load(nbt)
+        persistable.deserializeNBT(nbt)
         lua.pushJavaObjectRaw(persistable)
         1
       }

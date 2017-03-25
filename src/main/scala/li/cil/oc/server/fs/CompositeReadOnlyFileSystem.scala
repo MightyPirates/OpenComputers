@@ -4,14 +4,15 @@ import java.io.FileNotFoundException
 import java.util.concurrent.Callable
 
 import li.cil.oc.api
+import li.cil.oc.api.fs.FileSystem
+import li.cil.oc.api.fs.Handle
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.mutable
 
 class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Callable[api.fs.FileSystem]]) extends api.fs.FileSystem {
-  var parts = mutable.LinkedHashMap.empty[String, api.fs.FileSystem]
+  var parts: mutable.LinkedHashMap[String, FileSystem] = mutable.LinkedHashMap.empty[String, api.fs.FileSystem]
   for ((name, factory) <- factories) {
     val fs = factory.call()
     if (fs != null) {
@@ -23,21 +24,21 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   override def isReadOnly = true
 
-  override def spaceTotal = math.max(spaceUsed, parts.values.map(_.spaceTotal).sum)
+  override def spaceTotal: Long = math.max(spaceUsed, parts.values.map(_.spaceTotal).sum)
 
-  override def spaceUsed = parts.values.map(_.spaceUsed).sum
+  override def spaceUsed: Long = parts.values.map(_.spaceUsed).sum
 
   // ----------------------------------------------------------------------- //
 
-  override def exists(path: String) = findFileSystem(path).isDefined
+  override def exists(path: String): Boolean = findFileSystem(path).isDefined
 
-  override def size(path: String) = findFileSystem(path).fold(0L)(_.size(path))
+  override def size(path: String): Long = findFileSystem(path).fold(0L)(_.size(path))
 
-  override def isDirectory(path: String) = findFileSystem(path).fold(false)(_.isDirectory(path))
+  override def isDirectory(path: String): Boolean = findFileSystem(path).fold(false)(_.isDirectory(path))
 
-  override def lastModified(path: String) = findFileSystem(path).fold(0L)(_.lastModified(path))
+  override def lastModified(path: String): Long = findFileSystem(path).fold(0L)(_.lastModified(path))
 
-  override def list(path: String) = if (isDirectory(path)) {
+  override def list(path: String): Array[String] = if (isDirectory(path)) {
     parts.values.foldLeft(mutable.Set.empty[String])((acc, fs) => {
       if (fs.exists(path)) try {
         val l = fs.list(path)
@@ -70,27 +71,32 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode) = findFileSystem(path) match {
+  override def open(path: String, mode: Mode): Int = findFileSystem(path) match {
     case Some(fs) => fs.open(path, mode)
     case _ => throw new FileNotFoundException(path)
   }
 
-  override def getHandle(handle: Int) = parts.valuesIterator.map(_.getHandle(handle)).find(_ != null).orNull
+  override def getHandle(handle: Int): Handle = parts.valuesIterator.map(_.getHandle(handle)).find(_ != null).orNull
 
-  override def close() = parts.values.foreach(_.close())
+  override def close(): Unit = parts.values.foreach(_.close())
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
+  override def serializeNBT(): NBTTagCompound = {
+    val nbt = new NBTTagCompound()
     for ((name, fs) <- parts) {
-      fs.load(nbt.getCompoundTag(name))
+      nbt.setTag(name, fs.serializeNBT)
+    }
+    nbt
+  }
+
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    for ((name, fs) <- parts) {
+      fs.deserializeNBT(nbt.getCompoundTag(name))
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    for ((name, fs) <- parts) {
-      nbt.setNewCompoundTag(name, fs.save)
-    }
+  override def load(nbt: NBTTagCompound) {
   }
 
   // ----------------------------------------------------------------------- //

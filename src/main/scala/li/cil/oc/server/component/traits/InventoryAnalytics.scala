@@ -12,7 +12,7 @@ import net.minecraftforge.oredict.OreDictionary
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
   @Callback(doc = """function([slot:number]):table -- Get a description of the stack in the specified slot or the selected slot.""")
-  def getStackInInternalSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getStackInInternalSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.Misc.allowItemStackInspection) {
     val slot = optSlot(args, 0)
     result(inventory.getStackInSlot(slot))
   }

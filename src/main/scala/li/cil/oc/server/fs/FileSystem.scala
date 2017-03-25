@@ -6,13 +6,15 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.util.UUID
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.api.fs.Label
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.util.Location
 import li.cil.oc.server.component
+import li.cil.oc.server.component.FileSystem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
@@ -20,7 +22,7 @@ import net.minecraftforge.common.DimensionManager
 import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
-  lazy val isCaseInsensitive = Settings.Debug.forceCaseInsensitiveFS || (try {
+  lazy val isCaseInsensitive: Boolean = Settings.Debug.forceCaseInsensitiveFS || (try {
     val uuid = UUID.randomUUID().toString
     val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
     val upperCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
@@ -45,11 +47,12 @@ object FileSystem extends api.detail.FileSystemAPI {
   // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
   // Note: we allow / as the path separator and expect all \s to be converted
   // accordingly before the path is passed to the file system.
-  private val invalidChars = """\:*?"<>|""".toSet
+  private val invalidChars =
+  """\:*?"<>|""".toSet
 
-  def isValidFilename(name: String) = !name.exists(invalidChars.contains)
+  def isValidFilename(name: String): Boolean = !name.exists(invalidChars.contains)
 
-  def validatePath(path: String) = {
+  def validatePath(path: String): String = {
     if (!isValidFilename(path)) {
       throw new java.io.IOException("path contains invalid characters")
     }
@@ -88,9 +91,9 @@ object FileSystem extends api.detail.FileSystemAPI {
         case _ =>
           System.getProperty("java.class.path").split(System.getProperty("path.separator")).
             find(cp => {
-            val fsp = new io.File(new io.File(cp), innerPath)
-            fsp.exists() && fsp.isDirectory
-          }) match {
+              val fsp = new io.File(new io.File(cp), innerPath)
+              fsp.exists() && fsp.isDirectory
+            }) match {
             case None => null
             case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
           }
@@ -98,7 +101,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean) = {
+  override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean): Capacity = {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
     if (!path.isDirectory) {
       path.delete()
@@ -113,29 +116,29 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
-  override def asReadOnly(fileSystem: api.fs.FileSystem) =
+  override def asReadOnly(fileSystem: api.fs.FileSystem): FileSystem =
     if (fileSystem.isReadOnly) fileSystem
     else new ReadOnlyWrapper(fileSystem)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, accessSound: String, speed: Int) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, accessSound: String, speed: Int): FileSystem =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(accessSound), (speed - 1) max 0 min 5))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, accessSound: String, speed: Int) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, accessSound: String, speed: Int): FileSystem =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, accessSound, speed)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, sound: String) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Location, sound: String): FileSystem =
     asManagedEnvironment(fileSystem, label, host, sound, 1)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, sound: String) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Location, sound: String): FileSystem =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound, 1)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label): FileSystem =
     asManagedEnvironment(fileSystem, label, null, null, 1)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String): FileSystem =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), null, null, 1)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem): FileSystem =
     asManagedEnvironment(fileSystem, null: Label, null, null, 1)
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
@@ -143,7 +146,7 @@ object FileSystem extends api.detail.FileSystemAPI {
   private class ReadOnlyLabel(val label: String) extends Label {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")
 
-    def getLabel = label
+    def getLabel: String = label
 
     private final val LabelTag = Constants.namespace + "fs.label"
 
@@ -158,23 +161,23 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem
-    with FileInputStreamFileSystem
+      with FileInputStreamFileSystem
 
   private class ReadWriteFileSystem(protected val root: io.File, protected val capacity: Long)
     extends OutputStreamFileSystem
-    with FileOutputStreamFileSystem
-    with Capacity
+      with FileOutputStreamFileSystem
+      with Capacity
 
   private class RamFileSystem(protected val capacity: Long)
     extends VirtualFileSystem
-    with Volatile
-    with Capacity
+      with Volatile
+      with Capacity
 
   private class BufferedFileSystem(protected val fileRoot: io.File, protected val capacity: Long)
     extends VirtualFileSystem
-    with Buffered
-    with Capacity {
-    protected override def segments(path: String) = {
+      with Buffered
+      with Capacity {
+    protected override def segments(path: String): Array[String] = {
       val parts = super.segments(path)
       if (isCaseInsensitive) toCaseInsensitive(parts) else parts
     }

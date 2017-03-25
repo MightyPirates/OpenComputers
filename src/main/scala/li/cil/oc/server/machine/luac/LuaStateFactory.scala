@@ -8,18 +8,21 @@ import java.util.regex.Pattern
 
 import com.google.common.base.Strings
 import com.google.common.io.PatternFilenameFilter
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua
+import li.cil.repack.com.naef.jnlua.LuaState
+import li.cil.repack.com.naef.jnlua.LuaStateFiveThree
 import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random
 
 object LuaStateFactory {
-  def isAvailable = {
+  def isAvailable: Boolean = {
     // Force initialization of both.
     val lua52 = Lua52.isAvailable
     val lua53 = Lua53.isAvailable
@@ -29,7 +32,7 @@ object LuaStateFactory {
   object Lua52 extends LuaStateFactory {
     override def version: String = "lua52"
 
-    override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaState())(new jnlua.LuaState(_))
+    override protected def create(maxMemory: Option[Int]): LuaState = maxMemory.fold(new jnlua.LuaState())(new jnlua.LuaState(_))
 
     override protected def openLibs(state: jnlua.LuaState): Unit = {
       state.openLib(jnlua.LuaState.Library.BASE)
@@ -47,7 +50,7 @@ object LuaStateFactory {
   object Lua53 extends LuaStateFactory {
     override def version: String = "lua53"
 
-    override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaStateFiveThree())(new jnlua.LuaStateFiveThree(_))
+    override protected def create(maxMemory: Option[Int]): LuaStateFiveThree = maxMemory.fold(new jnlua.LuaStateFiveThree())(new jnlua.LuaStateFiveThree(_))
 
     override protected def openLibs(state: jnlua.LuaState): Unit = {
       state.openLib(jnlua.LuaState.Library.BASE)
@@ -121,7 +124,7 @@ abstract class LuaStateFactory {
 
   // ----------------------------------------------------------------------- //
 
-  def isAvailable = haveNativeLibrary
+  def isAvailable: Boolean = haveNativeLibrary
 
   val is64Bit = Architecture.IS_OS_X64
 
@@ -377,15 +380,15 @@ abstract class LuaStateFactory {
 
   // Inspired by org.apache.commons.lang3.SystemUtils
   object Architecture {
-    val OS_ARCH = try System.getProperty("os.arch") catch {
+    val OS_ARCH: String = try System.getProperty("os.arch") catch {
       case ex: SecurityException => null
     }
 
-    val IS_OS_ARM = isOSArchMatch("arm")
+    val IS_OS_ARM: Boolean = isOSArchMatch("arm")
 
-    val IS_OS_X86 = isOSArchMatch("x86") || isOSArchMatch("i386")
+    val IS_OS_X86: Boolean = isOSArchMatch("x86") || isOSArchMatch("i386")
 
-    val IS_OS_X64 = isOSArchMatch("x86_64") || isOSArchMatch("amd64")
+    val IS_OS_X64: Boolean = isOSArchMatch("x86_64") || isOSArchMatch("amd64")
 
     private def isOSArchMatch(archPrefix: String): Boolean = OS_ARCH != null && OS_ARCH.startsWith(archPrefix)
   }

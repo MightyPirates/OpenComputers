@@ -30,7 +30,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
   }
 
   @Callback(doc = """function(side:number):table -- Get a description of the fluid in the the tank on the specified side.""")
-  def getFluidInTank(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getFluidInTank(context: Context, args: Arguments): Array[AnyRef] = if (Settings.Misc.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
     FluidUtil.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) =>

@@ -70,7 +70,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   }
 
   @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the inventory on the specified side of the device.""")
-  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.Misc.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => result(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }

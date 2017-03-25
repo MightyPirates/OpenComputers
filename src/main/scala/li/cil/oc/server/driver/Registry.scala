@@ -11,7 +11,6 @@ import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
-import li.cil.oc.api.network.{Environment, EnvironmentHost, NodeContainerItem}
 import li.cil.oc.api.util.Location
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
@@ -26,34 +25,35 @@ import net.minecraftforge.items.IItemHandler
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.math.ScalaNumber
 
 /**
- * This class keeps track of registered drivers and provides installation logic
- * for each registered driver.
- *
- * Each component type must register its driver with this class to be used with
- * computers, since this class is used to determine whether an object is a
- * valid component or not.
- *
- * All drivers must be installed once the game starts - in the init phase - and
- * are then injected into all computers started up past that point. A driver is
- * a set of functions made available to the computer. These functions will
- * usually require a component of the type the driver wraps to be installed in
- * the computer, but may also provide context-free functions.
- */
+  * This class keeps track of registered drivers and provides installation logic
+  * for each registered driver.
+  *
+  * Each component type must register its driver with this class to be used with
+  * computers, since this class is used to determine whether an object is a
+  * valid component or not.
+  *
+  * All drivers must be installed once the game starts - in the init phase - and
+  * are then injected into all computers started up past that point. A driver is
+  * a set of functions made available to the computer. These functions will
+  * usually require a component of the type the driver wraps to be installed in
+  * the computer, but may also provide context-free functions.
+  */
 private[oc] object Registry extends api.detail.DriverAPI {
-  val sidedBlocks = mutable.ArrayBuffer.empty[DriverBlock]
+  val sidedBlocks: ArrayBuffer[DriverBlock] = mutable.ArrayBuffer.empty[DriverBlock]
 
-  val items = mutable.ArrayBuffer.empty[DriverItem]
+  val items: ArrayBuffer[DriverItem] = mutable.ArrayBuffer.empty[DriverItem]
 
-  val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
+  val converters: ArrayBuffer[Converter] = mutable.ArrayBuffer.empty[api.driver.Converter]
 
-  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+  val environmentProviders: ArrayBuffer[EnvironmentProvider] = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
 
-  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
+  val inventoryProviders: ArrayBuffer[InventoryProvider] = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
 
-  val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
+  val blacklist: ArrayBuffer[(ItemStack, mutable.Set[Class[_]])] = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -104,7 +104,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case _ => null
     }
 
-  override def driverFor(stack: ItemStack, host: Class[_ <: Location]) =
+  override def driverFor(stack: ItemStack, host: Class[_ <: Location]): DriverItem =
     if (stack != null) {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
@@ -116,7 +116,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else null
 
-  override def driverFor(stack: ItemStack) =
+  override def driverFor(stack: ItemStack): DriverItem =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
 
@@ -130,7 +130,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
   override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
 
   @Deprecated
-  override def inventoryFor(stack: ItemStack, player: EntityPlayer):IInventory = {
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
     OpenComputers.log.warn("A mod is using the deprecated method li.cil.oc.api.Driver.inventoryFor; use itemHandlerFor instead.")
     null
   }
@@ -139,15 +139,15 @@ private[oc] object Registry extends api.detail.DriverAPI {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
       map(provider => InventoryUtils.asItemHandler(provider.getInventory(stack, player))).
       getOrElse {
-        if(stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
+        if (stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
           stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
         else null
       }
   }
 
-  override def blockDrivers = sidedBlocks.toSeq
+  override def blockDrivers: util.List[DriverBlock] = sidedBlocks.toSeq
 
-  override def itemDrivers = items.toSeq
+  override def itemDrivers: util.List[DriverItem] = items.toSeq
 
   def blacklistHost(stack: ItemStack, host: Class[_]) {
     blacklist.find(_._1.isItemEqual(stack)) match {
@@ -156,7 +156,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
+  def convert(value: Array[AnyRef]): Array[AnyRef] = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 
   def convertRecursively(value: Any, memo: util.IdentityHashMap[AnyRef, AnyRef], force: Boolean = false): AnyRef = {
     val valueRef = value match {
@@ -239,7 +239,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]) = {
+  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]): Array[AnyRef] = {
     val converted = mutable.ArrayBuffer.empty[AnyRef]
     memo += obj -> converted
     for ((value, index) <- list) {
@@ -248,7 +248,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     converted.toArray
   }
 
-  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]) = {
+  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]): AnyRef = {
     val converted = memo.getOrElseUpdate(obj, mutable.Map.empty[AnyRef, AnyRef]) match {
       case map: mutable.Map[AnyRef, AnyRef]@unchecked => map
       case map: java.util.Map[AnyRef, AnyRef]@unchecked => mapAsScalaMap(map)

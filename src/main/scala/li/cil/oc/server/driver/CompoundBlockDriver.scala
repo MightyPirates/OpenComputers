@@ -12,9 +12,8 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-// TODO Remove blocks in OC 1.7.
 class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlock {
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = {
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): CompoundBlockNodeContainer = {
     val list = sidedBlocks.map {
       driver => Option(driver.createEnvironment(world, pos, side)) match {
         case Some(environment) => (driver.getClass.getName, environment)
@@ -25,10 +24,10 @@ class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlo
     else new CompoundBlockNodeContainer(cleanName(tryGetName(world, pos, list.map(_._2))), list: _*)
   }
 
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing) = sidedBlocks.forall(_.worksWith(world, pos, side)) && blocks.forall(_.worksWith(world, pos))
+  override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean = sidedBlocks.forall(_.worksWith(world, pos, side))
 
-  override def equals(obj: Any) = obj match {
-    case multi: CompoundBlockDriver if multi.sidedBlocks.length == sidedBlocks.length && multi.blocks.length == blocks.length => sidedBlocks.intersect(multi.sidedBlocks).length == sidedBlocks.length && blocks.intersect(multi.blocks).length == blocks.length
+  override def equals(obj: Any): Boolean = obj match {
+    case multi: CompoundBlockDriver if multi.sidedBlocks.length == sidedBlocks.length && multi.blocks.length == blocks.length => sidedBlocks.intersect(multi.sidedBlocks).length == sidedBlocks.length
     case _ => false
   }
 

@@ -2,8 +2,9 @@ package li.cil.oc.server.network
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.{TileEntityWaypoint, Waypoint}
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.RTree
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.World
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -48,8 +49,8 @@ object Waypoints {
     }
   }
 
-  def findWaypoints(pos: BlockPosition, range: Double): Iterable[TileEntityWaypoint] = {
-    dimensions.get(pos.world.get.provider.getDimension) match {
+  def findWaypoints(world: World, pos: BlockPos, range: Double): Iterable[TileEntityWaypoint] = {
+    dimensions.get(world.provider.getDimension) match {
       case Some(set) =>
         val bounds = pos.bounds.expand(range * 0.5, range * 0.5, range * 0.5)
         set.query((bounds.minX, bounds.minY, bounds.minZ), (bounds.maxX, bounds.maxY, bounds.maxZ))

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 import com.google.common.base.Strings
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -95,9 +96,9 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   // ----------------------------------------------------------------------- //
 
-  override def isInitialized = doneWithInitRun
+  override def isInitialized: Boolean = doneWithInitRun
 
-  override def recomputeMemory(components: java.lang.Iterable[ItemStack]) = {
+  override def recomputeMemory(components: java.lang.Iterable[ItemStack]): Boolean = {
     memory = memoryInBytes(components)
     memory > 0
   }
@@ -114,7 +115,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     synchronizedCall = null
   }
 
-  override def runThreaded(isSynchronizedReturn: Boolean) = {
+  override def runThreaded(isSynchronizedReturn: Boolean): ExecutionResult = {
     try {
       // Resume the Lua state and remember the number of results we get.
       val results = if (isSynchronizedReturn) {
@@ -215,7 +216,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   // ----------------------------------------------------------------------- //
 
-  override def initialize() = {
+  override def initialize(): Boolean = {
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)
     lua.set("require", LuaValue.NIL)
@@ -231,7 +232,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
     recomputeMemory(machine.host.internalComponents)
 
-    val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=machine", "t", lua)
+    val kernel = lua.load(classOf[Machine].getResourceAsStream(Constants.scriptPath + "machine.lua"), "=machine", "t", lua)
     thread = new LuaThread(lua, kernel) // Left as the first value on the stack.
 
     true
@@ -240,7 +241,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   override def onConnect() {
   }
 
-  override def close() = {
+  override def close(): Unit = {
     lua = null
     thread = null
     synchronizedCall = null

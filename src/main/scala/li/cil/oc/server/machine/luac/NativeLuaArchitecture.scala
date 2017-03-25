@@ -142,9 +142,9 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
   // ----------------------------------------------------------------------- //
 
-  override def isInitialized = kernelMemory > 0
+  override def isInitialized: Boolean = kernelMemory > 0
 
-  override def recomputeMemory(components: java.lang.Iterable[ItemStack]) = {
+  override def recomputeMemory(components: java.lang.Iterable[ItemStack]): Boolean = {
     val memory = math.ceil(memoryInBytes(components) * ramScale).toInt
     Option(lua) match {
       case Some(l) if Settings.Debug.limitMemory =>

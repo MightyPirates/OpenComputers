@@ -1,5 +1,8 @@
 package li.cil.oc.api.fs;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.INBTSerializable;
+
 import java.io.FileNotFoundException;
 
 /**
@@ -14,7 +17,7 @@ import java.io.FileNotFoundException;
  * you call any of the functions of a file system directly it is your
  * responsibility to ensure the path has been cleaned up.
  */
-public interface FileSystem extends Persistable {
+public interface FileSystem extends INBTSerializable<NBTTagCompound> {
     /**
      * Whether this file system is read-only.
      * <p/>
