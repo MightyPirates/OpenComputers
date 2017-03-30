@@ -328,7 +328,8 @@ function term.readKeyboard(ops)
         elseif code == keys.tab then
           hints.cache = backup_cache
           term.internal.tab(input,hints)
-        elseif code == keys.enter and filter(input) then
+        elseif (code == keys.enter or code == keys.numpadenter)
+                and filter(input) then
           input:move(math.huge)
           if db ~= false then
             draw("\n")

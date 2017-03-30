@@ -157,7 +157,7 @@ function  --[[@delayloaded-start@]] lib.where(tbl,p,f,l)
     end,f,l)
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] lib.concat(...)
+function lib.concat(...)
   local r,rn,k={},0
   for _,tbl in ipairs({...})do
     if type(tbl)~='table'then
@@ -171,7 +171,7 @@ function --[[@delayloaded-start@]] lib.concat(...)
   end
   r.n=k and rn or nil
   return r
-end --[[@delayloaded-end@]] 
+end
 
 -- works with pairs on tables
 -- returns the kv pair, or nil and the number of pairs iterated
