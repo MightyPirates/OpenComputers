@@ -40,7 +40,7 @@ local function findFile(name, ext)
       for file in list do
         files[file] = true
       end
-      if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
+      if ext and name:sub(-(1 + ext:len())) == "." .. ext then
         -- Name already contains extension, prioritize.
         if files[name] then
           return true, fs.concat(dir, name)
@@ -58,10 +58,10 @@ local function findFile(name, ext)
     end
     return false
   end
-  if unicode.sub(name, 1, 1) == "/" then
+  if name:sub(1, 1) == "/" then
     local found, where = findIn("/")
     if found then return where end
-  elseif unicode.sub(name, 1, 2) == "./" then
+  elseif name:sub(1, 2) == "./" then
     local found, where = findIn(shell.getWorkingDirectory())
     if found then return where end
   else
@@ -162,7 +162,7 @@ function shell.resolve(path, ext)
       return nil, "file not found"
     end
   else
-    if unicode.sub(path, 1, 1) == "/" then
+    if path:sub(1, 1) == "/" then
       return fs.canonical(path)
     else
       return fs.concat(shell.getWorkingDirectory(), path)
@@ -198,13 +198,13 @@ function shell.parse(...)
     if not doneWithOptions and type(param) == "string" then
       if param == "--" then
         doneWithOptions = true -- stop processing options at `--`
-      elseif unicode.sub(param, 1, 2) == "--" then
+      elseif param:sub(1, 2) == "--" then
         if param:match("%-%-(.-)=") ~= nil then
           options[param:match("%-%-(.-)=")] = param:match("=(.*)")
         else
-          options[unicode.sub(param, 3)] = true
+          options[param:sub(3)] = true
         end
-      elseif unicode.sub(param, 1, 1) == "-" and param ~= "-" then
+      elseif param:sub(1, 1) == "-" and param ~= "-" then
         for j = 2, unicode.len(param) do
           options[unicode.sub(param, j, j)] = true
         end
