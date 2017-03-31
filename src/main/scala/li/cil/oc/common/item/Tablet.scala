@@ -79,7 +79,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
       // Ignore/hide the screen.
       val components = info.items.drop(1)
       if (components.length > 1) {
-        tooltip.addAll(Tooltip.get("Server.Components"))
+        tooltip.addAll(Tooltip.get("server.Components"))
         components.collect {
           case component if !component.isEmpty => tooltip.add("- " + component.getDisplayName)
         }

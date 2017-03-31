@@ -14,10 +14,10 @@ class LinkedCard(val parent: Delegator) extends traits.Delegate with traits.Item
       if (data.hasKey(Settings.namespace + "tunnel")) {
         val channel = data.getString(Settings.namespace + "tunnel")
         if (channel.length > 13) {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_Channel", channel.substring(0, 13) + "..."))
+          tooltip.addAll(Tooltip.get(unlocalizedName + "_channel", channel.substring(0, 13) + "..."))
         }
         else {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_Channel", channel))
+          tooltip.addAll(Tooltip.get(unlocalizedName + "_channel", channel))
         }
       }
     }

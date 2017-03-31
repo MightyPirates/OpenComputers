@@ -18,17 +18,17 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   private final val IsServerDataTag = Settings.namespace + "isServerData"
 
-  def x = getPos.getX
+  def x: Int = getPos.getX
 
-  def y = getPos.getY
+  def y: Int = getPos.getY
 
-  def z = getPos.getZ
+  def z: Int = getPos.getZ
 
   def position = BlockPosition(x, y, z, getWorld)
 
-  def isClient = !isServer
+  def isClient: Boolean = !isServer
 
-  def isServer = if (getWorld != null) !getWorld.isRemote else SideTracker.isServer
+  def isServer: Boolean = if (getWorld != null) !getWorld.isRemote else SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 
@@ -67,7 +67,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def shouldRefresh(world: World, pos: BlockPos, oldState: IBlockState, newSate: IBlockState) = oldState.getBlock != newSate.getBlock
+  override def shouldRefresh(world: World, pos: BlockPos, oldState: IBlockState, newSate: IBlockState): Boolean = oldState.getBlock != newSate.getBlock
 
   def readFromNBTForServer(nbt: NBTTagCompound): Unit = super.readFromNBT(nbt)
 

@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:accessPoint" }
+        "normal": { "model": "opencomputers:accesspoint" }
     }
 }

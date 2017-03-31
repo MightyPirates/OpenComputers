@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/cardContainer1"
+        "layer0": "opencomputers:items/cardcontainer1"
     }
 }

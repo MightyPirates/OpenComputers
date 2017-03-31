@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/diskDrive",
+    "parent": "opencomputers:block/diskdrive",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

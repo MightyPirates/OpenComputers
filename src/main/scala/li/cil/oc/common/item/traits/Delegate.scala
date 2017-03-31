@@ -29,7 +29,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait Delegate {
   def parent: Delegator
 
-  def unlocalizedName: String = getClass.getSimpleName
+  def unlocalizedName: String = getClass.getSimpleName.toLowerCase
 
   protected def tooltipName = Option(unlocalizedName)
 
@@ -100,7 +100,7 @@ trait Delegate {
       }
       else {
         tooltip.add(Localization.localizeImmediately(
-          Settings.namespace + "tooltip.MaterialCosts",
+          Settings.namespace + "tooltip.materialcosts",
           KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
       }
     }

@@ -2,6 +2,6 @@
     "parent": "block/cube_column",
     "textures": {
         "end": "opencomputers:blocks/generic_top",
-        "side": "opencomputers:blocks/powerConverter_side"
+        "side": "opencomputers:blocks/powerconverter_side"
     }
 }

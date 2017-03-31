@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:powerConverter" }
+        "normal": { "model": "opencomputers:powerconverter" }
     }
 }

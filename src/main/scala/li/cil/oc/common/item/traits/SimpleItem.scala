@@ -33,7 +33,7 @@ trait SimpleItem extends Item {
 
   @SideOnly(Side.CLIENT)
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase))
 
     if (ItemCosts.hasCosts(stack)) {
       if (KeyBindings.showMaterialCosts) {
@@ -41,7 +41,7 @@ trait SimpleItem extends Item {
       }
       else {
         tooltip.add(Localization.localizeImmediately(
-          Settings.namespace + "tooltip.MaterialCosts",
+          Settings.namespace + "tooltip.materialcosts",
           KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
       }
     }

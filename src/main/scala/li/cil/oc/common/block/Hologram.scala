@@ -41,7 +41,7 @@ class Hologram(val tier: Int) extends SimpleBlock {
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName + tier))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase() + tier))
   }
 
   // ----------------------------------------------------------------------- //

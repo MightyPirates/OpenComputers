@@ -3,6 +3,7 @@ package li.cil.oc.client.gui
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.internal.TextBuffer
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -24,11 +25,11 @@ import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsJava._
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with traits.InputBuffer {
-  override protected val buffer = robot.components.collect {
+  override protected val buffer: TextBuffer = robot.components.collect {
     case Some(buffer: api.internal.TextBuffer) => buffer
   }.headOption.orNull
 
-  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
+  override protected val hasKeyboard: Boolean = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
 
   private val withScreenHeight = 256
   private val noScreenHeight = 108
@@ -59,9 +60,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   private def bufferRenderHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
 
-  override protected def bufferX = (8 + (maxBufferWidth - bufferRenderWidth) / 2).toInt
+  override protected def bufferX: Int = (8 + (maxBufferWidth - bufferRenderWidth) / 2).toInt
 
-  override protected def bufferY = (8 + (maxBufferHeight - bufferRenderHeight) / 2).toInt
+  override protected def bufferY: Int = (8 + (maxBufferHeight - bufferRenderHeight) / 2).toInt
 
   private val inventoryX = 169
   private val inventoryY = 155 - deltaY
@@ -243,7 +244,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
+  override protected def changeSize(w: Double, h: Double, recompile: Boolean): Double = {
     val bw = w * TextBufferRenderCache.renderer.charRenderWidth
     val bh = h * TextBufferRenderCache.renderer.charRenderHeight
     val scaleX = math.min(bufferRenderWidth / bw, 1)

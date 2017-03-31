@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/databaseUpgrade3"
+        "layer0": "opencomputers:items/databaseupgrade3"
     }
 }

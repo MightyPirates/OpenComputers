@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/powerConverter",
+    "parent": "opencomputers:block/powerconverter",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

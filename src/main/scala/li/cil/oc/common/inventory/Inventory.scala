@@ -48,7 +48,7 @@ trait Inventory extends SimpleInventory {
 
   override def getName: String = Settings.namespace + "container." + inventoryName
 
-  protected def inventoryName: String = getClass.getSimpleName
+  protected def inventoryName: String = getClass.getSimpleName.toLowerCase
 
   override def isEmpty: Boolean = items.forall(_.isEmpty)
 

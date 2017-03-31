@@ -36,7 +36,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
-  override val getUnlocalizedName = "Robot"
+  override val getUnlocalizedName = "robot"
 
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
     override protected def initialValue = None
@@ -90,7 +90,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
   }
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get("Robot"))
+    tooltip.addAll(Tooltip.get("robot"))
   }
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
@@ -99,7 +99,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
       val info = new RobotData(stack)
       val components = info.containers ++ info.components
       if (components.length > 0) {
-        tooltip.addAll(Tooltip.get("Server.Components"))
+        tooltip.addAll(Tooltip.get("server.Components"))
         for (component <- components if component != null) {
           tooltip.add("- " + component.getDisplayName)
         }
@@ -113,13 +113,13 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
         val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
         val level = Math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
         if (level > 0) {
-          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_Level", level))
+          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_level", level))
         }
       }
       if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
         val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
         if (energy > 0) {
-          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_StoredEnergy", energy))
+          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_storedenergy", energy))
         }
       }
     }

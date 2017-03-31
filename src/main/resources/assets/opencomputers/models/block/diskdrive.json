@@ -3,7 +3,7 @@
     "textures": {
         "top": "opencomputers:blocks/generic_top",
         "bottom": "opencomputers:blocks/generic_top",
-        "side": "opencomputers:blocks/diskDrive_side",
-        "front": "opencomputers:blocks/diskDrive_front"
+        "side": "opencomputers:blocks/diskdrive_side",
+        "front": "opencomputers:blocks/diskdrive_front"
     }
 }

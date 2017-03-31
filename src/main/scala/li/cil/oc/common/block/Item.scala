@@ -14,6 +14,7 @@ import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.ItemCosts
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
@@ -21,7 +22,6 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.text.translation.I18n
 import net.minecraft.world.World
 
 class Item(value: Block) extends ItemBlock(value) {
@@ -37,20 +37,20 @@ class Item(value: Block) extends ItemBlock(value) {
           ItemCosts.addTooltip(stack, tooltip)
         }
         else {
-          tooltip.add(I18n.translateToLocalFormatted(
-            Settings.namespace + "tooltip.MaterialCosts",
+          tooltip.add(I18n.format(
+            Settings.namespace + "tooltip.materialcosts",
             KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }
       case _ =>
     }
   }
 
-  override def getRarity(stack: ItemStack) = block match {
+  override def getRarity(stack: ItemStack): EnumRarity = block match {
     case simple: SimpleBlock => simple.rarity(stack)
     case _ => EnumRarity.COMMON
   }
 
-  override def getMetadata(itemDamage: Int) = itemDamage
+  override def getMetadata(itemDamage: Int): Int = itemDamage
 
   override def getItemStackDisplayName(stack: ItemStack): String = {
     if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
@@ -60,7 +60,7 @@ class Item(value: Block) extends ItemBlock(value) {
     else super.getItemStackDisplayName(stack)
   }
 
-  override def getUnlocalizedName = block match {
+  override def getUnlocalizedName: String = block match {
     case simple: SimpleBlock => simple.getUnlocalizedName
     case _ => Settings.namespace + "tile"
   }
@@ -77,7 +77,7 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
-  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, newState: IBlockState) = {
+  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, newState: IBlockState): Boolean = {
     // When placing robots in creative mode, we have to copy the stack
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.

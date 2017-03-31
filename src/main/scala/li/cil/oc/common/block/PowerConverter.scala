@@ -40,12 +40,12 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
     val (a, b) =
       if (ratio > 1) (1.0, ratio)
       else (1.0 / ratio, 1.0)
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName + "." + name, addExtension(a), addExtension(b)))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase + "." + name, addExtension(a), addExtension(b)))
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.powerConverterRate
+  override def energyThroughput: Double = Settings.get.powerConverterRate
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

@@ -42,7 +42,7 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
         stacks += displayName -> (if (stacks.contains(displayName)) stacks(displayName) + 1 else 1)
       }
       if (stacks.nonEmpty) {
-        tooltip.addAll(Tooltip.get("Server.Components"))
+        tooltip.addAll(Tooltip.get("server.Components"))
         for (itemName <- stacks.keys.toArray.sorted) {
           tooltip.add("- " + stacks(itemName) + "x " + itemName)
         }

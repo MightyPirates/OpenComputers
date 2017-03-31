@@ -21,6 +21,7 @@ import li.cil.oc.api.machine.LimitReachedException
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
@@ -49,7 +50,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
-  override val node = Network.newNode(this, Visibility.Network).
+  override val node: ComponentConnector = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
     create()
@@ -148,23 +149,23 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
 
-  override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
+  override def components: util.Map[String, String] = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
-  def componentCount = (_components.foldLeft(0.0)((acc, entry) => entry match {
+  def componentCount: Int = (_components.foldLeft(0.0)((acc, entry) => entry match {
     case (_, name) => acc + (if (name != "filesystem") 1.0 else 0.25)
   }) + addedComponents.foldLeft(0.0)((acc, component) => acc + (if (component.name != "filesystem") 1 else 0.25)) - 1).toInt // -1 = this computer
 
-  override def tmpAddress = tmp.fold(null: String)(_.node.address)
+  override def tmpAddress: String = tmp.fold(null: String)(_.node.address)
 
-  def lastError = message.orNull
+  def lastError: String = message.orNull
 
-  override def setCostPerTick(value: Double) = cost = value * Settings.get.tickFrequency
+  override def setCostPerTick(value: Double): Unit = cost = value * Settings.get.tickFrequency
 
-  override def getCostPerTick = cost / Settings.get.tickFrequency
+  override def getCostPerTick: Double = cost / Settings.get.tickFrequency
 
-  override def users = _users.synchronized(_users.toArray)
+  override def users: Array[String] = _users.synchronized(_users.toArray)
 
-  override def upTime() = {
+  override def upTime(): Double = {
     // Convert from old saves (set to -timeStarted on load).
     if (uptime < 0) {
       uptime = worldTime + uptime
@@ -175,7 +176,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     uptime / 20.0
   }
 
-  override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
+  override def cpuTime: Double = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
 
   // ----------------------------------------------------------------------- //
 
@@ -186,7 +187,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
+  override def canInteract(player: String): Boolean = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     FMLCommonHandler.instance.getMinecraftServerInstance.isSinglePlayer || {
     val config = FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList
@@ -194,9 +195,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     entity != null && config.canSendCommands(entity.getGameProfile)
   }
 
-  override def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
+  override def isRunning: Boolean = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
 
-  override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
+  override def isPaused: Boolean = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
   override def start(): Boolean = state.synchronized(state.top match {
     case Machine.State.Stopped if node.network != null =>
@@ -267,7 +268,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     false
   }
 
-  override def stop() = state.synchronized(state.headOption match {
+  override def stop(): Boolean = state.synchronized(state.headOption match {
     case Some(Machine.State.Stopped | Machine.State.Stopping) =>
       false
     case _ =>
@@ -294,7 +295,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
   }
 
-  override def crash(message: String) = {
+  override def crash(message: String): Boolean = {
     this.message = Option(message)
     state.synchronized {
       val result = stop()
@@ -342,7 +343,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue().convert())
 
-  override def methods(value: scala.AnyRef) = Callbacks(value).map(entry => {
+  override def methods(value: scala.AnyRef): util.Map[String, Callback] = Callbacks(value).map(entry => {
     val (name, callback) = entry
     name -> callback.annotation
   })
@@ -396,7 +397,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
   }
 
-  override def removeUser(name: String) = _users.synchronized {
+  override def removeUser(name: String): Boolean = _users.synchronized {
     val success = _users.remove(name)
     if (success) {
       usersChanged = true
@@ -460,11 +461,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  def isExecuting = state.synchronized(state.contains(Machine.State.Running))
+  def isExecuting: Boolean = state.synchronized(state.contains(Machine.State.Running))
 
   override val canUpdate = true
 
-  override def update() = if (state.synchronized(state.top != Machine.State.Stopped)) {
+  override def update(): Unit = if (state.synchronized(state.top != Machine.State.Stopped)) {
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their
@@ -715,7 +716,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   private final val CPUTimeTag = "cpuTime"
   private final val RemainingPauseTag = "remainingPause"
 
-  override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
+  override def load(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(state.top == Machine.State.Stopped || state.top == Machine.State.Paused)
     close()
     state.clear()
@@ -1036,7 +1037,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
 object Machine extends MachineAPI {
   // Keep registration order, to allow deterministic iteration of the architectures.
-  val checked = mutable.LinkedHashSet.empty[Class[_ <: Architecture]]
+  val checked: mutable.LinkedHashSet[Class[_ <: Architecture]] = mutable.LinkedHashSet.empty[Class[_ <: Architecture]]
 
   override def add(architecture: Class[_ <: Architecture]) {
     if (!checked.contains(architecture)) {
@@ -1050,9 +1051,9 @@ object Machine extends MachineAPI {
     }
   }
 
-  override def architectures = checked.toSeq
+  override def architectures: util.List[Class[_ <: Architecture]] = checked.toSeq
 
-  def getArchitectureName(architecture: Class[_ <: Architecture]) =
+  def getArchitectureName(architecture: Class[_ <: Architecture]): String =
     architecture.getAnnotation(classOf[Architecture.Name]) match {
       case annotation: Architecture.Name => annotation.value
       case _ => architecture.getSimpleName

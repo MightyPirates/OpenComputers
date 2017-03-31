@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/accessPoint",
+    "parent": "opencomputers:block/accesspoint",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

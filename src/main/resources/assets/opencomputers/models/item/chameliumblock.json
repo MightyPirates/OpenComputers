@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/chameliumBlock",
+    "parent": "opencomputers:block/chameliumblock",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

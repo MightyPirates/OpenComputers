@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:powerDistributor" }
+        "normal": { "model": "opencomputers:powerdistributor" }
     }
 }

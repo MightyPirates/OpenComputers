@@ -18,7 +18,7 @@ trait FileSystemLike extends Delegate {
 
   def kiloBytes: Int
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     if (stack.hasTagCompound) {
       val nbt = stack.getTagCompound
       if (nbt.hasKey(Settings.namespace + "data")) {

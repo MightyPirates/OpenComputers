@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/graphicsCard1"
+        "layer0": "opencomputers:items/graphicscard1"
     }
 }

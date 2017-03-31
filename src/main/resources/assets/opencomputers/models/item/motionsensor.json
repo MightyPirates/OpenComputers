@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/motionSensor",
+    "parent": "opencomputers:block/motionsensor",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

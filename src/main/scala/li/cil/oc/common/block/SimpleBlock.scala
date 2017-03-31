@@ -75,7 +75,7 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
   }
 
   protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase))
   }
 
   protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
@@ -85,25 +85,25 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
   // Rotation
   // ----------------------------------------------------------------------- //
 
-  def getFacing(world: IBlockAccess, pos: BlockPos) =
+  def getFacing(world: IBlockAccess, pos: BlockPos): EnumFacing =
     world.getTileEntity(pos) match {
       case tileEntity: Rotatable => tileEntity.facing
       case _ => EnumFacing.SOUTH
     }
 
-  def setFacing(world: World, pos: BlockPos, value: EnumFacing) =
+  def setFacing(world: World, pos: BlockPos, value: EnumFacing): Boolean =
     world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.setFromFacing(value); true
       case _ => false
     }
 
-  def setRotationFromEntityPitchAndYaw(world: World, pos: BlockPos, value: Entity) =
+  def setRotationFromEntityPitchAndYaw(world: World, pos: BlockPos, value: Entity): Boolean =
     world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
-  def toLocal(world: IBlockAccess, pos: BlockPos, value: EnumFacing) =
+  def toLocal(world: IBlockAccess, pos: BlockPos, value: EnumFacing): EnumFacing =
     world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.toLocal(value)
       case _ => value
@@ -123,7 +123,7 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
 
   override def canCreatureSpawn(state: IBlockState, world: IBlockAccess, pos: BlockPos, `type`: SpawnPlacementType): Boolean = false
 
-  override def getValidRotations(world: World, pos: BlockPos) = validRotations_
+  override def getValidRotations(world: World, pos: BlockPos): Array[EnumFacing] = validRotations_
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
     if (!world.isRemote) world.getTileEntity(pos) match {
@@ -135,7 +135,7 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
 
   // ----------------------------------------------------------------------- //
 
-  override def rotateBlock(world: World, pos: BlockPos, axis: EnumFacing) =
+  override def rotateBlock(world: World, pos: BlockPos, axis: EnumFacing): Boolean =
     world.getTileEntity(pos) match {
       case rotatable: tileentity.traits.Rotatable if rotatable.rotate(axis) =>
         world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3)
@@ -143,7 +143,7 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
       case _ => false
     }
 
-  override def recolorBlock(world: World, pos: BlockPos, side: EnumFacing, color: EnumDyeColor) =
+  override def recolorBlock(world: World, pos: BlockPos, side: EnumFacing, color: EnumDyeColor): Boolean =
     world.getTileEntity(pos) match {
       case colored: Colored if colored.getColor != Color.rgbValues(color) =>
         colored.setColor(Color.rgbValues(color))

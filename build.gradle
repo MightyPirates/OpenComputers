@@ -99,6 +99,12 @@ processResources {
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
+allprojects {
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
 jar {
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {

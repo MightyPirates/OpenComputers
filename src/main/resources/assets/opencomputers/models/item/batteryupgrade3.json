@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/batteryUpgrade3"
+        "layer0": "opencomputers:items/batteryupgrade3"
     }
 }

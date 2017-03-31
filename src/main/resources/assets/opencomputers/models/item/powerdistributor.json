@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/powerDistributor",
+    "parent": "opencomputers:block/powerdistributor",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

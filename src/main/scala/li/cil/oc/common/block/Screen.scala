@@ -55,7 +55,7 @@ class Screen(val tier: Int) extends RedstoneAware {
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName, w, h, depth))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase, w, h, depth))
   }
 
   // ----------------------------------------------------------------------- //

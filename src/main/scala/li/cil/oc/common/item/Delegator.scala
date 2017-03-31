@@ -9,6 +9,7 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
+import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.util.BlockPosition
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
@@ -30,9 +31,10 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 object Delegator {
-  def subItem(stack: ItemStack) =
+  def subItem(stack: ItemStack): Option[Delegate] =
     if (!stack.isEmpty) stack.getItem match {
       case delegator: Delegator => delegator.subItem(stack.getItemDamage)
       case _ => None
@@ -48,21 +50,21 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   // SubItem
   // ----------------------------------------------------------------------- //
 
-  override def getItemStackLimit(stack: ItemStack) =
+  override def getItemStackLimit(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.maxStackSize
       case _ => maxStackSize
     }
 
-  val subItems = mutable.ArrayBuffer.empty[traits.Delegate]
+  val subItems: ArrayBuffer[Delegate] = mutable.ArrayBuffer.empty[traits.Delegate]
 
-  def add(subItem: traits.Delegate) = {
+  def add(subItem: traits.Delegate): Int = {
     val itemId = subItems.length
     subItems += subItem
     itemId
   }
 
-  def subItem(damage: Int) =
+  def subItem(damage: Int): Option[Delegate] =
     damage match {
       case itemId if itemId >= 0 && itemId < subItems.length => Some(subItems(itemId))
       case _ => None
@@ -88,7 +90,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
-  override def getRarity(stack: ItemStack) =
+  override def getRarity(stack: ItemStack): EnumRarity =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.rarity(stack)
       case _ => EnumRarity.COMMON
@@ -173,9 +175,9 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.onPlayerStoppedUsing(stack, world, entity, timeLeft)
     }
 
-  def internalGetItemStackDisplayName(stack: ItemStack) = super.getItemStackDisplayName(stack)
+  def internalGetItemStackDisplayName(stack: ItemStack): String = super.getItemStackDisplayName(stack)
 
-  override def getItemStackDisplayName(stack: ItemStack) =
+  override def getItemStackDisplayName(stack: ItemStack): String =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.displayName(stack) match {
         case Some(name) => name
@@ -195,25 +197,25 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
     }
   }
 
-  override def getDurabilityForDisplay(stack: ItemStack) =
+  override def getDurabilityForDisplay(stack: ItemStack): Double =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.durability(stack)
       case _ => super.getDurabilityForDisplay(stack)
     }
 
-  override def showDurabilityBar(stack: ItemStack) =
+  override def showDurabilityBar(stack: ItemStack): Boolean =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.showDurabilityBar(stack)
       case _ => super.showDurabilityBar(stack)
     }
 
-  override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
+  override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean): Unit =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.update(stack, world, player, slot, selected)
       case _ => super.onUpdate(stack, world, player, slot, selected)
     }
 
-  override def toString = getUnlocalizedName
+  override def toString: String = getUnlocalizedName
 
   // ----------------------------------------------------------------------- //
 

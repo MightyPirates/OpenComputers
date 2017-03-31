@@ -1,7 +1,7 @@
 {
     "parent": "block/cube_column",
     "textures": {
-        "end": "opencomputers:blocks/motionSensor_top",
-        "side": "opencomputers:blocks/motionSensor_side"
+        "end": "opencomputers:blocks/motionsensor_top",
+        "side": "opencomputers:blocks/motionsensor_side"
     }
 }

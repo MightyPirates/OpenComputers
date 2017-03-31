@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/floppy_dyeBlack"
+        "layer0": "opencomputers:items/floppy_dyelightblue"
     }
 }

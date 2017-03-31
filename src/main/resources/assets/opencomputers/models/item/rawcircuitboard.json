@@ -1,6 +1,6 @@
 {
     "parent": "opencomputers:item/flat",
     "textures": {
-        "layer0": "opencomputers:items/rawCircuitBoard"
+        "layer0": "opencomputers:items/rawcircuitboard"
     }
 }
