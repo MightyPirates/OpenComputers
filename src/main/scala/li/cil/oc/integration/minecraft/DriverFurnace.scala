@@ -56,7 +56,7 @@ object DriverFurnace extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.FURNACE)
+      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.FURNACE)
         classOf[Environment]
       else null
     }

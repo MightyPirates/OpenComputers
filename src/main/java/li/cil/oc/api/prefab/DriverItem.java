@@ -28,9 +28,9 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
 
     @Override
     public boolean worksWith(final ItemStack stack) {
-        if (stack != null) {
+        if (!stack.isEmpty()) {
             for (ItemStack item : items) {
-                if (item != null && item.isItemEqual(stack)) {
+                if (!item.isEmpty() && item.isItemEqual(stack)) {
                     return true;
                 }
             }

@@ -43,7 +43,7 @@ public abstract class DriverSidedBlock implements li.cil.oc.api.driver.SidedBloc
 
     protected boolean worksWith(final Block referenceBlock, final int referenceMetadata) {
         for (ItemStack stack : blocks) {
-            if (stack != null && stack.getItem() instanceof ItemBlock) {
+            if (!stack.isEmpty() && stack.getItem() instanceof ItemBlock) {
                 final ItemBlock item = (ItemBlock) stack.getItem();
                 final Block supportedBlock = item.getBlock();
                 final int supportedMetadata = item.getMetadata(stack.getItemDamage());

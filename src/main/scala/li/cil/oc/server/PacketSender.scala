@@ -121,9 +121,9 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
+  val fileSystemAccessTimeouts: mutable.WeakHashMap[Node, mutable.Map[String, Long]] = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
 
-  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
+  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String): Unit = fileSystemAccessTimeouts.synchronized {
     fileSystemAccessTimeouts.get(node) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
@@ -156,7 +156,7 @@ object PacketSender {
     }
   }
 
-  def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
+  def sendNetworkActivity(node: Node, host: EnvironmentHost): Unit = {
 
     val event = host match {
       case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
@@ -467,7 +467,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     for (slot <- 0 until t.getSizeInventory) {
-      pb.writeBoolean(t.getStackInSlot(slot) != null)
+      pb.writeBoolean(!t.getStackInSlot(slot).isEmpty)
     }
 
     pb.sendToPlayersNearTileEntity(t)

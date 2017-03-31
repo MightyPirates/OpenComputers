@@ -5,6 +5,7 @@ import li.cil.oc.common
 import li.cil.oc.common.entity
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -33,7 +34,7 @@ class Drone(playerInventory: InventoryPlayer, drone: entity.Drone) extends Playe
 
     override def getStack = {
       if (isValid) super.getStack
-      else null
+      else ItemStack.EMPTY
     }
   }
 

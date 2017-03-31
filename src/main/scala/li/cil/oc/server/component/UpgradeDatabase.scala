@@ -64,8 +64,8 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
   @Callback(doc = "function(slot:number):boolean -- Clears the specified slot. Returns true if there was something in the slot before.")
   def clear(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(data, 0)
-    val nonEmpty = data.getStackInSlot(slot) != null
-    data.setInventorySlotContents(slot, null)
+    val nonEmpty = data.getStackInSlot(slot) != ItemStack.EMPTY // zero size stacks
+    data.setInventorySlotContents(slot, ItemStack.EMPTY)
     result(nonEmpty)
   }
 
@@ -75,7 +75,7 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
     val entry = data.getStackInSlot(fromSlot)
     def set(inventory: IInventory) = {
       val toSlot = args.checkSlot(inventory, 1)
-      val nonEmpty = inventory.getStackInSlot(toSlot) != null
+      val nonEmpty = inventory.getStackInSlot(toSlot) != ItemStack.EMPTY // zero size stacks
       inventory.setInventorySlotContents(toSlot, entry.copy())
       result(nonEmpty)
     }

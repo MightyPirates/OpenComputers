@@ -14,12 +14,12 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     load(stack)
   }
 
-  var items = Array.fill[Option[ItemStack]](32)(None)
+  var items = Array.fill[ItemStack](32)(ItemStack.EMPTY)
   var isRunning = false
   var energy = 0.0
   var maxEnergy = 0.0
   var tier = Tier.One
-  var container: Option[ItemStack] = None
+  var container = ItemStack.EMPTY
 
   private final val ItemsTag = Settings.namespace + "items"
   private final val SlotTag = "slot"
@@ -34,7 +34,7 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte(SlotTag)
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(new ItemStack(slotNbt.getCompoundTag(ItemTag)))
+        items(slot) = new ItemStack(slotNbt.getCompoundTag(ItemTag))
       }
     })
     isRunning = nbt.getBoolean(IsRunningTag)
@@ -42,14 +42,14 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     maxEnergy = nbt.getDouble(MaxEnergyTag)
     tier = nbt.getInteger(TierTag)
     if (nbt.hasKey(ContainerTag)) {
-      container = Option(new ItemStack(nbt.getCompoundTag(ContainerTag)))
+      container = new ItemStack(nbt.getCompoundTag(ContainerTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
-        case (Some(stack), slot) => (stack, slot)
+        case (stack, slot) if !stack.isEmpty => (stack, slot)
       } map {
         case (stack, slot) =>
           val slotNbt = new NBTTagCompound()
@@ -60,6 +60,6 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
     nbt.setDouble(EnergyTag, energy)
     nbt.setDouble(MaxEnergyTag, maxEnergy)
     nbt.setInteger(TierTag, tier)
-    container.foreach(stack => nbt.setNewCompoundTag(ContainerTag, stack.writeToNBT))
+    if (!container.isEmpty) nbt.setNewCompoundTag(ContainerTag, container.writeToNBT)
   }
 }

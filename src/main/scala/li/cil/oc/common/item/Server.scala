@@ -9,6 +9,7 @@ import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.EnumActionResult
@@ -18,16 +19,16 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
-  override val unlocalizedName = super.unlocalizedName + tier
+  override val unlocalizedName: String = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack): EnumRarity = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 
   private object HelperInventory extends ServerInventory {
-    var container: ItemStack = null
+    var container = ItemStack.EMPTY
   }
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
@@ -35,15 +36,15 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
     if (KeyBindings.showExtendedTooltips) {
       HelperInventory.container = stack
       HelperInventory.reinitialize()
-      val items = mutable.Map.empty[String, Int]
-      for (item <- (0 until HelperInventory.getSizeInventory).map(HelperInventory.getStackInSlot) if item != null) {
-        val itemName = item.getDisplayName
-        items += itemName -> (if (items.contains(itemName)) items(itemName) + 1 else 1)
+      val stacks = mutable.Map.empty[String, Int]
+      for (aStack <- (0 until HelperInventory.getSizeInventory).map(HelperInventory.getStackInSlot) if !aStack.isEmpty) {
+        val displayName = aStack.getDisplayName
+        stacks += displayName -> (if (stacks.contains(displayName)) stacks(displayName) + 1 else 1)
       }
-      if (items.nonEmpty) {
+      if (stacks.nonEmpty) {
         tooltip.addAll(Tooltip.get("Server.Components"))
-        for (itemName <- items.keys.toArray.sorted) {
-          tooltip.add("- " + items(itemName) + "x " + itemName)
+        for (itemName <- stacks.keys.toArray.sorted) {
+          tooltip.add("- " + stacks(itemName) + "x " + itemName)
         }
       }
     }

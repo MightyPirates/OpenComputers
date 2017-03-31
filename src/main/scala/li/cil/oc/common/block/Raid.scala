@@ -30,7 +30,7 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val data = new RaidData(stack)
-      for (disk <- data.disks if disk != null) {
+      for (disk <- data.disks if !disk.isEmpty) {
         tooltip.add("- " + disk.getDisplayName)
       }
     }
@@ -70,9 +70,9 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
   override protected def doCustomDrops(tileEntity: tileentity.Raid, player: EntityPlayer, willHarvest: Boolean): Unit = {
     super.doCustomDrops(tileEntity, player, willHarvest)
     val stack = createItemStack()
-    if (tileEntity.items.exists(_.isDefined)) {
+    if (tileEntity.items.exists(!_.isEmpty)) {
       val data = new RaidData()
-      data.disks = tileEntity.items.map(_.orNull)
+      data.disks = tileEntity.items.clone()
       tileEntity.filesystem.foreach(_.save(data.filesystem))
       data.label = Option(tileEntity.label.getLabel)
       data.save(stack)

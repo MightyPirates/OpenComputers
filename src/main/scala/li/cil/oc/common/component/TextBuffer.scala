@@ -891,7 +891,7 @@ object TextBuffer {
 
     override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
       val stack = player.getHeldItem(EnumHand.MAIN_HAND)
-      if (stack != null) {
+      if (!stack.isEmpty) {
         if (!stack.hasTagCompound) {
           stack.setTagCompound(new NBTTagCompound())
         }

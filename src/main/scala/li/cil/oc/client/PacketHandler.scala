@@ -318,7 +318,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onLootDisk(p: PacketParser) = {
     val stack = p.readItemStack()
-    if (stack != null) {
+    if (!stack.isEmpty) {
       Loot.disksForClient += stack
     }
     if(Mods.JustEnoughItems.isAvailable) {
@@ -333,7 +333,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onCyclingDisk(p: PacketParser) = {
     val stack = p.readItemStack()
-    if (stack != null) {
+    if (!stack.isEmpty) {
       Loot.disksForCyclingClient += stack
     }
   }

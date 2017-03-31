@@ -297,7 +297,7 @@ object Achievement {
       }
 
       for (requirement <- customCrafting) {
-        if (requirement != null) {
+        if (!requirement.isEmpty) {
           Achievement.CustomCraftingMap += requirement -> achievement
         }
       }

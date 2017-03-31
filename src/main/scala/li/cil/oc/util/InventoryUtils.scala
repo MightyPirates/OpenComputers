@@ -33,7 +33,7 @@ object InventoryUtils {
    * Optionally check for equality in NBT data.
    */
   def haveSameItemType(stackA: ItemStack, stackB: ItemStack, checkNBT: Boolean = false): Boolean =
-    stackA != null && stackB != null &&
+    !stackA.isEmpty && !stackB.isEmpty &&
       stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage) &&
       (!checkNBT || ItemStack.areItemStackTagsEqual(stackA, stackB))
@@ -88,7 +88,7 @@ object InventoryUtils {
    * changes to the inventory the stack may come from, for example.
    */
   def insertIntoInventorySlot(stack: ItemStack, inventory: IItemHandler, slot: Int, limit: Int = 64, simulate: Boolean = false): Boolean =
-    (stack != null && limit > 0 && stack.getCount > 0) && {
+    (!stack.isEmpty && limit > 0 && stack.getCount > 0) && {
       val amount = math.min(stack.getCount, limit)
       if (simulate) {
         val toInsert = stack.copy()
@@ -139,7 +139,7 @@ object InventoryUtils {
    */
   def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Boolean = {
     val stack = inventory.getStackInSlot(slot)
-    (stack != null && limit > 0 && stack.getCount > 0) && {
+    (!stack.isEmpty && limit > 0 && stack.getCount > 0) && {
       var amount = math.min(stack.getMaxStackSize, math.min(stack.getCount, limit))
       inventory.extractItem(slot, amount, true) match {
         case extracted: ItemStack =>
@@ -177,7 +177,7 @@ object InventoryUtils {
    * having its size decremented accordingly.
    */
   def insertIntoInventory(stack: ItemStack, inventory: IItemHandler, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None): Boolean =
-    (stack != null && limit > 0 && stack.getCount > 0) && {
+    (!stack.isEmpty && limit > 0 && stack.getCount > 0) && {
       var success = false
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSlots)
@@ -341,7 +341,7 @@ object InventoryUtils {
     for (slot <- 0 until inventory.getSizeInventory) {
       Option(inventory.getStackInSlot(slot)) match {
         case Some(stack) if stack.getCount > 0 =>
-          inventory.setInventorySlotContents(slot, null)
+          inventory.setInventorySlotContents(slot, ItemStack.EMPTY)
           spawnStackInWorld(position, stack)
         case _ => // Nothing.
       }
@@ -352,7 +352,7 @@ object InventoryUtils {
    * Try inserting an item stack into a player inventory. If that fails, drop it into the world.
    */
   def addToPlayerInventory(stack: ItemStack, player: EntityPlayer): Unit = {
-    if (stack != null) {
+    if (!stack.isEmpty) {
       if (player.inventory.addItemStackToInventory(stack)) {
         player.inventory.markDirty()
         if (player.openContainer != null) {
@@ -369,7 +369,7 @@ object InventoryUtils {
    * Utility method for spawning an item stack in the world.
    */
   def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None, validator: Option[EntityItem => Boolean] = None): EntityItem = position.world match {
-    case Some(world) if stack != null && stack.getCount > 0 =>
+    case Some(world) if !stack.isEmpty && stack.getCount > 0 =>
       val rng = world.rand
       val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getFrontOffsetX, d.getFrontOffsetY, d.getFrontOffsetZ))
       val (tx, ty, tz) = (

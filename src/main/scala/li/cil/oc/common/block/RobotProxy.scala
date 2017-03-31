@@ -21,6 +21,7 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util._
 import net.minecraft.util.math.AxisAlignedBB
@@ -56,7 +57,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
-      case _ => null
+      case _ => ItemStack.EMPTY
     }
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {
@@ -78,7 +79,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity(stack: ItemStack) = {
+  override def rarity(stack: ItemStack): EnumRarity = {
     val data = new RobotData(stack)
     Rarity.byTier(data.tier)
   }
@@ -126,7 +127,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def createNewTileEntity(world: World, metadata: Int) = {
+  override def createNewTileEntity(world: World, metadata: Int): tileentity.RobotProxy = {
     moving.get match {
       case Some(robot) => new tileentity.RobotProxy(robot)
       case _ => new tileentity.RobotProxy()
@@ -137,7 +138,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   override def getExplosionResistance(entity: Entity) = 10f
 
-  override def getDrops(world: IBlockAccess, pos: BlockPos, state: IBlockState, fortune: Int) = {
+  override def getDrops(world: IBlockAccess, pos: BlockPos, state: IBlockState, fortune: Int): util.ArrayList[ItemStack] = {
     val list = new java.util.ArrayList[ItemStack]()
 
     // Superspecial hack... usually this will not work, because Minecraft calls
@@ -177,7 +178,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
-  override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d) = {
+  override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d): RayTraceResult = {
     val bounds = getCollisionBoundingBox(state, world, pos)
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
@@ -187,7 +188,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         // We only send slot changes to nearby players, so if there was no slot
@@ -202,7 +203,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
       }
       true
     }
-    else if (heldItem == null) {
+    else if (heldItem.isEmpty) {
       if (!world.isRemote) {
         world.getTileEntity(pos) match {
           case proxy: tileentity.RobotProxy if !proxy.machine.isRunning && proxy.isUsableByPlayer(player) => proxy.machine.start()

@@ -46,7 +46,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def connectComponents() {
     for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
       val stack = getStackInSlot(slot)
-      if (stack != null && components(slot).isEmpty && isComponentSlot(slot, stack)) {
+      if (!stack.isEmpty && components(slot).isEmpty && isComponentSlot(slot, stack)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
@@ -98,7 +98,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def saveComponents() {
     for (slot <- 0 until getSizeInventory) {
       val stack = getStackInSlot(slot)
-      if (stack != null) {
+      if (!stack.isEmpty) {
         components(slot) match {
           case Some(component) =>
             // We're guaranteed to have a driver for entries.

@@ -64,7 +64,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
       val stackA = inventory.getStackInSlot(args.checkSlot(inventory, 1))
       val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
       result(stackA == stackB ||
-        (stackA != null && stackB != null &&
+        (!stackA.isEmpty && !stackB.isEmpty &&
           OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty))
     })
   }
@@ -82,7 +82,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     val dbAddress = args.checkString(2)
     def store(stack: ItemStack) = DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 3)
-      val nonEmpty = database.getStackInSlot(dbSlot) != null
+      val nonEmpty = database.getStackInSlot(dbSlot) != ItemStack.EMPTY // zero size stacks
       database.setStackInSlot(dbSlot, stack.copy())
       result(nonEmpty)
     })

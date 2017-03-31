@@ -32,14 +32,14 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def node = null
 
-  val outputSides = Array.fill(6)(true)
+  val outputSides: Array[Boolean] = Array.fill(6)(true)
 
-  val snooperNode = api.Network.newNode(this, Visibility.Network).
+  val snooperNode: ComponentConnector = api.Network.newNode(this, Visibility.Network).
     withComponent("microcontroller").
     withConnector(Settings.get.bufferMicrocontroller).
     create()
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  val componentNodes: Array[Component] = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("microcontroller").
     create())
 
@@ -48,7 +48,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     machine.setCostPerTick(Settings.get.microcontrollerCost)
   }
 
-  override def tier = info.tier
+  override def tier: Int = info.tier
 
   override protected def runSound = None // Microcontrollers are silent.
 
@@ -65,16 +65,16 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = side != facing
+  override def canConnect(side: EnumFacing): Boolean = side != facing
 
   override def sidedNode(side: EnumFacing): Node = if (side != facing) super.sidedNode(side) else null
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  override protected def hasConnector(side: EnumFacing): Boolean = side != facing
 
   override protected def connector(side: EnumFacing) = Option(if (side != facing) snooperNode else null)
 
-  override def energyThroughput = Settings.get.caseRate(Tier.One)
+  override def energyThroughput: Double = Settings.get.caseRate(Tier.One)
 
   // ----------------------------------------------------------------------- //
 
@@ -90,7 +90,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def internalComponents(): java.lang.Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   // ----------------------------------------------------------------------- //
 
@@ -242,11 +242,11 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // ----------------------------------------------------------------------- //
 
-  override def items = info.components.map(Option(_))
+  override def items: Array[ItemStack] = info.components
 
   override def updateItems(slot: Int, stack: ItemStack): Unit = info.components(slot) = stack
 
-  override def getSizeInventory = info.components.length
+  override def getSizeInventory: Int = info.components.length
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
 
@@ -254,13 +254,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {}
 
   // Nope.
-  override def decrStackSize(slot: Int, amount: Int) = null
+  override def decrStackSize(slot: Int, amount: Int) = ItemStack.EMPTY
 
   // Nope.
-  override def removeStackFromSlot(slot: Int) = null
+  override def removeStackFromSlot(slot: Int) = ItemStack.EMPTY
 
   // For hotswapping EEPROMs.
-  def changeEEPROM(newEeprom: ItemStack) = {
+  def changeEEPROM(newEeprom: ItemStack): Option[ItemStack] = {
     val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get(Constants.ItemName.EEPROM))
     if (oldEepromIndex >= 0) {
       val oldEeprom = info.components(oldEepromIndex)
@@ -268,7 +268,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
       Some(oldEeprom)
     }
     else {
-      assert(info.components(getSizeInventory - 1) == null)
+      assert(info.components(getSizeInventory - 1).isEmpty)
       super.setInventorySlotContents(getSizeInventory - 1, newEeprom)
       None
     }

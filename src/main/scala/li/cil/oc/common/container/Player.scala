@@ -37,8 +37,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
     }
-    if (result != null && result.getCount > 0) result
-    else null
+    result
   }
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
@@ -49,7 +48,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
         detectAndSendChanges()
       }
     }
-    null
+    ItemStack.EMPTY
   }
 
   protected def tryTransferStackInSlot(from: Slot, intoPlayerInventory: Boolean) {

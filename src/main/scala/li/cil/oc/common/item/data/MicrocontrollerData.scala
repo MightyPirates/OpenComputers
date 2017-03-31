@@ -17,7 +17,7 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
 
   var tier = Tier.One
 
-  var components = Array[ItemStack](null)
+  var components: Array[ItemStack] = Array[ItemStack](ItemStack.EMPTY)
 
   var storedEnergy = 0
 
@@ -28,23 +28,23 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
   override def load(nbt: NBTTagCompound) {
     tier = nbt.getByte(TierTag)
     components = nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(new ItemStack(_)).filter(_ != null)
+      toArray[NBTTagCompound].map(new ItemStack(_)).filter(!_.isEmpty)
     storedEnergy = nbt.getInteger(StoredEnergyTag)
 
     // Reserve slot for EEPROM if necessary, avoids having to resize the
     // components array in the MCU tile entity, which isn't possible currently.
     if (!components.exists(stack => api.Items.get(stack) == api.Items.get(Constants.ItemName.EEPROM))) {
-      components :+= null
+      components :+= ItemStack.EMPTY
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     nbt.setByte(TierTag, tier.toByte)
-    nbt.setNewTagList(ComponentsTag, components.filter(_ != null).toIterable)
+    nbt.setNewTagList(ComponentsTag, components.filter(!_.isEmpty).toIterable)
     nbt.setInteger(StoredEnergyTag, storedEnergy)
   }
 
-  def copyItemStack() = {
+  def copyItemStack(): ItemStack = {
     val stack = createItemStack()
     val newInfo = new MicrocontrollerData(stack)
     newInfo.save(stack)

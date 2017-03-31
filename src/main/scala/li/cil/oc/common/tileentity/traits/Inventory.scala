@@ -10,7 +10,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.text.ITextComponent
 
 trait Inventory extends TileEntity with inventory.Inventory {
-  private lazy val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+  private lazy val inventory = Array.fill[ItemStack](getSizeInventory)(ItemStack.EMPTY)
 
   def items = inventory
 

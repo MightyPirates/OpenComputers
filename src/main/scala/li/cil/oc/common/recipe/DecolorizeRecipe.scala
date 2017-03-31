@@ -31,11 +31,11 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
         targetStack = stack.copy()
         targetStack.setCount(1)
       } else if (stack.getItem != Items.WATER_BUCKET) {
-        return null
+        return ItemStack.EMPTY
       }
     }
 
-    if (targetStack == null) return null
+    if (targetStack.isEmpty) return ItemStack.EMPTY
 
     ItemColorizer.removeColor(targetStack)
     targetStack

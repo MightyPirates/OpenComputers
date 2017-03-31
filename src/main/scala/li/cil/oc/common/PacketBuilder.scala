@@ -43,7 +43,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
   }
 
   def writeItemStack(stack: ItemStack) = {
-    val haveStack = stack != null && stack.getCount > 0
+    val haveStack = !stack.isEmpty && stack.getCount > 0
     writeBoolean(haveStack)
     if (haveStack) {
       writeNBT(stack.writeToNBT(new NBTTagCompound()))

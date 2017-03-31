@@ -56,7 +56,7 @@ object DriverCommandBlock extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.COMMAND_BLOCK)
+      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.COMMAND_BLOCK)
         classOf[Environment]
       else null
     }

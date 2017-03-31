@@ -17,14 +17,14 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
     withConnector(Settings.get.bufferDistributor).
     create())
 
-  override protected def isConnected = nodes.exists(node => node.address != null && node.network != null)
+  override protected def isConnected: Boolean = nodes.exists(node => node.address != null && node.network != null)
 
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = true
 
-  override def sidedNode(side: EnumFacing) = nodes(side.ordinal)
+  override def sidedNode(side: EnumFacing): Connector = nodes(side.ordinal)
 
   // ----------------------------------------------------------------------- //
 

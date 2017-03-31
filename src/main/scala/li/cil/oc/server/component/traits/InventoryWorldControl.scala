@@ -9,6 +9,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.item.ItemTossEvent
@@ -40,7 +41,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val facing = checkSideForAction(args, 0)
     val count = args.optItemCount(1)
     val stack = inventory.getStackInSlot(selectedSlot)
-    if (stack != null && stack.getCount > 0) {
+    if (!stack.isEmpty && stack.getCount > 0) {
       val blockPos = position.offset(facing)
       InventoryUtils.inventoryAt(blockPos, facing.getOpposite) match {
         case Some(inv) if mayInteract(blockPos, facing.getOpposite, inv) =>
@@ -50,7 +51,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
           }
           else if (stack.getCount == 0) {
             // Dropped whole stack.
-            inventory.setInventorySlotContents(selectedSlot, null)
+            inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
           }
           else {
             // Dropped partial stack.
@@ -65,7 +66,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
             val denied = event.hasResult && event.getResult == Result.DENY
             !canceled && !denied
           }
-          if (dropped != null && dropped.getCount > 0) {
+          if (!dropped.isEmpty) {
             if (InventoryUtils.spawnStackInWorld(position, dropped, Some(facing), Some(validator)) == null)
               fakePlayer.inventory.addItemStackToInventory(dropped)
           }

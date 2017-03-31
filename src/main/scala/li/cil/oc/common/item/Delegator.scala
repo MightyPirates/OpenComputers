@@ -33,7 +33,7 @@ import scala.collection.mutable
 
 object Delegator {
   def subItem(stack: ItemStack) =
-    if (stack != null) stack.getItem match {
+    if (!stack.isEmpty) stack.getItem match {
       case delegator: Delegator => delegator.subItem(stack.getItemDamage)
       case _ => None
     }

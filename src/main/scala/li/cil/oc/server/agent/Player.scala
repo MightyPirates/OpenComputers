@@ -1,5 +1,6 @@
 package li.cil.oc.server.agent
 
+import java.util
 import java.util.UUID
 
 import com.mojang.authlib.GameProfile
@@ -36,6 +37,7 @@ import net.minecraft.util.math.Vec3d
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.IInteractionObject
+import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
@@ -51,7 +53,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import scala.collection.convert.WrapAsScala._
 
 object Player {
-  def profileFor(agent: internal.Agent) = {
+  def profileFor(agent: internal.Agent): GameProfile = {
     val uuid = agent.ownerUUID
     val randomId = (agent.world.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
@@ -60,7 +62,7 @@ object Player {
     new GameProfile(uuid, name)
   }
 
-  def determineUUID(playerUUID: Option[UUID] = None) = {
+  def determineUUID(playerUUID: Option[UUID] = None): UUID = {
     val format = Settings.get.uuidFormat
     val randomUUID = UUID.randomUUID()
     try UUID.fromString(format.
@@ -115,16 +117,16 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   // ----------------------------------------------------------------------- //
 
-  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing = facing) = {
+  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing = facing): Option[Entity] = {
     val bounds = BlockPosition(agent).offset(side).bounds
     Option(world.findNearestEntityWithinAABB(clazz, bounds, this))
   }
 
-  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing): util.List[Type] = {
     entitiesInBlock(clazz, BlockPosition(agent).offset(side))
   }
 
-  def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition) = {
+  def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition): util.List[Type] = {
     world.getEntitiesWithinAABB(clazz, blockPos.bounds)
   }
 
@@ -166,12 +168,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     if(!cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.processInitialInteract(this, EnumHand.MAIN_HAND) || (entity match {
-        case living: EntityLivingBase if getHeldItemMainhand != null => getHeldItemMainhand.interactWithEntity(this, living, EnumHand.MAIN_HAND)
+        case living: EntityLivingBase if !getHeldItemMainhand.isEmpty => getHeldItemMainhand.interactWithEntity(this, living, EnumHand.MAIN_HAND)
         case _ => false
       }))
-      if (getHeldItemMainhand != null && getHeldItemMainhand.getCount <= 0) {
+      if (!getHeldItemMainhand.isEmpty && getHeldItemMainhand.getCount <= 0) {
         val orig = getHeldItemMainhand
-        this.inventory.setInventorySlotContents(this.inventory.currentItem, null)
+        this.inventory.setInventorySlotContents(this.inventory.currentItem, ItemStack.EMPTY)
         ForgeEventFactory.onPlayerDestroyItem(this, orig, EnumHand.MAIN_HAND)
       }
       result
@@ -184,7 +186,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return ActivationType.None
       }
 
-      val item = if (stack != null) stack.getItem else null
+      val item = if (!stack.isEmpty) stack.getItem else null
       if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
         return ActivationType.ItemUsed
       }
@@ -227,7 +229,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     event
   }
 
-  def useEquippedItem(duration: Double) = {
+  def useEquippedItem(duration: Double): Boolean = {
     callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (!shouldCancel(() => fireRightClickAir())) {
         tryUseItem(stack, duration)
@@ -238,9 +240,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   private def tryUseItem(stack: ItemStack, duration: Double) = {
     stopActiveHand()
-    stack != null && stack.getCount > 0 && isItemUseAllowed(stack) && {
+    !stack.isEmpty && stack.getCount > 0 && isItemUseAllowed(stack) && {
       val oldSize = stack.getCount
-      val oldDamage = if (stack != null) stack.getItemDamage else 0
+      val oldDamage = if (!stack.isEmpty) stack.getItemDamage else 0
       val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
       val heldTicks = Math.max(0, Math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
       // Change the offset at which items are used, to avoid hitting
@@ -264,7 +266,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       def sizeOrDamageChanged = newStack.getCount != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged))
+      val stackChanged = newStack != stack || (!newStack.isEmpty && (sizeOrDamageChanged || tagChanged))
       if (stackChanged) {
         agent.equipmentInventory.setInventorySlotContents(0, newStack)
       }
@@ -350,7 +352,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         posY -= 1.62
         prevPosY = posY
       }
-      val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, pos, this)
+      val cancel = !stack.isEmpty && stack.getItem.onBlockStartBreak(stack, pos, this)
       if (cancel && needsSpecialPlacement) {
         posY += 1.62
         prevPosY = posY
@@ -369,7 +371,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       world.playEvent(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
 
-      if (stack != null) {
+      if (!stack.isEmpty) {
         stack.onBlockDestroyed(world, state, pos, this)
       }
 
@@ -382,7 +384,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           block.harvestBlock(world, this, pos, state, te, stack)
           MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, breakEvent.getExpToDrop))
         }
-        else if (stack != null) {
+        else if (!stack.isEmpty) {
           MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, 0))
         }
         return adjustedBreakTime
@@ -391,7 +393,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     })
   }
 
-  private def isItemUseAllowed(stack: ItemStack) = stack == null || {
+  private def isItemUseAllowed(stack: ItemStack) = stack.isEmpty || {
     (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) && !stack.isItemEqual(new ItemStack(Items.LEAD))
   }
 
@@ -419,7 +421,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   private def callUsingItemInSlot[T](inventory: IInventory, slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
-    val oldStack = if (stack != null) stack.copy() else null
+    val oldStack = if (!stack.isEmpty) stack.copy() else null
     this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
     try {
       f(stack)
@@ -427,9 +429,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     finally {
       this.inventory.currentItem = 0
       val newStack = inventory.getStackInSlot(slot)
-      if (newStack != null) {
+      if (!newStack.isEmpty) {
         if (newStack.getCount <= 0) {
-          inventory.setInventorySlotContents(slot, null)
+          inventory.setInventorySlotContents(slot, ItemStack.EMPTY)
         }
         if (repair) {
           if (newStack.getCount > 0) tryRepair(newStack, oldStack)
@@ -442,7 +444,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
-    if (stack != null && oldStack != null && stack.getItem == oldStack.getItem) {
+    if (!stack.isEmpty && !oldStack.isEmpty && stack.getItem == oldStack.getItem) {
       val damageRate = new RobotUsedToolEvent.ComputeDamageRate(agent, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {
@@ -452,7 +454,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    stack != null && stack.getCount > 0 && {
+    !stack.isEmpty && stack.getCount > 0 && {
       val event = new RobotPlaceBlockEvent.Pre(agent, stack, world, pos)
       MinecraftForge.EVENT_BUS.post(event)
       if (event.isCanceled) false
@@ -508,7 +510,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
   }
 
-  override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
+  override def canAttackPlayer(player: EntityPlayer): Boolean = Settings.get.canAttackPlayers
 
   override def canEat(value: Boolean) = false
 
@@ -522,7 +524,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def setHealth(value: Float) {}
 
-  override def setDead() = isDead = true
+  override def setDead(): Unit = isDead = true
 
   override def onLivingUpdate() {}
 
@@ -562,7 +564,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   // ----------------------------------------------------------------------- //
 
   class DamageOverTime(val player: Player, val pos: BlockPos, val side: EnumFacing, val ticksTotal: Int) {
-    val world = player.world
+    val world: World = player.world
     var ticks = 0
     var lastDamageSent = 0
 

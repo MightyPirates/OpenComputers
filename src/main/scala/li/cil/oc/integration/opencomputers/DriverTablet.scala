@@ -23,7 +23,7 @@ object DriverTablet extends Item {
       Tablet.Server.cache.invalidate(Tablet.getId(stack))
       val data = new TabletData(stack)
       data.items.collect {
-        case Some(fs) if DriverFileSystem.worksWith(fs) => fs
+        case fs if !fs.isEmpty && DriverFileSystem.worksWith(fs) => fs
       }.headOption.map(DriverFileSystem.createEnvironment(_, host)) match {
         case Some(environment) => environment.node match {
           case component: Component =>
@@ -41,7 +41,7 @@ object DriverTablet extends Item {
   override def dataTag(stack: ItemStack) = {
     val data = new TabletData(stack)
     val index = data.items.indexWhere {
-      case Some(fs) => DriverFileSystem.worksWith(fs)
+      case fs if !fs.isEmpty => DriverFileSystem.worksWith(fs)
       case _ => false
     }
     if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {

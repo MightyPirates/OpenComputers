@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -16,6 +17,8 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
@@ -31,9 +34,9 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   override def position = BlockPosition(agent)
 
-  override def fakePlayer = agent.player
+  override def fakePlayer: EntityPlayer = agent.player
 
-  protected def rotatedPlayer(facing: EnumFacing = agent.facing, side: EnumFacing = agent.facing) = {
+  protected def rotatedPlayer(facing: EnumFacing = agent.facing, side: EnumFacing = agent.facing): Player = {
     val player = agent.player.asInstanceOf[Player]
     Player.updatePositionAndRotation(player, facing, side)
     player
@@ -41,23 +44,23 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   // ----------------------------------------------------------------------- //
 
-  override def inventory = agent.mainInventory
+  override def inventory: IInventory = agent.mainInventory
 
-  override def selectedSlot = agent.selectedSlot
+  override def selectedSlot: Int = agent.selectedSlot
 
   override def selectedSlot_=(value: Int): Unit = agent.setSelectedSlot(value)
 
   // ----------------------------------------------------------------------- //
 
-  override def tank = agent.tank
+  override def tank: MultiTank = agent.tank
 
-  def selectedTank = agent.selectedTank
+  def selectedTank: Int = agent.selectedTank
 
-  override def selectedTank_=(value: Int) = agent.setSelectedTank(value)
+  override def selectedTank_=(value: Int): Unit = agent.setSelectedTank(value)
 
   // ----------------------------------------------------------------------- //
 
-  def canPlaceInAir = {
+  def canPlaceInAir: Boolean = {
     val event = new RobotPlaceInAirEvent(agent)
     MinecraftForge.EVENT_BUS.post(event)
     event.isAllowed
@@ -245,7 +248,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
-    if (stack == null || stack.getCount == 0) {
+    if (stack.isEmpty) {
       return result(Unit, "nothing selected")
     }
 
@@ -288,9 +291,9 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   // ----------------------------------------------------------------------- //
 
-  protected def checkSideForFace(args: Arguments, n: Int, facing: EnumFacing) = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
+  protected def checkSideForFace(args: Arguments, n: Int, facing: EnumFacing): EnumFacing = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
 
-  protected def pick(player: Player, range: Double) = {
+  protected def pick(player: Player, range: Double): RayTraceResult = {
     val origin = new Vec3d(
       player.posX + player.facing.getFrontOffsetX * 0.5,
       player.posY + player.facing.getFrontOffsetY * 0.5,
@@ -310,14 +313,14 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     }
   }
 
-  protected def clickParamsFromHit(hit: RayTraceResult) = {
+  protected def clickParamsFromHit(hit: RayTraceResult): (BlockPos, Float, Float, Float) = {
     (hit.getBlockPos,
       (hit.hitVec.xCoord - hit.getBlockPos.getX).toFloat,
       (hit.hitVec.yCoord - hit.getBlockPos.getY).toFloat,
       (hit.hitVec.zCoord - hit.getBlockPos.getZ).toFloat)
   }
 
-  protected def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing) = {
+  protected def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing): (BlockPos, Float, Float, Float) = {
     val blockPos = position.offset(facing).offset(side)
     (blockPos.toBlockPos,
       0.5f - side.getFrontOffsetX * 0.5f,
@@ -325,7 +328,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       0.5f - side.getFrontOffsetZ * 0.5f)
   }
 
-  protected def clickParamsForPlace(facing: EnumFacing) = {
+  protected def clickParamsForPlace(facing: EnumFacing): (BlockPos, Float, Float, Float) = {
     (position.toBlockPos,
       0.5f + facing.getFrontOffsetX * 0.5f,
       0.5f + facing.getFrontOffsetY * 0.5f,

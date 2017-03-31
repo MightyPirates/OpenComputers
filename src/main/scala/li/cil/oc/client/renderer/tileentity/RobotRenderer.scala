@@ -420,7 +420,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
         lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
 
         val renderers = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
-          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }
+          collect { case stack if !stack.isEmpty && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }
 
         for ((stack, renderer) <- renderers) {
           val preferredSlot = renderer.computePreferredMountPoint(stack, robot, availableSlots)

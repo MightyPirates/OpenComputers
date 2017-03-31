@@ -35,7 +35,7 @@ object DriverComparator extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && stack.getItem == Items.COMPARATOR)
+      if (!stack.isEmpty && stack.getItem == Items.COMPARATOR)
         classOf[Environment]
       else null
     }

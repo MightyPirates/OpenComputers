@@ -33,7 +33,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
     }
 
     drive.items(0) match {
-      case Some(stack) =>
+      case stack if !stack.isEmpty =>
         GlStateManager.pushMatrix()
         GlStateManager.translate(0, 3.5f / 16, 6 / 16f)
         GlStateManager.rotate(90, -1, 0, 0)

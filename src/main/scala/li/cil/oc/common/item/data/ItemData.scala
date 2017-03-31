@@ -22,7 +22,7 @@ abstract class ItemData(val itemName: String) extends Persistable {
   }
 
   def createItemStack() = {
-    if (itemName == null) null
+    if (itemName == null) ItemStack.EMPTY
     else {
       val stack = api.Items.get(itemName).createItemStack(1)
       save(stack)

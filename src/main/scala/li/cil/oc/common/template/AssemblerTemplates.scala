@@ -43,7 +43,7 @@ object AssemblerTemplates {
   }
 
   def select(stack: ItemStack) = {
-    if (stack != null && templateFilters.forall(IMC.tryInvokeStatic(_, stack)(true)))
+    if (!stack.isEmpty && templateFilters.forall(IMC.tryInvokeStatic(_, stack)(true)))
       templates.find(_.select(stack))
     else
       None

@@ -66,7 +66,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
           for (slot <- 0 until getSizeInventory) {
             val stack = getStackInSlot(slot)
-            if (stack != null) {
+            if (!stack.isEmpty) {
               decrStackSize(slot, 1)
               val item = stack.getItem
               if (item.hasContainerItem(stack)) {
@@ -74,7 +74,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
                 if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
                   MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container, null))
                 }
-                else if (getStackInSlot(slot) != null) {
+                else if (!getStackInSlot(slot).isEmpty) {
                   surplus += container
                 }
                 else {
@@ -100,7 +100,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
       for (slot <- 0 until getSizeInventory) {
         val stack = inventory.getStackInSlot(toParentSlot(slot))
         setInventorySlotContents(slot, stack)
-        if (stack != null) {
+        if (!stack.isEmpty) {
           amountPossible = math.min(amountPossible, stack.getCount)
         }
       }

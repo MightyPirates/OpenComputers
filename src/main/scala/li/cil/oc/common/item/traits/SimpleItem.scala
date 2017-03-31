@@ -24,7 +24,7 @@ trait SimpleItem extends Item {
 
   override def isBookEnchantable(stack: ItemStack, book: ItemStack) = false
 
-  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = {
+  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = {
     world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive => true
       case _ => super.doesSneakBypassUse(stack, world, pos, player)

@@ -43,7 +43,7 @@ object ItemUtils {
     nbt.getCompoundTag("display").setString("Name", name)
   }
 
-  def caseTier(stack: ItemStack) = {
+  def caseTier(stack: ItemStack): Int = {
     val descriptor = api.Items.get(stack)
     if (descriptor == api.Items.get(Constants.BlockName.CaseTier1)) Tier.One
     else if (descriptor == api.Items.get(Constants.BlockName.CaseTier2)) Tier.Two
@@ -65,20 +65,20 @@ object ItemUtils {
     else Tier.None
   }
 
-  def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
+  def caseNameWithTierSuffix(name: String, tier: Int): String = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
-  def loadTag(data: Array[Byte]) = {
+  def loadTag(data: Array[Byte]): NBTTagCompound = {
     val bais = new ByteArrayInputStream(data)
     CompressedStreamTools.readCompressed(bais)
   }
 
-  def saveStack(stack: ItemStack) = {
+  def saveStack(stack: ItemStack): Array[Byte] = {
     val tag = new NBTTagCompound()
     stack.writeToNBT(tag)
     saveTag(tag)
   }
 
-  def saveTag(tag: NBTTagCompound) = {
+  def saveTag(tag: NBTTagCompound): Array[Byte] = {
     val baos = new ByteArrayOutputStream()
     CompressedStreamTools.writeCompressed(tag, baos)
     baos.toByteArray
@@ -86,8 +86,7 @@ object ItemUtils {
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Int) = (inputs.filter(input =>
-      input != null &&
-        input.getItem != null &&
+      !input.isEmpty &&
         input.getCount / outputSize > 0 &&
         // Strip out buckets, because those are returned when crafting, and
         // we have no way of returning the fluid only (and I can't be arsed
@@ -103,7 +102,7 @@ object ItemUtils {
     }
 
     val (ingredients, count) = CraftingManager.getInstance.getRecipeList.
-      filter(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack)).collect {
+      filter(recipe => !recipe.getRecipeOutput.isEmpty && recipe.getRecipeOutput.isItemEqual(stack)).collect {
       case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
       case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems, getOutputSize(recipe))
       case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))

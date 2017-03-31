@@ -19,6 +19,7 @@ import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
@@ -43,7 +44,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     world.getTileEntity(pos) match {
       case mcu: tileentity.Microcontroller => mcu.info.copyItemStack()
-      case _ => null
+      case _ => ItemStack.EMPTY
     }
 
   // ----------------------------------------------------------------------- //
@@ -52,26 +53,26 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new MicrocontrollerData(stack)
-      for (component <- info.components if component != null) {
+      for (component <- info.components if !component.isEmpty) {
         tooltip.add("- " + component.getDisplayName)
       }
     }
   }
 
-  override def rarity(stack: ItemStack) = {
+  override def rarity(stack: ItemStack): EnumRarity = {
     val data = new MicrocontrollerData(stack)
     Rarity.byTier(data.tier)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.caseRate(Tier.One)
+  override def energyThroughput: Double = Settings.get.caseRate(Tier.One)
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Microcontroller()
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     if (!Wrench.holdsApplicableWrench(player, pos)) {
       if (!player.isSneaking) {
         if (!world.isRemote) {

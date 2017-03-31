@@ -84,7 +84,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
       case Some(template) if !isAssembling && output.isEmpty && template.validate(this)._1 =>
         for (slot <- 0 until getSizeInventory) {
           val stack = getStackInSlot(slot)
-          if (stack != null && !isItemValidForSlot(slot, stack)) return false
+          if (!stack.isEmpty && !isItemValidForSlot(slot, stack)) return false
         }
         val (stack, energy) = template.assemble(this)
         output = Some(stack)

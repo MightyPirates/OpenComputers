@@ -31,6 +31,6 @@ class Chamelium(val parent: Delegator) extends traits.Delegate {
     }
     stack.shrink(1)
     if (stack.getCount > 0) stack
-    else null
+    else ItemStack.EMPTY
   }
 }

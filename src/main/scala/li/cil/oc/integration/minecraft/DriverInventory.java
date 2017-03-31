@@ -60,7 +60,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
             if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
-            if (stack != null) {
+            if (!stack.isEmpty()) {
                 return new Object[]{stack.getCount()};
             } else {
                 return new Object[]{0};
@@ -72,7 +72,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
             if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
-            if (stack != null) {
+            if (!stack.isEmpty()) {
                 return new Object[]{Math.min(tileEntity.getInventoryStackLimit(), stack.getMaxStackSize())};
             } else {
                 return new Object[]{tileEntity.getInventoryStackLimit()};
@@ -89,9 +89,9 @@ public final class DriverInventory extends DriverSidedTileEntity {
             }
             final ItemStack stackA = tileEntity.getStackInSlot(slotA);
             final ItemStack stackB = tileEntity.getStackInSlot(slotB);
-            if (stackA == null && stackB == null) {
+            if (stackA.isEmpty() && stackB.isEmpty()) {
                 return new Object[]{true};
-            } else if (stackA != null && stackB != null) {
+            } else if (!stackA.isEmpty() && !stackB.isEmpty()) {
                 return new Object[]{itemEquals(stackA, stackB)};
             } else {
                 return new Object[]{false};
@@ -109,10 +109,10 @@ public final class DriverInventory extends DriverSidedTileEntity {
             }
             final ItemStack stackA = tileEntity.getStackInSlot(slotA);
             final ItemStack stackB = tileEntity.getStackInSlot(slotB);
-            if (stackA == null) {
+            if (stackA.isEmpty()) {
                 // Empty.
                 return new Object[]{false};
-            } else if (stackB == null) {
+            } else if (stackB.isEmpty()) {
                 // Move.
                 tileEntity.setInventorySlotContents(slotB, tileEntity.decrStackSize(slotA, count));
                 return new Object[]{true};
@@ -125,7 +125,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
                     stackA.setCount(stackA.getCount() - amount);
                     stackB.setCount(stackB.getCount() + amount);
                     if (stackA.getCount() == 0) {
-                        tileEntity.setInventorySlotContents(slotA, null);
+                        tileEntity.setInventorySlotContents(slotA, ItemStack.EMPTY);
                     }
                     tileEntity.markDirty();
                     return new Object[]{true};

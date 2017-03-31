@@ -7,17 +7,19 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
-  val hasScreen = robot.components.exists {
+  val hasScreen: Boolean = robot.components.exists {
     case Some(buffer: api.internal.TextBuffer) => true
     case _ => false
   }
   private val withScreenHeight = 256
   private val noScreenHeight = 108
-  val deltaY = if (hasScreen) 0 else withScreenHeight - noScreenHeight
+  val deltaY: Int = if (hasScreen) 0 else withScreenHeight - noScreenHeight
 
   addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, common.Slot.Tool)
   addSlotToContainer(170 + 1 * slotSize, 232 - deltaY, robot.containerSlotType(1), robot.containerSlotTier(1))
@@ -76,18 +78,18 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   }
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
-    def isValid = robot.isInventorySlot(getSlotIndex)
+    def isValid: Boolean = robot.isInventorySlot(getSlotIndex)
 
     @SideOnly(Side.CLIENT) override
-    def canBeHovered = isValid && super.canBeHovered
+    def canBeHovered: Boolean = isValid && super.canBeHovered
 
-    override def getBackgroundLocation =
+    override def getBackgroundLocation: ResourceLocation =
       if (isValid) super.getBackgroundLocation
       else Textures.Icons.get(common.Tier.None)
 
-    override def getStack = {
+    override def getStack: ItemStack = {
       if (isValid) super.getStack
-      else null
+      else ItemStack.EMPTY
     }
   }
 

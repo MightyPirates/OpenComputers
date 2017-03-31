@@ -40,7 +40,7 @@ class RobotAfterimage extends SimpleBlock {
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack =
     findMovingRobot(world, pos) match {
       case Some(robot) => robot.info.createItemStack()
-      case _ => null
+      case _ => ItemStack.EMPTY
     }
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = {

@@ -9,6 +9,8 @@ import net.minecraft.item.crafting.IRecipe
 import net.minecraft.util.NonNullList
 import net.minecraft.world.World
 
+import scala.collection.immutable
+
 class LootDiskCyclingRecipe extends IRecipe {
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = collectStacks(crafting).toArray
@@ -23,17 +25,17 @@ class LootDiskCyclingRecipe extends IRecipe {
         val oldIndex = lootDiskStacks.indexWhere(s => getLootFactoryName(s) == lootFactoryName)
         val newIndex = (oldIndex + 1) % lootDiskStacks.length
         lootDiskStacks(newIndex).copy()
-      case _ => null
+      case _ => ItemStack.EMPTY
     }
   }
 
-  def getLootFactoryName(stack: ItemStack) = stack.getTagCompound.getString(Settings.namespace + "lootFactory")
+  def getLootFactoryName(stack: ItemStack): String = stack.getTagCompound.getString(Settings.namespace + "lootFactory")
 
-  def collectStacks(crafting: InventoryCrafting) = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
+  def collectStacks(crafting: InventoryCrafting): immutable.IndexedSeq[ItemStack] = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
 
   override def getRecipeSize: Int = 2
 
-  override def getRecipeOutput: ItemStack = null
+  override def getRecipeOutput: ItemStack = ItemStack.EMPTY
 
   override def getRemainingItems(crafting: InventoryCrafting): NonNullList[ItemStack] = {
     val result = NonNullList.withSize[ItemStack](crafting.getSizeInventory, ItemStack.EMPTY)

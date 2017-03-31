@@ -24,5 +24,5 @@ object FontUtils {
     ba
   }
 
-  def wcwidth(ch: Int) = if (ch < 0 || ch >= widths.length) -1 else widths(ch)
+  def wcwidth(ch: Int): Int = if (ch < 0 || ch >= widths.length) -1 else widths(ch)
 }

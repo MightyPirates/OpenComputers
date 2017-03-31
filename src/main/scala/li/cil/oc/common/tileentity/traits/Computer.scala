@@ -5,6 +5,8 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.machine.Machine
+import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
@@ -26,9 +28,9 @@ import scala.collection.mutable
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with api.network.Analyzable with api.machine.MachineHost with StateAware with Tickable {
   private lazy val _machine = if (isServer) api.Machine.create(this) else null
 
-  def machine = _machine
+  def machine: Machine = _machine
 
-  override def node = if (isServer) machine.node else null
+  override def node: Node = if (isServer) machine.node else null
 
   private var _isRunning = false
 
@@ -41,11 +43,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  def canInteract(player: String) =
+  def canInteract(player: String): Boolean =
     if (isServer) machine.canInteract(player)
     else !Settings.get.canComputersBeOwned || _users.isEmpty || _users.contains(player)
 
-  def isRunning = _isRunning
+  def isRunning: Boolean = _isRunning
 
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
@@ -69,7 +71,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _users ++= list
   }
 
-  override def getCurrentState = {
+  override def getCurrentState: util.EnumSet[api.util.StateAware.State] = {
     if (isRunning) util.EnumSet.of(api.util.StateAware.State.IsWorking)
     else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
@@ -77,16 +79,16 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
+    case slot if !getStackInSlot(slot).isEmpty && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
 
-  override def onMachineConnect(node: api.network.Node) = this.onConnect(node)
+  override def onMachineConnect(node: api.network.Node): Unit = this.onConnect(node)
 
-  override def onMachineDisconnect(node: api.network.Node) = this.onDisconnect(node)
+  override def onMachineDisconnect(node: api.network.Node): Unit = this.onDisconnect(node)
 
-  def hasRedstoneCard = items.exists {
-    case Some(item) => machine.isRunning && DriverRedstoneCard.worksWith(item, getClass)
+  def hasRedstoneCard: Boolean = items.exists {
+    case item if !item.isEmpty => machine.isRunning && DriverRedstoneCard.worksWith(item, getClass)
     case _ => false
   }
 
@@ -190,7 +192,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     }
   }
 
-  override def isUsableByPlayer(player: EntityPlayer) =
+  override def isUsableByPlayer(player: EntityPlayer): Boolean =
     super.isUsableByPlayer(player) && (player match {
       case fakePlayer: agent.Player => canInteract(fakePlayer.agent.ownerName())
       case _ => canInteract(player.getName)

@@ -7,6 +7,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
@@ -37,6 +38,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.world.GameType
 import net.minecraft.world.World
@@ -55,7 +57,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with DebugNode {
-  override val node = Network.newNode(this, Visibility.Neighbors).
+  override val node: ComponentConnector = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().
     create()
@@ -69,7 +71,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   // Player this card is bound to (if any) to use for permissions.
   implicit var access: Option[AccessContext] = None
 
-  def player = access.map(_.player)
+  def player: Option[String] = access.map(_.player)
 
   private lazy val CommandSender = {
     def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
@@ -289,7 +291,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 }
 
 object DebugCard {
-  def checkAccess()(implicit ctx: Option[AccessContext]) =
+  def checkAccess()(implicit ctx: Option[AccessContext]): Unit =
     for (msg <- Settings.get.debugCardAccess.checkAccess(ctx))
       throw new Exception(msg)
 
@@ -322,7 +324,7 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
-    def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
+    def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]): Array[AnyRef] = {
       checkAccess()
       FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList.getPlayerByUsername(name) match {
         case player: EntityPlayerMP => f(player)
@@ -436,8 +438,8 @@ object DebugCard {
   }
 
   class ScoreboardValue(world: Option[World])(implicit var ctx: Option[AccessContext]) extends prefab.AbstractValue {
-    var scoreboard = world.fold(null: Scoreboard)(_.getScoreboard)
-    var dimension = world.fold(0)(_.provider.getDimension)
+    var scoreboard: Scoreboard = world.fold(null: Scoreboard)(_.getScoreboard)
+    var dimension: Int = world.fold(0)(_.provider.getDimension)
 
     def this() = this(None)(None) // For loading.
 
@@ -520,7 +522,7 @@ object DebugCard {
       val name = args.checkString(0)
       val objective = scoreboard.getObjective(args.checkString(1))
       val score = scoreboard.getOrCreateScore(name, objective)
-      result(score.getScorePoints())
+      result(score.getScorePoints)
     }
 
     @Callback(doc = """function(playerName:string, objectiveName:string, score:int) - Increases the score of a player for a certain objective""")
@@ -782,7 +784,7 @@ object DebugCard {
           val slot = args.checkSlot(inventory, 3)
           val count = args.optInteger(4, 64)
           val removed = inventory.extractItem(slot, count, false)
-          if (removed == null) result(0)
+          if (removed.isEmpty) result(0)
           else result(removed.getCount)
         case _ => result(Unit, "no inventory")
       }
@@ -845,21 +847,21 @@ object DebugCard {
       messages = None
     }
 
-    override def getName = underlying.getName
+    override def getName: String = underlying.getName
 
-    override def getEntityWorld = host.world
+    override def getEntityWorld: World = host.world
 
     override def sendMessage(message: ITextComponent) {
       messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 
-    override def getDisplayName = underlying.getDisplayName
+    override def getDisplayName: ITextComponent = underlying.getDisplayName
 
-    override def setCommandStat(`type`: Type, amount: Int) = underlying.setCommandStat(`type`, amount)
+    override def setCommandStat(`type`: Type, amount: Int): Unit = underlying.setCommandStat(`type`, amount)
 
-    override def getPosition = underlying.getPosition
+    override def getPosition: BlockPos = underlying.getPosition
 
-    override def canUseCommand(level: Int, commandName: String) = {
+    override def canUseCommand(level: Int, commandName: String): Boolean = {
       val profile = underlying.getGameProfile
       val server = underlying.mcServer
       val config = server.getPlayerList
@@ -869,11 +871,11 @@ object DebugCard {
       }))
     }
 
-    override def getCommandSenderEntity = underlying
+    override def getCommandSenderEntity: EntityPlayerMP = underlying
 
-    override def getPositionVector = underlying.getPositionVector
+    override def getPositionVector: Vec3d = underlying.getPositionVector
 
-    override def sendCommandFeedback() = underlying.sendCommandFeedback()
+    override def sendCommandFeedback(): Boolean = underlying.sendCommandFeedback()
   }
 
   class TestValue extends AbstractValue {

@@ -35,7 +35,7 @@ object DriverBrewingStand extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && stack.getItem == Items.BREWING_STAND)
+      if (!stack.isEmpty && stack.getItem == Items.BREWING_STAND)
         classOf[Environment]
       else null
     }

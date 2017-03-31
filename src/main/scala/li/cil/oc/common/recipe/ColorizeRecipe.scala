@@ -16,8 +16,8 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
   def this(target: Block, source: Array[Item]) = this(Item.getItemFromBlock(target), source)
   def this(target: Block) = this(target, null)
 
-  val targetItem = target
-  val sourceItems = if (source != null) source else Array(targetItem)
+  val targetItem: Item = target
+  val sourceItems: Array[Item] = if (source != null) source else Array(targetItem)
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
@@ -40,7 +40,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
       } else {
         val dye = Color.findDye(stack)
         if (dye.isEmpty)
-          return null
+          return ItemStack.EMPTY
 
         val itemColor = EntitySheep.getDyeRgb(Color.byOreName(dye.get))
         val red = (itemColor(0) * 255.0F).toInt
@@ -54,7 +54,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
       }
     }
 
-    if (targetStack == null) return null
+    if (targetStack.isEmpty) return ItemStack.EMPTY
 
     if (targetItem == targetStack.getItem) {
       if (ItemColorizer.hasColor(targetStack)) {

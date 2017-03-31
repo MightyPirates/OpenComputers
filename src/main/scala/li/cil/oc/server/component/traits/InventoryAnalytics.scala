@@ -8,6 +8,7 @@ import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
@@ -35,7 +36,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     val localStack = inventory.getStackInSlot(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
-      val nonEmpty = database.getStackInSlot(dbSlot) != null
+      val nonEmpty = database.getStackInSlot(dbSlot) != ItemStack.EMPTY // zero size stacks!
       database.setStackInSlot(dbSlot, localStack.copy())
       result(nonEmpty)
     })

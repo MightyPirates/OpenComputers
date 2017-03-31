@@ -1,5 +1,6 @@
 package li.cil.oc.api.detail;
 
+import jline.internal.Nullable;
 import li.cil.oc.api.FileSystem;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
@@ -19,6 +20,7 @@ public interface ItemAPI {
      * @return the descriptor for the item with the specified name, or
      * <tt>null</tt> if there is no such item.
      */
+    @Nullable
     ItemInfo get(String name);
 
     /**
@@ -29,6 +31,7 @@ public interface ItemAPI {
      * @return the descriptor for the specified item stack, or <tt>null</tt>
      * if the stack is not a valid OpenComputers item or block.
      */
+    @Nullable
     ItemInfo get(ItemStack stack);
 
     /**

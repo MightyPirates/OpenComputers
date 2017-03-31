@@ -7,9 +7,6 @@ import com.google.common.base.Strings
 import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.prefab.DriverTileEntity
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.Callbacks
 import mezz.jei.api.IGuiHelper
 import mezz.jei.api.IModRegistry
@@ -36,21 +33,6 @@ object CallbackDocHandler {
   def getRecipes(registry: IModRegistry): util.List[_] = registry.getIngredientRegistry.getIngredients(classOf[ItemStack]).collect {
     case stack: ItemStack =>
       val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
-
-      // TODO remove in OC 1.7
-      if (callbacks.isEmpty) {
-        callbacks ++= (Option(Registry.driverFor(stack)) match {
-          case Some(driver: EnvironmentAware) =>
-            getCallbacks(driver.providedEnvironment(stack))
-          case _ => Registry.blocks.collect {
-            case driver: DriverTileEntity with EnvironmentAware =>
-              if (driver.getTileEntityClass != null && !driver.getTileEntityClass.isInterface)
-                driver.providedEnvironment(stack)
-              else null
-            case driver: EnvironmentAware => driver.providedEnvironment(stack)
-          }.filter(_ != null).flatMap(getCallbacks)
-        })
-      }
 
       if (callbacks.nonEmpty) {
         val pages = mutable.Buffer.empty[String]
@@ -94,16 +76,16 @@ object CallbackDocHandler {
   }
   else Seq.empty
 
-  protected def wrap(line: String, width: Int) = Minecraft.getMinecraft.fontRenderer.listFormattedStringToWidth(line, width)
+  protected def wrap(line: String, width: Int): util.List[String] = Minecraft.getMinecraft.fontRenderer.listFormattedStringToWidth(line, width)
 
   object CallbackDocRecipeHandler extends IRecipeHandler[CallbackDocRecipe] {
-    override def getRecipeWrapper(recipe: CallbackDocRecipe) = recipe
+    override def getRecipeWrapper(recipe: CallbackDocRecipe): CallbackDocRecipe = recipe
 
     override def getRecipeCategoryUid(recipe: CallbackDocRecipe): String = CallbackDocRecipeCategory.getUid
 
     override def isRecipeValid(recipe: CallbackDocRecipe) = true
 
-    override def getRecipeClass = classOf[CallbackDocRecipe]
+    override def getRecipeClass: Class[CallbackDocRecipe] = classOf[CallbackDocRecipe]
   }
 
   class CallbackDocRecipe(val stack: ItemStack, val page: String) extends BlankRecipeWrapper {

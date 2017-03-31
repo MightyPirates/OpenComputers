@@ -7,10 +7,11 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
+import li.cil.oc.api.driver.Item
+import li.cil.oc.api.driver.SidedBlock
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
@@ -24,6 +25,7 @@ import net.minecraftforge.items.IItemHandler
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.math.ScalaNumber
 
 /**
@@ -41,30 +43,20 @@ import scala.math.ScalaNumber
  * the computer, but may also provide context-free functions.
  */
 private[oc] object Registry extends api.detail.DriverAPI {
-  val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
+  val sidedBlocks: ArrayBuffer[SidedBlock] = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
 
-  val sidedBlocks = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
+  val items: ArrayBuffer[Item] = mutable.ArrayBuffer.empty[api.driver.Item]
 
-  val items = mutable.ArrayBuffer.empty[api.driver.Item]
+  val converters: ArrayBuffer[Converter] = mutable.ArrayBuffer.empty[api.driver.Converter]
 
-  val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
+  val environmentProviders: ArrayBuffer[EnvironmentProvider] = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
 
-  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+  val inventoryProviders: ArrayBuffer[InventoryProvider] = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
 
-  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
-
-  val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
+  val blacklist: ArrayBuffer[(ItemStack, mutable.Set[Class[_]])] = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
-
-  override def add(driver: api.driver.Block) {
-    if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) {
-      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
-      blocks += driver
-    }
-  }
 
   override def add(driver: api.driver.SidedBlock) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
@@ -106,26 +98,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  // TODO Remove in OC 1.7
-  override def driverFor(world: World, pos: BlockPos) = {
-    driverFor(world, pos, null) match {
-      case driver: api.driver.SidedBlock => new api.driver.Block {
-        override def worksWith(world: World, pos: BlockPos): Boolean = driver.worksWith(world, pos, null)
-
-        override def createEnvironment(world: World, pos: BlockPos): ManagedEnvironment = driver.createEnvironment(world, pos, null)
-      }
-      case _ => null
-    }
-  }
-
   override def driverFor(world: World, pos: BlockPos, side: EnumFacing): api.driver.SidedBlock =
-    (sidedBlocks.filter(_.worksWith(world, pos, side)), blocks.filter(_.worksWith(world, pos))) match {
-      case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
+    sidedBlocks.filter(_.worksWith(world, pos, side)) match {
+      case sidedDrivers if sidedDrivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray)
       case _ => null
     }
 
-  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    if (stack != null) {
+  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Item =
+    if (!stack.isEmpty) {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
       }
@@ -136,8 +116,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else null
 
-  override def driverFor(stack: ItemStack) =
-    if (stack != null) items.find(_.worksWith(stack)).orNull
+  override def driverFor(stack: ItemStack): Item =
+    if (!stack.isEmpty) items.find(_.worksWith(stack)).orNull
     else null
 
   @Deprecated
@@ -165,9 +145,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       }
   }
 
-  override def blockDrivers = blocks.toSeq
-
-  override def itemDrivers = items.toSeq
+  override def itemDrivers: util.List[Item] = items.toSeq
 
   def blacklistHost(stack: ItemStack, host: Class[_]) {
     blacklist.find(_._1.isItemEqual(stack)) match {
@@ -176,7 +154,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
+  def convert(value: Array[AnyRef]): Array[AnyRef] = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 
   def convertRecursively(value: Any, memo: util.IdentityHashMap[AnyRef, AnyRef], force: Boolean = false): AnyRef = {
     val valueRef = value match {
@@ -259,7 +237,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]) = {
+  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]): Array[AnyRef] = {
     val converted = mutable.ArrayBuffer.empty[AnyRef]
     memo += obj -> converted
     for ((value, index) <- list) {
@@ -268,7 +246,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     converted.toArray
   }
 
-  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]) = {
+  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]): AnyRef = {
     val converted = memo.getOrElseUpdate(obj, mutable.Map.empty[AnyRef, AnyRef]) match {
       case map: mutable.Map[AnyRef, AnyRef]@unchecked => map
       case map: java.util.Map[AnyRef, AnyRef]@unchecked => mapAsScalaMap(map)

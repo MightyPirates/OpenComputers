@@ -24,33 +24,33 @@ trait SimpleInventory extends IInventory {
     if (slot >= 0 && slot < getSizeInventory) {
       (getStackInSlot(slot) match {
         case stack: ItemStack if stack.getCount - amount < getInventoryStackRequired =>
-          setInventorySlotContents(slot, null)
+          setInventorySlotContents(slot, ItemStack.EMPTY)
           stack
         case stack: ItemStack =>
           val result = stack.splitStack(amount)
           markDirty()
           result
-        case _ => null
+        case _ => ItemStack.EMPTY
       }) match {
         case stack: ItemStack if stack.getCount > 0 => stack
-        case _ => null
+        case _ => ItemStack.EMPTY
       }
     }
-    else null
+    else ItemStack.EMPTY
   }
 
   override def removeStackFromSlot(slot: Int) = {
     if (slot >= 0 && slot < getSizeInventory) {
       val stack = getStackInSlot(slot)
-      setInventorySlotContents(slot, null)
+      setInventorySlotContents(slot, ItemStack.EMPTY)
       stack
     }
-    else null
+    else ItemStack.EMPTY
   }
 
   override def clear(): Unit = {
     for (slot <- 0 until getSizeInventory) {
-      setInventorySlotContents(slot, null)
+      setInventorySlotContents(slot, ItemStack.EMPTY)
     }
   }
 

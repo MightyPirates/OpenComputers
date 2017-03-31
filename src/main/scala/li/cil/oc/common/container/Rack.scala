@@ -18,7 +18,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   addPlayerInventorySlots(8, 128)
 
   final val MaxConnections = 4
-  val nodePresence = Array.fill(4)(Array.fill(4)(false))
+  val nodePresence: Array[Array[Boolean]] = Array.fill(4)(Array.fill(4)(false))
 
   override def updateCustomData(nbt: NBTTagCompound): Unit = {
     super.updateCustomData(nbt)

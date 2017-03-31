@@ -5,6 +5,8 @@ import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 
+import scala.collection.immutable
+
 trait InventoryAware {
   def fakePlayer: EntityPlayer
 
@@ -14,11 +16,11 @@ trait InventoryAware {
 
   def selectedSlot_=(value: Int): Unit
 
-  def insertionSlots = (selectedSlot until inventory.getSizeInventory) ++ (0 until selectedSlot)
+  def insertionSlots: immutable.IndexedSeq[Int] = (selectedSlot until inventory.getSizeInventory) ++ (0 until selectedSlot)
 
   // ----------------------------------------------------------------------- //
 
-  protected def optSlot(args: Arguments, n: Int) =
+  protected def optSlot(args: Arguments, n: Int): Int =
     if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
     else selectedSlot
 

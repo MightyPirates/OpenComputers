@@ -1,7 +1,6 @@
 package li.cil.oc.common.item.traits
 
 import java.util
-import javax.annotation.Nonnull
 
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -16,6 +15,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.EnumActionResult
@@ -29,7 +29,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait Delegate {
   def parent: Delegator
 
-  def unlocalizedName = getClass.getSimpleName
+  def unlocalizedName: String = getClass.getSimpleName
 
   protected def tooltipName = Option(unlocalizedName)
 
@@ -37,7 +37,7 @@ trait Delegate {
 
   var showInItemList = true
 
-  val itemId = parent.add(this)
+  val itemId: Int = parent.add(this)
 
   def maxStackSize = 64
 
@@ -65,9 +65,9 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def rarity(stack: ItemStack) = Rarity.byTier(tierFromDriver(stack))
+  def rarity(stack: ItemStack): EnumRarity = Rarity.byTier(tierFromDriver(stack))
 
-  protected def tierFromDriver(stack: ItemStack) =
+  protected def tierFromDriver(stack: ItemStack): Int =
     api.Driver.driverFor(stack) match {
       case driver: api.driver.Item => driver.tier(stack)
       case _ => 0

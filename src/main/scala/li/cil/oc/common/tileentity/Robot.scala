@@ -22,6 +22,7 @@ import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.agent
+import li.cil.oc.server.agent.Player
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -64,7 +65,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   val info = new RobotData()
 
-  val bot = if (isServer) new component.Robot(this) else null
+  val bot: component.Robot = if (isServer) new component.Robot(this) else null
 
   if (isServer) {
     machine.setCostPerTick(Settings.get.robotCost)
@@ -80,30 +81,30 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       super.getCapability(capability, facing)
   }
 
-  override def tier = info.tier
+  override def tier: Int = info.tier
 
-  def isCreative = tier == Tier.Four
+  def isCreative: Boolean = tier == Tier.Four
 
   val equipmentInventory = new InventoryProxy {
-    override def inventory = Robot.this
+    override def inventory: Robot = Robot.this
 
     override def getSizeInventory = 4
   }
 
   // Wrapper for the part of the inventory that is mutable.
   val mainInventory = new InventoryProxy {
-    override def inventory = Robot.this
+    override def inventory: Robot = Robot.this
 
-    override def getSizeInventory = Robot.this.inventorySize
+    override def getSizeInventory: Int = Robot.this.inventorySize
 
-    override def offset = equipmentInventory.getSizeInventory
+    override def offset: Int = equipmentInventory.getSizeInventory
   }
 
   val actualInventorySize = 100
 
-  def maxInventorySize = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
+  def maxInventorySize: Int = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
 
-  var inventorySize = -1
+  var inventorySize: Int = -1
 
   var selectedSlot = 0
 
@@ -115,9 +116,9 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   val tank = new internal.MultiTank {
-    override def tankCount = Robot.this.tankCount
+    override def tankCount: Int = Robot.this.tankCount
 
-    override def getFluidTank(index: Int) = Robot.this.getFluidTank(index)
+    override def getFluidTank(index: Int): ManagedEnvironment with IFluidTank = Robot.this.getFluidTank(index)
   }
 
   var selectedTank = 0
@@ -127,16 +128,16 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   // For client.
   var renderingErrored = false
 
-  override def componentCount = info.components.length
+  override def componentCount: Int = info.components.length
 
-  override def getComponentInSlot(index: Int) = components(index).orNull
+  override def getComponentInSlot(index: Int): ManagedEnvironment = components(index).orNull
 
-  override def player = {
+  override def player: Player = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
     player_
   }
 
-  override def synchronizeSlot(slot: Int) = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
+  override def synchronizeSlot(slot: Int): Unit = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
     val stack = getStackInSlot(slot)
     components(slot) match {
       case Some(component) =>
@@ -147,9 +148,9 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     ServerPacketSender.sendRobotInventory(this, slot, stack)
   }
 
-  def containerSlots = 1 to info.containers.length
+  def containerSlots: Range.Inclusive = 1 to info.containers.length
 
-  def componentSlots = getSizeInventory - componentCount until getSizeInventory
+  def componentSlots: Range = getSizeInventory - componentCount until getSizeInventory
 
   def inventorySlots: Range = equipmentInventory.getSizeInventory until (equipmentInventory.getSizeInventory + mainInventory.getSizeInventory)
 
@@ -158,19 +159,19 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     ServerPacketSender.sendRobotLightChange(this)
   }
 
-  override def shouldAnimate = isRunning
+  override def shouldAnimate: Boolean = isRunning
 
   // ----------------------------------------------------------------------- //
 
-  override def node = if (isServer) machine.node else null
+  override def node: Node = if (isServer) machine.node else null
 
   var globalBuffer, globalBufferSize = 0.0
 
   val maxComponents = 32
 
-  var ownerName = Settings.get.fakePlayerName
+  var ownerName: String = Settings.get.fakePlayerName
 
-  var ownerUUID = Settings.get.fakePlayerProfile.getId
+  var ownerUUID: UUID = Settings.get.fakePlayerProfile.getId
 
   var animationTicksLeft = 0
 
@@ -188,11 +189,11 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def name = info.name
+  override def name: String = info.name
 
   override def setName(name: String): Unit = info.name = name
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     player.sendMessage(Localization.Analyzer.RobotOwner(ownerName))
     player.sendMessage(Localization.Analyzer.RobotName(player_.getName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
@@ -280,18 +281,18 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  def isAnimatingMove = animationTicksLeft > 0 && moveFrom.isDefined
+  def isAnimatingMove: Boolean = animationTicksLeft > 0 && moveFrom.isDefined
 
-  def isAnimatingSwing = animationTicksLeft > 0 && swingingTool
+  def isAnimatingSwing: Boolean = animationTicksLeft > 0 && swingingTool
 
-  def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
+  def isAnimatingTurn: Boolean = animationTicksLeft > 0 && turnAxis != 0
 
-  def animateSwing(duration: Double) = if (items(0).isDefined) {
+  def animateSwing(duration: Double): Unit = if (!items(0).isEmpty) {
     setAnimateSwing((duration * 20).toInt)
     ServerPacketSender.sendRobotAnimateSwing(this)
   }
 
-  def animateTurn(clockwise: Boolean, duration: Double) = {
+  def animateTurn(clockwise: Boolean, duration: Double): Unit = {
     setAnimateTurn(if (clockwise) 1 else -1, (duration * 20).toInt)
     ServerPacketSender.sendRobotAnimateTurn(this)
   }
@@ -325,7 +326,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def shouldRenderInPass(pass: Int) = true
 
-  override def getRenderBoundingBox =
+  override def getRenderBoundingBox: AxisAlignedBB =
     if (getBlockType != null && getWorld != null)
       getBlockType.getCollisionBoundingBox(getWorld.getBlockState(getPos), getWorld, getPos).expand(0.5, 0.5, 0.5).offset(getPos)
     else
@@ -456,7 +457,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   // Side check for Waila (and other mods that may call this client side).
-  override def writeToNBTForServer(nbt: NBTTagCompound) = if (isServer) this.synchronized {
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = if (isServer) this.synchronized {
     info.save(nbt)
 
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
@@ -505,7 +506,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     connectComponents()
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
+  override def writeToNBTForClient(nbt: NBTTagCompound): Unit = this.synchronized {
     super.writeToNBTForClient(nbt)
     save(nbt)
     info.save(nbt)
@@ -634,9 +635,9 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  override def isComponentSlot(slot: Int, stack: ItemStack) = (containerSlots ++ componentSlots) contains slot
+  override def isComponentSlot(slot: Int, stack: ItemStack): Boolean = (containerSlots ++ componentSlots) contains slot
 
-  def containerSlotType(slot: Int) = if (containerSlots contains slot) {
+  def containerSlotType(slot: Int): String = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver: Container) => driver.providedSlot(stack)
@@ -645,7 +646,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
   else Slot.None
 
-  def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
+  def containerSlotTier(slot: Int): Int = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver: Container) => driver.providedTier(stack)
@@ -654,13 +655,13 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
   else Tier.None
 
-  def isToolSlot(slot: Int) = slot == 0
+  def isToolSlot(slot: Int): Boolean = slot == 0
 
-  def isContainerSlot(slot: Int) = containerSlots contains slot
+  def isContainerSlot(slot: Int): Boolean = containerSlots contains slot
 
-  def isInventorySlot(slot: Int) = inventorySlots contains slot
+  def isInventorySlot(slot: Int): Boolean = inventorySlots contains slot
 
-  def isFloppySlot(slot: Int) = getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) && {
+  def isFloppySlot(slot: Int): Boolean = !getStackInSlot(slot).isEmpty && isComponentSlot(slot, getStackInSlot(slot)) && {
     val stack = getStackInSlot(slot)
     Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver) => driver.slot(stack) == Slot.Floppy
@@ -668,13 +669,13 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
+  def isUpgradeSlot(slot: Int): Boolean = containerSlotType(slot) == Slot.Upgrade
 
   // ----------------------------------------------------------------------- //
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
+  override def hasRedstoneCard: Boolean = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
 
   private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
@@ -686,7 +687,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   private var updatingInventorySize = false
 
-  def updateInventorySize() = this.synchronized(if (!updatingInventorySize) try {
+  def updateInventorySize(): Unit = this.synchronized(if (!updatingInventorySize) try {
     updatingInventorySize = true
     val newInventorySize = computeInventorySize()
     if (newInventorySize != inventorySize) {
@@ -696,8 +697,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       val removed = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- realSize until getSizeInventory - componentCount) {
         val stack = getStackInSlot(slot)
-        setInventorySlotContents(slot, null)
-        if (stack != null) removed += stack
+        setInventorySlotContents(slot, ItemStack.EMPTY)
+        if (!stack.isEmpty) removed += stack
       }
       val copyComponentCount = math.min(getSizeInventory, componentCount)
       Array.copy(components, getSizeInventory - copyComponentCount, components, realSize, copyComponentCount)
@@ -720,11 +721,11 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  var getSizeInventory = actualInventorySize
+  var getSizeInventory: Int = actualInventorySize
 
   override def getInventoryStackLimit = 64
 
-  override def getStackInSlot(slot: Int) = {
+  override def getStackInSlot(slot: Int): ItemStack = {
     if (slot >= getSizeInventory) null // Required to always show 16 inventory slots in GUI.
     else if (slot >= getSizeInventory - componentCount) {
       info.components(slot - (getSizeInventory - componentCount))
@@ -733,8 +734,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
-    if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
-      if (stack != null && stack.getCount > 1 && isComponentSlot(slot, stack)) {
+    if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack.isEmpty)) {
+      if (!stack.isEmpty && stack.getCount > 1 && isComponentSlot(slot, stack)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.getCount > 0 && isServer) {
           player().inventory.addItemStackToInventory(stack)
@@ -743,13 +744,13 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.getCount > 0 && !getWorld.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
+    else if (!stack.isEmpty && stack.getCount > 0 && !getWorld.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
 
-  override def isUsableByPlayer(player: EntityPlayer) =
+  override def isUsableByPlayer(player: EntityPlayer): Boolean =
     super.isUsableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (i, Some(driver)) if isContainerSlot(i) =>
       // Yay special cases! Dynamic screens kind of work, but are pretty derpy
@@ -769,10 +770,10 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]) =
+  override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]): Boolean =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), mainInventory, slot, count, direction)
 
-  override def dropAllSlots() = {
+  override def dropAllSlots(): Unit = {
     InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), this, 0, Int.MaxValue)
     for (slot <- containerSlots) {
       InventoryUtils.dropSlot(BlockPosition(x, y, z, getWorld), this, slot, Int.MaxValue)
@@ -782,14 +783,14 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing) =
+  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean =
     getSlotsForFace(side).contains(slot)
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing) =
+  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean =
     getSlotsForFace(side).contains(slot) &&
       isItemValidForSlot(slot, stack)
 
-  override def getSlotsForFace(side: EnumFacing) =
+  override def getSlotsForFace(side: EnumFacing): Array[Int] =
     toLocal(side) match {
       case EnumFacing.WEST => Array(0) // Tool
       case EnumFacing.EAST => containerSlots.toArray
@@ -798,7 +799,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   // ----------------------------------------------------------------------- //
 
-  def tryGetTank(tank: Int) = {
+  def tryGetTank(tank: Int): Option[ManagedEnvironment with IFluidTank] = {
     val tanks = components.collect {
       case Some(tank: IFluidTank) => tank
     }
@@ -806,30 +807,30 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     else Option(tanks(tank))
   }
 
-  def tankCount = components.count {
+  def tankCount: Int = components.count {
     case Some(tank: IFluidTank) => true
     case _ => false
   }
 
-  def getFluidTank(tank: Int) = tryGetTank(tank).orNull
+  def getFluidTank(tank: Int): ManagedEnvironment with IFluidTank = tryGetTank(tank).orNull
 
   // ----------------------------------------------------------------------- //
 
-  override def fill(resource: FluidStack, doFill: Boolean) =
+  override def fill(resource: FluidStack, doFill: Boolean): Int =
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.fill(resource, doFill)
       case _ => 0
     }
 
-  override def drain(resource: FluidStack, doDrain: Boolean) =
+  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack =
     tryGetTank(selectedTank) match {
       case Some(t) if t.getFluid != null && t.getFluid.isFluidEqual(resource) =>
         t.drain(resource.amount, doDrain)
       case _ => null
     }
 
-  override def drain(maxDrain: Int, doDrain: Boolean) = {
+  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = {
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.drain(maxDrain, doDrain)
@@ -837,7 +838,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  def canFill(fluid: Fluid) = {
+  def canFill(fluid: Fluid): Boolean = {
     tryGetTank(selectedTank) match {
       case Some(t) => t.getFluid == null || t.getFluid.getFluid == fluid
       case _ => false
@@ -851,7 +852,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  override def getTankProperties = FluidTankProperties.convert(components.collect {
+  override def getTankProperties: Array[IFluidTankProperties] = FluidTankProperties.convert(components.collect {
     case Some(t: IFluidTank) => t.getInfo
   }).map(_.asInstanceOf[IFluidTankProperties])
 }

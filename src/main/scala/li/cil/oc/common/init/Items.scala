@@ -1,6 +1,5 @@
 package li.cil.oc.common.init
 
-import java.util
 import java.util.concurrent.Callable
 
 import li.cil.oc.Constants
@@ -23,7 +22,6 @@ import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.EnumDyeColor
@@ -36,6 +34,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.registry.GameRegistry
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 object Items extends ItemAPI {
   val descriptors = mutable.Map.empty[String, ItemInfo]
@@ -48,12 +47,12 @@ object Items extends ItemAPI {
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
-  override def get(stack: ItemStack) = names.get(getBlockOrItem(stack)) match {
+  override def get(stack: ItemStack): ItemInfo = names.get(getBlockOrItem(stack)) match {
     case Some(name) => get(name)
     case _ => null
   }
 
-  def registerBlock[T <: Block](instance: T, id: String) = {
+  def registerBlock[T <: Block](instance: T, id: String): T = {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleBlock =>
@@ -70,13 +69,13 @@ object Items extends ItemAPI {
         case _ =>
       }
       descriptors += id -> new ItemInfo {
-        override def name = id
+        override def name: String = id
 
-        override def block = instance
+        override def block: T = instance
 
         override def item = null
 
-        override def createItemStack(size: Int) = instance match {
+        override def createItemStack(size: Int): ItemStack = instance match {
           case simple: SimpleBlock => simple.createItemStack(size)
           case _ => new ItemStack(instance, size)
         }
@@ -86,24 +85,24 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerItem[T <: Delegate](delegate: T, id: String) = {
+  def registerItem[T <: Delegate](delegate: T, id: String): T = {
     if (!descriptors.contains(id)) {
       OpenComputers.proxy.registerModel(delegate, id)
       descriptors += id -> new ItemInfo {
-        override def name = id
+        override def name: String = id
 
         override def block = null
 
-        override def item = delegate.parent
+        override def item: Delegator = delegate.parent
 
-        override def createItemStack(size: Int) = delegate.createItemStack(size)
+        override def createItemStack(size: Int): ItemStack = delegate.createItemStack(size)
       }
       names += delegate -> id
     }
     delegate
   }
 
-  def registerItem(instance: Item, id: String) = {
+  def registerItem(instance: Item, id: String): Item = {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleItem =>
@@ -113,13 +112,13 @@ object Items extends ItemAPI {
         case _ =>
       }
       descriptors += id -> new ItemInfo {
-        override def name = id
+        override def name: String = id
 
         override def block = null
 
-        override def item = instance
+        override def item: Item = instance
 
-        override def createItemStack(size: Int) = instance match {
+        override def createItemStack(size: Int): ItemStack = instance match {
           case simple: SimpleItem => simple.createItemStack(size)
           case _ => new ItemStack(instance, size)
         }
@@ -129,10 +128,10 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerStack(stack: ItemStack, id: String) = {
+  def registerStack(stack: ItemStack, id: String): ItemStack = {
     val immutableStack = stack.copy()
     descriptors += id -> new ItemInfo {
-      override def name = id
+      override def name: String = id
 
       override def block = null
 
@@ -142,13 +141,13 @@ object Items extends ItemAPI {
         copy
       }
 
-      override def item = immutableStack.getItem
+      override def item: Item = immutableStack.getItem
     }
     stack
   }
 
   private def getBlockOrItem(stack: ItemStack): Any =
-    if (stack == null) null
+    if (stack.isEmpty) null
     else Delegator.subItem(stack).getOrElse(stack.getItem match {
       case block: ItemBlock => block.getBlock
       case item => item
@@ -156,7 +155,7 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  val registeredItems = mutable.ArrayBuffer.empty[ItemStack]
+  val registeredItems: ArrayBuffer[ItemStack] = mutable.ArrayBuffer.empty[ItemStack]
 
   @Deprecated
   override def registerFloppy(name: String, color: EnumDyeColor, factory: Callable[FileSystem]): ItemStack =
@@ -198,7 +197,7 @@ object Items extends ItemAPI {
 
   private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
 
-  def createConfiguredDrone() = {
+  def createConfiguredDrone(): ItemStack = {
     val data = new DroneData()
 
     data.name = "Crecopter"
@@ -222,7 +221,7 @@ object Items extends ItemAPI {
     data.createItemStack()
   }
 
-  def createConfiguredMicrocontroller() = {
+  def createConfiguredMicrocontroller(): ItemStack = {
     val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
@@ -242,7 +241,7 @@ object Items extends ItemAPI {
     data.createItemStack()
   }
 
-  def createConfiguredRobot() = {
+  def createConfiguredRobot(): ItemStack = {
     val data = new RobotData()
 
     data.name = "Creatix"
@@ -283,39 +282,39 @@ object Items extends ItemAPI {
     data.createItemStack()
   }
 
-  def createConfiguredTablet() = {
+  def createConfiguredTablet(): ItemStack = {
     val data = new TabletData()
 
     data.tier = Tier.Four
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
-      Option(safeGetStack(Constants.BlockName.ScreenTier1)),
-      Option(safeGetStack(Constants.BlockName.Keyboard)),
+      safeGetStack(Constants.BlockName.ScreenTier1),
+      safeGetStack(Constants.BlockName.Keyboard),
 
-      Option(safeGetStack(Constants.ItemName.SignUpgrade)),
-      Option(safeGetStack(Constants.ItemName.PistonUpgrade)),
-      Option(safeGetStack(Constants.BlockName.Geolyzer)),
-      Option(safeGetStack(Constants.ItemName.NavigationUpgrade)),
+      safeGetStack(Constants.ItemName.SignUpgrade),
+      safeGetStack(Constants.ItemName.PistonUpgrade),
+      safeGetStack(Constants.BlockName.Geolyzer),
+      safeGetStack(Constants.ItemName.NavigationUpgrade),
 
-      Option(safeGetStack(Constants.ItemName.GraphicsCardTier2)),
-      Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
-      Option(safeGetStack(Constants.ItemName.WirelessNetworkCard)),
+      safeGetStack(Constants.ItemName.GraphicsCardTier2),
+      safeGetStack(Constants.ItemName.RedstoneCardTier2),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
 
-      Option(safeGetStack(Constants.ItemName.CPUTier3)),
-      Option(safeGetStack(Constants.ItemName.RAMTier6)),
-      Option(safeGetStack(Constants.ItemName.RAMTier6)),
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6),
 
-      Option(safeGetStack(Constants.ItemName.LuaBios)),
-      Option(safeGetStack(Constants.ItemName.HDDTier3))
-    ).padTo(32, None)
-    data.items(31) = Option(safeGetStack(Constants.ItemName.OpenOS))
-    data.container = Option(safeGetStack(Constants.BlockName.DiskDrive))
+      safeGetStack(Constants.ItemName.LuaBios),
+      safeGetStack(Constants.ItemName.HDDTier3)
+    ).padTo(32, ItemStack.EMPTY)
+    data.items(31) = safeGetStack(Constants.ItemName.OpenOS)
+    data.container = safeGetStack(Constants.BlockName.DiskDrive)
 
     data.createItemStack()
   }
 
-  def createChargedHoverBoots() = {
+  def createChargedHoverBoots(): ItemStack = {
     val data = new HoverBootsData()
     data.charge = Settings.get.bufferHoverBoots
 

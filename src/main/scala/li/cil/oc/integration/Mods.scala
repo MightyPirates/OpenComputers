@@ -4,20 +4,22 @@ import li.cil.oc.Settings
 import li.cil.oc.integration
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.ModAPIManager
+import net.minecraftforge.fml.common.versioning.ArtifactVersion
 import net.minecraftforge.fml.common.versioning.VersionParser
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 object Mods {
   private val handlers = mutable.Set.empty[ModProxy]
 
   private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
-  lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
+  lazy val isPowerProvidingModPresent: Boolean = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
   // ----------------------------------------------------------------------- //
 
-  def All = knownMods.clone()
+  def All: ArrayBuffer[ModBase] = knownMods.clone()
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -58,9 +60,9 @@ object Mods {
 
   object IDs {
     final val Forestry = "forestry"
-    final val JustEnoughItems = "JEI"
-    final val Minecraft = "Minecraft"
-    final val OpenComputers = "OpenComputers"
+    final val JustEnoughItems = "jei"
+    final val Minecraft = "minecraft"
+    final val OpenComputers = "opencomputers"
     final val TIS3D = "tis3d"
   }
 
@@ -71,23 +73,23 @@ object Mods {
 
     private var powerDisabled = false
 
-    protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
+    protected lazy val isPowerModEnabled: Boolean = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
 
     def isModAvailable: Boolean
 
     def id: String
 
-    def isAvailable = !powerDisabled && isModAvailable && isPowerModEnabled
+    def isAvailable: Boolean = !powerDisabled && isModAvailable && isPowerModEnabled
 
     def providesPower: Boolean = false
 
     // This is called from the class transformer when injecting an interface of
     // this power type fails, to avoid class not found / class cast exceptions.
-    def disablePower() = powerDisabled = true
+    def disablePower(): Unit = powerDisabled = true
 
     def container = Option(Loader.instance.getIndexedModList.get(id))
 
-    def version = container.map(_.getProcessedVersion)
+    def version: Option[ArtifactVersion] = container.map(_.getProcessedVersion)
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
@@ -98,7 +100,7 @@ object Mods {
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
 
-    def isModAvailable = isModAvailable_
+    def isModAvailable: Boolean = isModAvailable_
   }
 
   class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean = false) extends ModBase {
@@ -106,7 +108,7 @@ object Mods {
       case _: Throwable => false
     })
 
-    def isModAvailable = isModAvailable_
+    def isModAvailable: Boolean = isModAvailable_
   }
 
 }

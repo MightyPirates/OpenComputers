@@ -315,7 +315,7 @@ object EventHandler {
 
     didRecraft = recraft(e, tablet, stack => {
       // Restore EEPROM currently used in tablet.
-      new TabletData(stack).items.collect { case Some(item) => item }.find(api.Items.get(_) == eeprom)
+      new TabletData(stack).items.collect { case item if !item.isEmpty => item }.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?

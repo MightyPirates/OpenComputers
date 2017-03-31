@@ -59,7 +59,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   override def markDirty() {
     super.markDirty()
     // Makes the implementation of the comparator output easier.
-    items.map(_.isDefined).copyToArray(presence)
+    items.map(!_.isEmpty).copyToArray(presence)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
@@ -77,7 +77,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   }
 
   def tryCreateRaid(id: String) {
-    if (items.count(_.isDefined) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
+    if (items.count(!_.isEmpty) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
       filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
@@ -95,7 +95,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   }
 
   private def wipeDisksAndComputeSpace = items.foldLeft(0L) {
-    case (acc, Some(hdd)) => acc + (Option(api.Driver.driverFor(hdd)) match {
+    case (acc, hdd) if !hdd.isEmpty => acc + (Option(api.Driver.driverFor(hdd)) match {
       case Some(driver) => driver.createEnvironment(hdd, this) match {
         case fs: FileSystem =>
           val nbt = driver.dataTag(hdd)
@@ -108,7 +108,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
       }
       case _ => 0L
     })
-    case (acc, None) => acc
+    case (acc, ItemStack.EMPTY) => acc
   }
 
   // ----------------------------------------------------------------------- //
@@ -144,7 +144,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setTag(PresenceTag, items.map(_.isDefined))
+    nbt.setTag(PresenceTag, items.map(!_.isEmpty))
     if (label.getLabel != null)
       nbt.setString(LabelTag, label.getLabel)
   }

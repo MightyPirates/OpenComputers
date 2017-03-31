@@ -6,9 +6,11 @@ import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
+import com.google.common.cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
+import com.google.common.collect.ImmutableMap
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
@@ -19,6 +21,7 @@ import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
+import li.cil.oc.api.machine
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Message
@@ -43,6 +46,7 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.integrated.IntegratedServer
@@ -77,20 +81,20 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
       if (components.length > 1) {
         tooltip.addAll(Tooltip.get("Server.Components"))
         components.collect {
-          case Some(component) => tooltip.add("- " + component.getDisplayName)
+          case component if !component.isEmpty => tooltip.add("- " + component.getDisplayName)
         }
       }
     }
   }
 
-  override def rarity(stack: ItemStack) = {
+  override def rarity(stack: ItemStack): EnumRarity = {
     val data = new TabletData(stack)
     Rarity.byTier(data.tier)
   }
 
   override def showDurabilityBar(stack: ItemStack) = true
 
-  override def durability(stack: ItemStack) = {
+  override def durability(stack: ItemStack): Double = {
     if (stack.hasTagCompound) {
       val data = new TabletData()
       data.load(stack.getTagCompound)
@@ -143,7 +147,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   // ----------------------------------------------------------------------- //
 
-  override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
+  override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean): Unit =
     entity match {
       case player: EntityPlayer =>
         // Play an audio cue to let players know when they finished analyzing a block.
@@ -229,13 +233,13 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.
-  val world = player.world
+  val world: World = player.world
 
-  lazy val machine = if (world.isRemote) null else Machine.create(this)
+  lazy val machine: api.machine.Machine = if (world.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet = if (world.isRemote) null else new component.Tablet(this)
+  val tablet: component.Tablet = if (world.isRemote) null else new component.Tablet(this)
 
   var autoSave = true
 
@@ -243,16 +247,16 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   private var lastRunning = false
 
-  def isCreative = data.tier == Tier.Four
+  def isCreative: Boolean = data.tier == Tier.Four
 
-  def items = data.items
+  def items: Array[ItemStack] = data.items
 
-  override def facing = RotationHelper.fromYaw(player.rotationYaw)
+  override def facing: EnumFacing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: EnumFacing) =
+  override def toLocal(value: EnumFacing): EnumFacing =
     RotationHelper.toLocal(EnumFacing.NORTH, facing, value)
 
-  override def toGlobal(value: EnumFacing) =
+  override def toGlobal(value: EnumFacing): EnumFacing =
     RotationHelper.toGlobal(EnumFacing.NORTH, facing, value)
 
   def readFromNBT() {
@@ -332,11 +336,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def onMessage(message: Message) {}
 
-  override def host = this
+  override def host: TabletWrapper = this
 
-  override def getSizeInventory = items.length
+  override def getSizeInventory: Int = items.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot == getSizeInventory - 1 && (Option(Driver.driverFor(stack, getClass)) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = slot == getSizeInventory - 1 && (Option(Driver.driverFor(stack, getClass)) match {
     case Some(driver) =>
       // Same special cases, similar as in robot, but allow keyboards,
       // because clip-on keyboards kinda seem to make sense, I guess.
@@ -346,7 +350,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case _ => false
   })
 
-  override def isUsableByPlayer(player: EntityPlayer) = machine != null && machine.canInteract(player.getName)
+  override def isUsableByPlayer(player: EntityPlayer): Boolean = machine != null && machine.canInteract(player.getName)
 
   override def markDirty(): Unit = {
     data.save(stack)
@@ -355,41 +359,43 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def xPosition = player.posX
+  override def xPosition: Double = player.posX
 
-  override def yPosition = player.posY + player.getEyeHeight
+  override def yPosition: Double = player.posY + player.getEyeHeight
 
-  override def zPosition = player.posZ
+  override def zPosition: Double = player.posZ
 
   override def markChanged() {}
 
   // ----------------------------------------------------------------------- //
 
-  def containerSlotType = data.container.fold(Slot.None)(stack =>
-    Option(Driver.driverFor(stack, getClass)) match {
+  def containerSlotType: String =
+    if (data.container.isEmpty) Slot.None
+    else Option(Driver.driverFor(data.container, getClass)) match {
       case Some(driver: Container) => driver.providedSlot(stack)
       case _ => Slot.None
-    })
+    }
 
-  def containerSlotTier = data.container.fold(Tier.None)(stack =>
-    Option(Driver.driverFor(stack, getClass)) match {
+  def containerSlotTier: Int =
+    if (data.container.isEmpty) Tier.None
+    else Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver: Container) => driver.providedTier(stack)
       case _ => Tier.None
-    })
+    }
 
   override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
+    case slot if !getStackInSlot(slot).isEmpty && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def onMachineConnect(node: Node) = onConnect(node)
+  override def onMachineConnect(node: Node): Unit = onConnect(node)
 
-  override def onMachineDisconnect(node: Node) = onDisconnect(node)
+  override def onMachineDisconnect(node: Node): Unit = onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
 
-  override def node = Option(machine).fold(null: Node)(_.node)
+  override def node: Node = Option(machine).fold(null: Node)(_.node)
 
   // ----------------------------------------------------------------------- //
 
@@ -442,7 +448,7 @@ object Tablet {
   // with storing context information for analyzing a block in the singleton.
   var currentlyAnalyzing: Option[(BlockPosition, EnumFacing, Float, Float, Float)] = None
 
-  def getId(stack: ItemStack) = {
+  def getId(stack: ItemStack): String = {
 
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
@@ -453,7 +459,7 @@ object Tablet {
     stack.getTagCompound.getString(Settings.namespace + "tablet")
   }
 
-  def get(stack: ItemStack, holder: EntityPlayer) = {
+  def get(stack: ItemStack, holder: EntityPlayer): TabletWrapper = {
     if (holder.world.isRemote) Client.get(stack, holder)
     else Server.get(stack, holder)
   }
@@ -488,7 +494,7 @@ object Tablet {
   }
 
   abstract class Cache extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
-    val cache = com.google.common.cache.CacheBuilder.newBuilder().
+    val cache: com.google.common.cache.Cache[String, TabletWrapper] = com.google.common.cache.CacheBuilder.newBuilder().
       expireAfterAccess(timeout, TimeUnit.SECONDS).
       removalListener(this).
       asInstanceOf[CacheBuilder[String, TabletWrapper]].
@@ -501,7 +507,7 @@ object Tablet {
 
     private var currentHolder: EntityPlayer = _
 
-    def get(stack: ItemStack, holder: EntityPlayer) = {
+    def get(stack: ItemStack, holder: EntityPlayer): TabletWrapper = {
       val id = getId(stack)
       cache.synchronized {
         currentStack = stack
@@ -524,7 +530,7 @@ object Tablet {
       }
     }
 
-    def call = {
+    def call: TabletWrapper = {
       new TabletWrapper(currentStack, currentHolder)
     }
 
@@ -553,7 +559,7 @@ object Tablet {
       cache.synchronized(cache.cleanUp())
     }
 
-    def keepAlive() = {
+    def keepAlive(): ImmutableMap[String, TabletWrapper] = {
       // Just touching to update last access time.
       cache.getAllPresent(asJavaIterable(cache.asMap.keys))
     }
@@ -562,7 +568,7 @@ object Tablet {
   object Client extends Cache {
     override protected def timeout = 5
 
-    def get(stack: ItemStack) = {
+    def get(stack: ItemStack): Option[TabletWrapper] = {
       if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
         val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
         cache.synchronized(Option(cache.getIfPresent(id)))

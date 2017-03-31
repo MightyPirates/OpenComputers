@@ -17,11 +17,11 @@ object Wrench {
 
   def addCheck(checker: Method): Unit = checks += checker
 
-  def isWrench(stack: ItemStack): Boolean = stack != null && checks.exists(IMC.tryInvokeStatic(_, stack)(false))
+  def isWrench(stack: ItemStack): Boolean = !stack.isEmpty && checks.exists(IMC.tryInvokeStatic(_, stack)(false))
 
   def holdsApplicableWrench(player: EntityPlayer, position: BlockPos): Boolean =
-    player.getHeldItemMainhand != null && usages.exists(IMC.tryInvokeStatic(_, player, position, java.lang.Boolean.FALSE)(false))
+    !player.getHeldItemMainhand.isEmpty && usages.exists(IMC.tryInvokeStatic(_, player, position, java.lang.Boolean.FALSE)(false))
 
   def wrenchUsed(player: EntityPlayer, position: BlockPos): Unit =
-    if (player.getHeldItemMainhand != null) usages.foreach(IMC.tryInvokeStaticVoid(_, player, position, java.lang.Boolean.TRUE))
+    if (!player.getHeldItemMainhand.isEmpty) usages.foreach(IMC.tryInvokeStaticVoid(_, player, position, java.lang.Boolean.TRUE))
 }

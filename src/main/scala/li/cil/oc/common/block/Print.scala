@@ -94,7 +94,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def shouldSideBeRendered(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
-  override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+  override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean =
     world.getTileEntity(pos) match {
       case print: tileentity.Print => print.isSideSolid(side)
       case _ => false
@@ -106,7 +106,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer): ItemStack = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print => print.data.createItemStack()
-      case _ => null
+      case _ => ItemStack.EMPTY
     }
   }
 

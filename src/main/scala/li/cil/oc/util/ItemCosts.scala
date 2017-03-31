@@ -150,7 +150,7 @@ object ItemCosts {
   // for example by components being assigned an address, which will break the
   // equals check.
   private def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) =
-    stack1 == stack2 || (stack1 != null && stack2 != null &&
+    stack1 == stack2 || (!stack1.isEmpty && !stack2.isEmpty &&
       stack1.getItem == stack2.getItem &&
       (stack1.getItemDamage == stack2.getItemDamage ||
         stack1.getItemDamage == OreDictionary.WILDCARD_VALUE ||

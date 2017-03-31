@@ -36,7 +36,7 @@ object DriverMobSpawner extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
+      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
         classOf[Environment]
       else null
     }

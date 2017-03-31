@@ -8,7 +8,9 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -25,15 +27,16 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.None).
+  val node: Connector = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
 
   var isActive = false
 
-  val queue = mutable.ArrayBuffer.empty[ItemStack]
+  val queue: ArrayBuffer[ItemStack] = mutable.ArrayBuffer.empty[ItemStack]
 
   var totalRequiredEnergy = 0.0
 
@@ -41,7 +44,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   var disassembleNextInstantly = false
 
-  def progress = if (queue.isEmpty) 0.0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
+  def progress: Double = if (queue.isEmpty) 0.0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
 
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
@@ -61,13 +64,13 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != EnumFacing.UP
+  override protected def hasConnector(side: EnumFacing): Boolean = side != EnumFacing.UP
 
   override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
-  override def energyThroughput = Settings.get.disassemblerRate
+  override def energyThroughput: Double = Settings.get.disassemblerRate
 
-  override def getCurrentState = {
+  override def getCurrentState: util.EnumSet[StateAware.State] = {
     if (isActive) util.EnumSet.of(api.util.StateAware.State.IsWorking)
     else if (queue.nonEmpty) util.EnumSet.of(api.util.StateAware.State.CanWork)
     else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
@@ -126,7 +129,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   }
 
   private def drop(stack: ItemStack) {
-    if (stack != null) {
+    if (!stack.isEmpty) {
       for (side <- EnumFacing.values if stack.getCount > 0) {
         InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), Some(side.getOpposite))
       }
@@ -175,12 +178,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(i: Int, stack: ItemStack) =
+  override def isItemValidForSlot(i: Int, stack: ItemStack): Boolean =
     allowDisassembling(stack) &&
       (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
         DisassemblerTemplates.select(stack).isDefined)
 
-  private def allowDisassembling(stack: ItemStack) = stack != null && (!stack.hasTagCompound || !stack.getTagCompound.getBoolean(Settings.namespace + "undisassemblable"))
+  private def allowDisassembling(stack: ItemStack) = !stack.isEmpty && (!stack.hasTagCompound || !stack.getTagCompound.getBoolean(Settings.namespace + "undisassemblable"))
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
     super.setInventorySlotContents(slot, stack)
@@ -191,7 +194,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def onSetInventorySlotContents(player: EntityPlayer, slot: Int, stack: ItemStack): Unit = {
     if (!getWorld.isRemote) {
-      disassembleNextInstantly = stack != null && slot == 0 && player.capabilities.isCreativeMode
+      disassembleNextInstantly = !stack.isEmpty && slot == 0 && player.capabilities.isCreativeMode
     }
   }
 }

@@ -75,5 +75,5 @@ object HoverBootsHandler {
     case _ => // Ignore.
   }
 
-  private def equippedArmor(player: EntityPlayer) = player.getArmorInventoryList.filter(_ != null)
+  private def equippedArmor(player: EntityPlayer) = player.getArmorInventoryList.filter(!_.isEmpty)
 }

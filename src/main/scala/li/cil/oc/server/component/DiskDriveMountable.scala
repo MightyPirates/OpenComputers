@@ -38,7 +38,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
-  def filesystemNode = components(0) match {
+  def filesystemNode: Option[Node] = components(0) match {
     case Some(environment) => Option(environment.node)
     case _ => None
   }
@@ -58,7 +58,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // ----------------------------------------------------------------------- //
   // Environment
 
-  override val node = api.Network.newNode(this, Visibility.Network).
+  override val node: Component = api.Network.newNode(this, Visibility.Network).
     withComponent("disk_drive").
     create()
 
@@ -71,7 +71,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
     val ejected = decrStackSize(0, 1)
-    if (ejected != null && ejected.getCount > 0) {
+    if (!ejected.isEmpty) {
       val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
       if (entity != null) {
         val vx = rack.facing.getFrontOffsetX * velocity
@@ -87,7 +87,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = filesystemNode.fold(null: Array[Node])(Array(_))
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
@@ -168,7 +168,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
 
   override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (player.isSneaking) {
-      val isDiskInDrive = getStackInSlot(0) != null
+      val isDiskInDrive = !getStackInSlot(0).isEmpty
       val isHoldingDisk = isItemValidForSlot(0, heldItem)
       if (isDiskInDrive) {
         if (!rack.world.isRemote) {

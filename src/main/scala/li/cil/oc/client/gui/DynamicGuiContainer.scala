@@ -93,7 +93,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     */
 
     if (Mods.JustEnoughItems.isAvailable) {
-      drawJEIHighlights()
+//      drawJEIHighlights()
     }
   }
 
@@ -129,7 +129,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   protected def drawSlotHighlight(slot: Slot) {
-    if (mc.player.inventory.getItemStack == null) slot match {
+    if (mc.player.inventory.getItemStack.isEmpty) slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None => // Ignore.
       case _ =>
         val currentIsInPlayerInventory = isInPlayerInventory(slot)
@@ -187,7 +187,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   override def onGuiClosed(): Unit = {
     super.onGuiClosed()
     if(Mods.JustEnoughItems.isAvailable) {
-      resetJEIHighlights()
+//      resetJEIHighlights()
     }
   }
 /* TODO NEI

@@ -1,6 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Charsets
+import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.network.Component
 //import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.Constants
 import li.cil.oc.Localization
@@ -33,10 +35,10 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Relay extends traits.SwitchLike with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
-  lazy final val WirelessNetworkCard = api.Items.get(Constants.ItemName.WirelessNetworkCard)
-  lazy final val LinkedCard = api.Items.get(Constants.ItemName.LinkedCard)
+  lazy final val WirelessNetworkCard: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCard)
+  lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
 
-  var strength = Settings.get.maxWirelessRange
+  var strength: Double = Settings.get.maxWirelessRange
 
   var isRepeater = true
 
@@ -46,7 +48,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   var tunnel = "creative"
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  val componentNodes: Array[Component] = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("relay").
     create())
 
@@ -55,12 +57,12 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = true
 
-  override protected def connector(side: EnumFacing) = sidedNode(side) match {
+  override protected def connector(side: EnumFacing): Option[Connector] = sidedNode(side) match {
     case connector: Connector => Option(connector)
     case _ => None
   }
 
-  override def energyThroughput = Settings.get.accessPointRate
+  override def energyThroughput: Double = Settings.get.accessPointRate
 
   // ----------------------------------------------------------------------- //
 
@@ -152,7 +154,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   // ----------------------------------------------------------------------- //
 
-  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
+  override protected def createNode(plug: Plug): Connector = api.Network.newNode(plug, Visibility.Network).
     withConnector(math.round(Settings.get.bufferAccessPoint)).
     create()
 
@@ -226,9 +228,9 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
   }
 
-  override def getSizeInventory = InventorySlots.relay.length
+  override def getSizeInventory: Int = InventorySlots.relay.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.relay(slot)
       val tierSatisfied = driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
@@ -244,8 +246,8 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    for (slot <- items.indices) items(slot) collect {
-      case stack => updateLimits(slot, stack)
+    for (slot <- items.indices) if (!items(slot).isEmpty) {
+      updateLimits(slot, items(slot))
     }
 
     if (nbt.hasKey(StrengthTag)) {
@@ -260,7 +262,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
     nbt.setDouble(StrengthTag, strength)
     nbt.setBoolean(IsRepeaterTag, isRepeater)

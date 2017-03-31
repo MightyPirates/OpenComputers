@@ -12,6 +12,8 @@ import li.cil.oc.api.Machine
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.Rack
+import li.cil.oc.api.machine
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
@@ -33,15 +35,16 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
+import net.minecraft.world.World
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
 
 import scala.collection.convert.WrapAsJava._
 
 class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
-  lazy val machine = Machine.create(this)
+  lazy val machine: api.machine.Machine = Machine.create(this)
 
-  val node = if (!rack.world.isRemote) machine.node else null
+  val node: Node = if (!rack.world.isRemote) machine.node else null
 
   var wasRunning = false
   var hadErrored = false
@@ -96,32 +99,32 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // MachineHost
 
   override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case i if getStackInSlot(i) != null && isComponentSlot(i, getStackInSlot(i)) => getStackInSlot(i)
+    case i if !getStackInSlot(i).isEmpty && isComponentSlot(i, getStackInSlot(i)) => getStackInSlot(i)
   }
 
-  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def onMachineConnect(node: Node) = onConnect(node)
+  override def onMachineConnect(node: Node): Unit = onConnect(node)
 
-  override def onMachineDisconnect(node: Node) = onDisconnect(node)
+  override def onMachineDisconnect(node: Node): Unit = onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
   // EnvironmentHost
 
-  override def xPosition = rack.xPosition
+  override def xPosition: Double = rack.xPosition
 
-  override def yPosition = rack.yPosition
+  override def yPosition: Double = rack.yPosition
 
-  override def zPosition = rack.zPosition
+  override def zPosition: Double = rack.zPosition
 
-  override def world = rack.world
+  override def world: World = rack.world
 
-  override def markChanged() = rack.markChanged()
+  override def markChanged(): Unit = rack.markChanged()
 
   // ----------------------------------------------------------------------- //
   // ServerInventory
 
-  override def tier = Delegator.subItem(container) match {
+  override def tier: Int = Delegator.subItem(container) match {
     case Some(server: item.Server) => server.tier
     case _ => 0
   }
@@ -131,12 +134,12 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
 
-  override def host = rack
+  override def host: Rack = rack
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory
 
-  override def container = rack.getStackInSlot(slot)
+  override def container: ItemStack = rack.getStackInSlot(slot)
 
   override protected def connectItemNode(node: Node) {
     if (node != null) {

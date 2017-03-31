@@ -86,7 +86,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
       return result(Unit, "max level")
     }
     val stack = host.mainInventory.getStackInSlot(host.selectedSlot)
-    if (stack == null || stack.getCount < 1) {
+    if (stack.isEmpty) {
       return result(Unit, "no item")
     }
     var xp = 0
@@ -104,7 +104,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
       }
     }
     val consumed = host.mainInventory().decrStackSize(host.selectedSlot, 1)
-    if (consumed == null || consumed.getCount < 1) {
+    if (consumed.isEmpty) {
       return result(Unit, "could not consume item")
     }
     addExperience(xp * Settings.get.constantXpGrowth)

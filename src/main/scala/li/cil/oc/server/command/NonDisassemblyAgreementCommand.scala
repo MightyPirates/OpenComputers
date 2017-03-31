@@ -19,7 +19,7 @@ object NonDisassemblyAgreementCommand extends SimpleCommand("oc_preventDisassemb
     source match {
       case player: EntityPlayer =>
         val stack = player.getHeldItemMainhand
-        if (stack != null) {
+        if (!stack.isEmpty) {
           if (!stack.hasTagCompound) {
             stack.setTagCompound(new NBTTagCompound())
           }

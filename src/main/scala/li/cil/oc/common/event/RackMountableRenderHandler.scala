@@ -37,7 +37,7 @@ object RackMountableRenderHandler {
 
       if (e.data.hasKey("disk")) {
         val stack = new ItemStack(e.data.getCompoundTag("disk"))
-        if (stack != null) {
+        if (!stack.isEmpty) {
           GlStateManager.pushMatrix()
           GlStateManager.scale(1, -1, 1)
           GlStateManager.translate(10 / 16f, -(3.5f + e.mountable * 3f) / 16f, -2 / 16f)

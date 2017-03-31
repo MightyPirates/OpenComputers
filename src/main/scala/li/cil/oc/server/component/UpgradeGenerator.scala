@@ -49,7 +49,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
   def insert(context: Context, args: Arguments): Array[AnyRef] = {
     val count = args.optInteger(0, 64)
     val stack = host.mainInventory.getStackInSlot(host.selectedSlot)
-    if (stack == null) return result(Unit, "selected slot is empty")
+    if (stack.isEmpty) return result(Unit, "selected slot is empty")
     if (!TileEntityFurnace.isItemFuel(stack)) {
       return result(Unit, "selected slot does not contain fuel")
     }
@@ -70,7 +70,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
         inventory = Some(stack.splitStack(math.min(stack.getCount, count)))
     }
     if (stack.getCount > 0) host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
-    else host.mainInventory.setInventorySlotContents(host.selectedSlot, null)
+    else host.mainInventory.setInventorySlotContents(host.selectedSlot, ItemStack.EMPTY)
     result(true)
   }
 

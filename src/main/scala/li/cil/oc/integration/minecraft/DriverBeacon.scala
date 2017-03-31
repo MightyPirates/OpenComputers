@@ -54,7 +54,7 @@ object DriverBeacon extends DriverSidedTileEntity {
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (stack != null && Block.getBlockFromItem(stack.getItem) == Blocks.BEACON)
+      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.BEACON)
         classOf[Environment]
       else null
     }

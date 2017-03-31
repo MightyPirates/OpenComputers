@@ -33,13 +33,13 @@ class DiskDrive extends SimpleBlock with traits.GUI {
 
   override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
     world.getTileEntity(pos) match {
-      case drive: tileentity.DiskDrive if drive.getStackInSlot(0) != null => 15
+      case drive: tileentity.DiskDrive if !drive.getStackInSlot(0).isEmpty => 15
       case _ => 0
     }
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
     if (player.isSneaking) world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive =>

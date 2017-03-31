@@ -46,7 +46,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
     }
   }
 
-  protected def distribute() = {
+  protected def distribute(): (Double, Double) = {
     var sumBuffer, sumSize = 0.0
     for (node <- connectors if isPrimary(node)) {
       sumBuffer += node.globalBuffer

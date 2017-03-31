@@ -38,11 +38,11 @@ object TabletTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory): Array[AnyRef] = {
-    val items = (1 until inventory.getSizeInventory).map(slot => Option(inventory.getStackInSlot(slot)))
+    val items = (1 until inventory.getSizeInventory).map(slot => inventory.getStackInSlot(slot))
     val data = new TabletData()
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
-    data.container = items.headOption.getOrElse(None)
-    data.items = Array(Option(api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1))) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(_.isDefined)
+    data.container = items.headOption.getOrElse(ItemStack.EMPTY)
+    data.items = Array(api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(!_.isEmpty)
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     val stack = api.Items.get(Constants.ItemName.Tablet).createItemStack(1)
@@ -57,9 +57,7 @@ object TabletTemplate extends Template {
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new TabletData(stack)
     val itemName = Constants.ItemName.TabletCase(info.tier)
-    (Array(api.Items.get(itemName).createItemStack(1), info.container.orNull) ++ info.items.collect {
-      case Some(item) => item
-    }.drop(1) /* Screen */).filter(_ != null)
+    (Array(api.Items.get(itemName).createItemStack(1), info.container) ++ info.items.filter(!_.isEmpty).drop(1) /* Screen */).filter(!_.isEmpty)
   }
 
   def register() {

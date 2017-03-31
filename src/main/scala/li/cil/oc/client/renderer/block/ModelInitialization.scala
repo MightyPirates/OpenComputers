@@ -86,13 +86,13 @@ object ModelInitialization {
 
     ModelLoader.setCustomModelResourceLocation(stack.getItem, stack.getMetadata, itemLocation)
     ModelLoader.setCustomStateMapper(block, new StateMapperBase {
-      override def getModelResourceLocation(state: IBlockState) = blockLocation
+      override def getModelResourceLocation(state: IBlockState): ModelResourceLocation = blockLocation
     })
   }
 
   private def registerItems(): Unit = {
     val meshDefinition = new ItemMeshDefinition {
-      override def getModelLocation(stack: ItemStack) = {
+      override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
         Option(api.Items.get(stack)) match {
           case Some(descriptor) =>
             val location = Settings.resourceDomain + ":" + descriptor.name()

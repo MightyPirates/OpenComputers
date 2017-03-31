@@ -34,16 +34,16 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object Recipes {
-  val list = mutable.LinkedHashMap.empty[ItemStack, String]
-  val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
+  val list: mutable.LinkedHashMap[ItemStack, String] = mutable.LinkedHashMap.empty[ItemStack, String]
+  val oreDictEntries: mutable.LinkedHashMap[String, ItemStack] = mutable.LinkedHashMap.empty[String, ItemStack]
   var hadErrors = false
-  val recipeHandlers = mutable.LinkedHashMap.empty[String, (ItemStack, Config) => Unit]
+  val recipeHandlers: mutable.LinkedHashMap[String, (ItemStack, Config) => Unit] = mutable.LinkedHashMap.empty[String, (ItemStack, Config) => Unit]
 
   def registerRecipeHandler(name: String, recipe: (ItemStack, Config) => Unit): Unit = {
     recipeHandlers += name -> recipe
   }
 
-  def addBlock(instance: Block, name: String, oreDict: String*) = {
+  def addBlock(instance: Block, name: String, oreDict: String*): Block = {
     Items.registerBlock(instance, name)
     addRecipe(new ItemStack(instance), name)
     register(instance match {
@@ -53,14 +53,14 @@ object Recipes {
     instance
   }
 
-  def addSubItem[T <: Delegate](delegate: T, name: String, oreDict: String*) = {
+  def addSubItem[T <: Delegate](delegate: T, name: String, oreDict: String*): T = {
     Items.registerItem(delegate, name)
     addRecipe(delegate.createItemStack(), name)
     register(delegate.createItemStack(), oreDict: _*)
     delegate
   }
 
-  def addItem(instance: Item, name: String, oreDict: String*) = {
+  def addItem(instance: Item, name: String, oreDict: String*): Item = {
     Items.registerItem(instance, name)
     addRecipe(new ItemStack(instance), name)
     register(instance match {
@@ -70,7 +70,7 @@ object Recipes {
     instance
   }
 
-  def addSubItem[T <: common.item.traits.Delegate](delegate: T, name: String, registerRecipe: Boolean, oreDict: String*) = {
+  def addSubItem[T <: common.item.traits.Delegate](delegate: T, name: String, registerRecipe: Boolean, oreDict: String*): T = {
     Items.registerItem(delegate, name)
     if (registerRecipe) {
       addRecipe(delegate.createItemStack(), name)
@@ -82,7 +82,7 @@ object Recipes {
     delegate
   }
 
-  def addStack(stack: ItemStack, name: String, oreDict: String*) = {
+  def addStack(stack: ItemStack, name: String, oreDict: String*): ItemStack = {
     Items.registerStack(stack, name)
     addRecipe(stack, name)
     register(stack, oreDict: _*)
@@ -130,14 +130,14 @@ object Recipes {
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
           var fallback: ConfigIncluder = _
 
-          override def withFallback(fallback: ConfigIncluder) = {
+          override def withFallback(fallback: ConfigIncluder): ConfigIncluder = {
             this.fallback = fallback
             this
           }
 
-          override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
+          override def include(context: ConfigIncludeContext, what: String): ConfigObject = fallback.include(context, what)
 
-          override def includeFile(context: ConfigIncludeContext, what: File) = {
+          override def includeFile(context: ConfigIncludeContext, what: File): ConfigObject = {
             val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
             val result = ConfigFactory.parseReader(in, config)
             in.close()
@@ -376,7 +376,7 @@ object Recipes {
       hadErrors = true
   }
 
-  def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
+  def tryGetCount(recipe: Config): Int = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
   def parseIngredient(entry: AnyRef): AnyRef = entry match {
     case map: java.util.Map[AnyRef, AnyRef]@unchecked =>

@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -26,7 +27,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 
 class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node: ComponentConnector = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
     create()
@@ -59,11 +60,11 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = side != EnumFacing.UP
+  override def canConnect(side: EnumFacing): Boolean = side != EnumFacing.UP
 
-  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
+  override def sidedNode(side: EnumFacing): ComponentConnector = if (side != EnumFacing.UP) node else null
 
-  override def getCurrentState = {
+  override def getCurrentState: util.EnumSet[StateAware.State] = {
     if (isPrinting) util.EnumSet.of(api.util.StateAware.State.IsWorking)
     else if (canPrint) util.EnumSet.of(api.util.StateAware.State.CanWork)
     else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
@@ -71,13 +72,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint: Boolean = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
 
-  def isPrinting = output.isDefined
+  def isPrinting: Boolean = output.isDefined
 
-  def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
+  def progress: Double = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
-  def timeRemaining = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+  def timeRemaining: Int = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
 
   // ----------------------------------------------------------------------- //
 
@@ -234,7 +235,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     def canMergeOutput = {
       val presentStack = getStackInSlot(slotOutput)
       val outputStack = data.createItemStack()
-      presentStack == null || (presentStack.isItemEqual(outputStack) && ItemStack.areItemStackTagsEqual(presentStack, outputStack))
+      presentStack.isEmpty || (presentStack.isItemEqual(outputStack) && ItemStack.areItemStackTagsEqual(presentStack, outputStack))
     }
 
     if (isActive && output.isEmpty && canMergeOutput) {
@@ -263,7 +264,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)
-        if (result == null) {
+        if (result.isEmpty) {
           setInventorySlotContents(slotOutput, output.get)
         }
         else if (result.getCount < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
@@ -356,7 +357,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def getSizeInventory = 3
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean =
     if (slot == slotMaterial)
       PrintData.materialValue(stack) > 0
     else if (slot == slotInk)

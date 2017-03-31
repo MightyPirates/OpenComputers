@@ -55,7 +55,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     add(buttonList, runButton)
   }
 
-  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int): Unit = {
     RenderState.pushAttrib()
     if (!inventoryContainer.isAssembling) {
       val message =

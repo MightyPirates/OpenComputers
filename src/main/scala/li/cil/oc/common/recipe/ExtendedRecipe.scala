@@ -11,7 +11,6 @@ import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
@@ -129,21 +128,21 @@ object ExtendedRecipe {
         if (beaconBlocks.exists(_.isItemEqual(stack))) {
           if (data.isBeaconBase) {
             // Crafting wouldn't change anything, prevent accidental resource loss.
-            return null
+            return ItemStack.EMPTY
           }
           data.isBeaconBase = true
         }
         if (glowstoneDust.isItemEqual(stack)) {
           if (data.lightLevel == 15) {
             // Crafting wouldn't change anything, prevent accidental resource loss.
-            return null
+            return ItemStack.EMPTY
           }
           data.lightLevel = math.min(15, data.lightLevel + 1)
         }
         if (glowstone.isItemEqual(stack)) {
           if (data.lightLevel == 15) {
             // Crafting wouldn't change anything, prevent accidental resource loss.
-            return null
+            return ItemStack.EMPTY
           }
           data.lightLevel = math.min(15, data.lightLevel + 4)
         }
@@ -179,7 +178,7 @@ object ExtendedRecipe {
     craftedStack
   }
 
-  private def getItems(inventory: InventoryCrafting) = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).filter(_ != null)
+  private def getItems(inventory: InventoryCrafting) = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).filter(!_.isEmpty)
 
   private def recraft(craftedStack: ItemStack, inventory: InventoryCrafting, descriptor: ItemInfo, dataFactory: (ItemStack) => ItemDataWrapper) {
     if (api.Items.get(craftedStack) == descriptor) {
@@ -216,40 +215,40 @@ object ExtendedRecipe {
   private class MCUDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new MicrocontrollerData(stack)
 
-    override def components = data.components
+    override def components: Array[ItemStack] = data.components
 
-    override def components_=(value: Array[ItemStack]) = data.components = value
+    override def components_=(value: Array[ItemStack]): Unit = data.components = value
 
-    override def save(stack: ItemStack) = data.save(stack)
+    override def save(stack: ItemStack): Unit = data.save(stack)
   }
 
   private class DroneDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new DroneData(stack)
 
-    override def components = data.components
+    override def components: Array[ItemStack] = data.components
 
-    override def components_=(value: Array[ItemStack]) = data.components = value
+    override def components_=(value: Array[ItemStack]): Unit = data.components = value
 
-    override def save(stack: ItemStack) = data.save(stack)
+    override def save(stack: ItemStack): Unit = data.save(stack)
   }
 
   private class RobotDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new RobotData(stack)
 
-    override def components = data.components
+    override def components: Array[ItemStack] = data.components
 
-    override def components_=(value: Array[ItemStack]) = data.components = value
+    override def components_=(value: Array[ItemStack]): Unit = data.components = value
 
-    override def save(stack: ItemStack) = data.save(stack)
+    override def save(stack: ItemStack): Unit = data.save(stack)
   }
 
   private class TabletDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new TabletData(stack)
 
-    var components = data.items.collect { case Some(item) => item }
+    var components: Array[ItemStack] = data.items.filter(!_.isEmpty)
 
-    override def save(stack: ItemStack) = {
-      data.items = components.map(stack => Option(stack))
+    override def save(stack: ItemStack): Unit = {
+      data.items = components.clone()
       data.save(stack)
     }
   }

@@ -6,6 +6,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
+import net.minecraft.item.ItemStack
 
 trait InventoryControl extends InventoryAware {
   @Callback(doc = "function():number -- The size of this device's internal inventory.")
@@ -65,7 +66,7 @@ trait InventoryControl extends InventoryAware {
             to.grow(amount)
             assert(from.getCount >= 0)
             if (from.getCount == 0) {
-              inventory.setInventorySlotContents(selectedSlot, null)
+              inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
             }
             inventory.markDirty()
             true

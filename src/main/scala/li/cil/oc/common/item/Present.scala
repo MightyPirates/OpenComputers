@@ -133,5 +133,5 @@ object Present {
 
   private val rng = new Random()
 
-  def nextPresent() = Presents(rng.nextInt(Presents.length)).copy()
+  def nextPresent(): ItemStack = Presents(rng.nextInt(Presents.length)).copy()
 }

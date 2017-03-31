@@ -34,7 +34,7 @@ object RackRenderer extends TileEntitySpecialRenderer[Rack] {
 
     // Note: we manually sync the rack inventory for this to work.
     for (i <- 0 until rack.getSizeInventory) {
-      if (rack.getStackInSlot(i) != null) {
+      if (!rack.getStackInSlot(i).isEmpty) {
         GlStateManager.pushMatrix()
         RenderState.pushAttrib()
 

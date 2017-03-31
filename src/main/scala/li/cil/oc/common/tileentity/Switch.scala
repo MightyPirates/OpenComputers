@@ -82,8 +82,8 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    for (slot <- items.indices) items(slot) collect {
-      case stack => updateLimits(slot, stack)
+    for (slot <- items.indices) if (!items(slot).isEmpty) {
+      updateLimits(slot, items(slot))
     }
   }
 }
