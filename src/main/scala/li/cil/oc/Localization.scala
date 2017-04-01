@@ -1,12 +1,12 @@
 package li.cil.oc
 
 import li.cil.oc.client.CommandHandler.SetClipboardCommand
-import net.minecraft.client.resources.I18n
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.TextComponentString
 import net.minecraft.util.text.TextComponentTranslation
 import net.minecraft.util.text.event.ClickEvent
 import net.minecraft.util.text.event.HoverEvent
+import net.minecraft.util.text.translation.I18n
 import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent
 
 import scala.util.matching.Regex
@@ -16,15 +16,15 @@ object Localization {
 
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
-  def canLocalize(key: String): Boolean = I18n.hasKey(key)
+  def canLocalize(key: String): Boolean = I18n.canTranslate(key)
 
   def localizeLater(formatKey: String, values: AnyRef*) = new TextComponentTranslation(resolveKey(formatKey), values: _*)
 
   def localizeLater(key: String) = new TextComponentTranslation(resolveKey(key))
 
-  def localizeImmediately(formatKey: String, values: AnyRef*): String = I18n.format(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(formatKey: String, values: AnyRef*): String = I18n.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
 
-  def localizeImmediately(key: String): String = I18n.format(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(key: String): String = I18n.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
     def Address(value: String): TextComponentTranslation = {
