@@ -18,13 +18,13 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Screen](screen1.md)
 
 ### Storage
-* [Disk Drive](diskDrive.md)
+* [Disk Drive](diskdrive.md)
 * [RAID](raid.md)
 
 ### Extensions
 * [Adapter](adapter.md)
 * [Geolyzer](geolyzer.md)
-* [Motion Sensor](motionSensor.md)
+* [Motion Sensor](motionsensor.md)
 * [Redstone I/O](redstone.md)
 * [Transposer](transposer.md)
 * [Waypoint](waypoint.md)
@@ -33,16 +33,16 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [3D Print](print.md)
 * [3D Printer](printer.md)
 * [Assembler](assembler.md)
-* [Block of Chamelium](chameliumBlock.md)
+* [Block of Chamelium](chameliumblock.md)
 * [Disassembler](disassembler.md)
 
 ## Networking
 * [Cable](cable.md)
-* [Net Splitter](netSplitter.md)
+* [Net Splitter](netsplitter.md)
 * [Relay](relay.md)
 
 ## Power management
 * [Capacitor](capacitor.md)
 * [Charger](charger.md)
-* [Power Converter](powerConverter.md)
-* [Power Distributor](powerDistributor.md)
+* [Power Converter](powerconverter.md)
+* [Power Distributor](powerdistributor.md)

@@ -30,7 +30,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     SerialAPI.addProvider(this)
   }
 
-  override def getDocumentationReference = new SerialProtocolDocumentationReference("OpenComputers Adapter", "protocols/opencomputersAdapter.md")
+  override def getDocumentationReference = new SerialProtocolDocumentationReference("OpenComputers Adapter", "protocols/opencomputersadapter.md")
 
   override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean = world.getTileEntity(pos).isInstanceOf[Adapter]
 

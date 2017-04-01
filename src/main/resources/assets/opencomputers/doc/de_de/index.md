@@ -14,7 +14,7 @@ Um zu lernen, wie man die Bedienungsanleitung verwendet, siehe [die Seite über 
 - [Drohnen](item/drone.md)
 
 ### Software und Programmierung
-- [OpenOS](general/openOS.md)
+- [OpenOS](general/openos.md)
 - [Lua](general/lua.md)
 
 ### Blöcke und Items

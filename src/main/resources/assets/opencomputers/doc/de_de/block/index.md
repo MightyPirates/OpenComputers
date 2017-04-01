@@ -8,7 +8,7 @@ Es gilt zu bedenken, dass manche Blöcke nicht verfügbar sein könnten, wenn es
 * [Computergehäuse](case1.md)
 * [Mikrocontroller](microcontroller.md)
 * [Roboter](robot.md)
-* [Serverschrank](serverRack.md)
+* [Serverschrank](serverrack.md)
 
 ## Komponenten
 
@@ -18,13 +18,13 @@ Es gilt zu bedenken, dass manche Blöcke nicht verfügbar sein könnten, wenn es
 * [Bildschirm](screen1.md)
 
 ### Speicher
-* [Diskettenlaufwerk](diskDrive.md)
+* [Diskettenlaufwerk](diskdrive.md)
 * [RAID](raid.md)
 
 ### Extensions
 * [Adapter](adapter.md)
 * [Geolyzer](geolyzer.md)
-* [Bewegungssensor](motionSensor.md)
+* [Bewegungssensor](motionsensor.md)
 * [Redstone E/A](redstone.md)
 * [Wegpunkt](waypoint.md)
 
@@ -32,16 +32,16 @@ Es gilt zu bedenken, dass manche Blöcke nicht verfügbar sein könnten, wenn es
 * [3D-Druck](print.md)
 * [3D-Drucker](printer.md)
 * [Elektronik-Werkbank](assembler.md)
-* [Chamäliumblock](chameliumBlock.md)
+* [Chamäliumblock](chameliumblock.md)
 * [Disassembler](disassembler.md)
 
 ## Netzwerktechnik
 * [Kabel](cable.md)
-* [Net Splitter](netSplitter.md)
+* [Net Splitter](netsplitter.md)
 * [Relay](relay.md)
 
 ## Energiemanagement
 * [Kondensator](capacitor.md)
 * [Ladestation](charger.md)
-* [Leistungswandler](powerConverter.md)
-* [Stromverteiler](powerDistributor.md)
+* [Leistungswandler](powerconverter.md)
+* [Stromverteiler](powerdistributor.md)

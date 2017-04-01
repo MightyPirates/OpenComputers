@@ -14,7 +14,7 @@ To learn about how to use the manual, check out [the page about the manual](item
 - [Drones](item/drone.md)
 
 ### Software and Programming
-- [OpenOS](general/openOS.md)
+- [OpenOS](general/openos.md)
 - [Lua](general/lua.md)
 
 ### Blocks and Items
