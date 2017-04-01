@@ -8,7 +8,6 @@ import li.cil.oc.api.driver.Item;
 import li.cil.oc.api.driver.SidedBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -153,13 +152,6 @@ public interface DriverAPI {
      * @return the type of environment associated with the stack, or an empty Set.
      */
     Set<Class<?>> environmentsFor(ItemStack stack);
-
-    /**
-     * @deprecated Use {@link #itemHandlerFor(ItemStack, EntityPlayer)} instead.
-     */
-    @Deprecated
-    // TODO Remove in OC 1.7
-    IInventory inventoryFor(ItemStack stack, EntityPlayer player);
 
     /**
      * Get an IItemHandler implementation providing access to an item inventory.

@@ -1,32 +1,20 @@
 package li.cil.oc.client.gui
 
-import java.lang.Iterable
 import java.text.DecimalFormat
-import java.util
 
-/* TODO NEI
-import codechicken.nei.VisibilityData
-import codechicken.nei.api.INEIGuiHandler
-import codechicken.nei.api.TaggedInventoryArea
-*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.Optional
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.Rectangle
 
-/* TODO NEI @Optional.Interface(iface = "codechicken.nei.api.INEIGuiHandler", modid = Mods.IDs.NotEnoughItems) */
-class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) /* with INEIGuiHandler */ {
+class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) {
   private val format = new DecimalFormat("#.##hz")
 
   val tabPosition = new Rectangle(xSize, 10, 23, 26)
@@ -75,7 +63,7 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     }
   }
 
-  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int): Unit = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(
       Localization.localizeImmediately(relay.getName),
@@ -107,23 +95,4 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     else if (value < red) 0x999900
     else 0x990000
   }
-
-  /* TOD NEI
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  override def modifyVisiblity(gui: GuiContainer, currentVisibility: VisibilityData): VisibilityData = null
-
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  override def getItemSpawnSlots(gui: GuiContainer, stack: ItemStack): Iterable[Integer] = null
-
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  override def getInventoryAreas(gui: GuiContainer): util.List[TaggedInventoryArea] = null
-
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  override def handleDragNDrop(gui: GuiContainer, mouseX: Int, mouseY: Int, stack: ItemStack, button: Int): Boolean = false
-
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  override def hideItemPanelSlot(gui: GuiContainer, x: Int, y: Int, w: Int, h: Int): Boolean = {
-    new Rectangle(x - windowX, y - windowY, w, h).intersects(tabPosition)
-  }
-  */
 }

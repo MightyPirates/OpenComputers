@@ -1,14 +1,9 @@
 package li.cil.oc.common.item.traits
 
-import java.util
-
-import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
@@ -94,16 +89,6 @@ trait Delegate {
   protected def tooltipExtended(stack: ItemStack, tooltip: java.util.List[String]) {}
 
   protected def tooltipCosts(stack: ItemStack, tooltip: java.util.List[String]) {
-    if (ItemCosts.hasCosts(stack)) {
-      if (KeyBindings.showMaterialCosts) {
-        ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
-      }
-      else {
-        tooltip.add(Localization.localizeImmediately(
-          Settings.namespace + "tooltip.materialcosts",
-          KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
-      }
-    }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {

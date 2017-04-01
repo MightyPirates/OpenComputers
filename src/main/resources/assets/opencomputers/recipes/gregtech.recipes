@@ -114,52 +114,52 @@ hdd3 {
 # graphicsCard1 { fallback to default }
 # graphicsCard2 { fallback to default }
 # graphicsCard3 { fallback to default }
-redstoneCard {
+redstonecard {
   input: [[screwStainlessSteel , "oc:circuitChip2" , screwStainlessSteel]
           ["comparator", "oc:materialCard", diode]
           [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
 }
-lanCard {
+lancard {
   input: [[screwStainlessSteel , "oc:circuitChip2" , screwStainlessSteel]
           ["oc:cable", "oc:materialCard", "oc:cable"]
           [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
 }
-wlanCard {
+wlancard {
   input: [[screwTitanium , "oc:circuitChip3" , screwTitanium]
           [materialEnderPearl, "oc:lanCard", materialEnderPearl]
           [screwTitanium , craftingToolScrewdriver, screwTitanium]]
 }
 
-craftingUpgrade {
+craftingupgrade {
   # 1 = LV Casing
   input: [[screwStainlessSteel, "oc:materialCircuitBoardPrinted" , screwStainlessSteel]
           ["oc:circuitChip2", {block="gt.blockcasings", subID=1}, "oc:circuitChip2"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
-generatorUpgrade {
+generatorupgrade {
   input: [[screwStainlessSteel, "oc:materialCircuitBoardPrinted" , screwStainlessSteel]
           ["oc:circuitChip2", craftingGenerator, "oc:circuitChip2"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
-navigationUpgrade {
+navigationupgrade {
   # 2 = MV Casing
   input: [[{block="gt.blockcasings", subID=2}, compass, screwStainlessSteel]
           ["oc:circuitChip3", {item=filled_map, subID=any}, "oc:circuitChip3"]
           [screwStainlessSteel, potion, craftingToolScrewdriver]]
 }
-signUpgrade {
+signupgrade {
   input: [[screwAluminium, dyeBlack, screwAluminium]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
-solarGeneratorUpgrade {
+solargeneratorupgrade {
   # 32750 = Solar Panel
   input: [[screwTitanium, "", screwTitanium]
           ["oc:circuitChip3", {item="gt.metaitem.01", subID=32750} , "oc:circuitChip3"]
           [screwTitanium, craftingToolScrewdriver, screwTitanium]]
 }
 
-cuttingWire {
+cuttingwire {
   input: [[stickWood, ingotTin, stickWood]
           ["", craftingToolWireCutter, ""]]
 }
@@ -238,11 +238,11 @@ cu {
 }
 
 # rawCircuitBoard { fallback to default }
-circuitBoard {
+circuitboard {
   type: furnace
   input: "oc:materialCircuitBoardRaw"
 }
-printedCircuitBoard {
+printedcircuitboard {
   type:shaped
   input: [[dustTinyGold,  cellSulfuricAcid]
           ["oc:materialCircuitBoard", dustTinyGold]]
@@ -293,19 +293,19 @@ case3 {
           [{item="ic2.reactorVentDiamond", subID=1}, "oc:case2", {item="ic2.reactorVentDiamond", subID=1}]
           [screwTitanium, "oc:circuitChip3", craftingToolScrewdriver]]
 }
-diskDrive {
+diskdrive {
   input: [["", "oc:circuitChip2", ""]
           [craftingPiston, {block="gt.blockcasings", subID=1}, craftingLensWhite]
           ["oc:circuitChip2", craftingToolWrench, "oc:circuitChip2"]]
 }
 # keyboard { fallback to default }
-powerConverter {
+powerconverter {
   # 4 = MV Transformer
   input: [["", "oc:circuitChip2", ""]
           [plateAluminium, {item="ic2.blockElectric", subID=4}, plateAluminium]
           ["oc:materialCircuitBoardPrinted", craftingToolWrench, "oc:materialCircuitBoardPrinted"]]
 }
-powerDistributor {
+powerdistributor {
   # 7 = CESU
   input: [["", plateAluminium, ""]
           [{item="ic2.blockElectric", subID=7}, {block="gt.blockcasings", subID=2}, circuitMaster]

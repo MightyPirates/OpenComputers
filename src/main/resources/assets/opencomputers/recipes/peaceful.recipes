@@ -1,60 +1,60 @@
 include file("default.recipes")
 
-redstoneCard2 {
+redstonecard2 {
   input: [[blockRedstone, "oc:circuitChip2", gemDiamond]
           ["", "oc:materialCard", ""]]
 }
-wlanCard {
+wlancard {
   input: [[gemDiamond, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
 }
-linkedCard {
+linkedcard {
   input: [[gemDiamond, "", gemDiamond]
           ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
           ["oc:circuitChip3", "", "oc:circuitChip3"]]
   output: 2 # Note: all resulting cards are linked to each other.
 }
 
-angelUpgrade {
+angelupgrade {
   input: [[ingotIron, gemDiamond, ingotIron]
           ["oc:circuitChip1", pistonStickyBase, "oc:circuitChip1"]
           [ingotIron, gemDiamond, ingotIron]]
 }
-chunkloaderUpgrade {
+chunkloaderupgrade {
   input: [[ingotGold, blockGlass, ingotGold]
           ["oc:circuitChip3", gemDiamond, "oc:circuitChip3"]
           [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
 }
-inventoryUpgrade {
+inventoryupgrade {
   input: [[plankWood, hopper, plankWood]
           [dropper, chest, craftingPiston]
           [plankWood, "oc:circuitChip1", plankWood]]
 }
-inventoryControllerUpgrade {
+inventorycontrollerupgrade {
   input: [[ingotGold, "oc:analyzer", ingotGold]
           [dropper, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
-signUpgrade {
+signupgrade {
   input: [[ingotIron, dyeBlack, ingotIron]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [ingotIron, craftingPiston, ingotIron]]
 }
-tankUpgrade {
+tankupgrade {
   input: [[plankWood, fenceIron, plankWood]
           [dropper, cauldron, craftingPiston]
           [plankWood, "oc:circuitChip1", plankWood]]
 }
-tankControllerUpgrade {
+tankcontrollerupgrade {
   input: [[ingotGold, glassBottle, ingotGold]
           [dropper, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 
-inkCartridgeEmpty {
-  input: [[nuggetIron, dropper, nuggetIron],
+inkcartridgeempty {
+  input: [[iron_nugget, dropper, iron_nugget],
           ["oc:materialTransistor", bucket, "oc:materialTransistor"],
-          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+          [iron_nugget, "oc:materialCircuitBoardPrinted", iron_nugget]]
 }
 
 interweb {

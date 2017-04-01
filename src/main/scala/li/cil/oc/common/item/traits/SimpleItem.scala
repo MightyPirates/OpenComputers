@@ -3,11 +3,8 @@ package li.cil.oc.common.item.traits
 import java.util
 
 import li.cil.oc.CreativeTab
-import li.cil.oc.Localization
 import li.cil.oc.Settings
-import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
@@ -35,16 +32,6 @@ trait SimpleItem extends Item {
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase))
 
-    if (ItemCosts.hasCosts(stack)) {
-      if (KeyBindings.showMaterialCosts) {
-        ItemCosts.addTooltip(stack, tooltip)
-      }
-      else {
-        tooltip.add(Localization.localizeImmediately(
-          Settings.namespace + "tooltip.materialcosts",
-          KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
-      }
-    }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {

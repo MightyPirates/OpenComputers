@@ -202,16 +202,6 @@ public final class Driver {
     }
 
     /**
-     * @deprecated Use {@link #itemHandlerFor(ItemStack, EntityPlayer)} instead.
-     */
-    @Deprecated // TODO Remove in OC 1.7
-    public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
-        if (API.driver != null)
-            return API.driver.inventoryFor(stack, player);
-        return null;
-    }
-
-    /**
      * Get an IItemHandler implementation providing access to an item inventory.
      * <p/>
      * This will use the registered {@link InventoryProvider}s to find an

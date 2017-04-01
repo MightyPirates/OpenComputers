@@ -1,9 +1,5 @@
 package li.cil.oc.client.gui
 
-/* TODO NEI
-import codechicken.nei.LayoutManager
-import codechicken.nei.widget.ItemPanel
-*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -82,15 +78,6 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     hoveredStackNEI = ItemSearch.hoveredStack(this, mouseX, mouseY)
 
     super.drawScreen(mouseX, mouseY, dt)
-
-    /* TODO NEI
-    if (Mods.NotEnoughItems.isAvailable) {
-      RenderState.pushAttrib()
-      RenderState.makeItBlend()
-      drawNEIHighlights()
-      RenderState.popAttrib()
-    }
-    */
 
     if (Mods.JustEnoughItems.isAvailable) {
 //      drawJEIHighlights()
@@ -186,35 +173,10 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
 
   override def onGuiClosed(): Unit = {
     super.onGuiClosed()
-    if(Mods.JustEnoughItems.isAvailable) {
+    if (Mods.JustEnoughItems.isAvailable) {
 //      resetJEIHighlights()
     }
   }
-/* TODO NEI
-  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
-  private def drawNEIHighlights(): Unit = {
-    if(!LayoutManager.isItemPanelActive) return
-    val panel = LayoutManager.itemPanel
-    if (panel == null) return
-    zLevel += 350
-    val itemsPerPage = ReflectionHelper.getPrivateValue(classOf[ItemPanel], LayoutManager.itemPanel, "itemsPerPage").asInstanceOf[Int]
-    for (index <- 0 until itemsPerPage) {
-      val rect = panel.getSlotRect(index)
-      val slot = panel.getSlotMouseOver(rect.x, rect.y)
-      if (slot != null) hoveredSlot match {
-        case Some(hovered) =>
-          if (!isInPlayerInventory(hovered) && isSelectiveSlot(hovered) && hovered.isItemValid(slot.item)) {
-            drawGradientRect(
-              rect.x1 + 1, rect.y1 + 1,
-              rect.x2, rect.y2,
-              0x80FFFFFF, 0x80FFFFFF)
-          }
-        case _ =>
-      }
-    }
-    zLevel -= 350
-  }
-*/
 
   @Optional.Method(modid = Mods.IDs.JustEnoughItems)
   private def drawJEIHighlights(): Unit = {

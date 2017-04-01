@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.registry.GameRegistry
 
 object Blocks {
   def init() {
-    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "accessPoint")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
@@ -33,13 +32,11 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.Relay], Settings.namespace + "relay")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
-    GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Rack], Settings.namespace + "rack", Settings.namespace + "serverRack")
     GameRegistry.registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
     GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
-    Items.registerBlock(new AccessPoint(), Constants.BlockName.AccessPoint)
     Recipes.addBlock(new Adapter(), Constants.BlockName.Adapter, "oc:adapter")
     Recipes.addBlock(new Assembler(), Constants.BlockName.Assembler, "oc:assembler")
     Recipes.addBlock(new Cable(), Constants.BlockName.Cable, "oc:cable")
@@ -66,7 +63,6 @@ object Blocks {
     Recipes.addBlock(new Screen(Tier.Three), Constants.BlockName.ScreenTier3, "oc:screen3")
     Recipes.addBlock(new Screen(Tier.Two), Constants.BlockName.ScreenTier2, "oc:screen2")
     Recipes.addBlock(new Rack(), Constants.BlockName.Rack, "oc:rack", "oc:rack")
-    Items.registerBlock(new Switch(), Constants.BlockName.Switch)
     Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
 
     Items.registerBlock(new Case(Tier.Four), Constants.BlockName.CaseCreative)

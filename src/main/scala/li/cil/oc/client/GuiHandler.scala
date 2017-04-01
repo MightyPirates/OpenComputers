@@ -56,8 +56,6 @@ object GuiHandler extends CommonGuiHandler {
 
               override def isUsableByPlayer(player: EntityPlayer) = t.isUsableByPlayer(player)
             }, Option(t), slot)
-          case t: tileentity.Switch if id == GuiType.Switch.id =>
-            new gui.Switch(player.inventory, t)
           case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
             new gui.Waypoint(t)
           case _ => null

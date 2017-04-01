@@ -9,16 +9,15 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
-// TODO Remove block in OC 1.7.
 class CompoundBlockEnvironment(val name: String, val environments: (String, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,
   // but let's play it safe and use the least possible visibility based on
   // the drivers we encapsulate.
-  val node = api.Network.newNode(this, (environments.filter(_._2.node != null).map(_._2.node.reachability) ++ Seq(Visibility.None)).max).
+  val node: Component = api.Network.newNode(this, (environments.filter(_._2.node != null).map(_._2.node.reachability) ++ Seq(Visibility.None)).max).
     withComponent(name).
     create()
 
-  val updatingEnvironments = environments.map(_._2).filter(_.canUpdate)
+  val updatingEnvironments: Seq[ManagedEnvironment] = environments.map(_._2).filter(_.canUpdate)
 
   // Force all wrapped components to be neighbor visible, since we as their
   // only neighbor will take care of all component-related interaction.
@@ -27,7 +26,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
     case _ =>
   }
 
-  override def canUpdate = environments.exists(_._2.canUpdate)
+  override def canUpdate: Boolean = environments.exists(_._2.canUpdate)
 
   override def update() {
     for (environment <- updatingEnvironments) {

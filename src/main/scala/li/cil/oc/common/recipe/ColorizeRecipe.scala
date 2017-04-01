@@ -27,7 +27,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
-    var targetStack: ItemStack = null
+    var targetStack: ItemStack = ItemStack.EMPTY
     val color = Array[Int](0, 0, 0)
     var colorCount = 0
     var maximum = 0
@@ -86,5 +86,5 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
 
   override def getRecipeSize = 10
 
-  override def getRecipeOutput = null
+  override def getRecipeOutput = ItemStack.EMPTY
 }

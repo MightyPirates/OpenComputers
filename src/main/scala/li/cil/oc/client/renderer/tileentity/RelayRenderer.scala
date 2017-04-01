@@ -9,8 +9,8 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecialRenderer[T] {
-  override def renderTileEntityAt(switch: T, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object RelayRenderer extends TileEntitySpecialRenderer[tileentity.Relay] {
+  override def renderTileEntityAt(switch: tileentity.Relay, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)

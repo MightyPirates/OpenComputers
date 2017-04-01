@@ -41,8 +41,6 @@ abstract class GuiHandler extends IGuiHandler {
             val slot = GuiType.extractSlot(y)
             val server = t.getMountable(slot).asInstanceOf[Server]
             new container.Server(player.inventory, server, Option(server))
-          case t: tileentity.Switch if id == GuiType.Switch.id =>
-            new container.Switch(player.inventory, t)
           case _ => null
         }
       case Some(GuiType.Category.Entity) =>

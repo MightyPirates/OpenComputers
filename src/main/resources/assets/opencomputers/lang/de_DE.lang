@@ -3,7 +3,6 @@
 # Suggestions for improvements are welcome
 
 # Blocks
-tile.oc.accessPoint.name=Access Point
 tile.oc.adapter.name=Adapter
 tile.oc.assembler.name=Elektronik-Werkbank
 tile.oc.cable.name=Kabel
@@ -37,7 +36,6 @@ tile.oc.screen1.name=Bildschirm (Stufe 1)
 tile.oc.screen2.name=Bildschirm (Stufe 2)
 tile.oc.screen3.name=Bildschirm (Stufe 3)
 tile.oc.rack.name=Serverschrank
-tile.oc.switch.name=Switch
 tile.oc.transposer.name=Transposer
 tile.oc.waypoint.name=Wegpunkt
 
@@ -234,7 +232,6 @@ oc:gui.Terminal.InvalidKey=Ungültiger Schlüssel, vermutlich wurde eine andere 
 oc:gui.Terminal.OutOfRange=Kein Signal.
 
 # Containers
-oc:container.accesspoint=Access Point
 oc:container.adapter=Adapter
 oc:container.case=Computer
 oc:container.charger=Ladestation
@@ -245,15 +242,12 @@ oc:container.raid=Raid
 oc:container.relay=Relais
 oc:container.server=Server
 oc:container.rack=Serverschrank
-oc:container.switch=Switch
 oc:container.tabletwrapper=Tablet
 
 # Keybinds
 key.clipboardPaste=Zwischenablage einfügen
-key.materialCosts=Materialkosten anzeigen
 
 # Item / Block Tooltips
-oc:tooltip.accesspoint=Verhält sich wie ein Switch, aber empfängt zusätzlich Drahtlosnachrichten und leitet Pakete aus dem Festnetz drahtlos weiter.
 oc:tooltip.abstractbuscard=Erlaubt es, LIP-Pakete des Abstrakten Busses von §fStargateTech 2§7 zu senden und zu empfangen.
 oc:tooltip.acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Mag sich aber auch zu anderen Zwecken eignen.
 oc:tooltip.adapter=Erlaubt es, Blöcke anzusteuern, die keine Komponentenblöcke sind, wie etwa reguläre Minecraft-Blöcke oder Blöcke anderer Mods.
@@ -306,8 +300,6 @@ oc:tooltip.hologram1=Ein Volumendisplay, das beliebige, von Computern festgelegt
 oc:tooltip.linkedcard=Diese Karten werden paarweise hergestellt, und können ausschließlich mit ihrer jeweilgen Partnerkarte kommunizieren, dafür allerdings über beliebige Entfernungen, und sogar über Dimensionen hinweg. Der Nachteil ist der hohe Energieverbrauch beim Senden einer Nachricht.
 oc:tooltip.linkedcard_channel=§8Kanal: %s§7
 oc:tooltip.manual=Alles, was es über OpenComputers zu wissen gibt. Und mehr. Und das alles zu dem unglaublich niedrigen Preis von... §obitte R dücken, um fortzufahren§7.
-oc:tooltip.materialcosts=Halte [§f%s§7] gedrückt für Materialkosten.
-oc:tooltip.materials=Materialien:
 oc:tooltip.memory=Braucht ein jeder Computer, um zu starten. Je mehr vorhanden, desto komplexere Programme können ausgeführt werden.
 oc:tooltip.microchip=Tritt auch unter dem Alias Integrierter Schaltkreis auf. Keine Ahnung, warum das auch mit Redstone klappt, aber es funktioniert.
 oc:tooltip.microcontroller=Mikrocontroller sind einfachst-mögliche Computer. Sie sind dazu gedacht, für Spezialfälle verwendet zu werden, bei denen sie einfach das Programm auf dem in ihnen eingebauten EEPROM ausführen.
@@ -339,7 +331,7 @@ oc:tooltip.redstonecard.RedNet=§fRedNet§7 wird §aunterstützt§7.
 oc:tooltip.redstonecard.WirelessCBE=§fWireless Redstone (ChickenBones)§7 wird §aunterstützt§7.
 oc:tooltip.redstonecard.WirelessSV=§fWireless Redstone (SlimeVoid)§7 wird §aunterstützt§7.
 oc:tooltip.redstonecard=Erlaubt das Lesen und Ausgeben von Redstonesignalen um den Computer oder Roboter herum.
-oc:tooltip.relay=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
+oc:tooltip.relay=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Relais sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.robot=Im Gegensatz zu normalen Computern können sich Roboter in der Welt bewegen und ähnlich wie Spieler mit der Welt interagieren. Sie können jedoch §onicht§r§7 mit externen Komponenten interagieren!
 # the underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.robot_level=§fStufe§7: §a%s§7.
@@ -348,7 +340,6 @@ oc:tooltip.screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] H�
 oc:tooltip.server=Ein Server kann wie ein gewöhnliches Computergehäuse mit Komponenten verbessert werden. Um den Server zu starten, muss er in einem Servergehäuse installiert werden.
 oc:tooltip.server.Components=Installierte Komponenten:
 oc:tooltip.rack=Erlaubt die Installation von bis zu vier Servern oder anderen Rack-Einschüben.
-oc:tooltip.switch=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.tablet=Ein Tablet-PC, für Lua unterwegs. Kann durch Sneak-Aktivierung zwangsgestoppt werden.
 oc:tooltip.tabletcase=Einfaches Gehäuse für Tablet-PCs. Kann in der Elektronik-Werkbank mit Komponenten bestückt werden, um einen Tablet-PC zu fertigen.
 oc:tooltip.terminal=Erlaubt es, einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem. Kann mit Shift-Rechtsklick an einen Server in einem Serverschrank gebunden werden.

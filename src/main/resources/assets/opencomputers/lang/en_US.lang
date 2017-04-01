@@ -3,7 +3,6 @@
 # Use [nl] to for a line break.
 
 # Blocks
-tile.oc.accesspoint.name=§cAccess Point§7
 tile.oc.adapter.name=Adapter
 tile.oc.assembler.name=Electronics Assembler
 tile.oc.cable.name=Cable
@@ -37,7 +36,6 @@ tile.oc.screen1.name=Screen (Tier 1)
 tile.oc.screen2.name=Screen (Tier 2)
 tile.oc.screen3.name=Screen (Tier 3)
 tile.oc.rack.name=Rack
-tile.oc.switch.name=§cSwitch§7
 tile.oc.transposer.name=Transposer
 tile.oc.waypoint.name=Waypoint
 
@@ -234,7 +232,6 @@ oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bo
 oc:gui.Terminal.OutOfRange=No signal.
 
 # Containers
-oc:container.accesspoint=Access Point
 oc:container.adapter=Adapter
 oc:container.case=Computer
 oc:container.charger=Charger
@@ -245,15 +242,12 @@ oc:container.raid=Raid
 oc:container.relay=Relay
 oc:container.server=Server
 oc:container.rack=Rack
-oc:container.switch=Switch
 oc:container.tabletwrapper=Tablet
 
 # Keybinds
 key.clipboardPaste=Paste Clipboard
-key.materialCosts=Show Material Costs
 
 # Item / Block Tooltips
-oc:tooltip.accesspoint=Acts like a Switch, but additionally receives wireless packets and relays wired packets wirelessly.
 oc:tooltip.abstractbuscard=Allows interacting with §fStargateTech 2§7's abstract bus by sending and receiving LIP packets.
 oc:tooltip.acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. May prove to be useful in other ways, too, however.
 oc:tooltip.adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
@@ -306,8 +300,6 @@ oc:tooltip.hologram1=A volumetric display that can be controlled by computers to
 oc:tooltip.linkedcard=These are crafted in pairs, and can only communicate with their partner card. However, they can communicate across any distance, and even across dimensions. The energy required to send a message is fairly high, though.
 oc:tooltip.linkedcard_channel=§8Channel: %s§7
 oc:tooltip.manual=All the information you could possibly need about OpenComputers. And more. For the unbelievably low price of... §oplease press R to continue§7.
-oc:tooltip.materialcosts=Hold [§f%s§7] for material costs.
-oc:tooltip.materials=Materials:
 oc:tooltip.memory=Required to get computers to run. The more you have, the more complex the programs you can run.
 oc:tooltip.microchip=The chip formerly known as Integrated Circuit. I have no idea why this works with redstone, but it does.
 oc:tooltip.microcontroller=Microcontrollers are computers boiled down to the essentials. They are intended to take care of very specific tasks, running only a single program that is provided on the EEPROM built into them.[nl] §cCan not connect to external components.§7
@@ -348,7 +340,6 @@ oc:tooltip.screen=Display text, controlled by a Graphics Card in a Case.[nl] Max
 oc:tooltip.server=This is a server, there are many like it, but this one can be upgraded with components much like a computer case can be. It can be run by inserting it into a server rack.
 oc:tooltip.server.Components=Installed components:
 oc:tooltip.rack=Allows the installation of up to four servers or other rack mountables.
-oc:tooltip.switch=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.tablet=A tablet computer, for fresh Lua on the go. Can be forced to shut down by sneak-activating it. 
 oc:tooltip.tabletcase=Basic case for tablets. Place it into the assembler to add in components and create a tablet computer.
 oc:tooltip.terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard. Shift-right-click a server in a server rack to bind the terminal to it.

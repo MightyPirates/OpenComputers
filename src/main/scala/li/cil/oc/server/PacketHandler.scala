@@ -14,23 +14,18 @@ import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import net.minecraft.util.EnumHand
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
-
-/* TODO FMP
-import li.cil.oc.integration.fmp.EventHandler
-*/
-
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
+import net.minecraft.util.EnumHand
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
-  def onPacket(e: ServerCustomPacketEvent) =
+  def onPacket(e: ServerCustomPacketEvent): Unit =
     onPacketData(e.getManager.getNetHandler, e.getPacket.payload, e.getHandler.asInstanceOf[NetHandlerPlayServer].player)
 
   override protected def world(player: EntityPlayer, dimension: Int) =
@@ -48,9 +43,6 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
-      /* TODO FMP
-      case PacketType.MultiPartPlace => onMultiPartPlace(p)
-      */
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RackMountableMapping => onRackMountableMapping(p)
       case PacketType.RackRelayState => onRackRelayState(p)
@@ -63,7 +55,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onComputerPower(p: PacketParser) =
+  def onComputerPower(p: PacketParser): Unit =
     p.readTileEntity[Computer]() match {
       case Some(t) => p.player match {
         case player: EntityPlayerMP => trySetComputerPower(t.machine, p.readBoolean(), player)
@@ -72,17 +64,17 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onServerPower(p: PacketParser) =
+  def onServerPower(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) =>
         val mountableIndex = p.readInt()
         t.getMountable(mountableIndex) match {
           case server: Server => p.player match {
-          case player: EntityPlayerMP => trySetComputerPower(server.machine, p.readBoolean(), player)
+            case player: EntityPlayerMP => trySetComputerPower(server.machine, p.readBoolean(), player)
             case _ => // Invalid packet.
+          }
+          case _ => // Invalid packet.
         }
-        case _ => // Invalid packet.
-      }
       case _ => // Invalid packet.
     }
 
@@ -93,7 +85,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onDriveMode(p: PacketParser) = p.player match {
+  def onDriveMode(p: PacketParser): Unit = p.player match {
     case player: EntityPlayerMP =>
       Delegator.subItem(player.getHeldItem(EnumHand.MAIN_HAND)) match {
         case Some(drive: FileSystemLike) =>
@@ -105,7 +97,7 @@ object PacketHandler extends CommonPacketHandler {
     case _ => // Invalid packet.
   }
 
-  def onDronePower(p: PacketParser) =
+  def onDronePower(p: PacketParser): Unit =
     p.readEntity[Drone]() match {
       case Some(drone) => p.player match {
         case player: EntityPlayerMP =>
@@ -193,15 +185,6 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  /* TODO FMP
-  def onMultiPartPlace(p: PacketParser) {
-    p.player match {
-      case player: EntityPlayerMP => EventHandler.place(player)
-      case _ => // Invalid packet.
-    }
-  }
-  */
-
   def onPetVisibility(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP =>
@@ -218,7 +201,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onRackMountableMapping(p: PacketParser) =
+  def onRackMountableMapping(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) => p.player match {
         case player: EntityPlayerMP if t.isUsableByPlayer(player) =>
@@ -231,7 +214,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRackRelayState(p: PacketParser) =
+  def onRackRelayState(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) => p.player match {
         case player: EntityPlayerMP if t.isUsableByPlayer(player) =>
@@ -241,7 +224,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotAssemblerStart(p: PacketParser) =
+  def onRobotAssemblerStart(p: PacketParser): Unit =
     p.readTileEntity[Assembler]() match {
       case Some(assembler) =>
         if (assembler.start(p.player match {
@@ -251,7 +234,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotStateRequest(p: PacketParser) =
+  def onRobotStateRequest(p: PacketParser): Unit =
     p.readTileEntity[RobotProxy]() match {
       case Some(proxy) => proxy.world.notifyBlockUpdate(proxy.getPos, proxy.world.getBlockState(proxy.getPos), proxy.world.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
@@ -267,13 +250,13 @@ object PacketHandler extends CommonPacketHandler {
               case screen: Screen if !screen.isOrigin => false
               case _ => true
             }) {
-            val nbt = new NBTTagCompound()
-            buffer.data.save(nbt)
-            nbt.setInteger("maxWidth", buffer.getMaximumWidth)
-            nbt.setInteger("maxHeight", buffer.getMaximumHeight)
+              val nbt = new NBTTagCompound()
+              buffer.data.save(nbt)
+              nbt.setInteger("maxWidth", buffer.getMaximumWidth)
+              nbt.setInteger("maxHeight", buffer.getMaximumHeight)
               nbt.setInteger("viewportWidth", buffer.getViewportWidth)
               nbt.setInteger("viewportHeight", buffer.getViewportHeight)
-            PacketSender.sendTextBufferInit(address, nbt, entity)
+              PacketSender.sendTextBufferInit(address, nbt, entity)
             }
           case _ => // Invalid packet.
         }
@@ -281,7 +264,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onWaypointLabel(p: PacketParser) =
+  def onWaypointLabel(p: PacketParser): Unit =
     p.readTileEntity[Waypoint]() match {
       case Some(waypoint) => p.player match {
         case player: EntityPlayerMP if player.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) <= 64 =>

@@ -6,7 +6,7 @@ import li.cil.oc.common.item.data.NodeData
 import net.minecraft.item.ItemStack
 
 class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with Chargeable {
-  override val unlocalizedName = super.unlocalizedName + tier
+  override val unlocalizedName: String = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
@@ -14,7 +14,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
 
   override def showDurabilityBar(stack: ItemStack) = true
 
-  override def durability(stack: ItemStack) = {
+  override def durability(stack: ItemStack): Double = {
     val data = new NodeData(stack)
     1 - data.buffer.getOrElse(0.0) / Settings.get.bufferCapacitorUpgrades(tier)
   }

@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity
 
-import com.google.common.base.Charsets
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.network.Component
-//import dan200.computercraft.api.peripheral.IComputerAccess
+import li.cil.oc.server.PacketSender
+
+import scala.collection.mutable
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -22,7 +23,6 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverLinkedCard
 import li.cil.oc.server.network.QuantumNetwork
 import li.cil.oc.util.ExtendedNBT._
@@ -34,7 +34,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Relay extends traits.SwitchLike with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
+class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
   lazy final val WirelessNetworkCard: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCard)
   lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
 
@@ -51,6 +51,18 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   val componentNodes: Array[Component] = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("relay").
     create())
+
+  val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+
+  var lastMessage = 0L
+
+  def onSwitchActivity(): Unit = {
+    val now = System.currentTimeMillis()
+    if (now - lastMessage >= (relayDelay - 1) * 50) {
+      lastMessage = now
+      PacketSender.sendSwitchActivity(this)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -92,20 +104,6 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   def setRepeater(context: Context, args: Arguments): Array[AnyRef] = synchronized {
     isRepeater = args.checkBoolean(0)
     result(isRepeater)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    // TODO CC
-//    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-//      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-//      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-//        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-//          case x: Array[Byte] => new String(x, Charsets.UTF_8)
-//          case x => x
-//        }: _*))
-//    }
   }
 
   // ----------------------------------------------------------------------- //

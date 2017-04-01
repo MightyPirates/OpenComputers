@@ -14,7 +14,7 @@ import net.minecraft.world.World
 class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
   def this(target: Block) = this(Item.getItemFromBlock(target))
 
-  val targetItem = target
+  val targetItem: Item = target
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
@@ -24,7 +24,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
-    var targetStack: ItemStack = null
+    var targetStack: ItemStack = ItemStack.EMPTY
 
     (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
       if (stack.getItem == targetItem) {
@@ -43,5 +43,5 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
 
   override def getRecipeSize = 10
 
-  override def getRecipeOutput = null
+  override def getRecipeOutput = ItemStack.EMPTY
 }

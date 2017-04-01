@@ -71,14 +71,11 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Printer], PrinterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], new SwitchRenderer[tileentity.Switch])
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], new SwitchRenderer[tileentity.AccessPoint])
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], new SwitchRenderer[tileentity.Relay])
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], RelayRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Transposer], TransposerRenderer)
 
-    ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
@@ -99,9 +96,9 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(TextBufferRenderCache)
   }
 
-  override def registerModel(instance: Delegate, id: String) = ModelInitialization.registerModel(instance, id)
+  override def registerModel(instance: Delegate, id: String): Unit = ModelInitialization.registerModel(instance, id)
 
-  override def registerModel(instance: Item, id: String) = ModelInitialization.registerModel(instance, id)
+  override def registerModel(instance: Item, id: String): Unit = ModelInitialization.registerModel(instance, id)
 
-  override def registerModel(instance: Block, id: String) = ModelInitialization.registerModel(instance, id)
+  override def registerModel(instance: Block, id: String): Unit = ModelInitialization.registerModel(instance, id)
 }

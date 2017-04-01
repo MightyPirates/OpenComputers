@@ -564,7 +564,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendSwitchActivity(t: tileentity.traits.SwitchLike) {
+  def sendSwitchActivity(t: tileentity.Relay) {
     val pb = new SimplePacketBuilder(PacketType.SwitchActivity)
 
     pb.writeTileEntity(t)

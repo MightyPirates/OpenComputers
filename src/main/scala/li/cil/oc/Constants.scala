@@ -5,7 +5,6 @@ import li.cil.oc.util.ItemUtils
 object Constants {
 
   object BlockName {
-    final val AccessPoint = "accessPoint"
     final val Adapter = "adapter"
     final val Assembler = "assembler"
     final val Cable = "cable"
@@ -39,7 +38,6 @@ object Constants {
     final val ScreenTier2 = "screen2"
     final val ScreenTier3 = "screen3"
     final val Rack = "rack"
-    final val Switch = "switch"
     final val Transposer = "transposer"
     final val Waypoint = "waypoint"
 
@@ -113,7 +111,6 @@ object Constants {
     final val Interweb = "interweb"
     final val InventoryControllerUpgrade = "inventorycontrollerupgrade"
     final val InventoryUpgrade = "inventoryupgrade"
-    final val IronNugget = "nuggetiron"
     final val LeashUpgrade = "leashupgrade"
     final val LinkedCard = "linkedcard"
     final val LuaBios = "luabios"

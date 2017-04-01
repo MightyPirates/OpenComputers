@@ -3,15 +3,16 @@ package li.cil.oc.common.tileentity
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.integration.util.ItemCharge
@@ -32,7 +33,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with traits.Tickable with Analyzable with traits.StateAware with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.None).
+  val node: Connector = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
 
@@ -56,13 +57,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  override protected def hasConnector(side: EnumFacing): Boolean = side != facing
 
   override protected def connector(side: EnumFacing) = Option(if (side != facing) node else null)
 
-  override def energyThroughput = Settings.get.chargerRate
+  override def energyThroughput: Double = Settings.get.chargerRate
 
-  override def getCurrentState = {
+  override def getCurrentState: util.EnumSet[StateAware.State] = {
     // TODO Refine to only report working if present robots/drones actually *need* power.
     if (connectors.nonEmpty) {
       if (hasPower) util.EnumSet.of(api.util.StateAware.State.IsWorking)
@@ -71,7 +72,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Null = {
     player.sendMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
   }
@@ -196,7 +197,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, Some(driver)) if driver.slot(stack) == Slot.Tablet => true
     case _ => ItemCharge.canCharge(stack)
   }

@@ -22,12 +22,12 @@ import net.minecraft.item.ItemStack
 object EnvironmentProviderBlocks extends EnvironmentProvider {
   override def getEnvironment(stack: ItemStack): Class[_] = stack.getItem match {
     case block: ItemBlock if block.getBlock != null =>
-      if (isOneOf(block.getBlock, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.getBlock, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
+      if (isOneOf(block.getBlock, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
       else if (isOneOf(block.getBlock, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
       else if (isOneOf(block.getBlock, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]
       else if (isOneOf(block.getBlock, Constants.BlockName.MotionSensor)) classOf[tileentity.MotionSensor]
       else if (isOneOf(block.getBlock, Constants.BlockName.Printer)) classOf[tileentity.Printer]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Relay)) classOf[tileentity.Relay]
       else if (isOneOf(block.getBlock, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
       else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]
       else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)) classOf[common.component.Screen]

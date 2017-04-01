@@ -100,7 +100,6 @@ object Recipes {
   }
 
   def init() {
-    return
     RecipeSorter.register(Settings.namespace + "extshaped", classOf[ExtendedShapedOreRecipe], Category.SHAPED, "after:forge:shapedore")
     RecipeSorter.register(Settings.namespace + "extshapeless", classOf[ExtendedShapelessOreRecipe], Category.SHAPELESS, "after:forge:shapelessore")
     RecipeSorter.register(Settings.namespace + "colorizer", classOf[ColorizeRecipe], Category.SHAPELESS, "after:forge:shapelessore")
@@ -208,7 +207,6 @@ object Recipes {
       }
 
       // Recrafting operations.
-      val accessPoint = api.Items.get(Constants.BlockName.AccessPoint)
       val cable = api.Items.get(Constants.BlockName.Cable)
       val chamelium = api.Items.get(Constants.ItemName.Chamelium)
       val chameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
@@ -221,7 +219,6 @@ object Recipes {
       val print = api.Items.get(Constants.BlockName.Print)
       val relay = api.Items.get(Constants.BlockName.Relay)
       val robot = api.Items.get(Constants.BlockName.Robot)
-      val switch = api.Items.get(Constants.BlockName.Switch)
       val tablet = api.Items.get(Constants.ItemName.Tablet)
 
       // Navigation upgrade recrafting.
@@ -338,10 +335,6 @@ object Recipes {
         lightPrint,
         print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.GLOWSTONE)))
 
-      // Switch/AccessPoint -> Relay conversion
-      GameRegistry.addShapelessRecipe(relay.createItemStack(1), accessPoint.createItemStack(1))
-      GameRegistry.addShapelessRecipe(relay.createItemStack(1), switch.createItemStack(1))
-
       // Hover Boot dyeing
       GameRegistry.addRecipe(new ColorizeRecipe(hoverBoots.item()))
       GameRegistry.addRecipe(new DecolorizeRecipe(hoverBoots.item()))
@@ -410,7 +403,7 @@ object Recipes {
       }
       else throw new RecipeException("Invalid ingredient type (no oreDict, item or block entry).")
     case name: String =>
-      if (name == null || name.trim.isEmpty) null
+      if (name == null || name.trim.isEmpty) ItemStack.EMPTY
       else if (OreDictionary.getOres(name) != null && !OreDictionary.getOres(name).isEmpty) name
       else {
         findItem(name) match {

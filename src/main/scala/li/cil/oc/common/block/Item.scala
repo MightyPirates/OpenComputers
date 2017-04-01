@@ -5,16 +5,13 @@ import java.util
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
-import li.cil.oc.util.ItemCosts
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
@@ -32,15 +29,6 @@ class Item(value: Block) extends ItemBlock(value) {
     block match {
       case (simple: SimpleBlock) =>
         simple.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip, advanced)
-
-        if (KeyBindings.showMaterialCosts) {
-          ItemCosts.addTooltip(stack, tooltip)
-        }
-        else {
-          tooltip.add(I18n.format(
-            Settings.namespace + "tooltip.materialcosts",
-            KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
-        }
       case _ =>
     }
   }

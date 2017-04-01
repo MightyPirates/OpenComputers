@@ -342,7 +342,6 @@ object Items extends ItemAPI {
   private def initMaterials(): Unit = {
     val materials = newItem(new item.Delegator(), "material")
 
-    registerItem(new item.IronNugget(materials), Constants.ItemName.IronNugget)
     Recipes.addSubItem(new item.CuttingWire(materials), Constants.ItemName.CuttingWire, "oc:materialCuttingWire")
     Recipes.addSubItem(new item.Acid(materials), Constants.ItemName.Acid, "oc:materialAcid")
     Recipes.addSubItem(new item.RawCircuitBoard(materials), Constants.ItemName.RawCircuitBoard, "oc:materialCircuitBoardRaw")

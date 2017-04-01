@@ -129,12 +129,6 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
 
-  @Deprecated
-  override def inventoryFor(stack: ItemStack, player: EntityPlayer):IInventory = {
-    OpenComputers.log.warn("A mod is using the deprecated method li.cil.oc.api.Driver.inventoryFor; use itemHandlerFor instead.")
-    null
-  }
-
   override def itemHandlerFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
       map(provider => InventoryUtils.asItemHandler(provider.getInventory(stack, player))).

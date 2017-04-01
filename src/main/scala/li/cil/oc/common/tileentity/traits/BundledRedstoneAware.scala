@@ -1,18 +1,8 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraftforge.fml.common.Optional
-
-/* TODO RedLogic
-import mods.immibis.redlogic.api.wiring.IBundledEmitter
-import mods.immibis.redlogic.api.wiring.IBundledUpdatable
-*/
-/* TODO Project Red
-import mrtjp.projectred.api.IBundledTile
-*/
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
@@ -21,15 +11,15 @@ import net.minecraftforge.common.util.Constants.NBT
 
 trait BundledRedstoneAware extends RedstoneAware {
 
-  protected[tileentity] val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
+  protected[tileentity] val _bundledInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))
 
-  protected[tileentity] val _rednetInput = Array.fill(6)(Array.fill(16)(-1))
+  protected[tileentity] val _rednetInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))
 
-  protected[tileentity] val _bundledOutput = Array.fill(6)(Array.fill(16)(0))
+  protected[tileentity] val _bundledOutput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(0))
 
   // ----------------------------------------------------------------------- //
 
-  override def isOutputEnabled_=(value: Boolean) = {
+  override def isOutputEnabled_=(value: Boolean): RedstoneAware = {
     if (value != isOutputEnabled) {
       if (!value) {
         for (i <- _bundledOutput.indices) {
@@ -42,7 +32,7 @@ trait BundledRedstoneAware extends RedstoneAware {
     super.isOutputEnabled_=(value)
   }
 
-  def bundledInput(side: EnumFacing) =
+  def bundledInput(side: EnumFacing): Array[Int] =
     (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
 
   def bundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
@@ -62,7 +52,7 @@ trait BundledRedstoneAware extends RedstoneAware {
     }
   }
 
-  def bundledInput(side: EnumFacing, color: Int) =
+  def bundledInput(side: EnumFacing, color: Int): Int =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
   def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = {
@@ -75,7 +65,7 @@ trait BundledRedstoneAware extends RedstoneAware {
     }
   }
 
-  def bundledOutput(side: EnumFacing) = _bundledOutput(toLocal(side).ordinal())
+  def bundledOutput(side: EnumFacing): Array[Int] = _bundledOutput(toLocal(side).ordinal())
 
   def bundledOutput(side: EnumFacing, color: Int): Int = bundledOutput(side)(color)
 

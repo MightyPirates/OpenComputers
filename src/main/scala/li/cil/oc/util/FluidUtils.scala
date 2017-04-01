@@ -57,7 +57,7 @@ object FluidUtils {
    * <p/>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME) = {
+  def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME): Int = {
     val drained = source.drain(limit, false)
     val filled = sink.fill(drained, false)
     sink.fill(source.drain(filled, true), true)
@@ -70,7 +70,7 @@ object FluidUtils {
    * This uses the <tt>fluidHandlerAt</tt> method, and therefore handles special
    * cases such as fluid blocks.
    */
-  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) =
+  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME): Int =
     fluidHandlerAt(sourcePos, sourceSide).fold(0)(source =>
       fluidHandlerAt(sinkPos, sinkSide).fold(0)(sink =>
         transferBetweenFluidHandlers(source, sink, limit)))
@@ -99,7 +99,7 @@ object FluidUtils {
 
     override def getTankProperties: Array[IFluidTankProperties] = currentWrapper.fold(Array.empty[IFluidTankProperties])(_.getTankProperties)
 
-    def currentWrapper = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
+    def currentWrapper: Option[IFluidHandler] = if (position.world.get.blockExists(position)) position.world.get.getBlock(position) match {
       case block: IFluidBlock => Option(new FluidBlockWrapper(position, block))
       case block: BlockStaticLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
       case block: BlockDynamicLiquid if lookupFluidForBlock(block) != null && isFullLiquidBlock => Option(new LiquidBlockWrapper(position, block))
@@ -108,7 +108,7 @@ object FluidUtils {
     }
     else None
 
-    def isFullLiquidBlock = {
+    def isFullLiquidBlock: Boolean = {
       val state = position.world.get.getBlockState(position.toBlockPos)
       state.getValue(BlockLiquid.LEVEL) == 0
     }
@@ -149,7 +149,7 @@ object FluidUtils {
   }
 
   private class LiquidBlockWrapper(val position: BlockPosition, val block: BlockLiquid) extends BlockWrapperBase {
-    val fluid = lookupFluidForBlock(block)
+    val fluid: Fluid = lookupFluidForBlock(block)
 
     def canDrain(fluid: Fluid): Boolean = true
 

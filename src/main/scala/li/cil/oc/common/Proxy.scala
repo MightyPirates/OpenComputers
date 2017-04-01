@@ -48,7 +48,6 @@ class Proxy {
     OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.REDSTONE_TORCH)
     OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ENDER_PEARL)
 
-    tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.IRON_INGOT, "ingotIron")
     tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.DIAMOND, "gemDiamond")
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`

@@ -14,23 +14,21 @@ object KeyBindings {
 
   val keyBindingNameGetters = mutable.ArrayBuffer(getKeyBindingNameVanilla _)
 
-  def showExtendedTooltips = isKeyBindingPressed(extendedTooltip)
+  def showExtendedTooltips: Boolean = isKeyBindingPressed(extendedTooltip)
 
-  def showMaterialCosts = isKeyBindingPressed(materialCosts)
+  def isPastingClipboard: Boolean = isKeyBindingPressed(clipboardPaste)
 
-  def isPastingClipboard = isKeyBindingPressed(clipboardPaste)
-
-  def getKeyBindingName(keyBinding: KeyBinding) = keyBindingNameGetters.map(_(keyBinding)).collectFirst {
+  def getKeyBindingName(keyBinding: KeyBinding): String = keyBindingNameGetters.map(_ (keyBinding)).collectFirst {
     case Some(name) => name
   }.getOrElse("???")
 
-  def isKeyBindingPressed(keyBinding: KeyBinding) = keyBindingChecks.forall(_(keyBinding))
+  def isKeyBindingPressed(keyBinding: KeyBinding): Boolean = keyBindingChecks.forall(_ (keyBinding))
 
-  def getKeyBindingNameVanilla(keyBinding: KeyBinding) = try Some(GameSettings.getKeyDisplayString(keyBinding.getKeyCode)) catch {
+  def getKeyBindingNameVanilla(keyBinding: KeyBinding): Option[String] = try Some(GameSettings.getKeyDisplayString(keyBinding.getKeyCode)) catch {
     case _: Throwable => None
   }
 
-  def isKeyBindingPressedVanilla(keyBinding: KeyBinding) = try {
+  def isKeyBindingPressedVanilla(keyBinding: KeyBinding): Boolean = try {
     if (keyBinding.getKeyCode < 0)
       Mouse.isCreated && Mouse.isButtonDown(keyBinding.getKeyCode + 100)
     else
@@ -40,9 +38,7 @@ object KeyBindings {
     case _: Throwable => false
   }
 
-  def extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
-
-  val materialCosts = new KeyBinding("key.materialCosts", Keyboard.KEY_LMENU, OpenComputers.Name)
+  def extendedTooltip: KeyBinding = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 
   val clipboardPaste = new KeyBinding("key.clipboardPaste", Keyboard.KEY_INSERT, OpenComputers.Name)
 }

@@ -2,35 +2,25 @@ package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraftforge.fml.common.Optional
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-/* TODO RedLogic
-import mods.immibis.redlogic.api.wiring.IConnectable
-import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
-import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
-import mods.immibis.redlogic.api.wiring.IWire
-*/
-
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-
 trait RedstoneAware extends RotationAware {
-  protected[tileentity] val _input = Array.fill(6)(-1)
+  protected[tileentity] val _input: Array[Int] = Array.fill(6)(-1)
 
-  protected[tileentity] val _output = Array.fill(6)(0)
+  protected[tileentity] val _output: Array[Int] = Array.fill(6)(0)
 
   protected var _isOutputEnabled = false
 
   protected var shouldUpdateInput = true
 
-  def isOutputEnabled = _isOutputEnabled
+  def isOutputEnabled: Boolean = _isOutputEnabled
 
-  def isOutputEnabled_=(value: Boolean) = {
+  def isOutputEnabled_=(value: Boolean): RedstoneAware = {
     if (value != isOutputEnabled) {
       _isOutputEnabled = value
       if (!value) {
@@ -43,7 +33,7 @@ trait RedstoneAware extends RotationAware {
     this
   }
 
-  def input(side: EnumFacing) = _input(side.ordinal()) max 0
+  def input(side: EnumFacing): Int = _input(side.ordinal()) max 0
 
   def input(side: EnumFacing, newInput: Int): Unit = {
     val oldInput = _input(side.ordinal())
@@ -53,9 +43,9 @@ trait RedstoneAware extends RotationAware {
     }
   }
 
-  def maxInput = EnumFacing.values.map(input).max
+  def maxInput: Int = EnumFacing.values.map(input).max
 
-  def output(side: EnumFacing) = _output(toLocal(side).ordinal())
+  def output(side: EnumFacing): Int = _output(toLocal(side).ordinal())
 
   def output(side: EnumFacing, value: Int): Unit = if (value != output(side)) {
     _output(toLocal(side).ordinal()) = value
@@ -96,7 +86,7 @@ trait RedstoneAware extends RotationAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
 
     val input = nbt.getIntArray(Settings.namespace + "rs.input")
@@ -105,7 +95,7 @@ trait RedstoneAware extends RotationAware {
     output.copyToArray(_output, 0, output.length min _output.length)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
 
     nbt.setIntArray(Settings.namespace + "rs.input", _input)
