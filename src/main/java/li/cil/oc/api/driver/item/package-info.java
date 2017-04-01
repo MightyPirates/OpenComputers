@@ -6,7 +6,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Driver|Item",
+        provides = "opencomputersapi|driver|item",
         apiVersion = API.VERSION)
 package li.cil.oc.api.driver.item;
 

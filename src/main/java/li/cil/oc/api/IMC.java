@@ -414,7 +414,7 @@ public final class IMC {
 
     // ----------------------------------------------------------------------- //
 
-    private static final String MOD_ID = "OpenComputers";
+    private static final String MOD_ID = "opencomputers";
 
     private IMC() {
     }

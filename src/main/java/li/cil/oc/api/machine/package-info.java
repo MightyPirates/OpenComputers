@@ -18,7 +18,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Machine",
+        provides = "opencomputersapi|machine",
         apiVersion = API.VERSION)
 package li.cil.oc.api.machine;
 

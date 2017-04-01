@@ -15,7 +15,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Internal",
+        provides = "opencomputersapi|internal",
         apiVersion = API.VERSION)
 package li.cil.oc.api.internal;
 

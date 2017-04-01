@@ -36,6 +36,6 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Core",
+        provides = "opencomputersapi|core",
         apiVersion = API.VERSION)
 package li.cil.oc.api;

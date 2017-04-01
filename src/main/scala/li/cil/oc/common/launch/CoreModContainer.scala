@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.ModMetadata
 class CoreModContainer extends DummyModContainer({
   val md = new ModMetadata()
   md.authorList.add("Sangar")
-  md.modId = "OpenComputers|Core"
+  md.modId = "opencomputers|core"
   md.version = "@VERSION@"
   md.name = "OpenComputers (Core)"
   md.url = "http://oc.cil.li/"

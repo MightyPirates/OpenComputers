@@ -33,21 +33,21 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
   var noclipOff = false
   var noclipOn = false
 
-  def complexity = stateOn.size max stateOff.size
+  def complexity: Int = stateOn.size max stateOff.size
 
-  def hasActiveState = stateOn.nonEmpty
+  def hasActiveState: Boolean = stateOn.nonEmpty
 
-  def emitLight = lightLevel > 0
+  def emitLight: Boolean = lightLevel > 0
 
-  def emitRedstone = redstoneLevel > 0
+  def emitRedstone: Boolean = redstoneLevel > 0
 
   def emitRedstone(state: Boolean): Boolean = if (state) emitRedstoneWhenOn else emitRedstoneWhenOff
 
-  def emitRedstoneWhenOff = emitRedstone && !hasActiveState
+  def emitRedstoneWhenOff: Boolean = emitRedstone && !hasActiveState
 
-  def emitRedstoneWhenOn = emitRedstone && hasActiveState
+  def emitRedstoneWhenOn: Boolean = emitRedstone && hasActiveState
 
-  def opacity = {
+  def opacity: Float = {
     if (opacityDirty) {
       opacityDirty = false
       opacity_ = PrintData.computeApproximateOpacity(stateOn) min PrintData.computeApproximateOpacity(stateOff)
@@ -124,7 +124,7 @@ object PrintData {
 
   def addInkProvider(provider: Method): Unit = inkProviders += provider
 
-  def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
+  def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]): Float = {
     var volume = 1f
     if (shapes.nonEmpty) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
       val bounds = new AxisAlignedBB(
@@ -137,7 +137,7 @@ object PrintData {
     volume
   }
 
-  def computeCosts(data: PrintData) = {
+  def computeCosts(data: PrintData): Option[(Int, Int)] = {
     val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
     val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
     val multiplier = if (data.noclipOff || data.noclipOn) Settings.get.noclipMultiplier else 1
@@ -156,7 +156,7 @@ object PrintData {
 
   private val materialPerItem = Settings.get.printMaterialValue
 
-  def materialValue(stack: ItemStack) = {
+  def materialValue(stack: ItemStack): Int = {
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
       materialPerItem
     else if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {

@@ -6,7 +6,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Network",
+        provides = "opencomputersapi|network",
         apiVersion = API.VERSION)
 package li.cil.oc.api.network;
 

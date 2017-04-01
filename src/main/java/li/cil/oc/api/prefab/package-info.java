@@ -9,7 +9,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Prefab",
+        provides = "opencomputersapi|prefab",
         apiVersion = API.VERSION)
 package li.cil.oc.api.prefab;
 

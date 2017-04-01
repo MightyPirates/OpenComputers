@@ -22,7 +22,7 @@ object OpenComputers {
 
   final val Version = "@VERSION@"
 
-  def log = logger.getOrElse(LogManager.getLogger(Name))
+  def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
 
   var logger: Option[Logger] = None
 
@@ -39,23 +39,23 @@ object OpenComputers {
   }
 
   @EventHandler
-  def init(e: FMLInitializationEvent) = {
+  def init(e: FMLInitializationEvent): Unit = {
     proxy.init(e)
     OpenComputers.log.info("Done with init phase.")
   }
 
   @EventHandler
-  def postInit(e: FMLPostInitializationEvent) = {
+  def postInit(e: FMLPostInitializationEvent): Unit = {
     proxy.postInit(e)
     OpenComputers.log.info("Done with post init phase.")
   }
 
   @EventHandler
-  def missingMappings(e: FMLMissingMappingsEvent) = proxy.missingMappings(e)
+  def missingMappings(e: FMLMissingMappingsEvent): Unit = proxy.missingMappings(e)
 
   @EventHandler
-  def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)
+  def serverStart(e: FMLServerStartingEvent): Unit = CommandHandler.register(e)
 
   @EventHandler
-  def imc(e: IMCEvent) = IMC.handleEvent(e)
+  def imc(e: IMCEvent): Unit = IMC.handleEvent(e)
 }

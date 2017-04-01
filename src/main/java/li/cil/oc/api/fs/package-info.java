@@ -15,7 +15,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|FileSystem",
+        provides = "opencomputersapi|filesystem",
         apiVersion = API.VERSION)
 package li.cil.oc.api.fs;
 

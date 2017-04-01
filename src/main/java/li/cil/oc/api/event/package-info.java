@@ -4,7 +4,7 @@
  */
 @net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Event",
+        provides = "opencomputersapi|event",
         apiVersion = API.VERSION)
 package li.cil.oc.api.event;
 
