@@ -14,6 +14,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.entity.player.EntityPlayer
 
 import scala.collection.convert.WrapAsJava._
@@ -22,7 +23,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.Keyboard with DeviceInfo {
+class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.Keyboard with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()

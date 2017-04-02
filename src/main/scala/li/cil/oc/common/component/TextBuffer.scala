@@ -14,6 +14,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
@@ -41,7 +42,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
+class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().

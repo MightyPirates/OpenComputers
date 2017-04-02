@@ -1,5 +1,6 @@
 package li.cil.oc.api.prefab;
 
+import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Node;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * Simple base implementation of the <tt>ManagedEnvironment</tt> interface, so
  * unused methods don't clutter the implementing class.
  */
-public abstract class ManagedEnvironment implements li.cil.oc.api.network.ManagedEnvironment {
+public abstract class AbstractManagedEnvironment implements ManagedEnvironment {
     public static final String NODE_TAG = "node";
 
     // Should be initialized using setNode(api.Network.newNode()). See TileEntityEnvironment.

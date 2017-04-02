@@ -15,6 +15,8 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DriverBlock
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -27,13 +29,13 @@ import scala.collection.convert.WrapAsJava._
   *
   * @author Sangar, Vexatos
   */
-class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends prefab.ManagedEnvironment with ChangeListener with DeviceInfo {
+class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends AbstractManagedEnvironment with ChangeListener with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
 
   private var otherEnv: Option[api.network.Environment] = None
-  private var otherDrv: Option[(ManagedEnvironment, api.driver.SidedBlock)] = None
+  private var otherDrv: Option[(ManagedEnvironment, DriverBlock)] = None
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true

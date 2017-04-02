@@ -15,6 +15,7 @@ import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.network.DebugNetwork
@@ -56,7 +57,7 @@ import net.minecraftforge.fml.common.ModAPIManager
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with DebugNode {
+class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with DebugNode {
   override val node: ComponentConnector = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().

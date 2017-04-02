@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
@@ -23,7 +24,7 @@ import net.minecraft.tileentity.TileEntityFurnace
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().

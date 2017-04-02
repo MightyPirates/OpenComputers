@@ -3,11 +3,10 @@ package li.cil.oc.api;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
 import li.cil.oc.api.driver.InventoryProvider;
-import li.cil.oc.api.driver.Item;
-import li.cil.oc.api.driver.SidedBlock;
+import li.cil.oc.api.driver.DriverItem;
+import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -31,8 +30,8 @@ import java.util.Set;
  * at that time. Only start calling these methods in the init phase or later.
  *
  * @see Network
- * @see SidedBlock
- * @see Item
+ * @see DriverBlock
+ * @see DriverItem
  */
 public final class Driver {
     /**
@@ -47,7 +46,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(final SidedBlock driver) {
+    public static void add(final DriverBlock driver) {
         if (API.driver != null)
             API.driver.add(driver);
     }
@@ -63,7 +62,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(final Item driver) {
+    public static void add(final DriverItem driver) {
         if (API.driver != null)
             API.driver.add(driver);
     }
@@ -119,13 +118,13 @@ public final class Driver {
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you will <em>not</em>
-     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.SidedBlock)}.
+     * get actual instances of drivers registered via {@link #add(DriverBlock)}.
      *
      * @param world the world containing the block.
      * @param pos   the position of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
-    public static SidedBlock driverFor(World world, BlockPos pos, EnumFacing side) {
+    public static DriverBlock driverFor(World world, BlockPos pos, EnumFacing side) {
         if (API.driver != null)
             return API.driver.driverFor(world, pos, side);
         return null;
@@ -142,7 +141,7 @@ public final class Driver {
      * @param host  the type that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
+    public static DriverItem driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
         if (API.driver != null)
             return API.driver.driverFor(stack, host);
         return null;
@@ -161,7 +160,7 @@ public final class Driver {
      * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static Item driverFor(ItemStack stack) {
+    public static DriverItem driverFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.driverFor(stack);
         return null;
@@ -231,7 +230,7 @@ public final class Driver {
      *
      * @return the list of all registered item drivers.
      */
-    public static Collection<Item> itemDrivers() {
+    public static Collection<DriverItem> itemDrivers() {
         if (API.driver != null)
             return API.driver.itemDrivers();
         return null;

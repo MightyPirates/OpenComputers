@@ -17,6 +17,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.item.data.NavigationUpgradeData
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
@@ -27,7 +28,7 @@ import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("navigation", Visibility.Neighbors).
     withConnector().

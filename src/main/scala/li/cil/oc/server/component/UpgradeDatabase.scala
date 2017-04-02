@@ -14,6 +14,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ItemUtils
@@ -22,7 +23,7 @@ import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment with internal.Database with DeviceInfo {
+class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment with internal.Database with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("database").
     create()

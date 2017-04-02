@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
@@ -26,7 +27,7 @@ import scala.collection.convert.WrapAsScala._
 
 object UpgradeTractorBeam {
 
-  abstract class Common extends prefab.ManagedEnvironment with DeviceInfo {
+  abstract class Common extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tractor_beam").
     create()

@@ -11,12 +11,13 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 
 import scala.collection.convert.WrapAsJava._
 
 // Note-to-self: this has a component to allow the robot telling it has the
 // upgrade.
-class UpgradeAngel extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeAngel extends AbstractManagedEnvironment with DeviceInfo {
   override val node: Node = Network.newNode(this, Visibility.Network).
     create()
 

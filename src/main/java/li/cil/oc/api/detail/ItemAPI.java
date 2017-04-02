@@ -47,31 +47,6 @@ public interface ItemAPI {
      * To use some directory in your mod JAR as the directory provided by the
      * loot disk, use {@link FileSystem#fromClass} in your callable.
      * <p/>
-     * Call this in the init phase or later, <em>not</em> in pre-init.
-     *
-     * @param name    the label and identifier to use for the loot disk.
-     * @param color   the color of the disk, as a Minecraft color.
-     * @param factory the callable to call for creating file system instances.
-     * @return an item stack representing the registered loot disk, to allow
-     * adding a recipe for your loot disk, for example.
-     * @deprecated use {@link #registerFloppy(String, EnumDyeColor, Callable, boolean)} instead.
-     */
-	@Deprecated
-    ItemStack registerFloppy(String name, EnumDyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory);
-
-    /**
-     * Register a single loot floppy disk.
-     * <p/>
-     * The disk will be listed in the creative tab of OpenComputers.
-     * <p/>
-     * The specified factory callable will be used to generate a new file
-     * system when the loot disk is used as a component. The specified name
-     * will be used as the label for the loot disk, as well as the identifier
-     * to select the corresponding factory method, so choose wisely.
-     * <p/>
-     * To use some directory in your mod JAR as the directory provided by the
-     * loot disk, use {@link FileSystem#fromClass} in your callable.
-     * <p/>
      * If <tt>doRecipeCycling</tt> is <tt>true</tt>, the floppy disk will be
      * included in the floppy disk recipe cycle if that is enabled.
      * <p/>

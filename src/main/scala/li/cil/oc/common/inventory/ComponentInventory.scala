@@ -3,7 +3,7 @@ package li.cil.oc.common.inventory
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.driver.{DriverItem => ItemDriver}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment

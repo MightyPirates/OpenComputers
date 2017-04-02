@@ -5,10 +5,10 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.DriverBlock
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.InventoryProvider
-import li.cil.oc.api.driver.Item
-import li.cil.oc.api.driver.SidedBlock
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
@@ -43,9 +43,9 @@ import scala.math.ScalaNumber
  * the computer, but may also provide context-free functions.
  */
 private[oc] object Registry extends api.detail.DriverAPI {
-  val sidedBlocks: ArrayBuffer[SidedBlock] = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
+  val sidedBlocks: ArrayBuffer[DriverBlock] = mutable.ArrayBuffer.empty[DriverBlock]
 
-  val items: ArrayBuffer[Item] = mutable.ArrayBuffer.empty[api.driver.Item]
+  val items: ArrayBuffer[DriverItem] = mutable.ArrayBuffer.empty[DriverItem]
 
   val converters: ArrayBuffer[Converter] = mutable.ArrayBuffer.empty[api.driver.Converter]
 
@@ -58,7 +58,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
 
-  override def add(driver: api.driver.SidedBlock) {
+  override def add(driver: DriverBlock) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!sidedBlocks.contains(driver)) {
       OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
@@ -66,7 +66,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def add(driver: api.driver.Item) {
+  override def add(driver: DriverItem) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!items.contains(driver)) {
       OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
@@ -98,13 +98,13 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): api.driver.SidedBlock =
+  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): DriverBlock =
     sidedBlocks.filter(_.worksWith(world, pos, side)) match {
       case sidedDrivers if sidedDrivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray)
       case _ => null
     }
 
-  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Item =
+  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]): DriverItem =
     if (!stack.isEmpty) {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
@@ -116,7 +116,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else null
 
-  override def driverFor(stack: ItemStack): Item =
+  override def driverFor(stack: ItemStack): DriverItem =
     if (!stack.isEmpty) items.find(_.worksWith(stack)).orNull
     else null
 
@@ -139,7 +139,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       }
   }
 
-  override def itemDrivers: util.List[Item] = items.toSeq
+  override def itemDrivers: util.List[DriverItem] = items.toSeq
 
   def blacklistHost(stack: ItemStack, host: Class[_]) {
     blacklist.find(_._1.isItemEqual(stack)) match {

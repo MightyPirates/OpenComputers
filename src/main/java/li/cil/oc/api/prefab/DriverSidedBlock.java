@@ -1,5 +1,6 @@
 package li.cil.oc.api.prefab;
 
+import li.cil.oc.api.driver.DriverBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
@@ -27,7 +28,7 @@ import net.minecraftforge.oredict.OreDictionary;
  * @see li.cil.oc.api.network.ManagedEnvironment
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class DriverSidedBlock implements li.cil.oc.api.driver.SidedBlock {
+public abstract class DriverSidedBlock implements DriverBlock {
     protected final ItemStack[] blocks;
 
     protected DriverSidedBlock(final ItemStack... blocks) {

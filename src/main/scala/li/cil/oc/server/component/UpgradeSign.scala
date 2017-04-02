@@ -13,6 +13,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
@@ -29,7 +30,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class UpgradeSign extends prefab.ManagedEnvironment with DeviceInfo {
+abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Generic,
     DeviceAttribute.Description -> "Sign upgrade",

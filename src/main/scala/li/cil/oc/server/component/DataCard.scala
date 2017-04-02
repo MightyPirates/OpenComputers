@@ -24,13 +24,14 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
+abstract class DataCard extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("data", Visibility.Neighbors).
     withConnector().

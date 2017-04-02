@@ -2,6 +2,7 @@ package li.cil.oc.common.item.traits
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
@@ -64,7 +65,7 @@ trait Delegate {
 
   protected def tierFromDriver(stack: ItemStack): Int =
     api.Driver.driverFor(stack) match {
-      case driver: api.driver.Item => driver.tier(stack)
+      case driver: DriverItem => driver.tier(stack)
       case _ => 0
     }
 

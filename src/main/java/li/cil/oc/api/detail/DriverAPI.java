@@ -4,8 +4,8 @@ import jline.internal.Nullable;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
 import li.cil.oc.api.driver.InventoryProvider;
-import li.cil.oc.api.driver.Item;
-import li.cil.oc.api.driver.SidedBlock;
+import li.cil.oc.api.driver.DriverItem;
+import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -30,7 +30,7 @@ public interface DriverAPI {
      *
      * @param driver the driver to register.
      */
-    void add(SidedBlock driver);
+    void add(DriverBlock driver);
 
     /**
      * Registers a new driver for an item component.
@@ -43,7 +43,7 @@ public interface DriverAPI {
      *
      * @param driver the driver for an item component.
      */
-    void add(Item driver);
+    void add(DriverItem driver);
 
     /**
      * Registers a new type converter.
@@ -87,7 +87,7 @@ public interface DriverAPI {
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you should will <em>not</em>
-     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.SidedBlock)}.
+     * get actual instances of drivers registered via {@link #add(DriverBlock)}.
      *
      * @param world the world containing the block.
      * @param pos   the position of the block.
@@ -95,7 +95,7 @@ public interface DriverAPI {
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
     @Nullable
-    SidedBlock driverFor(World world, BlockPos pos, EnumFacing side);
+    DriverBlock driverFor(World world, BlockPos pos, EnumFacing side);
 
     /**
      * Looks up a driver for the specified item stack.
@@ -109,7 +109,7 @@ public interface DriverAPI {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     @Nullable
-    Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host);
+    DriverItem driverFor(ItemStack stack, Class<? extends EnvironmentHost> host);
 
     /**
      * Looks up a driver for the specified item stack.
@@ -125,7 +125,7 @@ public interface DriverAPI {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     @Nullable
-    Item driverFor(ItemStack stack);
+    DriverItem driverFor(ItemStack stack);
 
     /**
      * Looks up the environment associated with the specified item stack.
@@ -179,5 +179,5 @@ public interface DriverAPI {
      *
      * @return the list of all registered item drivers.
      */
-    Collection<Item> itemDrivers();
+    Collection<DriverItem> itemDrivers();
 }

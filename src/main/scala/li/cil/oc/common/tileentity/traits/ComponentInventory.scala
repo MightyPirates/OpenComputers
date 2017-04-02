@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity.traits
 
-import li.cil.oc.api.driver.Item
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.EventHandler
@@ -115,7 +115,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     }
   }
 
-  override protected def save(component: ManagedEnvironment, driver: Item, stack: ItemStack): Unit = {
+  override protected def save(component: ManagedEnvironment, driver: DriverItem, stack: ItemStack): Unit = {
     if (isServer) {
       super.save(component, driver, stack)
     }

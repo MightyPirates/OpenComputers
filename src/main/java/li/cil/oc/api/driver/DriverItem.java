@@ -22,7 +22,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * items as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular.
  */
-public interface Item {
+public interface DriverItem {
     /**
      * Used to determine the item types this driver handles.
      * <p/>

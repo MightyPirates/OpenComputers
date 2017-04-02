@@ -9,6 +9,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
@@ -29,7 +30,7 @@ import scala.collection.mutable
 class Adapter extends traits.Environment with traits.ComponentInventory with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
-  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
+  private val blocks = Array.fill[Option[(ManagedEnvironment, DriverBlock)]](6)(None)
 
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 

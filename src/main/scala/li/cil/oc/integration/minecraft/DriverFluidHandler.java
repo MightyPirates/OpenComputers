@@ -1,5 +1,6 @@
 package li.cil.oc.integration.minecraft;
 
+import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -12,7 +13,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-public final class DriverFluidHandler implements li.cil.oc.api.driver.SidedBlock {
+public final class DriverFluidHandler implements DriverBlock {
     @Override
     public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
         final TileEntity tileEntity = world.getTileEntity(pos);

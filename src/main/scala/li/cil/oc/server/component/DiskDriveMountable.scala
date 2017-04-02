@@ -19,6 +19,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
 import li.cil.oc.common.inventory.ComponentInventory
@@ -34,7 +35,7 @@ import net.minecraft.util.EnumHand
 
 import scala.collection.convert.WrapAsJava._
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends prefab.ManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
@@ -142,13 +143,13 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
   // Persistable
 
   override def load(nbt: NBTTagCompound) {
-    super[ManagedEnvironment].load(nbt)
+    super[AbstractManagedEnvironment].load(nbt)
     super[ComponentInventory].load(nbt)
     connectComponents()
   }
 
   override def save(nbt: NBTTagCompound) {
-    super[ManagedEnvironment].save(nbt)
+    super[AbstractManagedEnvironment].save(nbt)
     super[ComponentInventory].save(nbt)
   }
 

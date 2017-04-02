@@ -14,6 +14,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
@@ -26,7 +27,7 @@ import net.minecraft.util.EnumParticleTypes
 
 import scala.collection.convert.WrapAsJava._
 
-class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
+class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with Agent with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).

@@ -18,6 +18,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
@@ -25,7 +26,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable with DeviceInfo {
+class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo {
   protected val visibility: Visibility = host match {
     case _: Rack => Visibility.Neighbors
     case _ => Visibility.Network

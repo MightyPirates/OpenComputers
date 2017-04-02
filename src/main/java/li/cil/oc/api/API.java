@@ -18,7 +18,7 @@ import li.cil.oc.api.detail.NetworkAPI;
  */
 public class API {
     public static final String ID_OWNER = "opencomputers|core";
-    public static final String VERSION = "6.0.0-alpha";
+    public static final String VERSION = "7.0.0-alpha";
 
     // ----------------------------------------------------------------------- //
 

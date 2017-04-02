@@ -26,7 +26,7 @@ import net.minecraft.world.World;
  * Note that side-aware block drivers are queried before regular block drivers,
  * because they are more specific.
  */
-public interface SidedBlock {
+public interface DriverBlock {
     /**
      * Used to determine the block types this driver handles.
      * <p/>

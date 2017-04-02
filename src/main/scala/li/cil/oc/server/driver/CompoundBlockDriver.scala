@@ -2,6 +2,7 @@ package li.cil.oc.server.driver
 
 import com.google.common.base.Strings
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.inventory.IInventory
@@ -12,7 +13,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock]) extends driver.SidedBlock {
+class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlock {
   override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): CompoundBlockEnvironment = {
     val list = sidedBlocks.map {
       driver => Option(driver.createEnvironment(world, pos, side)) match {
