@@ -325,10 +325,11 @@ function term.readKeyboard(ops)
         hints.cache = nil
         local ctrl = kb.isControlDown(address)
         if ctrl and code == keys.d then return
-        elseif char == 9 then
+        elseif code == keys.tab then
           hints.cache = backup_cache
           term.internal.tab(input,hints)
-        elseif char == 13 and filter(input) then
+        elseif (code == keys.enter or code == keys.numpadenter)
+                and filter(input) then
           input:move(math.huge)
           if db ~= false then
             draw("\n")
@@ -343,8 +344,8 @@ function term.readKeyboard(ops)
         elseif code == keys["end"] then input:move( math.huge)
         elseif code == keys.back   then c = -1
         elseif code == keys.delete then c =  0
-        elseif char >= 32          then c = unicode.char(char)
         elseif ctrl and char == "w"then -- TODO: cut word
+        elseif char >= 32          then c = unicode.char(char)
         else                            hints.cache = backup_cache -- ignored chars shouldn't clear hint cache
         end
       end

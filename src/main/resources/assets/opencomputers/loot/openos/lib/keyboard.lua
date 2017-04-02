@@ -27,6 +27,9 @@ keyboard.keys = {
   tab             = 0x0F,
   up              = 0xC8,
   ["end"]         = 0xCF,
+  enter           = 0x1C,
+  tab             = 0x0F,
+  numpadenter     = 0x9C,
 }
 
 -- Create inverse mapping for name lookup.

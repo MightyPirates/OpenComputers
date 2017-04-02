@@ -1,4 +1,4 @@
-alias l="ls -lh"
+alias l="ls -lhp"
 alias ..="cd .."
 alias df="df -h"
 
