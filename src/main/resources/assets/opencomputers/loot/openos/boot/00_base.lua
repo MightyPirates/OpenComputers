@@ -1,4 +1,7 @@
 function loadfile(filename, mode, env)
+  if filename:sub(1,1) ~= "/" then
+    filename = (os.getenv("PWD") or "/") .. "/" .. filename
+  end
   local handle, reason = require("filesystem").open(filename)
   if not handle then
     return nil, reason

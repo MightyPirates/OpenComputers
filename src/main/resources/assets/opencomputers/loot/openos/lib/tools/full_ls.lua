@@ -43,11 +43,11 @@ local function stat(names, index)
   local info = {}
   info.key = name
   info.path = name:sub(1, 1) == "/" and "" or names.path
-  info.name = ops.p and name or name:gsub("/+$", "")
-  info.sort_name = info.name:gsub("^%.","")
-  info.full_path = fs.concat(info.path, info.name)
-  info.isLink, info.link = fs.isLink(info.full_path)
+  info.full_path = fs.concat(info.path, name)
   info.isDir = fs.isDirectory(info.full_path)
+  info.name = name:gsub("/+$", "") .. (ops.p and info.isDir and "/" or "")
+  info.sort_name = info.name:gsub("^%.","")
+  info.isLink, info.link = fs.isLink(info.full_path)
   info.size = info.isLink and 0 or fs.size(info.full_path)
   info.time = fs.lastModified(info.full_path)
   info.fs = fs.get(info.full_path)
