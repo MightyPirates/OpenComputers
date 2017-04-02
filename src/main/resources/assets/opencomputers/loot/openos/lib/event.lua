@@ -20,16 +20,12 @@ function event.register(key, callback, interval, times)
   local handler =
   {
     key = key,
-    times = times or 0,
+    times = times or math.huge,
     callback = callback,
     interval = interval or math.huge,
   }
 
   handler.timeout = computer.uptime() + handler.interval
-
-  if not interval then
-    handler.times = math.huge
-  end
 
   local id = 0
   repeat
@@ -60,8 +56,7 @@ local function dispatch(...)
     -- nil keys match anything
     local key = handler.key
     key = (key == nil and signal) or key
-    if key == signal or time >= handler.timeout then
-
+    if (signal and key == signal) or time >= handler.timeout then
       -- push ticks to end of list (might be slightly faster to fire them last)
       table.insert(eligable, select(handler.key and 1 or 2, 1, {handler.callback, id}))
 
@@ -160,7 +155,7 @@ function event.listen(name, callback)
       return false
     end
   end
-  return event.register(name, callback, nil, nil)
+  return event.register(name, callback)
 end
 
 function event.onError(message)
