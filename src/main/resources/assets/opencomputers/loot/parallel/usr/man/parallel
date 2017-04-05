@@ -1,0 +1,50 @@
+NAME
+  parallel (Library) - parallel coroutine manager, providing interaction between them.
+
+CALLS
+  none, see parallel.manager or specific function.
+  
+RETURNS
+  none, see parallel.manager or specific function.
+  
+DESCRIPTION
+  Coroutine Manager adds few useful possibilities.
+    Manage dynamic number of coroutines
+        With parallel.spawn() you can spawn a new sister level thread
+        With parallel.kill() you can exclusively kill a sister level thread
+        Every thread has a property that at value 0 is unpaused and at positive value is paused, but negative values resets to 0, therefore parallel.unpause(threadUid, math.huge) will effectively unpause anything.
+    Compatibility with parallel.yield(), and more
+        With parallel.setFilter() you can set filter to any thread, for example for a thread you just spawned.
+    Interact between coroutines
+        With parallel.whisper() you can exclusively send arguments to a specific thread. When target thread is about to be resumed, it first resumes with first whispered arguments, then resumes again with next whispered arguments, ..., and lastly with event data from above as arguments if not filtered. Whispered arguments bypasses filters.
+        With parallel.ask() you can ask values from a specific thread if it was readied correctly with parallel.setAnswer().
+    Pause and unpause other coroutines (therefore saving their state)
+        Use parallel.pause() and parallel.unpause()
+    Implement a task manager
+        With parallel.getThreads() you can get info about all threads or couroutine.getThread() will point to calling thread or return info about a specific thread.
+        With parallel.setName() you can set human-friendly names for threads or use it to tag, group and filter coroutines. Get name with parallel.getName()
+
+EXAMPLES (see specific functions)
+  man parallel.manager
+  man parallel.spawn
+  man parallel.yield
+  man parallel.pause
+  man parallel.unpause
+  man parallel.kill
+  man parallel.dig
+  man parallel.setName
+  man parallel.getName
+  man parallel.setAlarm
+  man parallel.getAlarm
+  man parallel.setFilter
+  man parallel.getFilter
+  man parallel.setAnswer
+  man parallel.getAnswer
+  man parallel.ask
+  man parallel.whisper
+  man parallel.getThreads
+  man parallel.getThread 
+  man parallel.exit
+  man parallel.demonstration -- for reference only
+  man parallel.examples -- for reference only
+  man parallel.properties -- for reference only

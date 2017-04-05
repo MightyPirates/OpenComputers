@@ -1,0 +1,14 @@
+NAME
+  list of examples of parallel calls.
+  
+DETAILS
+  Assuming that you load parallel library inside OpenOS in a global table "parallel", have executed parallel.manager(), write commands inside default minimalistic console and term.read has been edited to be yieldable.
+  
+EXAMPLES
+  Print name, uid and filter for all running threads
+    _,threads = parallel.getThreads(); for k,v in pairs(threads) do print(k,v.name,v.uid,v.filter) end
+    
+  Give a calculation to another thread and collect return value afterwards.
+    _,uid = parallel.spawn(function () local r=0; for i=1,50 do r=r+i; print(i, parallel.yield(0.5)) end; return r end); while parallel.getName(uid) do parallel.yield() end; print("result:",parallel.dig(uid))
+  
+  

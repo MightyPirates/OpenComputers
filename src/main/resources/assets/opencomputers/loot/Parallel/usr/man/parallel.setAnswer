@@ -1,0 +1,21 @@
+NAME
+  parallel.setAnswer
+  
+CALLS
+  parallel.setAnswer(string: threadUid, undefined: answer)
+  
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  Sets the answer for a thread. If another thread will ask to this thread, it will get that answer.
+  If answer is a function, then the function will be executed with ask message as a single argument.
+  Answer is reset every time thread regains control, so set it everytime before it yields.
+  
+EXAMPLES
+  parallel.setAnswer(threadUid, true)
+  parallel.setAnswer(threadUid, "I am ready to answer!")
+  parallel.setAnswer(threadUid, {1,true,nil,{},"I am ready to answer!"})
+  parallel.setAnswer(parallel.getThread().uid, function (msg) if msg == 3 then return true else return false end end)
+  
+print(parallel.getThread().uid)

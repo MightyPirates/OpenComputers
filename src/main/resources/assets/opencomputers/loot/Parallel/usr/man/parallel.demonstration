@@ -1,0 +1,58 @@
+NAME
+  Demonstration
+  
+DESCRIPTION
+  Follow the instructions to introduce yourself to the parallel library.
+  
+INSTRUCTIONS
+  1. Make a computer/robot and install OpenOS on it
+  2. make & run a file with following code:
+    shell = require("shell")
+    shell.execute("del parallel")
+    shell.execute("pastebin get dS1NHyRt parallel") -- that's Akuukis pastebin, you may want to change to your own.
+    parallel = dofile("parallel")
+    parallel.manager()
+  3. Test the commands below. Enjoy!
+  
+-- parallel demonstration functions, copy/paste lines in console
+-- expect very bad user interface, broken lines, etc.
+print("kuku!") -- expect it working
+print("kuku!""") -- expect error at loading, notice how console prints loading errors
+print(nill[index]) -- expect error at executing, notice how console prints running errors
+a, err = parallel.spawn(function () print("kuku!") end) -- expect it working
+b, err = parallel.spawn(function () print("kuku!""") end) -- expect error, notice how manager prints loading errors
+c, err = parallel.spawn(function () print(nill[index]) end) -- expect error, notice how manager prints running errors
+d, err = parallel.spawn(function () for i=1,10 do print(i) end end) -- expect non-yielding fast 1-10 that discards input
+e, err = parallel.spawn(function () for i=1,10 do print(i); os.sleep(0.5) end end) -- expect non-yielding slow 1-10 that discards input
+f, err = parallel.spawn(function () event = require("event"); for i=1,10 do print(i); event.pull(0.5) end end) -- expect non-yielding, variable speed 1-10 that discards input
+g, err = parallel.spawn(function () for i=1,10 do print(i); parallel.yield(0.5) end end) -- expect yielding slow 1-10
+h, err = parallel.spawn(function () for i=1,10 do print(string.char(96+i-1)); coroutine.yield(0.5) end end) -- expect yielding slow a-i
+i, err = parallel.spawn(function () for i=1,10 do print(i); parallel.yield(0.5) end end); _,e = parallel.spawn(function () for i=1,10 do print(string.char(96+i-1)); coroutine.yield(0.5) end end) -- expect slow 1-10 and a-i at the same time
+j, err = parallel.spawn(function () computer = require("computer"); while true do computer.beep(); parallel.yield(3) end end) -- expect it to beep every 3 secs
+parallel.pause(j) -- expect not beeping
+parallel.unpause(j) -- expect beeping, notice that delay is not reset while paused
+parallel.pause(j,2) -- expect not beeping
+parallel.setAlarm(j,nil) -- expect to see nothing but delay has been reset
+parallel.unpause(j) -- expect not beeping again
+parallel.unpause(j, math.huge) -- expect beeping, notice that delay has been reset
+parallel.setAlarm(j,7+os.clock()*60) -- expect to notice that delay was increased, once.
+for k,v in pairs(parallel.getThread(j)) do print(k,v) end -- expect to see properties about beeping thread
+parallel.setName(j,"Beeper") -- expect to see nothing but name has been changed
+for k,v in pairs(parallel.getThread(j)) do print(k,v) end -- expect to see properties about beeping thread, notice the name
+parallel.kill(j) -- expect not beeping
+print(parallel.getThread(j)) -- expect error "No running thread found, try to dig"
+print(parallel.dig(j)) -- expect to see some values: true (function succeeded), and a table
+print(table.unpack(table.pack(parallel.dig(j))[2])) -- expect to see some values: false (thread errored or was killed), "killed" (error message), uid (of thread that killed it), number (time in seconds when killed)
+k, err = parallel.spawn(function () return 23,45,"Completed!" end) -- expect to see nothing
+print(parallel.dig(k)) -- expect to see some values: true (function succeeded), and a table
+print(table.unpack(table.pack(parallel.dig(k))[2])) -- expect to see some values: true (function succeeded), true (thread returned), then list of return values.
+l, err = parallel.spawn(function () computer = require("computer"); while true do if parallel.yield() == "beep!" then computer.beep() end end end) -- expect to see nothing
+for i=1,5 do parallel.whisper(l,"beep!") end -- expect to hear a beep 5 times
+parallel.kill(l) -- expect not beeping
+m, err = parallel.spawn(function () computer = require("computer"); while true do if parallel.yield() == "beep!" then computer.beep(); local uid = parallel.getThread().uid; parallel.setAnswer( uid, (parallel.getAnswer(uid) or 0) + 1) end end end) -- expect to see nothing
+for i=1,5 do parallel.whisper(m,"beep!") end -- expect to hear a beep 5 times
+print("Beeps in my thread lifetime:", parallel.getAnswer(m)) -- expect to see number of beeps
+for k,v in pairs(parallel.getThreads()) do print (k, v.name, v.uid) end -- expect to see a list of threads
+for k,v in pairs(parallel.getThreads()) do if v.name ~= "Default console" then parallel.kill(v.uid) end end -- expect to see nothing
+for k,v in pairs(parallel.getThreads()) do print (k, v.name, v.uid) end -- expect to see only one thread left
+parallel.exit() -- expect to exit back to OpenOS

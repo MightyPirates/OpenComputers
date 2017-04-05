@@ -1,0 +1,18 @@
+NAME
+  parallel.getFilter
+  
+CALLS
+  parallel.getFilter(string: threadUid)
+  
+RETURNS
+  string: filter
+    OR
+  boolean: false, string: "No filter"
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  Gets the filter for a thread.
+  
+EXAMPLES
+  parallel.getFilter(threadUid)

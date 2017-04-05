@@ -1,0 +1,18 @@
+NAME
+  parallel.getThread
+  
+CALLS
+  parallel.getThread([threadUid])
+  
+RETURNS
+  table: properties
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  Gets a table with properties of target thread or by default the thread calling that function.
+  Use "man parallel.properties" to see the list of properties.
+  
+EXAMPLES
+  parallel.getThread()
+  parallel.getThread(threadUid)

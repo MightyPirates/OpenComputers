@@ -1,0 +1,18 @@
+NAME
+  parallel.getAlarm
+  
+CALLS
+  parallel.getAlarm(string: threadUid)
+  
+RETURNS
+  string: alarm
+    OR
+  boolean: false, string: "No alarm"
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  Gets the alarm for a thread.
+  
+EXAMPLES
+  parallel.getFilter(threadUid)

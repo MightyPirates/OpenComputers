@@ -1,0 +1,25 @@
+NAME
+  parallel.yield
+  
+CALLS
+  parallel.yield()
+  parallel.yield(number: sleep)
+  parallel.yield(string: filter)
+  parallel.yield(number: sleep, string: filter)
+
+RETURNS
+  undefined list: signal
+  
+DESCRIPTION
+  It yields and passes control to the next thread.
+  If number is given then also sleeps for a given time in seconds.
+  If string is given then waits for a signal that matches given string.
+  If both are given, during the sleep signals DOES NOT wake the thread.
+  It DOES pass control to the next thread.
+
+EXAMPLES
+  parallel.yield()
+  parallel.yield(3)
+  parallel.yield("key_down")
+  parallel.yield(3, "key_down")
+  

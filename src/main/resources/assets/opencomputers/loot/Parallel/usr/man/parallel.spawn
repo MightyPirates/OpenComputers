@@ -1,0 +1,20 @@
+NAME
+  parallel.spawn
+  
+CALLS
+  parallel.spawn(function: fn)
+  parallel.spawn(function: fn, undefined: arg1, arg2, ...)
+
+RETURNS
+  string: threadUid 
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  It creates a new parallel thread and puts it at the end of other threads.
+  It DOES NOT give control to the next thread.
+
+EXAMPLES
+  parallel.spawn(function() print("Hello world!") end)
+  parallel.spawn(function(msg) print(msg) end, "Hello world!")
+  

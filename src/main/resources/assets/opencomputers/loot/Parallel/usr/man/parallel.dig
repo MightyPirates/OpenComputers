@@ -1,0 +1,15 @@
+NAME
+  parallel.dig
+  
+CALLS
+  parallel.dig(string: threadUid)
+
+RETURNS
+  boolean: success, (table: values OR string: errMsg)
+  
+DESCRIPTION
+  Every thread that has died (either returned or killed) has its return values temporary stored in graveyard. First value is boolean, true if thread returned, false if thread errored or was killed.
+  It gets those return values from graveyard.
+
+EXAMPLES
+  parallel.dig(threadUid)
