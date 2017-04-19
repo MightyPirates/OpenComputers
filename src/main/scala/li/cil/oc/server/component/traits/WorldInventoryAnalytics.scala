@@ -4,10 +4,12 @@ import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.prefab.ItemStackArrayValue
 import li.cil.oc.server.component.result
-import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.{BlockPosition, DatabaseAccess, InventoryUtils}
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.InventoryUtils
+import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.items.IItemHandler
@@ -76,27 +78,35 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   }
   else result(Unit, "not enabled in config")
 
-  @Callback(doc = """function(side:number):table -- Get a description of all stacks in the inventory on the specified side of the device.""")
+  @Callback(doc = """function(side:number):userdata -- Get a description of all stacks in the inventory on the specified side of the device.""")
   def getAllStacks(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => {
-        var stacks = new Array[AnyRef](inventory.getSizeInventory)
-        for(i <- 0 to inventory.getSizeInventory - 1){
+        val stacks = new Array[ItemStack](inventory.getSlots)
+        for(i <- 0 until inventory.getSlots){
           stacks(i) = inventory.getStackInSlot(i)
-          if (stacks(i) == null) {
-            stacks(i) = scala.collection.mutable.Map.empty[AnyRef, AnyRef]
-          }
         }
-        result(stacks)
+        result(new ItemStackArrayValue(stacks))
       })
   }
   else result(Unit, "not enabled in config")
 
   @Callback(doc = """function(side:number):string -- Get the the name of the inventory on the specified side of the device.""")
-  def getInventoryName(context: Context, args: Arguments): Array[AnyRef] = {
+  def getInventoryName(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
-    withInventory(facing, inventory => result(inventory.getName()))
+    def blockAt(position: BlockPosition): Option[Block] = position.world match {
+      case Some(world) if world.blockExists(position) => world.getBlock(position) match {
+        case block: Block => Some(block)
+        case _ => None
+      }
+      case _ => None
+    }
+    withInventory(facing, inventory => blockAt(position.offset(facing)) match {
+      case Some(block) => result(block.getRegistryName)
+      case _ => result(Unit, "Unknown")
+    })
   }
+  else result(Unit, "not enabled in config")
 
   @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address.""")
   def store(context: Context, args: Arguments): Array[AnyRef] = {
