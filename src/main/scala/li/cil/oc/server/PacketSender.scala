@@ -184,7 +184,7 @@ object PacketSender {
     }
   }
 
-  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = null) {
+  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = ItemStack.EMPTY) {
     val pb = new SimplePacketBuilder(PacketType.FloppyChange)
 
     pb.writeTileEntity(t)

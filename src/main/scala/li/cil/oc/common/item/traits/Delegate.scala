@@ -71,7 +71,7 @@ trait Delegate {
 
   def color(stack: ItemStack, pass: Int) = 0xFFFFFF
 
-  def getContainerItem(stack: ItemStack): ItemStack = null
+  def getContainerItem(stack: ItemStack): ItemStack = ItemStack.EMPTY
 
   def hasContainerItem(stack: ItemStack): Boolean = false
 
