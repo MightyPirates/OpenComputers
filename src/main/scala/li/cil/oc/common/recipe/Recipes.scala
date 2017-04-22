@@ -169,8 +169,8 @@ object Recipes {
       }
 
       // Register all unknown recipes. Well. Loot disk recipes.
-      if (recipes.hasPath("lootDisks")) try {
-        val lootRecipes = recipes.getConfigList("lootDisks")
+      if (recipes.hasPath("lootdisks")) try {
+        val lootRecipes = recipes.getConfigList("lootdisks")
         val lootStacks = Loot.globalDisks.map(_._1)
         for (recipe <- lootRecipes) {
           val name = recipe.getString("name")

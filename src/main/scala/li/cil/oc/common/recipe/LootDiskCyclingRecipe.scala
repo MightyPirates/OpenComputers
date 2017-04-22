@@ -14,7 +14,7 @@ import scala.collection.immutable
 class LootDiskCyclingRecipe extends IRecipe {
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = collectStacks(crafting).toArray
-    stacks.length == 2 && stacks.exists(Loot.isLootDisk) && stacks.exists(Wrench.isWrench)
+    stacks.count(!_.isEmpty) == 2 && stacks.exists(Loot.isLootDisk) && stacks.exists(Wrench.isWrench)
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {

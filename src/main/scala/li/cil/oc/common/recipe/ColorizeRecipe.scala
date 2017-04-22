@@ -22,7 +22,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => sourceItems.contains(stack.getItem) || stack.getItem == targetItem)
-    val other = stacks.filterNot(targets.contains)
+    val other = stacks.filterNot(stack => stack.isEmpty || targets.contains(stack))
     targets.size == 1 && other.nonEmpty && other.forall(Color.isDye)
   }
 
@@ -37,7 +37,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         || stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
-      } else {
+      } else if(!stack.isEmpty) {
         val dye = Color.findDye(stack)
         if (dye.isEmpty)
           return ItemStack.EMPTY

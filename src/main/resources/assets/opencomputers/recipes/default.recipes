@@ -32,12 +32,12 @@ wrench {
 }
 lootdisks: [
   {
-    name: "OpenComputers:openos"
+    name: "opencomputers:openos"
     type: shapeless
     input: ["oc:floppy", "oc:manual"]
   },
   {
-    name: "OpenComputers:oppm"
+    name: "opencomputers:oppm"
     type: shapeless
     input: ["oc:floppy", "oc:materialInterweb"]
   }

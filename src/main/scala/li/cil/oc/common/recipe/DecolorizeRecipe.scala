@@ -19,7 +19,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => stack.getItem == targetItem)
-    val other = stacks.filterNot(targets.contains)
+    val other = stacks.filterNot(stack => stack.isEmpty || targets.contains(stack))
     targets.size == 1 && other.size == 1 && other.forall(_.getItem == Items.WATER_BUCKET)
   }
 
@@ -30,7 +30,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
       if (stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
-      } else if (stack.getItem != Items.WATER_BUCKET) {
+      } else if (!stack.isEmpty && stack.getItem != Items.WATER_BUCKET) {
         return ItemStack.EMPTY
       }
     }
