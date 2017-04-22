@@ -141,6 +141,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverContainerUpgrade)
 
     api.Driver.add(DriverGeolyzer)
+    api.Driver.add(DriverMotionSensor)
     api.Driver.add(DriverScreen)
     api.Driver.add(DriverTransposer)
 
@@ -181,6 +182,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverWirelessNetworkCard.Provider)
 
     api.Driver.add(DriverGeolyzer.Provider)
+    api.Driver.add(DriverMotionSensor.Provider)
     api.Driver.add(DriverScreen.Provider)
     api.Driver.add(DriverTransposer.Provider)
 
@@ -204,6 +206,7 @@ object ModOpenComputers extends ModProxy {
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
+      Constants.BlockName.MotionSensor,
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,
