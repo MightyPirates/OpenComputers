@@ -65,7 +65,7 @@ object ItemUtils {
     else Tier.None
   }
 
-  def caseNameWithTierSuffix(name: String, tier: Int): String = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
+  def caseNameWithTierSuffix(name: String, tier: Int): String = name + (if (tier == Tier.Four) "creative" else (tier + 1).toString)
 
   def loadTag(data: Array[Byte]): NBTTagCompound = {
     val bais = new ByteArrayInputStream(data)

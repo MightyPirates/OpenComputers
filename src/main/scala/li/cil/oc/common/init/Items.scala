@@ -191,7 +191,7 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
+  private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).getOrElse(ItemStack.EMPTY)
 
   def createConfiguredDrone(): ItemStack = {
     val data = new DroneData()
@@ -212,7 +212,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.CPUTier3),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
-    )
+    ).filter(!_.isEmpty)
 
     data.createItemStack()
   }
@@ -232,7 +232,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.CPUTier3),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
-    )
+    ).filter(!_.isEmpty)
 
     data.createItemStack()
   }
@@ -268,12 +268,12 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.LuaBios),
       safeGetStack(Constants.ItemName.OpenOS),
       safeGetStack(Constants.ItemName.HDDTier3)
-    )
+    ).filter(!_.isEmpty)
     data.containers = Array(
       safeGetStack(Constants.ItemName.CardContainerTier3),
       safeGetStack(Constants.ItemName.UpgradeContainerTier3),
       safeGetStack(Constants.BlockName.DiskDrive)
-    )
+    ).filter(!_.isEmpty)
 
     data.createItemStack()
   }

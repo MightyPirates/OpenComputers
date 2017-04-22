@@ -97,7 +97,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
         requiredEnergy = totalRequiredEnergy
         ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
-        for (slot <- 0 until getSizeInventory) updateItems(slot, null)
+        for (slot <- 0 until getSizeInventory) updateItems(slot, ItemStack.EMPTY)
         markDirty()
 
         true
