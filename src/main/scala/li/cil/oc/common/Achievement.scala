@@ -4,6 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
+import li.cil.oc.util.StackOption
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.stats.StatBase
@@ -241,7 +242,7 @@ object Achievement {
   private class AchievementBuilder(val name: String) {
     var x = 0
     var y = 0
-    var stack: Option[ItemStack] = stackFromName(name)
+    var stack: StackOption = stackFromName(name)
     var parent: Option[MCAchievement] = None
     var crafting = mutable.Set.empty[String]
     var customCrafting = mutable.Set.empty[ItemStack]
@@ -254,7 +255,7 @@ object Achievement {
     }
 
     def withIconOf(stack: ItemStack): AchievementBuilder = {
-      this.stack = Option(stack)
+      this.stack = StackOption(stack)
       this
     }
 
@@ -271,7 +272,7 @@ object Achievement {
 
     def whenCrafting(stack: ItemStack): AchievementBuilder = {
       customCrafting += stack
-      if (this.stack.isEmpty) this.stack = Option(stack)
+      if (this.stack.isEmpty) this.stack = StackOption(stack)
       this
     }
 
@@ -282,7 +283,7 @@ object Achievement {
     }
 
     def add(): MCAchievement = {
-      val achievement = new MCAchievement("oc." + name, "oc." + name, x, y, stack.orNull, parent.orNull)
+      val achievement = new MCAchievement("oc." + name, "oc." + name, x, y, stack.orEmpty, parent.orNull)
 
       if (parent.isEmpty) {
         achievement.asInstanceOf[StatBase].initIndependentStat()
@@ -312,7 +313,7 @@ object Achievement {
       achievement
     }
 
-    private def stackFromName(name: String) = Option(Items.get(name)).map(_.createItemStack(1))
+    private def stackFromName(name: String): StackOption = StackOption(Option(Items.get(name)).map(_.createItemStack(1)))
   }
 
 }

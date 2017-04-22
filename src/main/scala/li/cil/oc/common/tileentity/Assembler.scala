@@ -15,6 +15,8 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -29,7 +31,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     withConnector(Settings.get.bufferConverter).
     create()
 
-  var output: Option[ItemStack] = None
+  var output: StackOption = EmptyStack
 
   var totalRequiredEnergy = 0.0
 
@@ -87,7 +89,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
           if (!stack.isEmpty && !isItemValidForSlot(slot, stack)) return false
         }
         val (stack, energy) = template.assemble(this)
-        output = Some(stack)
+        output = StackOption(stack)
         if (finishImmediately) {
           totalRequiredEnergy = 0
         }
@@ -123,16 +125,16 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def updateEntity() {
     super.updateEntity()
-    if (output.isDefined && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (!output.isEmpty && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         setInventorySlotContents(0, output.get)
-        output = None
+        output = EmptyStack
         requiredEnergy = 0
       }
-      ServerPacketSender.sendRobotAssembling(this, have > 0.5 && output.isDefined)
+      ServerPacketSender.sendRobotAssembling(this, have > 0.5 && !output.isEmpty)
     }
   }
 
@@ -146,10 +148,10 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (nbt.hasKey(OutputTag)) {
-      output = Option(new ItemStack(nbt.getCompoundTag(OutputTag)))
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
     else if (nbt.hasKey(OutputTagCompat)) {
-      output = Option(new ItemStack(nbt.getCompoundTag(OutputTagCompat)))
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTagCompat)))
     }
     totalRequiredEnergy = nbt.getDouble(TotalTag)
     requiredEnergy = nbt.getDouble(RemainingTag)
@@ -157,7 +159,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    output.foreach(stack => nbt.setNewCompoundTag(OutputTag, stack.writeToNBT))
+    nbt.setNewCompoundTag(OutputTag, output.get.writeToNBT)
     nbt.setDouble(TotalTag, totalRequiredEnergy)
     nbt.setDouble(RemainingTag, requiredEnergy)
   }

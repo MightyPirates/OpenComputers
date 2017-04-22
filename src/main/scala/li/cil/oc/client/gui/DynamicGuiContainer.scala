@@ -9,13 +9,14 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.jei.ModJEI
 import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
-import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.Optional
 import org.lwjgl.opengl.GL11
 
@@ -25,7 +26,7 @@ import scala.collection.convert.WrapAsScala._
 abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomGuiContainer(container) {
   protected var hoveredSlot: Option[Slot] = None
 
-  protected var hoveredStackNEI: Option[ItemStack] = None
+  protected var hoveredStackNEI: StackOption = EmptyStack
 
   protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
@@ -127,7 +128,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
               ((currentIsInPlayerInventory && slot.getHasStack && isSelectiveSlot(hovered) && hovered.isItemValid(slot.getStack)) ||
                 (hoveredIsInPlayerInventory && hovered.getHasStack && isSelectiveSlot(slot) && slot.isItemValid(hovered.getStack)))
           case _ => hoveredStackNEI match {
-            case Some(stack) => !currentIsInPlayerInventory && isSelectiveSlot(slot) && slot.isItemValid(stack)
+            case SomeStack(stack) => !currentIsInPlayerInventory && isSelectiveSlot(slot) && slot.isItemValid(stack)
             case _ => false
           }
         }

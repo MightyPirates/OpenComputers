@@ -2,6 +2,7 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -9,7 +10,7 @@ import net.minecraftforge.common.util.Constants.NBT
 trait Inventory extends SimpleInventory {
   def items: Array[ItemStack]
 
-  def updateItems(slot: Int, stack: ItemStack): Unit = items(slot) = stack
+  def updateItems(slot: Int, stack: ItemStack): Unit = items(slot) = StackOption(stack).orEmpty
 
   // ----------------------------------------------------------------------- //
 

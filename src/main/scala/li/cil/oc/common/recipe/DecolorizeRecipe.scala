@@ -1,6 +1,7 @@
 package li.cil.oc.common.recipe
 
 import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
 import net.minecraft.init.Items
 import net.minecraft.inventory.InventoryCrafting
@@ -17,20 +18,20 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
   val targetItem: Item = target
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
+    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => stack.getItem == targetItem)
-    val other = stacks.filterNot(stack => stack.isEmpty || targets.contains(stack))
+    val other = stacks.filterNot(targets.contains)
     targets.size == 1 && other.size == 1 && other.forall(_.getItem == Items.WATER_BUCKET)
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
     var targetStack: ItemStack = ItemStack.EMPTY
 
-    (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
+    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
       if (stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
-      } else if (!stack.isEmpty && stack.getItem != Items.WATER_BUCKET) {
+      } else if (stack.getItem != Items.WATER_BUCKET) {
         return ItemStack.EMPTY
       }
     }

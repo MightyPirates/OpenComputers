@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.ItemSearch
+import li.cil.oc.util.StackOption
 import mezz.jei.api.IJeiRuntime
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.IModRegistry
@@ -42,13 +43,13 @@ class ModPluginOpenComputers extends IModPlugin {
     ModJEI.ingredientRegistry = Option(registry.getIngredientRegistry)
   }
 
-  private var stackUnderMouse: (GuiContainer, Int, Int) => Option[ItemStack] = _
+  private var stackUnderMouse: (GuiContainer, Int, Int) => StackOption = _
 
   override def onRuntimeAvailable(jeiRuntime: IJeiRuntime) {
     if (stackUnderMouse == null) {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
-    stackUnderMouse = (container, mouseX, mouseY) => Option(jeiRuntime.getItemListOverlay.getStackUnderMouse)
+    stackUnderMouse = (container, mouseX, mouseY) => StackOption(jeiRuntime.getItemListOverlay.getStackUnderMouse)
 
     ModJEI.runtime = Option(jeiRuntime)
   }

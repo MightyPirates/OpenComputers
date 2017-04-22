@@ -16,6 +16,8 @@ import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -40,7 +42,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   var data = new PrintData()
   var isActive = false
   var limit = 0
-  var output: Option[ItemStack] = None
+  var output: StackOption = EmptyStack
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
 
@@ -248,7 +250,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
             amountMaterial -= materialRequired
             amountInk -= inkRequired
             limit -= 1
-            output = Option(data.createItemStack())
+            output = StackOption(data.createItemStack())
             if (limit < 1) isActive = false
             ServerPacketSender.sendPrinting(this, printing = true)
           }
@@ -275,7 +277,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
           return
         }
         requiredEnergy = 0
-        output = None
+        output = EmptyStack
       }
       ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
@@ -319,10 +321,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     isActive = nbt.getBoolean(IsActiveTag)
     limit = nbt.getInteger(LimitTag)
     if (nbt.hasKey(OutputTag)) {
-      output = Option(new ItemStack(nbt.getCompoundTag(OutputTag)))
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
     else {
-      output = None
+      output = EmptyStack
     }
     totalRequiredEnergy = nbt.getDouble(TotalTag)
     requiredEnergy = nbt.getDouble(RemainingTag)

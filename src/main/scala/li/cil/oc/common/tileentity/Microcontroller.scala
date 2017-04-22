@@ -17,6 +17,8 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -260,17 +262,17 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def removeStackFromSlot(slot: Int) = ItemStack.EMPTY
 
   // For hotswapping EEPROMs.
-  def changeEEPROM(newEeprom: ItemStack): Option[ItemStack] = {
+  def changeEEPROM(newEeprom: ItemStack): StackOption = {
     val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get(Constants.ItemName.EEPROM))
     if (oldEepromIndex >= 0) {
       val oldEeprom = info.components(oldEepromIndex)
       super.setInventorySlotContents(oldEepromIndex, newEeprom)
-      Some(oldEeprom)
+      SomeStack(oldEeprom)
     }
     else {
       assert(info.components(getSizeInventory - 1).isEmpty)
       super.setInventorySlotContents(getSizeInventory - 1, newEeprom)
-      None
+      EmptyStack
     }
   }
 }

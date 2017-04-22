@@ -7,6 +7,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 
 class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends ComponentSlot(inventory, index, x, y) {
@@ -38,7 +39,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
   override protected def clearIfInvalid(player: EntityPlayer) {
     if (SideTracker.isServer && getHasStack && !isItemValid(getStack)) {
       val stack = getStack
-      putStack(null)
+      putStack(ItemStack.EMPTY)
       InventoryUtils.addToPlayerInventory(stack, player)
     }
   }

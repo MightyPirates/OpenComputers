@@ -2,6 +2,7 @@ package li.cil.oc.server.component.traits
 
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.StackOption
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 
@@ -24,5 +25,5 @@ trait InventoryAware {
     if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
     else selectedSlot
 
-  protected def stackInSlot(slot: Int) = Option(inventory.getStackInSlot(slot))
+  protected def stackInSlot(slot: Int): StackOption = StackOption(inventory.getStackInSlot(slot))
 }

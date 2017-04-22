@@ -8,6 +8,7 @@ import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
@@ -23,8 +24,8 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def isEquivalentTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
-      case (None, None) => true
+      case (SomeStack(stackA), SomeStack(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
+      case (EmptyStack, EmptyStack) => true
       case _ => false
     })
   }

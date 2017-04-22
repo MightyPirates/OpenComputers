@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
@@ -328,8 +329,8 @@ object InventoryUtils {
    * the world.
    */
   def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: Option[EnumFacing] = None): Boolean = {
-    Option(inventory.decrStackSize(slot, count)) match {
-      case Some(stack) if stack.getCount > 0 => spawnStackInWorld(position, stack, direction); true
+    StackOption(inventory.decrStackSize(slot, count)) match {
+      case SomeStack(stack) if stack.getCount > 0 => spawnStackInWorld(position, stack, direction); true
       case _ => false
     }
   }
@@ -339,8 +340,8 @@ object InventoryUtils {
    */
   def dropAllSlots(position: BlockPosition, inventory: IInventory): Unit = {
     for (slot <- 0 until inventory.getSizeInventory) {
-      Option(inventory.getStackInSlot(slot)) match {
-        case Some(stack) if stack.getCount > 0 =>
+      StackOption(inventory.getStackInSlot(slot)) match {
+        case SomeStack(stack) if stack.getCount > 0 =>
           inventory.setInventorySlotContents(slot, ItemStack.EMPTY)
           spawnStackInWorld(position, stack)
         case _ => // Nothing.

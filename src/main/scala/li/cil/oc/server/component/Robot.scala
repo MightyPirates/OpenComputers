@@ -21,6 +21,8 @@ import li.cil.oc.server.PacketSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
@@ -71,8 +73,8 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
 
   @Callback(doc = "function():number -- Get the durability of the currently equipped tool.")
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
-    Option(agent.equipmentInventory.getStackInSlot(0)) match {
-      case Some(item) =>
+    StackOption(agent.equipmentInventory.getStackInSlot(0)) match {
+      case SomeStack(item) =>
         ToolDurabilityProviders.getDurability(item) match {
           case Some(durability) => result(durability)
           case _ => result(Unit, "tool cannot be damaged")

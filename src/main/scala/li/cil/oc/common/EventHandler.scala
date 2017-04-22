@@ -33,6 +33,7 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.StackOption._
 import li.cil.oc.util._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
@@ -293,29 +294,29 @@ object EventHandler {
     didRecraft = recraft(e, navigationUpgrade, stack => {
       // Restore the map currently used in the upgrade.
       Option(api.Driver.driverFor(e.crafting)) match {
-        case Some(driver) => Option(new ItemStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
-        case _ => None
+        case Some(driver) => StackOption(new ItemStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case _ => EmptyStack
       }
     }) || didRecraft
 
     didRecraft = recraft(e, mcu, stack => {
       // Restore EEPROM currently used in microcontroller.
-      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom).asStackOption
     }) || didRecraft
 
     didRecraft = recraft(e, drone, stack => {
       // Restore EEPROM currently used in drone.
-      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom).asStackOption
     }) || didRecraft
 
     didRecraft = recraft(e, robot, stack => {
       // Restore EEPROM currently used in robot.
-      new RobotData(stack).components.find(api.Items.get(_) == eeprom)
+      new RobotData(stack).components.find(api.Items.get(_) == eeprom).asStackOption
     }) || didRecraft
 
     didRecraft = recraft(e, tablet, stack => {
       // Restore EEPROM currently used in tablet.
-      new TabletData(stack).items.collect { case item if !item.isEmpty => item }.find(api.Items.get(_) == eeprom)
+      new TabletData(stack).items.collect { case item if !item.isEmpty => item }.find(api.Items.get(_) == eeprom).asStackOption
     }) || didRecraft
 
     // Presents?
@@ -367,7 +368,7 @@ object EventHandler {
     month == Calendar.APRIL && dayOfMonth == 1
   }
 
-  private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {
+  private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => StackOption): Boolean = {
     if (api.Items.get(e.crafting) == item) {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {
         val stack = e.craftMatrix.getStackInSlot(slot)

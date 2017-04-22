@@ -14,6 +14,7 @@ import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
+import li.cil.oc.util.StackOption._
 import net.minecraft.block.Block
 import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
@@ -91,7 +92,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
             case mcu: tileentity.Microcontroller =>
               val newEeprom = player.inventory.decrStackSize(player.inventory.currentItem, 1)
               mcu.changeEEPROM(newEeprom) match {
-                case Some(oldEeprom) => InventoryUtils.addToPlayerInventory(oldEeprom, player)
+                case SomeStack(oldEeprom) => InventoryUtils.addToPlayerInventory(oldEeprom, player)
                 case _ =>
               }
           }

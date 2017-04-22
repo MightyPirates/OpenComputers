@@ -7,6 +7,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
@@ -22,7 +23,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
-      case Some(stack) => Option(stack.getItem) match {
+      case SomeStack(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
           val blockPos = position.offset(side).toBlockPos
           val state = world.getBlockState(blockPos)

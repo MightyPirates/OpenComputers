@@ -6,6 +6,8 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.inventory
 import li.cil.oc.util.ExtendedInventory._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -24,8 +26,8 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   // Cache changes to inventory slots on the client side to avoid recreating
   // components when we don't have to and the slots are just cleared by MC
   // temporarily.
-  private lazy val pendingRemovalsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
-  private lazy val pendingAddsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
+  private lazy val pendingRemovalsActual = mutable.ArrayBuffer.fill(getSizeInventory)(EmptyStack: StackOption)
+  private lazy val pendingAddsActual = mutable.ArrayBuffer.fill(getSizeInventory)(EmptyStack: StackOption)
   private var updateScheduled = false
   def pendingRemovals = {
     adjustSize(pendingRemovalsActual)
@@ -36,7 +38,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     pendingAddsActual
   }
 
-  private def adjustSize[T](buffer: mutable.ArrayBuffer[Option[T]]): Unit = {
+  private def adjustSize(buffer: mutable.ArrayBuffer[StackOption]): Unit = {
     val delta = buffer.length - getSizeInventory
     if (delta > 0) {
       buffer.remove(buffer.length - delta, delta)
@@ -44,7 +46,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     else if (delta < 0) {
       buffer.sizeHint(getSizeInventory)
       for (i <- 0 until -delta) {
-        buffer += None
+        buffer += EmptyStack
       }
     }
   }
@@ -53,23 +55,23 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     updateScheduled = false
     for (slot <- this.indices) {
       (pendingRemovals(slot), pendingAdds(slot)) match {
-        case (Some(removed), Some(added)) =>
+        case (SomeStack(removed), SomeStack(added)) =>
           if (!removed.isItemEqual(added) || !ItemStack.areItemStackTagsEqual(removed, added)) {
             super.onItemRemoved(slot, removed)
             super.onItemAdded(slot, added)
             markDirty()
           } // else: No change, ignore.
-        case (Some(removed), None) =>
+        case (SomeStack(removed), EmptyStack) =>
           super.onItemRemoved(slot, removed)
           markDirty()
-        case (None, Some(added)) =>
+        case (EmptyStack, SomeStack(added)) =>
           super.onItemAdded(slot, added)
           markDirty()
         case _ => // No change.
       }
 
-      pendingRemovals(slot) = None
-      pendingAdds(slot) = None
+      pendingRemovals(slot) = EmptyStack
+      pendingAdds(slot) = EmptyStack
     }
   }
 
@@ -84,13 +86,13 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     if (isServer) super.onItemAdded(slot, stack)
     else {
       pendingRemovals(slot) match {
-        case Some(removed) if removed.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(removed, stack) =>
+        case SomeStack(removed) if removed.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(removed, stack) =>
           // Reverted to original state.
-          pendingAdds(slot) = None
-          pendingRemovals(slot) = None
+          pendingAdds(slot) = EmptyStack
+          pendingRemovals(slot) = EmptyStack
         case _ =>
           // Got a removal and an add of *something else* in the same tick.
-          pendingAdds(slot) = Option(stack)
+          pendingAdds(slot) = StackOption(stack)
           scheduleInventoryChange()
       }
     }
@@ -100,15 +102,15 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     if (isServer) super.onItemRemoved(slot, stack)
     else {
       pendingAdds(slot) match {
-        case Some(added) =>
+        case SomeStack(added) =>
           // If we have a pending add and get a remove on a slot it is
           // now either empty, or the previous remove is valid again.
-          pendingAdds(slot) = None
+          pendingAdds(slot) = EmptyStack
         case _ =>
           // If we have no pending add, only the first removal can be
           // relevant (further ones should in fact be impossible).
           if (pendingRemovals(slot).isEmpty) {
-            pendingRemovals(slot) = Option(stack)
+            pendingRemovals(slot) = StackOption(stack)
             scheduleInventoryChange()
           }
       }

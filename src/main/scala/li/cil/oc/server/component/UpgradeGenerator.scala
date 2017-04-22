@@ -17,6 +17,8 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -30,7 +32,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
     withConnector().
     create()
 
-  var inventory: Option[ItemStack] = None
+  var inventory: StackOption = EmptyStack
 
   var remainingTicks = 0
 
@@ -55,7 +57,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
       return result(Unit, "selected slot does not contain fuel")
     }
     inventory match {
-      case Some(existingStack) =>
+      case SomeStack(existingStack) =>
         if (!existingStack.isItemEqual(stack) ||
           !ItemStack.areItemStackTagsEqual(existingStack, stack)) {
           return result(Unit, "different fuel type already queued")
@@ -68,7 +70,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
         existingStack.grow(moveCount)
         stack.shrink(moveCount)
       case _ =>
-        inventory = Some(stack.splitStack(math.min(stack.getCount, count)))
+        inventory = StackOption(stack.splitStack(math.min(stack.getCount, count)))
     }
     if (stack.getCount > 0) host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
     else host.mainInventory.setInventorySlotContents(host.selectedSlot, ItemStack.EMPTY)
@@ -78,7 +80,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
   @Callback(doc = """function():number -- Get the size of the item stack in the generator's queue.""")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
-      case Some(stack) => result(stack.getCount)
+      case SomeStack(stack) => result(stack.getCount)
       case _ => result(0)
     }
   }
@@ -87,12 +89,12 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
   def remove(context: Context, args: Arguments): Array[AnyRef] = {
     val count = args.optInteger(0, Int.MaxValue)
     inventory match {
-      case Some(stack) =>
+      case SomeStack(stack) =>
         val removedStack = stack.splitStack(math.min(count, stack.getCount))
         val success = host.player.inventory.addItemStackToInventory(removedStack)
         stack.grow(removedStack.getCount)
         if (success && stack.getCount <= 0) {
-          inventory = None
+          inventory = EmptyStack
         }
         result(success)
       case _ => result(false)
@@ -114,9 +116,9 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
         stack.shrink(1)
         if (stack.getCount <= 0) {
           if (stack.getItem.hasContainerItem(stack))
-            inventory = Option(stack.getItem.getContainerItem(stack))
+            inventory = StackOption(stack.getItem.getContainerItem(stack))
           else
-            inventory = None
+            inventory = EmptyStack
         }
       }
     }
@@ -140,13 +142,13 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
     super.onDisconnect(node)
     if (node == this.node) {
       inventory match {
-        case Some(stack) =>
+        case SomeStack(stack) =>
           val world = host.world
           val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
           entity.setPickupDelay(5)
           world.spawnEntity(entity)
-          inventory = None
+          inventory = EmptyStack
         case _ =>
       }
       remainingTicks = 0
@@ -158,9 +160,9 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-      inventory = Option(new ItemStack(nbt.getCompoundTag("inventory")))
+      inventory = StackOption(new ItemStack(nbt.getCompoundTag("inventory")))
     if (nbt.hasKey(InventoryTag)) {
-      inventory = Option(new ItemStack(nbt.getCompoundTag(InventoryTag)))
+      inventory = StackOption(new ItemStack(nbt.getCompoundTag(InventoryTag)))
     }
     remainingTicks = nbt.getInteger(RemainingTicksTag)
   }
@@ -168,7 +170,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     inventory match {
-      case Some(stack) => nbt.setNewCompoundTag(InventoryTag, stack.writeToNBT)
+      case SomeStack(stack) => nbt.setNewCompoundTag(InventoryTag, stack.writeToNBT)
       case _ =>
     }
     if (remainingTicks > 0) {

@@ -2,6 +2,7 @@ package li.cil.oc.common.recipe
 
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
 import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
@@ -20,9 +21,9 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
   val sourceItems: Array[Item] = if (source != null) source else Array(targetItem)
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
+    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => sourceItems.contains(stack.getItem) || stack.getItem == targetItem)
-    val other = stacks.filterNot(stack => stack.isEmpty || targets.contains(stack))
+    val other = stacks.filterNot(targets.contains(_))
     targets.size == 1 && other.nonEmpty && other.forall(Color.isDye)
   }
 
@@ -32,12 +33,12 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
     var colorCount = 0
     var maximum = 0
 
-    (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
+    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
       if (sourceItems.contains(stack.getItem)
         || stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
-      } else if(!stack.isEmpty) {
+      } else {
         val dye = Color.findDye(stack)
         if (dye.isEmpty)
           return ItemStack.EMPTY

@@ -18,6 +18,7 @@ import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.StackOption
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
@@ -40,7 +41,7 @@ class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment w
 
   override def size = data.getSizeInventory
 
-  override def getStackInSlot(slot: Int) = Option(data.getStackInSlot(slot)).map(_.copy()).orNull
+  override def getStackInSlot(slot: Int) = StackOption(data.getStackInSlot(slot)).map(_.copy()).orEmpty
 
   override def setStackInSlot(slot: Int, stack: ItemStack) = data.setInventorySlotContents(slot, stack)
 

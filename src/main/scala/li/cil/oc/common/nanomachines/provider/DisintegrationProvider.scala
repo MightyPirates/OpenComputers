@@ -6,6 +6,8 @@ import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.prefab.AbstractBehavior
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -66,7 +68,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
                   if (hardness > 0) {
                     val timeToBreak = (1 / hardness).toInt
                     if (timeToBreak < 20 * 30) {
-                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, Option(player.getHeldItemMainhand).map(_.copy()), blockState)
+                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, StackOption(player.getHeldItemMainhand).map(_.copy()), blockState)
                       world.destroyBlockInWorldPartially(pos.hashCode(), pos, 0)
                       breakingMapNew += pos -> info
                     }
@@ -98,14 +100,14 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
     }
   }
 
-  class SlowBreakInfo(val timeStarted: Long, val timeBroken: Long, val pos: BlockPosition, val originalTool: Option[ItemStack], val blockState: IBlockState) {
+  class SlowBreakInfo(val timeStarted: Long, val timeBroken: Long, val pos: BlockPosition, val originalTool: StackOption, val blockState: IBlockState) {
     var lastDamageSent = 0
 
     def checkTool(player: EntityPlayer): Boolean = {
-      val currentTool = Option(player.getHeldItemMainhand).map(_.copy())
+      val currentTool = StackOption(player.getHeldItemMainhand).map(_.copy())
       (currentTool, originalTool) match {
-        case (Some(stackA), Some(stackB)) => stackA.getItem == stackB.getItem && (stackA.isItemStackDamageable || stackA.getItemDamage == stackB.getItemDamage)
-        case (None, None) => true
+        case (SomeStack(stackA), SomeStack(stackB)) => stackA.getItem == stackB.getItem && (stackA.isItemStackDamageable || stackA.getItemDamage == stackB.getItemDamage)
+        case (EmptyStack, EmptyStack) => true
         case _ => false
       }
     }
