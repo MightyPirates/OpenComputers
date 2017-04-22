@@ -80,7 +80,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     super.drawScreen(mouseX, mouseY, dt)
 
     if (Mods.JustEnoughItems.isAvailable) {
-//      drawJEIHighlights()
+       drawJEIHighlights()
     }
   }
 
@@ -174,7 +174,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   override def onGuiClosed(): Unit = {
     super.onGuiClosed()
     if (Mods.JustEnoughItems.isAvailable) {
-//      resetJEIHighlights()
+       resetJEIHighlights()
     }
   }
 
