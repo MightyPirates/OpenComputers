@@ -205,8 +205,8 @@ dependencies {
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
     }
-    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
+    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"*/
+    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:deobf"/*
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
     provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"
@@ -300,7 +300,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/thaumicenergistics/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/waila/**'
-            exclude 'li/cil/oc/integration/wrcbe/**'
+            //exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'
         }
     }

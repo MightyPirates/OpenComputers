@@ -138,7 +138,7 @@ object Mods {
     integration.vanilla.ModVanilla,
     integration.versionchecker.ModVersionChecker,
     //    integration.waila.ModWaila,
-    //    integration.wrcbe.ModWRCBE,
+    integration.wrcbe.ModWRCBE,
     //    integration.wrsve.ModWRSVE,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
@@ -234,7 +234,7 @@ object Mods {
     final val TMechWorks = "TMechworks"
     final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
-    final val WirelessRedstoneCBE = "WR-CBE|Core"
+    final val WirelessRedstoneCBE = "wrcbe"
     final val WirelessRedstoneSV = "WirelessRedstone"
   }
 

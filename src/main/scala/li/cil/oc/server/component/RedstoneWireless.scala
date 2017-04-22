@@ -1,11 +1,8 @@
 package li.cil.oc.server.component
 
-/* TODO WRCBE
 import codechicken.lib.vec.Vector3
-import codechicken.wirelessredstone.core.WirelessReceivingDevice
-import codechicken.wirelessredstone.core.WirelessTransmittingDevice
-*/
-
+import codechicken.wirelessredstone.api.WirelessReceivingDevice
+import codechicken.wirelessredstone.api.WirelessTransmittingDevice
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -25,10 +22,10 @@ import net.minecraftforge.fml.common.Optional
 import scala.collection.convert.WrapAsJava._
 
 @Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
+  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
+  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice with WirelessTransmittingDevice TODO WRCBE */ with DeviceInfo {
+trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice with DeviceInfo {
   def redstone: EnvironmentHost
 
   var wirelessFrequency = 0
@@ -103,27 +100,27 @@ trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice
   }
 
   // ----------------------------------------------------------------------- //
-  /* TODO WRCBE
-    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-    override def updateDevice(frequency: Int, on: Boolean) {
-      if (frequency == wirelessFrequency && on != wirelessInput) {
-        wirelessInput = on
+
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+  override def updateDevice(frequency: Int, on: Boolean) {
+    if (frequency == wirelessFrequency && on != wirelessInput) {
+      wirelessInput = on
       onRedstoneChanged("wireless", if (on) 0 else 1, if (on) 1 else 0)
-      }
     }
+  }
 
-    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getPosition = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+  override def getTransmitPos = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
 
-    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension = redstone.world.provider.getDimensionId
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+  override def getDimension = redstone.world.provider.getDimension
 
-    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-    override def getFreq = wirelessFrequency
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+  override def getFreq = wirelessFrequency
 
-    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-    override def getAttachedEntity = null
-  */
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+  override def getAttachedEntity = null
+
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
