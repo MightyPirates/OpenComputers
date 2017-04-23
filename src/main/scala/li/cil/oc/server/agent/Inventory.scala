@@ -3,6 +3,8 @@ package li.cil.oc.server.agent
 import li.cil.oc.api.internal
 import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.Item
@@ -32,8 +34,8 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
-      Option(getStackInSlot(slot)) match {
-        case Some(stack) => try stack.updateAnimation(agent.world, if (!agent.world.isRemote) agent.player else null, slot, slot == 0) catch {
+      StackOption(getStackInSlot(slot)) match {
+        case SomeStack(stack) => try stack.updateAnimation(agent.world, if (!agent.world.isRemote) agent.player else null, slot, slot == 0) catch {
           case ignored: NullPointerException => // Client side item updates that need a player instance...
         }
         case _ =>

@@ -29,6 +29,8 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
@@ -357,8 +359,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       if (!appliedToolEnchantments) {
         appliedToolEnchantments = true
-        Option(getStackInSlot(0)) match {
-          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
+        StackOption(getStackInSlot(0)) match {
+          case SomeStack(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
           case _ =>
         }
       }
@@ -578,10 +580,10 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     if (isServer) {
       if (isToolSlot(slot)) {
         player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND))
-        ServerPacketSender.sendRobotInventory(this, slot, null)
+        ServerPacketSender.sendRobotInventory(this, slot, ItemStack.EMPTY)
       }
       if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotInventory(this, slot, null)
+        ServerPacketSender.sendRobotInventory(this, slot, ItemStack.EMPTY)
       }
       if (isFloppySlot(slot)) {
         common.Sound.playDiskEject(this)
@@ -675,10 +677,10 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def hasRedstoneCard: Boolean = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
+  override def hasRedstoneCard: Boolean = (containerSlots ++ componentSlots).exists(slot => StackOption(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
 
-  private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+  private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (StackOption(getStackInSlot(slot)) match {
+    case SomeStack(stack) => Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver: item.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
     }

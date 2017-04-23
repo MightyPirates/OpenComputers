@@ -11,6 +11,8 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer._
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
@@ -343,8 +345,8 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
 
     if (MinecraftForgeClient.getRenderPass == 0 && !robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       val itemRenderer = Minecraft.getMinecraft.getItemRenderer
-      Option(robot.getStackInSlot(0)) match {
-        case Some(stack) =>
+      StackOption(robot.getStackInSlot(0)) match {
+        case SomeStack(stack) =>
 
           RenderState.pushAttrib()
           GlStateManager.pushMatrix()
