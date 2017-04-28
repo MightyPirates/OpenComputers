@@ -1,0 +1,12 @@
+NAME
+  lshw - hardware viewer
+
+SYNOPSIS
+  lshw
+
+DESCRIPTION
+  'lshw' shows you the hardware of your PC. 
+
+EXAMPLES
+  lshw
+    Shows you the hardware
