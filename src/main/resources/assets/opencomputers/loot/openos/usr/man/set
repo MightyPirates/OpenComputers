@@ -1,0 +1,14 @@
+NAME
+  set - set a environment variable
+
+SYNOPSIS
+  set [VARIABLE]=[CONTENT]
+
+DESCRIPTION
+  With 'set' you can set or list environment variables. No spaces allowed.
+
+EXAMPLES
+  set
+    Shows all environment variables
+  set example=HelloWorld
+    Set the environment variable 'example' to 'HelloWorld'
