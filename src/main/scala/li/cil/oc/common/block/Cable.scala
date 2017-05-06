@@ -54,7 +54,7 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
   override def getPickBlock(state: IBlockState, target: RayTraceResult, world: World, pos: BlockPos, player: EntityPlayer) =
     world.getTileEntity(pos) match {
       case t: tileentity.Cable => t.createItemStack()
-      case _ => ItemStack.EMPTY
+      case _ => createItemStack()
     }
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = Cable.bounds(world, pos)

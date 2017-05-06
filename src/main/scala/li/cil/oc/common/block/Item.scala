@@ -63,6 +63,17 @@ class Item(value: Block) extends ItemBlock(value) {
     else super.getDamage(stack)
   }
 
+  override def setDamage(stack: ItemStack, damage: Int): Unit = {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
+      if(damage != Color.rgbValues(EnumDyeColor.SILVER)) {
+        ItemColorizer.setColor(stack, damage)
+      } else {
+        ItemColorizer.removeColor(stack)
+      }
+    }
+    else super.setDamage(stack, damage)
+  }
+
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
   override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, newState: IBlockState): Boolean = {
