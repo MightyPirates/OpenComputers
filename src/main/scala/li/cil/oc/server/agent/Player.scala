@@ -103,7 +103,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   setSize(1, 1)
 
   {
-    val inventory = new Inventory(agent)
+    val inventory = new Inventory(this, agent)
     if (Mods.BattleGear2.isAvailable) {
       ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, inventory, "inventory", "field_71071_by", "bm")
     }
