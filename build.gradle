@@ -87,6 +87,10 @@ repositories {
         url = "http://crzd.me/files/maven/"
     }
     maven {
+        name = "CurseForge"
+        url = "https://minecraft.curseforge.com/api/maven/"
+    }
+    maven {
         name = "MCMP"
         url "http://maven.amadornes.com/"
     }
@@ -237,6 +241,10 @@ dependencies {
         exclude module: "jei_1.10.2"
         exclude module: "Tesla"
     }
+
+    provided "dan200.computercraft:ComputerCraft:${config.cc.version}"
+
+    provided "cofhcore:CoFHCore-1.10.2:release:universal"
 /*
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
@@ -252,8 +260,6 @@ dependencies {
     provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
 */
-
-    provided "dan200.computercraft:ComputerCraft:${config.cc.version}"
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
