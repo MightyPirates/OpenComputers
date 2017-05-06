@@ -206,11 +206,16 @@ dependencies {
         exclude module: 'buildcraft'
     }
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"*/
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:deobf"/*
+    provided ("codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal") {
+        exclude module: 'NotEnoughItems'
+        exclude module: "CodeChickenLib"
+    }/*
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"*/
     provided "igwmod:IGW-Mod-1.9.4:${config.igwmod.version}:userdev"
-    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"/*
+    provided ("net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"){
+        exclude module: "jei_1.10.2"
+    }/*
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"*/
