@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Charsets
-//import dan200.computercraft.api.peripheral.IComputerAccess
+import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -95,15 +95,14 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   // ----------------------------------------------------------------------- //
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    // TODO CC
-//    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-//      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-//      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-//        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-//          case x: Array[Byte] => new String(x, Charsets.UTF_8)
-//          case x => x
-//        }: _*))
-//    }
+    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
+        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
+          case x => x
+        }: _*))
+    }
   }
 
   // ----------------------------------------------------------------------- //

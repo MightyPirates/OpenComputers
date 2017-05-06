@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
+import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Packet
 import li.cil.oc.common.InventorySlots
@@ -20,7 +22,6 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
   // ----------------------------------------------------------------------- //
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    /* TODO ComputerCraft
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
       val address = s"cc${computer.getID}_${computer.getAttachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
@@ -29,7 +30,6 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
           case x => x
         }: _*))
     }
-    */
   }
 
   // ----------------------------------------------------------------------- //

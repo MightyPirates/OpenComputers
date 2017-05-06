@@ -82,9 +82,9 @@ repositories {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
     }
-    ivy {
-        name = "ComputerCraft"
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
+    maven {
+        name = "ComputerCraft Nightly"
+        url = "http://crzd.me/files/maven/"
     }
     maven {
         name = "MCMP"
@@ -246,8 +246,9 @@ dependencies {
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
     provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
-    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
 */
+
+    provided "dan200.computercraft:ComputerCraft:${config.cc.version}"
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
@@ -275,7 +276,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/bluepower/**'
             exclude 'li/cil/oc/integration/buildcraft/**'
             exclude 'li/cil/oc/integration/cofh/**'
-            exclude 'li/cil/oc/integration/computercraft/**'
+            //exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
             //exclude 'li/cil/oc/integration/enderio/**'

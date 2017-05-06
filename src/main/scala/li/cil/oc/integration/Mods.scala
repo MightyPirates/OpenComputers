@@ -36,7 +36,7 @@ object Mods {
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ColoredLights = new SimpleMod(IDs.ColoredLights)
-  val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.73,)")
+  val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.80,)")
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
@@ -143,7 +143,7 @@ object Mods {
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
-    //    integration.computercraft.ModComputerCraft,
+    integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
