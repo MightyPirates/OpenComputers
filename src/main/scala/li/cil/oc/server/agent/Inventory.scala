@@ -15,7 +15,7 @@ import net.minecraft.block.state.IBlockState
 
 import scala.collection.immutable
 
-class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
+class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends InventoryPlayer(playerEntity) {
 
   def selectedItemStack: ItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 

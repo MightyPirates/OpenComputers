@@ -103,7 +103,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   setSize(1, 1)
 
-  this.inventory = new Inventory(agent)
+  this.inventory = new Inventory(this, agent)
 
   var facing, side = EnumFacing.SOUTH
 

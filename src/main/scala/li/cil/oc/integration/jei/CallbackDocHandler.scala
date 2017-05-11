@@ -30,7 +30,7 @@ object CallbackDocHandler {
 
   private val VexPattern = """(?s)^function(\(.*?\).*?); (.*)$""".r
 
-  def getRecipes(registry: IModRegistry): util.List[_] = registry.getIngredientRegistry.getIngredients(classOf[ItemStack]).collect {
+  def getRecipes(registry: IModRegistry): util.List[CallbackDocRecipe] = registry.getIngredientRegistry.getIngredients(classOf[ItemStack]).collect {
     case stack: ItemStack =>
       val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
@@ -52,9 +52,7 @@ object CallbackDocHandler {
         Option(pages.map(page => new CallbackDocRecipe(stack, page)))
       }
       else None
-  }.collect {
-    case Some(handler) => handler
-  }.flatten.toList
+  }.flatten.flatten.toList
 
   private def getCallbacks(env: Class[_]) = if (env != null) {
 
