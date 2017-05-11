@@ -22,12 +22,12 @@ import scala.collection.convert.WrapAsScala._
 
 object ManualUsageHandler {
 
-  def getRecipes(registry: IModRegistry): util.List[_] = registry.getItemRegistry.getItemList.collect {
+  def getRecipes(registry: IModRegistry): util.List[ManualUsageRecipe] = registry.getItemRegistry.getItemList.collect {
     case stack: ItemStack => api.Manual.pathFor(stack) match {
-      case s: String => new ManualUsageRecipe(stack, s)
-      case _ =>
+      case s: String => Option(new ManualUsageRecipe(stack, s))
+      case _ => None
     }
-  }
+  }.flatten.toList
 
   object ManualUsageRecipeHandler extends IRecipeHandler[ManualUsageRecipe] {
     override def getRecipeWrapper(recipe: ManualUsageRecipe) = recipe
