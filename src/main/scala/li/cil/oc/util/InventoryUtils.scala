@@ -94,8 +94,12 @@ object InventoryUtils {
         val toInsert = stack.copy()
         toInsert.stackSize = amount
         inventory.insertItem(slot, toInsert, simulate) match {
-          case remaining: ItemStack => remaining.stackSize < amount
-          case _ => true
+          case remaining: ItemStack =>
+            stack.stackSize -= amount - remaining.stackSize
+            remaining.stackSize < amount
+          case _ =>
+            stack.stackSize -= amount
+            true
         }
       } else {
         val toInsert = stack.splitStack(amount)
