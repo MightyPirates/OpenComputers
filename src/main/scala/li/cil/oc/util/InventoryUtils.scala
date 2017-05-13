@@ -79,7 +79,8 @@ object InventoryUtils {
    * <p/>
    * This will return <tt>true</tt> if <em>at least</em> one item could be
    * inserted into the slot. It will return <tt>false</tt> if the passed
-   * stack did not change.
+   * stack did not change. Note that it will also change the stack
+   * when called with <tt>simulate = true</tt>.
    * <p/>
    * This takes care of handling special cases such as sided inventories,
    * maximum inventory and item stack sizes.
@@ -89,23 +90,14 @@ object InventoryUtils {
    */
   def insertIntoInventorySlot(stack: ItemStack, inventory: IItemHandler, slot: Int, limit: Int = 64, simulate: Boolean = false): Boolean =
     (stack != null && limit > 0 && stack.stackSize > 0) && {
-      val amount = math.min(stack.stackSize, limit)
-      if (simulate) {
-        val toInsert = stack.copy()
-        toInsert.stackSize = amount
-        inventory.insertItem(slot, toInsert, simulate) match {
-          case remaining: ItemStack => remaining.stackSize < amount
-          case _ => true
-        }
-      } else {
-        val toInsert = stack.splitStack(amount)
-        inventory.insertItem(slot, toInsert, simulate) match {
-          case remaining: ItemStack =>
-            val result = remaining.stackSize < amount
-            stack.stackSize += remaining.stackSize
-            result
-          case _ => true
-        }
+      val amount = stack.stackSize min limit
+      val toInsert = stack.splitStack(amount)
+      inventory.insertItem(slot, toInsert, simulate) match {
+        case remaining: ItemStack =>
+          val result = remaining.stackSize < amount
+          stack.stackSize += remaining.stackSize
+          result
+        case _ => true
       }
     }
 
@@ -140,7 +132,7 @@ object InventoryUtils {
   def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Boolean = {
     val stack = inventory.getStackInSlot(slot)
     (stack != null && limit > 0 && stack.stackSize > 0) && {
-      var amount = math.min(stack.getMaxStackSize, math.min(stack.stackSize, limit))
+      var amount = stack.getMaxStackSize min stack.stackSize min limit
       inventory.extractItem(slot, amount, true) match {
         case extracted: ItemStack =>
           amount = extracted.stackSize
