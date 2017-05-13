@@ -11,14 +11,14 @@ A few useful links:
 * [IRC][irc]
 * [Community Forums][forums]
 
-###Experimental Builds
+### Experimental Builds
 You can find experimental builds [on the build server][jenkins]. Expect these to be generally more unstable than builds marked as releases. Use these **at your own risk**, but - when using the latest one - please *do* report bugs you encounter using them. Thanks!
 
 ## License / Use in Modpacks
 This mod is [licensed under the **MIT license**](https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/LICENSE). All **assets are public domain**, unless otherwise stated; all are free to be distributed as long as the license / source credits are kept. This means you can use this mod in any mod pack **as you please**. I'd be happy to hear about you using it, though, just out of curiosity.
 
 ## Contributing
-###Assets and Localizations
+### Assets and Localizations
 1. **Translations**  
    Translations to other languages are very much appreciated. You can find the localization files [in this folder][localizations]. If a localization you wanted to create already exists, please take the time to see if the present one is complete - the strings change every so often, invalidating some of the translations. If you start a fresh localization, please base it off of the English or German one, those are the 'master' localization files. If you add a new language, please also add it to [the pack.mcmeta][pack.mcmeta] file. Keep it sorted alphabetically, use the name and region Minecraft itself uses. If you don't know how to do that, that's OK, I'll do it later.
 2. **Textures**  
@@ -29,7 +29,7 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
 4. **Robot Names**  
    Robots get a random name when placed (unless set with an Anvil). The list the names are chose from [can be found here][robot names]. Feel free to pull request additional names! *However*: since the list has grown to a considerable length already, here are the two basic criteria for new names: it must either be a real or fictional robot, or an AI that at least *appears* to be self-aware.
 
-###Bug fixes, features and scripts
+### Bug fixes, features and scripts
 1. **Bugs**  
    If you've found a bug, please report it in the [issue tracker][issues], after checking it has not been reported before - and possibly even fixed by now. If you think you can and have fixed it, feel free to do a pull request, I'll happily pull it if it looks all right to me - otherwise I'll gladly tell you what to change to get it merged.
 2. **Features**  
@@ -41,7 +41,7 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
 5. **Drivers**  
    As of OC 1.4, mod interaction that was previously provided by OpenComponents it now fully integrated into OC itself. If you wish to contribute a driver for blocks from other mods, cool! Have a look at the [integration][] package to get an idea of how to structure modules and read the readme in that package for more information (in particular on additional criteria to get your PR merged).
 
-####Pull requests
+#### Pull requests
 The following are a few quick guidelines on pull requests. That is to say they are not necessarily *rules*, so there may be exceptions and all that. Just try to stick to those points as a baseline.
 - Make sure your code is formatted properly.
 - Make sure it builds and works.
