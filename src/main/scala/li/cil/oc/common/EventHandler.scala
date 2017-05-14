@@ -193,9 +193,6 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.sendMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          player.sendMessage(Localization.Chat.WarningPower)
-        }
         if (Recipes.hadErrors) {
           player.sendMessage(Localization.Chat.WarningRecipes)
         }

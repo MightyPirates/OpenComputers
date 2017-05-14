@@ -20,13 +20,6 @@ function process.findProcess(co)
 end
 
 -------------------------------------------------------------------------------
-local function parent_data(pre, tbl, k, ...)
-  if tbl and k then
-    return parent_data(pre, tbl[k], ...)
-  end
-  return setmetatable(pre, {__index=tbl})
-end
-
 function process.load(path, env, init, name)
   checkArg(1, path, "string", "function")
   checkArg(2, env, "table", "nil")
@@ -106,19 +99,25 @@ function process.load(path, env, init, name)
     end
     return select(2, table.unpack(result))
   end, true)
-  process.list[thread] = {
+  local new_proc =
+  {
     path = path,
     command = name,
     env = env,
-    data = parent_data(
+    data =
     {
       handles = {},
-      io = parent_data({}, p, "data", "io"),
-      coroutine_handler = parent_data({}, p, "data", "coroutine_handler"),
-    }, p, "data"),
+      io = {},
+      coroutine_handler = {}
+    },
     parent = p,
     instances = setmetatable({}, {__mode="v"}),
   }
+  setmetatable(new_proc.data.io, {__index=p.data.io})
+  setmetatable(new_proc.data.coroutine_handler, {__index=p.data.coroutine_handler})
+  setmetatable(new_proc.data, {__index=p.data})
+  process.list[thread] = new_proc
+
   return thread
 end
 

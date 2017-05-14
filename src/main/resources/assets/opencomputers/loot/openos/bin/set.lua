@@ -1,5 +1,3 @@
-local text = require("text")
-
 local args = {...}
 
 if #args < 1 then

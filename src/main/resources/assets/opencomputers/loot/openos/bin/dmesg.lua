@@ -1,8 +1,8 @@
-local event = require "event"
-local term = require "term"
+local event = require("event")
+local tty = require("tty")
 
 local args = {...}
-local gpu = term.gpu()
+local gpu = tty.gpu()
 local interactive = io.output().tty
 local color, isPal, evt
 if interactive then

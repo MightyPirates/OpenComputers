@@ -4,6 +4,4 @@ public interface Mod {
     String id();
 
     boolean isModAvailable();
-
-    boolean providesPower();
 }

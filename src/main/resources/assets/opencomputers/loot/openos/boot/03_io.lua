@@ -1,5 +1,5 @@
 local buffer = require("buffer")
-local term = require("term")
+local tty = require("tty")
 
 local io_open = io.open
 function io.open(path, mode)
@@ -21,26 +21,24 @@ end
 stdoutStream.close = stdinStream.close
 stderrStream.close = stdinStream.close
 
-function stdinStream:read(n, dobreak)
-  stdinHistory.dobreak = dobreak
-  local result = term.readKeyboard(stdinHistory)
-  return result
+function stdinStream:read()
+  return tty.read(stdinHistory)
 end
 
 function stdoutStream:write(str)
-  term.drawText(str, self.wrap ~= false)
+  tty.drawText(str, self.nowrap)
   return self
 end
 
 function stderrStream:write(str)
-  local gpu = term.gpu()
+  local gpu = tty.gpu()
   local set_depth = gpu and gpu.getDepth() and gpu.getDepth() > 1
 
   if set_depth then
     set_depth = gpu.setForeground(0xFF0000)
   end
     
-  term.drawText(str, true)
+  tty.drawText(str)
 
   if set_depth then
     gpu.setForeground(set_depth)
@@ -70,30 +68,17 @@ core_stdin.close = stdinStream.close
 core_stdout.close = stdinStream.close
 core_stderr.close = stdinStream.close
 
-local fd_map =
-{
-  -- key name => method name
-  stdin = 'input',
-  stdout = 'output',
-  stderr = 'error'
-}
-
 local io_mt = getmetatable(io) or {}
 io_mt.__index = function(t, k)
-  if fd_map[k] then
-    return io[fd_map[k]]()
-  end
-end
-io_mt.__newindex = function(t, k, v)
-  if fd_map[k] then
-    io[fd_map[k]](v)
-  else
-    rawset(io, k, v)
-  end
+  return
+    k == 'stdin' and io.input() or
+    k == 'stdout' and io.output() or
+    k == 'stderr' and io.error() or
+    nil
 end
 
 setmetatable(io, io_mt)
 
-io.stdin = core_stdin
-io.stdout = core_stdout
-io.stderr = core_stderr
+io.input(core_stdin)
+io.output(core_stdout)
+io.error(core_stderr)

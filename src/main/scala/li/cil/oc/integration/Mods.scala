@@ -15,12 +15,11 @@ object Mods {
 
   private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
-  lazy val isPowerProvidingModPresent: Boolean = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
-
   // ----------------------------------------------------------------------- //
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
+  val Forge = new SimpleMod(IDs.Forge)
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
@@ -30,6 +29,7 @@ object Mods {
 
   val Proxies = Array(
     integration.forestry.ModForestry,
+    integration.minecraftforge.ModMinecraftForge,
     integration.tis3d.ModTIS3D,
     integration.minecraft.ModMinecraft,
 
@@ -60,6 +60,7 @@ object Mods {
 
   object IDs {
     final val Forestry = "forestry"
+    final val Forge = "Forge"
     final val JustEnoughItems = "jei"
     final val Minecraft = "minecraft"
     final val OpenComputers = "opencomputers"
@@ -71,28 +72,16 @@ object Mods {
   trait ModBase extends Mod {
     knownMods += this
 
-    private var powerDisabled = false
-
-    protected lazy val isPowerModEnabled: Boolean = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
-
     def isModAvailable: Boolean
 
     def id: String
-
-    def isAvailable: Boolean = !powerDisabled && isModAvailable && isPowerModEnabled
-
-    def providesPower: Boolean = false
-
-    // This is called from the class transformer when injecting an interface of
-    // this power type fails, to avoid class not found / class cast exceptions.
-    def disablePower(): Unit = powerDisabled = true
 
     def container = Option(Loader.instance.getIndexedModList.get(id))
 
     def version: Option[ArtifactVersion] = container.map(_.getProcessedVersion)
   }
 
-  class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
+  class SimpleMod(val id: String, version: String = "") extends ModBase {
     private lazy val isModAvailable_ = {
       val version = VersionParser.parseVersionReference(id + this.version)
       if (Loader.isModLoaded(version.getLabel))
@@ -103,7 +92,7 @@ object Mods {
     def isModAvailable: Boolean = isModAvailable_
   }
 
-  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean = false) extends ModBase {
+  class ClassBasedMod(val id: String, val classNames: String*) extends ModBase {
     private lazy val isModAvailable_ = classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })

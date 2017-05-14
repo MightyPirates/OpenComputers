@@ -1,6 +1,6 @@
 local event = require("event")
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
 local text = require("text")
 local sh = require("sh")
 
@@ -10,39 +10,28 @@ if input[2] then
   table.insert(args, 1, input[2])
 end
 
-local history = {}
+local history = {hint = sh.hintHandler}
 shell.prime()
 
 if #args == 0 and (io.stdin.tty or options.i) and not options.c then
   -- interactive shell.
   -- source profile
-  if not term.isAvailable() then event.pull("term_available") end
+  if not tty.isAvailable() then event.pull("term_available") end
   loadfile(shell.resolve("source","lua"))("/etc/profile")
   while true do
-    if not term.isAvailable() then -- don't clear unless we lost the term
-      while not term.isAvailable() do
+    if not tty.isAvailable() then -- don't clear unless we lost the term
+      while not tty.isAvailable() do
         event.pull("term_available")
       end
-      term.clear()
+      tty.clear()
     end
-    local gpu = term.gpu()
-    while term.isAvailable() do
+    local gpu = tty.gpu()
+    while tty.isAvailable() do
       local foreground = gpu.setForeground(0xFF0000)
-      term.write(sh.expand(os.getenv("PS1") or "$ "))
+      tty.write(sh.expand(os.getenv("PS1") or "$ "))
       gpu.setForeground(foreground)
-      term.setCursorBlink(true)
-      local ok, command = pcall(term.read, history, nil, sh.hintHandler)
-      if not ok then
-        if command == "interrupted" then -- hard interrupt
-          io.write("^C\n")
-          break
-        elseif not term.isAvailable() then
-          break
-        else -- crash?
-          io.stderr:write("\nshell crashed: " .. tostring(command) .. "\n")
-          break
-        end
-      end
+      tty.setCursorBlink(true)
+      local command = tty.read(history)
       if not command then
         if command == false then
           break -- soft interrupt
@@ -55,7 +44,7 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
         return
       elseif command ~= "" then
         local result, reason = sh.execute(_ENV, command)
-        if term.getCursor() > 1 then
+        if tty.getCursor() > 1 then
           print()
         end
         if not result then
