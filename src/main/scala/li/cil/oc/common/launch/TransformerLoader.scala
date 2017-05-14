@@ -8,7 +8,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
-@MCVersion("1.10.2")
+@MCVersion("1.11.2")
 class TransformerLoader extends IFMLLoadingPlugin {
   val instance = this
 
