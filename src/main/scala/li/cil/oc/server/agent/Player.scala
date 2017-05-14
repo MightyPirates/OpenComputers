@@ -477,7 +477,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         if (didPlace == EnumActionResult.SUCCESS) {
           MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(agent, stack, world, pos))
         }
-        didPlace != EnumActionResult.FAIL
+        didPlace == EnumActionResult.SUCCESS
       }
     }
   }
