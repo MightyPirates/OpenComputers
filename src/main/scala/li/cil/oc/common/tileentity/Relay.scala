@@ -120,7 +120,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   }
 
   override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
-    if (Mods.ComputerCraft.isAvailable) {
+    if (Mods.ComputerCraft.isModAvailable) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
         case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)

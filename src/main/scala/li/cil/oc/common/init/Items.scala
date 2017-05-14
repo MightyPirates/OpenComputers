@@ -542,8 +542,8 @@ object Items extends ItemAPI {
     val integration = newItem(new item.Delegator(), "integration")
 
     // Only register recipes if the related mods are present.
-    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, Mods.StargateTech2.isAvailable, "oc:abstractBusCard")
-    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, Mods.Galacticraft.isAvailable, "oc:worldSensorCard")
+    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, Mods.StargateTech2.isModAvailable, "oc:abstractBusCard")
+    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, Mods.Galacticraft.isModAvailable, "oc:worldSensorCard")
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {

@@ -59,7 +59,7 @@ object ItemCosts {
   terminate(Items.SLIME_BALL)
   terminate(Items.STICK)
 
-  def hasCosts(stack: ItemStack) = !Mods.CraftingCosts.isAvailable && {
+  def hasCosts(stack: ItemStack) = !Mods.CraftingCosts.isModAvailable && {
     val ingredients = computeIngredients(stack)
     ingredients.nonEmpty && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
   }

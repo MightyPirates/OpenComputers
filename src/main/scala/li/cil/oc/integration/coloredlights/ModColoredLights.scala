@@ -10,7 +10,7 @@ import net.minecraft.block.Block
 object ModColoredLights {
   def setLightLevel(block: Block, r: Int, g: Int, b: Int): Unit = {
     // Extra layer of indirection because I've learned to be paranoid when it comes to class loading...
-    if (Mods.ColoredLights.isAvailable)
+    if (Mods.ColoredLights.isModAvailable)
       setColoredLightLevel(block, r, g, b)
     else
       setPlainLightLevel(block, r, g, b)

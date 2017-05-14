@@ -12,7 +12,7 @@ object BundledRedstone {
 
   def addProvider(provider: RedstoneProvider): Unit = providers += provider
 
-  def isAvailable = Mods.MineFactoryReloaded.isAvailable || providers.nonEmpty
+  def isAvailable = Mods.MineFactoryReloaded.isModAvailable || providers.nonEmpty
 
   def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
     if (pos.world.get.blockExists(pos.offset(side)))

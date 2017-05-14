@@ -364,17 +364,6 @@ public final class IMC {
     }
 
     /**
-     * Notifies OpenComputers that there is some 3rd-party power system present
-     * that adds integration on its side.
-     * <p/>
-     * This will suppress the "no power system found" message on start up, and
-     * avoid auto-disabling power use.
-     */
-    public static void registerCustomPowerSystem() {
-        FMLInterModComms.sendMessage(MOD_ID, "registerCustomPowerSystem", "true");
-    }
-
-    /**
      * Register a mapping of program name to loot disk.
      * <p/>
      * The table of mappings is made available to machines to allow displaying

@@ -25,16 +25,16 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
 
-    if (Mods.Factorization.isAvailable) {
+    if (Mods.Factorization.isModAvailable) {
       addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
     }
-    if (Mods.IndustrialCraft2.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
+    if (Mods.IndustrialCraft2.isModAvailable || Mods.IndustrialCraft2Classic.isModAvailable) {
       addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
     }
-    if (Mods.Mekanism.isAvailable) {
+    if (Mods.Mekanism.isModAvailable) {
       addRatio(tooltip, "Mekanism", Settings.get.ratioMekanism)
     }
-    if (Mods.CoFHEnergy.isAvailable) {
+    if (Mods.CoFHEnergy.isModAvailable) {
       addRatio(tooltip, "ThermalExpansion", Settings.get.ratioRedstoneFlux)
     }
   }

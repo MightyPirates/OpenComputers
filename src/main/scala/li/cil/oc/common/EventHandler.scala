@@ -211,9 +211,6 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          player.addChatMessage(Localization.Chat.WarningPower)
-        }
         if (Recipes.hadErrors) {
           player.addChatMessage(Localization.Chat.WarningRecipes)
         }
@@ -232,7 +229,7 @@ object EventHandler {
         })
         // Do update check in local games and for OPs.
         val server = FMLCommonHandler.instance.getMinecraftServerInstance
-        if (!Mods.VersionChecker.isAvailable && (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile))) {
+        if (!Mods.VersionChecker.isModAvailable && (!server.isDedicatedServer || server.getPlayerList.canSendCommands(player.getGameProfile))) {
           Future {
             UpdateCheck.info onSuccess {
               case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))

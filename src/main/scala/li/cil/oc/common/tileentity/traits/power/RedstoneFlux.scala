@@ -12,7 +12,7 @@ trait RedstoneFlux extends Common {
 
   @Optional.Method(modid = Mods.IDs.CoFHEnergy)
   def receiveEnergy(from: EnumFacing, maxReceive: Int, simulate: Boolean): Int =
-    if (!Mods.CoFHEnergy.isAvailable) 0
+    if (!Mods.CoFHEnergy.isModAvailable) 0
     else Power.toRF(tryChangeBuffer(from, Power.fromRF(maxReceive), !simulate))
 
   // IEnergyHandler
@@ -26,5 +26,5 @@ trait RedstoneFlux extends Common {
   // IEnergyConnection
 
   @Optional.Method(modid = Mods.IDs.CoFHEnergy)
-  def canConnectEnergy(from: EnumFacing): Boolean = Mods.CoFHEnergy.isAvailable && canConnectPower(from)
+  def canConnectEnergy(from: EnumFacing): Boolean = Mods.CoFHEnergy.isModAvailable && canConnectPower(from)
 }

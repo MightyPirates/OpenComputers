@@ -13,14 +13,12 @@ object Mods {
 
   private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
-  lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
-
   // ----------------------------------------------------------------------- //
 
   def All = knownMods.clone()
 
   val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BetterRecords = new SimpleMod(IDs.BetterRecords)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
@@ -31,30 +29,30 @@ object Mods {
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
   val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
-  val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
+  val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy)
   val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ColoredLights = new SimpleMod(IDs.ColoredLights)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.80,)")
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
-  val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
-  val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
+  val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")
+  val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
   val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[1.10.2-3.0.1.132,)")
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
-  val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
+  val Factorization = new SimpleMod(IDs.Factorization)
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
-  val Forge = new SimpleMod(IDs.Forge, providesPower = true)
+  val Forge = new SimpleMod(IDs.Forge)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
-  val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
-  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
-  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
-  val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
+  val Galacticraft = new SimpleMod(IDs.Galacticraft)
+  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
+  val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic)
   val IngameWiki = new SimpleMod(IDs.IngameWiki)
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val MCMultiPart = new SimpleMod(IDs.MCMultiPart, version = "@[1.0.9,)")
-  val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
+  val Mekanism = new SimpleMod(IDs.Mekanism)
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
@@ -63,7 +61,7 @@ object Mods {
   val NotEnoughKeys = new SimpleMod(IDs.NotEnoughKeys)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
-  val PowerAdvantage = new SimpleMod(IDs.PowerAdvantage, version = "@[1.2.0,)", providesPower = true)
+  val PowerAdvantage = new SimpleMod(IDs.PowerAdvantage, version = "@[1.2.0,)")
   val ProjectRedCore = new SimpleMod(IDs.ProjectRedCore)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
@@ -79,10 +77,10 @@ object Mods {
 
     override def isModAvailable: Boolean = isModAvailable_
   }
-  val Tesla = new SimpleMod(IDs.Tesla, providesPower = true)
+  val Tesla = new SimpleMod(IDs.Tesla)
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
-  val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
+  val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
   val TMechWorks = new SimpleMod(IDs.TMechWorks)
@@ -246,28 +244,16 @@ object Mods {
   trait ModBase extends Mod {
     knownMods += this
 
-    private var powerDisabled = false
-
-    protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
-
     def isModAvailable: Boolean
 
     def id: String
-
-    def isAvailable = !powerDisabled && isModAvailable && isPowerModEnabled
-
-    def providesPower: Boolean = false
-
-    // This is called from the class transformer when injecting an interface of
-    // this power type fails, to avoid class not found / class cast exceptions.
-    def disablePower() = powerDisabled = true
 
     def container = Option(Loader.instance.getIndexedModList.get(id))
 
     def version = container.map(_.getProcessedVersion)
   }
 
-  class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
+  class SimpleMod(val id: String, version: String = "") extends ModBase {
     private lazy val isModAvailable_ = {
       val version = VersionParser.parseVersionReference(id + this.version)
       if (Loader.isModLoaded(version.getLabel))
@@ -278,7 +264,7 @@ object Mods {
     def isModAvailable = isModAvailable_
   }
 
-  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean = false) extends ModBase {
+  class ClassBasedMod(val id: String, val classNames: String*) extends ModBase {
     private lazy val isModAvailable_ = classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })

@@ -321,7 +321,7 @@ object PacketHandler extends CommonPacketHandler {
     if (stack != null) {
       Loot.disksForClient += stack
     }
-    if(Mods.JustEnoughItems.isAvailable) {
+    if(Mods.JustEnoughItems.isModAvailable) {
       addDiskToJEI(stack)
     }
   }

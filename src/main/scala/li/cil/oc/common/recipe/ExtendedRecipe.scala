@@ -206,7 +206,7 @@ object ExtendedRecipe {
     }
   }
 
-  private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")
+  private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isModAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")
 
   private trait ItemDataWrapper {
     def components: Array[ItemStack]

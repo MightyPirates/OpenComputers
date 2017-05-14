@@ -82,7 +82,7 @@ class ClassTransformer extends IClassTransformer {
                 case (Some(interfaceName: String), Some(modid: String)) =>
                   Mods.All.find(_.id == modid) match {
                     case Some(mod) =>
-                      if (mod.isAvailable) {
+                      if (mod.isModAvailable) {
                         val interfaceDesc = interfaceName.replaceAllLiterally(".", "/")
                         val node = classNodeFor(interfaceDesc)
                         if (node == null) {
@@ -103,7 +103,6 @@ class ClassTransformer extends IClassTransformer {
                       }
                       else {
                         log.info(s"Skipping interface $interfaceName from missing mod $modid.")
-                        mod.disablePower()
                       }
                     case _ =>
                       log.warn(s"Skipping interface $interfaceName from unknown mod $modid.")

@@ -35,7 +35,7 @@ class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.Com
   // ----------------------------------------------------------------------- //
 
   override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
-    if (Mods.ComputerCraft.isAvailable) {
+    if (Mods.ComputerCraft.isModAvailable) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
         case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)

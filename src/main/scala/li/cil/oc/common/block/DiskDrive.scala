@@ -25,7 +25,7 @@ class DiskDrive extends SimpleBlock with traits.GUI {
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
-    if (Mods.ComputerCraft.isAvailable) {
+    if (Mods.ComputerCraft.isModAvailable) {
       tooltip.addAll(Tooltip.get(getClass.getSimpleName + ".CC"))
     }
   }

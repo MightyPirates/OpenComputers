@@ -18,19 +18,19 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends traits.Delegate
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     super.tooltipExtended(stack, tooltip)
     if (tier == Tier.Two) {
-      if (Mods.ProjectRedTransmission.isAvailable) {
+      if (Mods.ProjectRedTransmission.isModAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".ProjectRed"))
       }
-      if (Mods.RedLogic.isAvailable) {
+      if (Mods.RedLogic.isModAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedLogic"))
       }
-      if (Mods.MineFactoryReloaded.isAvailable) {
+      if (Mods.MineFactoryReloaded.isModAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedNet"))
       }
-      if (Mods.WirelessRedstoneCBE.isAvailable) {
+      if (Mods.WirelessRedstoneCBE.isModAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessCBE"))
       }
-      if (Mods.WirelessRedstoneSVE.isAvailable) {
+      if (Mods.WirelessRedstoneSVE.isModAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessSV"))
       }
     }
