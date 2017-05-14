@@ -132,7 +132,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def componentCount: Int = info.components.length
 
-  override def getComponentInSlot(index: Int): ManagedEnvironment = components(index).orNull
+  override def getComponentInSlot(index: Int): ManagedEnvironment = if (components.length > index) components(index).orNull else null
 
   override def player: Player = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
