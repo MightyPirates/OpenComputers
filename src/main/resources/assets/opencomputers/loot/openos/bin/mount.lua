@@ -55,7 +55,7 @@ else
     io.stderr:write(reason,"\n")
     return 1
   elseif ops.r then
-    proxy = require("tools/ro_wrapper").wrap(proxy)
+    proxy = dofile("/opt/core/ro_wrapper.lua").wrap(proxy)
   end
 
   local result, reason = fs.mount(proxy, shell.resolve(args[2]))

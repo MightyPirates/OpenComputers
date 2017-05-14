@@ -1,5 +1,4 @@
 local fs = require("filesystem")
-local text = require("text")
 local unicode = require("unicode")
 local process = require("process")
 
@@ -105,25 +104,6 @@ end
 
 function shell.aliases()
   return pairs(process.info().data.aliases)
-end
-
-function shell.resolveAlias(command, args)
-  checkArg(1, command, "string")
-  checkArg(2, args, "table", "nil")
-  args = args or {}
-  local program, lastProgram = command, nil
-  while true do
-    local tokens = text.tokenize(shell.getAlias(program) or program)
-    program = tokens[1]
-    if program == lastProgram then
-      break
-    end
-    lastProgram = program
-    for i = #tokens, 2, -1 do
-      table.insert(args, 1, tokens[i])
-    end
-  end
-  return program, args
 end
 
 function shell.getWorkingDirectory()

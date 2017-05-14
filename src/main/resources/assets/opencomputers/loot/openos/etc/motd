@@ -4,7 +4,7 @@ local component = require("component")
 local computer = require("computer")
 local text = require("text")
 local unicode = require("unicode")
-local term = require("term")
+local tty = require("tty")
 
 if not component.isAvailable("gpu") then
   return
@@ -20,7 +20,7 @@ if f then
   f:close()
   local greeting = greetings[math.random(1, #greetings)]
   if greeting then
-    local width = math.max(10, term.getViewport())
+    local width = math.max(10, tty.getViewport())
     for line in text.wrappedLines(greeting, width - 4, width - 4) do
       table.insert(lines, line)
       maxWidth = math.max(maxWidth, unicode.len(line))

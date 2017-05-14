@@ -1,6 +1,5 @@
 local fs = require("filesystem")
 local shell = require("shell")
-local term = require("term")
 
 local args, ops = shell.parse(...)
 if #args == 0 then

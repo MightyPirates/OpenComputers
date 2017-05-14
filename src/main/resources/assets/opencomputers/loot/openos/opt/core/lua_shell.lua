@@ -1,7 +1,7 @@
 local package = require("package")
-local term = require("term")
+local tty = require("tty")
 
-local gpu = term.gpu()
+local gpu = tty.gpu()
 
 local function optrequire(...)
   local success, module = pcall(require, ...)
@@ -33,8 +33,6 @@ env = setmetatable({}, {
   end
 })
 env._PROMPT = tostring(env._PROMPT or "lua> ")
-
-local history = {}
 
 local function findTable(t, path)
   if type(t) ~= "table" then return nil end
@@ -72,7 +70,8 @@ local function findKeys(t, r, prefix, name)
   end
 end
 
-local function hint(line, index)
+local read_handler = {}
+function read_handler.hint(line, index)
   line = (line or "")
   local tail = line:sub(index)
   line = line:sub(1, index - 1)
@@ -92,18 +91,18 @@ local function hint(line, index)
 end
 
 gpu.setForeground(0xFFFFFF)
-term.write(_VERSION .. " Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
+tty.write(_VERSION .. " Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
 gpu.setForeground(0xFFFF00)
-term.write("Enter a statement and hit enter to evaluate it.\n")
-term.write("Prefix an expression with '=' to show its value.\n")
-term.write("Press Ctrl+D to exit the interpreter.\n")
+tty.write("Enter a statement and hit enter to evaluate it.\n")
+tty.write("Prefix an expression with '=' to show its value.\n")
+tty.write("Press Ctrl+D to exit the interpreter.\n")
 gpu.setForeground(0xFFFFFF)
 
-while term.isAvailable() do
+while tty.isAvailable() do
   local foreground = gpu.setForeground(0x00FF00)
-  term.write(env._PROMPT)
+  tty.write(env._PROMPT)
   gpu.setForeground(foreground)
-  local command = term.read(history, nil, hint)
+  local command = tty.read(read_handler)
   if not command then -- eof
     return
   end
@@ -122,10 +121,10 @@ while term.isAvailable() do
       io.stderr:write(tostring(result[2]) .. "\n")
     else
       for i = 2, result.n do
-        term.write(require("serialization").serialize(result[i], true) .. "\t", true)
+        tty.write(require("serialization").serialize(result[i], true) .. "\t", true)
       end
-      if term.getCursor() > 1 then
-        term.write("\n")
+      if tty.getCursor() > 1 then
+        tty.write("\n")
       end
     end
   else
