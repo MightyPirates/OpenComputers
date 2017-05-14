@@ -2,7 +2,7 @@ local shell = require("shell")
 local args = shell.parse(...)
 
 if #args == 0 then
-  args = {"/lib/tools/lua_shell.lua"}
+  args = {"/opt/core/lua_shell.lua"}
 end
 
 local script, reason = loadfile(args[1], nil, setmetatable({},{__index=_ENV}))

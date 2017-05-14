@@ -1,8 +1,8 @@
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
 
 local args = shell.parse(...)
-local gpu = term.gpu()
+local gpu = tty.gpu()
 
 if #args == 0 then
   local w, h = gpu.getViewport()
@@ -29,4 +29,4 @@ if not result then
   end
   return 1
 end
-term.clear()
+tty.clear()

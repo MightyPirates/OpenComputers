@@ -45,7 +45,7 @@ setmetatable(keyboard.keys,
 -------------------------------------------------------------------------------
 
 local function getKeyboardAddress(address)
-  return address or require("term").keyboard()
+  return address or require("tty").keyboard()
 end
 
 local function getPressedCodes(address)

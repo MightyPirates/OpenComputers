@@ -4,7 +4,7 @@ local text = require("text")
 
 local dcache = {}
 local pcache = {}
-local adapter_pwd = "/lib/tools/devfs/adapters/"
+local adapter_pwd = "/opt/core/devfs/adapters/"
 
 local adapter_api = {}
 
@@ -87,25 +87,12 @@ return
       -- first sort the addr, primaries first, then sorted by address lexigraphically
       local hw_addresses = {}
       for addr,type in comp.list() do
-        table.insert(hw_addresses, {addr,type})
+        local isPrim = comp.isPrimary(addr)
+        table.insert(hw_addresses, select(isPrim and 1 or 2, 1, {type,addr}))
       end
 
-      table.sort(hw_addresses, function(a, b)
-        local aaddr, atype = table.unpack(a)
-        local baddr, btype = table.unpack(b)
-
-        if atype == btype then
-          local aprim = comp.isPrimary(aaddr)
-          local bprim = comp.isPrimary(baddr)
-          if aprim then return true end
-          if bprim then return false end
-        end
-
-        return aaddr < baddr
-      end)
-
       for _,pair in ipairs(hw_addresses) do
-        local addr, type = table.unpack(pair)
+        local type, addr = table.unpack(pair)
         if not dcache[type] then
           local adapter_file = adapter_pwd .. type .. ".lua"
           local loader = loadfile(adapter_file, "bt", _G)

@@ -156,7 +156,7 @@ end
 
 local source = options.sources[1]
 local target = options.targets[1]
-local utils_path = package.searchpath("tools/install_utils", package.path)
+local utils_path = "/opt/core/install_utils.lua"
 
 if #options.sources ~= 1 or #options.targets ~= 1 then
   source, target = loadfile(utils_path, "bt", _G)('select', options)
