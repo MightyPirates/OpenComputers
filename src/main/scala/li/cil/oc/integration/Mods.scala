@@ -45,6 +45,7 @@ object Mods {
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
+  val Forge = new SimpleMod(IDs.Forge, providesPower = true)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
@@ -120,6 +121,7 @@ object Mods {
     //    integration.mekanism.ModMekanism,
     //    integration.mekanism.gas.ModMekanismGas,
     //    integration.mfr.ModMineFactoryReloaded,
+    integration.minecraftforge.ModMinecraftForge,
     //    integration.mystcraft.ModMystcraft,
     //    integration.nek.ModNotEnoughKeys,
     integration.projectred.ModProjectRed,
@@ -200,6 +202,7 @@ object Mods {
     final val ExtraCells = "extracells"
     final val Factorization = "factorization"
     final val Forestry = "forestry"
+    final val Forge = "Forge"
     final val ForgeMultipart = "ForgeMultipart"
     final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
