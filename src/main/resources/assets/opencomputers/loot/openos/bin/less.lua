@@ -1,6 +1,6 @@
 local keyboard = require("keyboard")
 local shell = require("shell")
-local term = require("term")
+local term = require("term") -- using term for negative scroll feature
 local text = require("text")
 local unicode = require("unicode")
 local computer = require("computer")

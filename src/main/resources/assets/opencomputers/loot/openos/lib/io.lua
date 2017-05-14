@@ -47,6 +47,7 @@ end
 function io.stream(fd,file,mode)
   checkArg(1,fd,'number')
   assert(fd>=0,'fd must be >= 0. 0 is input, 1 is stdout, 2 is stderr')
+  local dio = require("process").info().data.io
   if file then
     if type(file) == "string" then
       local result, reason = io.open(file, mode)
@@ -57,9 +58,9 @@ function io.stream(fd,file,mode)
     elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
-    require("process").info().data.io[fd] = file
+    dio[fd] = file
   end
-  return require("process").info().data.io[fd]
+  return dio[fd]
 end
 
 function io.input(file)

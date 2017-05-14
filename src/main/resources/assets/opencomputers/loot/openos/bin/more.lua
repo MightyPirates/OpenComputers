@@ -1,6 +1,6 @@
 local keyboard = require("keyboard")
 local shell = require("shell")
-local term = require("term")
+local term = require("term") -- TODO use tty and cursor position instead of global area and gpu
 local text = require("text")
 local unicode = require("unicode")
 

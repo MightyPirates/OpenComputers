@@ -1,6 +1,6 @@
 local fs = require("filesystem")
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
 local unicode = require("unicode")
 
 local dirsArg, ops = shell.parse(...)
@@ -32,8 +32,8 @@ if #dirsArg == 0 then
 end
 
 local ec = 0
-local gpu = term.gpu()
-local fOut = term.isAvailable() and io.output().tty
+local gpu = tty.gpu()
+local fOut = tty.isAvailable() and io.output().tty
 local function perr(msg) io.stderr:write(msg,"\n") ec = 2 end
 local function stat(names, index)
   local name = names[index]
@@ -272,7 +272,7 @@ local function display(names)
       return {{color = colorize(info), name = info.name}}
     end
   else -- columns
-    local num_columns, items_per_column, width = 0, 0, term.getViewport() - 1
+    local num_columns, items_per_column, width = 0, 0, tty.getViewport() - 1
     local function real(x, y)
       local index = y + ((x-1) * items_per_column)
       return index <= #names and index or nil

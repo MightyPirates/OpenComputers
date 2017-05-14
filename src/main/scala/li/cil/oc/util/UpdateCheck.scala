@@ -39,7 +39,7 @@ object UpdateCheck {
         if (candidates.nonEmpty) {
           val latest = candidates.maxBy(release => new ComparableVersion(release.tag_name.stripPrefix("v")))
           val remoteVersion = new ComparableVersion(latest.tag_name.stripPrefix("v"))
-          val localVersion = new ComparableVersion(Loader.instance.getIndexedModList.get("OpenComputers").getVersion)
+          val localVersion = new ComparableVersion(Loader.instance.getIndexedModList.get(OpenComputers.ID).getVersion)
           if (remoteVersion.compareTo(localVersion) > 0) {
             OpenComputers.log.info(s"A newer version of OpenComputers is available: ${latest.tag_name}.")
             return Some(latest)
