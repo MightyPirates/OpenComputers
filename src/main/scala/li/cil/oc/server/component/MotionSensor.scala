@@ -91,7 +91,7 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
     }
   }
 
-  private def sensorBounds = AxisAlignedBB.getBoundingBox(
+  private def sensorBounds = AxisAlignedBB.fromBounds(
     x + 0.5 - radius, y + 0.5 - radius, z + 0.5 - radius,
     x + 0.5 + radius, y + 0.5 + radius, z + 0.5 + radius)
 
@@ -103,21 +103,23 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
-      val target = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ)
+      var ox = x + 0.5
+      var oy = y + 0.5
+      var oz = z + 0.5
+      val target = new Vec3(entity.posX, entity.posY, entity.posZ)
       // Start trace outside of this block.
-      if (entity.posX < x) origin.xCoord -= 0.75
-      if (entity.posX > x + 1) origin.xCoord += 0.75
-      if (entity.posY < y) origin.yCoord -= 0.75
-      if (entity.posY > y + 1) origin.yCoord += 0.75
-      if (entity.posZ < z) origin.zCoord -= 0.75
-      if (entity.posZ > z + 1) origin.zCoord += 0.75
-      world.rayTraceBlocks(origin, target) == null
+      if (entity.posX < x) ox -= 0.75
+      if (entity.posX > x + 1) ox += 0.75
+      if (entity.posY < y) oy -= 0.75
+      if (entity.posY > y + 1) oy += 0.75
+      if (entity.posZ < z) oz -= 0.75
+      if (entity.posZ > z + 1) oz += 0.75
+      world.rayTraceBlocks(new Vec3(ox, oy, oz), target) == null
     }
 
   private def sendSignal(entity: EntityLivingBase) {
     if (Settings.get.inputUsername) {
-      node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)), entity.getCommandSenderName)
+      node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)), entity.getName)
     }
     else {
       node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)))

@@ -11,7 +11,9 @@ class MotionSensor extends traits.Environment with traits.Tickable {
 
   override def updateEntity() {
     super.updateEntity()
-    motionSensor.update()
+    if (isServer) {
+      motionSensor.update()
+    }
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
