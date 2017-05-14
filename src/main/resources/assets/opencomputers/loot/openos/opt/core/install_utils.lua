@@ -31,6 +31,7 @@ local function select_prompt(devs, prompt)
         choice = devs[number]
       else
         io.write("Invalid input, please try again: ")
+        os.sleep(0)
       end
     end
   end

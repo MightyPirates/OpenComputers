@@ -19,9 +19,6 @@ package.loaded = loaded
 local preload = {}
 package.preload = preload
 
-local delayed = {}
-package.delayed = delayed
-
 package.searchers = {}
 
 function package.searchpath(name, path, sep, rep)
@@ -58,30 +55,6 @@ local function preloadSearcher(module)
   end
 end
 
-local delay_data = {}
-local delay_tools = setmetatable({},{__mode="v"})
-
-function delay_data.__index(tbl,key)
-  local lookup = delay_data.lookup or loadfile(package.searchpath("tools/delayLookup", package.path), "bt", _G)
-  delay_data.lookup = lookup
-  return lookup(delay_data, tbl, key)
-end
-delay_data.__pairs = delay_data.__index -- nil key acts like pairs
-
-local function delaySearcher(module)
-  if not delayed[module] then
-    return "\tno field package.delayed['" .. module .. "']"
-  end
-  local filepath, reason = package.searchpath(module, package.path)
-  if not filepath then
-    return reason
-  end
-  local parser = delay_tools.parser or loadfile(package.searchpath("tools/delayParse", package.path), "bt", _G)
-  delay_tools.parser = parser
-  local loader, reason = parser(filepath,delay_data)
-  return loader, reason
-end
-
 local function pathSearcher(module)
   local filepath, reason = package.searchpath(module, package.path)
   if filepath then
@@ -97,7 +70,6 @@ local function pathSearcher(module)
 end
 
 table.insert(package.searchers, preloadSearcher)
-table.insert(package.searchers, delaySearcher)
 table.insert(package.searchers, pathSearcher)
 
 function require(module)
