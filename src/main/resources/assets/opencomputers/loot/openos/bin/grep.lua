@@ -8,13 +8,13 @@ https://raw.githubusercontent.com/OpenPrograms/Wobbo-Programs/master/grep/grep.l
 
 local fs = require("filesystem")
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
 
 -- Process the command line arguments
 
 local args, options = shell.parse(...)
 
-local gpu = term.gpu()
+local gpu = tty.gpu()
 
 local function printUsage(ostream, msg)
   local s = ostream or io.stdout
@@ -106,7 +106,7 @@ local m_only = pop('o','only-matching')
 local quiet = pop('q','quiet','silent')
 
 local print_count = pop('c','count')
-local colorize = pop('color','colour') and io.output().tty and term.isAvailable()
+local colorize = pop('color','colour') and io.output().tty and tty.isAvailable()
 
 local noop = function(...)return ...;end
 local setc = colorize and gpu.setForeground or noop

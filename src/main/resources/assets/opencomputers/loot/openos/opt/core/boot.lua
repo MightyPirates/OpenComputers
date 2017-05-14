@@ -1,7 +1,7 @@
 -- called from /init.lua
 local raw_loadfile = ...
 
-_G._OSVERSION = "OpenOS 1.6.1"
+_G._OSVERSION = "OpenOS 1.6.2"
 
 local component = component
 local computer = computer
@@ -33,20 +33,21 @@ _G.boot_screen = screen
 local gpu = component.list("gpu", true)()
 local w, h
 if gpu and screen then
-  component.invoke(gpu, "bind", screen)
-  w, h = component.invoke(gpu, "maxResolution")
-  component.invoke(gpu, "setResolution", w, h)
-  component.invoke(gpu, "setBackground", 0x000000)
-  component.invoke(gpu, "setForeground", 0xFFFFFF)
-  component.invoke(gpu, "fill", 1, 1, w, h, " ")
+  gpu = component.proxy(gpu)
+  gpu.bind(screen)
+  w, h = gpu.maxResolution()
+  gpu.setResolution(w, h)
+  gpu.setBackground(0x000000)
+  gpu.setForeground(0xFFFFFF)
+  gpu.fill(1, 1, w, h, " ")
 end
 local y = 1
 local function status(msg)
   if gpu and screen then
-    component.invoke(gpu, "set", 1, y, msg)
+    gpu.set(1, y, msg)
     if y == h then
-      component.invoke(gpu, "copy", 1, 2, w, h - 1, 0, -1)
-      component.invoke(gpu, "fill", 1, h, w, 1, " ")
+      gpu.copy(1, 2, w, h - 1, 0, -1)
+      gpu.fill(1, h, w, 1, " ")
     else
       y = y + 1
     end
@@ -100,12 +101,6 @@ do
 
   -- Inject the io modules
   _G.io = loadfile("/lib/io.lua")()
-
-  --mark modules for delay loaded api
-  package.delayed["text"] = true
-  package.delayed["sh"] = true
-  package.delayed["transforms"] = true
-  package.delayed["term"] = true
 end
 
 status("Initializing file system...")

@@ -1,8 +1,7 @@
 -- load complex, if we can (might be low on memory)
 
 local ok, why = pcall(function(...)
-  local full_ls_path = package.searchpath("tools/full_ls", package.path)
-  return loadfile(full_ls_path, "bt", _G)(...)
+  return loadfile("/opt/core/full_ls.lua", "bt", _G)(...)
 end, ...)
 
 if not ok then 
