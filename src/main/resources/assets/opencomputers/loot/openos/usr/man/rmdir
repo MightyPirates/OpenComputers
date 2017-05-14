@@ -1,0 +1,9 @@
+NAME
+  rmdir - remove empty directories
+    
+SYNOPIS
+  rmdir [DIRECTORY]
+
+EXAMPLES
+  rmdir doc
+    Delete the empty directory "doc"

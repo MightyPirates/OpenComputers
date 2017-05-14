@@ -1,0 +1,12 @@
+NAME
+  less - file viewer
+
+SYNOPSIS
+  less [FILE]
+
+DESCRIPTION
+  'less' shows you the content of a file. Scroll with the mousewhell or the arrow keys. Press q to quit.  
+
+EXAMPLES
+  less example.txt
+    Displays the contents of file `example.txt`

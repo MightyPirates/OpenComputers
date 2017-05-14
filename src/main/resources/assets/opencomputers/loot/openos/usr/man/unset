@@ -1,0 +1,12 @@
+NAME
+  unset - delete a environment variable
+
+SYNOPSIS
+  unset [VARNAME]
+
+DESCRIPTION
+  With 'unset' you can delete a environment variable
+
+EXAMPLES
+  unset example
+    Delete the environment variable 'example'
