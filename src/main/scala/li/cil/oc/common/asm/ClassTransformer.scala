@@ -16,10 +16,10 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object ObfNames {
-  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "yx")
-  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sw")
-  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bvn")
-  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "asa")
+  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "yy")
+  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sx")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bvq")
+  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "asc")
   final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bF")
   final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bE")
   final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "da")
