@@ -2,13 +2,18 @@ NAME
   set - set a environment variable
 
 SYNOPSIS
-  set [VARIABLE]=[CONTENT]
+  set [VARIABLE]=[VALUE]
 
 DESCRIPTION
-  With 'set' you can set or list environment variables. No spaces allowed.
+  set an environment variable. Quote [VALUE] to include spaces or non alphanumerics.
 
 EXAMPLES
   set
     Shows all environment variables
-  set example=HelloWorld
-    Set the environment variable 'example' to 'HelloWorld'
+  set example="Hello World"; echo $example
+    Prints Hello World without quotes
+  set LS_COLORS="{FILE=0xFFFFFF,DIR=0x66CCFF,LINK=0xFFAA00,['*.lua']=0xFFFF00}"
+    Change ls colors, showing lua files in yellow. Note ls color defaults are set in /etc/profile
+
+SEE ALSO
+  unset
