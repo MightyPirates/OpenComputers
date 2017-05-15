@@ -6,4 +6,4 @@ SYNOPIS
 
 EXAMPLES
   rmdir doc
-    Delete the empty directory "doc"
+    Removes doc if and only if doc is an empty directory

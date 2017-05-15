@@ -1,12 +1,15 @@
 NAME
-  unset - delete a environment variable
+  unset - remove an environment variable
 
 SYNOPSIS
   unset [VARNAME]
 
 DESCRIPTION
-  With 'unset' you can delete a environment variable
+  Removes an environment variable
 
 EXAMPLES
-  unset example
-    Delete the environment variable 'example'
+  unset some_variable
+    Removes the environment variable some_variable
+
+SEE ALSO
+  set

@@ -5,8 +5,4 @@ SYNOPSIS
   lshw
 
 DESCRIPTION
-  'lshw' shows you the hardware of your PC. 
-
-EXAMPLES
-  lshw
-    Shows you the hardware
+  'lshw' shows you the device information of your PC.
