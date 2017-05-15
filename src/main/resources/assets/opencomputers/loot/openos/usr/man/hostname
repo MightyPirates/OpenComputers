@@ -2,7 +2,7 @@ NAME
   hostname - Display and modify hostname
 
 SYNOPIS
-  hostname [NEW NAME]
+  hostname [NEW NAME] [--update]
 
 EXAMPLES
   hostname
@@ -10,3 +10,6 @@ EXAMPLES
 
   hostname test
     Sets hostname of this computer to test
+
+  hostname --update
+    Updates $HOSTNAME by reading /etc/hostname in case it was set manually. Does not print to stdout

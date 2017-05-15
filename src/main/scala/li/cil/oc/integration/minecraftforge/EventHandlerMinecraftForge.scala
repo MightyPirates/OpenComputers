@@ -4,6 +4,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.common.tileentity.traits.PowerAcceptor
 import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.capabilities.Capability
@@ -16,8 +17,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 object EventHandlerMinecraftForge {
 
   @SubscribeEvent
-  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
-    event.getTileEntity match {
+  def onAttachCapabilities(event: AttachCapabilitiesEvent[TileEntity]): Unit = {
+    event.getObject match {
       case tileEntity: PowerAcceptor =>
         event.addCapability(ProviderEnergy, new Provider(tileEntity))
       case _ =>

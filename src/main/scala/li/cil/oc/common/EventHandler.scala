@@ -111,14 +111,14 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
-    event.getTileEntity match {
+  def onAttachCapabilities(event: AttachCapabilitiesEvent[TileEntity]): Unit = {
+    event.getObject match {
       case tileEntity: TileEntity with Environment =>
         event.addCapability(CapabilityEnvironment.ProviderEnvironment, new CapabilityEnvironment.Provider(tileEntity))
       case _ =>
     }
 
-    event.getTileEntity match {
+    event.getObject match {
       case tileEntity: TileEntity with Environment with SidedComponent =>
         event.addCapability(CapabilitySidedComponent.SidedComponent, new CapabilitySidedComponent.Provider(tileEntity))
       case tileEntity: TileEntity with SidedEnvironment =>
@@ -126,7 +126,7 @@ object EventHandler {
       case _ =>
     }
 
-    event.getTileEntity match {
+    event.getObject match {
       case tileEntity: TileEntity with Colored =>
         event.addCapability(CapabilityColored.ProviderColored, new CapabilityColored.Provider(tileEntity))
       case _ =>
