@@ -1,0 +1,17 @@
+NAME
+  less - file viewer
+
+SYNOPSIS
+  less [FILE]
+
+DESCRIPTION
+  'less' is a filter for paging through text, as is 'more'. 'less', unlike 'more', support scroll in reverse
+
+EXAMPLES
+  less example.txt
+    Displays the contents of file `example.txt`
+  find / | less
+    filter the output of `file /` through the 'less' pager
+
+SEE ALSO
+  more

@@ -193,8 +193,6 @@ function term.read(history, dobreak, hint, pwchar, filter)
 
   inject_filter(handler, filter)
   inject_mask(cursor, dobreak, pwchar)
-  -- todo, make blinking work from here
-  -- handler.blink or w.blink
 
   return tty.read(handler, cursor)
 end

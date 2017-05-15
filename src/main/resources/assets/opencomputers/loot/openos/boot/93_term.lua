@@ -32,6 +32,9 @@ local function components_changed(ename, address, type)
       -- recheck what kb to use
       window.keyboard = nil
     end
+    if (type == "screen" or type == "gpu") and not tty.isAvailable() then
+      computer.pushSignal("term_unavailable")
+    end
   elseif (ename == "component_added" or ename == "component_available") and type == "keyboard" then
   -- we need to clear the current terminals cached keyboard (if any) when
   -- a new keyboard becomes available. This is in case the new keyboard was
@@ -42,10 +45,6 @@ local function components_changed(ename, address, type)
   -- wrong keybaord to begin with but, users may actually expect that any
   -- primary keyboard is a valid keyboard (weird, in my opinion)
     window.keyboard = nil
-  end
-
-  if (type == "screen" or type == "gpu") and not tty.isAvailable() then
-    computer.pushSignal("term_unavailable")
   end
 end
 
