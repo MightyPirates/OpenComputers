@@ -63,6 +63,7 @@ local function tab_handler(handler, cursor)
   if cache_size == 1 and cache.i == 0 then
     -- there was only one solution, and the user is asking for the next
     handler.cache = hints(cache[1], cursor.index + 1)
+    if not handler.cache then return end
     handler.cache.i = -1
     cache = handler.cache
     cache_size = #cache
