@@ -1,0 +1,9 @@
+NAME
+  rmdir - remove empty directories
+    
+SYNOPIS
+  rmdir [DIRECTORY]
+
+EXAMPLES
+  rmdir doc
+    Removes doc if and only if doc is an empty directory
