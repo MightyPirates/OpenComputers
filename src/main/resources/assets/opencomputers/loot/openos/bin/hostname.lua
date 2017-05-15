@@ -2,7 +2,7 @@ local args = {...}
 if args[1] then
   local file, reason = io.open("/etc/hostname", "w")
   if not file then
-    io.stderr:write(reason .. "\n")
+    io.stderr:write("failed to open for writing: ", reason, "\n")
     return 1
   else
     file:write(args[1])
