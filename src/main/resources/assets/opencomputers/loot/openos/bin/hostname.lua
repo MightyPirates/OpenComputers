@@ -1,22 +1,30 @@
-local args = {...}
-if args[1] then
+local shell = require("shell")
+local args, ops = shell.parse(...)
+local hostname = args[1]
+
+if hostname then
   local file, reason = io.open("/etc/hostname", "w")
   if not file then
     io.stderr:write("failed to open for writing: ", reason, "\n")
     return 1
-  else
-    file:write(args[1])
-    file:close()
-    os.setenv("HOSTNAME", args[1])
-    os.setenv("PS1", "$HOSTNAME:$PWD# ")
   end
+  file:write(hostname)
+  file:close()
+  ops.update = true
 else
   local file = io.open("/etc/hostname")
   if file then
-    io.write(file:read("*l"), "\n")
+    hostname = file:read("*l")
     file:close()
-  else
-    io.stderr:write("Hostname not set\n")
-    return 1
   end
+end
+
+if ops.update then
+  os.setenv("HOSTNAME_SEPARATOR", hostname and #hostname > 0 and ":" or "")
+  os.setenv("HOSTNAME", hostname)
+elseif hostname then
+  print(hostname)
+else
+  io.stderr:write("Hostname not set\n")
+  return 1
 end
