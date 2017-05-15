@@ -20,7 +20,7 @@ function event.register(key, callback, interval, times)
   local handler =
   {
     key = key,
-    times = times or math.huge,
+    times = times or 1,
     callback = callback,
     interval = interval or math.huge,
   }
@@ -155,7 +155,7 @@ function event.listen(name, callback)
       return false
     end
   end
-  return event.register(name, callback)
+  return event.register(name, callback, math.huge, math.huge)
 end
 
 function event.onError(message)
