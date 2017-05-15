@@ -2,9 +2,9 @@ package li.cil.oc.integration.minecraftforge
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.tileentity.traits.PowerAcceptor
-import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.capabilities.Capability

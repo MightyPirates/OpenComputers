@@ -60,7 +60,7 @@ object Mods {
 
   object IDs {
     final val Forestry = "forestry"
-    final val Forge = "Forge"
+    final val Forge = "forge"
     final val JustEnoughItems = "jei"
     final val Minecraft = "minecraft"
     final val OpenComputers = "opencomputers"
