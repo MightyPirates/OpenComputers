@@ -536,10 +536,9 @@ function sh.internal.parse_sub(input)
     local sub = io.popen(capture)
     local result = input:sub(i, fi - 1) .. sub:read("*a")
     sub:close()
-    -- all whitespace is replaced by single spaces
-    -- we requote the result because tokenize will respect this as text
-    table.insert(packed, (text.trim(result):gsub("%s+"," ")))
 
+    -- command substitution cuts trailing newlines
+    table.insert(packed, (result:gsub("\n+$","")))
     i = si+1
   end
 

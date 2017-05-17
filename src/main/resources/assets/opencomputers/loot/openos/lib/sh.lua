@@ -126,6 +126,8 @@ function sh.internal.isIdentifier(key)
   return key:match("^[%a_][%w_]*$") == key
 end
 
+-- expand (interpret) a single quoted area
+-- examples: $foo, "$foo", or `cmd` in back ticks
 function sh.expand(value)
   local expanded = value
   :gsub("%$([_%w%?]+)", function(key)
@@ -141,22 +143,35 @@ function sh.expand(value)
     io.stderr:write("${" .. key .. "}: bad substitution\n")
     os.exit(1)
   end)
-  if expanded:find('`') then
-    expanded = sh.internal.parse_sub(expanded)
-  end
   return expanded
 end
 
+-- expand all parts if interpreted (not literal)
+-- i.e '' is literal, "" and `` are interpreted
+-- called only by sh.internal.evaluate
 function sh.internal.expand(word)
   if #word == 0 then return {} end
   local result = ''
   for i=1,#word do
     local part = word[i]
-    -- sh.expand runs command substitution on backticks
-    -- if the entire quoted area is backtick quoted, then
-    -- we can save some checks by adding them back in
-    local q = part.qr and part.qr[1] == '`' and '`' or ''
-    result = result .. (not (part.qr and part.qr[3]) and sh.expand(q..part.txt..q) or part.txt)
+    local next = part.txt
+    local quoted = part.qr
+    local literal, keep_whitespace, sub
+    if quoted then
+      literal = quoted[3]
+      keep_whitespace = quoted[1] == '"'
+      sub = quoted[1]:match('`') or next:find('`') and ''
+    end
+    if not literal then
+      next = sh.expand(next)
+      if sub then
+        next = sh.internal.parse_sub(sub .. next .. sub)
+      end
+      if not keep_whitespace then
+        next = text.trim((next:gsub("%s+", " ")))
+      end
+    end
+    result = result .. next
   end
   return {result}
 end
@@ -166,14 +181,10 @@ end
 -- note: text.internal.words(string) returns an array of these words
 function sh.internal.evaluate(word)
   checkArg(1, word, "table")
-  if #word == 0 then
-    return {}
-  elseif #word == 1 and word[1].qr then
-    return sh.internal.expand(word)
-  end
   local glob_pattern = ''
   local has_globits = false
-  for i=1,#word do local part = word[i]
+  for i=1,#word do
+    local part = word[i]
     local next = part.txt
     if not part.qr then
       local escaped = text.escapeMagic(next)
