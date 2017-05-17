@@ -161,6 +161,7 @@ function lib.recurse(fromPath, toPath, options, origin, top)
       if (toReal.."/"):find(fromReal.."/",1,true) then
         return nil, "cannot write a directory, '" .. fromPath .. "', into itself, '" .. toPath .. "'"
       elseif mv then
+        status(verbose, fromPath, toPath)
         return os.rename(fromPath, toPath)
       end
     end
