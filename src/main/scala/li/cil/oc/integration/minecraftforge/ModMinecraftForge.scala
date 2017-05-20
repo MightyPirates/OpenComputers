@@ -14,5 +14,6 @@ object ModMinecraftForge extends ModProxy {
     api.IMC.registerItemCharge("MinecraftForge",
       "li.cil.oc.integration.minecraftforge.EventHandlerMinecraftForge.canCharge",
       "li.cil.oc.integration.minecraftforge.EventHandlerMinecraftForge.charge")
+    api.Driver.add(DriverEnergyStorage)
   }
 }
