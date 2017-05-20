@@ -46,6 +46,7 @@ object ModMinecraft extends ModProxy with RedstoneProvider {
 
     Driver.add(ConverterFluidStack)
     Driver.add(ConverterFluidTankInfo)
+    Driver.add(ConverterFluidTankProperties)
     Driver.add(ConverterItemStack)
     Driver.add(ConverterNBT)
     Driver.add(ConverterWorld)
