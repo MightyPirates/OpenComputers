@@ -11,7 +11,6 @@ import mezz.jei.api.recipe.BlankRecipeWrapper
 import mezz.jei.api.recipe.IRecipeHandler
 import mezz.jei.api.recipe.IRecipeWrapper
 import mezz.jei.api.recipe.VanillaRecipeCategoryUid
-import mezz.jei.api.recipe.wrapper.ICraftingRecipeWrapper
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
@@ -27,7 +26,7 @@ object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe
 
   override def isRecipeValid(recipe: LootDiskCyclingRecipe): Boolean = true
 
-  class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper with ICraftingRecipeWrapper {
+  class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper {
 
     def getInputs: util.List[util.List[ItemStack]] = List(seqAsJavaList(Loot.disksForCycling), seqAsJavaList(List(api.Items.get(Constants.ItemName.Wrench).createItemStack(1))))
 

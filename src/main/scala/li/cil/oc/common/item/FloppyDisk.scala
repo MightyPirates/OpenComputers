@@ -15,7 +15,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel with traits.FileSystemLike {
   // Necessary for anonymous subclasses used for loot disks.
-  override def unlocalizedName = "FloppyDisk"
+  override def unlocalizedName = "floppydisk"
 
   val kiloBytes = Settings.get.floppySize
 

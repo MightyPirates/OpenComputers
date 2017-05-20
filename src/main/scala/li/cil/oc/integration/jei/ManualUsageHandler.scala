@@ -32,13 +32,13 @@ object ManualUsageHandler {
   }.flatten.toList
 
   object ManualUsageRecipeHandler extends IRecipeHandler[ManualUsageRecipe] {
-    override def getRecipeWrapper(recipe: ManualUsageRecipe) = recipe
+    override def getRecipeWrapper(recipe: ManualUsageRecipe): ManualUsageRecipe = recipe
 
     override def getRecipeCategoryUid(recipe: ManualUsageRecipe): String = ManualUsageRecipeCategory.getUid
 
     override def isRecipeValid(recipe: ManualUsageRecipe) = true
 
-    override def getRecipeClass = classOf[ManualUsageRecipe]
+    override def getRecipeClass: Class[ManualUsageRecipe] = classOf[ManualUsageRecipe]
   }
 
   class ManualUsageRecipe(val stack: ItemStack, val path: String) extends BlankRecipeWrapper {
@@ -72,10 +72,12 @@ object ManualUsageHandler {
 
     def initialize(guiHelper: IGuiHelper) {
       background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight)
-      icon = new DrawableIcon(new ResourceLocation(Settings.resourceDomain, "textures/items/manual.png"), 0, 0, 16, 16, 16, 16)
+      icon = guiHelper.createDrawable(new ResourceLocation(Settings.resourceDomain, "textures/items/manual.png"), 0, 0, 16, 16, 16, 16)
     }
 
     override def getBackground: IDrawable = background
+
+    override def getIcon: IDrawable = icon
 
     override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: ManualUsageRecipe, ingredients: IIngredients) {
     }
