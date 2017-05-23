@@ -34,8 +34,7 @@ function process.load(path, env, init, name)
     env = env or p.env
   end
   env = setmetatable({}, {__index=env or _G})
-
-  local code = nil
+  local code
   if type(path) == 'string' then
     code = function(...)
       local fs, shell = require("filesystem"), require("shell")
@@ -50,15 +49,18 @@ function process.load(path, env, init, name)
         return 127
       end
       os.setenv("_", program)
-      local f, reason = fs.open(program)
-      local shebang = f and f:read(1024):match("^#!([^\n]+)")
-      f:close()
-      if shabang then
-        local result = table.pack(shell.execute(shebang:gsub("%s",""), env, program, ...))
-        assert(result[1], result[2])
-        return table.unpack(result)
+      local f = fs.open(program)
+      if f then
+        local shebang = f:read(1024):match("^#!([^\n]+)")
+        f:close()
+        if shebang then
+          local result = table.pack(shell.execute(shebang:gsub("%s",""), env, program, ...))
+          assert(result[1], result[2])
+          return table.unpack(result)
+        end
       end
-      local command, reason = loadfile(program, "bt", env)
+      local command
+      command, reason = loadfile(program, "bt", env)
       if not command then
         io.stderr:write(program..(reason or ""):gsub("^[^:]*", "").."\n")
         return 128
