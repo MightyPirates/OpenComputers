@@ -2,7 +2,6 @@ local computer = require("computer")
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
-local unicode = require("unicode")
 local process = require("process")
 
 local function env()
