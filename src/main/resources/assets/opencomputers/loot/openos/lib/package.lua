@@ -78,22 +78,21 @@ function require(module)
     return loaded[module]
   elseif not loading[module] then
     loading[module] = true
-    local loader, value, errorMsg = nil, nil, {"module '" .. module .. "' not found:"}
+    local loader, errorMsg = nil, {"module '" .. module .. "' not found:"}
     for i = 1, #package.searchers do
       -- the pcall is mostly for out of memory errors
-      local ok, f, extra = pcall(package.searchers[i], module)
+      local ok, f = pcall(package.searchers[i], module)
       if not ok then
         table.insert(errorMsg, "\t" .. (f or "nil"))
       elseif f and type(f) ~= "string" then
         loader = f
-        value = extra
         break
       elseif f then
         table.insert(errorMsg, f)
       end
     end
     if loader then
-      local success, result = pcall(loader, module, value)
+      local success, result = pcall(loader, module)
       loading[module] = false
       if not success then
         error(result, 2)

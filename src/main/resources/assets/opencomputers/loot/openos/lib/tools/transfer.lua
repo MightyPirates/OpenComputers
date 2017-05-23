@@ -1,5 +1,6 @@
 local fs = require("filesystem")
 local shell = require("shell")
+local text = require("text")
 local lib = {}
 
 local function perr(ops, format, ...)
@@ -31,10 +32,10 @@ end
 
 local function areEqual(path1, path2)
   local f1, f2 = fs.open(path1, "rb")
+  local result = true
   if f1 then
     f2 = fs.open(path2, "rb")
     if f2 then
-      local result = true
       local chunkSize = 4 * 1024
       repeat
         local s1, s2 = f1:read(chunkSize), f2:read(chunkSize)
@@ -86,10 +87,19 @@ local function stat(path, ops, P)
 end
 
 function lib.recurse(fromPath, toPath, options, origin, top)
+  fromPath = fromPath:gsub("/+", "/")
+  toPath = toPath:gsub("/+", "/")
+  local fromPathFull = shell.resolve(fromPath)
+  local toPathFull = shell.resolve(toPath)
   local mv = options.cmd == "mv"
+  local verbose = options.v and (not mv or top)
+  if select(2, fromPathFull:find(options.skip)) == #fromPathFull then
+    status(verbose, string.format("skipping %s", fromPath))
+    return true
+  end
   local function release(result, reason)
     if result and mv and top then
-      local rm_result = not fs.get(fromPath).isReadOnly() and fs.remove(fromPath)
+      local rm_result = not fs.get(fromPathFull).isReadOnly() and fs.remove(fromPathFull)
       if not rm_result then
         perr(options, "cannot remove '%s': filesystem is readonly", fromPath)
         result = false
@@ -101,22 +111,22 @@ function lib.recurse(fromPath, toPath, options, origin, top)
   local
     ok,
     fromReal,
-    fromError,
+    _, --fromError,
     fromIsLink,
     fromLinkTarget,
     fromExists,
     fromFs,
-    fromIsDir = stat(fromPath, options, options.P)
+    fromIsDir = stat(fromPathFull, options, options.P)
   if not ok then return nil end
   local
     ok,
     toReal,
-    toError,
+    _,--toError,
     toIsLink,
-    toLinkTarget,
+    _,--toLinkTarget,
     toExists,
     toFs,
-    toIsDir = stat(toPath, options)
+    toIsDir = stat(toPathFull, options)
   if not ok then os.exit(1) end
   if toFs.isReadOnly() then
     perr(options, "cannot create target '%s': filesystem is readonly", toPath)
@@ -124,9 +134,7 @@ function lib.recurse(fromPath, toPath, options, origin, top)
   end
 
   local same_path = fromReal == toReal
-  local same_link = fromIsLink and toIsLink and same_path
 
-  local verbose = options.v
   local same_fs = fromFs == toFs
   local is_mount = origin[fromReal]
 
@@ -138,12 +146,12 @@ function lib.recurse(fromPath, toPath, options, origin, top)
     if toExists and options.n then
       return true
     end
-    fs.remove(toPath)
+    fs.remove(toPathFull)
     if toExists then
-      status(verbose, string.format("removed '%s'\n", toPath))
+      status(verbose, string.format("removed '%s'", toPath))
     end
     status(verbose, fromPath, toPath)
-    return release(fs.link(fromLinkTarget, toPath))
+    return release(fs.link(fromLinkTarget, toPathFull))
   elseif fromIsDir then
     if not options.r then
       status(true, string.format("omitting directory '%s'", fromPath))
@@ -160,17 +168,20 @@ function lib.recurse(fromPath, toPath, options, origin, top)
     if same_fs then
       if (toReal.."/"):find(fromReal.."/",1,true) then
         return nil, "cannot write a directory, '" .. fromPath .. "', into itself, '" .. toPath .. "'"
-      elseif mv then
-        status(verbose, fromPath, toPath)
-        return os.rename(fromPath, toPath)
       end
+    end
+    if mv then
+      if fs.list(toReal)() then -- to is NOT empty
+        return nil, "cannot move '" .. fromPath .. "' to '" .. toPath .. "': Directory not empty"
+      end
+      status(verbose, fromPath, toPath)
     end
     if not toExists then
       status(verbose, fromPath, toPath)
-      fs.makeDirectory(toPath)
+      fs.makeDirectory(toPathFull)
     end
-    for file in fs.list(fromPath) do
-      local result, reason = lib.recurse(fs.concat(fromPath, file), fs.concat(toPath, file), options, origin, false) -- false, no longer top
+    for file in fs.list(fromPathFull) do
+      local result, reason = lib.recurse(fromPath .."/".. file, toPath.."/"..file, options, origin, false) -- false, no longer top
       if not result then
         return false, reason
       end
@@ -198,7 +209,7 @@ function lib.recurse(fromPath, toPath, options, origin, top)
       fs.remove(toReal)
     end
     status(verbose, fromPath, toPath)
-    return release(fs.copy(fromPath, toPath))
+    return release(fs.copy(fromPathFull, toPathFull))
   else
     return nil, "'" .. fromPath .. "': No such file or directory"
   end
@@ -210,6 +221,7 @@ function lib.batch(args, options)
   -- standardized options
   options.i = options.i and not options.f
   options.P = options.P or options.r
+  options.skip = text.escapeMagic(options.skip or "")
   
   local origin = {}
   for dev,path in fs.mounts() do
@@ -217,27 +229,31 @@ function lib.batch(args, options)
   end
 
   local toArg = table.remove(args)
-  local _, toPath = contents_check(toArg, options)
-  if not toPath then
+  local _, ok = contents_check(toArg, options)
+  if not ok then
     return 1
   end
-  local originalToIsDir = fs.isDirectory(toPath)
+  local originalToIsDir = fs.isDirectory(ok)
 
-  for _,arg in ipairs(args) do
+  for _, fromArg in ipairs(args) do
     -- a "contents of" copy is where src path ends in . or ..
     -- a source path ending with . is not sufficient - could be the source filename
-    local contents_of, fromPath = contents_check(arg, options, true)
-    if fromPath then
+    local contents_of
+    contents_of, ok = contents_check(fromArg, options, true)
+    if ok then
       -- we do not append fromPath name to toPath in case of contents_of copy
-      local nextPath = toPath
+      local toPath = toArg
       if contents_of and options.cmd == "mv" then
-        perr(options, "invalid move path '%s'", arg)
+        perr(options, "invalid move path '%s'", fromArg)
       else
         if not contents_of and originalToIsDir then
-          nextPath = fs.concat(nextPath, fs.name(fromPath))
+          local fromName = fs.name(fromArg)
+          if fromName then
+            toPath = toPath .. "/" .. fromName
+          end
         end
 
-        local result, reason = lib.recurse(fromPath, nextPath, options, origin, true)
+        local result, reason = lib.recurse(fromArg, toPath, options, origin, true)
 
         if not result then
           perr(options, reason)
