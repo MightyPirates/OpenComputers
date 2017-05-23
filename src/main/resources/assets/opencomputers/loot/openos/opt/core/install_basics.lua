@@ -1,23 +1,11 @@
 local computer = require("computer")
 local shell = require("shell")
-local component = require("component")
-local event = require("event")
 local fs = require("filesystem")
-local unicode = require("unicode")
-local text = require("text")
-
-local write = io.write
 
 local args, options = shell.parse(...)
 
-options.sources = {}
-options.targets = {}
-options.source_label = args[1]
-
-local root_exception
-
 if options.help then
-  write([[Usage: install [OPTION]...
+  io.write([[Usage: install [OPTION]...
   --from=ADDR        install filesystem at ADDR
                      default: builds list of
                      candidates and prompts user
@@ -34,176 +22,161 @@ if options.help then
   return nil -- exit success
 end
 
+local utils_path = "/opt/core/install_utils.lua"
+local utils
+
 local rootfs = fs.get("/")
 if not rootfs then
   io.stderr:write("no root filesystem, aborting\n");
   os.exit(1)
 end
 
-local function up_deprecate(old_key, new_key)
-  if options[new_key] == nil then
-    options[new_key] = options[old_key]
-  end
-  options[old_key] = nil
-end
+local label = args[1]
+options.label = label
 
-local function cleanPath(path)
-  if path then
-    local rpath = shell.resolve(path)
-    if fs.isDirectory(rpath) then
-      return fs.canonical(rpath) .. '/'
-    end
+local source_filter = options.from
+local source_filter_dev
+if source_filter then
+  local from_path = shell.resolve(source_filter)
+  if fs.isDirectory(from_path) then
+    source_filter_dev = fs.get(from_path)
+    source_filter = source_filter_dev.address
+    options.from = from_path
   end
 end
 
-local rootAddress = rootfs.address
--- if the rootfs is read only, it is probably the loot disk!
-root_exception = rootAddress
-if rootfs.isReadOnly() then
-  root_exception = nil
-end
-
--- this may be OpenOS specific, default to "" in case no /dev mount point
-local devfsAddress = (fs.get("/dev/") or {}).address or ""
-
--- tmp is only valid if specified as an option
-local tmpAddress = computer.tmpAddress()
-
------ For now, I am allowing source==target -- cp can handle it if the user prepares conditions correctly
------ in other words, install doesn't need to filter this scenario:
---if #options.targets == 1 and #options.sources == 1 and options.targets[1] == options.sources[1] then
---  io.stderr:write("It is not the intent of install to use the same source and target filesystem.\n")
---  return 1
---end
-
------- load options
-up_deprecate('noboot', 'nosetboot')
-up_deprecate('nolabelset', 'nosetlabel')
-up_deprecate('name', 'label')
-
-options.source_root = cleanPath(options.from)
-options.target_root = cleanPath(options.to)
-
-options.target_dir = fs.canonical(options.root or options.toDir or "")
-
-options.update = options.u or options.update
-
-local function path_to_dev(path)
-  return path and fs.isDirectory(path) and not fs.isLink(path) and fs.get(path)
-end
-
-local source_dev = path_to_dev(options.source_root)
-local target_dev = path_to_dev(options.target_root)
-
--- use a single for loop of all filesystems to build the list of candidates of sources and targets
-local function validDevice(candidate, exceptions, specified, existing)
-  local address = candidate.dev.address
-
-  for _,e in ipairs(existing) do
-    if e.dev.address == address then
-      return
-    end
-  end
-
-  if specified then
-    if address:find(specified, 1, true) == 1 then
-      return true
-    end
-  else
-    for _,e in ipairs(exceptions) do
-      if e == address then
-        return
-      end
-    end
-    return true
+local target_filter = options.to
+local target_filter_dev
+if target_filter then
+  local to_path = shell.resolve(target_filter)
+  if fs.isDirectory(target_filter) then
+    target_filter_dev = fs.get(to_path)
+    target_filter = target_filter_dev.address
+    options.to = to_path
   end
 end
+
+local sources = {}
+local targets = {}
+
+-- tmpfs is not a candidate unless it is specified
+
+local devices = {}
 
 for dev, path in fs.mounts() do
-  local candidate = {dev=dev, path=path:gsub("/+$","")..'/'}
+  devices[dev] = path
+end
 
-  if validDevice(candidate, {devfsAddress, tmpAddress, root_exception}, source_dev and source_dev.address or options.from, options.sources) then
-    -- root path is either the command line path given for this dev or its natural mount point
-    local root_path = source_dev == dev and options.source_root or path
-    if (options.from or fs.list(root_path)()) then -- ignore empty sources unless specified
-      local prop = fs.open(root_path .. '/.prop')
-      if prop then
-        local prop_data = prop:read(math.huge)
-        prop:close()
-        prop = prop_data
-      end
-      candidate.prop = prop and load('return ' .. prop)() or {}
-      if not candidate.prop.ignore then
-        if not options.source_label or options.source_label:lower() == (candidate.prop.label or (dev.getLabel() or "")):lower() then
-          table.insert(options.sources, candidate)
-        end
-      end
-    end
-  end
+devices[fs.get("/dev/") or false] = nil
+local tmpAddress = computer.tmpAddress()
 
-  -- in case candidate is valid for BOTH, we want a new table
-  candidate = {dev=candidate.dev, path=candidate.path} -- but not the prop
+for dev, path in pairs(devices) do
+  local address = dev.address
+  local install_path = dev == target_filter_dev and options.to or path
+  local specified = target_filter and address:find(target_filter, 1, true) == 1
 
-  if validDevice(candidate, {devfsAddress, tmpAddress}, target_dev and target_dev.address or options.to, options.targets) then
-    if not dev.isReadOnly() then
-      table.insert(options.targets, candidate)
-    elseif options.to then
+  if dev.isReadOnly() then
+    if specified then
       io.stderr:write("Cannot install to " .. options.to .. ", it is read only\n")
       os.exit(1)
     end
+  elseif specified or
+    not target_filter and
+    address ~= tmpAddress then
+    table.insert(targets, {dev=dev, path=install_path, specified=specified})
   end
 end
 
-local source = options.sources[1]
-local target = options.targets[1]
-local utils_path = "/opt/core/install_utils.lua"
+local target = targets[1]
+if #targets ~= 1 then
+  utils = loadfile(utils_path, "bt", _G)
+  target = utils("select", "targets", options, targets)
+end
+if not target then return end
+devices[target.dev] = nil
 
-if #options.sources ~= 1 or #options.targets ~= 1 then
-  source, target = loadfile(utils_path, "bt", _G)('select', options)
+for dev, path in pairs(devices) do
+  local address = dev.address
+  local install_path = dev == source_filter_dev and options.from or path
+  local specified = source_filter and address:find(source_filter, 1, true) == 1
+
+  if fs.list(install_path)()
+    and (specified or 
+      not source_filter and
+      address ~= tmpAddress and
+      not (address == rootfs.address and not rootfs.isReadOnly())) then
+    local prop = {}
+    local prop_path = path .. "/.prop"
+    local prop_file = fs.open(prop_path)
+    if prop_file then
+      local prop_data = prop_file:read(math.huge)
+      prop_file:close()
+      local prop_load = load("return " .. prop_data)
+      prop = prop_load and prop_load()
+      if not prop then
+        io.stderr:write("Ignoring " .. path .. " due to malformed prop file\n")
+        prop = {ignore = true}
+      end
+    end
+    if not prop.ignore then
+      if not label or label:lower() == (prop.label or dev.getLabel() or ""):lower() then
+        table.insert(sources, {dev=dev, path=install_path, prop=prop, specified=specified})
+      end
+    end
+  end
 end
 
+local source = sources[1]
+if #sources ~= 1 then
+  utils = utils or loadfile(utils_path, "bt", _G)
+  source = utils("select", "sources", options, sources)
+end
 if not source then return end
-options.source_root = options.source_root or source.path
 
-if not target then return end
-options.target_root = options.target_root or target.path
-
--- now that source is selected, we can update options
-options.label      = options.label or source.prop.label
-options.setlabel   = source.prop.setlabel and not options.nosetlabel
-options.setboot    = source.prop.setboot and not options.nosetboot
-options.reboot     = source.prop.reboot and not options.noreboot
-options.source_dir = fs.canonical(source.prop.fromDir or options.fromDir or "") .. '/.'
+options =
+{
+  from     = source.path .. '/',
+  to       = target.path .. '/',
+  fromDir  = fs.canonical(options.fromDir or source.prop.fromDir or ""),
+  root     = fs.canonical(options.root or options.toDir or source.prop.root or ""),
+  update   = options.update or options.u,
+  label    = source.prop.label or label,
+  setlabel = not (options.nosetlabel or options.nolabelset) and source.prop.setlabel,
+  setboot  = not (options.nosetboot or options.noboot) and source.prop.setboot,
+  reboot   = not options.noreboot and source.prop.reboot,
+}
 
 local cp_args =
 {
   "-vrx" .. (options.update and "ui" or ""),
-  options.source_root .. options.source_dir,
-  options.target_root:gsub("//","/") .. options.target_dir
+  "--skip=.prop",
+  fs.concat(options.from, options.fromDir) .. "/.",
+  fs.concat(options.to  , options.root)
 }
 
-local source_display = (source.prop or {}).label or source.dev.getLabel() or source.path
+local source_display = options.label or source.dev.getLabel() or source.path
 local special_target = ""
-if #options.targets > 1 or options.to then
+if #targets > 1 or target_filter then
   special_target = " to " .. cp_args[3]
 end
+
 io.write("Install " .. source_display .. special_target .. "? [Y/n] ")
 if not ((io.read() or "n").."y"):match("^%s*[Yy]") then
-  write("Installation cancelled\n")
+  io.write("Installation cancelled\n")
   os.exit()
 end
 
-local installer_path = options.source_root .. "/.install"
+local installer_path = options.from .. "/.install"
 if fs.exists(installer_path) then
-  os.exit(loadfile(utils_path, "bt", _G)('install', options))
+  local installer, reason = loadfile(installer_path, "bt", setmetatable({install=options}, {__index = _G}))
+  if not installer then
+    io.stderr:write("installer failed to load: " .. tostring(reason) .. '\n')
+    os.exit(1)
+  end
+  os.exit(installer())
 end
 
-return
-{
-  setlabel = options.setlabel,
-  label = options.label,
-  setboot = options.setboot,
-  reboot = options.reboot,
-  target = target,
-  cp_args = cp_args,
-}
+options.cp_args = cp_args
+options.target = target
+
+return options
