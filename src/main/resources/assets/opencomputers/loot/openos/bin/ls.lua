@@ -5,10 +5,13 @@ local ok, why = pcall(function(...)
 end, ...)
 
 if not ok then
-  if type(why) == "table" and why.code == 0 then
-    return
+  if type(why) == "table" then
+    if why.code == 0 then
+      return
+    end
+    why = why.reason
   end
-  io.stderr:write((why or "") .. "\nFor low memory systems, try using `list` instead\n")
+  io.stderr:write(tostring(why) .. "\nFor low memory systems, try using `list` instead\n")
   return 1
 end
 
