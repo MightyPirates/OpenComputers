@@ -7,15 +7,19 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.FluidUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.FluidTankInfo
 
 trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
-  @Callback(doc = "function(side:number):boolean -- Compare the fluid in the selected tank with the fluid on the specified side. Returns true if equal.")
+  @Callback(doc = "function(side:number [, tank:number]):boolean -- Compare the fluid in the selected tank with the fluid in the specified tank on the specified side. Returns true if equal.")
   def compareFluid(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
         FluidUtils.fluidHandlerAt(position.offset(side)) match {
-          case Some(handler) => result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
+          case Some(handler) => args.optTankInfo(handler, side.getOpposite, 1, null) match {
+            case info: FluidTankInfo => result(stack.isFluidEqual(info.fluid))
+            case _ => result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
+          }
           case _ => result(false)
         }
       case _ => result(false)
