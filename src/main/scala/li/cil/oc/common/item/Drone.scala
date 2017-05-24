@@ -36,7 +36,7 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
       val info = new DroneData(stack)
-      for (component <- info.components if component != null) {
+      for (component <- info.components if !component.isEmpty) {
         tooltip.add("- " + component.getDisplayName)
       }
     }
