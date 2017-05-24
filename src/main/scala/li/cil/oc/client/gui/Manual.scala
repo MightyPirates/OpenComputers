@@ -57,7 +57,7 @@ class Manual extends GuiScreen with traits.Window {
     }
 
   def refreshPage(): Unit = {
-    val content = Option(api.Manual.contentFor(ManualAPI.history.top.path)).
+      val content = Option(api.Manual.contentFor(ManualAPI.history.top.path)).
       getOrElse(asJavaIterable(Iterable("Document not found: " + ManualAPI.history.top.path)))
     document = Document.parse(content)
     documentHeight = Document.height(document, documentMaxWidth, fontRendererObj)

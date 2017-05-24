@@ -61,7 +61,15 @@ trait BasicTextSegment extends Segment {
       if (width >= maxWidth) {
         if (lastBreak > 0 || fullWidth <= maxLineWidth || s.exists(breaks.contains))
           if (maxWidth == maxLineWidth && fullWidth == maxLineWidth && !s.exists(breaks.contains)) return s.length
-          else return lastBreak + 1
+          else if(lastBreak == -1)
+          {
+            //lastbreak = -1, then return pos - 1
+            //if return lastBreak + 1,we will run into infinite loop
+            return pos - 1
+          }
+          else {
+            return lastBreak + 1 //if we got a long sentence without breaks ,lastbreak still -1
+          }
         else return pos - 1
       }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
