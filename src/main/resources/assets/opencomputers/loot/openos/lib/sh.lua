@@ -297,11 +297,7 @@ function sh.internal.runThreads(threads)
     while coroutine.status(thread) ~= "dead" do
       result = table.pack(coroutine.resume(thread, table.unpack(args)))
       if coroutine.status(thread) ~= "dead" then
-        args = sh.internal.handleThreadYield(result)
-        if table.remove(args, 1) then
-          -- in case this was the end of the line, args is returned
-          return args[2]
-        end
+        args = table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
       elseif not result[1] then
         io.stderr:write(result[2])
       end

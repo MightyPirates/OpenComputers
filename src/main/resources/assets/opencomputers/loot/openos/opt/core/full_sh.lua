@@ -12,15 +12,6 @@ local isWordOf = sh.internal.isWordOf
 
 -------------------------------------------------------------------------------
 
-function sh.internal.handleThreadYield(result)
-  local action = result[2]
-  if action == nil or type(action) == "number" then
-    return table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-  else
-    return table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
-  end
-end
-
 function sh.internal.buildCommandRedirects(args, thread)
   local data = process.info(thread).data
   local tokens, ios, handles = args, data.io, data.handles
