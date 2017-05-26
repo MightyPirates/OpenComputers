@@ -47,7 +47,7 @@ function pipeStream:close()
   local pco_root = self.pm.threads[1]
   if co.status(pco_root) == "dead" then
     -- I would have liked the pco stack to unwind itself for dead coroutines
-    -- maybe I haven't handled aborts corrects
+    -- maybe I haven't handled aborts correctly
     return
   end
 
@@ -268,7 +268,7 @@ function pipeManager.reader(pm,...)
 
     -- if we are a reader pipe, we leave the buffer alone and yield to previous
     if pm.pco.status(pm.threads[pm.prog_id]) ~= "dead" then
-      pm.pco.yield()
+      pm.pco.yield(...)
     end
   end
   pm.dead = true
@@ -308,8 +308,7 @@ function pipeManager.new(prog, mode, env)
     return nil, "bad argument #2: invalid mode " .. tostring(mode) .. " must be r or w"
   end
 
-  local shellPath = os.getenv("SHELL") or "/bin/sh"
-  local shellPath, reason = shell.resolve(shellPath, "lua")
+  local shellPath, reason = shell.resolve(os.getenv("SHELL") or "/bin/sh", "lua")
   if not shellPath then
     return nil, reason
   end
@@ -361,7 +360,7 @@ function plib.popen(prog, mode, env)
     return false, reason
   end
 
-  pm.pco=plib.internal.create(pm.root)
+  pm.pco = plib.internal.create(pm.root)
 
   local pfd = require("buffer").new(mode, pipeStream.new(pm))
   pfd:setvbuf("no", 0) -- 2nd are to read chunk size
@@ -370,6 +369,13 @@ function plib.popen(prog, mode, env)
   pfd.stream:resume()
 
   return pfd
+end
+
+function plib.create(fp, name)
+  checkArg(1, fp, "function")
+  checkArg(2, name, "string", "nil")
+  local pco = plib.internal.create(fp, nil, name)
+  return pco.stack[1]
 end
 
 return plib

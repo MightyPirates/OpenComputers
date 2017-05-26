@@ -32,9 +32,6 @@ env = setmetatable({}, {
       return k, v
     end
   end,
-  __newindex = function(_, k, v)
-    process.info().env[k] = v
-  end
 })
 env._PROMPT = tostring(env._PROMPT or "lua> ")
 

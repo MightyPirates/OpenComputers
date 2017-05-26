@@ -1,6 +1,5 @@
 local unicode = require("unicode")
 local event = require("event")
-local process = require("process")
 local kb = require("keyboard")
 local component = require("component")
 local computer = require("computer")
@@ -58,15 +57,13 @@ local function tab_handler(handler, cursor)
   end
 
   local cache = handler.cache
-  local cache_size = #cache
   
-  if cache_size == 1 and cache.i == 0 then
+  if #cache == 1 and cache.i == 0 then
     -- there was only one solution, and the user is asking for the next
     handler.cache = hints(cache[1], cursor.index + 1)
     if not handler.cache then return end
     handler.cache.i = -1
     cache = handler.cache
-    cache_size = #cache
   end
 
   local change = kb.isShiftDown(main_kb) and -1 or 1
@@ -107,7 +104,7 @@ local function key_down_handler(handler, cursor, char, code)
   elseif code == keys["end"] then cursor:move( math.huge)
   elseif code == keys.back   then c = -1
   elseif code == keys.delete then c =  1
-  elseif ctrl and char == "w"then -- TODO: cut word
+  --elseif ctrl and char == "w"then -- TODO: cut word
   elseif char >= 32          then c = unicode.char(char)
   else                            handler.cache = backup_cache -- ignored chars shouldn't clear hint cache
   end
@@ -359,7 +356,7 @@ function tty.write(value, wrap)
   stream.nowrap = wrap == false
   stdout:write(value)
   stdout:flush()
-  stream.nowrap = previous_wrap
+  stream.nowrap = previous_nowrap
 end
 
 function tty.getCursor()

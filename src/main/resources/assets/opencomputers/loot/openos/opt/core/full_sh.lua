@@ -1,4 +1,3 @@
-local event = require("event")
 local fs = require("filesystem")
 local process = require("process")
 local shell = require("shell")
@@ -11,15 +10,6 @@ local sh = require("sh")
 local isWordOf = sh.internal.isWordOf
 
 -------------------------------------------------------------------------------
-
-function sh.internal.handleThreadYield(result)
-  local action = result[2]
-  if action == nil or type(action) == "number" then
-    return table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-  else
-    return table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
-  end
-end
 
 function sh.internal.buildCommandRedirects(args, thread)
   local data = process.info(thread).data
