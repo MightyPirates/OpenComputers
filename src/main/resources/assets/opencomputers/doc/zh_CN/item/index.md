@@ -1,24 +1,24 @@
-# Items
+# 物品
 
-This index lists all of the documented items in OpenComputers. If you're looking for a block, check out the [block index](../block/index.md) instead.
+本索引列举了OC所有物品. 如果你要找方块点[这里](../block/index.md).
 
-Keep in mind that some of these may not be available, depending on the recipe set used.
+注意有的物品会由于合成表的原因不可用
 
-## Tools
+## 工具
 * [分析仪](analyzer.md)
 * [手册](manual.md)
 * [远控终端](terminal.md)
 * [纹理拾取器](texturePicker.md)
 * [扳手](wrench.md)
 
-## Devices
+## 设备
 * [无人机](drone.md)
 * [服务器](server1.md)
 * [平板](tablet.md)
 
-## Components
+## 组件
 
-### Cards
+### 卡片
 * [抽象总线卡](abstractBusCard.md)
 * [数据卡](dataCard1.md)
 * [调试卡（创造）](debugCard.md) (aka AMI)
@@ -30,7 +30,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [无线网卡](wlanCard.md)
 * [世界传感器卡](worldSensorCard.md)
 
-### Upgrades
+### 升级
 * [天使升级](angelUpgrade.md)
 * [电池升级](batteryUpgrade1.md)
 * [卡槽升级](cardContainer1.md)
@@ -54,12 +54,12 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [交易升级](tradingUpgrade.md)
 * [升级箱](upgradeContainer1.md)
 
-### Rack Mountables
+### 机架组件
 * [软驱](diskDriveMountable.md)
 * [服务器](server1.md)
 * [终端服务器](terminalServer.md)
 
-### Other
+### 杂项
 * [APU](apu1.md)
 * [组件总线](componentBus1.md)
 * [CPU](cpu1.md)
@@ -68,7 +68,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [硬盘驱动器](hdd1.md)
 * [内存](ram1.md)
 
-## Crafting
+## 合成
 * [酸液](acid.md)
 * [逻辑运算单元](alu.md)
 * [方向键](arrowKeys.md)
@@ -85,13 +85,13 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [粗电路板](rawCircuitBoard.md)
 * [晶闸管](transistor.md)
 
-## Assembling / Printing
+## 组装 / 打印
 * [油墨](chamelium.md)
 * [墨盒](inkCartridge.md)
 * [无人机箱](droneCase1.md)
 * [微控制器箱](microcontrollerCase1.md)
 * [平板壳子](tabletCase1.md)
 
-## Other
+## 其他
 * [悬浮鞋](hoverBoots.md)
 * [纳米机械](nanomachines.md)

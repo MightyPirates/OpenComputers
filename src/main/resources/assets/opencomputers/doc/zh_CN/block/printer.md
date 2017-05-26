@@ -2,17 +2,16 @@
 
 ![2D printing is so yesteryear.](oredict:oc:printer)
 
-3D printers allow you to print any block of any shape, with any type of texture. To get started with 3D printers, you will need to place down a 3D printer block next to a computer. This will give access to the `printer3d` component API, allowing you to set up and print [models](print.md) using the provided functions.
+3D打印机允许你在任何方块上,用任何纹理打印出你想要的样子.要打印东西, 需要在电脑边放一台打印机.`printer3d` 组件API将启用, 电脑将能够通过这些API,控制打印机打印出[模型](print.md).
 
-A more convenient way to setup 3D printers is to use Open Programs Package Manager (OPPM). Once installed (`oppm install oppm`), make sure you have an [internet card](../item/internetCard.md) in your [computer](../general/computer.md) and run the following command:
+用OPPM来设置打印机更方便. 一旦安装 (`oppm install oppm`), 确保你有 [因特网卡](../item/internetCard.md),并执行以下命令:
 `oppm install print3d-examples`
 
-The examples can then be found in `/usr/share/models/` as .3dm files. Take a look through the example files for available options, in particular the `example.3dm` file. Alternatively, you can download the `print3d` and `print3d-examples` programs from OpenPrograms using `wget` and an [internet card](../item/internetCard.md).
+示例将会在 `/usr/share/models/` 以.3dm的扩展名存在. 阅读示例文件以获取打印选项的信息, 尤其是这个 `example.3dm`. 你也可以通过安装了网卡的计算机，用wget从OpenProgram下载`print3d` and `print3d-examples`.
 
-In order to be able to print the models, a 3D printer needs to be configured via a [computer](../general/computer.md). If set to print non-stop, the computer will no longer be required thereafter. You will also need to provide an [ink cartridge](../item/inkCartridge.md) and some [chamelium](../item/chamelium.md) as input materials. The amount of chamelium used depends on the volume of the 3D print, while the amount of ink used depends on the surface area of the printed item.
+要打印模型, 需要通过 [电脑](../general/computer.md)配置打印机. 如果设置了循环打印, 开始任务后电脑就可以搬走了. 你还需要提供 [墨盒](../item/inkCartridge.md) , [油墨](../item/chamelium.md) 作为打印材料. 油墨用量和3D打印大小有关, 墨水取决于表面积.
 
-To print an item, use the following command:
-`print3d /path/to/file.3dm`
-providing the path to the .3dm file.
+打印需要以下命令:
+`print3d /到打印文件的路径/文件.3dm`
 
-Documentation pertaining to creating your own models can be found in `/usr/share/models/example.3dm`.
+可以在 `/usr/share/models/example.3dm`.找到相关文档
