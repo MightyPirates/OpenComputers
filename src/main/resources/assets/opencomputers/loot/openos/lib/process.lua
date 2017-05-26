@@ -30,10 +30,7 @@ function process.load(path, env, init, name)
   name = name or ""
 
   local p = process.findProcess()
-  if p then
-    env = env or p.env
-  end
-  env = setmetatable({}, {__index=env or _G})
+  env = env or p.env
   local code
   if type(path) == 'string' then
     code = function(...)

@@ -23,13 +23,18 @@ for key,value in pairs(_coroutine) do
   end
 end
 
-local init_thread = _coroutine.running()
-local init_load = _G.load
-
-_G.load = function(ld, source, mode, env)
-  env = env or select(2, process.running())
-  return init_load(ld, source, mode, env)
+local kernel_load = _G.load
+local intercept_load
+intercept_load = function(source, label, mode, env)
+  if env then
+    env.load = kernel_load([[
+      local source, label, mode, env = ...
+      return load(source, label, mode, env or fenv)
+    ]], "=load", "t", {fenv=env, load=intercept_load})
+  end
+  return kernel_load(source, label, mode, env or process.info().env)
 end
+_G.load = intercept_load
 
 local kernel_create = _coroutine.create
 _coroutine.create = function(f,standAlone)
@@ -50,6 +55,7 @@ _coroutine.wrap = function(f)
   end
 end
 
+local init_thread = _coroutine.running()
 process.list[init_thread] = {
   path = "/init.lua",
   command = "init",

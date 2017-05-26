@@ -1,4 +1,3 @@
-local event = require("event")
 local fs = require("filesystem")
 local process = require("process")
 local shell = require("shell")

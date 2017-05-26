@@ -6,7 +6,6 @@ function uuid.next()
   local sets = {4, 2, 2, 2, 6}
   local result = ""
 
-  local i
   for _,set in ipairs(sets) do
     if result:len() > 0 then
       result = result .. "-"

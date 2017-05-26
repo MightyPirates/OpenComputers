@@ -163,7 +163,7 @@ local function pad(txt)
 end
 
 local function formatDate(epochms)
-  local day_names={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"}
+  --local day_names={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"}
   local month_names={"January","February","March","April","May","June","July","August","September","October","November","December"}
   if epochms == 0 then return "" end
   local d = os.date("*t", epochms)
@@ -335,21 +335,6 @@ if #dirsArg > 1 or ops.R then
     restore_color()
     io.write(path,":\n")
   end
-end
-local function splitDirsFromFileArgs(dirs)
-  local trimmed = {}
-  local files = {}
-  for _,dir in ipairs(dirs) do
-    local path = shell.resolve(dir)
-    if not fs.exists(path) then
-      perr("cannot access " .. tostring(path) .. ": No such file or directory")
-    elseif fs.isDirectory(path) then
-      table.insert(trimmed, dir)
-    else -- file or link
-      table.insert(files, dir)
-    end
-  end
-  return files, trimmed
 end
 local function displayDirList(dirs)
   while #dirs > 0 do
