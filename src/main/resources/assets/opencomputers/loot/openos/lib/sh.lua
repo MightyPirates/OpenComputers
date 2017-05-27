@@ -1,10 +1,7 @@
-local event = require("event")
-local fs = require("filesystem")
 local process = require("process")
 local shell = require("shell")
 local text = require("text")
 local tx = require("transforms")
-local unicode = require("unicode")
 
 local sh = {}
 sh.internal = {}
@@ -245,7 +242,7 @@ function sh.internal.createThreads(commands, env, start_args)
   local threads = {}
   for i = 1, #commands do
     local program, c_args, c_has_tokens = table.unpack(commands[i])
-    local name, thread = tostring(program)
+    local name = tostring(program)
     local thread_env = type(program) == "string" and env or nil
     local thread, reason = process.load(program, thread_env, function(...)
       local cdata = process.info().data.command
