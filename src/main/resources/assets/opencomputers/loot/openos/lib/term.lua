@@ -192,7 +192,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
   end
 
   inject_filter(handler, filter)
-  inject_mask(cursor, dobreak, pwchar)
+  inject_mask(cursor, dobreak, pwchar or history.pwchar)
 
   return tty.read(handler, cursor)
 end

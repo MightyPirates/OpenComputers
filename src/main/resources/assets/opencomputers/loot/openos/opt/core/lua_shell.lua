@@ -92,7 +92,7 @@ function read_handler.hint(line, index)
 end
 
 gpu.setForeground(0xFFFFFF)
-tty.write(_VERSION .. " Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
+tty.write(_VERSION .. " Copyright (C) 1994-2017 Lua.org, PUC-Rio\n")
 gpu.setForeground(0xFFFF00)
 tty.write("Enter a statement and hit enter to evaluate it.\n")
 tty.write("Prefix an expression with '=' to show its value.\n")

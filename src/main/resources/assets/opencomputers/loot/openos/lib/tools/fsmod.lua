@@ -24,7 +24,7 @@ function lib.remove(path, findNode)
     return false
   end
   local function removePhysical()
-    node, rest = findNode(path)
+    local node, rest = findNode(path)
     if node.fs and rest then
       return node.fs.remove(rest)
     end
