@@ -27,10 +27,18 @@ local kernel_load = _G.load
 local intercept_load
 intercept_load = function(source, label, mode, env)
   if env then
-    env.load = kernel_load([[
-      local source, label, mode, env = ...
-      return load(source, label, mode, env or fenv)
-    ]], "=load", "t", {fenv=env, load=intercept_load})
+    local loader = setmetatable(
+    {
+      env = env,
+      load = intercept_load,
+    },
+    {__call = function(tbl, _source, _label, _mode, _env)
+      return tbl.load(_source, _label, _mode, _env or tbl.env)
+    end})
+    if env.load and (type(env.load) ~= "table" or env.load.load ~= intercept_load) then
+      loader.load = env.load
+    end
+    env.load = loader
   end
   return kernel_load(source, label, mode, env or process.info().env)
 end

@@ -2,11 +2,7 @@ local computer = require("computer")
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
-local process = require("process")
-
-local function env()
-  return process.info().data.vars
-end
+local info = require("process").info
 
 os.execute = function(command)
   if not command then
@@ -20,7 +16,7 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  local env = env()
+  local env = info().data.vars
   if not varname then
     return env
   elseif varname == '#' then
@@ -34,7 +30,7 @@ function os.setenv(varname, value)
   if value ~= nil then
     value = tostring(value)
   end
-  env()[varname] = value
+  info().data.vars[varname] = value
   return value
 end
 

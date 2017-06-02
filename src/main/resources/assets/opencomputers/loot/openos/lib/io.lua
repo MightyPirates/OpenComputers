@@ -36,7 +36,8 @@ end
 
 function io.open(path, mode)
   -- These requires are not on top because this is a bootstrapped file.
-  local stream, result = require("filesystem").open(path, mode)
+  local resolved_path = require("shell").resolve(path)
+  local stream, result = require("filesystem").open(resolved_path, mode)
   if stream then
     return require("buffer").new(mode, stream)
   else

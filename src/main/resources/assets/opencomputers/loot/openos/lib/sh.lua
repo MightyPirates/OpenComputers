@@ -246,12 +246,12 @@ function sh.internal.createThreads(commands, env, start_args)
     local thread_env = type(program) == "string" and env or nil
     local thread, reason = process.load(program, thread_env, function(...)
       local cdata = process.info().data.command
-      local args, has_tokens, start_args = cdata.args, cdata.has_tokens, cdata.start_args
+      local args, has_tokens, c_start_args = cdata.args, cdata.has_tokens, cdata.start_args
       if has_tokens then
         args = sh.internal.buildCommandRedirects(args)
       end
 
-      sh.internal.concatn(args, start_args)
+      sh.internal.concatn(args, c_start_args)
       sh.internal.concatn(args, {...}, select('#', ...))
 
       -- popen expects each process to first write an empty string
