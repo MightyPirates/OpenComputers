@@ -32,10 +32,10 @@ function process.load(path, env, init, name)
   local p = process.findProcess()
   env = env or p.env
   local code
-  if type(path) == 'string' then
+  if type(path) == "string" then
     code = function(...)
       local fs, shell = require("filesystem"), require("shell")
-      local program, reason = shell.resolve(path, 'lua')
+      local program, reason = shell.resolve(path, "lua")
       if not program then
         if fs.isDirectory(shell.resolve(path)) then
           io.stderr:write(path .. ": is a directory\n")
@@ -48,7 +48,7 @@ function process.load(path, env, init, name)
       os.setenv("_", program)
       local f = fs.open(program)
       if f then
-        local shebang = f:read(1024):match("^#!([^\n]+)")
+        local shebang = (f:read(1024) or ""):match("^#!([^\n]+)")
         f:close()
         if shebang then
           local result = table.pack(shell.execute(shebang:gsub("%s",""), env, program, ...))
@@ -59,7 +59,7 @@ function process.load(path, env, init, name)
       local command
       command, reason = loadfile(program, "bt", env)
       if not command then
-        io.stderr:write(program..(reason or ""):gsub("^[^:]*", "").."\n")
+        io.stderr:write(program, " ", reason or "", "\n")
         return 128
       end
       return command(...)
@@ -80,14 +80,14 @@ function process.load(path, env, init, name)
         end,
         function(msg)
           -- msg can be a custom error object
-          if type(msg) == 'table' then
+          if type(msg) == "table" then
             if msg.reason ~= "terminated" then
               io.stderr:write(msg.reason.."\n")
             end
             return msg.code or 0
           end
-          local stack = debug.traceback():gsub('^([^\n]*\n)[^\n]*\n[^\n]*\n','%1')
-          io.stderr:write(string.format('%s:\n%s', msg or '', stack))
+          local stack = debug.traceback():gsub("^([^\n]*\n)[^\n]*\n[^\n]*\n","%1")
+          io.stderr:write(string.format("%s:\n%s", msg or "", stack))
           return 128 -- syserr
         end, ...)
     }
@@ -107,13 +107,11 @@ function process.load(path, env, init, name)
     {
       handles = {},
       io = {},
-      coroutine_handler = {}
     },
     parent = p,
     instances = setmetatable({}, {__mode="v"}),
   }
   setmetatable(new_proc.data.io, {__index=p.data.io})
-  setmetatable(new_proc.data.coroutine_handler, {__index=p.data.coroutine_handler})
   setmetatable(new_proc.data, {__index=p.data})
   process.list[thread] = new_proc
 

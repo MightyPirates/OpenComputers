@@ -1,11 +1,6 @@
 local buffer = require("buffer")
 local tty = require("tty")
 
-local io_open = io.open
-function io.open(path, mode)
-  return io_open(require("shell").resolve(path), mode)
-end
-
 local stdinStream = {handle="stdin"}
 local stdoutStream = {handle="stdout"}
 local stderrStream = {handle="stderr"}
@@ -15,13 +10,13 @@ local function badFileDescriptor()
   return nil, "bad file descriptor"
 end
 
-function stdinStream:close()
+function stdinStream.close()
   return nil, "cannot close standard file"
 end
 stdoutStream.close = stdinStream.close
 stderrStream.close = stdinStream.close
 
-function stdinStream:read()
+function stdinStream.read()
   return tty.read(stdinHistory)
 end
 

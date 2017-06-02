@@ -371,11 +371,14 @@ function plib.popen(prog, mode, env)
   return pfd
 end
 
-function plib.create(fp, name)
-  checkArg(1, fp, "function")
-  checkArg(2, name, "string", "nil")
-  local pco = plib.internal.create(fp, nil, name)
-  return pco.stack[1]
-end
+-- function plib.create(fp, name)
+--   checkArg(1, fp, "function")
+--   checkArg(2, name, "string", "nil")
+
+--   local pco = plib.internal.create(fp, function()end, name)
+-- --  process.info(pco.stack[1]).data.event = nil
+
+--   return pco.stack[1]
+-- end
 
 return plib
