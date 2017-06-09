@@ -11,44 +11,92 @@ local isWordOf = sh.internal.isWordOf
 
 -------------------------------------------------------------------------------
 
-function sh.internal.buildCommandRedirects(args, thread)
-  local data = process.info(thread).data
-  local tokens, ios, handles = args, data.io, data.handles
-  args = {}
+function sh.internal.command_passed(ec)
+  return sh.internal.command_result_as_code(ec) == 0
+end
+
+-- takes ewords and searches for redirections (may not have any)
+-- removes the redirects and their arguments from the ewords
+-- returns a redirection table that is used during process load
+-- returns false if no redirections are defined
+-- to open the redirect handles, see openCommandRedirects
+function sh.internal.buildCommandRedirects(ewords)
+  local redirects = {}
+  local index = 1 -- we move index manually to allow removals from ewords
   local from_io, to_io, mode
-  for i = 1, #tokens do
-    local token = tokens[i]
-    if token == "<" then
-      from_io = 0
-      mode = "r"
-    else
-      local first_index, last_index, from_io_txt, mode_txt, to_io_txt = token:find("(%d*)(>>?)(.*)")
-      if mode_txt then
-        mode = mode_txt == ">>" and "a" or "w"
-        from_io = from_io_txt and tonumber(from_io_txt) or 1
-        if to_io_txt ~= "" then
-          to_io = tonumber(to_io_txt:sub(2))
-          ios[from_io] = ios[to_io]
-          mode = nil
-        end
-      else -- just an arg
-        if not mode then
-          table.insert(args, token)
-        else
-          local file, reason = io.open(shell.resolve(token), mode)
-          if not file then
-            io.stderr:write("could not open '" .. token .. "': " .. reason .. "\n")
-            os.exit(1)
-          end
-          table.insert(handles, file)
-          ios[from_io] = file
-        end
-        mode = nil
+  local syn_err_msg = "syntax error near unexpected token "
+
+  -- hasValidPiping has been modified, it does not verify redirects now
+  -- we could have bad redirects such as "echo hi > > foo"
+  -- we must validate the input here
+
+  while true do
+    local eword = ewords[index]
+    if not eword then break end
+
+    -- redirections are
+    -- 1. single part
+    -- 2. not quoted
+    local part = eword[1]
+    local token = not eword[2] and not part.qr and eword.txt or ""
+    local _, _, from_io_txt, mode_txt, to_io_txt = token:find("(%d*)([<>]>?)%&?(.*)")
+    if mode_txt then
+      if mode then
+        return nil, syn_err_msg .. token
       end
+      mode = assert(({["<"]="r",[">"]="w",[">>"]="a",})[mode_txt], "redirect failed to detect mode")
+      from_io = from_io_txt ~= "" and tonumber(from_io_txt) or mode == "r" and 0 or 1
+      to_io = to_io_txt ~= "" and tonumber(to_io_txt)
+    elseif mode then
+      token = sh.internal.glob(eword)
+      if #token > 1 then
+        return nil, string.format("%s: ambiguous redirect", eword.txt)
+      end
+      to_io = token[1]
+    else
+      index = index + 1
+    end
+
+    if mode then
+      table.remove(ewords, index)
+    end
+
+    if to_io then
+      table.insert(redirects, {from_io, to_io, mode})
+      mode = nil
+      to_io = nil
     end
   end
 
-  return args
+  if mode then
+    return nil, syn_err_msg .. "newline"
+  end
+
+  return redirects
+end
+
+-- redirects as built by buildCommentRedirects
+function sh.internal.openCommandRedirects(redirects)
+  local data = process.info().data
+  local ios, handles = data.io, data.handles
+
+  for _,rjob in ipairs(redirects) do
+    local from_io, to_io, mode = table.unpack(rjob)
+
+    if type(to_io) == "number" then -- io to io
+      -- from_io and to_io should be numbers
+      ios[from_io] = ios[to_io]
+    else
+      -- to_io should be a string
+      local file, reason = io.open(shell.resolve(to_io), mode)
+      if not file then
+        io.stderr:write("could not open '" .. to_io .. "': " .. reason .. "\n")
+        os.exit(1)
+      end
+      table.insert(handles, file)
+      ios[from_io] = file
+    end
+  end
 end
 
 function sh.internal.buildPipeChain(threads)
@@ -81,7 +129,45 @@ function sh.internal.buildPipeChain(threads)
   end
 end
 
-function sh.internal.glob(glob_pattern)
+-- takes an eword, returns a list of glob hits or {word} if no globs exist
+function sh.internal.glob(eword)
+  -- words are parts, parts are txt and qr
+  -- eword.txt is a convenience field of the parts
+  -- turn word into regex based on globits
+  local globbers = {{"*",".*"},{"?","."}}
+  local glob_pattern = ""
+  local has_globits
+  for _,part in ipairs(eword) do
+    local next = part.txt
+    -- globs only exist outside quotes
+    if not part.qr then
+      local escaped = text.escapeMagic(next)
+      next = escaped
+
+      for _,glob_rule in ipairs(globbers) do
+        --remove duplicates
+        while true do
+          local prev = next
+          next = next:gsub(text.escapeMagic(glob_rule[1]):rep(2), glob_rule[1])
+          if prev == next then
+            break
+          end
+        end
+        --revert globit
+        next = next:gsub("%%%"..glob_rule[1], glob_rule[2])
+      end
+
+      -- if next is still equal to escaped that means no globits were detected in this word part
+      -- this word may not contain a globit, the prior search did a cheap search for globits
+      has_globits = has_globits or next ~= escaped
+    end
+    glob_pattern = glob_pattern .. next
+  end
+
+  if not has_globits then
+    return {eword.txt}
+  end
+
   local segments = text.split(glob_pattern, {"/"}, true)
   local hiddens = tx.foreach(segments,function(e)return e:match("^%%%.")==nil end)
   local function is_visible(s,i) 
@@ -89,7 +175,7 @@ function sh.internal.glob(glob_pattern)
   end
 
   local function magical(s)
-    for _,glob_rule in ipairs(sh.internal.globbers) do
+    for _,glob_rule in ipairs(globbers) do
       if (" "..s):match("[^%%]"..text.escapeMagic(glob_rule[2])) then
         return true
       end
@@ -122,10 +208,12 @@ function sh.internal.glob(glob_pattern)
       end
     end
     paths = next_paths
-    if not next(paths) then break end
+    if not next(paths) then
+    -- if no next_paths were hit here, the ENTIRE glob value is not a path
+      return {eword.txt}
+    end
     relative_separator = "/"
   end
-  -- if no next_paths were hit here, the ENTIRE glob value is not a path
   return paths
 end 
 
@@ -298,7 +386,7 @@ function sh.internal.hasValidPiping(words, pipes)
     return true
   end
 
-  local semi_split = tx.find(text.syntax, {";"}) -- all symbols before ; in syntax CAN be repeated
+  local semi_split = tx.find(text.syntax, {";"}) -- symbols before ; are redirects and follow slightly different rules, see buildCommandRedirects
   pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
   local state = "" -- cannot start on a pipe
@@ -328,18 +416,19 @@ function sh.internal.hasValidPiping(words, pipes)
   end
 
   if state then
-    return false, "parse error near " .. state
+    return false, "syntax error near unexpected token " .. state
   else
     return true
   end
 end
 
 function sh.internal.boolean_executor(chains, predicator)
-  local function not_gate(result)
-    return sh.internal.command_passed(result) and 1 or 0
+  local function not_gate(result, reason)
+    return sh.internal.command_passed(result) and 1 or 0, reason
   end
 
   local last = true
+  local last_reason
   local boolean_stage = 1
   local negation_stage = 2
   local command_stage = 0
@@ -373,16 +462,16 @@ function sh.internal.boolean_executor(chains, predicator)
       if negate then
         local prev = predicator
         predicator = function(n,i)
-          local result = not_gate(prev(n,i))
+          local result, reason = not_gate(prev(n,i))
           predicator = prev
-          return result
+          return result, reason
         end
       end
       if chomped then
         stage = negation_stage
       end
       if #next > 0 then
-        last = predicator(next,ci)
+        last, last_reason = predicator(next,ci)
         stage = command_stage
       end
     else
@@ -395,7 +484,7 @@ function sh.internal.boolean_executor(chains, predicator)
     last = not_gate(last)
   end
 
-  return last
+  return last, last_reason
 end
 
 function sh.internal.splitStatements(words, semicolon)
@@ -477,10 +566,12 @@ function sh.internal.newMemoryStream()
       local result = table.pack(coroutine.resume(self.next))
       if coroutine.status(self.next) == "dead" then
         self:close()
+        -- always cause os.exit when the pipe closes
+        result[1] = nil
       end
+      -- the next pipe
       if not result[1] then
-        io.stderr:write(tostring(result[2]) .. "\n")  
-        os.exit(1)
+        os.exit(sh.internal.command_result_as_code(result[2]))
       end
       return self
     end
@@ -497,16 +588,15 @@ end
 function sh.internal.execute_complex(statements, eargs, env)
   for si=1,#statements do local s = statements[si]
     local chains = sh.internal.groupChains(s)
-    local last_code = sh.internal.boolean_executor(chains, function(chain, chain_index)
+    local last_code, reason = sh.internal.boolean_executor(chains, function(chain, chain_index)
       local pipe_parts = sh.internal.splitChains(chain)
       local next_args = chain_index == #chains and si == #statements and eargs or {}
       return sh.internal.executePipes(pipe_parts, next_args, env)
     end)
-    sh.internal.ec.last = sh.internal.command_result_as_code(last_code)
+    sh.internal.ec.last = sh.internal.command_result_as_code(last_code, reason)
   end
   return true
 end
-
 
 function sh.internal.parse_sub(input)
   -- cannot use gsub here becuase it is a [C] call, and io.popen needs to yield at times

@@ -48,7 +48,7 @@ end
 function os.tmpname()
   local path = os.getenv("TMPDIR") or "/tmp"
   if fs.exists(path) then
-    for i = 1, 10 do
+    for _ = 1, 10 do
       local name = fs.concat(path, tostring(math.random(1, 0x7FFFFFFF)))
       if not fs.exists(name) then
         return name

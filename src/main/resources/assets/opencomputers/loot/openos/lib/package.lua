@@ -69,6 +69,17 @@ function require(module)
   end
 end
 
+function package.delay(lib, file)
+  setmetatable(lib, 
+  {
+    __index = function(tbl, key)
+      setmetatable(tbl, nil)
+      dofile(file)
+      return tbl[key]
+    end
+  })
+end
+
 -------------------------------------------------------------------------------
 
 return package

@@ -64,7 +64,7 @@ core_stdout.close = stdinStream.close
 core_stderr.close = stdinStream.close
 
 local io_mt = getmetatable(io) or {}
-io_mt.__index = function(t, k)
+io_mt.__index = function(_, k)
   return
     k == 'stdin' and io.input() or
     k == 'stdout' and io.output() or

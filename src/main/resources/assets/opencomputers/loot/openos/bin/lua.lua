@@ -22,6 +22,6 @@ end
 
 buffer, reason = pcall(script, table.unpack(args, 2))
 if not buffer then
-  io.stderr:write(reason, "\n")
+  io.stderr:write(type(reason) == "table" and reason.reason or tostring(reason), "\n")
   os.exit(false)
 end

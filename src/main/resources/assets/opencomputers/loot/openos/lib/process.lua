@@ -27,7 +27,6 @@ function process.load(path, env, init, name)
   checkArg(4, name, "string", "nil")
 
   assert(type(path) == "string" or env == nil, "process cannot load function environemnts")
-  name = name or ""
 
   local p = process.findProcess()
   env = env or p.env
@@ -37,13 +36,7 @@ function process.load(path, env, init, name)
       local fs, shell = require("filesystem"), require("shell")
       local program, reason = shell.resolve(path, "lua")
       if not program then
-        if fs.isDirectory(shell.resolve(path)) then
-          io.stderr:write(path .. ": is a directory\n")
-          return 126
-        end
-        local handler = require("tools/programLocations")
-        handler.reportNotFound(path, reason)
-        return 127
+        return require("tools/programLocations").reportNotFound(path, reason)
       end
       os.setenv("_", program)
       local f = fs.open(program)
@@ -51,18 +44,12 @@ function process.load(path, env, init, name)
         local shebang = (f:read(1024) or ""):match("^#!([^\n]+)")
         f:close()
         if shebang then
-          local result = table.pack(shell.execute(shebang:gsub("%s",""), env, program, ...))
-          assert(result[1], result[2])
-          return table.unpack(result)
+          path = shebang:gsub("%s","")
+          return code(program, ...)
         end
       end
-      local command
-      command, reason = loadfile(program, "bt", env)
-      if not command then
-        io.stderr:write(program, " ", reason or "", "\n")
-        return 128
-      end
-      return command(...)
+      -- local command
+      return assert(loadfile(program, "bt", env))(...)
     end
   else -- path is code
     code = path
@@ -74,7 +61,6 @@ function process.load(path, env, init, name)
     local result =
     {
       xpcall(function(...)
-          os.setenv("_", name)
           init = init or function(...) return ... end
           return code(init(...))
         end,
@@ -91,7 +77,7 @@ function process.load(path, env, init, name)
           return 128 -- syserr
         end, ...)
     }
-    process.internal.close(thread)
+    process.internal.close(thread, result)
     --result[1] is false if the exception handler also crashed
     if not result[1] and type(result[2]) ~= "number" then
       require("event").onError(string.format("process library exception handler crashed: %s", tostring(result[2])))
@@ -101,7 +87,7 @@ function process.load(path, env, init, name)
   local new_proc =
   {
     path = path,
-    command = name,
+    command = name or tostring(path),
     env = env,
     data =
     {
@@ -145,11 +131,12 @@ end
 --table of undocumented api subject to change and intended for internal use
 process.internal = {}
 --this is a future stub for a more complete method to kill a process
-function process.internal.close(thread)
+function process.internal.close(thread, result)
   checkArg(1,thread,"thread")
   local pdata = process.info(thread).data
-  for k,v in pairs(pdata.handles) do
-    v:close()
+  pdata.result = result
+  for _,v in pairs(pdata.handles) do
+    pcall(v.close, v)
   end
   process.list[thread] = nil
 end
