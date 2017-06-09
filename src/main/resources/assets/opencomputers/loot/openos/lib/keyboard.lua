@@ -82,13 +82,6 @@ end
 
 -------------------------------------------------------------------------------
 
-setmetatable(keyboard.keys,
-{
-  __index = function(tbl, key)
-    setmetatable(tbl, nil)
-    dofile("/opt/core/full_keyboard.lua")
-    return tbl[key] -- some keyboard keys are handled by __index by design
-  end
-})
+require("package").delay(keyboard.keys, "/opt/core/full_keyboard.lua")
 
 return keyboard

@@ -150,11 +150,12 @@ function tty.isAvailable()
 end
 
 function tty.pull(cursor, timeout, ...)
+  local blink = tty.getCursorBlink()
   timeout = timeout or math.huge
+  local blink_timeout = blink and .5 or math.huge
 
   local width, height, dx, dy, x, y = tty.getViewport()
   local out = (x<1 or x>width or y<1 or y>height)
-  local blink = tty.getCursorBlink()
 
   if cursor and out then
     cursor:move(0)
@@ -203,9 +204,9 @@ function tty.pull(cursor, timeout, ...)
       return table.unpack(signal, 1, signal.n)
     end
 
-    signal = table.pack(event.pull(math.min(.5, timeout), ...))
-    timeout = timeout - .5
-    done = signal.n > 1 or timeout < .5
+    signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
+    timeout = timeout - blink_timeout
+    done = signal.n > 1 or timeout < blink_timeout
   end
 end
 
@@ -535,13 +536,6 @@ function tty.scroll(number)
   return lines
 end
 
-setmetatable(tty, 
-{
-  __index = function(tbl, key)
-    setmetatable(tbl, nil)
-    dofile("/opt/core/full_tty.lua")
-    return rawget(tbl, key)
-  end
-})
+require("package").delay(tty, "/opt/core/full_tty.lua")
 
 return tty
