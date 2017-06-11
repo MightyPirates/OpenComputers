@@ -9,6 +9,7 @@ https://raw.githubusercontent.com/OpenPrograms/Wobbo-Programs/master/grep/grep.l
 local fs = require("filesystem")
 local shell = require("shell")
 local tty = require("tty")
+local computer = require("computer")
 
 -- Process the command line arguments
 
@@ -298,7 +299,14 @@ local function test(m,p)
     m.close = true
   end
 end
+
+local uptime = computer.uptime
+local last_sleep = uptime()
 for meta,status in readLines() do
+  if uptime() - last_sleep > 1 then
+    os.sleep(0)
+    last_sleep = uptime()
+  end
   if not meta then
     if type(status) == 'table' then if flush then
       flush(status) end -- this was the last object, closing out

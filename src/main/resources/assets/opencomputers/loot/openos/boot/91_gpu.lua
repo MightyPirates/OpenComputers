@@ -5,10 +5,14 @@ local function onComponentAvailable(_, componentType)
   if (componentType == "screen" and component.isAvailable("gpu")) or
      (componentType == "gpu" and component.isAvailable("screen"))
   then
-    component.gpu.bind(component.screen.address)
-    local depth = math.floor(2^(component.gpu.getDepth()))
+    local gpu, screen = component.gpu, component.screen
+    local screen_address = screen.address
+    if gpu.getScreen() ~= screen_address then
+      gpu.bind(screen_address)
+    end
+    local depth = math.floor(2^(gpu.getDepth()))
     os.setenv("TERM", "term-"..depth.."color")
-    require("computer").pushSignal("gpu_bound", component.gpu.address, component.screen.address)
+    require("computer").pushSignal("gpu_bound", gpu.address, screen_address)
   end
 end
 
