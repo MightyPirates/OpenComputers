@@ -1,5 +1,3 @@
-#!/bin/lua
-
 local component = require("component")
 local computer = require("computer")
 local text = require("text")

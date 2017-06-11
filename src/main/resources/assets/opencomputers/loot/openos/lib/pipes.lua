@@ -3,9 +3,7 @@ local shell = require("shell")
 local sh = require("sh")
 local process = require("process")
 
-local plib = {}
-
-plib.internal = {}
+local pipes = {}
 
 local pipeStream = {}
 local function bfd() return nil, "bad file descriptor" end
@@ -47,7 +45,7 @@ function pipeStream:close()
   local pco_root = self.pm.threads[1]
   if co.status(pco_root) == "dead" then
     -- I would have liked the pco stack to unwind itself for dead coroutines
-    -- maybe I haven't handled aborts corrects
+    -- maybe I haven't handled aborts correctly
     return
   end
 
@@ -78,9 +76,7 @@ function pipeStream:read(n)
 
   return result
 end
-function pipeStream:seek(whence, offset)
-  return bfd()
-end
+pipeStream.seek = bfd
 function pipeStream:write(v)
   local pm = self.pm
   if pm.closed or pm.dead then
@@ -105,28 +101,7 @@ function pipeStream:write(v)
   return self
 end
 
-function plib.internal.redirectRead(pm)
-  local reader = {pm=pm}
-  function reader:read(n)
-    local pm = self.pm
-    local pco = pm.pco
-    -- if we have any buffer, return it first
-
-    if pm:buffer() == '' and not pm.closed and not pm.dead then
-      pco.yield_all()
-    end
-
-    if pm.closed or pm.dead then
-      return nil
-    end
-
-    return pm:buffer(n)
-  end
-
-  return reader
-end
-
-function plib.internal.create(fp, init, name)
+function pipes.createCoroutineStack(fp, init, name)
   local _co = process.info().data.coroutine_handler
 
   local pco = setmetatable(
@@ -209,7 +184,8 @@ function plib.internal.create(fp, init, name)
     if current_index then
       -- current should be waiting for yield
       pco.next = thread
-      return true, _co.yield(...) -- pass args to resume next
+      local t = table.pack(_co.yield(...)) -- pass args to resume next
+      return pco.last == nil and true or pco.last, table.unpack(t,1,t.n)
     else
       -- the stack is not running
       pco.next = false
@@ -227,6 +203,7 @@ function plib.internal.create(fp, init, name)
         if pco.next and pco.next ~= thread then
           local next = pco.next
           pco.next = false
+          pco.last = yield_args[1]
           return pco.resume(next, table.unpack(yield_args,2,yield_args.n))
         end
       end
@@ -268,7 +245,7 @@ function pipeManager.reader(pm,...)
 
     -- if we are a reader pipe, we leave the buffer alone and yield to previous
     if pm.pco.status(pm.threads[pm.prog_id]) ~= "dead" then
-      pm.pco.yield()
+      pm.pco.yield(...)
     end
   end
   pm.dead = true
@@ -302,14 +279,34 @@ function pipeManager:buffer(value)
   return result
 end
 
-function pipeManager.new(prog, mode, env)
+function pipeManager:redirectRead()
+  local reader = {pm=self}
+  function reader:read(n)
+    local pm = self.pm
+    local pco = pm.pco
+    -- if we have any buffer, return it first
+
+    if pm:buffer() == '' and not pm.closed and not pm.dead then
+      pco.yield_all()
+    end
+
+    if pm.closed or pm.dead then
+      return nil
+    end
+
+    return pm:buffer(n)
+  end
+
+  return reader
+end
+
+function pipes.createPipe(prog, mode, env)
   mode = mode or "r"
   if mode ~= "r" and mode ~= "w" then
     return nil, "bad argument #2: invalid mode " .. tostring(mode) .. " must be r or w"
   end
 
-  local shellPath = os.getenv("SHELL") or "/bin/sh"
-  local shellPath, reason = shell.resolve(shellPath, "lua")
+  local shellPath, reason = shell.resolve(os.getenv("SHELL") or "/bin/sh", "lua")
   if not shellPath then
     return nil, reason
   end
@@ -341,35 +338,35 @@ function pipeManager.new(prog, mode, env)
 
     -- if we are the writer, we need args to resume prog
     if pm.mode == "w" then
-      pm.pipe.stream.redirect[0] = plib.internal.redirectRead(pm)
+      pm.pipe.stream.redirect[0] = pm:redirectRead()
     end
 
     return sh.internal.runThreads(pm.threads)
   end
 
-  return pm
+  pm.pco = pipes.createCoroutineStack(pm.root)
+  return pipeStream.new(pm)
 end
 
-function plib.popen(prog, mode, env)
+function pipes.popen(prog, mode, env)
   checkArg(1, prog, "string")
   checkArg(2, mode, "string", "nil")
   checkArg(3, env, "table", "nil")
 
-  local pm, reason = pipeManager.new(prog, mode, env)
+  local pipe, reason = pipes.createPipe(prog, mode, env)
 
-  if not pm then
+  if not pipe then
     return false, reason
   end
 
-  pm.pco=plib.internal.create(pm.root)
-
-  local pfd = require("buffer").new(mode, pipeStream.new(pm))
+  -- pipe file descriptor
+  local pfd = require("buffer").new(mode, pipe)
   pfd:setvbuf("no", 0) -- 2nd are to read chunk size
 
-  -- popen processes start on create (which is LAME :P)
+  -- popen processes start on create (like a thread)
   pfd.stream:resume()
 
   return pfd
 end
 
-return plib
+return pipes

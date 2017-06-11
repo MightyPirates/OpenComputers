@@ -1,7 +1,7 @@
 -- called from /init.lua
 local raw_loadfile = ...
 
-_G._OSVERSION = "OpenOS 1.6.2"
+_G._OSVERSION = "OpenOS 1.6.4"
 
 local component = component
 local computer = computer
@@ -96,11 +96,11 @@ do
   package.loaded.component = component
   package.loaded.computer = computer
   package.loaded.unicode = unicode
-  package.preload["buffer"] = loadfile("/lib/buffer.lua")
-  package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
+  package.loaded.buffer = assert(loadfile("/lib/buffer.lua"))()
+  package.loaded.filesystem = assert(loadfile("/lib/filesystem.lua"))()
 
   -- Inject the io modules
-  _G.io = loadfile("/lib/io.lua")()
+  _G.io = assert(loadfile("/lib/io.lua"))()
 end
 
 status("Initializing file system...")

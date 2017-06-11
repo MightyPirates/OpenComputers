@@ -3,7 +3,6 @@ local computer = require("computer")
 local event = require("event")
 
 local adding = {}
-local removing = {}
 local primaries = {}
 
 -------------------------------------------------------------------------------

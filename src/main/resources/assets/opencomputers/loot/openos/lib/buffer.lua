@@ -98,7 +98,7 @@ function buffer:readLine(chop, timeout)
         if reason then
           return nil, reason
         else -- eof
-          local result = #self.bufferRead > 0 and self.bufferRead or nil
+          result = #self.bufferRead > 0 and self.bufferRead or nil
           self.bufferRead = ""
           return result
         end

@@ -1,13 +1,10 @@
 local unicode = require("unicode")
 local tx = require("transforms")
 
--- --[[@@]] are not just comments, but custom annotations for delayload methods.
--- See package.lua and the api wiki for more information
-
 local text = {}
 text.internal = {}
 
-text.syntax = {"^%d?>>?&%d+$",";","&&","||?","^%d?>>?",">>?","<"}
+text.syntax = {"^%d?>>?&%d+$","^%d?>>?",">>?","<%&%d+","<",";","&&","||?"}
 
 function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
@@ -147,16 +144,7 @@ function text.internal.words(input, options)
   return tokens
 end
 
-setmetatable(text,
-{
-  __index = function(tbl, key)
-    setmetatable(text.internal, nil)
-    setmetatable(text, nil)
-    dofile("/opt/core/full_text.lua")
-    return rawget(tbl, key)
-  end
-})
-
-setmetatable(text.internal, getmetatable(text))
+require("package").delay(text, "/opt/core/full_text.lua")
+require("package").delay(text.internal, "/opt/core/full_text.lua")
 
 return text

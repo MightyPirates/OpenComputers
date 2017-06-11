@@ -183,7 +183,8 @@ function term.read(history, dobreak, hint, pwchar, filter)
   if not io.stdin.tty then
     return io.read()
   end
-  local handler = history or {}
+  history = history or {}
+  local handler = history
   handler.hint = handler.hint or hint
 
   local cursor = tty.internal.build_vertical_reader()
@@ -192,7 +193,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
   end
 
   inject_filter(handler, filter)
-  inject_mask(cursor, dobreak, pwchar)
+  inject_mask(cursor, dobreak, pwchar or history.pwchar)
 
   return tty.read(handler, cursor)
 end
