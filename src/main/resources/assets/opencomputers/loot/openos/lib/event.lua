@@ -40,20 +40,28 @@ end
 local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 computer.pullSignal = function(...) -- dispatch
+  local current_time = computer.uptime()
+  local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
+  if interrupting then
+    lastInterrupt = current_time
+    if keyboard.isAltDown() then
+      error("interrupted", 0)
+    end
+    event.push("interrupted", current_time)
+  end
   local event_data = table.pack(handlers(...))
   local signal = event_data[1]
   local ids = {}
   for id in pairs(handlers) do
     ids[#ids+1] = id
   end
-  local time = computer.uptime()
   for _,id in ipairs(ids) do
     local handler = handlers[id]
     -- timers have false keys
     -- nil keys match anything
-    if (handler.key == nil or handler.key == signal) or time >= handler.timeout then
+    if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
       handler.times = handler.times - 1
-      handler.timeout = computer.uptime() + handler.interval
+      handler.timeout = current_time + handler.interval
       if handler.times <= 0 then
         handlers[id] = nil
       end
@@ -196,34 +204,12 @@ function event.pullFiltered(...)
   repeat
     local closest = math.min(deadline, time_to_nearest())
     local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
-    if event.shouldInterrupt() then
-      lastInterrupt = computer.uptime()
-      error("interrupted", 0)
-    end
-    if event.shouldSoftInterrupt() and (filter == nil or filter("interrupted", computer.uptime() - lastInterrupt))  then
-      local awaited = computer.uptime() - lastInterrupt
-      lastInterrupt = computer.uptime()
-      return "interrupted", awaited
-    end
     if signal.n > 0 then
       if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
         return table.unpack(signal, 1, signal.n)
       end
     end
   until computer.uptime() >= deadline
-end
-
-function event.shouldInterrupt()
-  return computer.uptime() - lastInterrupt > 1 and
-         keyboard.isControlDown() and
-         keyboard.isAltDown() and
-         keyboard.isKeyDown(keyboard.keys.c)
-end
-
-function event.shouldSoftInterrupt()
-  return computer.uptime() - lastInterrupt > 1 and
-         keyboard.isControlDown() and
-         keyboard.isKeyDown(keyboard.keys.c)
 end
 
 function event.timer(interval, callback, times)
