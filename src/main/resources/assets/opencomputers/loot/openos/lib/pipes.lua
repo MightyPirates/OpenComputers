@@ -184,7 +184,8 @@ function pipes.createCoroutineStack(fp, init, name)
     if current_index then
       -- current should be waiting for yield
       pco.next = thread
-      return true, _co.yield(...) -- pass args to resume next
+      local t = table.pack(_co.yield(...)) -- pass args to resume next
+      return pco.last == nil and true or pco.last, table.unpack(t,1,t.n)
     else
       -- the stack is not running
       pco.next = false
@@ -202,6 +203,7 @@ function pipes.createCoroutineStack(fp, init, name)
         if pco.next and pco.next ~= thread then
           local next = pco.next
           pco.next = false
+          pco.last = yield_args[1]
           return pco.resume(next, table.unpack(yield_args,2,yield_args.n))
         end
       end

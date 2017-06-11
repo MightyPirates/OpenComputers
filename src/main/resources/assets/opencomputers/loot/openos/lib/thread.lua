@@ -5,39 +5,56 @@ local computer = require("computer")
 
 local thread = {}
 
-local function waitForNumber(threads, n, timeout)
+local function waitForDeath(threads, timeout, all)
   checkArg(1, threads, "table")
-  checkArg(2, n, "number")
-  checkArg(3, timeout, "number", "nil")
+  checkArg(2, timeout, "number", "nil")
+  checkArg(3, all, "boolean")
   timeout = timeout or math.huge
+  local mortician = {}
+  local timed_out = true
   local deadline = computer.uptime() + timeout
   while deadline > computer.uptime() do
-    local num_dead = 0
+    local dieing = {}
+    local living = {}
     for _,t in ipairs(threads) do
       local result = t.process and t.process.data.result
       local proc_ok = type(result) ~= "table" or result[1]
-      if t:status() ~= "running" -- suspended is considered dead to exit
-        or not proc_ok then -- the thread is killed if its attached process has a non zero exit
-        t:kill()
-        num_dead = num_dead + 1
+      local ready_to_die = t:status() ~= "running" -- suspended is considered dead to exit
+        or not proc_ok -- the thread is killed if its attached process has a non zero exit
+      if ready_to_die then
+        dieing[#dieing + 1] = t
+        mortician[t] = true
+      else
+        living[#living + 1] = t
       end
     end
-    if num_dead >= n then
-      return true
+
+    if all and #living == 0 or not all and #dieing > 0 then
+      timed_out = false
+      break
     end
+
     -- resume each non dead thread
     -- we KNOW all threads are event.pull blocked
     event.pull()
   end
-  return nil, "thread join timed out"
+
+  for t in pairs(mortician) do
+    t:kill()
+  end
+
+  if timed_out then
+    return nil, "thread join timed out"
+  end
+  return true
 end
 
 function thread.waitForAny(threads, timeout)
-  return waitForNumber(threads, 1, timeout)
+  return waitForDeath(threads, timeout, false)
 end
 
 function thread.waitForAll(threads, timeout)
-  return waitForNumber(threads, #threads, timeout)
+  return waitForDeath(threads, timeout, true)
 end
 
 local box_thread = {}
@@ -137,11 +154,16 @@ function thread.create(fp, ...)
     while true do
       local result = table.pack(t.pco.resume(fp_co, table.unpack(args, 1, args.n)))
       if t.pco.status(fp_co) == "dead" then
+        if not result[1] then
+          event.onError(string.format("thread crashed: %s", tostring(result[2])))
+        end
         break
       end
       args = table.pack(event.pull(table.unpack(result, 2, result.n)))
     end
     mt.__status = "dead"
+    event.push("thread_exit")
+    t:detach()
   end)
   local handlers = event.handlers
   local handlers_mt = getmetatable(handlers)
