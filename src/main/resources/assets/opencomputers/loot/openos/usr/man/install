@@ -65,7 +65,7 @@ The following can override settings defined in .prop in the source filesystem.
 .install ENVIRONMENT
   A loot disc can optionally provide a custom installation script at the root of the source filesytem selected for installation. The script must be named ".install"
   When provided, the default install action is replaced by executation of this script. The default action is to copy all source files to the destination
-  An _ENV.install table is set in the environment of '.install' when loaded
+  A table of configuration options, named `install`, is provided in _ENV
   These are the keys and their descriptions of that table
 
   _ENV.install.from:
@@ -76,7 +76,7 @@ The following can override settings defined in .prop in the source filesystem.
     This is the path of the selected target filesystem to install to.
     example: "/"
 
-  _ENV.install.fromdir
+  _ENV.install.fromDir
     This is the relative path to use in the source filesystem as passed by command line to install. If unspecified to install it defaults to "."
     example: Perhaps the user executed `install --fromDir="bin"` with the intention that only files under /mnt/ABC/bin would be copied to their rootfs
 

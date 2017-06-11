@@ -7,15 +7,6 @@ local lastInterrupt = -math.huge
 
 event.handlers = handlers
 
-local function call(callback, ...)
-  local result, message = pcall(callback, ...)
-  if not result and type(event.onError) == "function" then
-    pcall(event.onError, message)
-    return
-  end
-  return message
-end
-
 function event.register(key, callback, interval, times)
   local handler =
   {
@@ -46,43 +37,44 @@ local function time_to_nearest()
   return timeout
 end
 
-local function dispatch(...)
-  local signal = (...)
-  local eligable = {}
-  local ids_to_remove = {}
-  local time = computer.uptime()
-  for id, handler in pairs(handlers) do
+local _pullSignal = computer.pullSignal
+setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
+computer.pullSignal = function(...) -- dispatch
+  local current_time = computer.uptime()
+  local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
+  if interrupting then
+    lastInterrupt = current_time
+    if keyboard.isAltDown() then
+      error("interrupted", 0)
+    end
+    event.push("interrupted", current_time)
+  end
+  local event_data = table.pack(handlers(...))
+  local signal = event_data[1]
+  local ids = {}
+  for id in pairs(handlers) do
+    ids[#ids+1] = id
+  end
+  for _,id in ipairs(ids) do
+    local handler = handlers[id]
     -- timers have false keys
     -- nil keys match anything
-    local key = handler.key
-    key = (key == nil and signal) or key
-    if (signal and key == signal) or time >= handler.timeout then
-      -- push ticks to end of list (might be slightly faster to fire them last)
-      table.insert(eligable, select(handler.key and 1 or 2, 1, {handler.callback, id}))
-
+    if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
       handler.times = handler.times - 1
-      handler.timeout = computer.uptime() + handler.interval
+      handler.timeout = current_time + handler.interval
       if handler.times <= 0 then
-        table.insert(ids_to_remove, id)
+        handlers[id] = nil
+      end
+      -- call
+      local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
+      if not result then
+        pcall(event.onError, message)
+      elseif message == false then
+        handlers[id] = nil
       end
     end
   end
-  for _,pack in ipairs(eligable) do
-    if call(pack[1], ...) == false then
-      table.insert(ids_to_remove, pack[2])
-    end
-  end
-  for _,id in ipairs(ids_to_remove) do
-    handlers[id] = nil
-  end
-end
-
-local _pullSignal = computer.pullSignal
-computer.pullSignal = function(...)
-  return (function(...)
-    dispatch(...)
-    return ...
-  end)(_pullSignal(...))
+  return table.unpack(event_data, 1, event_data.n)
 end
 
 local function createPlainFilter(name, ...)
@@ -150,7 +142,7 @@ end
 function event.listen(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  for id, handler in pairs(handlers) do
+  for _, handler in pairs(handlers) do
     if handler.key == name and handler.callback == callback then
       return false
     end
@@ -161,7 +153,7 @@ end
 function event.onError(message)
   local log = io.open("/tmp/event.log", "a")
   if log then
-    log:write(message .. "\n")
+    pcall(log.write, log, message, "\n")
     log:close()
   end
 end
@@ -212,34 +204,12 @@ function event.pullFiltered(...)
   repeat
     local closest = math.min(deadline, time_to_nearest())
     local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
-    if event.shouldInterrupt() then
-      lastInterrupt = computer.uptime()
-      error("interrupted", 0)
-    end
-    if event.shouldSoftInterrupt() and (filter == nil or filter("interrupted", computer.uptime() - lastInterrupt))  then
-      local awaited = computer.uptime() - lastInterrupt
-      lastInterrupt = computer.uptime()
-      return "interrupted", awaited
-    end
     if signal.n > 0 then
       if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
         return table.unpack(signal, 1, signal.n)
       end
     end
   until computer.uptime() >= deadline
-end
-
-function event.shouldInterrupt()
-  return computer.uptime() - lastInterrupt > 1 and
-         keyboard.isControlDown() and
-         keyboard.isAltDown() and
-         keyboard.isKeyDown(keyboard.keys.c)
-end
-
-function event.shouldSoftInterrupt()
-  return computer.uptime() - lastInterrupt > 1 and
-         keyboard.isControlDown() and
-         keyboard.isKeyDown(keyboard.keys.c)
 end
 
 function event.timer(interval, callback, times)

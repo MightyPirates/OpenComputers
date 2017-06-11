@@ -2,12 +2,7 @@ local computer = require("computer")
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
-local unicode = require("unicode")
-local process = require("process")
-
-local function env()
-  return process.info().data.vars
-end
+local info = require("process").info
 
 os.execute = function(command)
   if not command then
@@ -21,7 +16,7 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  local env = env()
+  local env = info().data.vars
   if not varname then
     return env
   elseif varname == '#' then
@@ -35,7 +30,7 @@ function os.setenv(varname, value)
   if value ~= nil then
     value = tostring(value)
   end
-  env()[varname] = value
+  info().data.vars[varname] = value
   return value
 end
 
@@ -53,7 +48,7 @@ end
 function os.tmpname()
   local path = os.getenv("TMPDIR") or "/tmp"
   if fs.exists(path) then
-    for i = 1, 10 do
+    for _ = 1, 10 do
       local name = fs.concat(path, tostring(math.random(1, 0x7FFFFFFF)))
       if not fs.exists(name) then
         return name

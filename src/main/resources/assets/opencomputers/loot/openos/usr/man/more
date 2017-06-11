@@ -5,7 +5,7 @@ SYNOPSIS
   more FILE
 
 DESCRIPTION
-  `more` allows viewing the contents of a file one screen full at a time.
+  `more` allows viewing the contents of a file one screenful at a time.
 
 EXAMPLES
   more /home/a.txt
