@@ -1,3 +1,4 @@
+local customTimeout = nil
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
@@ -1358,6 +1359,10 @@ local libcomputer = {
     else
       coroutine.yield(true) -- reboot
     end
+  end,
+  setCustomTimeout = function(timeout)
+     checkArg(1, timeout, "number", "nil")
+     customTimeout = timeout
   end
 }
 sandbox.computer = libcomputer
@@ -1427,7 +1432,18 @@ local function main()
   local forceGC = 10
 
   while true do
-    deadline = computer.realTime() + system.timeout()
+    -- Allow custom timeouts under either of the following circumstances:
+    -- * Timeout is SHORTER than the configured timeout
+    -- * Custom timeouts are enabled in the server config AND we are Trusted
+    if customTimeout
+        and (customTimeout < system.timeout() or
+          (system.mayOverrideTimeout
+           and system.mayOverrideTimeout()
+           and libcomponent.invoke(computer.address(), "isTrusted"))) then
+      deadline = computer.realTime() + customTimeout
+    else
+      deadline = computer.realTime() + system.timeout()
+    end
     hitDeadline = false
 
     -- NOTE: since this is run in an executor thread and we enforce timeouts

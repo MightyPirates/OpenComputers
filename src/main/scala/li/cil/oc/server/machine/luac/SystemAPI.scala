@@ -46,6 +46,13 @@ class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "timeout")
 
+    // Whether Secure machines should be allowed to override timeouts.
+    lua.pushScalaFunction(lua => {
+      lua.pushBoolean(Settings.get.syncAllowOverrideTimeout)
+      1
+    })
+    lua.setField(-2, "mayOverrideTimeout")
+
     lua.setGlobal("system")
   }
 }

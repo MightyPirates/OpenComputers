@@ -47,12 +47,38 @@ import scala.Array.canBuildFrom
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import org.apache.commons.codec.binary.Base64
+import com.google.common.hash.Hashing
+import li.cil.oc.api.internal.Microcontroller
 
 class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
     create()
+
+  class MachineThread(val machine: Machine) extends Thread("OpenComputers-SyncComputer-"+node.address) {
+    var ticksToDo = 0
+    override def run() = synchronized {
+      /* Every time we wake up, one of two things will be true:
+       * - We are in a synchronized state and it is time to run!
+       * - We are no longer in a synchronized state and it is time to die!
+       */
+      while({wait();state.synchronized(machine.isSynchronous)}) {
+        if(ticksToDo > 1) OpenComputers.log.warn("A synchronous machine lost a tick!")
+        while(ticksToDo > 0) {
+          ticksToDo -= 1
+          do {
+            goTillYield()
+          } while(state.synchronized(isSynchronous && (state.top == Machine.State.Running || state.top == Machine.State.SynchronizedReturn
+          || (state.top == Machine.State.Yielded && !signals.isEmpty))))
+        }
+      }
+      machineThread = null
+      machine.synchronized(machine.notify())
+    }
+  }
+  private var machineThread: MachineThread = null
 
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
@@ -62,6 +88,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   var architecture: Architecture = _
 
   private[machine] val state = mutable.Stack(Machine.State.Stopped)
+
+  /** The currently-active TrustState and synchronicity of this Machine. Only switchTo() will change this. */
+  private var curTrustState = Machine.TrustState.Untrusted
+  private var isSynchronous = false
+  /** The TrustState and synchronicity currently requested for this Machine. The state will change at the next switchTo() call. Changes are NOT checked for legality! */
+  private var wantTrustState = Machine.TrustState.Untrusted
+  private var wantToBeSynchronous = false
 
   private val _components = mutable.Map.empty[String, String]
 
@@ -418,6 +451,58 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
+  @Callback(doc = """function(synchronous:boolean):boolean -- Attempts to change to or from synchronous mode. Requires special server configuration.""")
+  def setSyncMode(context: Context, args: Arguments): Array[AnyRef] = {
+    val wantSync = args.checkBoolean(0)
+    if(isTrusted && wantTrustState != Machine.TrustState.Untrusted) {
+      wantToBeSynchronous = wantSync
+      result(true)
+    }
+    else if(Settings.get.anyoneCanSync) {
+      wantToBeSynchronous = wantSync
+      result(true)
+    }
+    else if(!wantSync) {
+      // setSyncMode(false) is always allowed
+      result(true)
+    }
+    else if(Settings.get.syncWhitelist.isEmpty) {
+      result(false, "server configuration forbids synchronous computers")
+    }
+    else {
+      result(false, "this computer is not allowed to enter synchronous mode")
+    }
+  }
+
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the computer is considered Trusted""")
+  def isTrusted(context: Context, args: Arguments): Array[AnyRef] = result(isTrusted)
+
+  @Callback(doc = """function() -- If this computer is Trusted, become Untrusted.""")
+  def giveUpTrust(context: Context, args: Arguments): Array[AnyRef] = {
+    if(isTrusted) {
+      wantTrustState = Machine.TrustState.Untrusted
+      if(!Settings.get.anyoneCanSync)
+        wantToBeSynchronous = false
+    }
+    result(None)
+  }
+
+  @Callback(doc = """function() -- Block access to the trusted secret from this computer until the next reboot.""")
+  def discardSecret(context: Context, args: Arguments): Array[AnyRef] = {
+    if(curTrustState == Machine.TrustState.FullyTrusted) {
+      wantTrustState = Machine.TrustState.Trusted
+    }
+    result(None)
+  }
+
+  @Callback(doc = """function():string -- Return the trusted secret. (Only works if this computer is Trusted and hasn't discarded the secret.)""")
+  def readSecret(context: Context, args: Arguments): Array[AnyRef] = {
+    if(curTrustState == Machine.TrustState.FullyTrusted)
+      result(Settings.get.trustedSecret)
+    else
+      result(None)
+  }
+
   @Callback(doc = """function([frequency:number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
   def beep(context: Context, args: Arguments): Array[AnyRef] = {
     val frequency = args.optInteger(0, 440)
@@ -527,6 +612,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.synchronized(state.top) match {
       // Booting up.
       case Machine.State.Starting =>
+        initTrustState()
         verifyComponents()
         switchTo(Machine.State.Yielded)
       // Computer is rebooting.
@@ -585,7 +671,33 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         finally {
           inSynchronizedCall = false
         }
+      case Machine.State.Running | Machine.State.Yielded | Machine.State.SynchronizedReturn =>
+        if(isSynchronous) {
+          if(machineThread == null) {
+            machineThread = new MachineThread(this)
+            machineThread.start()
+          }
+          /* When we reach this point, one of two things will be true:
+           * - Machine thread is still executing (locking it will block until...:)
+           * - Machine thread is yielded/asleep (we wake it up)
+           */
+          machineThread.synchronized {
+            machineThread.ticksToDo += 1
+            machineThread.notify()
+          }
+        }
       case _ => // Nothing special to do, just avoid match errors.
+    }
+    if(!isSynchronous && machineThread != null) {
+      this.synchronized {
+        machineThread.synchronized(machineThread.notify())
+        /* machineThread will notice we are no longer synchronous, and die.
+         * When it dies, it will lock us, then call our notify().
+         * As a result...
+         */
+        do wait() while(machineThread != null)
+        /* ...this point will not be reached until the machineThread has finished dying. */
+      }
     }
 
     // Finally check if we should stop the computer. We cannot lock the state
@@ -597,6 +709,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case _ =>
     }
   }
+
+  def isTrusted() = curTrustState != Machine.TrustState.Untrusted
+  def isUntrusted() = curTrustState == Machine.TrustState.Untrusted
 
   // ----------------------------------------------------------------------- //
 
@@ -642,6 +757,31 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     // For computers, to save the components in their inventory.
     host.onMachineDisconnect(node)
+  }
+
+  private def initTrustState() {
+    curTrustState = Machine.TrustState.Untrusted
+    isSynchronous = false
+    wantToBeSynchronous = false
+    if(!Settings.get.syncWhitelist.isEmpty && (!Settings.get.syncMicrocontrollerOnly || classOf[Microcontroller].isAssignableFrom(host.getClass()))) {
+      if(Settings.get.syncWhitelist.contains(Machine.getArchitectureName(architecture.getClass())))
+        curTrustState = Machine.TrustState.FullyTrusted
+      else {
+        components().entrySet().find(_.getValue() == "eeprom") match {
+          case Some(pair) =>
+            val got = invoke(pair.getKey(), "get", Array[AnyRef]())
+            if(got.length > 0 && got(0).isInstanceOf[Array[Byte]]) {
+              val data = got(0).asInstanceOf[Array[Byte]]
+              val hash = new String(Base64.encodeBase64(Hashing.sha256().hashBytes(data).asBytes()))
+              if(Settings.get.syncWhitelist.contains(hash))
+                curTrustState = Machine.TrustState.FullyTrusted
+            }
+          case _ =>
+            // no EEPROM, so its sum can't be in the whitelist
+        }
+      }
+    }
+    wantTrustState = curTrustState;
   }
 
   // ----------------------------------------------------------------------- //
@@ -709,6 +849,27 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
+    }
+
+    if(nbt.hasKey("curTrustState"))
+      curTrustState = Machine.TrustState(nbt.getInteger("curTrustState"));
+    else
+      curTrustState = Machine.TrustState.Untrusted
+
+    if(nbt.hasKey("wantTrustState"))
+      wantTrustState = Machine.TrustState(nbt.getInteger("wantTrustState"));
+    else
+      wantTrustState = Machine.TrustState.Untrusted
+
+    if(nbt.hasKey("isSynchronous")) {
+      isSynchronous = nbt.getBoolean("isSynchronous")
+      wantToBeSynchronous = isSynchronous
+    }
+
+    if(!Settings.get.anyoneCanSync && isSynchronous && isUntrusted) {
+      OpenComputers.log.warn("An untrusted computer was synchronous, but the current configuration does not allow this. Downgrading to asynchronous.")
+      isSynchronous = false
+      wantToBeSynchronous = false
     }
 
     _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
@@ -788,6 +949,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     nbt.setIntArray("state", state.map(_.id).toArray)
     nbt.setNewTagList("users", _users)
     message.foreach(nbt.setString("message", _))
+
+    nbt.setInteger("curTrustState", curTrustState.id)
+    nbt.setInteger("wantTrustState", wantTrustState.id)
+    nbt.setBoolean("isSynchronous", isSynchronous)
 
     val componentsNbt = new NBTTagList()
     for ((address, name) <- _components) {
@@ -913,7 +1078,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
+      curTrustState = wantTrustState
+      isSynchronous = wantToBeSynchronous
+      if(!isSynchronous)
+        Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -928,7 +1096,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   // This is a really high level lock that we only use for saving and loading.
-  override def run(): Unit = Machine.this.synchronized {
+  def goTillYield(): Unit = Machine.this.synchronized {
     val isSynchronizedReturn = state.synchronized {
       if (state.top != Machine.State.Yielded &&
         state.top != Machine.State.SynchronizedReturn) {
@@ -1015,6 +1183,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Keep track of time spent executing the computer.
     cpuTotal += System.nanoTime() - cpuStart
   }
+
+  override def run(): Unit = if(state.synchronized { !isSynchronous }) goTillYield()
 }
 
 object Machine extends MachineAPI {
@@ -1074,6 +1244,18 @@ object Machine extends MachineAPI {
 
     /** The computer is up and running, executing Lua code. */
     val Running = Value("Running")
+  }
+
+  /** Possible trusted boot states of the computer */
+  private object TrustState extends Enumeration {
+    /** The computer made an untrusted boot, or made a trusted one that gave up its trusted status. */
+    val Untrusted = Value("Untrusted")
+
+    /** The computer made a trusted boot, and has called discardSecret. */
+    val Trusted = Value("Trusted")
+
+    /** The computer made a trusted boot. */
+    val FullyTrusted = Value("FullyTrusted")
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */

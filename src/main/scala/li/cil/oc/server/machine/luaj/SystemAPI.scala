@@ -18,6 +18,9 @@ class SystemAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     // How long programs may run without yielding before we stop them.
     system.set("timeout", (_: Varargs) => LuaValue.valueOf(Settings.get.timeout))
 
+    // Whether Secure machines should be allowed to override timeouts.
+    system.set("mayOverrideTimeout", (_: Varargs) => LuaValue.valueOf(Settings.get.syncAllowOverrideTimeout))
+
     lua.set("system", system)
   }
 }
