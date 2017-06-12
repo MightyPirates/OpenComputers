@@ -84,7 +84,7 @@ repositories {
     }
     maven {
         name = "ComputerCraft Nightly"
-        url = "http://crzd.me/files/maven/"
+        url = "http://cc.crzd.me/maven/"
     }
     maven {
         name = "CurseForge"
