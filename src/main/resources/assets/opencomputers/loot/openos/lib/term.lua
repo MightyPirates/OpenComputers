@@ -181,7 +181,7 @@ end
 
 function term.read(history, dobreak, hint, pwchar, filter)
   if not io.stdin.tty then
-    return io.read()
+    return io.read("*L")
   end
   history = history or {}
   local handler = history
