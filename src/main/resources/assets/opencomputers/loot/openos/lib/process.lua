@@ -68,7 +68,7 @@ function process.load(path, env, init, name)
           -- msg can be a custom error object
           if type(msg) == "table" then
             if msg.reason ~= "terminated" then
-              io.stderr:write(msg.reason.."\n")
+              io.stderr:write(tostring(msg.reason), "\n")
             end
             return msg.code or 0
           end

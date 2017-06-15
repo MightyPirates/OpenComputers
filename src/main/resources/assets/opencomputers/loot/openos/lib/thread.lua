@@ -5,6 +5,46 @@ local computer = require("computer")
 
 local thread = {}
 
+do
+  local handlers = event.handlers
+  local handlers_mt = getmetatable(handlers)
+  -- the event library sets a metatable on handlers, but we set threaded=true
+  if not handlers_mt.threaded then
+    -- find the root process
+    local root_data
+    for _,p in pairs(process.list) do
+      if not p.parent then
+        root_data = p.data
+        break
+      end
+    end
+    assert(root_data, "thread library panic: no root proc")
+    handlers_mt.threaded = true
+    -- if we don't separate root handlers from thread handlers we see double dispatch
+    -- because the thread calls dispatch on pull as well
+    root_data.handlers = {} -- root handlers
+    root_data.pull = handlers_mt.__call -- the real computer.pullSignal
+    while true do
+      local key, value = next(handlers)
+      if not key then break end
+      root_data.handlers[key] = value
+      handlers[key] = nil
+    end
+    handlers_mt.__index = function(_, key)
+      return process.info().data.handlers[key]
+    end
+    handlers_mt.__newindex = function(_, key, value)
+      process.info().data.handlers[key] = value
+    end
+    handlers_mt.__pairs = function(_, ...)
+      return pairs(process.info().data.handlers, ...)
+    end
+    handlers_mt.__call = function(tbl, ...)
+      return process.info().data.pull(tbl, ...)
+    end
+  end
+end
+
 local function waitForDeath(threads, timeout, all)
   checkArg(1, threads, "table")
   checkArg(2, timeout, "number", "nil")
@@ -15,7 +55,7 @@ local function waitForDeath(threads, timeout, all)
   local deadline = computer.uptime() + timeout
   while deadline > computer.uptime() do
     local dieing = {}
-    local living = {}
+    local living = false
     for _,t in ipairs(threads) do
       local result = t.process and t.process.data.result
       local proc_ok = type(result) ~= "table" or result[1]
@@ -25,18 +65,18 @@ local function waitForDeath(threads, timeout, all)
         dieing[#dieing + 1] = t
         mortician[t] = true
       else
-        living[#living + 1] = t
+        living = true
       end
     end
 
-    if all and #living == 0 or not all and #dieing > 0 then
+    if all and not living or not all and #dieing > 0 then
       timed_out = false
       break
     end
 
     -- resume each non dead thread
     -- we KNOW all threads are event.pull blocked
-    event.pull()
+    event.pull(deadline - computer.uptime())
   end
 
   for t in pairs(mortician) do
@@ -58,8 +98,7 @@ function thread.waitForAll(threads, timeout)
 end
 
 local box_thread = {}
-local box_thread_handle = {}
-box_thread_handle.close = thread.waitForAll
+local box_thread_handle = {close = thread.waitForAll}
 
 local function get_box_thread_handle(handles, bCreate)
   for _,next_handle in ipairs(handles) do
@@ -94,7 +133,6 @@ function box_thread:status()
 end
 
 function box_thread:join(timeout)
-  self:detach()
   return box_thread_handle.close({self}, timeout)
 end
 
@@ -118,6 +156,7 @@ function box_thread:detach()
   end
   for i,h in ipairs(btHandle) do
     if h == self then
+      self.process = nil
       return table.remove(btHandle, i)
     end
   end
@@ -144,8 +183,7 @@ function thread.create(fp, ...)
 
   local t = setmetatable({}, {__status="suspended",__index=box_thread})
   t.pco = pipes.createCoroutineStack(function(...)
-    local mt = getmetatable(t)
-    mt.__status = "running"
+    getmetatable(t).__status = "running"
     local fp_co = t.pco.create(fp)
     -- run fp_co until dead
     -- pullSignal will yield_all past this point
@@ -154,45 +192,43 @@ function thread.create(fp, ...)
     while true do
       local result = table.pack(t.pco.resume(fp_co, table.unpack(args, 1, args.n)))
       if t.pco.status(fp_co) == "dead" then
+        -- this error handling is VERY much like process.lua
+        -- maybe one day it'll merge
         if not result[1] then
-          event.onError(string.format("thread crashed: %s", tostring(result[2])))
+          local exit_code
+          local msg = result[2]
+          -- msg can be a custom error object
+          local reason = "crashed"
+          if type(msg) == "table" then
+            if type(msg.reason) == "string" then
+              reason = msg.reason
+            end
+            exit_code = tonumber(msg.code)
+          elseif type(msg) == "string" then
+            reason = msg
+          end
+          if not exit_code then
+            pcall(event.onError, string.format("[thread] %s", reason))
+            exit_code = 1
+          end
+          os.exit(exit_code)
         end
         break
       end
       args = table.pack(event.pull(table.unpack(result, 2, result.n)))
     end
-    mt.__status = "dead"
-    event.push("thread_exit")
-    t:detach()
   end)
-  local handlers = event.handlers
-  local handlers_mt = getmetatable(handlers)
-  -- the event library sets a metatable on handlers
-  -- but not a pull field
-  if not handlers_mt.pull then
-    -- if we don't separate root handlers from thread handlers we see double dispatch
-    -- because the thread calls dispatch on pull as well
-    handlers_mt.handlers = {} -- root handlers
-    handlers_mt.pull = handlers_mt.__call -- the real computer.pullSignal
-    handlers_mt.current = function(field) return process.info().data[field] or handlers_mt[field] end
-    while true do
-      local key, value = next(handlers)
-      if not key then break end
-      handlers_mt.handlers[key] = value
-      handlers[key] = nil
+
+  --special resume to keep track of process death
+  local function private_resume(...)
+    local result = table.pack(t.pco.resume_all(...))
+    if #t.pco.stack == 0 then
+      t:detach()
+      local mt = getmetatable(t)
+      mt.__status = "dead"
+      event.push("thread_exit")
     end
-    handlers_mt.__index = function(_, key)
-      return handlers_mt.current("handlers")[key]
-    end
-    handlers_mt.__newindex = function(_, key, value)
-      handlers_mt.current("handlers")[key] = value
-    end
-    handlers_mt.__pairs = function(_, ...)
-      return pairs(handlers_mt.current("handlers"), ...)
-    end
-    handlers_mt.__call = function(tbl, ...)
-      return handlers_mt.current("pull")(tbl, ...)
-    end
+    return table.unpack(result, 1, result.n)
   end
 
   local data = process.info(t.pco.stack[1]).data
@@ -201,10 +237,10 @@ function thread.create(fp, ...)
     -- register a timeout handler
     -- hack so that event.register sees the root handlers
     local data_handlers = data.handlers
-    data.handlers = handlers_mt.handlers
+    data.handlers = process.info(2).data.handlers
     event.register(
       nil, -- nil key matches anything, timers use false keys
-      t.pco.resume_all,
+      private_resume,
       timeout, -- wait for the time specified by the caller
       1) -- we only want this thread to wake up once
     data.handlers = data_handlers
@@ -215,12 +251,12 @@ function thread.create(fp, ...)
     repeat
       event_data = table.pack(t.pco.yield_all(timeout))
       -- during sleep, we may have been suspended
-    until getmetatable(t).__status ~= "suspended"
+    until t:status() ~= "suspended"
     return table.unpack(event_data, 1, event_data.n)
   end
 
   t:attach()
-  t.pco.resume_all(...) -- threads start out running
+  private_resume(...) -- threads start out running
 
   return t
 end
