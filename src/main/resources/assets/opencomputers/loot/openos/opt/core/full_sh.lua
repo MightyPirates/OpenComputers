@@ -99,36 +99,6 @@ function sh.internal.openCommandRedirects(redirects)
   end
 end
 
-function sh.internal.buildPipeChain(threads)
-  local prev_pipe
-  for i=1,#threads do
-    local thread = threads[i]
-    local data = process.info(thread).data
-    local pio = data.io
-
-    local pipe
-    if i < #threads then
-      pipe = require("buffer").new("rw", sh.internal.newMemoryStream())
-      pipe:setvbuf("no", 0)
-      -- buffer close flushes the buffer, but we have no buffer
-      -- also, when the buffer is closed, read and writes don't pass through
-      -- simply put, we don't want buffer:close
-      pipe.close = function(self) self.stream:close() end
-      pipe.stream.redirect[1] = rawget(pio, 1)
-      pio[1] = pipe
-      table.insert(data.handles, pipe)
-    end
-
-    if prev_pipe then
-      prev_pipe.stream.redirect[0] = rawget(pio, 0)
-      prev_pipe.stream.next = thread
-      pio[0] = prev_pipe
-    end
-
-    prev_pipe = pipe
-  end
-end
-
 -- takes an eword, returns a list of glob hits or {word} if no globs exist
 function sh.internal.glob(eword)
   -- words are parts, parts are txt and qr
@@ -523,67 +493,6 @@ function sh.internal.remove_negation(chain)
   end
   return false
 end 
-
-function sh.internal.newMemoryStream()
-  local memoryStream = {}
-
-  function memoryStream:close()
-    self.closed = true
-    self.redirect = {}
-  end
-
-  function memoryStream:seek()
-    return nil, "bad file descriptor"
-  end
-
-  function memoryStream:read(n)
-    if self.closed then
-      return nil -- eof
-    end
-    if self.redirect[0] then
-      -- popen could be using this code path
-      -- if that is the case, it is important to leave stream.buffer alone
-      return self.redirect[0]:read(n)
-    elseif self.buffer == "" then
-      coroutine.yield()
-    end
-    local result = string.sub(self.buffer, 1, n)
-    self.buffer = string.sub(self.buffer, n + 1)
-    return result
-  end
-
-  function memoryStream:write(value)
-    if not self.redirect[1] and self.closed then
-      -- if next is dead, ignore all writes
-      if coroutine.status(self.next) ~= "dead" then
-        io.stderr:write("attempt to use a closed stream\n")
-        os.exit(1)
-      end
-    elseif self.redirect[1] then
-      return self.redirect[1]:write(value)
-    elseif not self.closed then
-      self.buffer = self.buffer .. value
-      local result = table.pack(coroutine.resume(self.next))
-      if coroutine.status(self.next) == "dead" then
-        self:close()
-        -- always cause os.exit when the pipe closes
-        result[1] = nil
-      end
-      -- the next pipe
-      if not result[1] then
-        os.exit(sh.internal.command_result_as_code(result[2]))
-      end
-      return self
-    end
-    os.exit(0) -- abort the current process: SIGPIPE
-  end
-
-  local stream = {closed = false, buffer = "",
-                  redirect = {}, result = {}}
-  local metatable = {__index = memoryStream,
-                     __metatable = "memorystream"}
-  return setmetatable(stream, metatable)
-end
 
 function sh.internal.execute_complex(statements, eargs, env)
   for si=1,#statements do local s = statements[si]

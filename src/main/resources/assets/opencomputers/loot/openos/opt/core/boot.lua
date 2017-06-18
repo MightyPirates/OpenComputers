@@ -1,7 +1,7 @@
 -- called from /init.lua
 local raw_loadfile = ...
 
-_G._OSVERSION = "OpenOS 1.6.4"
+_G._OSVERSION = "OpenOS 1.6.5"
 
 local component = component
 local computer = computer
@@ -108,7 +108,6 @@ status("Initializing file system...")
 -- Mount the ROM and temporary file systems to allow working on the file
 -- system module from this point on.
 require("filesystem").mount(computer.getBootAddress(), "/")
-package.preload={}
 
 status("Running boot scripts...")
 

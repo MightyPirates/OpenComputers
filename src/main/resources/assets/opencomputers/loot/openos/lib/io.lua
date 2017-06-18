@@ -77,7 +77,7 @@ function io.error(file)
 end
 
 function io.popen(prog, mode, env)
-  return require("pipes").popen(prog, mode, env)
+  return require("pipe").popen(prog, mode, env)
 end
 
 function io.read(...)
