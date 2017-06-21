@@ -16,11 +16,6 @@ local loaded = {
 }
 package.loaded = loaded
 
-local preload = {}
-package.preload = preload
-
-package.searchers = {}
-
 function package.searchpath(name, path, sep, rep)
   checkArg(1, name, "string")
   checkArg(2, path, "string")
@@ -47,70 +42,42 @@ function package.searchpath(name, path, sep, rep)
   return nil, table.concat(errorFiles, "\n")
 end
 
-local function preloadSearcher(module)
-  if preload[module] ~= nil then
-    return preload[module]
-  else
-    return "\tno field package.preload['" .. module .. "']"
-  end
-end
-
-local function pathSearcher(module)
-  local filepath, reason = package.searchpath(module, package.path)
-  if filepath then
-    local loader, reason = loadfile(filepath, "bt", _G)
-    if loader then
-      return loader, filepath
-    else
-      return reason
-    end
-  else
-    return reason
-  end
-end
-
-table.insert(package.searchers, preloadSearcher)
-table.insert(package.searchers, pathSearcher)
-
 function require(module)
   checkArg(1, module, "string")
   if loaded[module] ~= nil then
     return loaded[module]
   elseif not loading[module] then
-    loading[module] = true
-    local loader, value, errorMsg = nil, nil, {"module '" .. module .. "' not found:"}
-    for i = 1, #package.searchers do
-      -- the pcall is mostly for out of memory errors
-      local ok, f, extra = pcall(package.searchers[i], module)
-      if not ok then
-        table.insert(errorMsg, "\t" .. (f or "nil"))
-      elseif f and type(f) ~= "string" then
-        loader = f
-        value = extra
-        break
-      elseif f then
-        table.insert(errorMsg, f)
-      end
+    local library, status, step
+
+    step, library, status = "not found", package.searchpath(module, package.path)
+
+    if library then
+      step, library, status = "loadfile failed", loadfile(library)
     end
-    if loader then
-      local success, result = pcall(loader, module, value)
+
+    if library then
+      loading[module] = true
+      step, library, status = "load failed", pcall(library, module)
       loading[module] = false
-      if not success then
-        error(result, 2)
-      end
-      if result then
-        loaded[module] = result
-      elseif not loaded[module] then
-        loaded[module] = true
-      end
-      return loaded[module]
-    else
-      loading[module] = false
-      error(table.concat(errorMsg, "\n"), 2)
     end
+
+    assert(library, string.format("module '%s' %s:\n%s", module, step, status))
+    loaded[module] = status
+    return status
   else
     error("already loading: " .. module .. "\n" .. debug.traceback(), 2)
   end
+end
+
+function package.delay(lib, file)
+  setmetatable(lib, 
+  {
+    __index = function(tbl, key)
+      setmetatable(tbl, nil)
+      dofile(file)
+      return tbl[key]
+    end
+  })
 end
 
 -------------------------------------------------------------------------------

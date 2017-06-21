@@ -5,6 +5,8 @@ import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
+import net.minecraftforge.fluids.capability.IFluidHandler
+import net.minecraftforge.fluids.capability.IFluidTankProperties
 import net.minecraftforge.items.IItemHandler
 
 import scala.language.implicitConversions
@@ -45,6 +47,19 @@ object ExtendedArguments {
         throw new IllegalArgumentException("invalid tank index")
       }
       tank
+    }
+
+    def checkTankProperties(handler: IFluidHandler, n: Int) = {
+      val tank = args.checkInteger(n) - 1
+      if (tank < 0 || tank >= handler.getTankProperties.length) {
+        throw new IllegalArgumentException("invalid tank index")
+      }
+      handler.getTankProperties()(tank)
+    }
+
+    def optTankProperties(handler: IFluidHandler, n: Int, default: IFluidTankProperties) = {
+      if (!isDefined(n)) default
+      else checkTankProperties(handler, n)
     }
 
     def checkSideAny(index: Int) = checkSide(index, EnumFacing.values: _*)

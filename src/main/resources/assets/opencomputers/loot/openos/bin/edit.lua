@@ -1,4 +1,3 @@
-local event = require("event")
 local fs = require("filesystem")
 local keyboard = require("keyboard")
 local shell = require("shell")
@@ -17,6 +16,12 @@ if #args == 0 then
 end
 
 local filename = shell.resolve(args[1])
+local file_parentpath = fs.path(filename)
+
+if fs.exists(file_parentpath) and not fs.isDirectory(file_parentpath) then
+  io.stderr:write(string.format("Not a directory: %s\n", file_parentpath))
+  return 1
+end
 
 local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
@@ -502,6 +507,9 @@ local keyBindHandlers = {
       end
       fs.copy(filename, backup)
     end
+    if not fs.exists(file_parentpath) then
+      fs.makeDirectory(file_parentpath)
+    end
     local f, reason = io.open(filename, "w")
     if f then
       local chars, firstLine = 0, true
@@ -625,9 +633,6 @@ do
     local x, y, w, h = getArea()
     local chars = 0
     for line in f:lines() do
-      if line:sub(-1) == "\r" then
-        line = line:sub(1, -2)
-      end
       table.insert(buffer, line)
       chars = chars + unicode.len(line)
       if #buffer <= h then

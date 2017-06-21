@@ -13,8 +13,6 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.FluidTank
-import net.minecraftforge.fluids.FluidTankInfo
 import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.fluids.capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
@@ -34,7 +32,7 @@ object FluidUtils {
       case handler: IFluidHandler => Option(handler)
       case t: TileEntity if t.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) =>
         t.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side) match {
-          case handler: capability.IFluidHandler => Option(new HandlerCapabilityWrapper(position, handler))
+          case handler: capability.IFluidHandler => Option(handler)
           case _ => Option(new GenericBlockWrapper(position))
         }
       case _ => Option(new GenericBlockWrapper(position))
@@ -188,20 +186,6 @@ object FluidUtils {
     }
 
     override def getTankProperties: Array[IFluidTankProperties] = Array.empty
-  }
-
-  private class HandlerCapabilityWrapper(val position: BlockPosition, val handler: capability.IFluidHandler) extends IFluidHandler {
-    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = handler.drain(resource, doDrain)
-
-    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = handler.drain(maxDrain, doDrain)
-
-    def canFill(fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canFill)
-
-    def canDrain(fluid: Fluid): Boolean = handler.getTankProperties.exists(_.canDrain)
-
-    override def fill(resource: FluidStack, doFill: Boolean): Int = handler.fill(resource, doFill)
-
-    override def getTankProperties: Array[IFluidTankProperties] = handler.getTankProperties.map(f => new FluidTankProperties(f.getContents, f.getCapacity))
   }
 
 }

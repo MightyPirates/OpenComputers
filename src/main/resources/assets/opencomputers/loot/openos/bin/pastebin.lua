@@ -21,7 +21,7 @@ local function get(pasteId, filename)
   end
 
   io.write("Downloading from pastebin.com... ")
-  local url = "http://pastebin.com/raw/" .. pasteId
+  local url = "https://pastebin.com/raw/" .. pasteId
   local result, response = pcall(internet.request, url)
   if result then
     io.write("success.\n")
@@ -90,7 +90,7 @@ function put(path)
 
   io.write("Uploading to pastebin.com... ")
   local result, response = pcall(internet.request,
-        "http://pastebin.com/api/api_post.php", 
+        "https://pastebin.com/api/api_post.php", 
         "api_option=paste&" ..
         "api_dev_key=" .. config.key .. "&" ..
         "api_paste_format=lua&" ..
