@@ -68,7 +68,7 @@ function process.load(path, env, init, name)
           -- msg can be a custom error object
           if type(msg) == "table" then
             if msg.reason ~= "terminated" then
-              io.stderr:write(msg.reason.."\n")
+              io.stderr:write(tostring(msg.reason), "\n")
             end
             return msg.code or 0
           end
@@ -104,14 +104,8 @@ function process.load(path, env, init, name)
   return thread
 end
 
-function process.running(level) -- kept for backwards compat, prefer process.info
-  local info = process.info(level)
-  if info then
-    return info.path, info.env, info.command
-  end
-end
-
 function process.info(levelOrThread)
+  checkArg(1, levelOrThread, "thread", "number", "nil")
   local p
   if type(levelOrThread) == "thread" then
     p = process.findProcess(levelOrThread)
@@ -139,6 +133,21 @@ function process.internal.close(thread, result)
     pcall(v.close, v)
   end
   process.list[thread] = nil
+end
+
+function process.internal.continue(co, ...)
+  local result = {}
+  -- Emulate CC behavior by making yields a filtered event.pull()
+  local args = table.pack(...)
+  while coroutine.status(co) ~= "dead" do
+    result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
+    if coroutine.status(co) ~= "dead" then
+      args = table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
+    elseif not result[1] then
+      io.stderr:write(result[2])
+    end
+  end
+  return table.unpack(result, 2, result.n)
 end
 
 return process

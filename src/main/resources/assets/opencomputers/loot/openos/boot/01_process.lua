@@ -3,25 +3,20 @@ local process = require("process")
 --Initialize coroutine library--
 local _coroutine = coroutine -- real coroutine backend
 
-_G.coroutine = {}
-package.loaded.coroutine = _G.coroutine
-
-for key,value in pairs(_coroutine) do
-  if type(value) == "function" and value ~= "running" and value ~= "create" then
-    _G.coroutine[key] = function(...)
-      local thread = _coroutine.running()
-      local info = process.info(thread)
-      -- note the gc thread does not have a process info
-      assert(info,"process not found for " .. tostring(thread))
-      local data = info.data
-      local co = data.coroutine_handler
-      local handler = co[key]
-      return handler(...)
+_G.coroutine = setmetatable(
+  {
+    resume = function(co, ...)
+      return assert(process.info(co), "thread has no proc").data.coroutine_handler.resume(co, ...)
     end
-  else
-    _G.coroutine[key] = value
-  end
-end
+  },
+  {
+    __index = function(_, key)
+      return assert(process.info(_coroutine.running()), "thread has no proc").data.coroutine_handler[key]
+    end
+  }
+)
+
+package.loaded.coroutine = _G.coroutine
 
 local kernel_load = _G.load
 local intercept_load
@@ -72,7 +67,7 @@ process.list[init_thread] = {
   {
     vars={},
     io={}, --init will populate this
-    coroutine_handler=setmetatable({}, {__index=_coroutine})
+    coroutine_handler = _coroutine
   },
   instances = setmetatable({}, {__mode="v"})
 }
