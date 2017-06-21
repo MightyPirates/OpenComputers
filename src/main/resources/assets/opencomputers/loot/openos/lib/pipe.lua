@@ -4,6 +4,7 @@ local buffer = require("buffer")
 local command_result_as_code = require("sh").internal.command_result_as_code
 
 local pipe = {}
+local _root_co = assert(process.info(), "process metadata failed to load").data.coroutine_handler
 
 -- root can be a coroutine or a function
 function pipe.createCoroutineStack(root, env, name)
@@ -13,33 +14,28 @@ function pipe.createCoroutineStack(root, env, name)
     root = assert(process.load(root, env, nil, name or "pipe"), "failed to load proc data for given function")
   end
 
-  local proc = assert(process.info(root), "failed to load proc data for given coroutine")
-  local _co = proc.data.coroutine_handler
+  local proc = assert(process.list[root], "coroutine must be a process thread else the parent process is corrupted")
 
-  local pco = setmetatable({root=root}, {__index=_co})
+  local pco = setmetatable({root=root}, {__index=_root_co})
   proc.data.coroutine_handler = pco
 
   function pco.yield(...)
-    return _co.yield(nil, ...)
+    return _root_co.yield(nil, ...)
   end
   function pco.yield_all(...)
-    return _co.yield(true, ...)
+    return _root_co.yield(true, ...)
   end
   function pco.resume(co, ...)
     checkArg(1, co, "thread")
     local args = table.pack(...)
     while true do -- for consecutive sysyields
-      local result = table.pack(_co.resume(co, table.unpack(args, 1, args.n)))
-      if result[1] then -- success: (true, sysval?, ...?)
-        if _co.status(co) == "dead" or pco.root == co then -- return: (true, ...)
-          return true, table.unpack(result, 2, result.n)
-        elseif result[2] ~= nil then -- yield: (true, sysval)
-          args = table.pack(_co.yield(table.unpack(result, 2, result.n)))
-        else -- yield: (true, nil, ...)
-          return true, table.unpack(result, 3, result.n)
-        end
-      else -- error: result = (false, string)
-        return false, result[2]
+      local result = table.pack(_root_co.resume(co, table.unpack(args, 1, args.n)))
+      if not result[1] or _root_co.status(co) == "dead" then
+        return table.unpack(result, 1, result.n)
+      elseif result[2] and pco.root ~= co then
+        args = table.pack(_root_co.yield(table.unpack(result, 2, result.n)))
+      else
+        return true, table.unpack(result, 3, result.n)
       end
     end
   end
@@ -48,10 +44,40 @@ end
 
 local pipe_stream = 
 {
+  continue = function(self, exit)
+    local result = table.pack(coroutine.resume(self.next))
+    while true do -- repeat resumes if B (A|B) makes a natural yield
+      -- if B crashed or closed in the last resume
+      -- then we can close the stream
+      if coroutine.status(self.next) == "dead" then
+        self:close()
+        -- always cause os.exit when the pipe closes
+        -- this is very important
+        -- e.g. cat very_large_file | head
+        -- when head is done, cat should stop
+        result[1] = nil
+      end
+      -- the pipe closed or crashed
+      if not result[1] then
+        if exit then
+          os.exit(command_result_as_code(result[2]))
+        end
+        return self
+      end
+      -- next is suspended, read_mode indicates why
+      if self.read_mode then
+        -- B wants A to write again, resume A
+        return self
+      end
+      -- not reading, it is requesting a yield
+      result = table.pack(coroutine.yield_all(table.unpack(result, 2, result.n)))
+      result = table.pack(coroutine.resume(self.next, table.unpack(result, 1, result.n))) -- the request was for an event
+    end
+  end,
   close = function(self)
     self.closed = true
     if coroutine.status(self.next) == "suspended" then
-      coroutine.resume(self.next)
+      self:continue()
     end
     self.redirect = {}
   end,
@@ -69,20 +95,7 @@ local pipe_stream =
       return self.redirect[1]:write(value)
     elseif not self.closed then
       self.buffer = self.buffer .. value
-      local result = table.pack(coroutine.resume(self.next))
-      if coroutine.status(self.next) == "dead" then
-        self:close()
-        -- always cause os.exit when the pipe closes
-        -- this is very important
-        -- e.g. cat very_large_file | head
-        -- when head is done, cat should stop
-        result[1] = nil
-      end
-      -- the next pipe
-      if not result[1] then
-        os.exit(command_result_as_code(result[2]))
-      end
-      return self
+      return self:continue(true)
     end
     os.exit(0) -- abort the current process: SIGPIPE
   end,
@@ -95,7 +108,13 @@ local pipe_stream =
       -- if that is the case, it is important to leave stream.buffer alone
       return self.redirect[0]:read(n)
     elseif self.buffer == "" then
-      coroutine.yield()
+      -- the pipe_stream write resume is waiting on this process B (A|B) to yield
+      -- yield here requests A to output again. However, B may elsewhere want a
+      -- natural yield (i.e. for events). To differentiate this yield from natural
+      -- yields we set read_mode here, which the pipe_stream write detects
+      self.read_mode = true
+      coroutine.yield_all()
+      self.read_mode = false
     end
     local result = string.sub(self.buffer, 1, n)
     self.buffer = string.sub(self.buffer, n + 1)
@@ -108,8 +127,10 @@ function pipe.buildPipeChain(progs)
   local chain = {}
   local prev_piped_stream
   for i=1,#progs do
-    local prog = progs[i]
-    local thread = type(prog) == "thread" and prog or pipe.createCoroutineStack(prog).root
+    local thread = progs[i]
+    -- A needs to be a stack in case any thread in A call write and then B natural yields
+    -- B needs to be a stack in case any thread in B calls read
+    pipe.createCoroutineStack(thread)
     chain[i] = thread
     local data = process.info(thread).data
     local pio = data.io
@@ -119,10 +140,6 @@ function pipe.buildPipeChain(progs)
       local handle = setmetatable({redirect = {rawget(pio, 1)},buffer = ""}, {__index = pipe_stream})
       piped_stream = buffer.new("rw", handle)
       piped_stream:setvbuf("no", 1024)
-      -- buffer close flushes the buffer, but we have no buffer
-      -- also, when the buffer is closed, reads and writes don't pass through
-      -- simply put, we don't want buffer:close
-      piped_stream.close = function(self) self.stream:close() end
       pio[1] = piped_stream
       table.insert(data.handles, piped_stream)
     end
@@ -142,9 +159,12 @@ end
 local chain_stream =
 {
   read = function(self, value)
-    -- handler is currently on yield_all [else we wouldn't have control here]
-    local stack_ok, read_ok, ret = self.pco.resume(self.pco.root, value)
-    return select(stack_ok and read_ok and 2 or 1, nil, ret)
+    if self.io_stream.closed then return nil end
+    -- handler is currently on yield all [else we wouldn't have control here]
+    local read_ok, ret = self.pco.resume(self.pco.root, value)
+    -- ret can be non string when a process ends
+    ret = type(ret) == "string" and ret or nil
+    return select(read_ok and 2 or 1, nil, ret)
   end,
   write = function(self, ...)
     return self:read(table.concat({...}))
@@ -174,8 +194,9 @@ function pipe.popen(prog, mode, env)
   -- the stream needs its own process for io
   local pipe_proc = process.load(function()
     local n = r and 0 or ""
-    while true do
-      n = stream.pco.yield_all(stream.io_stream[key](stream.io_stream, n))
+    local ios = stream.io_stream
+    while not ios.closed do
+      n = coroutine.yield_all(ios[key](ios, n))
     end
   end, nil, nil, "pipe_handler")
 
@@ -183,17 +204,12 @@ function pipe.popen(prog, mode, env)
   local cmd_index = r and 1 or 2
   local chain = {[cmd_index]=cmd_proc, [pipe_index]=pipe_proc}
 
-  -- upgrade coroutine stack
-  local cmd_stack = pipe.createCoroutineStack(chain[1])
-
-  -- the processes need to share the coroutine handler to yield the cmd_stack
-  process.info(chain[2]).data.coroutine_handler = cmd_stack
-
   -- link the cmd and pipe proc io
   pipe.buildPipeChain(chain)
+  local cmd_stack = process.info(chain[1]).data.coroutine_handler
 
   -- store handle to io_stream from easy access later
-  stream.io_stream = process.info(cmd_stack.root).data.io[1].stream
+  stream.io_stream = process.info(chain[1]).data.io[1].stream
   stream.pco = cmd_stack
 
   -- popen commands start out running, like threads

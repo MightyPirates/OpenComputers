@@ -3,9 +3,18 @@ local process = require("process")
 --Initialize coroutine library--
 local _coroutine = coroutine -- real coroutine backend
 
-_G.coroutine = setmetatable({}, {__index = function(_, key)
-  return assert(process.info(_coroutine.running()), "thread has no proc").data.coroutine_handler[key]
-end})
+_G.coroutine = setmetatable(
+  {
+    resume = function(co, ...)
+      return assert(process.info(co), "thread has no proc").data.coroutine_handler.resume(co, ...)
+    end
+  },
+  {
+    __index = function(_, key)
+      return assert(process.info(_coroutine.running()), "thread has no proc").data.coroutine_handler[key]
+    end
+  }
+)
 
 package.loaded.coroutine = _G.coroutine
 
