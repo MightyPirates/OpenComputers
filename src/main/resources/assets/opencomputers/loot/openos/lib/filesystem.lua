@@ -282,8 +282,8 @@ function filesystem.path(path)
 end
 
 function filesystem.name(path)
-  local parts = segments(path)
-  return parts[#parts]
+  checkArg(1, path, "string")
+  return path:match("[^\\/]+$")
 end
 
 function filesystem.proxy(filter)
