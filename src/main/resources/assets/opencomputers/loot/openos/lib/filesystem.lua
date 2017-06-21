@@ -436,7 +436,7 @@ function filesystem.rename(oldPath, newPath)
 end
 
 function filesystem.copy(fromPath, toPath)
-  local data
+  local data = false
   local input, reason = filesystem.open(fromPath, "rb")
   if input then
     local output, reason = filesystem.open(toPath, "wb")
