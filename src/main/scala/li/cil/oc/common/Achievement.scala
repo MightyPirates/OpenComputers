@@ -1,5 +1,25 @@
 package li.cil.oc.common
 
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+
+//placeholder
+
+object Achievement {
+  def init() {
+  }
+
+  def onAssemble(stack: ItemStack, player: EntityPlayer): Unit = {
+
+  }
+
+  def onCraft(stack: ItemStack, player: EntityPlayer): Unit = {
+
+  }
+}
+
+/*package li.cil.oc.common TODO Advancements
+
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.detail.ItemInfo
@@ -317,3 +337,4 @@ object Achievement {
   }
 
 }
+*/

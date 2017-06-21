@@ -88,21 +88,21 @@ trait SmartBlockModelBase extends IBakedModel {
     * face of the box with the specified size.
     */
   protected def makeBox(from: Vec3d, to: Vec3d) = {
-    val minX = math.min(from.xCoord, to.xCoord)
-    val minY = math.min(from.yCoord, to.yCoord)
-    val minZ = math.min(from.zCoord, to.zCoord)
-    val maxX = math.max(from.xCoord, to.xCoord)
-    val maxY = math.max(from.yCoord, to.yCoord)
-    val maxZ = math.max(from.zCoord, to.zCoord)
+    val minX = math.min(from.x, to.x)
+    val minY = math.min(from.y, to.y)
+    val minZ = math.min(from.z, to.z)
+    val maxX = math.max(from.x, to.x)
+    val maxY = math.max(from.y, to.y)
+    val maxZ = math.max(from.z, to.z)
     UnitCube.map(face => face.map(vertex => new Vec3d(
-      math.max(minX, math.min(maxX, vertex.xCoord)),
-      math.max(minY, math.min(maxY, vertex.yCoord)),
-      math.max(minZ, math.min(maxZ, vertex.zCoord)))))
+      math.max(minX, math.min(maxX, vertex.x)),
+      math.max(minY, math.min(maxY, vertex.y)),
+      math.max(minZ, math.min(maxZ, vertex.z)))))
   }
 
   protected def rotateVector(v: Vec3d, angle: Double, axis: Vec3d) = {
     // vrot = v * cos(angle) + (axis x v) * sin(angle) + axis * (axis dot v)(1 - cos(angle))
-    def scale(v: Vec3d, s: Double) = new Vec3d(v.xCoord * s, v.yCoord * s, v.zCoord * s)
+    def scale(v: Vec3d, s: Double) = new Vec3d(v.x * s, v.y * s, v.z * s)
     val cosAngle = math.cos(angle)
     val sinAngle = math.sin(angle)
     scale(v, cosAngle).
@@ -160,15 +160,15 @@ trait SmartBlockModelBase extends IBakedModel {
     vertices.flatMap(vertex => {
       var u = vertex.dotProduct(uAxis)
       var v = vertex.dotProduct(vAxis)
-      if (uAxis.xCoord + uAxis.yCoord + uAxis.zCoord < 0) u = 1 + u
-      if (vAxis.xCoord + vAxis.yCoord + vAxis.zCoord < 0) v = 1 + v
+      if (uAxis.x + uAxis.y + uAxis.z < 0) u = 1 + u
+      if (vAxis.x + vAxis.y + vAxis.z < 0) v = 1 + v
       for (i <- 0 until rot) {
         // (u, v) = (v, -u)
         val tmp = u
         u = v
         v = (-(tmp - 0.5)) + 0.5
       }
-      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16), colorRGB)
+      rawData(vertex.x, vertex.y, vertex.z, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16), colorRGB)
     })
   }
 

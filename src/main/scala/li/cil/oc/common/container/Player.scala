@@ -139,8 +139,8 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     }
   }
 
-  protected def sendProgressBarUpdate(id: Int, value: Int) {
-    listeners.foreach(_.sendProgressBarUpdate(this, id, value))
+  protected def sendWindowProperty(id: Int, value: Int) {
+    listeners.foreach(_.sendWindowProperty(this, id, value))
   }
 
   override def detectAndSendChanges(): Unit = {

@@ -29,7 +29,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
         val world = player.getEntityWorld
         val origin = new Vec3d(player.posX, player.posY + player.getEyeHeight, player.posZ)
         val direction = player.getLookVec
-        val lookAt = origin.addVector(direction.xCoord * MaxDistance, direction.yCoord * MaxDistance, direction.zCoord * MaxDistance)
+        val lookAt = origin.addVector(direction.x * MaxDistance, direction.y * MaxDistance, direction.z * MaxDistance)
         world.rayTraceBlocks(origin, lookAt) match {
           case hit: RayTraceResult if hit.typeOfHit == RayTraceResult.Type.BLOCK =>
             val hitPos = BlockPosition(hit.getBlockPos, world)

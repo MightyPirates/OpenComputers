@@ -12,8 +12,8 @@ import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplitter] {
-  override def renderTileEntityAt(splitter: tileentity.NetSplitter, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(splitter: tileentity.NetSplitter, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (splitter.openSides.contains(!splitter.isInverted)) {
       RenderState.pushAttrib()
@@ -87,6 +87,6 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplit
       RenderState.popAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

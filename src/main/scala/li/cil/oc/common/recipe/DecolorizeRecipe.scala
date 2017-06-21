@@ -42,7 +42,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
     targetStack
   }
 
-  override def getRecipeSize = 10
+  override def getMinimumRecipeSize = 2
 
   override def getRecipeOutput = ItemStack.EMPTY
 }

@@ -65,9 +65,9 @@ object PetRenderer {
     val playerPos = e.getEntityPlayer.getPositionEyes(e.getPartialRenderTick)
     val correction = 1.62 - (if (e.getEntityPlayer.isSneaking) 0.125 else 0)
     GlStateManager.translate(
-      playerPos.xCoord - localPos.xCoord,
-      playerPos.yCoord - localPos.yCoord + correction,
-      playerPos.zCoord - localPos.zCoord)
+      playerPos.x - localPos.x,
+      playerPos.y - localPos.y + correction,
+      playerPos.z - localPos.z)
 
     RenderState.enableEntityLighting()
     GlStateManager.disableBlend()

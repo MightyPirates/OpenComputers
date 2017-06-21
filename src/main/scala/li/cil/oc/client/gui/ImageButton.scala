@@ -12,29 +12,29 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)
-class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
+class ImageButton(id: Int, xPos: Int, yPos: Int, w: Int, h: Int,
                   val image: ResourceLocation = null,
                   text: String = null,
                   val canToggle: Boolean = false,
                   val textColor: Int = 0xE0E0E0,
                   val textDisabledColor: Int = 0xA0A0A0,
                   val textHoverColor: Int = 0xFFFFA0,
-                  val textIndent: Int = -1) extends GuiButton(id, x, y, w, h, text) {
+                  val textIndent: Int = -1) extends GuiButton(id, xPos, yPos, w, h, text) {
 
   var toggled = false
 
   var hoverOverride = false
 
-  override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
+  override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int, partialTicks: Float) {
     if (visible) {
       Textures.bind(image)
       GlStateManager.color(1, 1, 1, 1)
-      hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
+      hovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
 
-      val x0 = xPosition
-      val x1 = xPosition + width
-      val y0 = yPosition
-      val y1 = yPosition + height
+      val x0 = x
+      val x1 = x + width
+      val y0 = y
+      val y1 = y + height
 
       val isHovered = hoverOverride || getHoverState(isMouseOver) == 2
 
@@ -77,8 +77,8 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
           if (!enabled) textDisabledColor
           else if (hoverOverride || hovered) textHoverColor
           else textColor
-        if (textIndent >= 0) drawString(mc.fontRenderer, displayString, textIndent + xPosition, yPosition + (height - 8) / 2, color)
-        else drawCenteredString(mc.fontRenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
+        if (textIndent >= 0) drawString(mc.fontRenderer, displayString, textIndent + x, y + (height - 8) / 2, color)
+        else drawCenteredString(mc.fontRenderer, displayString, x + width / 2, y + (height - 8) / 2, color)
       }
     }
   }

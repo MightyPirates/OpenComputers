@@ -44,7 +44,7 @@ object HighlightRenderer {
           e.getPlayer.prevPosX + (e.getPlayer.posX - e.getPlayer.prevPosX) * e.getPartialTicks,
           e.getPlayer.prevPosY + (e.getPlayer.posY - e.getPlayer.prevPosY) * e.getPartialTicks,
           e.getPlayer.prevPosZ + (e.getPlayer.posZ - e.getPlayer.prevPosZ) * e.getPartialTicks)
-        val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
+        val renderPos = blockPos.offset(-playerPos.x, -playerPos.y, -playerPos.z)
 
         GlStateManager.pushMatrix()
         RenderState.pushAttrib()
@@ -54,7 +54,7 @@ object HighlightRenderer {
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
         GlStateManager.color(0.0F, 1.0F, 0.0F, 0.4F)
 
-        GlStateManager.translate(renderPos.xCoord, renderPos.yCoord, renderPos.zCoord)
+        GlStateManager.translate(renderPos.x, renderPos.y, renderPos.z)
         GlStateManager.scale(1.002, 1.002, 1.002)
 
         if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
@@ -126,7 +126,7 @@ object HighlightRenderer {
           val bounds = shape.bounds.rotateTowards(print.facing)
           RenderGlobal.drawSelectionBoundingBox(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
-            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0, 0, 0, 0x66/0xFFf.toFloat)
+            .offset(-pos.x, -pos.y, -pos.z), 0, 0, 0, 0x66/0xFFf.toFloat)
         }
 
         GlStateManager.depthMask(true)

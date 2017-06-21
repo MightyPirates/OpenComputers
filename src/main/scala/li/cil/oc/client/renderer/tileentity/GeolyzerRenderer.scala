@@ -10,8 +10,8 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
 object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
-  override def renderTileEntityAt(geolyzer: Geolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(geolyzer: Geolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
 
@@ -46,7 +46,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
 }

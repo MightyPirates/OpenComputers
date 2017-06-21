@@ -125,8 +125,8 @@ object WirelessNetwork {
       val v = delta.normalize()
 
       // Get the vectors that are orthogonal to the direction vector.
-      val up = if (v.xCoord == 0 && v.zCoord == 0) {
-        assert(v.yCoord != 0)
+      val up = if (v.x == 0 && v.z == 0) {
+        assert(v.y != 0)
         new Vec3d(1, 0, 0)
       }
       else {
@@ -145,9 +145,9 @@ object WirelessNetwork {
         // two endpoints when they are diagonal to each other for example.
         val rSide = world.rand.nextInt(3) - 1
         val rTop = world.rand.nextInt(3) - 1
-        val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
-        val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
-        val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
+        val x = (origin.x + v.x * rGap + side.x * rSide + top.x * rTop).toInt
+        val y = (origin.y + v.y * rGap + side.y * rSide + top.y * rTop).toInt
+        val z = (origin.z + v.z * rGap + side.z * rSide + top.z * rTop).toInt
         val blockPos = BlockPosition(x, y, z, world)
         if (world.isBlockLoaded(blockPos)) Option(world.getBlock(blockPos)) match {
           case Some(block) => hardness += block.getBlockHardness(blockPos)
@@ -164,7 +164,7 @@ object WirelessNetwork {
     else true
   }
 
-  private def subtract(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
+  private def subtract(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
 
-  private def crossProduct(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
+  private def crossProduct(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x)
 }

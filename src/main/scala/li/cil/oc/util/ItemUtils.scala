@@ -16,6 +16,7 @@ import net.minecraft.item.ItemBucket
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
+import net.minecraft.item.crafting.Ingredient
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
 import net.minecraft.nbt.CompressedStreamTools
@@ -101,12 +102,12 @@ object ItemUtils {
       case _ => false
     }
 
-    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.
+    val (ingredients, count) = CraftingManager.REGISTRY.
       filter(recipe => !recipe.getRecipeOutput.isEmpty && recipe.getRecipeOutput.isItemEqual(stack)).collect {
-      case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
-      case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems, getOutputSize(recipe))
-      case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-      case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
+      case recipe: ShapedRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
+      case recipe: ShapelessRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
+      case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
+      case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
     }.collectFirst {
       case (inputs, outputSize) if !inputs.exists(isInputBlacklisted) => (inputs, outputSize)
     } match {
@@ -146,9 +147,8 @@ object ItemUtils {
 
   private lazy val rng = new Random()
 
-  private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
-    case stack: ItemStack => stack
-    case list: java.util.List[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
+  private def resolveOreDictEntries[T](entries: Iterable[Ingredient]) = entries.collect {
+    case ing: Ingredient if ing.getMatchingStacks.nonEmpty => ing.getMatchingStacks()(rng.nextInt(ing.getMatchingStacks.length))
   }
 
 }

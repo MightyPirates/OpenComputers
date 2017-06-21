@@ -81,13 +81,13 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
   }
 
   override def onEntityItemUpdate(entity: EntityItem): Boolean = {
-    if (entity != null && entity.world != null && !entity.world.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
+    if (entity != null && entity.world != null && !entity.world.isRemote && ItemColorizer.hasColor(entity.getItem)) {
       val pos = entity.getPosition
       val state = entity.world.getBlockState(pos)
       if (state.getBlock == Blocks.CAULDRON) {
         val level = state.getValue(BlockCauldron.LEVEL).toInt
         if (level > 0) {
-          ItemColorizer.removeColor(entity.getEntityItem)
+          ItemColorizer.removeColor(entity.getItem)
           entity.world.setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, Int.box(level - 1)), 3)
           return true
         }

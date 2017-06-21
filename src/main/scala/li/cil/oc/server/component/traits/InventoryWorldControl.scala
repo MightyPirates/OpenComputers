@@ -94,7 +94,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     }
     else {
       for (entity <- suckableItems(facing) if !entity.isDead && !entity.cannotPickup) {
-        val stack = entity.getEntityItem
+        val stack = entity.getItem
         val size = stack.getCount
         onSuckCollect(entity)
         if (stack.getCount < size || entity.isDead) {

@@ -21,7 +21,7 @@ object ExtendedWorld {
   class ExtendedBlockAccess(val world: IBlockAccess) {
     def getBlock(position: BlockPosition) = world.getBlockState(position.toBlockPos).getBlock
 
-    def getBlockMapColor(position: BlockPosition) = getBlock(position).getMapColor(getBlockMetadata(position))
+    def getBlockMapColor(position: BlockPosition) = getBlockMetadata(position).getMapColor(world, position.toBlockPos)
 
     def getBlockMetadata(position: BlockPosition) = world.getBlockState(position.toBlockPos)
 

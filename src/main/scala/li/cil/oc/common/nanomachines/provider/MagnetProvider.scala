@@ -24,12 +24,12 @@ object MagnetProvider extends ScalaProvider("9324d5ec-71f1-41c2-b51c-406e527668f
         val actualRange = Settings.get.nanomachineMagnetRange * api.Nanomachines.getController(player).getInputCount(this)
         val items = world.getEntitiesWithinAABB(classOf[EntityItem], player.getEntityBoundingBox.expand(actualRange, actualRange, actualRange))
         items.collect {
-          case item: EntityItem if !item.cannotPickup && !item.getEntityItem.isEmpty && player.inventory.mainInventory.exists(stack => stack.isEmpty || stack.getCount < stack.getMaxStackSize && stack.isItemEqual(item.getEntityItem)) =>
+          case item: EntityItem if !item.cannotPickup && !item.getItem.isEmpty && player.inventory.mainInventory.exists(stack => stack.isEmpty || stack.getCount < stack.getMaxStackSize && stack.isItemEqual(item.getItem)) =>
             val dx = player.posX - item.posX
             val dy = player.posY - item.posY
             val dz = player.posZ - item.posZ
             val delta = new Vec3d(dx, dy, dz).normalize()
-            item.addVelocity(delta.xCoord * 0.1, delta.yCoord * 0.1, delta.zCoord * 0.1)
+            item.addVelocity(delta.x * 0.1, delta.y * 0.1, delta.z * 0.1)
         }
       }
     }

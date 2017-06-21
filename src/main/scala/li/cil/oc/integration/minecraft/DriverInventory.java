@@ -178,7 +178,7 @@ public final class DriverInventory extends DriverSidedTileEntity {
 
         private boolean notPermitted() {
             synchronized (fakePlayer) {
-                fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
+                fakePlayer.setPosition(position.toVec3().x, position.toVec3().y, position.toVec3().z);
                 final PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, position.toBlockPos(), EnumFacing.DOWN, null);
                 MinecraftForge.EVENT_BUS.post(event);
                 return !event.isCanceled() && event.getUseBlock() != Event.Result.DENY && !tileEntity.isUsableByPlayer(fakePlayer);

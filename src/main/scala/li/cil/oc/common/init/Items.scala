@@ -521,8 +521,8 @@ object Items extends ItemAPI {
         Items.createChargedHoverBoots()
       ) ++ Loot.disksForClient ++ registeredItems
 
-      override def getSubItems(item: Item, tab: CreativeTabs, list: NonNullList[ItemStack]): Unit = {
-        super.getSubItems(item, tab, list)
+      override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]): Unit = {
+        super.getSubItems(tab, list)
         configuredItems.foreach(list.add)
       }
     }, "misc")

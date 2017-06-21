@@ -55,7 +55,7 @@ class UpgradeSolarGenerator(val host: EnvironmentHost) extends AbstractManagedEn
   private def isSunVisible = {
     val blockPos = BlockPosition(host).offset(EnumFacing.UP)
     host.world.isDaytime &&
-      (!host.world.provider.hasNoSky) &&
+      (!host.world.provider.isNether) &&
       host.world.canBlockSeeSky(blockPos.toBlockPos) &&
       (!host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
   }

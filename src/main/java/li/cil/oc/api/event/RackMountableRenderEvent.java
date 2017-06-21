@@ -4,7 +4,7 @@ import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.internal.Rack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -140,7 +140,7 @@ public abstract class RackMountableRenderEvent extends Event {
         public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
             final Tessellator t = Tessellator.getInstance();
-            final VertexBuffer r = t.getBuffer();
+            final BufferBuilder r = t.getBuffer();
             r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
             r.pos(u0, v1, 0).tex(u0, v1).endVertex();
             r.pos(u1, v1, 0).tex(u1, v1).endVertex();
@@ -170,7 +170,7 @@ public abstract class RackMountableRenderEvent extends Event {
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             final TextureAtlasSprite icon = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
             final Tessellator t = Tessellator.getInstance();
-            final VertexBuffer r = t.getBuffer();
+            final BufferBuilder r = t.getBuffer();
             r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
             r.pos(u0, v1, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
             r.pos(u1, v1, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();

@@ -130,7 +130,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
         val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
         val dz = 0.45 * Math.cos(theta)
-        getWorld.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
+        getWorld.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.x + dx, position.y + dz, position.z + dy, 0, 0, 0)
       })
     }
   }

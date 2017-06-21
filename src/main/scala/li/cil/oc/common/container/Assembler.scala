@@ -16,7 +16,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
       @SideOnly(Side.CLIENT) override
-      def canBeHovered = !isAssembling && super.canBeHovered
+      def isEnabled = !isAssembling && super.isEnabled
 
       override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })

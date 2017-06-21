@@ -11,6 +11,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving.SpawnPlacementType
 import net.minecraft.entity.EntityLivingBase
@@ -50,14 +51,14 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def canRenderInLayer(state: IBlockState, layer: BlockRenderLayer): Boolean = layer == BlockRenderLayer.CUTOUT_MIPPED
 
-  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
-    super.tooltipBody(metadata, stack, player, tooltip, advanced)
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) = {
+    super.tooltipBody(metadata, stack, world, tooltip, advanced)
     val data = new PrintData(stack)
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
 
-  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
-    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) = {
+    super.tooltipTail(metadata, stack, world, tooltip, advanced)
     val data = new PrintData(stack)
     if (data.isBeaconBase) {
       tooltip.add(Localization.Tooltip.PrintBeaconBase)

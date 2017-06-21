@@ -81,8 +81,8 @@ object Player {
       facing.getFrontOffsetX + side.getFrontOffsetX,
       facing.getFrontOffsetY + side.getFrontOffsetY,
       facing.getFrontOffsetZ + side.getFrontOffsetZ).normalize()
-    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
-    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
+    val yaw = Math.toDegrees(-Math.atan2(direction.x, direction.z)).toFloat
+    val pitch = Math.toDegrees(-Math.atan2(direction.y, Math.sqrt((direction.x * direction.x) + (direction.z * direction.z)))).toFloat * 0.99f
     player.setLocationAndAngles(player.agent.xPosition, player.agent.yPosition, player.agent.zPosition, yaw, pitch)
     player.prevRotationPitch = player.rotationPitch
     player.prevRotationYaw = player.rotationYaw
@@ -539,7 +539,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
 
-  override def setLastAttacker(entity: Entity) {}
+  override def setLastAttackedEntity(entity: Entity) {}
 
   override def startRiding(entityIn: Entity, force: Boolean): Boolean = false
 

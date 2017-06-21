@@ -77,11 +77,11 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
     val positionVec = position.toVec3
     val rangeSq = range * range
     val waypoints = Waypoints.findWaypoints(position, range).
-      filter(waypoint => waypoint.getDistanceSq(positionVec.xCoord, positionVec.yCoord, positionVec.zCoord) <= rangeSq)
+      filter(waypoint => waypoint.getDistanceSq(positionVec.x, positionVec.y, positionVec.z) <= rangeSq)
     result(waypoints.map(waypoint => {
       val delta = waypoint.position.offset(waypoint.facing).toVec3.subtract(positionVec)
       Map(
-        "position" -> Array(delta.xCoord, delta.yCoord, delta.zCoord),
+        "position" -> Array(delta.x, delta.y, delta.z),
         "redstone" -> waypoint.maxInput,
         "label" -> waypoint.label
       )

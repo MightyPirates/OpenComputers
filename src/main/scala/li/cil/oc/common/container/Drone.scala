@@ -26,7 +26,7 @@ class Drone(playerInventory: InventoryPlayer, drone: entity.Drone) extends Playe
     def isValid = (0 until drone.mainInventory.getSizeInventory).contains(getSlotIndex)
 
     @SideOnly(Side.CLIENT) override
-    def canBeHovered = isValid && super.canBeHovered
+    def isEnabled = isValid && super.isEnabled
 
     override def getBackgroundLocation =
       if (isValid) super.getBackgroundLocation

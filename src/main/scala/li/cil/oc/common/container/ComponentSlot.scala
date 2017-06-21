@@ -27,7 +27,7 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
   def hasBackground = backgroundLocation != null
 
   @SideOnly(Side.CLIENT)
-  override def canBeHovered = slot != common.Slot.None && tier != common.Tier.None && super.canBeHovered
+  override def isEnabled = slot != common.Slot.None && tier != common.Tier.None && super.isEnabled
 
   override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
 

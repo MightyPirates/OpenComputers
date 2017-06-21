@@ -54,12 +54,12 @@ object ExtendedAABB {
       min = min.rotateYaw(count * Math.PI.toFloat * 0.5f)
       max = max.rotateYaw(count * Math.PI.toFloat * 0.5f)
       new AxisAlignedBB(
-        (math.min(min.xCoord + 0.5, max.xCoord + 0.5) * 32).round / 32f,
-        (math.min(min.yCoord + 0.5, max.yCoord + 0.5) * 32).round / 32f,
-        (math.min(min.zCoord + 0.5, max.zCoord + 0.5) * 32).round / 32f,
-        (math.max(min.xCoord + 0.5, max.xCoord + 0.5) * 32).round / 32f,
-        (math.max(min.yCoord + 0.5, max.yCoord + 0.5) * 32).round / 32f,
-        (math.max(min.zCoord + 0.5, max.zCoord + 0.5) * 32).round / 32f)
+        (math.min(min.x + 0.5, max.x + 0.5) * 32).round / 32f,
+        (math.min(min.y + 0.5, max.y + 0.5) * 32).round / 32f,
+        (math.min(min.z + 0.5, max.z + 0.5) * 32).round / 32f,
+        (math.max(min.x + 0.5, max.x + 0.5) * 32).round / 32f,
+        (math.max(min.y + 0.5, max.y + 0.5) * 32).round / 32f,
+        (math.max(min.z + 0.5, max.z + 0.5) * 32).round / 32f)
     }
   }
 

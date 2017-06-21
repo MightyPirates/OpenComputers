@@ -8,7 +8,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
 
@@ -76,7 +76,7 @@ dependencies {
     deobfCompile "li.cil.tis3d:TIS-3D:MC${config.minecraft.version}-${config.tis3d.version}"
     deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
     deobfCompile "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    deobfCompile "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}"
+    deobfCompile "net.sengir.forestry:forestry_1.11.2:${config.forestry.version}"
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 

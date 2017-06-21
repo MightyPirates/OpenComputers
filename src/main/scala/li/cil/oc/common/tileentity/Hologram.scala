@@ -277,7 +277,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   @Callback(direct = true, doc = """function():number, number, number -- Returns the relative render projection offsets of the hologram.""")
   def getTranslation(context: Context, args: Arguments): Array[AnyRef] = {
-    result(translation.xCoord, translation.yCoord, translation.zCoord)
+    result(translation.x, translation.y, translation.z)
   }
 
   @Callback(doc = """function(tx:number, ty:number, tz:number) -- Sets the relative render projection offsets of the hologram.""")
@@ -443,12 +443,12 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     // overscale to take into account 45 degree rotation
     val sv = height / 16 * scale * Sqrt2
     new AxisAlignedBB(
-      cx + (-0.5 + translation.xCoord) * sh,
-      cy + translation.yCoord * sv,
-      cz + (-0.5 + translation.zCoord) * sh,
-      cx + (0.5 + translation.xCoord) * sh,
-      cy + (1 + translation.yCoord) * sv,
-      cz + (0.5 + translation.xCoord) * sh)
+      cx + (-0.5 + translation.x) * sh,
+      cy + translation.y * sv,
+      cz + (-0.5 + translation.z) * sh,
+      cx + (0.5 + translation.x) * sh,
+      cy + (1 + translation.y) * sv,
+      cz + (0.5 + translation.x) * sh)
   }
 
   // ----------------------------------------------------------------------- //
@@ -501,9 +501,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
       tag.setIntArray(ColorsTag, colors.map(convertColor))
     })
     nbt.setDouble(ScaleTag, scale)
-    nbt.setDouble(OffsetXTag, translation.xCoord)
-    nbt.setDouble(OffsetYTag, translation.yCoord)
-    nbt.setDouble(OffsetZTag, translation.zCoord)
+    nbt.setDouble(OffsetXTag, translation.x)
+    nbt.setDouble(OffsetYTag, translation.y)
+    nbt.setDouble(OffsetZTag, translation.z)
     nbt.setFloat(RotationAngleTag, rotationAngle)
     nbt.setFloat(RotationXTag, rotationX)
     nbt.setFloat(RotationYTag, rotationY)
@@ -541,9 +541,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.setIntArray(ColorsTag, colors)
     nbt.setDouble(ScaleTag, scale)
     nbt.setBoolean(HasPowerTag, hasPower)
-    nbt.setDouble(OffsetXTag, translation.xCoord)
-    nbt.setDouble(OffsetYTag, translation.yCoord)
-    nbt.setDouble(OffsetZTag, translation.zCoord)
+    nbt.setDouble(OffsetXTag, translation.x)
+    nbt.setDouble(OffsetYTag, translation.y)
+    nbt.setDouble(OffsetZTag, translation.z)
     nbt.setFloat(RotationAngleTag, rotationAngle)
     nbt.setFloat(RotationXTag, rotationX)
     nbt.setFloat(RotationYTag, rotationY)

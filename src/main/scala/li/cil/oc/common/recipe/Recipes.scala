@@ -18,6 +18,7 @@ import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.IRecipe
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.registry.RegistryNamespaced
@@ -25,6 +26,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.registry.IForgeRegistryEntry
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
@@ -222,7 +224,7 @@ object Recipes {
       val tablet = api.Items.get(Constants.ItemName.Tablet)
 
       // Navigation upgrade recrafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         navigationUpgrade.createItemStack(1),
         navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.FILLED_MAP, 1, OreDictionary.WILDCARD_VALUE)))
 
@@ -232,36 +234,36 @@ object Recipes {
         val tag = new NBTTagCompound()
         tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(dye))
         result.setTagCompound(tag)
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
+        Recipes.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
       }
 
       // Microcontroller recrafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         mcu.createItemStack(1),
         mcu.createItemStack(1), eeprom.createItemStack(1)))
 
       // Drone recrafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         drone.createItemStack(1),
         drone.createItemStack(1), eeprom.createItemStack(1)))
 
       // EEPROM copying via crafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         eeprom.createItemStack(2),
         eeprom.createItemStack(1), eeprom.createItemStack(1)))
 
       // Robot recrafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         robot.createItemStack(1),
         robot.createItemStack(1), eeprom.createItemStack(1)))
 
       // Tablet recrafting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         tablet.createItemStack(1),
         tablet.createItemStack(1), eeprom.createItemStack(1)))
 
       // Chamelium block splitting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         chamelium.createItemStack(9),
         chameliumBlock.createItemStack(1)))
 
@@ -271,7 +273,7 @@ object Recipes {
         result.setItemDamage(meta)
         val input = chameliumBlock.createItemStack(1)
         input.setItemDamage(OreDictionary.WILDCARD_VALUE)
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        Recipes.addRecipe(new ExtendedShapelessOreRecipe(
           result,
           input, dye))
       }
@@ -291,13 +293,13 @@ object Recipes {
         net.minecraft.init.Blocks.EMERALD_BLOCK,
         net.minecraft.init.Blocks.DIAMOND_BLOCK
       )) {
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        Recipes.addRecipe(new ExtendedShapelessOreRecipe(
           beaconPrint,
           print.createItemStack(1), new ItemStack(block)))
       }
 
       // Floppy disk formatting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
 
       // Hard disk formatting.
       val hdds = Array(
@@ -306,11 +308,11 @@ object Recipes {
         api.Items.get(Constants.ItemName.HDDTier3)
       )
       for (hdd <- hdds) {
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(hdd.createItemStack(1), hdd.createItemStack(1)))
+        Recipes.addRecipe(new ExtendedShapelessOreRecipe(hdd.createItemStack(1), hdd.createItemStack(1)))
       }
 
       // EEPROM formatting.
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(eeprom.createItemStack(1), eeprom.createItemStack(1)))
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(eeprom.createItemStack(1), eeprom.createItemStack(1)))
 
       // Print light value increments.
       val lightPrint = print.createItemStack(1)
@@ -321,7 +323,7 @@ object Recipes {
         printData.save(lightPrint)
       }
 
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
         print.createItemStack(1), new ItemStack(net.minecraft.init.Items.GLOWSTONE_DUST)))
 
@@ -331,21 +333,21 @@ object Recipes {
         printData.save(lightPrint)
       }
 
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
         print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.GLOWSTONE)))
 
       // Hover Boot dyeing
-      GameRegistry.addRecipe(new ColorizeRecipe(hoverBoots.item()))
-      GameRegistry.addRecipe(new DecolorizeRecipe(hoverBoots.item()))
+      Recipes.addRecipe(new ColorizeRecipe(hoverBoots.item()), "colorizeBoots")
+      Recipes.addRecipe(new DecolorizeRecipe(hoverBoots.item()), "decolorizeBoots")
 
       // Cable dyeing
-      GameRegistry.addRecipe(new ColorizeRecipe(cable.block()))
-      GameRegistry.addRecipe(new DecolorizeRecipe(cable.block()))
+      Recipes.addRecipe(new ColorizeRecipe(cable.block()), "colorizeCable")
+      Recipes.addRecipe(new DecolorizeRecipe(cable.block()), "decolorizeCable")
 
       // Loot disk cycling.
       if (Settings.get.lootRecrafting) {
-        GameRegistry.addRecipe(new LootDiskCyclingRecipe())
+        Recipes.addRecipe(new LootDiskCyclingRecipe(), "lootCycling")
       }
     }
     catch {
@@ -490,4 +492,18 @@ object Recipes {
 
   class RecipeException(message: String) extends RuntimeException(message)
 
+  def addRecipe(recipe: IForgeRegistryEntry.Impl[IRecipe], group: String): IRecipe = GameRegistry.register(recipe.setRegistryName(Settings.resourceDomain, group))
+
+  private var recipeCounter: Int = 0
+
+  def addRecipe(recipe: IForgeRegistryEntry.Impl[IRecipe]): Unit = recipe match {
+    case r: IRecipe => r.getRecipeOutput match {
+      case stack: ItemStack if !stack.isEmpty =>
+        // Who cares about recipe names?
+        addRecipe(recipe, stack.getItem.getRegistryName.getResourcePath + recipeCounter.toString)
+        recipeCounter += 1
+      case _ => throw new IllegalArgumentException("invalid recipe name: " + r.getRecipeOutput)
+    }
+    case _ => throw new IllegalArgumentException("invalid recipe name: " + recipe)
+  }
 }

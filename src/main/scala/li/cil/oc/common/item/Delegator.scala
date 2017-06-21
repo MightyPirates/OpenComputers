@@ -11,6 +11,7 @@ import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.util.BlockPosition
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -70,7 +71,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => None
     }
 
-  override def getSubItems(item: Item, tab: CreativeTabs, list: NonNullList[ItemStack]) {
+  override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]) {
     // Workaround for MC's untyped lists...
     subItems.indices.filter(subItems(_).showInItemList).
       map(subItems(_).createItemStack()).
@@ -187,10 +188,10 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
     }
 
   @SideOnly(Side.CLIENT)
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.addInformation(stack, player, tooltip, advanced)
+  override def addInformation(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    super.addInformation(stack, world, tooltip, flag)
     Delegator.subItem(stack) match {
-      case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip, advanced) catch {
+      case Some(subItem) => try subItem.tooltipLines(stack, world, tooltip, flag) catch {
         case t: Throwable => OpenComputers.log.warn("Error in item tooltip.", t)
       }
       case _ => // Nothing to add.

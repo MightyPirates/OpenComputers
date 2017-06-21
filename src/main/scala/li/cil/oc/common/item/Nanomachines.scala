@@ -6,6 +6,7 @@ import com.google.common.base.Strings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.NanomachineData
 import li.cil.oc.common.nanomachines.ControllerImpl
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
@@ -22,8 +23,8 @@ class Nanomachines(val parent: Delegator) extends traits.Delegate {
   override def rarity(stack: ItemStack): EnumRarity = EnumRarity.UNCOMMON
 
   @SideOnly(Side.CLIENT)
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
-    super.tooltipLines(stack, player, tooltip, advanced)
+  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag): Unit = {
+    super.tooltipLines(stack, world, tooltip, flag)
     if (stack.hasTagCompound) {
       val data = new NanomachineData(stack)
       if (!Strings.isNullOrEmpty(data.uuid)) {

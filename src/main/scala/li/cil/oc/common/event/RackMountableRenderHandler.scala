@@ -50,7 +50,7 @@ object RackMountableRenderHandler {
           // This is very 'meh', but item frames do it like this, too!
           val entity = new EntityItem(e.rack.world, 0, 0, 0, stack)
           entity.hoverStart = 0
-          Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
+          Minecraft.getMinecraft.getRenderItem.renderItem(entity.getItem, ItemCameraTransforms.TransformType.FIXED)
           GlStateManager.popMatrix()
         }
       }

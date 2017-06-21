@@ -130,7 +130,7 @@ object PrintData {
       val bounds = new AxisAlignedBB(
         x * step, y * step, z * step,
         (x + 1) * step, (y + 1) * step, (z + 1) * step)
-      if (!shapes.exists(_.bounds.intersectsWith(bounds))) {
+      if (!shapes.exists(_.bounds.intersects(bounds))) {
         volume -= invMaxVolume
       }
     }

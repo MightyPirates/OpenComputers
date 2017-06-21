@@ -267,9 +267,9 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
 
     pb.writeTileEntity(t)
-    pb.writeDouble(t.translation.xCoord)
-    pb.writeDouble(t.translation.yCoord)
-    pb.writeDouble(t.translation.zCoord)
+    pb.writeDouble(t.translation.x)
+    pb.writeDouble(t.translation.y)
+    pb.writeDouble(t.translation.z)
 
     pb.sendToPlayersNearTileEntity(t)
   }

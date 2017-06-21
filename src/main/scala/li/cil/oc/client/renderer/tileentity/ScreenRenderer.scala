@@ -37,8 +37,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def renderTileEntityAt(screen: Screen, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(screen: Screen, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     this.screen = screen
     if (!screen.isOrigin) {
@@ -57,7 +57,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
       return
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
+    RenderState.checkError(getClass.getName + ".render: checks")
 
     RenderState.pushAttrib()
 
@@ -69,11 +69,11 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
     GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: setup")
+    RenderState.checkError(getClass.getName + ".render: setup")
 
     drawOverlay()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: overlay")
+    RenderState.checkError(getClass.getName + ".render: overlay")
 
     if (distance > fadeDistanceSq) {
       val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
@@ -83,7 +83,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
       }
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: fade")
+    RenderState.checkError(getClass.getName + ".render: fade")
 
     if (screen.buffer.isRenderingEnabled) {
       draw()
@@ -95,7 +95,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
   private def transform() {

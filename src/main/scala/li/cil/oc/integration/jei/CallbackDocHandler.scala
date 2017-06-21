@@ -5,6 +5,7 @@ import javax.annotation.Nonnull
 
 import com.google.common.base.Strings
 import com.mojang.realmsclient.gui.ChatFormatting
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.server.machine.Callbacks
@@ -15,6 +16,7 @@ import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.ingredients.IIngredients
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
+import mezz.jei.api.recipe.IRecipeCategory
 import mezz.jei.api.recipe.IRecipeHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
@@ -97,7 +99,7 @@ object CallbackDocHandler {
     }
   }
 
-  object CallbackDocRecipeCategory extends BlankRecipeCategory[CallbackDocRecipe] {
+  object CallbackDocRecipeCategory extends IRecipeCategory[CallbackDocRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
     private var background: IDrawable = _
@@ -119,6 +121,8 @@ object CallbackDocHandler {
     override def getTitle = "OpenComputers API"
 
     override def getUid = "oc.api"
+
+    override def getModName: String = OpenComputers.Name
   }
 
 }

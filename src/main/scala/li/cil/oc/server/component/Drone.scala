@@ -47,7 +47,7 @@ class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Age
   override protected def suckableItems(side: EnumFacing) = entitiesInBlock(classOf[EntityItem], position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
-    if (InventoryUtils.insertIntoInventory(entity.getEntityItem, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))) {
+    if (InventoryUtils.insertIntoInventory(entity.getItem, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))) {
       world.playSound(agent.player, agent.posX, agent.posY, agent.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
     }
   }

@@ -11,8 +11,8 @@ import org.lwjgl.opengl.GL11
 
 object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
 
-  override def renderTileEntityAt(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
 
@@ -71,6 +71,6 @@ object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

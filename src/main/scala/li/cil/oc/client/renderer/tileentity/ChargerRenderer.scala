@@ -11,8 +11,8 @@ import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
-  override def renderTileEntityAt(charger: Charger, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(charger: Charger, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (charger.chargeSpeed > 0) {
       RenderState.pushAttrib()
@@ -79,6 +79,6 @@ object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
       RenderState.popAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

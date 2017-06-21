@@ -5,7 +5,7 @@ import li.cil.oc.common.tileentity.Raid
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.VertexBuffer
+import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -13,8 +13,8 @@ import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
-  override def renderTileEntityAt(raid: Raid, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(raid: Raid, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
 
@@ -68,13 +68,13 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
   private val u1 = 2 / 16f
   private val fs = 4 / 16f
 
-  private def renderSlot(r: VertexBuffer, slot: Int, icon: TextureAtlasSprite) {
+  private def renderSlot(r: BufferBuilder, slot: Int, icon: TextureAtlasSprite) {
     val l = u1 + slot * fs
     val h = u1 + (slot + 1) * fs
     r.pos(l, 1, 0).tex(icon.getInterpolatedU(l * 16), icon.getMaxV).endVertex()

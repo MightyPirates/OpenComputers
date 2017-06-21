@@ -59,7 +59,7 @@ object EventHandlerVanilla {
     e.data += "hardness" -> Float.box(block.getBlockHardness(world.getBlockState(e.pos), world, e.pos))
     e.data += "harvestLevel" -> Int.box(block.getHarvestLevel(blockState))
     e.data += "harvestTool" -> block.getHarvestTool(blockState)
-    e.data += "color" -> Int.box(block.getMapColor(blockState).colorValue)
+    e.data += "color" -> Int.box(blockState.getMapColor(world, e.pos).colorValue)
 
     if (Settings.get.insertIdsInConverters) {
       e.data += "id" -> Int.box(Block.getIdFromBlock(block))

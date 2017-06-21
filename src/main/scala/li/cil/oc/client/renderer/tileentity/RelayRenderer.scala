@@ -10,8 +10,8 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
 object RelayRenderer extends TileEntitySpecialRenderer[tileentity.Relay] {
-  override def renderTileEntityAt(switch: tileentity.Relay, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(switch: tileentity.Relay, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
@@ -63,6 +63,6 @@ object RelayRenderer extends TileEntitySpecialRenderer[tileentity.Relay] {
       RenderState.popAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

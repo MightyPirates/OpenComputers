@@ -67,12 +67,12 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
   POSITION_TEX_NORMALF.addElement(DefaultVertexFormats.TEX_2F)
   POSITION_TEX_NORMALF.addElement(NORMAL_3F)
 
-  private implicit def extendWorldRenderer(self: VertexBuffer): ExtendedWorldRenderer = new ExtendedWorldRenderer(self)
+  private implicit def extendWorldRenderer(self: BufferBuilder): ExtendedWorldRenderer = new ExtendedWorldRenderer(self)
 
-  private class ExtendedWorldRenderer(val buffer: VertexBuffer) {
-    def normal(normal: Vec3d): VertexBuffer = {
+  private class ExtendedWorldRenderer(val buffer: BufferBuilder) {
+    def normal(normal: Vec3d): BufferBuilder = {
       val normalized = normal.normalize()
-      buffer.normal(normalized.xCoord.toFloat, normalized.yCoord.toFloat, normalized.zCoord.toFloat)
+      buffer.normal(normalized.x.toFloat, normalized.y.toFloat, normalized.z.toFloat)
     }
   }
 
@@ -291,8 +291,8 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
     }
   }
 
-  override def renderTileEntityAt(proxy: tileentity.RobotProxy, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(proxy: tileentity.RobotProxy, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     val robot = proxy.robot
     val worldTime = robot.getWorld.getTotalWorldTime + f
@@ -501,6 +501,6 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

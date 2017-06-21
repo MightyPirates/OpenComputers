@@ -337,7 +337,7 @@ object EventHandler {
   @SubscribeEvent
   def onPickup(e: ItemPickupEvent): Unit = {
     val entity = e.pickedUp
-    Option(entity).flatMap(e => Option(e.getEntityItem)) match {
+    Option(entity).flatMap(e => Option(e.getItem)) match {
       case Some(stack) =>
         Achievement.onAssemble(stack, e.player)
         Achievement.onCraft(stack, e.player)

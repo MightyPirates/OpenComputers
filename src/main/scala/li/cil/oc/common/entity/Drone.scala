@@ -200,9 +200,9 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
   override def getTarget = new Vec3d(targetX.floatValue(), targetY.floatValue(), targetZ.floatValue())
 
   override def setTarget(value: Vec3d): Unit = {
-    targetX = value.xCoord.toFloat
-    targetY = value.yCoord.toFloat
-    targetZ = value.zCoord.toFloat
+    targetX = value.x.toFloat
+    targetY = value.y.toFloat
+    targetZ = value.z.toFloat
   }
 
   override def getVelocity = new Vec3d(motionX, motionY, motionZ)
@@ -274,7 +274,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     control.node.changeBuffer(info.storedEnergy - control.node.localBuffer)
     wireThingsTogether()
     inventorySize = computeInventorySize()
-    setPosition(position.xCoord, position.yCoord, position.zCoord)
+    setPosition(position.x, position.y, position.z)
   }
 
   def preparePowerUp() {
@@ -421,9 +421,9 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
       val velocity = new Vec3d(motionX, motionY, motionZ)
       if (distance > 0 && (distance > 0.005f || velocity.dotProduct(velocity) > 0.005f)) {
         val acceleration = math.min(targetAcceleration.floatValue(), distance) / distance
-        val velocityX = velocity.xCoord + toTarget.xCoord * acceleration
-        val velocityY = velocity.yCoord + toTarget.yCoord * acceleration
-        val velocityZ = velocity.zCoord + toTarget.zCoord * acceleration
+        val velocityX = velocity.x + toTarget.x * acceleration
+        val velocityY = velocity.y + toTarget.y * acceleration
+        val velocityZ = velocity.z + toTarget.z * acceleration
         motionX = math.max(-maxVelocity, math.min(maxVelocity, velocityX))
         motionY = math.max(-maxVelocity, math.min(maxVelocity, velocityY))
         motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocityZ))
@@ -466,13 +466,13 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
       val direction = new Vec3d(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
         if (Settings.get.inputUsername)
-          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord), entity.getName)
+          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y), entity.getName)
         else
-          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord))
+          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y))
       }
-      motionX = (motionX - direction.xCoord) * 0.5f
-      motionY = (motionY - direction.yCoord) * 0.5f
-      motionZ = (motionZ - direction.zCoord) * 0.5f
+      motionX = (motionX - direction.x) * 0.5f
+      motionY = (motionY - direction.y) * 0.5f
+      motionZ = (motionZ - direction.z) * 0.5f
     }
     super.hitByEntity(entity)
   }
@@ -482,7 +482,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     if (player.isSneaking) {
       if (Wrench.isWrench(player.getHeldItemMainhand)) {
         if(!world.isRemote) {
-          kill()
+          outOfWorld()
         }
       }
       else if (!world.isRemote && !machine.isRunning) {
@@ -549,9 +549,9 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
     }
   }
 
-  override def kill(): Unit = {
+  override def outOfWorld(): Unit = {
     if (isDead) return
-    super.kill()
+    super.outOfWorld()
     if (!world.isRemote) {
       val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
       info.storedEnergy = control.node.localBuffer.toInt

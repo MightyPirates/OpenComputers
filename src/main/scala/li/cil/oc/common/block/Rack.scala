@@ -120,8 +120,8 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
           }
           // Rotate *centers* of pixels to keep association when reversing axis.
           val localHitVec = rotate(hitVec.addVector(-0.5 + 1 / 32f, -0.5 + 1 / 32f, -0.5 + 1 / 32f), rotation).addVector(0.5 - 1 / 32f, 0.5 - 1 / 32f, 0.5 - 1 / 32f)
-          val globalX = (localHitVec.xCoord * 16.05f).toInt // [0, 15], work around floating point inaccuracies
-          val globalY = (localHitVec.yCoord * 16.05f).toInt // [0, 15], work around floating point inaccuracies
+          val globalX = (localHitVec.x * 16.05f).toInt // [0, 15], work around floating point inaccuracies
+          val globalY = (localHitVec.y * 16.05f).toInt // [0, 15], work around floating point inaccuracies
           val localX = (if (side.getAxis != Axis.Z) 15 - globalX else globalX) - 1
           val localY = (15 - globalY) - 2 - 3 * slot
           if (localX >= 0 && localX < 14 && localY >= 0 && localY < 3) rack.getMountable(slot) match {
@@ -138,6 +138,6 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
   def rotate(v: Vec3d, t: Float): Vec3d = {
     val cos = Math.cos(t)
     val sin = Math.sin(t)
-    new Vec3d(v.xCoord * cos - v.zCoord * sin, v.yCoord, v.xCoord * sin + v.zCoord * cos)
+    new Vec3d(v.x * cos - v.z * sin, v.y, v.x * sin + v.z * cos)
   }
 }

@@ -109,7 +109,7 @@ class Manual extends GuiScreen with traits.Window {
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]
       GlStateManager.pushMatrix()
-      GlStateManager.translate(button.xPosition + 5, button.yPosition + 5, zLevel)
+      GlStateManager.translate(button.x + 5, button.y + 5, zLevel)
       tab.renderer.render()
       GlStateManager.popMatrix()
     }
@@ -127,13 +127,13 @@ class Manual extends GuiScreen with traits.Window {
 
     if (!isDragging) for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]
-      if (mouseX > button.xPosition && mouseX < button.xPosition + tabWidth && mouseY > button.yPosition && mouseY < button.yPosition + tabHeight) tab.tooltip.foreach(text => {
+      if (mouseX > button.x && mouseX < button.x + tabWidth && mouseY > button.y && mouseY < button.y + tabHeight) tab.tooltip.foreach(text => {
         drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRenderer)
       })
     }
 
     if (canScroll && (isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop) || isDragging)) {
-      drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.yPosition + scrollButton.height + 1, fontRenderer)
+      drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.y + scrollButton.height + 1, fontRenderer)
     }
   }
 
@@ -192,10 +192,10 @@ class Manual extends GuiScreen with traits.Window {
     ManualAPI.history.top.offset = math.max(0, math.min(maxOffset, row))
     val yMin = guiTop + scrollPosY
     if (maxOffset > 0) {
-      scrollButton.yPosition = yMin + (scrollHeight - 13) * offset / maxOffset
+      scrollButton.y = yMin + (scrollHeight - 13) * offset / maxOffset
     }
     else {
-      scrollButton.yPosition = yMin
+      scrollButton.y = yMin
     }
   }
 

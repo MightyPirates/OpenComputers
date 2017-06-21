@@ -13,8 +13,8 @@ object RackRenderer extends TileEntitySpecialRenderer[Rack] {
   private final val vOffset = 2 / 16f
   private final val vSize = 3 / 16f
 
-  override def renderTileEntityAt(rack: Rack, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(rack: Rack, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, alpha: Float): Unit = {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
 
@@ -51,6 +51,6 @@ object RackRenderer extends TileEntitySpecialRenderer[Rack] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

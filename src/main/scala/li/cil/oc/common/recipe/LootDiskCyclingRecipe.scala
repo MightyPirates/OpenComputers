@@ -9,10 +9,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.IRecipe
 import net.minecraft.util.NonNullList
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.registry.IForgeRegistryEntry
 
 import scala.collection.immutable
 
-class LootDiskCyclingRecipe extends IRecipe {
+class LootDiskCyclingRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe {
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
     val stacks = collectStacks(crafting).toArray
     stacks.length == 2 && stacks.exists(Loot.isLootDisk) && stacks.exists(Wrench.isWrench)
@@ -34,7 +35,7 @@ class LootDiskCyclingRecipe extends IRecipe {
 
   def collectStacks(crafting: InventoryCrafting): immutable.IndexedSeq[ItemStack] = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
 
-  override def getRecipeSize: Int = 2
+  override def canFit(width: Int, height: Int): Boolean = width * height >= 2
 
   override def getRecipeOutput: ItemStack = ItemStack.EMPTY
 

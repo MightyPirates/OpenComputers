@@ -44,7 +44,7 @@ object RecipeHandler {
       input ++= ingredients
     }
     if (input.nonEmpty && output.getCount > 0) {
-      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
+      Recipes.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
     }
   }
 
@@ -56,7 +56,7 @@ object RecipeHandler {
     output.setCount(Recipes.tryGetCount(recipe))
 
     if (input.nonEmpty && output.getCount > 0) {
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
     }
   }
 

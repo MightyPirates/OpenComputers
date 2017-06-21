@@ -61,9 +61,9 @@ object BlockPosition {
 
   def apply(x: Double, y: Double, z: Double) = new BlockPosition(x, y, z, None)
 
-  def apply(v: Vec3d) = new BlockPosition(v.xCoord, v.yCoord, v.zCoord, None)
+  def apply(v: Vec3d) = new BlockPosition(v.x, v.y, v.z, None)
 
-  def apply(v: Vec3d, world: World) = new BlockPosition(v.xCoord, v.yCoord, v.zCoord, Option(world))
+  def apply(v: Vec3d, world: World) = new BlockPosition(v.x, v.y, v.z, Option(world))
 
   def apply(host: EnvironmentHost): BlockPosition = BlockPosition(host.xPosition, host.yPosition, host.zPosition, host.world)
 

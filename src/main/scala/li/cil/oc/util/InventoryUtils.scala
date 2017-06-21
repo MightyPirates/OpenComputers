@@ -370,7 +370,7 @@ object InventoryUtils {
         0.1 * (rng.nextDouble - 0.5) + oy * 0.75 + (ox + oz) * 0.25,
         0.1 * (rng.nextDouble - 0.5) + oz * 0.65)
       val dropPos = position.offset(0.5 + tx, 0.5 + ty, 0.5 + tz)
-      val entity = new EntityItem(world, dropPos.xCoord, dropPos.yCoord, dropPos.zCoord, stack.copy())
+      val entity = new EntityItem(world, dropPos.x, dropPos.y, dropPos.z, stack.copy())
       entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + ox * 0.03
       entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + oy * 0.08 + (ox + oz) * 0.03
       entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03

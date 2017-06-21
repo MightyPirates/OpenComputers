@@ -73,7 +73,7 @@ object ExtendedRecipe {
         craftedStack.setTagCompound(new NBTTagCompound())
       }
       val nbt = craftedStack.getTagCompound
-      if (recipe.getRecipeSize == 1) {
+      if (recipe.canFit(1, 1)) {
         // Formatting / loot to normal disk conversion, only keep coloring.
         val colorKey = Settings.namespace + "color"
         for (stack <- getItems(inventory)) {
@@ -103,8 +103,7 @@ object ExtendedRecipe {
 
     if (api.Items.get(craftedStack) == print &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
-      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
-      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) {
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getIngredients.size == 2) {
       // First, copy old data.
       val data = new PrintData(craftedStack)
       val inputs = getItems(inventory)
@@ -156,8 +155,7 @@ object ExtendedRecipe {
     if (api.Items.get(craftedStack) == eeprom &&
       craftedStack.getCount == 2 &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
-      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
-      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) breakable {
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getIngredients.size == 2) breakable {
       for (stack <- getItems(inventory)) {
         if (api.Items.get(stack) == eeprom && stack.hasTagCompound) {
           val copy = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]

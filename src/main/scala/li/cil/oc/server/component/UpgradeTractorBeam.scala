@@ -55,7 +55,7 @@ object UpgradeTractorBeam {
       .filter(item => item.isEntityAlive && !item.cannotPickup)
     if (items.nonEmpty) {
       val item = items(world.rand.nextInt(items.size))
-      val stack = item.getEntityItem
+      val stack = item.getItem
       val size = stack.getCount
       collectItem(item)
       if (stack.getCount < size || item.isDead) {
@@ -78,7 +78,7 @@ object UpgradeTractorBeam {
     override protected def position = BlockPosition(owner)
 
     override protected def collectItem(item: EntityItem) = {
-      InventoryUtils.insertIntoInventory(item.getEntityItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
+      InventoryUtils.insertIntoInventory(item.getItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
     }
 
     private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getSizeInventory) ++ (0 until owner.selectedSlot)

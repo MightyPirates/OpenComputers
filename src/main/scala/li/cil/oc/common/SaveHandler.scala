@@ -76,8 +76,8 @@ object SaveHandler {
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
     nbt.setInteger("dimension", dimension)
-    nbt.setInteger("chunkX", chunk.chunkXPos)
-    nbt.setInteger("chunkZ", chunk.chunkZPos)
+    nbt.setInteger("chunkX", chunk.x)
+    nbt.setInteger("chunkZ", chunk.z)
 
     scheduleSave(dimension, chunk, name, data)
   }
@@ -146,7 +146,7 @@ object SaveHandler {
     }
     val path = statePath
     val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     val file = new io.File(chunkPath, name)
     if (!file.exists()) return Array.empty[Byte]
     try {
@@ -177,7 +177,7 @@ object SaveHandler {
     val dimension = e.getWorld.provider.getDimension
     val chunk = e.getChunk.getPos
     val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
       for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
     }

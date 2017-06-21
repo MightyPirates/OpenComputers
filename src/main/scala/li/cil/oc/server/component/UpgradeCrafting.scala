@@ -20,6 +20,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
+import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import net.minecraftforge.fml.common.FMLCommonHandler
@@ -55,15 +56,14 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
 
     def craft(wantedCount: Int): Seq[_] = {
       load()
-      val cm = CraftingManager.getInstance
       var countCrafted = 0
-      val canCraft = cm.findMatchingRecipe(CraftingInventory, host.world) != null
+      val canCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world) != null
       breakable {
         while (countCrafted < wantedCount) {
-          val result = cm.findMatchingRecipe(CraftingInventory, host.world)
-          if (result == null || result.getCount < 1) break()
-          countCrafted += result.getCount
-          FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
+          val result = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
+          if (result == null || result.getRecipeOutput.getCount < 1) break()
+          countCrafted += result.getRecipeOutput.getCount
+          FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result.getRecipeOutput, this)
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
           for (slot <- 0 until getSizeInventory) {
             val stack = getStackInSlot(slot)
@@ -85,7 +85,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
             }
           }
           save()
-          InventoryUtils.addToPlayerInventory(result, host.player)
+          InventoryUtils.addToPlayerInventory(result.getRecipeOutput, host.player)
           for (stack <- surplus) {
             InventoryUtils.addToPlayerInventory(stack, host.player)
           }

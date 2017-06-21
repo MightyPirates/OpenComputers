@@ -65,14 +65,14 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
    */
   private var failed = false
 
-  override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def render(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
     if (failed) {
-      HologramRendererFallback.renderTileEntityAt(hologram, x, y, z, f, damage)
+      HologramRendererFallback.render(hologram, x, y, z, f, damage, alpha)
       return
     }
 
     this.hologram = hologram
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (!hologram.hasPower) return
 
@@ -106,9 +106,9 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
 
     GlStateManager.scale(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
     GlStateManager.translate(
-      (hologram.translation.xCoord * hologram.width / 16 - 1.5) * hologram.scale,
-      hologram.translation.yCoord * hologram.height / 16 * hologram.scale,
-      (hologram.translation.zCoord * hologram.width / 16 - 1.5) * hologram.scale)
+      (hologram.translation.x * hologram.width / 16 - 1.5) * hologram.scale,
+      hologram.translation.y * hologram.height / 16 * hologram.scale,
+      (hologram.translation.z * hologram.width / 16 - 1.5) * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
     if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
@@ -157,7 +157,7 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
     RenderState.popAttrib()
     GL11.glPopClientAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
   def draw(glBuffer: Int) {

@@ -15,8 +15,8 @@ import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
-  override def renderTileEntityAt(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
     GlStateManager.color(1, 1, 1, 1)
@@ -46,7 +46,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
         val entity = new EntityItem(drive.world, 0, 0, 0, stack)
         entity.hoverStart = 0
         Textures.Block.bind()
-        Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
+        Minecraft.getMinecraft.getRenderItem.renderItem(entity.getItem, ItemCameraTransforms.TransformType.FIXED)
         GlStateManager.popMatrix()
       case _ =>
     }
@@ -80,6 +80,6 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
     GlStateManager.popMatrix()
     RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

@@ -283,7 +283,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   protected def endConsumeDrops(player: Player, entity: Entity) {
     entity.captureDrops = false
     for (drop <- entity.capturedDrops) {
-      val stack = drop.getEntityItem
+      val stack = drop.getItem
       InventoryUtils.addToPlayerInventory(stack, player)
     }
     entity.capturedDrops.clear()
@@ -315,9 +315,9 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   protected def clickParamsFromHit(hit: RayTraceResult): (BlockPos, Float, Float, Float) = {
     (hit.getBlockPos,
-      (hit.hitVec.xCoord - hit.getBlockPos.getX).toFloat,
-      (hit.hitVec.yCoord - hit.getBlockPos.getY).toFloat,
-      (hit.hitVec.zCoord - hit.getBlockPos.getZ).toFloat)
+      (hit.hitVec.x - hit.getBlockPos.getX).toFloat,
+      (hit.hitVec.y - hit.getBlockPos.getY).toFloat,
+      (hit.hitVec.z - hit.getBlockPos.getZ).toFloat)
   }
 
   protected def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing): (BlockPos, Float, Float, Float) = {

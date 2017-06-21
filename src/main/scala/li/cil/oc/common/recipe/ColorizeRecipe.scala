@@ -85,7 +85,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
     targetStack
   }
 
-  override def getRecipeSize = 10
+  override def getMinimumRecipeSize = 2
 
   override def getRecipeOutput = ItemStack.EMPTY
 }

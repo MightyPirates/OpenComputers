@@ -4,6 +4,7 @@ import java.util
 import javax.annotation.Nonnull
 
 import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import mezz.jei.api.IGuiHelper
@@ -13,6 +14,7 @@ import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.ingredients.IIngredients
 import mezz.jei.api.recipe.BlankRecipeCategory
 import mezz.jei.api.recipe.BlankRecipeWrapper
+import mezz.jei.api.recipe.IRecipeCategory
 import mezz.jei.api.recipe.IRecipeHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
@@ -48,9 +50,9 @@ object ManualUsageHandler {
 
     override def drawInfo(@Nonnull minecraft: Minecraft, recipeWidth: Int, recipeHeight: Int, mouseX: Int, mouseY: Int): Unit = {
       button.displayString = Localization.localizeImmediately("nei.usage.oc.Manual")
-      button.xPosition = (recipeWidth - button.width) / 2
-      button.yPosition = button.height / 2
-      button.drawButton(minecraft, mouseX, mouseY)
+      button.x = (recipeWidth - button.width) / 2
+      button.y = button.height / 2
+      button.drawButton(minecraft, mouseX, mouseY, 1)
     }
 
     override def handleClick(@Nonnull minecraft: Minecraft, mouseX: Int, mouseY: Int, mouseButton: Int): Boolean = {
@@ -64,7 +66,7 @@ object ManualUsageHandler {
     }
   }
 
-  object ManualUsageRecipeCategory extends BlankRecipeCategory[ManualUsageRecipe] {
+  object ManualUsageRecipeCategory extends IRecipeCategory[ManualUsageRecipe] {
     val recipeWidth: Int = 160
     val recipeHeight: Int = 125
     private var background: IDrawable = _
@@ -85,6 +87,8 @@ object ManualUsageHandler {
     override def getTitle = "OpenComputers Manual"
 
     override def getUid = "oc.manual"
+
+    override def getModName: String = OpenComputers.Name
   }
 
 }

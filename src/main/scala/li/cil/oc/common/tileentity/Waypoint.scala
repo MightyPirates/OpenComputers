@@ -44,7 +44,7 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
       val vx = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetX * 0.3f
       val vy = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetY * 0.3f - 0.5f
       val vz = (getWorld.rand.nextFloat() - 0.5f) * 0.2f + facing.getFrontOffsetZ * 0.3f
-      getWorld.spawnParticle(EnumParticleTypes.PORTAL, origin.xCoord + dx, origin.yCoord + dy, origin.zCoord + dz, vx, vy, vz)
+      getWorld.spawnParticle(EnumParticleTypes.PORTAL, origin.x + dx, origin.y + dy, origin.z + dz, vx, vy, vz)
     }
   }
 

@@ -66,13 +66,13 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
       val currentBuffer = robot.globalBuffer.toInt / factor
       if (currentBuffer != lastSentBuffer) {
         lastSentBuffer = currentBuffer
-        sendProgressBarUpdate(0, lastSentBuffer)
+        sendWindowProperty(0, lastSentBuffer)
       }
 
       val currentBufferSize = robot.globalBufferSize.toInt / factor
       if (currentBufferSize != lastSentBufferSize) {
         lastSentBufferSize = currentBufferSize
-        sendProgressBarUpdate(1, lastSentBufferSize)
+        sendWindowProperty(1, lastSentBufferSize)
       }
     }
   }
@@ -81,7 +81,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
     def isValid: Boolean = robot.isInventorySlot(getSlotIndex)
 
     @SideOnly(Side.CLIENT) override
-    def canBeHovered: Boolean = isValid && super.canBeHovered
+    def isEnabled: Boolean = isValid && super.isEnabled
 
     override def getBackgroundLocation: ResourceLocation =
       if (isValid) super.getBackgroundLocation

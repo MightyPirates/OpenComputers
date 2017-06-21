@@ -10,8 +10,8 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.PowerDistributor] {
-  override def renderTileEntityAt(distributor: tileentity.PowerDistributor, x: Double, y: Double, z: Double, f: Float, damage: Int) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+  override def render(distributor: tileentity.PowerDistributor, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (distributor.globalBuffer > 0) {
       RenderState.pushAttrib()
@@ -72,7 +72,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer[tileentity.Pow
       RenderState.popAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
 }

@@ -18,6 +18,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -84,17 +85,17 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
     Rarity.byTier(data.tier)
   }
 
-  override protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipHead(metadata, stack, player, tooltip, advanced)
+  override protected def tooltipHead(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) {
+    super.tooltipHead(metadata, stack, world, tooltip, advanced)
     addLines(stack, tooltip)
   }
 
-  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) {
     tooltip.addAll(Tooltip.get("robot"))
   }
 
-  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    super.tooltipTail(metadata, stack, world, tooltip, flag)
     if (KeyBindings.showExtendedTooltips) {
       val info = new RobotData(stack)
       val components = info.containers ++ info.components
@@ -181,7 +182,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
   override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d): RayTraceResult = {
     val bounds = getCollisionBoundingBox(state, world, pos)
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
+      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.contains(start) => null
       case _ => super.collisionRayTrace(state, world, pos, start, end)
     }
   }

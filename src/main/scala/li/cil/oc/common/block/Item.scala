@@ -12,6 +12,7 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
@@ -24,11 +25,11 @@ import net.minecraft.world.World
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.addInformation(stack, player, tooltip, advanced)
+  override def addInformation(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    super.addInformation(stack, world, tooltip, flag)
     block match {
       case (simple: SimpleBlock) =>
-        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip, advanced)
+        simple.addInformation(getMetadata(stack.getItemDamage), stack, world, tooltip, flag)
       case _ =>
     }
   }

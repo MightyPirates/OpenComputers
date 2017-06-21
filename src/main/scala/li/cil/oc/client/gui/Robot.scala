@@ -237,10 +237,10 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
     val yMin = guiTop + scrollY + 1
     if (maxOffset > 0) {
-      scrollButton.yPosition = yMin + (scrollHeight - 15) * inventoryOffset / maxOffset
+      scrollButton.y = yMin + (scrollHeight - 15) * inventoryOffset / maxOffset
     }
     else {
-      scrollButton.yPosition = yMin
+      scrollButton.y = yMin
     }
   }
 

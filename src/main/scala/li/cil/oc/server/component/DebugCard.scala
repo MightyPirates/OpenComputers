@@ -394,7 +394,7 @@ object DebugCard {
     @Callback(doc = """function(level:number) -- Remove a level from the player's experience level""")
     def removeExperienceLevel(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
-        player.removeExperienceLevel(args.checkInteger(0))
+        player.addExperienceLevel(-args.checkInteger(0))
         null
       })
 

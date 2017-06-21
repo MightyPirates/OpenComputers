@@ -1,5 +1,7 @@
 package li.cil.oc.common.item.traits
 
+import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DriverItem
@@ -7,6 +9,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -78,7 +81,7 @@ trait Delegate {
   def displayName(stack: ItemStack): Option[String] = None
 
   @SideOnly(Side.CLIENT)
-  def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
     if (tooltipName.isDefined) {
       tooltip.addAll(Tooltip.get(tooltipName.get, tooltipData: _*))
       tooltipExtended(stack, tooltip)

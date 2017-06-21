@@ -1,5 +1,7 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import li.cil.oc.CreativeTab
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Colored
@@ -9,7 +11,9 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.BlockContainer
 import net.minecraft.block.material.Material
+import net.minecraft.block.state.BlockFaceShape
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving.SpawnPlacementType
 import net.minecraft.entity.player.EntityPlayer
@@ -65,20 +69,20 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
   def rarity(stack: ItemStack) = EnumRarity.COMMON
 
   @SideOnly(Side.CLIENT)
-  def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    tooltipHead(metadata, stack, player, tooltip, advanced)
-    tooltipBody(metadata, stack, player, tooltip, advanced)
-    tooltipTail(metadata, stack, player, tooltip, advanced)
+  def addInformation(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    tooltipHead(metadata, stack, world, tooltip, flag)
+    tooltipBody(metadata, stack, world, tooltip, flag)
+    tooltipTail(metadata, stack, world, tooltip, flag)
   }
 
-  protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  protected def tooltipHead(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
   }
 
-  protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  protected def tooltipBody(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase))
   }
 
-  protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
   }
 
   // ----------------------------------------------------------------------- //
@@ -112,6 +116,10 @@ abstract class SimpleBlock(material: Material = Material.IRON) extends BlockCont
   // ----------------------------------------------------------------------- //
   // Block
   // ----------------------------------------------------------------------- //
+
+  override def getBlockFaceShape(world: IBlockAccess, state: IBlockState, pos: BlockPos, side: EnumFacing): BlockFaceShape = if(isBlockSolid(world, pos, side)) BlockFaceShape.SOLID else BlockFaceShape.UNDEFINED
+
+  def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = world.getBlockState(pos).getMaterial.isSolid
 
   override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = true
 

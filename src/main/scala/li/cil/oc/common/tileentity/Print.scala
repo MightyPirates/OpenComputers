@@ -59,13 +59,13 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     if (!noclip) {
       if (shapes.isEmpty) {
         val unitBounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(pos)
-        if (mask == null || unitBounds.intersectsWith(mask)) {
+        if (mask == null || unitBounds.intersects(mask)) {
           list.add(unitBounds)
         }
       } else {
         for (shape <- shapes) {
           val bounds = shape.bounds.rotateTowards(facing).offset(pos)
-          if (mask == null || bounds.intersectsWith(mask)) {
+          if (mask == null || bounds.intersects(mask)) {
             list.add(bounds)
           }
         }

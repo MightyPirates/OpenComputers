@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import net.minecraft.client.renderer.block.model.ModelBakery
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
@@ -23,8 +24,8 @@ class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
 
   @SideOnly(Side.CLIENT)
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipLines(stack, player, tooltip, advanced)
+  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    super.tooltipLines(stack, world, tooltip, flag)
     if (hasServer(stack)) {
       val server = stack.getTagCompound.getString(Settings.namespace + "server")
       tooltip.add("§8" + server.substring(0, 13) + "...§7")
