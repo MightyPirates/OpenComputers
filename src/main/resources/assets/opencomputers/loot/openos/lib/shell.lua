@@ -124,16 +124,9 @@ function shell.execute(command, env, ...)
   if not sh then
     return false, reason
   end
-  local result = table.pack(coroutine.resume(process.load(function(...)
-    return sh(...)
-  end), env, command, ...))
-  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      return true
-    else
-      return false, "terminated"
-    end
-  end
+  local proc = process.load(sh, nil, nil, command)
+  local result = table.pack(process.internal.continue(proc, env, command, ...))
+  if result.n == 0 then return true end
   return table.unpack(result, 1, result.n)
 end
 

@@ -180,27 +180,10 @@ function sh.internal.createThreads(commands, env, start_args)
   end
 
   if #threads > 1 then
-    sh.internal.buildPipeChain(threads)
+    require("pipe").buildPipeChain(threads)
   end
 
   return threads
-end
-
-function sh.internal.runThreads(threads)
-  local result = {}
-  for i = 1, #threads do
-    -- Emulate CC behavior by making yields a filtered event.pull()
-    local thread, args = threads[i], {}
-    while coroutine.status(thread) ~= "dead" do
-      result = table.pack(coroutine.resume(thread, table.unpack(args)))
-      if coroutine.status(thread) ~= "dead" then
-        args = table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
-      elseif not result[1] then
-        io.stderr:write(result[2])
-      end
-    end
-  end
-  return result[2]
 end
 
 function sh.internal.executePipes(pipe_parts, eargs, env)
@@ -260,7 +243,7 @@ function sh.internal.executePipes(pipe_parts, eargs, env)
 
   local threads, reason = sh.internal.createThreads(commands, env, {[#commands]=eargs})  
   if not threads then return false, reason end
-  return sh.internal.runThreads(threads)
+  return process.internal.continue(threads[1])
 end
 
 function sh.execute(env, command, ...)

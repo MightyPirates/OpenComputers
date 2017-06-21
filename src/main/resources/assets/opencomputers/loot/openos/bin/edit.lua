@@ -633,9 +633,6 @@ do
     local x, y, w, h = getArea()
     local chars = 0
     for line in f:lines() do
-      if line:sub(-1) == "\r" then
-        line = line:sub(1, -2)
-      end
       table.insert(buffer, line)
       chars = chars + unicode.len(line)
       if #buffer <= h then

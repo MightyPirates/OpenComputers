@@ -7,7 +7,7 @@ local lastInterrupt = -math.huge
 
 event.handlers = handlers
 
-function event.register(key, callback, interval, times)
+function event.register(key, callback, interval, times, opt_handlers)
   local handler =
   {
     key = key,
@@ -17,24 +17,15 @@ function event.register(key, callback, interval, times)
   }
 
   handler.timeout = computer.uptime() + handler.interval
+  opt_handlers = opt_handlers or handlers
 
   local id = 0
   repeat
     id = id + 1
-  until not handlers[id]
+  until not opt_handlers[id]
 
-  handlers[id] = handler
+  opt_handlers[id] = handler
   return id
-end
-
-local function time_to_nearest()
-  local timeout = math.huge
-  for _,handler in pairs(handlers) do
-    if timeout > handler.timeout then
-      timeout = handler.timeout
-    end
-  end
-  return timeout
 end
 
 local _pullSignal = computer.pullSignal
@@ -202,7 +193,10 @@ function event.pullFiltered(...)
 
   local deadline = seconds and (computer.uptime() + seconds) or math.huge
   repeat
-    local closest = math.min(deadline, time_to_nearest())
+    local closest = deadline
+    for _,handler in pairs(handlers) do
+      closest = math.min(handler.timeout, closest)
+    end
     local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
     if signal.n > 0 then
       if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
