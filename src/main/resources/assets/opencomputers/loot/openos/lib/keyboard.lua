@@ -1,5 +1,3 @@
-local component = require("component")
-
 local keyboard = {pressedChars = {}, pressedCodes = {}}
 
 -- these key definitions are only a subset of all the defined keys
@@ -31,16 +29,6 @@ keyboard.keys = {
   tab             = 0x0F,
   numpadenter     = 0x9C,
 }
-
--- Create inverse mapping for name lookup.
-setmetatable(keyboard.keys,
-{
-  __index = function(tbl, k)
-    getmetatable(keyboard.keys).__index = nil -- to be safe
-    loadfile(package.searchpath("tools/keyboard_full", package.path), "t", setmetatable({keyboard=keyboard},{__index=_G}))()
-    return tbl[k]
-  end
-})
 
 -------------------------------------------------------------------------------
 
@@ -93,5 +81,7 @@ function keyboard.isShiftDown(address)
 end
 
 -------------------------------------------------------------------------------
+
+require("package").delay(keyboard.keys, "/opt/core/full_keyboard.lua")
 
 return keyboard

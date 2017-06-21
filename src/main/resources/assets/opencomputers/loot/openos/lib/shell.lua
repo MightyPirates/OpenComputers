@@ -18,58 +18,11 @@ function shell.getShell()
   if shells[shellName] then
     return shells[shellName]
   end
-  local sh, reason = loadfile(shellName, "t")
+  local sh, reason = loadfile(shellName)
   if sh then
     shells[shellName] = sh
   end
   return sh, reason
-end
-
-local function findFile(name, ext)
-  checkArg(1, name, "string")
-  local function findIn(dir)
-    if dir:sub(1, 1) ~= "/" then
-      dir = shell.resolve(dir)
-    end
-    dir = fs.concat(fs.concat(dir, name), "..")
-    local name = fs.name(name)
-    local list = fs.list(dir)
-    if list and name then
-      local files = {}
-      for file in list do
-        files[file] = true
-      end
-      if ext and name:sub(-(1 + ext:len())) == "." .. ext then
-        -- Name already contains extension, prioritize.
-        if files[name] then
-          return true, fs.concat(dir, name)
-        end
-      elseif files[name] then
-        -- Check exact name.
-        return true, fs.concat(dir, name)
-      elseif ext then
-        -- Check name with automatially added extension.
-        local name = name .. "." .. ext
-        if files[name] then
-          return true, fs.concat(dir, name)
-        end
-      end
-    end
-    return false
-  end
-  if name:sub(1, 1) == "/" then
-    local found, where = findIn("/")
-    if found then return where end
-  elseif name:sub(1, 2) == "./" then
-    local found, where = findIn(shell.getWorkingDirectory())
-    if found then return where end
-  else
-    for path in string.gmatch(shell.getPath(), "[^:]+") do
-      local found, where = findIn(path)
-      if found then return where end
-    end
-  end
-  return false
 end
 
 -------------------------------------------------------------------------------
@@ -133,21 +86,37 @@ function shell.setPath(value)
 end
 
 function shell.resolve(path, ext)
-  if ext then
+  checkArg(1, path, "string")
+
+  local dir = path
+  if dir:find("/") ~= 1 then
+    dir = fs.concat(shell.getWorkingDirectory(), dir)
+  end
+  local name = fs.name(path)
+  dir = fs[name and "path" or "canonical"](dir)
+  local fullname = fs.concat(dir, name or "")
+
+  if not ext then
+    return fullname
+  elseif name then
     checkArg(2, ext, "string")
-    local where = findFile(path, ext)
-    if where then
-      return where
-    else
-      return nil, "file not found"
-    end
-  else
-    if path:sub(1, 1) == "/" then
-      return fs.canonical(path)
-    else
-      return fs.concat(shell.getWorkingDirectory(), path)
+    -- search for name in PATH if no dir was given
+    -- no dir was given if path has no /
+    local search_in = path:find("/") and dir or shell.getPath()
+    for search_path in string.gmatch(search_in, "[^:]+") do
+      -- resolve search_path because they may be relative
+      local search_name = fs.concat(shell.resolve(search_path), name)
+      if not fs.exists(search_name) then
+        search_name = search_name .. "." .. ext
+      end
+      -- extensions are provided when the caller is looking for a file
+      if fs.exists(search_name) and not fs.isDirectory(search_name) then
+        return search_name
+      end
     end
   end
+
+  return nil, "file not found"
 end
 
 function shell.execute(command, env, ...)
@@ -155,16 +124,9 @@ function shell.execute(command, env, ...)
   if not sh then
     return false, reason
   end
-  local result = table.pack(coroutine.resume(process.load(function(...)
-    return sh(...)
-  end), env, command, ...))
-  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      return true
-    else
-      return false, "terminated"
-    end
-  end
+  local proc = process.load(sh, nil, nil, command)
+  local result = table.pack(process.internal.continue(proc, env, command, ...))
+  if result.n == 0 then return true end
   return table.unpack(result, 1, result.n)
 end
 
@@ -179,11 +141,11 @@ function shell.parse(...)
       if param == "--" then
         doneWithOptions = true -- stop processing options at `--`
       elseif param:sub(1, 2) == "--" then
-        if param:match("%-%-(.-)=") ~= nil then
-          options[param:match("%-%-(.-)=")] = param:match("=(.*)")
-        else
-          options[param:sub(3)] = true
+        local key, value = param:match("%-%-(.-)=(.*)")
+        if not key then
+          key, value = param:sub(3), true
         end
+        options[key] = value
       elseif param:sub(1, 1) == "-" and param ~= "-" then
         for j = 2, unicode.len(param) do
           options[unicode.sub(param, j, j)] = true

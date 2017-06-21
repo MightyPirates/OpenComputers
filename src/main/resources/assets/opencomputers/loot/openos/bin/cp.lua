@@ -4,15 +4,17 @@ local transfer = require("tools/transfer")
 local args, options = shell.parse(...)
 options.h = options.h or options.help
 if #args < 2 or options.h then
-  io.write("Usage: cp [-inrv] <from...> <to>\n")
-  io.write(" -i: prompt before overwrite (overrides -n option).\n")
-  io.write(" -n: do not overwrite an existing file.\n")
-  io.write(" -r: copy directories recursively.\n")
-  io.write(" -u: copy only when the SOURCE file differs from the destination\n")
-  io.write("     file or when the destination file is missing.\n")
-  io.write(" -P: preserve attributes, e.g. symbolic links.\n")
-  io.write(" -v: verbose output.\n")
-  io.write(" -x: stay on original source file system.\n")
+  io.write([[Usage: cp [OPTIONS] <from...> <to>
+ -i: prompt before overwrite (overrides -n option).
+ -n: do not overwrite an existing file.
+ -r: copy directories recursively.
+ -u: copy only when the SOURCE file differs from the destination
+     file or when the destination file is missing.
+ -P: preserve attributes, e.g. symbolic links.
+ -v: verbose output.
+ -x: stay on original source file system.
+ --skip=P: skip files matching lua regex P
+]])
   return not not options.h
 end
 
@@ -27,6 +29,7 @@ options =
   P = options.P,
   v = options.v,
   x = options.x,
+  skip = options.skip,
 }
 
 return transfer.batch(args, options)

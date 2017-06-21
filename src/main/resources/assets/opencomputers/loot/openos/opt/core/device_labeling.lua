@@ -21,10 +21,10 @@ function lib.loadRules(root_dir)
   for file in fs.list(root_dir) do
     if file:match("%.lua$") then
       local path = fs_key(root_dir, file)
-      local file = io.open(path)
-      if file then
-        local load_rule = load("return {" .. file:read("*a") .. "}")
-        file:close()
+      local file_handle = io.open(path)
+      if file_handle then
+        local load_rule = load("return {" .. file_handle:read("*a") .. "}")
+        file_handle:close()
         if load_rule then
           local ok, rule = pcall(load_rule)
           if ok and type(rule) == "table" then
@@ -54,7 +54,7 @@ function lib.saveRule(rule_set, path)
   file:close()
 end
 
-function lib.saveRules()
+function lib.saveRules(rules)
   for path, rule_set in pairs(rules) do
     lib.saveRule(rule_set, path)
   end

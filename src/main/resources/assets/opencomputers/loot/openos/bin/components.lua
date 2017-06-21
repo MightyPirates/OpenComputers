@@ -40,7 +40,7 @@ for address, name in pairs(components) do
     padTo = padTo + 8 - padTo % 8
 
     for _, name in ipairs(methods) do
-      local doc = tostring(proxy[name])
+      local doc = component.doc(address, name) or tostring(proxy[name])
       io.write("  " .. text.padRight(name, padTo) .. doc .. '\n')
     end
   end

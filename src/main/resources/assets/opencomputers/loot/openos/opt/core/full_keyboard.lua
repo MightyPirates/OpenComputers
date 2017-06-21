@@ -1,3 +1,5 @@
+local keyboard = require("keyboard")
+
 keyboard.keys["1"]           = 0x02
 keyboard.keys["2"]           = 0x03
 keyboard.keys["3"]           = 0x04
@@ -132,7 +134,7 @@ setmetatable(keyboard.keys,
 {
   __index = function(tbl, k)
     if type(k) ~= "number" then return end
-    for name,value in pairs(keyboard.keys) do
+    for name,value in pairs(tbl.keys) do
       if value == k then
         return name
       end

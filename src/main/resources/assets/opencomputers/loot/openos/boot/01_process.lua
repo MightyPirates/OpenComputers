@@ -3,33 +3,41 @@ local process = require("process")
 --Initialize coroutine library--
 local _coroutine = coroutine -- real coroutine backend
 
-_G.coroutine = {}
+_G.coroutine = setmetatable(
+  {
+    resume = function(co, ...)
+      return assert(process.info(co), "thread has no proc").data.coroutine_handler.resume(co, ...)
+    end
+  },
+  {
+    __index = function(_, key)
+      return assert(process.info(_coroutine.running()), "thread has no proc").data.coroutine_handler[key]
+    end
+  }
+)
+
 package.loaded.coroutine = _G.coroutine
 
-for key,value in pairs(_coroutine) do
-  if type(value) == "function" and value ~= "running" and value ~= "create" then
-    _G.coroutine[key] = function(...)
-      local thread = _coroutine.running()
-      local info = process.info(thread)
-      -- note the gc thread does not have a process info
-      assert(info,"process not found for " .. tostring(thread))
-      local data = info.data
-      local co = data.coroutine_handler
-      local handler = co[key]
-      return handler(...)
+local kernel_load = _G.load
+local intercept_load
+intercept_load = function(source, label, mode, env)
+  if env then
+    local loader = setmetatable(
+    {
+      env = env,
+      load = intercept_load,
+    },
+    {__call = function(tbl, _source, _label, _mode, _env)
+      return tbl.load(_source, _label, _mode, _env or tbl.env)
+    end})
+    if env.load and (type(env.load) ~= "table" or env.load.load ~= intercept_load) then
+      loader.load = env.load
     end
-  else
-    _G.coroutine[key] = value
+    env.load = loader
   end
+  return kernel_load(source, label, mode, env or process.info().env)
 end
-
-local init_thread = _coroutine.running()
-local init_load = _G.load
-
-_G.load = function(ld, source, mode, env)
-  env = env or select(2, process.running())
-  return init_load(ld, source, mode, env)
-end
+_G.load = intercept_load
 
 local kernel_create = _coroutine.create
 _coroutine.create = function(f,standAlone)
@@ -50,6 +58,7 @@ _coroutine.wrap = function(f)
   end
 end
 
+local init_thread = _coroutine.running()
 process.list[init_thread] = {
   path = "/init.lua",
   command = "init",
@@ -58,7 +67,7 @@ process.list[init_thread] = {
   {
     vars={},
     io={}, --init will populate this
-    coroutine_handler=setmetatable({}, {__index=_coroutine})
+    coroutine_handler = _coroutine
   },
   instances = setmetatable({}, {__mode="v"})
 }
