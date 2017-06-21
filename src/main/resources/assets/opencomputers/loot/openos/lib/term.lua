@@ -6,7 +6,10 @@ local process = require("process")
 local kb = require("keyboard")
 local keys = kb.keys
 
-local term = setmetatable({internal={}}, {__index=tty})
+-- tty is bisected into a delay loaded library
+-- term indexing will fail to use full_tty unless tty is fully loaded
+-- accessing tty.full_tty [a nonexistent field] will cause that full load
+local term = setmetatable({internal={},tty.full_tty}, {__index=tty})
 
 function term.internal.window()
   return process.info().data.window
