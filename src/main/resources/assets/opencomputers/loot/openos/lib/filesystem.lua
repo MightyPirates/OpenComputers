@@ -283,7 +283,7 @@ end
 
 function filesystem.name(path)
   checkArg(1, path, "string")
-  return path:match("[^\\/]+$")
+  return path:match("([^\\/]+)[\\/]*$")
 end
 
 function filesystem.proxy(filter)
