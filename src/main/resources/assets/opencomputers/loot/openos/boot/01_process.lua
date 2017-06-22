@@ -51,10 +51,7 @@ end
 _coroutine.wrap = function(f)
   local thread = coroutine.create(f)
   return function(...)
-    local result_pack = table.pack(coroutine.resume(thread, ...))
-    local result, reason = result_pack[1], result_pack[2]
-    assert(result, reason)
-    return select(2, table.unpack(result_pack))
+    return select(2, assert(coroutine.resume(thread, ...)))
   end
 end
 
