@@ -6,7 +6,11 @@ local _coroutine = coroutine -- real coroutine backend
 _G.coroutine = setmetatable(
   {
     resume = function(co, ...)
-      return assert(process.info(co), "thread has no proc").data.coroutine_handler.resume(co, ...)
+      local proc = process.info(co)
+      -- proc is nil if the process closed, natural resume will likely complain the coroutine is dead
+      -- but if proc is dead and an aborted coroutine is alive, it doesn't have any proc data like stack info
+      -- if the user really wants to resume it, let them
+      return (proc and proc.data.coroutine_handler.resume or _coroutine.resume)(co, ...)
     end
   },
   {
@@ -51,10 +55,7 @@ end
 _coroutine.wrap = function(f)
   local thread = coroutine.create(f)
   return function(...)
-    local result_pack = table.pack(coroutine.resume(thread, ...))
-    local result, reason = result_pack[1], result_pack[2]
-    assert(result, reason)
-    return select(2, table.unpack(result_pack))
+    return select(2, coroutine.resume(thread, ...))
   end
 end
 

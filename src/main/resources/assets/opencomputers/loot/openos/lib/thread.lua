@@ -213,11 +213,11 @@ function thread.create(fp, ...)
 
   function mt.process.data.pull(_, timeout)
     mt.register(timeout)
-    -- yield_all will yield this pco stack
+    -- yield_past(root) will yield until out of this thread
     -- the callback will resume this stack
     local event_data
     repeat
-      event_data = table.pack(t.pco.yield_all(timeout))
+      event_data = table.pack(t.pco.yield_past(t.pco.root, timeout))
       -- during sleep, we may have been suspended
     until t:status() ~= "suspended"
     return table.unpack(event_data, 1, event_data.n)
