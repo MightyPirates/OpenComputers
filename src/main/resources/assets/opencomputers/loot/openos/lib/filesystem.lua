@@ -282,6 +282,7 @@ function filesystem.path(path)
 end
 
 function filesystem.name(path)
+  checkArg(1, path, "string")
   local parts = segments(path)
   return parts[#parts]
 end
@@ -436,7 +437,7 @@ function filesystem.rename(oldPath, newPath)
 end
 
 function filesystem.copy(fromPath, toPath)
-  local data
+  local data = false
   local input, reason = filesystem.open(fromPath, "rb")
   if input then
     local output, reason = filesystem.open(toPath, "wb")
