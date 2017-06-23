@@ -39,23 +39,15 @@ end
 local total_time = 0
 
 for _,v in ipairs(args) do
-  local interval = v:match('^%d+%.?%d*[smhd]?$')
-  if not interval then
-    help(v)
-    return 1
-  end
-
-  local time_type = interval:match('[smhd]') or ''
-  interval = interval:sub(1, -#time_type-1)
+  local interval, time_type = v:match('^(%d+%.?%d*)([smhd]?)$')
   interval = tonumber(interval)
 
-  if interval < 0 then
+  if not interval or interval < 0 then
     help(v)
     return 1
   end
 
-  interval = time_type_multiplier(time_type) * interval
-  total_time = total_time + interval
+  total_time = total_time + time_type_multiplier(time_type) * interval
 end
 
 os.sleep(total_time)
