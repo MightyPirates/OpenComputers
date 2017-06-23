@@ -39,7 +39,7 @@ end
 local total_time = 0
 
 for _,v in ipairs(args) do
-  local interval, time_type = v:match('^(%d+%.?%d*)([smhd]?)$')
+  local interval, time_type = v:match('^([%d%.]+)([smhd]?)$')
   interval = tonumber(interval)
 
   if not interval or interval < 0 then
