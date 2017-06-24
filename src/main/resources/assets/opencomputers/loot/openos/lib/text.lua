@@ -42,10 +42,10 @@ function text.wrap(value, width, maxWidth)
 end
 
 function text.wrappedLines(value, width, maxWidth)
-  local line, nl
+  local line
   return function()
     if value then
-      line, value, nl = text.wrap(value, width, maxWidth)
+      line, value = text.wrap(value, width, maxWidth)
       return line
     end
   end

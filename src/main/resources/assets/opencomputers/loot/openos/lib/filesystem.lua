@@ -136,7 +136,7 @@ function filesystem.concat(...)
 end
 
 function filesystem.get(path)
-  local node, rest = findNode(path)
+  local node = findNode(path)
   if node.fs then
     local proxy = node.fs
     path = ""
@@ -155,7 +155,7 @@ end
 
 function filesystem.realPath(path)
   checkArg(1, path, "string")
-  local node, rest, vnode, vrest = findNode(path, false, true)
+  local node, rest = findNode(path, false, true)
   if not node then return nil, rest end
   local parts = {rest or nil}
   repeat
@@ -199,7 +199,7 @@ function filesystem.link(target, linkpath)
     return nil, "not a directory"
   end
 
-  local node, rest, vnode, vrest = findNode(linkpath_real, true)
+  local _, _, vnode, _ = findNode(linkpath_real, true)
   vnode.links[filesystem.name(linkpath)] = target
   return true
 end
@@ -235,7 +235,7 @@ function filesystem.mount(fs, path)
   if fstab[real] then
     return nil, "another filesystem is already mounted here"
   end
-  for path,node in pairs(fstab) do
+  for _,node in pairs(fstab) do
     if node.fs.address == fs.address then
       fsnode = node
       break

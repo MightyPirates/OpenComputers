@@ -13,17 +13,20 @@ DESCRIPTION
 
   Single quotes also suppress variable expansion. Per default, expressions like `$NAME` and `${NAME}` are expanded using environment variables (also accessible via the `os.getenv` method).
 
-  Basic globbing is supported, i.e. '*' and '?' are expanded approriately. For example:
+  Globbing is supported, i.e. '*' and '?' are expanded approriately. For example:
     ls b?n/
   will list all files in `/bin/` (and, if it exists `/ban` and so on).
     cp /bin/* /usr/bin/
   will copy all files from `/bin` to `/usr/bin`.
 
-  The shell provides basic redirects and piping:
+  The shell provides redirects and piping:
     cat f > f2
   copies the contents of file `f` to `f2`, for example.
     echo 'this  is  a  "test"' >> f2
   will append the string 'this is a "test"' to the file `f2`.
+    2>/dev/null ./some_program_with_errors
+  will redirect all stderr to /dev/null [i.e. supress errors].
+  This example also demonstrates redirects can go at the front
 
   Redirects can be combined:
     cat < f >> f2
