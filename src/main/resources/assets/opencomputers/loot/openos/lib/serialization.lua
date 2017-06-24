@@ -8,7 +8,7 @@ end
 
 -- Important: pretty formatting will allow presenting non-serializable values
 -- but may generate output that cannot be unserialized back.
-function serialization.serialize(value, pretty)
+function serialization.serialize(value, pretty, quiet)
   local kw =  {["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true,
                ["elseif"]=true, ["end"]=true, ["false"]=true, ["for"]=true,
                ["function"]=true, ["goto"]=true, ["if"]=true, ["in"]=true,
@@ -41,6 +41,8 @@ function serialization.serialize(value, pretty)
       if ts[v] then
         if pretty then
           return "recursion"
+        elseif quiet then
+          return "nil --[[ unsupported recursion ]]"
         else
           error("tables with cycles are not supported")
         end
@@ -104,13 +106,15 @@ function serialization.serialize(value, pretty)
     else
       if pretty then
         return tostring(v)
+      eseif quiet then
+        return "nil --[[ unsupported type '" .. t .. "' ]]"
       else
         error("unsupported type: " .. t)
       end
     end
   end
   local result = s(value, 1)
-  local limit = type(pretty) == "number" and pretty or 10
+  local limit = pretty and (tonumber(pretty) or 10) or math.huge
   if pretty then
     local truncate = 0
     while limit > 0 and truncate do
