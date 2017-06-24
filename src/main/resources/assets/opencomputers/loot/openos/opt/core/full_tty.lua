@@ -1,7 +1,8 @@
 local tty = require("tty")
 local unicode = require("unicode")
+local kb = require("keyboard")
 
-function tty.touch_handler(handler, cursor, gx, gy)
+function tty.touch_handler(_, cursor, gx, gy)
   if cursor.data == "" then
     return false
   end
@@ -33,8 +34,9 @@ function tty.touch_handler(handler, cursor, gx, gy)
   end
   return false -- no further cursor update
 end
+tty.drag_handler = tty.touch_handler
 
-function tty.clipboard_handler(handler, cursor, char, code)
+function tty.clipboard_handler(handler, _, char, _)
   handler.cache = nil
   local first_line, end_index = char:find("\13?\10")
   if first_line then
@@ -47,5 +49,40 @@ function tty.clipboard_handler(handler, cursor, char, code)
     char = char:sub(1, first_line - 1)
   end
   return char
+end
+
+function tty.on_tab(handler, cursor)
+  local hints = handler.hint
+  if not hints then return end
+  local main_kb = tty.keyboard()
+  -- tty may not have a keyboard
+  -- in which case, we shouldn't be handling tab events
+  if not main_kb then
+    return
+  end
+  if not handler.cache then
+    handler.cache = type(hints) == "table" and hints or hints(cursor.data, cursor.index + 1) or {}
+    handler.cache.i = -1
+  end
+
+  local cache = handler.cache
+  
+  if #cache == 1 and cache.i == 0 then
+    -- there was only one solution, and the user is asking for the next
+    handler.cache = hints(cache[1], cursor.index + 1)
+    if not handler.cache then return end
+    handler.cache.i = -1
+    cache = handler.cache
+  end
+
+  local change = kb.isShiftDown(main_kb) and -1 or 1
+  cache.i = (cache.i + change) % math.max(#cache, 1)
+  local next = cache[cache.i + 1]
+  if next then
+    local tail = unicode.len(cursor.data) - cursor.index
+    cursor:clear()
+    cursor:update(next)
+    cursor:move(-tail)
+  end
 end
 
