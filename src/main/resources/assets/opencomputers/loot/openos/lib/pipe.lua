@@ -22,17 +22,18 @@ function pipe.createCoroutineStack(root, env, name)
   function pco.yield(...)
     return _root_co.yield(nil, ...)
   end
-  function pco.yield_all(...)
-    return _root_co.yield(true, ...)
+  function pco.yield_past(co, ...)
+    return _root_co.yield(co, ...)
   end
   function pco.resume(co, ...)
     checkArg(1, co, "thread")
     local args = table.pack(...)
     while true do -- for consecutive sysyields
       local result = table.pack(_root_co.resume(co, table.unpack(args, 1, args.n)))
+      local target = result[2] == true and pco.root or result[2]
       if not result[1] or _root_co.status(co) == "dead" then
         return table.unpack(result, 1, result.n)
-      elseif result[2] and pco.root ~= co then
+      elseif target and target ~= co then
         args = table.pack(_root_co.yield(table.unpack(result, 2, result.n)))
       else
         return true, table.unpack(result, 3, result.n)
@@ -70,7 +71,8 @@ local pipe_stream =
         return self
       end
       -- not reading, it is requesting a yield
-      result = table.pack(coroutine.yield_all(table.unpack(result, 2, result.n)))
+      -- yield_past(true) will exit this coroutine stack
+      result = table.pack(coroutine.yield_past(true, table.unpack(result, 2, result.n)))
       result = table.pack(coroutine.resume(self.next, table.unpack(result, 1, result.n))) -- the request was for an event
     end
   end,
@@ -113,7 +115,7 @@ local pipe_stream =
       -- natural yield (i.e. for events). To differentiate this yield from natural
       -- yields we set read_mode here, which the pipe_stream write detects
       self.read_mode = true
-      coroutine.yield_all()
+      coroutine.yield_past(self.next) -- next is the first croutine in this stack
       self.read_mode = false
     end
     local result = string.sub(self.buffer, 1, n)
@@ -158,16 +160,24 @@ end
 
 local chain_stream =
 {
-  read = function(self, value)
+  read = function(self, value, ...)
     if self.io_stream.closed then return nil end
-    -- handler is currently on yield all [else we wouldn't have control here]
-    local read_ok, ret = self.pco.resume(self.pco.root, value)
-    -- ret can be non string when a process ends
-    ret = type(ret) == "string" and ret or nil
-    return select(read_ok and 2 or 1, nil, ret)
+    -- wake up prog
+    self.ready = false -- the pipe proc sets this true when ios completes
+    local ret = table.pack(coroutine.resume(self.pco.root, value, ...))
+    if coroutine.status(self.pco.root) == "dead" then
+      return nil
+    elseif not ret[1] then
+      return table.unpack(ret, 1, ret.n)
+    end
+    if not self.ready then
+      -- prog yielded back without writing/reading
+      return self:read(coroutine.yield())
+    end
+    return ret[2]
   end,
   write = function(self, ...)
-    return self:read(table.concat({...}))
+    return self:read(...)
   end,
   close = function(self)
     self.io_stream:close()
@@ -181,8 +191,8 @@ function pipe.popen(prog, mode, env)
   end
 
   local r = mode == "r"
-  local key = r and "read" or "write"
 
+  local chain = {}
   -- to simplify the code - shell.execute is run within a function to pass (prog, env)
   -- if cmd_proc where to come second (mode=="w") then the pipe_proc would have to pass
   -- the starting args. which is possible, just more complicated
@@ -194,22 +204,27 @@ function pipe.popen(prog, mode, env)
   -- the stream needs its own process for io
   local pipe_proc = process.load(function()
     local n = r and 0 or ""
+    local key = r and "read" or "write"
     local ios = stream.io_stream
     while not ios.closed do
-      n = coroutine.yield_all(ios[key](ios, n))
+      -- read from pipe
+      local ret = table.pack(ios[key](ios, n))
+      stream.ready = true
+      -- yield outside the chain now
+      n = coroutine.yield_past(chain[1], table.unpack(ret, 1, ret.n))
     end
   end, nil, nil, "pipe_handler")
 
-  local pipe_index = r and 2 or 1
-  local cmd_index = r and 1 or 2
-  local chain = {[cmd_index]=cmd_proc, [pipe_index]=pipe_proc}
+  chain[r and 1 or 2] = cmd_proc
+  chain[r and 2 or 1] = pipe_proc
 
   -- link the cmd and pipe proc io
   pipe.buildPipeChain(chain)
-  local cmd_stack = process.info(chain[1]).data.coroutine_handler
+  local cmd_data = process.info(chain[1]).data
+  local cmd_stack = cmd_data.coroutine_handler
 
   -- store handle to io_stream from easy access later
-  stream.io_stream = process.info(chain[1]).data.io[1].stream
+  stream.io_stream = cmd_data.io[1].stream
   stream.pco = cmd_stack
 
   -- popen commands start out running, like threads

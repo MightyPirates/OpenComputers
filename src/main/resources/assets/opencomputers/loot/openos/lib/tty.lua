@@ -42,42 +42,7 @@ local function read_history(handler, cursor, change)
   end
 end
 
-local function tab_handler(handler, cursor)
-  local hints = handler.hint
-  if not hints then return end
-  local main_kb = tty.keyboard()
-  -- tty may not have a keyboard
-  -- in which case, we shouldn't be handling tab events
-  if not main_kb then
-    return
-  end
-  if not handler.cache then
-    handler.cache = type(hints) == "table" and hints or hints(cursor.data, cursor.index + 1) or {}
-    handler.cache.i = -1
-  end
-
-  local cache = handler.cache
-  
-  if #cache == 1 and cache.i == 0 then
-    -- there was only one solution, and the user is asking for the next
-    handler.cache = hints(cache[1], cursor.index + 1)
-    if not handler.cache then return end
-    handler.cache.i = -1
-    cache = handler.cache
-  end
-
-  local change = kb.isShiftDown(main_kb) and -1 or 1
-  cache.i = (cache.i + change) % math.max(#cache, 1)
-  local next = cache[cache.i + 1]
-  if next then
-    local tail = unicode.len(cursor.data) - cursor.index
-    cursor:clear()
-    cursor:update(next)
-    cursor:move(-tail)
-  end
-end
-
-local function key_down_handler(handler, cursor, char, code)
+function tty.key_down_handler(handler, cursor, char, code)
   local c = false
   local backup_cache = handler.cache
   handler.cache = nil
@@ -86,7 +51,7 @@ local function key_down_handler(handler, cursor, char, code)
     return --close
   elseif code == keys.tab then
     handler.cache = backup_cache
-    tab_handler(handler, cursor)
+    tty.on_tab(handler, cursor)
   elseif code == keys.enter or code == keys.numpadenter then
     cursor:move(math.huge)
     cursor:draw("\n")
@@ -307,11 +272,6 @@ function tty.read(handler, cursor)
   checkArg(2, cursor, "table", "nil")
 
   handler.index = 0
-  handler.touch = handler.touch or "touch_handler"
-  handler.drag = handler.drag or "touch_handler"
-  handler.clipboard = handler.clipboard or "clipboard_handler"
-  handler.key_down = handler.key_down or key_down_handler
-
   cursor = cursor or tty.internal.build_vertical_reader()
 
   while true do
@@ -329,11 +289,8 @@ function tty.read(handler, cursor)
       tty.drawText("^C\n")
       return false
     elseif address == main_kb or address == main_sc then
-      local handler_method = handler[name]
+      local handler_method = handler[name] or tty[name .. "_handler"]
       if handler_method then
-        if type(handler_method) == "string" then -- special hack to delay loading tty stuff
-          handler_method = tty[handler_method]
-        end
         -- nil to end (close)
         -- false to ignore
         -- true-thy updates cursor

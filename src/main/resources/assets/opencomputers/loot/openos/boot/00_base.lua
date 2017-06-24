@@ -32,6 +32,7 @@ end
 function print(...)
   local args = table.pack(...)
   local stdout = io.stdout
+  local old_mode, old_size = stdout:setvbuf()
   stdout:setvbuf("line")
   local pre = ""
   for i = 1, args.n do
@@ -39,6 +40,6 @@ function print(...)
     pre = "\t"
   end
   stdout:write("\n")
-  stdout:setvbuf("no")
+  stdout:setvbuf(old_mode, old_size)
   stdout:flush()
 end
