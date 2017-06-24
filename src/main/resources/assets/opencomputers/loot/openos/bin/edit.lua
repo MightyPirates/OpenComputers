@@ -70,7 +70,7 @@ local function loadConfig()
       if f then
         local serialization = require("serialization")
         for k, v in pairs(env) do
-          f:write(k.."="..tostring(serialization.serialize(v, math.huge)).."\n")
+          f:write(k.."="..tostring(serialization.serialize(v, nil, true)).."\n")
         end
         f:close()
       end
