@@ -20,7 +20,7 @@ local function saveConfig(conf)
     return nil, reason
   end
   for key, value in pairs(conf) do
-    file:write(tostring(key) .. " = " .. require("serialization").serialize(value) .. "\n")
+    file:write(tostring(key) .. " = " .. require("serialization").serialize(value, nil, true) .. "\n")
   end
   
   file:close()
