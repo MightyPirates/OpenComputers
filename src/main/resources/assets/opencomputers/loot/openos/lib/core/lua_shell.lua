@@ -121,7 +121,7 @@ while tty.isAvailable() do
       io.stderr:write(tostring(result[2]) .. "\n")
     else
       for i = 2, result.n do
-        io.write(require("serialization").serialize(result[i], true) .. "\t", true)
+        io.write(require("serialization").serialize(result[i], true) .. "\t")
       end
       if tty.getCursor() > 1 then
         io.write("\n")
