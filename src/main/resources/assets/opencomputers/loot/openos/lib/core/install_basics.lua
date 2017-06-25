@@ -22,7 +22,7 @@ if options.help then
   return nil -- exit success
 end
 
-local utils_path = "/opt/core/install_utils.lua"
+local utils_path = "/lib/core/install_utils.lua"
 local utils
 
 local rootfs = fs.get("/")

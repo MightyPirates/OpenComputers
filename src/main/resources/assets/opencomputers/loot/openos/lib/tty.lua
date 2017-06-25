@@ -215,14 +215,14 @@ function tty.internal.build_vertical_reader()
       end
     end,
     clear_tail = function(_)
-      local oi, width, height, dx, dy, ox, oy = _.index, tty.getViewport()
+      local oi, width, _, dx, dy, ox, oy = _.index, tty.getViewport()
       _:move(math.huge)
       _:move(-1)
-      local ex, ey = tty.getCursor()
+      local _, ey = tty.getCursor()
       tty.setCursor(ox, oy)
       _.index = oi
-      local x = oy == ey and ox or 1
-      tty.gpu().fill(x + dx, ey + dy, width - x + 1, 1, " ")
+      local cx = oy == ey and ox or 1
+      tty.gpu().fill(cx + dx, ey + dy, width - cx + 1, 1, " ")
     end,
     update = function(_, arg)
       local s1, s2 = tty.internal.split(_)
@@ -337,7 +337,7 @@ function tty.drawText(value, nowrap)
   local uptime = computer.uptime
   local last_sleep = uptime()
   local last_index = 1
-  local width, height, dx, dy = tty.getViewport()
+  local width, _, dx, dy = tty.getViewport()
   while true do
     if uptime() - last_sleep > 1 then
       os.sleep(0)
@@ -493,6 +493,6 @@ function tty.scroll(number)
   return lines
 end
 
-require("package").delay(tty, "/opt/core/full_tty.lua")
+require("package").delay(tty, "/lib/core/full_tty.lua")
 
 return tty
