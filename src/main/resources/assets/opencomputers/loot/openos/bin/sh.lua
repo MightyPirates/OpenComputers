@@ -28,7 +28,7 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
     local gpu = tty.gpu()
     while tty.isAvailable() do
       local foreground = gpu.setForeground(0xFF0000)
-      tty.write(sh.expand(os.getenv("PS1") or "$ "))
+      io.write(sh.expand(os.getenv("PS1") or "$ "))
       gpu.setForeground(foreground)
       tty.setCursorBlink(true)
       local command = tty.read(history)
