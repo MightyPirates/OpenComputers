@@ -63,3 +63,5 @@ end
 event.listen("init", onInit)
 event.listen("component_added", onComponentAdded)
 event.listen("component_removed", onComponentRemoved)
+
+require("package").delay(fs, "/opt/core/full_filesystem.lua")

@@ -273,6 +273,5 @@ function sh.hintHandler(full_line, cursor)
 end
 
 require("package").delay(sh, "/opt/core/full_sh.lua")
-require("package").delay(sh.internal, "/opt/core/full_sh.lua")
 
 return sh

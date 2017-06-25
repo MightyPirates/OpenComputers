@@ -145,6 +145,5 @@ function text.internal.words(input, options)
 end
 
 require("package").delay(text, "/opt/core/full_text.lua")
-require("package").delay(text.internal, "/opt/core/full_text.lua")
 
 return text
