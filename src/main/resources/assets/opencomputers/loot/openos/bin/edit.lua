@@ -621,8 +621,12 @@ local function onClick(x, y)
 end
 
 local function onScroll(direction)
-  local cbx, cby = getCursor()
-  setCursor(cbx, cby - direction * 12)
+  local _, _, _, h = getArea()
+  local x, y = getCursor()
+
+--  TODO: Implement a dedicated scrolling/redraw function
+  setCursor(x, scrollY + (direction>0 and 0 or h+1))
+  setCursor(x, math.max(math.min(y, scrollY + h), scrollY + 1))
 end
 
 -------------------------------------------------------------------------------
