@@ -25,8 +25,8 @@ local function ctrl_movement(cursor, dir)
   local start=index+dir+1
   for i=start,last,dir do
     local a,b = unicode.sub(data, i-1, i-1), unicode.sub(data, i, i)
-    a = a == "" or not not a:find("%s")
-    b = b == "" or not not b:find("%s")
+    a = a == "" or a:find("%s")
+    b = b == "" or b:find("%s")
     if a and not b then return i - (index + 1) end
   end
   return last - index
