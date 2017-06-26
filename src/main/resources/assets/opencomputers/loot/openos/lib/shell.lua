@@ -18,11 +18,11 @@ function shell.getShell()
   if shells[shellName] then
     return shells[shellName]
   end
-  local sh, reason = loadfile(shellName)
+  local sh, load_reason = loadfile(shellName)
   if sh then
     shells[shellName] = sh
   end
-  return sh, reason
+  return sh, load_reason
 end
 
 -------------------------------------------------------------------------------
