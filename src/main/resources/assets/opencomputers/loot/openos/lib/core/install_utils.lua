@@ -13,7 +13,7 @@ local function select_prompt(devs, prompt)
   for i = 1, num_devs do
     local src = devs[i]
     local dev = src.dev
-    local selection_label = src.prop.label or dev.getLabel()
+    local selection_label = (src.prop or {}).label or dev.getLabel()
     if selection_label then
       selection_label = string.format("%s (%s...)", selection_label, dev.address:sub(1, 8))
     else
