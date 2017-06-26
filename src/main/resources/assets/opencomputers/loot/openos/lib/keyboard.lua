@@ -82,6 +82,6 @@ end
 
 -------------------------------------------------------------------------------
 
-require("package").delay(keyboard.keys, "/opt/core/full_keyboard.lua")
+require("package").delay(keyboard.keys, "/lib/core/full_keyboard.lua")
 
 return keyboard

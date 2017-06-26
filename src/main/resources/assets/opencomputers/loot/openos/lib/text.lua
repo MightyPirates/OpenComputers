@@ -89,10 +89,10 @@ function text.internal.words(input, options)
   local show_escapes = options.show_escapes
   local qr = nil
   quotes = quotes or {{"'","'",true},{'"','"'},{'`','`'}}
-  local function append(dst, txt, qr)
+  local function append(dst, txt, _qr)
     local size = #dst
-    if size == 0 or dst[size].qr ~= qr then
-      dst[size+1] = {txt=txt, qr=qr}
+    if size == 0 or dst[size].qr ~= _qr then
+      dst[size+1] = {txt=txt, qr=_qr}
     else
       dst[size].txt = dst[size].txt..txt
     end
@@ -144,7 +144,6 @@ function text.internal.words(input, options)
   return tokens
 end
 
-require("package").delay(text, "/opt/core/full_text.lua")
-require("package").delay(text.internal, "/opt/core/full_text.lua")
+require("package").delay(text, "/lib/core/full_text.lua")
 
 return text

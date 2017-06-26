@@ -25,8 +25,8 @@ local function ctrl_movement(cursor, dir)
   local start=index+dir+1
   for i=start,last,dir do
     local a,b = unicode.sub(data, i-1, i-1), unicode.sub(data, i, i)
-    a = a == "" or not not a:find("%s")
-    b = b == "" or not not b:find("%s")
+    a = a == "" or a:find("%s")
+    b = b == "" or b:find("%s")
     if a and not b then return i - (index + 1) end
   end
   return last - index
@@ -192,16 +192,16 @@ function tty.internal.build_vertical_reader()
     index = 0,
     data = "",
     sy = 0,
-    scroll = function(_)
-      _.sy = _.sy + tty.scroll()
+    scroll = function(self)
+      self.sy = self.sy + tty.scroll()
     end,
-    move = function(_,n)
+    move = function(self, n)
       local win = tty.window
-      _.index = math.min(math.max(0,_.index + n), unicode.len(_.data))
-      local s1, s2 = tty.internal.split(_)
+      self.index = math.min(math.max(0, self.index + n), unicode.len(self.data))
+      local s1, s2 = tty.internal.split(self)
       s2 = unicode.sub(s2.." ", 1, 1)
-      local data_remaining = ("_"):rep(_.promptx - 1)..s1..s2
-      win.y = _.prompty - _.sy
+      local data_remaining = ("_"):rep(self.promptx - 1)..s1..s2
+      win.y = self.prompty - self.sy
       while true do
         local wlen_remaining = unicode.wlen(data_remaining)
         if wlen_remaining > win.width then
@@ -214,53 +214,53 @@ function tty.internal.build_vertical_reader()
         end
       end
     end,
-    clear_tail = function(_)
-      local oi, width, height, dx, dy, ox, oy = _.index, tty.getViewport()
-      _:move(math.huge)
-      _:move(-1)
-      local ex, ey = tty.getCursor()
+    clear_tail = function(self)
+      local oi, width, _, dx, dy, ox, oy = self.index, tty.getViewport()
+      self:move(math.huge)
+      self:move(-1)
+      local _, ey = tty.getCursor()
       tty.setCursor(ox, oy)
-      _.index = oi
-      local x = oy == ey and ox or 1
-      tty.gpu().fill(x + dx, ey + dy, width - x + 1, 1, " ")
+      self.index = oi
+      local cx = oy == ey and ox or 1
+      tty.gpu().fill(cx + dx, ey + dy, width - cx + 1, 1, " ")
     end,
-    update = function(_, arg)
-      local s1, s2 = tty.internal.split(_)
+    update = function(self, arg)
+      local s1, s2 = tty.internal.split(self)
       if type(arg) == "string" then
-        _.data = s1 .. arg .. s2
-        _.index = _.index + unicode.len(arg)
-        _:draw(arg)
+        self.data = s1 .. arg .. s2
+        self.index = self.index + unicode.len(arg)
+        self:draw(arg)
       else -- number
         if arg < 0 then
           -- backspace? ignore if at start
-          if _.index <= 0 then return end
-          _:move(arg)
+          if self.index <= 0 then return end
+          self:move(arg)
           s1 = unicode.sub(s1, 1, -1 + arg)
         else
           -- forward? ignore if at end
-          if _.index >= unicode.len(_.data) then return end
+          if self.index >= unicode.len(self.data) then return end
           s2 = unicode.sub(s2, 1 + arg)
         end
-        _:clear_tail()
-        _.data = s1 .. s2
+        self:clear_tail()
+        self.data = s1 .. s2
       end
 
       -- redraw suffix
       if s2 ~= "" then
-        local ps, px, py = _.sy, tty.getCursor()
-        _:draw(s2)
-        tty.setCursor(px, py - (_.sy - ps))
+        local ps, px, py = self.sy, tty.getCursor()
+        self:draw(s2)
+        tty.setCursor(px, py - (self.sy - ps))
       end
     end,
-    clear = function(_)
-      _:move(-math.huge)
-      _:draw((" "):rep(unicode.wlen(_.data)))
-      _:move(-math.huge)
-      _.index = 0
-      _.data = ""
+    clear = function(self)
+      self:move(-math.huge)
+      self:draw((" "):rep(unicode.wlen(self.data)))
+      self:move(-math.huge)
+      self.index = 0
+      self.data = ""
     end,
-    draw = function(_, text)
-      _.sy = _.sy + tty.drawText(text)
+    draw = function(self, text)
+      self.sy = self.sy + tty.drawText(text)
     end
   }
 end
@@ -306,17 +306,6 @@ function tty.read(handler, cursor)
   end
 end
 
--- cannot use tty.write = io.write because io.write invokes metatable
-function tty.write(value, wrap)
-  local stdout = io.output()
-  local stream = stdout and stdout.stream
-  local previous_nowrap = stream.nowrap
-  stream.nowrap = wrap == false
-  stdout:write(value)
-  stdout:flush()
-  stream.nowrap = previous_nowrap
-end
-
 function tty.getCursor()
   local window = tty.window
   return window.x, window.y
@@ -337,7 +326,7 @@ function tty.drawText(value, nowrap)
   local uptime = computer.uptime
   local last_sleep = uptime()
   local last_index = 1
-  local width, height, dx, dy = tty.getViewport()
+  local width, _, dx, dy = tty.getViewport()
   while true do
     if uptime() - last_sleep > 1 then
       os.sleep(0)
@@ -493,6 +482,6 @@ function tty.scroll(number)
   return lines
 end
 
-require("package").delay(tty, "/opt/core/full_tty.lua")
+require("package").delay(tty, "/lib/core/full_tty.lua")
 
 return tty

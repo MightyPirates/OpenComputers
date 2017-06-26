@@ -4,7 +4,7 @@ local shell = require("shell")
 local options
 
 do
-  local basic, reason = loadfile("/opt/core/install_basics.lua", "bt", _G)
+  local basic, reason = loadfile("/lib/core/install_basics.lua", "bt", _G)
   if not basic then
     io.stderr:write("failed to load install: " .. tostring(reason) .. "\n")
     return 1

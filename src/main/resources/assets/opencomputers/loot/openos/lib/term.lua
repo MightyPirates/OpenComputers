@@ -182,6 +182,17 @@ local function inject_mask(cursor, dobreak, pwchar)
   end
 end
 
+-- cannot use term.write = io.write because io.write invokes metatable
+function term.write(value, wrap)
+  local stdout = io.output()
+  local stream = stdout and stdout.stream
+  local previous_nowrap = stream.nowrap
+  stream.nowrap = wrap == false
+  stdout:write(value)
+  stdout:flush()
+  stream.nowrap = previous_nowrap
+end
+
 function term.read(history, dobreak, hint, pwchar, filter)
   if not io.stdin.tty then
     return io.read("*L")
