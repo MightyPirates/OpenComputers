@@ -2,7 +2,7 @@ local shell = require("shell")
 local args = shell.parse(...)
 
 if #args == 0 then
-  args = {"/opt/core/lua_shell.lua"}
+  args = {"/lib/core/lua_shell.lua"}
 end
 
 local filename = args[1]

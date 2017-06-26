@@ -22,7 +22,7 @@ if options.help then
   return nil -- exit success
 end
 
-local utils_path = "/opt/core/install_utils.lua"
+local utils_path = "/lib/core/install_utils.lua"
 local utils
 
 local rootfs = fs.get("/")
@@ -64,7 +64,7 @@ local targets = {}
 local devices = {}
 
 for dev, path in fs.mounts() do
-  devices[dev] = path
+  devices[dev] = devices[dev] and #devices[dev] < #path and devices[dev] or path
 end
 
 devices[fs.get("/dev/") or false] = nil
@@ -81,6 +81,7 @@ for dev, path in pairs(devices) do
       os.exit(1)
     end
   elseif specified or
+    not (source_filter and address:find(source_filter, 1, true) == 1) and -- specified for source
     not target_filter and
     address ~= tmpAddress then
     table.insert(targets, {dev=dev, path=install_path, specified=specified})
@@ -156,8 +157,8 @@ local cp_args =
 
 local source_display = options.label or source.dev.getLabel() or source.path
 local special_target = ""
-if #targets > 1 or target_filter then
-  special_target = " to " .. cp_args[3]
+if #targets > 1 or target_filter or source_filter then
+  special_target = " to " .. cp_args[4]
 end
 
 io.write("Install " .. source_display .. special_target .. "? [Y/n] ")

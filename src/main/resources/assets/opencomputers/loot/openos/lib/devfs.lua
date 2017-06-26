@@ -153,7 +153,7 @@ inject_dynamic_pairs = function(fsnode, path, bStoreUse)
   })
 end
 
-local label_lib = dofile("/opt/core/device_labeling.lua")
+local label_lib = dofile("/lib/core/device_labeling.lua")
 label_lib.loadRules()
 api.getDeviceLabel = label_lib.getDeviceLabel
 api.setDeviceLabel = label_lib.setDeviceLabel
@@ -163,7 +163,7 @@ function api.register(public_proxy)
   if registered then return end
   registered = true
 
-  local start_path = "/opt/core/devfs/"
+  local start_path = "/lib/core/devfs/"
   for starter in fs.list(start_path) do
     local full_path = start_path .. starter
     local _,matched = starter:gsub("%.lua$","")

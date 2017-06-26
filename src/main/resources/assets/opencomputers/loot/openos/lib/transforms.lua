@@ -70,6 +70,6 @@ function lib.concat(...)
   return r
 end
 
-require("package").delay(lib, "/opt/core/full_transforms.lua")
+require("package").delay(lib, "/lib/core/full_transforms.lua")
 
 return lib
