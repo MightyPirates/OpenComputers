@@ -1,10 +1,9 @@
 local comp = require("component")
-local fs = require("filesystem")
 local text = require("text")
 
 local dcache = {}
 local pcache = {}
-local adapter_pwd = "/opt/core/devfs/adapters/"
+local adapter_pwd = "/lib/core/devfs/adapters/"
 
 local adapter_api = {}
 

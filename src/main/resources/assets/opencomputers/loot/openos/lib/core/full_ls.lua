@@ -253,7 +253,7 @@ local function display(names)
       max_size_width = math.max(max_size_width, formatSize(info.size):len())
       max_date_width = math.max(max_date_width, formatDate(info.time):len())
     end
-    mt.__index = function(tbl, index)
+    mt.__index = function(_, index)
       local info = stat(names, index)
       local file_type = info.isLink and 'l' or info.isDir and 'd' or 'f'
       local link_target = info.isLink and string.format(" -> %s", info.link:gsub("/+$", "") .. (info.isDir and "/" or "")) or ""
@@ -267,7 +267,7 @@ local function display(names)
     end
   elseif ops["1"] or not fOut then
     lines.n = #names
-    mt.__index = function(tbl, index)
+    mt.__index = function(_, index)
       local info = stat(names, index)
       return {{color = colorize(info), name = info.name}}
     end
@@ -302,10 +302,10 @@ local function display(names)
       end
     end
     lines.n = items_per_column
-    mt.__index=function(tbl, line_index)
+    mt.__index=function(_, line_index)
       return setmetatable({},{
         __len=function()return num_columns end,
-        __index=function(tbl, column_index)
+        __index=function(_, column_index)
           local ri = real(column_index, line_index)
           if not ri then return end
           local info = stat(names, ri)

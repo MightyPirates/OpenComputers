@@ -2,7 +2,6 @@ local keyboard = require("keyboard")
 local shell = require("shell")
 local term = require("term") -- TODO use tty and cursor position instead of global area and gpu
 local text = require("text")
-local unicode = require("unicode")
 
 if not io.output().tty then
   return loadfile(shell.resolve("cat", "lua"), "bt", _G)(...)
@@ -28,7 +27,7 @@ end
 
 local line = nil
 local function readlines(num)
-  local x, y, w, h = term.getGlobalArea()
+  local _, _, w, h = term.getGlobalArea()
   num = num or (h - 1)
   for _ = 1, num do
     if not line then
@@ -52,7 +51,7 @@ while true do
     return
   end
   while true do
-    local event, address, char, code = term.pull("key_down")
+    local _, _, _, code = term.pull("key_down")
     if code == keyboard.keys.q then
       term.clearLine()
       return
