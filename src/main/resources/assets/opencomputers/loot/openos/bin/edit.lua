@@ -621,12 +621,26 @@ local function onClick(x, y)
 end
 
 local function onScroll(direction)
-  local _, _, _, h = getArea()
-  local x, y = getCursor()
+  local x, y, w, h = getArea()
+  local sy = math.max(0, math.min(scrollY - direction, #buffer - h))
 
---  TODO: Implement a dedicated scrolling/redraw function
-  setCursor(x, scrollY + (direction>0 and 0 or h+1))
-  setCursor(x, math.max(math.min(y, scrollY + h), scrollY + 1))
+  if sy ~= scrollY then
+    local cx, cy = getCursor()
+    local dy = sy - scrollY;
+    scrollY = sy
+
+    term.setCursorBlink(false)
+    gpu.copy(x, math.max(y, y + dy), w, h - math.abs(dy), 0, -dy)
+    for py = 1, math.min(-dy, h) do
+      gpu.set(x, y + py - 1, unicode.wtrunc(text.padRight(removePrefix(buffer[py + sy] or "", scrollX), w), w))
+    end
+    for py = math.max(h - dy + 1, 1), h do
+      gpu.set(x, y + py - 1, unicode.wtrunc(text.padRight(removePrefix(buffer[py + sy] or "", scrollX), w), w))
+    end
+
+    cy = math.max(math.min(cy, sy + h), sy + 1)
+    setCursor(math.min(cx, unicode.wlen(buffer[cy] or "") + 1), cy)
+  end
 end
 
 -------------------------------------------------------------------------------
