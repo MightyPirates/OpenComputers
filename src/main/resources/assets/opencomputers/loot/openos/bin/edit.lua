@@ -626,7 +626,7 @@ local function onScroll(direction)
 
   if sy ~= scrollY then
     local cx, cy = getCursor()
-    local dy = sy - scrollY;
+    local dy = sy - scrollY
     scrollY = sy
 
     term.setCursorBlink(false)
