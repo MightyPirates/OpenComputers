@@ -630,7 +630,7 @@ local function onScroll(direction)
     scrollY = sy
 
     term.setCursorBlink(false)
-    gpu.copy(x, math.max(y, y + dy), w, h - math.abs(dy), 0, -dy)
+    if math.abs(dy) < h then gpu.copy(x, math.max(y, y + dy), w, h - math.abs(dy), 0, -dy) end
     for py = 1, math.min(-dy, h) do
       gpu.set(x, y + py - 1, unicode.wtrunc(text.padRight(removePrefix(buffer[py + sy] or "", scrollX), w), w))
     end
