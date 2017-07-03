@@ -2,7 +2,10 @@ local shell = require("shell")
 local tty = require("tty")
 local fs = require("filesystem")
 
-tty.clear()
+if tty.isAvailable() then
+  tty:write("\27[40m\27[37m")
+  tty.clear()
+end
 dofile("/etc/motd")
 
 shell.setAlias("dir", "ls")
@@ -27,7 +30,7 @@ os.setenv("HOME", "/home")
 os.setenv("IFS", " ")
 os.setenv("MANPATH", "/usr/man:.")
 os.setenv("PAGER", "/bin/more")
-os.setenv("PS1", "$HOSTNAME$HOSTNAME_SEPARATOR$PWD # ")
+os.setenv("PS1", "\27[40m\27[31m$HOSTNAME$HOSTNAME_SEPARATOR$PWD # \27[37m")
 os.setenv("LS_COLORS", "{FILE=0xFFFFFF,DIR=0x66CCFF,LINK=0xFFAA00,['*.lua']=0x00FF00}")
 
 shell.setWorkingDirectory(os.getenv("HOME"))

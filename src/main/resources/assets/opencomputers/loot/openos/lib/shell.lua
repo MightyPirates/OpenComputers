@@ -55,10 +55,6 @@ function shell.setAlias(alias, value)
   process.info().data.aliases[alias] = value
 end
 
-function shell.aliases()
-  return pairs(process.info().data.aliases)
-end
-
 function shell.getWorkingDirectory()
   -- if no env PWD default to /
   return os.getenv("PWD") or "/"
@@ -75,14 +71,6 @@ function shell.setWorkingDirectory(dir)
   else
     return nil, "not a directory"
   end
-end
-
-function shell.getPath()
-  return os.getenv("PATH")
-end
-
-function shell.setPath(value)
-  os.setenv("PATH", value)
 end
 
 function shell.resolve(path, ext)
@@ -102,7 +90,7 @@ function shell.resolve(path, ext)
     checkArg(2, ext, "string")
     -- search for name in PATH if no dir was given
     -- no dir was given if path has no /
-    local search_in = path:find("/") and dir or shell.getPath()
+    local search_in = path:find("/") and dir or os.getenv("PATH")
     for search_path in string.gmatch(search_in, "[^:]+") do
       -- resolve search_path because they may be relative
       local search_name = fs.concat(shell.resolve(search_path), name)
@@ -117,17 +105,6 @@ function shell.resolve(path, ext)
   end
 
   return nil, "file not found"
-end
-
-function shell.execute(command, env, ...)
-  local sh, reason = shell.getShell()
-  if not sh then
-    return false, reason
-  end
-  local proc = process.load(sh, nil, nil, command)
-  local result = table.pack(process.internal.continue(proc, env, command, ...))
-  if result.n == 0 then return true end
-  return table.unpack(result, 1, result.n)
 end
 
 function shell.parse(...)
@@ -161,5 +138,7 @@ function shell.parse(...)
 end
 
 -------------------------------------------------------------------------------
+
+require("package").delay(shell, "/lib/core/full_shell.lua")
 
 return shell
