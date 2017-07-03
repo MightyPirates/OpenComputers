@@ -7,6 +7,7 @@ keyboard.keys = {
   c               = 0x2E,
   d               = 0x20,
   q               = 0x10,
+  w               = 0x11,
   back            = 0x0E, -- backspace
   delete          = 0xD3,
   down            = 0xD0,
