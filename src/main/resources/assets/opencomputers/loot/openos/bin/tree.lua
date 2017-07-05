@@ -71,7 +71,7 @@ end
 local function stat(path)
   local st = {}
   st.path = path
-  st.name = fs.name(path)
+  st.name = fs.name(path) or "/"
   st.sortName = st.name:gsub("^%.","")
   st.time = fs.lastModified(path)
   st.isLink = fs.isLink(path)
