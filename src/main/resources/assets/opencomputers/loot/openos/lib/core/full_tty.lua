@@ -86,3 +86,6 @@ function tty.on_tab(handler, cursor)
   end
 end
 
+function tty:size()
+  return #(self.window.ansi_response or "")
+end

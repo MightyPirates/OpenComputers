@@ -1,8 +1,6 @@
 local package = require("package")
 local tty = require("tty")
 
-local gpu = tty.gpu()
-
 local function optrequire(...)
   local success, module = pcall(require, ...)
   if success then
@@ -32,7 +30,7 @@ env = setmetatable({}, {
     end
   end,
 })
-env._PROMPT = tostring(env._PROMPT or "lua> ")
+env._PROMPT = tostring(env._PROMPT or "\27[32mlua> \27[37m")
 
 local function findTable(t, path)
   if type(t) ~= "table" then return nil end
@@ -70,8 +68,7 @@ local function findKeys(t, r, prefix, name)
   end
 end
 
-local read_handler = {}
-function read_handler.hint(line, index)
+tty.setReadHandler({hint = function(line, index)
   line = (line or "")
   local tail = line:sub(index)
   line = line:sub(1, index - 1)
@@ -88,21 +85,16 @@ function read_handler.hint(line, index)
     table.insert(hints, key .. tail)
   end
   return hints
-end
+end})
 
-gpu.setForeground(0xFFFFFF)
-io.write(_VERSION .. " Copyright (C) 1994-2017 Lua.org, PUC-Rio\n")
-gpu.setForeground(0xFFFF00)
-io.write("Enter a statement and hit enter to evaluate it.\n")
+io.write("\27[37m".._VERSION .. " Copyright (C) 1994-2017 Lua.org, PUC-Rio\n")
+io.write("\27[33mEnter a statement and hit enter to evaluate it.\n")
 io.write("Prefix an expression with '=' to show its value.\n")
-io.write("Press Ctrl+D to exit the interpreter.\n")
-gpu.setForeground(0xFFFFFF)
+io.write("Press Ctrl+D to exit the interpreter.\n\27[37m")
 
 while tty.isAvailable() do
-  local foreground = gpu.setForeground(0x00FF00)
   io.write(env._PROMPT)
-  gpu.setForeground(foreground)
-  local command = tty.read(read_handler)
+  local command = io.read()
   if not command then -- eof
     return
   end

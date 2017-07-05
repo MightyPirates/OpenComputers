@@ -89,12 +89,10 @@ for dev, path in pairs(devices) do
 end
 
 local target = targets[1]
-if #targets ~= 1 then
-  utils = loadfile(utils_path, "bt", _G)
-  target = utils("select", "targets", options, targets)
+-- if there is only 1 target, the source selection cannot include it
+if #targets == 1 then
+  devices[targets[1].dev] = nil
 end
-if not target then return end
-devices[target.dev] = nil
 
 for dev, path in pairs(devices) do
   local address = dev.address
@@ -127,12 +125,28 @@ for dev, path in pairs(devices) do
   end
 end
 
+-- Ask the user to select a source
 local source = sources[1]
 if #sources ~= 1 then
-  utils = utils or loadfile(utils_path, "bt", _G)
+  utils = loadfile(utils_path, "bt", _G)
   source = utils("select", "sources", options, sources)
 end
 if not source then return end
+
+-- Remove the source from the target options
+for index,entry in ipairs(targets) do
+  if entry.dev == source.dev then
+    table.remove(targets, index)
+    target = targets[1]
+  end
+end
+
+-- Ask the user to select a target
+if #targets ~= 1 then
+  utils = utils or loadfile(utils_path, "bt", _G)
+  target = utils("select", "targets", options, targets)
+end
+if not target then return end
 
 options =
 {
