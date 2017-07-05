@@ -352,7 +352,8 @@ function tty.write(_, value)
         value = window.ansi_escape:sub(5)
       end
       for _,catt in ipairs(color_attributes) do
-        local colors = {0x0,0xff0000,0x00ff00,0xffff00,0x0000ff,0xff00ff,0x00ffff,0xffffff}
+        -- B6 is closer to cyan in 4 bit color
+        local colors = {0x0,0xff0000,0x00ff00,0xffff00,0x0000ff,0xff00ff,0x00B6ff,0xffffff}
         catt = catt - 29
         local method = "setForeground"
         if catt > 10 then

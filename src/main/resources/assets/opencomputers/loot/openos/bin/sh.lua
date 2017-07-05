@@ -26,7 +26,6 @@ if #args == 0 then
         dofile("/etc/profile.lua")
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
-      tty.setCursorBlink(true)
     end
     local command = io.read()
     if command then

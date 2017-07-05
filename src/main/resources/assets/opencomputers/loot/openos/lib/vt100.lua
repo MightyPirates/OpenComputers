@@ -25,7 +25,10 @@ local rules = {}
 -- [%d+;%d+;..%d+m
 rules[{"%[", "[%d;]*", "m"}] = function(_, _, number_text)
   local numbers = {}
-  number_text:gsub("[^;]*", function(num)
+  -- add a ; at the end to recompute trailing ; as resets
+  -- e.g. \27[41;m is actually 41 followed by a reset
+  (number_text..";"):gsub("([^;]*);?", function(num)
+    -- if not n this could simply be a ; separator
     local n = tonumber(num) or 0
     if n == 0 then
       numbers[#numbers + 1] = 40
