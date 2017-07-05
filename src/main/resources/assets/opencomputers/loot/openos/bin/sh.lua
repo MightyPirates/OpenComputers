@@ -10,11 +10,9 @@ if input[2] then
   table.insert(args, 1, input[2])
 end
 
-local history = {hint = sh.hintHandler}
 shell.prime()
 local update_gpu = io.output().tty
 local interactive = io.input().tty
-local foreground
 
 if #args == 0 then
   while true do
@@ -22,33 +20,30 @@ if #args == 0 then
       while not tty.isAvailable() do
         event.pull("term_available")
       end
-      if not foreground and interactive then -- first time run AND interactive
+      if interactive == true then -- first time run AND interactive
+        interactive = 0
+        tty.setReadHandler({hint = sh.hintHandler})
         dofile("/etc/profile.lua")
       end
-      foreground = tty.gpu().setForeground(0xFF0000)
       io.write(sh.expand(os.getenv("PS1") or "$ "))
-      tty.gpu().setForeground(foreground)
       tty.setCursorBlink(true)
     end
-    local command = tty.read(history)
+    local command = io.read()
     if command then
       command = text.trim(command)
       if command == "exit" then
         return
       elseif command ~= "" then
         local result, reason = sh.execute(_ENV, command)
-        if update_gpu and tty.getCursor() > 1 then
-          io.write("\n")
-        end
         if not result then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
-    elseif command == nil then -- command==false is a soft interrupt, ignore it
-      if interactive then
-        io.write("exit\n") -- pipe closed
-      end
+    elseif not interactive then
       return -- eof
+    end
+    if update_gpu and tty.getCursor() > 1 then
+      io.write("\n")
     end
   end
 else
