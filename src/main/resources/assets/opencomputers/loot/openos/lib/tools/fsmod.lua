@@ -3,7 +3,7 @@ local filesystem = require("filesystem")
 local lib = {}
 function lib.remove(path, findNode)
   local function removeVirtual()
-    local node, rest, vnode, vrest = findNode(filesystem.path(path), false, true)
+    local _, _, vnode, vrest = findNode(filesystem.path(path), false, true)
     -- vrest represents the remaining path beyond vnode
     -- vrest is nil if vnode reaches the full path
     -- thus, if vrest is NOT NIL, then we SHOULD NOT remove children nor links
@@ -39,7 +39,7 @@ end
 
 function lib.rename(oldPath, newPath, findNode)
   if filesystem.isLink(oldPath) then
-    local node, rest, vnode, vrest = findNode(filesystem.path(oldPath))
+    local _, _, vnode, _ = findNode(filesystem.path(oldPath))
     local target = vnode.links[filesystem.name(oldPath)]
     local result, reason = filesystem.link(target, newPath)
     if result then

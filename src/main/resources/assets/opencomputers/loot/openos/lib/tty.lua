@@ -3,6 +3,7 @@ local event = require("event")
 local kb = require("keyboard")
 local component = require("component")
 local computer = require("computer")
+local process = require("process")
 local keys = kb.keys
 
 local tty = {}
@@ -18,31 +19,13 @@ tty.window =
 
 tty.internal = {}
 
-local function ctrl_movement(cursor, dir)
-  local index, data = cursor.index, cursor.data
-
-  local last=dir<0 and 0 or unicode.len(data)
-  local start=index+dir+1
-  for i=start,last,dir do
-    local a,b = unicode.sub(data, i-1, i-1), unicode.sub(data, i, i)
-    a = a == "" or a:find("%s")
-    b = b == "" or b:find("%s")
-    if a and not b then return i - (index + 1) end
-  end
-  return last - index
-end
-
-local function read_history(handler, cursor, change)
-  local ni = handler.index + change
-  if ni >= 0 and ni <= #handler then
-    handler[handler.index] = cursor.data
-    handler.index = ni
-    cursor:clear()
-    cursor:update(handler[ni])
-  end
+function tty.setReadHandler(handler)
+  checkArg(1, handler, "table")
+  process.info().data.handler = handler
 end
 
 function tty.key_down_handler(handler, cursor, char, code)
+  local data = cursor.data
   local c = false
   local backup_cache = handler.cache
   handler.cache = nil
@@ -55,21 +38,31 @@ function tty.key_down_handler(handler, cursor, char, code)
   elseif code == keys.enter or code == keys.numpadenter then
     cursor:move(math.huge)
     cursor:draw("\n")
-    if #cursor.data > 0 then
-      table.insert(handler, 1, cursor.data)
+    if #data > 0 then
+      table.insert(handler, 1, data)
       handler[(tonumber(os.getenv("HISTSIZE")) or 10)+1]=nil
       handler[0]=nil
     end
-    return nil, cursor.data .. "\n"
-  elseif code == keys.up     then read_history(handler, cursor,  1)
-  elseif code == keys.down   then read_history(handler, cursor, -1)
-  elseif code == keys.left   then cursor:move(ctrl and ctrl_movement(cursor, -1) or -1)
-  elseif code == keys.right  then cursor:move(ctrl and ctrl_movement(cursor,  1) or  1)
+    return nil, data .. "\n"
+  elseif code == keys.up or code == keys.down then
+    local ni = handler.index + (code == keys.up and 1 or -1)
+    if ni >= 0 and ni <= #handler then
+      handler[handler.index] = data
+      handler.index = ni
+      cursor:clear()
+      cursor:update(handler[ni])
+    end
+  elseif code == keys.left or code == keys.back or code == keys.w and ctrl then
+    local value = ctrl and ((unicode.sub(data, 1, cursor.index):find("%s[^%s]+%s*$") or 0) - cursor.index) or -1
+    if code == keys.left then
+      cursor:move(value)
+    else
+      c = value
+    end
+  elseif code == keys.right  then cursor:move(ctrl and ((data:find("%s[^%s]", cursor.index + 1) or math.huge) - cursor.index) or 1)
   elseif code == keys.home   then cursor:move(-math.huge)
   elseif code == keys["end"] then cursor:move( math.huge)
-  elseif code == keys.back   then c = -1
   elseif code == keys.delete then c =  1
-  --elseif ctrl and char == "w"then -- TODO: cut word
   elseif char >= 32          then c = unicode.char(char)
   else                            handler.cache = backup_cache -- ignored chars shouldn't clear hint cache
   end
@@ -118,19 +111,21 @@ function tty.pull(cursor, timeout, ...)
   local blink = tty.getCursorBlink()
   timeout = timeout or math.huge
   local blink_timeout = blink and .5 or math.huge
-
+  local gpu = tty.gpu()
   local width, height, dx, dy, x, y = tty.getViewport()
-  local out = (x<1 or x>width or y<1 or y>height)
 
-  if cursor and out then
-    cursor:move(0)
-    cursor:scroll()
-    out = false
+  if gpu then
+    if x < 1 or x > width or y < 1 or y > height then
+      if cursor then
+        cursor:move(0)
+        cursor:scroll()
+      else
+        gpu = nil
+      end
+    end
+    x, y = tty.getCursor()
+    x, y = x + dx, y + dy
   end
-
-  x, y = tty.getCursor()
-  x, y = x + dx, y + dy
-  local gpu = not out and tty.gpu()
 
   local bgColor, bgIsPalette
   local fgColor, fgIsPalette
@@ -169,7 +164,14 @@ function tty.pull(cursor, timeout, ...)
       return table.unpack(signal, 1, signal.n)
     end
 
-    signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
+    -- if vt100 ansi codes have anything buffered for read, return that first
+    if tty.window.ansi_response then
+      signal = {"clipboard", tty.keyboard(), tty.window.ansi_response, n=3}
+      tty.window.ansi_response = nil
+    else
+      signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
+    end
+
     timeout = timeout - blink_timeout
     done = signal.n > 1 or timeout < blink_timeout
   end
@@ -260,16 +262,20 @@ function tty.internal.build_vertical_reader()
       self.data = ""
     end,
     draw = function(self, text)
-      self.sy = self.sy + tty.drawText(text)
+      self.sy = self.sy + tty:write(text)
     end
   }
 end
 
-function tty.read(handler, cursor)
-  if not io.stdin.tty then return io.read() end
-
-  checkArg(1, handler, "table")
+-- read n bytes, n is unused
+function tty.read(_, handler, cursor)
+  checkArg(1, handler, "table", "number")
   checkArg(2, cursor, "table", "nil")
+
+  if type(handler) == "number" then
+    -- standard read as a stream, asking for n bytes
+    handler = process.info().data.handler or {}
+  end
 
   handler.index = 0
   cursor = cursor or tty.internal.build_vertical_reader()
@@ -286,10 +292,12 @@ function tty.read(handler, cursor)
     local main_kb = tty.keyboard()
     local main_sc = tty.screen()
     if name == "interrupted" then
-      tty.drawText("^C\n")
+      tty:write("^C\n")
       return false
     elseif address == main_kb or address == main_sc then
-      local handler_method = handler[name] or tty[name .. "_handler"]
+      local handler_method = handler[name] or
+      -- this handler listing hack is to delay load tty
+        ({key_down=1, touch=1, drag=1, clipboard=1})[name] and tty[name .. "_handler"]
       if handler_method then
         -- nil to end (close)
         -- false to ignore
@@ -316,67 +324,97 @@ function tty.setCursor(x, y)
   window.x, window.y = x, y
 end
 
-function tty.drawText(value, nowrap)
+function tty.write(_, value)
   local gpu = tty.gpu()
   if not gpu then
     return
   end
+  local window = tty.window
   local sy = 0
-  local cr_last, beeped
+  local beeped
   local uptime = computer.uptime
   local last_sleep = uptime()
-  local last_index = 1
-  local width, _, dx, dy = tty.getViewport()
   while true do
     if uptime() - last_sleep > 1 then
       os.sleep(0)
       last_sleep = uptime()
     end
 
+    local ansi_print = ""
+    if window.ansi_escape then
+      -- parse the instruction in segment
+      -- [ (%d+;)+ %d+m
+      window.ansi_escape = window.ansi_escape .. value
+      local color_attributes = {tonumber(window.ansi_escape:match("^%[(%d%d)m"))}
+      if not color_attributes[1] then
+        color_attributes, ansi_print, value = require("vt100").parse(window)
+      else
+        value = window.ansi_escape:sub(5)
+      end
+      for _,catt in ipairs(color_attributes) do
+        local colors = {0x0,0xff0000,0x00ff00,0xffff00,0x0000ff,0xff00ff,0x00ffff,0xffffff}
+        catt = catt - 29
+        local method = "setForeground"
+        if catt > 10 then
+          method = "setBackground"
+          catt = catt - 10
+        end
+        local c = colors[catt]
+        if c then
+          gpu[method](c)
+        end
+        window.ansi_escape = nil -- might happen multiple times, that's fine
+      end
+    end
+
     -- scroll before parsing next line
     -- the value may only have been a newline
     sy = sy + tty.scroll()
-    local x, y = tty.getCursor()
-
-    local si, ei, segment, delim = value:find("([^\t\r\n\a]*)([\t\r\n\a]?)", last_index)
-    if si > ei then
+    -- we may have needed to scroll one last time [nowrap adjustments]
+    if #value == 0 then
       break
     end
-    last_index = ei + 1
+
+    local x, y = tty.getCursor()
+
+    local _, ei, delim = unicode.sub(value, 1, window.width):find("([\27\t\r\n\a])", #ansi_print + 1)
+    local segment = ansi_print .. (ei and value:sub(1, ei - 1) or value)
 
     if segment ~= "" then
-      local gpu_x, gpu_y = x + dx, y + dy
+      local gpu_x, gpu_y = x + window.dx, y + window.dy
       local tail = ""
       local wlen_needed = unicode.wlen(segment)
-      local wlen_remaining = width - x + 1
-      if wlen_remaining < wlen_needed then
+      local wlen_remaining = window.width - x + 1
+      if not window.nowrap and wlen_remaining < wlen_needed then
         segment = unicode.wtrunc(segment, wlen_remaining + 1)
         wlen_needed = unicode.wlen(segment)
         -- we can clear the line because we already know remaining < needed
         tail = (" "):rep(wlen_remaining - wlen_needed)
         -- we have to reparse the delimeter
-        last_index = si + #segment
+        ei = #segment
         -- fake a newline
-        if not nowrap then
-          delim = "\n" 
-        end
+        delim = "\n" 
       end
       gpu.set(gpu_x, gpu_y, segment..tail)
       x = x + wlen_needed
     end
 
+    value = ei and value:sub(ei + 1) or ""
+
     if delim == "\t" then
       x = ((x-1) - ((x-1) % 8)) + 9
-    elseif delim == "\r" or (delim == "\n" and not cr_last) then
+    elseif delim == "\r" or (delim == "\n" and not window.cr_last) then
       x = 1
       y = y + 1
     elseif delim == "\a" and not beeped then
       computer.beep()
       beeped = true
+    elseif delim == "\27" then -- ansi escape
+      window.ansi_escape = ""
     end
 
     tty.setCursor(x, y)
-    cr_last = delim == "\r"
+    window.cr_last = delim == "\r"
   end
   return sy
 end
@@ -481,6 +519,12 @@ function tty.scroll(number)
 
   return lines
 end
+
+-- stream methods
+local function bfd() return nil, "tty: invalid operation" end
+tty.close = bfd
+tty.seek = bfd
+tty.handle = "tty"
 
 require("package").delay(tty, "/lib/core/full_tty.lua")
 

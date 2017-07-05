@@ -121,7 +121,7 @@ function filesystem.copy(fromPath, toPath)
   local data = false
   local input, reason = filesystem.open(fromPath, "rb")
   if input then
-    local output, reason = filesystem.open(toPath, "wb")
+    local output = filesystem.open(toPath, "wb")
     if output then
       repeat
         data, reason = input:read(1024)
