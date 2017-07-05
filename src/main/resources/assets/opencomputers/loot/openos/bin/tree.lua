@@ -9,7 +9,7 @@ local function die(...)
 end
 
 do -- handle cli
-  if opts.h or opts.help then
+  if opts.help then
     print([[Usage: tree [OPTION]... [FILE]...
   -a, --all             do not ignore entries starting with .
       --full-time       with -l, print time in full iso format
@@ -163,13 +163,13 @@ local function nod(n)  -- from /lib/core/full_ls.lua
 end
 
 local function formatFSize(size)  -- from /lib/core/full_ls.lua
-  if not ops.h and not ops["human-readable"] and not ops.si then
+  if not opts.h and not opts["human-readable"] and not opts.si then
     return tostring(size)
   end
 
   local sizes = {"", "K", "M", "G"}
   local unit = 1
-  local power = ops.si and 1000 or 1024
+  local power = opts.si and 1000 or 1024
 
   while size > power and unit < #sizes do
     unit = unit + 1
@@ -193,7 +193,7 @@ local function formatTime(epochms)  -- from /lib/core/full_ls.lua
   local d = os.date("*t", epochms)
   local day, hour, min, sec = nod(d.day), pad(nod(d.hour)), pad(nod(d.min)), pad(nod(d.sec))
 
-  if ops["full-time"] then
+  if opts["full-time"] then
     return string.format("%s-%s-%s %s:%s:%s ", d.year, pad(nod(d.month)), pad(day), hour, min, sec)
   else
     return string.format("%s %+2s %+2s:%+2s ", month_names[d.month]:sub(1,3), day, hour, pad(min))
