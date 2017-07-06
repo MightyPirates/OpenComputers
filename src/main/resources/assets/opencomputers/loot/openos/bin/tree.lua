@@ -115,10 +115,7 @@ local function list(path)
   end)
 end
 
-local function digRoot(root)
-  local rootPath = fs.realPath(shell.resolve(root))
-  coroutine.yield(stat(rootPath), {})
-
+local function digRoot(rootPath)
   if not fs.isDirectory(rootPath) then
     return
   end
@@ -257,7 +254,20 @@ end
 
 local dirs, files = 0, 0
 
-for entry, levelStack in dig(args) do
+local roots = {}
+for _, arg in ipairs(args) do
+  local path = shell.resolve(arg)
+  local real, reason = fs.realPath(path)
+  if not real then
+    die("cannot access ", path, ": ", reason or "unknown error")
+  elseif not fs.exists(path) then
+    die("cannot access ", path, ":", "No such file or directory")
+  else
+    table.insert(roots, real)
+  end
+end
+
+for entry, levelStack in dig(roots) do
   if opts.R or #levelStack > 0 then
     if entry.isDirectory then
       dirs = dirs + 1
