@@ -94,11 +94,7 @@ local function stat(path)
 end
 
 local colorize
-if opts.color == "never" then
-  function colorize()
-    return ""
-  end
-else
+if opts.color == "always" then
   -- from /lib/core/full_ls.lua
   local colors = tx.foreach(text.split(os.getenv("LS_COLORS") or "", {":"}, true), function(e)
     local parts = text.split(e, {"="}, true)
@@ -263,7 +259,9 @@ local function writeEntry(entry, levelStack)
 
   if opts.Q then io.write('"') end
 
-  io.write("\27[" .. colorize(entry) .. "m")
+  if opts.color == "always" then
+    io.write("\27[" .. colorize(entry) .. "m")
+  end
 
   if opts.f then
     io.write(entry.path)
