@@ -1,5 +1,7 @@
 local shell = require("shell")
 local fs = require("filesystem")
+local tx = require("transforms")
+local text = require("text")
 
 local args, opts = shell.parse(...)
 
@@ -16,7 +18,7 @@ do -- handle cli
   -h, --human-readable  with -l, print human readable sizes
       --si              likewise, but use powers of 1000 not 1024
       --level=LEVEL     descend only LEVEL directories deep
-      --color[=WHEN]    [WIP] WHEN can be
+      --color=WHEN      WHEN can be
                         auto - colorize output only if writing to a tty,
                         always - always colorize output,
                         never - never colorize output; (default: auto)
@@ -42,6 +44,15 @@ do -- handle cli
   opts.level = tonumber(opts.level) or math.huge
   if opts.level < 1 then
     die("Invalid level, must be greater than 0")
+  end
+
+  opts.color = opts.color or "auto"
+  if opts.color == "auto" then
+    opts.color = io.stdout.tty and "always" or "never"
+  end
+
+  if opts.color ~= "always" and opts.color ~= "never" then
+    die("Invalid value for --color=WHEN option; WHEN should be auto, always or never")
   end
 end
 
@@ -82,6 +93,26 @@ local function stat(path)
   return st
 end
 
+local colorize
+if opts.color == "never" then
+  function colorize()
+    return ""
+  end
+else
+  -- from /lib/core/full_ls.lua
+  local colors = tx.foreach(text.split(os.getenv("LS_COLORS") or "", {":"}, true), function(e)
+    local parts = text.split(e, {"="}, true)
+    return parts[2], parts[1]
+  end)
+
+  function colorize(stat)
+    return stat.isLink and colors.ln or
+           stat.isDirectory and colors.di or
+           colors["*" .. stat.extension] or
+           colors.fi
+  end
+end
+
 local function list(path)
   return coroutine.wrap(function()
     local l = {}
@@ -116,13 +147,15 @@ local function list(path)
 end
 
 local function digRoot(rootPath)
+  coroutine.yield(stat(rootPath), {})
+
   if not fs.isDirectory(rootPath) then
     return
   end
-
   local iterStack = {peekable(list(rootPath))}
   local pathStack = {rootPath}
   local levelStack = {not not iterStack[#iterStack]:peek()}
+
 
   repeat
     local entry = iterStack[#iterStack]()
@@ -230,10 +263,16 @@ local function writeEntry(entry, levelStack)
 
   if opts.Q then io.write('"') end
 
+  io.write("\27[" .. colorize(entry) .. "m")
+
   if opts.f then
     io.write(entry.path)
   else
     io.write(entry.name)
+  end
+
+  if opts.color == "always" then
+    io.write("\27[0m")
   end
 
   if opts.p and entry.isDirectory then
