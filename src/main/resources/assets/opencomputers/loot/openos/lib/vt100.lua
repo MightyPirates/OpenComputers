@@ -1,3 +1,4 @@
+local text = require("text")
 local vt100 = {}
 
 -- runs patterns on ansi until failure
@@ -25,18 +26,26 @@ local rules = {}
 -- [%d+;%d+;..%d+m
 rules[{"%[", "[%d;]*", "m"}] = function(_, _, number_text)
   local numbers = {}
-  -- add a ; at the end to recompute trailing ; as resets
+  -- prefix and suffix ; act as reset
   -- e.g. \27[41;m is actually 41 followed by a reset
-  (number_text..";"):gsub("([^;]*);?", function(num)
-    -- if not n this could simply be a ; separator
-    local n = tonumber(num) or 0
-    if n == 0 then
+  number_text = ";" .. number_text:gsub("^;$","") .. ";"
+  local parts = text.split(number_text, {";"})
+  local last_was_break
+  for _,part in ipairs(parts) do
+    local num = tonumber(part)
+    if not num then
+      num = last_was_break and 0
+      last_was_break = true
+    else
+      last_was_break = false
+    end
+    if num == 0 then
       numbers[#numbers + 1] = 40
       numbers[#numbers + 1] = 37
-    else
-      numbers[#numbers + 1] = n
+    elseif num then
+      numbers[#numbers + 1] = num
     end
-  end)
+  end
   return numbers
 end
 
