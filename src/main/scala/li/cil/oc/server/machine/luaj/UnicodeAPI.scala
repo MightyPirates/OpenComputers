@@ -53,7 +53,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       var width = 0
       var end = 0
       while (width < count) {
-        width += FontUtils.wcwidth(value(end))
+        width += math.max(1, FontUtils.wcwidth(value(end)))
         end += 1
       }
       if (end > 1) LuaValue.valueOf(value.substring(0, end - 1))
