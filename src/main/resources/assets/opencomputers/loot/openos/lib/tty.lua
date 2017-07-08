@@ -3,7 +3,6 @@ local event = require("event")
 local kb = require("keyboard")
 local component = require("component")
 local computer = require("computer")
-local process = require("process")
 local keys = kb.keys
 
 local tty = {}
@@ -18,11 +17,6 @@ tty.window =
 }
 
 tty.internal = {}
-
-function tty.setReadHandler(handler)
-  checkArg(1, handler, "table")
-  process.info().data.handler = handler
-end
 
 function tty.key_down_handler(handler, cursor, char, code)
   local data = cursor.data
@@ -268,15 +262,17 @@ function tty.internal.build_vertical_reader()
 end
 
 -- read n bytes, n is unused
-function tty.read(_, handler, cursor)
+function tty.read(self, handler, cursor)
   checkArg(1, handler, "table", "number")
   checkArg(2, cursor, "table", "nil")
 
-  if type(handler) == "number" then
-    -- standard read as a stream, asking for n bytes
-    handler = process.info().data.handler or {}
+  if not io.stdin.tty or io.stdin.stream ~= self then
+    return io.stdin:readLine(false)
   end
 
+  if type(handler) ~= "table" then
+    handler = {}
+  end
   handler.index = 0
   cursor = cursor or tty.internal.build_vertical_reader()
 
@@ -324,7 +320,10 @@ function tty.setCursor(x, y)
   window.x, window.y = x, y
 end
 
-function tty.write(_, value)
+function tty.write(self, value)
+  if not io.stdout.tty or io.stdout.stream ~= self then
+    return io.write(value)
+  end
   local gpu = tty.gpu()
   if not gpu then
     return
