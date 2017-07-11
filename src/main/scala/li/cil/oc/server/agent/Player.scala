@@ -23,6 +23,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.SleepResult
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
+import net.minecraft.inventory.EntityEquipmentSlot
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
@@ -207,6 +208,19 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       result
     })
+  }
+
+  override def setItemStackToSlot(slotIn: EntityEquipmentSlot, stack: ItemStack): Unit = {
+    if (slotIn == EntityEquipmentSlot.MAINHAND) {
+      agent.mainInventory.setInventorySlotContents(agent.selectedSlot, stack)
+    }
+    super.setItemStackToSlot(slotIn, stack)
+  }
+
+  override def getItemStackFromSlot(slotIn: EntityEquipmentSlot): ItemStack = {
+    if (slotIn == EntityEquipmentSlot.MAINHAND)
+      agent.mainInventory.getStackInSlot(agent.selectedSlot)
+    else super.getItemStackFromSlot(slotIn)
   }
 
   def fireRightClickBlock(pos: BlockPos, side: EnumFacing): PlayerInteractEvent.RightClickBlock = {
