@@ -26,9 +26,9 @@ OpenComputers 是一个在游戏中加入了专业的，模块化的以及高度
 
 ## 概览
 
-正如刚刚所说的, 在OpenComputers里计算机具有持久性computers in OpenComputers feature persistence, which means that a running [computer](general/computer.md) retains its state when the chunk it is in is unloaded. This means that if the player moves away from the [computer](general/computer.md), or logs off, the [computer](general/computer.md) will remember its last known state and continue from that point on when the player goes near the [computer](general/computer.md). Persistence works for all devices except for [tablets](item/tablet.md).  
+正如刚刚所说的, 在OpenComputers里计算机具有持久性,  这意味着运行着的 [计算机](general/computer.md) 即使所在区块并没有加载它依旧能够保持状态. 换句话来说这意味当玩家远离[计算机](general/computer.md)或者离开游戏时, [计算机](general/computer.md)会记住你最后一次离开时的状态,并且当你重新进入游戏或者接近[计算机](general/computer.md)时它会从你离开的时状态继续运行.持久性对于所有的设备都是有效的除了[平板电脑](item/tablet.md).  
 
-All devices are modular and can be assembled with a wide range of components, just like [computers](general/computer.md) in real life. Players who enjoy tinkering will be able to optimize devices to their heart's content. If desired, devices can be [dismantled](block/disassembler.md) and rebuilt if the initial configuration wasn't satisfactory. For [computers](general/computer.md) and [servers](item/server1.md), components can be swapped out on-the-fly simply by opening the corresponding GUI. 
+所有的设备都是模块化的并且可以由许多的零件构成, 就如同现实世界中的[计算机](general/computer.md) 一样. 对于那些喜欢捣鼓的玩家，他们将有机会优化设备到他们心满意足为止. 如果你需要的话,例如初始配置不是那么令人满意的话,设备可以被[分解器](block/disassembler.md)分解并重新组装. 对于[计算机](general/computer.md)和[服务器](item/server1.md)来说, 通过打开相应的图形界面,零件可以在传输过程中被简单的交换. 
 
 OpenComputers devices are compatible with many different mods for manipulation of blocks and entities (through the [adapter](block/adapter.md), or specific upgrades in a [robot](block/robot.md) or [drone](item/drone.md)). Power can be supplied using a large range of other mods, including, but not limited to, Redstone Flux, IndustrialCraft2 EU, Mekanism Joules, Applied Energistics 2 energy as well as Factorization Charge. 
 
