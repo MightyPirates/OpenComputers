@@ -26,10 +26,10 @@ import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.registry.GameRegistry
-import net.minecraftforge.fml.common.registry.IForgeRegistryEntry
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
+import net.minecraftforge.registries.{GameData, IForgeRegistryEntry}
 import org.apache.commons.io.FileUtils
 
 import scala.collection.convert.WrapAsScala._
@@ -492,7 +492,7 @@ object Recipes {
 
   class RecipeException(message: String) extends RuntimeException(message)
 
-  def addRecipe(recipe: IForgeRegistryEntry.Impl[IRecipe], group: String): IRecipe = GameRegistry.register(recipe.setRegistryName(Settings.resourceDomain, group))
+  def addRecipe(recipe: IForgeRegistryEntry.Impl[IRecipe], group: String): IRecipe = GameData.register_impl(recipe.setRegistryName(Settings.resourceDomain, group))
 
   private var recipeCounter: Int = 0
 

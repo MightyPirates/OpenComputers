@@ -50,8 +50,8 @@ object OpenComputers {
     OpenComputers.log.info("Done with post init phase.")
   }
 
-  @EventHandler
-  def missingMappings(e: FMLMissingMappingsEvent): Unit = proxy.missingMappings(e)
+//  @EventHandler
+//  def missingMappings(e: FMLMissingMappingsEvent): Unit = proxy.missingMappings(e)
 
   @EventHandler
   def serverStart(e: FMLServerStartingEvent): Unit = CommandHandler.register(e)

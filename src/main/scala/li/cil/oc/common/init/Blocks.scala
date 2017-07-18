@@ -33,7 +33,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Relay], Settings.namespace + "relay")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
-    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Rack], Settings.namespace + "rack", Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "rack")
     GameRegistry.registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
     GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 

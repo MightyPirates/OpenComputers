@@ -150,26 +150,27 @@ class Proxy {
     OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack
   )
 
-  def missingMappings(e: FMLMissingMappingsEvent) {
-    for (missing <- e.get()) {
-      if (missing.`type` == GameRegistry.Type.BLOCK) {
-        blockRenames.get(missing.name) match {
-          case Some(name) =>
-            if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
-          case _ => missing.warn()
-        }
-      }
-      else if (missing.`type` == GameRegistry.Type.ITEM) {
-        itemRenames.get(missing.name) match {
-          case Some(name) =>
-            if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
-          case _ => missing.warn()
-        }
-      }
-    }
-  }
+  //TODO 1.12
+//  def missingMappings(e: FMLMissingMappingsEvent) {
+//    for (missing <- e.get()) {
+//      if (missing.`type` == GameRegistry.Type.BLOCK) {
+//        blockRenames.get(missing.name) match {
+//          case Some(name) =>
+//            if (Strings.isNullOrEmpty(name)) missing.ignore()
+//            else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
+//          case _ => missing.warn()
+//        }
+//      }
+//      else if (missing.`type` == GameRegistry.Type.ITEM) {
+//        itemRenames.get(missing.name) match {
+//          case Some(name) =>
+//            if (Strings.isNullOrEmpty(name)) missing.ignore()
+//            else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
+//          case _ => missing.warn()
+//        }
+//      }
+//    }
+//  }
 
   // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.
 
