@@ -90,4 +90,10 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
     super.drawGradientRect(left, top, right, bottom, startColor, endColor)
     RenderState.makeItBlend()
   }
+
+  override def drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
+    this.drawDefaultBackground()
+    super.drawScreen(mouseX, mouseY, partialTicks)
+    this.renderHoveredToolTip(mouseX, mouseY)
+  }
 }
