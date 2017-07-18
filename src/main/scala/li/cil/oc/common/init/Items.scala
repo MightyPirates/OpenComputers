@@ -523,7 +523,9 @@ object Items extends ItemAPI {
 
       override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]): Unit = {
         super.getSubItems(tab, list)
-        configuredItems.foreach(list.add)
+        if(isInCreativeTab(tab)){
+          configuredItems.foreach(list.add)
+        }
       }
     }, "misc")
 
