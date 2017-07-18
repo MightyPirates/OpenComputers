@@ -107,8 +107,7 @@ object Items extends ItemAPI {
       instance match {
         case simple: SimpleItem =>
           simple.setUnlocalizedName("oc." + id)
-          simple.setRegistryName(new ResourceLocation(Settings.resourceDomain, id))
-          GameData.register_impl(simple.asInstanceOf[Item])
+          GameData.register_impl(simple.setRegistryName(new ResourceLocation(Settings.resourceDomain, id)))
           OpenComputers.proxy.registerModel(instance, id)
         case _ =>
       }
@@ -535,8 +534,7 @@ object Items extends ItemAPI {
 
   private def newItem[T <: Item](item: T, name: String): T = {
     item.setUnlocalizedName("oc." + name)
-    item.setRegistryName(new ResourceLocation(Settings.resourceDomain, name))
-    GameData.register_impl(item.asInstanceOf[Item])
+    GameData.register_impl(item.setRegistryName(new ResourceLocation(Settings.resourceDomain, name)))
     item
   }
 }
