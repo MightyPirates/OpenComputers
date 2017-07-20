@@ -261,12 +261,12 @@ function tty.internal.build_vertical_reader()
   }
 end
 
--- read n bytes, n is unused
-function tty.read(self, handler, cursor)
+-- PLEASE do not use this method directly, use io.read or tty.read
+function tty.read(_, handler, cursor)
   checkArg(1, handler, "table", "number")
   checkArg(2, cursor, "table", "nil")
 
-  if not io.stdin.tty or io.stdin.stream ~= self then
+  if not io.stdin.tty then
     return io.stdin:readLine(false)
   end
 
@@ -320,8 +320,9 @@ function tty.setCursor(x, y)
   window.x, window.y = x, y
 end
 
-function tty.write(self, value)
-  if not io.stdout.tty or io.stdout.stream ~= self then
+-- PLEASE do not use this method directly, use io.write or term.write
+function tty.write(_, value)
+  if not io.stdout.tty then
     return io.write(value)
   end
   local gpu = tty.gpu()
