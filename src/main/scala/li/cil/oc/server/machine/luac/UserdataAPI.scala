@@ -8,6 +8,7 @@ import java.io.DataOutputStream
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.Value
+import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.CompressedStreamTools
@@ -56,7 +57,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
       val args = lua.toSimpleJavaObjects(2)
-      owner.invoke(() => Array(value.apply(machine, new ArgumentsImpl(args))))
+      owner.invoke(() => Registry.convert(Array(value.apply(machine, new ArgumentsImpl(args)))))
     })
     lua.setField(-2, "apply")
 
@@ -73,7 +74,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
       val args = lua.toSimpleJavaObjects(2)
-      owner.invoke(() => value.call(machine, new ArgumentsImpl(args)))
+      owner.invoke(() => Registry.convert(value.call(machine, new ArgumentsImpl(args))))
     })
     lua.setField(-2, "call")
 
