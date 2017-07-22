@@ -70,13 +70,6 @@ function lib.concat(...)
   return r
 end
 
-setmetatable(lib, 
-{
-  __index = function(tbl, key)
-    setmetatable(tbl, nil)
-    dofile("/opt/core/full_transforms.lua")
-    return rawget(tbl, key)
-  end
-})
+require("package").delay(lib, "/lib/core/full_transforms.lua")
 
 return lib

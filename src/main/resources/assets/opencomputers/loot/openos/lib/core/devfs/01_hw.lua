@@ -1,10 +1,9 @@
 local comp = require("component")
-local fs = require("filesystem")
 local text = require("text")
 
 local dcache = {}
 local pcache = {}
-local adapter_pwd = "/opt/core/devfs/adapters/"
+local adapter_pwd = "/lib/core/devfs/adapters/"
 
 local adapter_api = {}
 
@@ -41,8 +40,8 @@ end
 function adapter_api.create_toggle(read, write, switch)
   return
   {
-    read = function() return tostring(read()) end,
-    write = function(value)
+    read = read and function() return tostring(read()) end,
+    write = write and function(value)
       value = text.trim(tostring(value))
       local on = value == "1" or value == "true"
       local off = value == "0" or value == "false"
