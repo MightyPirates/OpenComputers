@@ -43,6 +43,7 @@
 * [Контроллер инвентаря](inventoryControllerUpgrade.md)
 * [Инвентарь](inventoryUpgrade.md)
 * [Поводок](leashUpgrade.md)
+* [МФУ](mfu.md)
 * [Навигация](navigationUpgrade.md)
 * [Поршень](pistonUpgrade.md)
 * [Табличка](signUpgrade.md)
