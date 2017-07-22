@@ -40,8 +40,8 @@ end
 function adapter_api.create_toggle(read, write, switch)
   return
   {
-    read = function() return tostring(read()) end,
-    write = function(value)
+    read = read and function() return tostring(read()) end,
+    write = write and function(value)
       value = text.trim(tostring(value))
       local on = value == "1" or value == "true"
       local off = value == "0" or value == "false"
