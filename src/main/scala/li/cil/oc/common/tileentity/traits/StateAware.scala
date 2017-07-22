@@ -1,15 +1,12 @@
 package li.cil.oc.common.tileentity.traits
 
-import java.util
-
 import cpw.mods.fml.common.Optional
+import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 
 @Injectable.Interface(value = "buildcraft.api.tiles.IHasWork", modid = Mods.IDs.BuildCraft)
-trait StateAware {
-  def currentState: util.EnumSet[State]
-
+trait StateAware extends api.util.StateAware {
   @Optional.Method(modid = Mods.IDs.BuildCraft)
-  def hasWork: Boolean = currentState.contains(State.CanWork) || currentState.contains(State.IsWorking)
+  def hasWork: Boolean = getCurrentState.contains(api.util.StateAware.State.CanWork) || getCurrentState.contains(api.util.StateAware.State.IsWorking)
 }

@@ -1,8 +1,14 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -10,12 +16,16 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.PacketSender
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent {
+import scala.collection.convert.WrapAsJava._
+
+class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
@@ -23,6 +33,16 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Robot",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Caterpillar",
+    DeviceAttribute.Capacity -> agent.getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -72,6 +92,8 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
     else {
       val (something, what) = blockContent(direction)
       if (something) {
+        context.pause(0.4)
+        PacketSender.sendParticleEffect(BlockPosition(agent), "crit", 8, 0.25, Some(direction))
         result(Unit, what)
       }
       else {
@@ -84,6 +106,8 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
         }
         else {
           node.changeBuffer(Settings.get.robotMoveCost)
+          context.pause(0.4)
+          PacketSender.sendParticleEffect(BlockPosition(agent), "crit", 8, 0.25, Some(direction))
           result(Unit, "impossible move")
         }
       }

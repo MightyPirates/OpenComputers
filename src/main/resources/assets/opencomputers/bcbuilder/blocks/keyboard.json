@@ -1,0 +1,8 @@
+[{
+  "includes": ["traits/rotatable.json"],
+  "nbt": {
+    "blacklist": [
+      "oc:keyboard"
+    ]
+  }
+}]

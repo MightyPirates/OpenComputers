@@ -1,7 +1,7 @@
 package li.cil.oc.server.machine.luac
 
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.util.FontUtil
+import li.cil.oc.util.FontUtils
 
 class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -57,20 +57,20 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "upper")
 
     lua.pushScalaFunction(lua => {
-      lua.pushBoolean(FontUtil.wcwidth(lua.checkString(1).codePointAt(0)) > 1)
+      lua.pushBoolean(FontUtils.wcwidth(lua.checkString(1).codePointAt(0)) > 1)
       1
     })
     lua.setField(-2, "isWide")
 
     lua.pushScalaFunction(lua => {
-      lua.pushInteger(FontUtil.wcwidth(lua.checkString(1).codePointAt(0)))
+      lua.pushInteger(FontUtils.wcwidth(lua.checkString(1).codePointAt(0)))
       1
     })
     lua.setField(-2, "charWidth")
 
     lua.pushScalaFunction(lua => {
       val value = lua.checkString(1)
-      lua.pushInteger(value.toCharArray.map(ch => math.max(1, FontUtil.wcwidth(ch))).sum)
+      lua.pushInteger(value.toCharArray.map(ch => math.max(1, FontUtils.wcwidth(ch))).sum)
       1
     })
     lua.setField(-2, "wlen")
@@ -81,7 +81,7 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       var width = 0
       var end = 0
       while (width < count) {
-        width += FontUtil.wcwidth(value(end))
+        width += math.max(1, FontUtils.wcwidth(value(end)))
         end += 1
       }
       if (end > 1) lua.pushString(value.substring(0, end - 1))

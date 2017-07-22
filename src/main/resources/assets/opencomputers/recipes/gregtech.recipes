@@ -1,6 +1,37 @@
 # Do not change this file, it is rewritten each time you start the game.
 # Instead, use the user.recipes file to edit recipes by redefining them there.
 
+# Note that there is support for a number of GregTech machines, by using the
+# appropriate `type` specifier. Available types are:
+# - gt_alloySmelter : Alloy Smelter Recipe
+# - gt_assembler    : Circuit Assembler Machine
+# - gt_bender       : Plate Bending Machine Recipe
+# - gt_canner       : Canning Machine Recipe
+# - gt_chemical     : Chemical Recipe
+# - gt_cnc          : CNC-Machine Recipe
+# - gt_cutter       : Cutter Recipe
+# - gt_fluidCanner  : Fluid Canner Recipe
+# - gt_formingPress : Forming Press Recipe
+# - gt_lathe        : Lathe Machine Recipe
+# - gt_laserEngraver: Laser Engraver Recipe
+# - gt_wiremill     : Wiremill Recipe
+#
+# For these types, there a few more options for inputs and outputs. A full
+# recipe using all these options would look like this:
+# name {
+#   type: gt_???
+#   input: ["primaryInput", "possiblyOptionalSecondaryInput"]
+#   count: [1, 2] # would mean 1 of primary, 2 of secondary
+#   output: 2 # size of primary output stack
+#   eu: EU consumed for the operation
+#   time: time it takes to complete the operation, in ticks.
+#   # The following are usually optional.
+#   secondaryOutput: ["secondaryOutput1", "secondaryOutput2"] # Max number depends on machine.
+#   secondaryOutputCount: [2, 2] # Like `count` to `input`.
+#   inputFluid: {name="water", amount="500"}
+#   outputFluid: {name="lava"} # defaults to amount = 1000
+# }
+
 include file("hardmode.recipes")
 
 analyzer {
@@ -95,7 +126,7 @@ lanCard {
 }
 wlanCard {
   input: [[screwTitanium , "oc:circuitChip3" , screwTitanium]
-          [enderPearl, "oc:lanCard", enderPearl]
+          [materialEnderPearl, "oc:lanCard", materialEnderPearl]
           [screwTitanium , craftingToolScrewdriver, screwTitanium]]
 }
 
@@ -113,7 +144,7 @@ generatorUpgrade {
 navigationUpgrade {
   # 2 = MV Casing
   input: [[{block="gt.blockcasings", subID=2}, compass, screwStainlessSteel]
-          ["oc:circuitChip3", {item=map, subID=any}, "oc:circuitChip3"]
+          ["oc:circuitChip3", {item=filled_map, subID=any}, "oc:circuitChip3"]
           [screwStainlessSteel, potion, craftingToolScrewdriver]]
 }
 signUpgrade {
@@ -131,10 +162,6 @@ solarGeneratorUpgrade {
 cuttingWire {
   input: [[stickWood, ingotTin, stickWood]
           ["", craftingToolWireCutter, ""]]
-}
-acid {
-  type: shapeless
-  output: 0
 }
 disk {
   input: [["", plateAluminium, ""]
@@ -258,12 +285,12 @@ case1 {
 }
 case2 {
   input: [[screwStainlessSteel , "oc:materialCircuitBoardPrinted", craftingToolWrench]
-          ["ic2.reactorVentGold", "oc:case1", "ic2.reactorVentGold"]
+          [{item="ic2.reactorVentGold", subID=1}, "oc:case1", {item="ic2.reactorVentGold", subID=1}]
           [screwStainlessSteel, "oc:circuitChip2", craftingToolScrewdriver]]
 }
 case3 {
   input: [[screwTitanium , "oc:materialCircuitBoardPrinted", craftingToolWrench]
-          ["ic2.reactorVentDiamond", "oc:case2", "ic2.reactorVentDiamond"]
+          [{item="ic2.reactorVentDiamond", subID=1}, "oc:case2", {item="ic2.reactorVentDiamond", subID=1}]
           [screwTitanium, "oc:circuitChip3", craftingToolScrewdriver]]
 }
 diskDrive {
@@ -284,10 +311,10 @@ powerDistributor {
           [{item="ic2.blockElectric", subID=7}, {block="gt.blockcasings", subID=2}, circuitMaster]
           ["oc:materialCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
-serverRack {
+rack {
   input: [[craftingToolScrewdriver, "oc:wlanCard", craftingToolWrench]
-          ["ic2.reactorVentDiamond", chest, "ic2.reactorVentDiamond"]
-          ["oc:switch", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
+          [{item="ic2.reactorVentDiamond", subID=1}, chest, {item="ic2.reactorVentDiamond", subID=1}]
+          ["oc:relay", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
 }
 redstone {
   # 32731 = Activity Detector
@@ -295,14 +322,14 @@ redstone {
           [{item="gt.metaitem.01", subID=32731}, {block="gt.blockcasings", subID=2}, "oc:redstoneCard1"]
           ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", "oc:circuitChip2"]]
 }
-switch {
+relay {
   input: [["", "oc:lanCard", ""]
           ["oc:cable", {block="gt.blockcasings", subID=2}, "oc:cable"]
           ["oc:materialCircuitBoardPrinted", craftingToolWrench, "oc:materialCircuitBoardPrinted"]]
 }
 screen1 {
   input: [[plateAluminium, plateAluminium, craftingToolWrench]
-          [redstone, "oc:materialTransistor", thinGlass]
+          [redstone, "oc:materialTransistor", paneGlass]
           [plateAluminium, plateAluminium, craftingToolScrewdriver]]
 }
 screen2 {

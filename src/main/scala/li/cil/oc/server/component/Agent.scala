@@ -6,6 +6,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.common.entity
 import li.cil.oc.server.agent.ActivationType
 import li.cil.oc.server.agent.Player
 import li.cil.oc.util.BlockPosition
@@ -69,7 +70,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   @Callback(doc = "function():string -- Get the name of the agent.")
   def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false]]):boolean, string -- Perform a 'left click' towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
     val facing = checkSideForAction(args, 0)
@@ -105,10 +106,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       val breakTime = player.clickBlock(x, y, z, side)
       val broke = breakTime > 0
       if (broke) {
-        // Subtract one tick because we take one to trigger the action - a bit
-        // more than one tick avoid floating point inaccuracy incurring another
-        // tick of delay.
-        triggerDelay(breakTime - 0.055)
+        triggerDelay(breakTime)
       }
       (broke, "block")
     }
@@ -153,7 +151,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     result(false, reason.orNull)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false[, duration:number=0]]]):boolean, string -- Perform a 'right click' towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def use(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =
@@ -232,7 +230,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     result(false)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false]]):boolean -- Place a block towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def place(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =
@@ -305,7 +303,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       player.side.offsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || Vec3.createVectorHelper(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || Vec3.createVectorHelper(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }

@@ -24,18 +24,22 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
     GameRegistry.registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
+    GameRegistry.registerTileEntity(classOf[tileentity.NetSplitter], Settings.namespace + "netSplitter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Print], Settings.namespace + "print")
     GameRegistry.registerTileEntity(classOf[tileentity.Printer], Settings.namespace + "printer")
     GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
+    GameRegistry.registerTileEntity(classOf[tileentity.Relay], Settings.namespace + "relay")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
-    GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Rack], Settings.namespace + "rack", Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
+    GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
-    Recipes.addBlock(new AccessPoint(), Constants.BlockName.AccessPoint, "oc:accessPoint")
+    Items.registerBlock(new AccessPoint(), Constants.BlockName.AccessPoint)
     Recipes.addBlock(new Adapter(), Constants.BlockName.Adapter, "oc:adapter")
     Recipes.addBlock(new Assembler(), Constants.BlockName.Assembler, "oc:assembler")
     Recipes.addBlock(new Cable(), Constants.BlockName.Cable, "oc:cable")
@@ -55,11 +59,12 @@ object Blocks {
     Recipes.addBlock(new PowerDistributor(), Constants.BlockName.PowerDistributor, "oc:powerDistributor")
     Recipes.addBlock(new Raid(), Constants.BlockName.Raid, "oc:raid")
     Recipes.addBlock(new Redstone(), Constants.BlockName.Redstone, "oc:redstone")
+    Recipes.addBlock(new Relay(), Constants.BlockName.Relay, "oc:relay")
     Recipes.addBlock(new Screen(Tier.One), Constants.BlockName.ScreenTier1, "oc:screen1")
     Recipes.addBlock(new Screen(Tier.Three), Constants.BlockName.ScreenTier3, "oc:screen3")
     Recipes.addBlock(new Screen(Tier.Two), Constants.BlockName.ScreenTier2, "oc:screen2")
-    Recipes.addBlock(new ServerRack(), Constants.BlockName.ServerRack, "oc:serverRack")
-    Recipes.addBlock(new Switch(), Constants.BlockName.Switch, "oc:switch")
+    Recipes.addBlock(new Rack(), Constants.BlockName.Rack, "oc:rack", "oc:serverRack")
+    Items.registerBlock(new Switch(), Constants.BlockName.Switch)
 
     Items.registerBlock(new Case(Tier.Four), Constants.BlockName.CaseCreative)
     Items.registerBlock(new Microcontroller(), Constants.BlockName.Microcontroller)
@@ -70,5 +75,15 @@ object Blocks {
     Items.registerBlock(new Print(), "print")
     Recipes.addBlock(new Printer(), "printer", "oc:printer")
     Recipes.addBlock(new ChameliumBlock(), "chameliumBlock", "oc:chameliumBlock")
+    Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
+
+    // v1.5.10
+    Recipes.addBlock(new FakeEndstone(), Constants.BlockName.Endstone, "oc:stoneEndstone")
+
+    // v1.5.14
+    Recipes.addBlock(new NetSplitter(), Constants.BlockName.NetSplitter, "oc:netSplitter")
+
+    // v1.5.16
+    Recipes.addBlock(new Transposer(), Constants.BlockName.Transposer, "oc:transposer")
   }
 }

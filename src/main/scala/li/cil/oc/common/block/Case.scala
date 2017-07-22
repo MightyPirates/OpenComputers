@@ -80,7 +80,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking) {
       if (!world.isRemote) world.getTileEntity(x, y, z) match {
-        case computer: tileentity.Case if !computer.machine.isRunning => computer.machine.start()
+        case computer: tileentity.Case if !computer.machine.isRunning && computer.isUseableByPlayer(player) => computer.machine.start()
         case _ =>
       }
       true

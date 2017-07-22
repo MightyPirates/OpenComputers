@@ -1,21 +1,24 @@
 package li.cil.oc.server.fs
 
 import java.io
+import java.net.MalformedURLException
+import java.net.URISyntaxException
 import java.net.URL
 import java.util.UUID
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
-import li.cil.oc.api.fs.Mode
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.computercraft.DriverComputerCraftMedia
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+
+import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
@@ -40,6 +43,20 @@ object FileSystem extends api.detail.FileSystemAPI {
       true
   })
 
+  // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
+  // Note: we allow / as the path separator and expect all \s to be converted
+  // accordingly before the path is passed to the file system.
+  private val invalidChars = """\:*?"<>|""".toSet
+
+  def isValidFilename(name: String) = !name.exists(invalidChars.contains)
+
+  def validatePath(path: String) = {
+    if (!isValidFilename(path)) {
+      throw new java.io.IOException("path contains invalid characters")
+    }
+    path
+  }
+
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
 
@@ -50,17 +67,16 @@ object FileSystem extends api.detail.FileSystemAPI {
       else
         (codeSource, false)
 
-    val file = try {
-      val url = new URL(codeUrl)
-      try {
-        new io.File(url.toURI)
+    val url = Try {
+      new URL(codeUrl)
+    }.recoverWith {
+      case _: MalformedURLException => Try {
+        new URL("file://" + codeUrl)
       }
-      catch {
-        case _: Throwable => new io.File(url.getPath)
-      }
-    } catch {
-      case _: Throwable => new io.File(codeSource)
     }
+    val file = url.map(url => new io.File(url.toURI)).recoverWith {
+      case _: URISyntaxException => url.map(url => new io.File(url.getPath))
+    }.getOrElse(new io.File(codeSource))
 
     if (isArchive) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
@@ -73,9 +89,9 @@ object FileSystem extends api.detail.FileSystemAPI {
         case _ =>
           System.getProperty("java.class.path").split(System.getProperty("path.separator")).
             find(cp => {
-            val fsp = new io.File(new io.File(cp), innerPath)
-            fsp.exists() && fsp.isDirectory
-          }) match {
+              val fsp = new io.File(new io.File(cp), innerPath)
+              fsp.exists() && fsp.isDirectory
+            }) match {
             case None => null
             case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
           }
@@ -104,20 +120,30 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
     else null
 
+  override def asReadOnly(fileSystem: api.fs.FileSystem) =
+    if (fileSystem.isReadOnly) fileSystem
+    else new ReadOnlyWrapper(fileSystem)
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(accessSound), (speed - 1) max 0 min 5))).orNull
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, accessSound: String, speed: Int) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, accessSound, speed)
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull
+    asManagedEnvironment(fileSystem, label, host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound)
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
+    asManagedEnvironment(fileSystem, label, null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label))
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
-    asManagedEnvironment(fileSystem, null: Label)
+    asManagedEnvironment(fileSystem, null: Label, null, null, 1)
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
 
@@ -153,27 +179,9 @@ object FileSystem extends api.detail.FileSystemAPI {
     extends VirtualFileSystem
     with Buffered
     with Capacity {
-    // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
-    // Note: we allow / as the path separator and expect all \s to be converted
-    // accordingly before the path is passed to the file system.
-    private val invalidChars = """\:*?"<>|""".toSet
-
-    override protected def isValidFilename(name: String) = !name.exists(invalidChars.contains)
-
-    override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
-
-    override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
-
     protected override def segments(path: String) = {
       val parts = super.segments(path)
       if (isCaseInsensitive) toCaseInsensitive(parts) else parts
-    }
-
-    private def validatePath(path: String) = {
-      if (!isValidFilename(path)) {
-        throw new java.io.IOException("path contains invalid characters")
-      }
-      path
     }
 
     private def toCaseInsensitive(path: Array[String]): Array[String] = {

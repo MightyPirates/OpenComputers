@@ -5,11 +5,17 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.EnvironmentProvider
+import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
+import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.ManagedEnvironment
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -17,25 +23,31 @@ import scala.collection.mutable
 import scala.math.ScalaNumber
 
 /**
- * This class keeps track of registered drivers and provides installation logic
- * for each registered driver.
- *
- * Each component type must register its driver with this class to be used with
- * computers, since this class is used to determine whether an object is a
- * valid component or not.
- *
- * All drivers must be installed once the game starts - in the init phase - and
- * are then injected into all computers started up past that point. A driver is
- * a set of functions made available to the computer. These functions will
- * usually require a component of the type the driver wraps to be installed in
- * the computer, but may also provide context-free functions.
- */
+  * This class keeps track of registered drivers and provides installation logic
+  * for each registered driver.
+  *
+  * Each component type must register its driver with this class to be used with
+  * computers, since this class is used to determine whether an object is a
+  * valid component or not.
+  *
+  * All drivers must be installed once the game starts - in the init phase - and
+  * are then injected into all computers started up past that point. A driver is
+  * a set of functions made available to the computer. These functions will
+  * usually require a component of the type the driver wraps to be installed in
+  * the computer, but may also provide context-free functions.
+  */
 private[oc] object Registry extends api.detail.DriverAPI {
   val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
+
+  val sidedBlocks = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
 
   val items = mutable.ArrayBuffer.empty[api.driver.Item]
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
+
+  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+
+  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
 
   val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
@@ -50,9 +62,17 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
+  override def add(driver: api.driver.SidedBlock) {
+    if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
+    if (!sidedBlocks.contains(driver)) {
+      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
+      sidedBlocks += driver
+    }
+  }
+
   override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) {
+    if (!items.contains(driver)) {
       OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
       items += driver
     }
@@ -66,9 +86,37 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def driverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
+  override def add(provider: EnvironmentProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all environment providers in the init phase.")
+    if (!environmentProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering environment provider ${provider.getClass.getName}.")
+      environmentProviders += provider
+    }
+  }
+
+  override def add(provider: InventoryProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all inventory providers in the init phase.")
+    if (!inventoryProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering inventory provider ${provider.getClass.getName}.")
+      inventoryProviders += provider
+    }
+  }
+
+  // TODO Remove in OC 1.7
+  override def driverFor(world: World, x: Int, y: Int, z: Int) = {
+    driverFor(world, x, y, z, ForgeDirection.UNKNOWN) match {
+      case driver: api.driver.SidedBlock => new api.driver.Block {
+        override def worksWith(world: World, x: Int, y: Int, z: Int): Boolean = driver.worksWith(world, x, y, z, ForgeDirection.UNKNOWN)
+
+        override def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment = driver.createEnvironment(world, x, y, z, ForgeDirection.UNKNOWN)
+      }
+      case _ => null
+    }
+  }
+
+  override def driverFor(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    (sidedBlocks.filter(_.worksWith(world, x, y, z, side)), blocks.filter(_.worksWith(world, x, y, z))) match {
+      case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
       case _ => null
     }
 
@@ -77,7 +125,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
       }
-      if (hostAware.size > 0) {
+      if (hostAware.nonEmpty) {
         hostAware.find(_.worksWith(stack, host)).orNull
       }
       else driverFor(stack)
@@ -87,6 +135,21 @@ private[oc] object Registry extends api.detail.DriverAPI {
   override def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
+
+  @Deprecated
+  override def environmentFor(stack: ItemStack): Class[_] = {
+    environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
+      case clazz: Class[_] => clazz
+    }.orNull
+  }
+
+  override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
+
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+    inventoryProviders.find(provider => provider.worksWith(stack, player)).
+      map(provider => provider.getInventory(stack, player)).
+      orNull
+  }
 
   override def blockDrivers = blocks.toSeq
 
@@ -122,6 +185,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case arg: java.lang.Long => arg
       case arg: java.lang.Float => arg
       case arg: java.lang.Double => arg
+      case arg: java.lang.Number => Double.box(arg.doubleValue())
       case arg: java.lang.String => arg
 
       case arg: Array[Boolean] => arg

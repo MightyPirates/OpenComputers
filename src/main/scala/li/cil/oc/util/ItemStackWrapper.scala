@@ -17,7 +17,7 @@ class ItemStackWrapper(val inner: ItemStack) extends Ordered[ItemStackWrapper] {
     else this.id - that.id
   }
 
-  override def hashCode() = Objects.hash(int2Integer(id), int2Integer(damage))
+  override def hashCode() = Objects.hash(Int.box(id), Int.box(damage))
 
   override def equals(obj: scala.Any) = obj match {
     case that: ItemStackWrapper => compare(that) == 0

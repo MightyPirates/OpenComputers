@@ -14,20 +14,30 @@ import li.cil.oc.api.machine.LimitReachedException
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.util.LuaStateFactory
 import li.cil.repack.com.naef.jnlua._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
 
-@Architecture.Name("Lua")
-class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
+@Architecture.Name("Lua 5.2")
+class NativeLua52Architecture(machine: api.machine.Machine) extends NativeLuaArchitecture(machine) {
+  override def factory = LuaStateFactory.Lua52
+}
+
+@Architecture.Name("Lua 5.3")
+class NativeLua53Architecture(machine: api.machine.Machine) extends NativeLuaArchitecture(machine) {
+  override def factory = LuaStateFactory.Lua53
+}
+
+abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
+  protected def factory: LuaStateFactory
+
   private[machine] var lua: LuaState = null
 
   private[machine] var kernelMemory = 0
 
-  private[machine] val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
+  private[machine] val ramScale = if (factory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
 
   private val persistence = new PersistenceAPI(this)
 
@@ -147,13 +157,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     memory > 0
   }
 
-  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
-    case Some(driver: Memory) =>
-      val sizes = Settings.get.ramSizes
-      val tier = math.round(driver.amount(stack)).toInt - 1
-      sizes(tier max 0 min (sizes.length - 1)) * 1024
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  }))
+  })).toInt max 0 min Settings.get.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 
@@ -287,13 +294,15 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
   }
 
+  override def onSignal(): Unit = {}
+
   // ----------------------------------------------------------------------- //
 
   override def initialize(): Boolean = {
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
-    LuaStateFactory.createState() match {
+    factory.createState() match {
       case None =>
         lua = null
         machine.crash("native libraries not available")
@@ -303,7 +312,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
     apis.foreach(_.initialize())
 
-    lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=kernel", "t")
+    lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=machine", "t")
     lua.newThread() // Left as the first value on the stack.
 
     true

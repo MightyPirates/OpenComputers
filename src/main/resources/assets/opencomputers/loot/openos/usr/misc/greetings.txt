@@ -1,0 +1,28 @@
+Tier 2 and 3 screens can act as touch screens - don't attach a keyboard or sneak-activate them.
+You can change the text size on screens by changing their resolution - run `resolution 40 16` in the shell.
+Firing arrows on touch capable screens can trigger touch events.
+Item colors indicate their tier - white is tier one, yellow is tier two and cyan is tier three.
+Use an Analyzer to get more information on blocks - for example, to find out why a computer crashed.
+Keyboards have to be attached to or placed next to a screen to work.
+You can install OpenOS on a writable medium by running the `install` program.
+Internet Cards can be used to make HTTP requests and open raw TCP connections.
+If you crafted something by mistake or don't need it any longer, throw it into a disassembler.
+Have a look at the code of the built-in programs for examples on how to use the APIs.
+Most programs can be interrupted by pressing Ctrl+Alt+C.
+Paste the contents of the clipboard using the middle mouse button or a configurable key (default: insert).
+Computers will consume less power while idling - i.e. when os.sleep(n > 0.05) is called.
+Screens will consume more power the more lit characters they display.
+Most blocks act as 'cables' - use relays and power distributors to create separate networks.
+Welcome to the dark side - here, have some cookies.
+Screens can display Unicode - paste the special chars or use unicode.char.
+Run `help` or `man programname` for ingame help on programs shipped with OpenOS - start with `man man`.
+For more help, there's a wiki at http://ocdoc.cil.li/ - or find the IRC loot disk and join #oc.
+Computers have a very basic, built-in speaker - control it using computer.beep().
+Many component methods have a short documentation - use `=component.componentName.methodName` in the Lua interpreter to see it.
+You can get a list of all attached components using the `components` program.
+If you encounter out of memory errors, throw more RAM at your computer.
+Have you tried turning it off and on again?
+To disable this greeting, install OpenOS to a writeable medium and remove the `/etc/motd` line from `/etc/profile.lua`.
+Did you know OpenComputers has a forum? No? Well, it's at https://oc.cil.li/.
+Please report bugs on the Github issue tracker, thank you!
+Beware of cycles when building networks, or you may get duplicate messages!

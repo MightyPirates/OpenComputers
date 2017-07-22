@@ -20,6 +20,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ### Cards
 * [AbstractBus Card](abstractBusCard.md)
+* [Data Card](dataCard1.md)
 * [Debug Card](debugCard.md) (aka AMI)
 * [Graphics Card](graphicsCard1.md)
 * [Internet Card](internetCard.md)
@@ -38,9 +39,11 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Database Upgrade](databaseUpgrade1.md)
 * [Experience Upgrade](experienceUpgrade.md)
 * [Generator Upgrade](generatorUpgrade.md)
+* [Hover Upgrade](hoverUpgrade1.md)
 * [Inventory Controller](inventoryControllerUpgrade.md)
 * [Inventory Upgrade](inventoryUpgrade.md)
 * [Leash Upgrade](leashUpgrade.md)
+* [MFU](mfu.md)
 * [Navigation Upgrade](navigationUpgrade.md)
 * [Piston Upgrade](pistonUpgrade.md)
 * [Sign Upgrade](signUpgrade.md)
@@ -48,9 +51,16 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Tank Controller](tankControllerUpgrade.md)
 * [Tank Upgrade](tankUpgrade.md)
 * [Tractor Beam Upgrade](tractorBeamUpgrade.md)
+* [Trading Upgrade](tradingUpgrade.md)
 * [Upgrade Container](upgradeContainer1.md)
 
+### Rack Mountables
+* [Disk Drive](diskDriveMountable.md)
+* [Server](server1.md)
+* [Terminal Server](terminalServer.md)
+
 ### Other
+* [APU](apu1.md)
 * [Component Bus](componentBus1.md)
 * [CPU](cpu1.md)
 * [EEPROM](eeprom.md)
@@ -81,3 +91,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Drone Case](droneCase1.md)
 * [Microcontroller Case](microcontrollerCase1.md)
 * [Tablet Case](tabletCase1.md)
+
+## Other
+* [Hover Boots](hoverBoots.md)
+* [Nanomachines](nanomachines.md)

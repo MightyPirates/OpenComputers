@@ -1,23 +1,28 @@
 package li.cil.oc.common.init
 
+import java.util.concurrent.Callable
+
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
@@ -32,9 +37,13 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 object Items extends ItemAPI {
-  private val descriptors = mutable.Map.empty[String, ItemInfo]
+  val descriptors = mutable.Map.empty[String, ItemInfo]
 
-  private val names = mutable.Map.empty[Any, String]
+  val names = mutable.Map.empty[Any, String]
+
+  val aliases = Map(
+    "dataCard" -> Constants.ItemName.DataCardTier1
+  )
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
@@ -66,7 +75,7 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+  def registerItem[T <: Delegate](delegate: T, id: String) = {
     descriptors += id -> new ItemInfo {
       override def name = id
 
@@ -103,6 +112,24 @@ object Items extends ItemAPI {
     instance
   }
 
+  def registerStack(stack: ItemStack, id: String) = {
+    val immutableStack = stack.copy()
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
+      override def block = null
+
+      override def createItemStack(size: Int): ItemStack = {
+        val copy = immutableStack.copy()
+        copy.stackSize = size
+        copy
+      }
+
+      override def item = immutableStack.getItem
+    }
+    stack
+  }
+
   private def getBlockOrItem(stack: ItemStack): Any =
     if (stack == null) null
     else Delegator.subItem(stack).getOrElse(stack.getItem match {
@@ -112,25 +139,47 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS(amount: Int = 1) = {
-    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
+  val registeredItems = mutable.ArrayBuffer.empty[ItemStack]
+
+  @Deprecated
+  override def registerFloppy(name: String, color: Int, factory: Callable[FileSystem]): ItemStack =
+    registerFloppy(name, color, factory, doRecipeCycling = false)
+
+  override def registerFloppy(name: String, color: Int, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    val stack = Loot.registerLootDisk(name, color, factory, doRecipeCycling)
+
+    registeredItems += stack
+
+    stack.copy()
   }
 
-  def createLuaBios(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    val code = new Array[Byte](4 * 1024)
-    val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
-    data.setByteArray(Settings.namespace + "eeprom", code.take(count))
-    data.setString(Settings.namespace + "label", "EEPROM (Lua BIOS)")
-
+  override def registerEEPROM(name: String, code: Array[Byte], data: Array[Byte], readonly: Boolean): ItemStack = {
     val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
+    if (name != null) {
+      nbt.setString(Settings.namespace + "label", name.trim.take(24))
+    }
+    if (code != null) {
+      nbt.setByteArray(Settings.namespace + "eeprom", code.take(Settings.get.eepromSize))
+    }
+    if (data != null) {
+      nbt.setByteArray(Settings.namespace + "userdata", data.take(Settings.get.eepromDataSize))
+    }
+    nbt.setBoolean(Settings.namespace + "readonly", readonly)
 
-    val stack = get(Constants.ItemName.EEPROM).createItemStack(amount)
-    stack.setTagCompound(nbt)
+    val stackNbt = new NBTTagCompound()
+    stackNbt.setTag(Settings.namespace + "data", nbt)
 
-    stack
+    val stack = get(Constants.ItemName.EEPROM).createItemStack(1)
+    stack.setTagCompound(stackNbt)
+
+    registeredItems += stack
+
+    stack.copy()
   }
+
+  // ----------------------------------------------------------------------- //
+
+  private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
 
   def createConfiguredDrone() = {
     val data = new DroneData()
@@ -139,18 +188,18 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
     data.components = Array(
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.LeashUpgrade).createItemStack(1),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryControllerUpgrade),
+      safeGetStack(Constants.ItemName.TankUpgrade),
+      safeGetStack(Constants.ItemName.TankControllerUpgrade),
+      safeGetStack(Constants.ItemName.LeashUpgrade),
 
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1)
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6)
     )
 
     data.createItemStack()
@@ -162,15 +211,15 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
     data.components = Array(
-      get(Constants.ItemName.SignUpgrade).createItemStack(1),
-      get(Constants.ItemName.PistonUpgrade).createItemStack(1),
+      safeGetStack(Constants.ItemName.SignUpgrade),
+      safeGetStack(Constants.ItemName.PistonUpgrade),
 
-      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.RedstoneCardTier2),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1)
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6)
     )
 
     data.createItemStack()
@@ -184,34 +233,34 @@ object Items extends ItemAPI {
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
     data.components = Array(
-      get(Constants.BlockName.ScreenTier1).createItemStack(1),
-      get(Constants.BlockName.Keyboard).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.CraftingUpgrade).createItemStack(1),
+      safeGetStack(Constants.BlockName.ScreenTier1),
+      safeGetStack(Constants.BlockName.Keyboard),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryControllerUpgrade),
+      safeGetStack(Constants.ItemName.TankUpgrade),
+      safeGetStack(Constants.ItemName.TankControllerUpgrade),
+      safeGetStack(Constants.ItemName.CraftingUpgrade),
 
-      get(Constants.ItemName.GraphicsCardTier3).createItemStack(1),
-      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
-      get(Constants.ItemName.InternetCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.GraphicsCardTier3),
+      safeGetStack(Constants.ItemName.RedstoneCardTier2),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.InternetCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6),
 
-      createLuaBios(),
-      createOpenOS(),
-      get(Constants.ItemName.HDDTier3).createItemStack(1)
+      safeGetStack(Constants.ItemName.LuaBios),
+      safeGetStack(Constants.ItemName.OpenOS),
+      safeGetStack(Constants.ItemName.HDDTier3)
     )
     data.containers = Array(
-      get(Constants.ItemName.CardContainerTier3).createItemStack(1),
-      get(Constants.ItemName.UpgradeContainerTier3).createItemStack(1),
-      get(Constants.BlockName.DiskDrive).createItemStack(1)
+      safeGetStack(Constants.ItemName.CardContainerTier3),
+      safeGetStack(Constants.ItemName.UpgradeContainerTier3),
+      safeGetStack(Constants.BlockName.DiskDrive)
     )
 
     data.createItemStack()
@@ -224,30 +273,36 @@ object Items extends ItemAPI {
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
-      Option(get(Constants.BlockName.ScreenTier1).createItemStack(1)),
-      Option(get(Constants.BlockName.Keyboard).createItemStack(1)),
+      Option(safeGetStack(Constants.BlockName.ScreenTier1)),
+      Option(safeGetStack(Constants.BlockName.Keyboard)),
 
-      Option(get(Constants.ItemName.SignUpgrade).createItemStack(1)),
-      Option(get(Constants.ItemName.PistonUpgrade).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.SignUpgrade)),
+      Option(safeGetStack(Constants.ItemName.PistonUpgrade)),
+      Option(safeGetStack(Constants.BlockName.Geolyzer)),
+      Option(safeGetStack(Constants.ItemName.NavigationUpgrade)),
 
-      Option(get(Constants.ItemName.GraphicsCardTier2).createItemStack(1)),
-      Option(get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)),
-      Option(get(Constants.ItemName.WirelessNetworkCard).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.GraphicsCardTier2)),
+      Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
+      Option(safeGetStack(Constants.ItemName.WirelessNetworkCard)),
 
-      Option(get(Constants.ItemName.CPUTier3).createItemStack(1)),
-      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
-      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.CPUTier3)),
+      Option(safeGetStack(Constants.ItemName.RAMTier6)),
+      Option(safeGetStack(Constants.ItemName.RAMTier6)),
 
-      Option(createLuaBios()),
-      Option(createOpenOS()),
-      Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
-    )
-    data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
+      Option(safeGetStack(Constants.ItemName.LuaBios)),
+      Option(safeGetStack(Constants.ItemName.HDDTier3))
+    ).padTo(32, None)
+    data.items(31) = Option(safeGetStack(Constants.ItemName.OpenOS))
+    data.container = Option(safeGetStack(Constants.BlockName.DiskDrive))
 
-    val stack = get(Constants.ItemName.Tablet).createItemStack(1)
-    data.save(stack)
+    data.createItemStack()
+  }
 
-    stack
+  def createChargedHoverBoots() = {
+    val data = new HoverBootsData()
+    data.charge = Settings.get.bufferHoverBoots
+
+    data.createItemStack()
   }
 
   // ----------------------------------------------------------------------- //
@@ -255,21 +310,19 @@ object Items extends ItemAPI {
 
   def init() {
     val multi = new item.Delegator() {
-      def configuredItems = Array(
-        createOpenOS(),
-        createLuaBios(),
+      def additionalItems = Array(
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
         createConfiguredRobot(),
-        createConfiguredTablet()
-      )
+        createConfiguredTablet(),
+        createChargedHoverBoots()
+      ) ++ Loot.disksForClient ++ registeredItems
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
         // Workaround for MC's untyped lists...
         def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         super.getSubItems(item, tab, list)
-        Loot.worldDisks.values.foreach(entry => add(list, entry._1))
-        configuredItems.foreach(add(list, _))
+        additionalItems.foreach(add(list, _))
       }
     }
 
@@ -370,7 +423,7 @@ object Items extends ItemAPI {
     new item.FloppyDisk(multi) {
       showInItemList = false
 
-      override def createItemStack(amount: Int) = createOpenOS(amount)
+      override def createItemStack(amount: Int) = get(Constants.ItemName.OpenOS).createItemStack(1)
 
       override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
         if (player.isSneaking) get(Constants.ItemName.Floppy).createItemStack(1)
@@ -415,7 +468,13 @@ object Items extends ItemAPI {
     // 1.4.2
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, Constants.ItemName.EEPROM, "oc:eeprom")
-    Recipes.addRecipe(createLuaBios(), "luaBios")
+    val luaBios = {
+      val code = new Array[Byte](4 * 1024)
+      val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
+      registerEEPROM("EEPROM (Lua BIOS)", code.take(count), null, readonly = false)
+    }
+    Recipes.addStack(luaBios, Constants.ItemName.LuaBios)
+
     Recipes.addSubItem(new item.MicrocontrollerCase(multi, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1, "oc:microcontrollerCase1")
 
     // 1.4.3
@@ -449,5 +508,41 @@ object Items extends ItemAPI {
     // 1.5.7
     Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
     Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
+
+    // 1.5.8
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
+
+    // 1.5.10
+    Recipes.addSubItem(new item.APU(multi, Tier.One), Constants.ItemName.APUTier1, "oc:apu1")
+    Recipes.addSubItem(new item.APU(multi, Tier.Two), Constants.ItemName.APUTier2, "oc:apu2")
+
+    // 1.5.11
+    Recipes.addItem(new item.HoverBoots(), Constants.ItemName.HoverBoots, "oc:hoverBoots")
+
+    // 1.5.12
+    registerItem(new item.APU(multi, Tier.Three), Constants.ItemName.APUCreative)
+
+    // 1.5.13
+    Recipes.addSubItem(new item.DataCard(multi, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard1")
+
+    // 1.5.15
+    Recipes.addSubItem(new item.DataCard(multi, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")
+    Recipes.addSubItem(new item.DataCard(multi, Tier.Three), Constants.ItemName.DataCardTier3, "oc:dataCard3")
+
+    // 1.5.18
+    Recipes.addSubItem(new item.Nanomachines(multi), Constants.ItemName.Nanomachines, "oc:nanomachines")
+
+    // 1.6.0
+    Recipes.addSubItem(new item.TerminalServer(multi), Constants.ItemName.TerminalServer, "oc:terminalServer")
+    Recipes.addSubItem(new item.DiskDriveMountable(multi), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
+    Recipes.addSubItem(new item.UpgradeTrading(multi), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
+    registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
+    Recipes.addSubItem(new item.UpgradeMF(multi), Constants.ItemName.MFU, "oc:mfu")
+
+    // Register aliases.
+    for ((k, v) <- aliases) {
+      descriptors.getOrElseUpdate(k, descriptors(v))
+    }
   }
 }

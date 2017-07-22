@@ -12,13 +12,14 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
 
   private var root = new NonLeaf()
 
-  def apply(value: Data): Option[(Double, Double, Double)] =
+  def apply(value: Data): Option[(Double, Double, Double)] = this.synchronized {
     entries.get(value).fold(None: Option[(Double, Double, Double)])(position => Some(position.bounds.min.asTuple))
+  }
 
   // Allows debug rendering of the tree.
-  def allBounds = root.allBounds(0)
+  def allBounds = this.synchronized(root.allBounds(0))
 
-  def add(value: Data): Boolean = {
+  def add(value: Data): Boolean = this.synchronized {
     val replaced = remove(value)
     val entry = new Leaf(value, new Point(value))
     entries += value -> entry
@@ -29,11 +30,11 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
     !replaced
   }
 
-  def remove(value: Data): Boolean =
+  def remove(value: Data): Boolean = this.synchronized {
     entries.remove(value) match {
       case Some(node) =>
         val change = root.remove(node)
-        assert(change == Some(node) || change == Some(root))
+        assert(change.contains(node) || change.contains(root))
         root.children.headOption match {
           case Some(nonLeaf: NonLeaf) if root.children.size == 1 =>
             root = nonLeaf
@@ -43,9 +44,11 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
         true
       case _ => false
     }
+  }
 
-  def query(from: (Double, Double, Double), to: (Double, Double, Double)) =
+  def query(from: (Double, Double, Double), to: (Double, Double, Double)) = this.synchronized {
     root.query(new Rectangle(new Point(from), new Point(to)))
+  }
 
   private abstract class Node {
     def bounds: Rectangle
@@ -74,7 +77,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
 
     var bounds = new Rectangle(Point.PositiveInfinity, Point.NegativeInfinity)
 
-    override def allBounds(level: Int) = super.allBounds(level) ++ children.map(_.allBounds(level + 1)).flatten
+    override def allBounds(level: Int) = super.allBounds(level) ++ children.flatMap(_.allBounds(level + 1))
 
     override def isLeaf = children.headOption.exists(_.isInstanceOf[Leaf])
 
@@ -174,7 +177,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
       var seed1: Option[Node] = None
       var seed2: Option[Node] = None
       var worst = Double.NegativeInfinity
-      for (i <- 0 until values.length) {
+      for (i <- values.indices) {
         val si = values(i)
         for (j <- i + 1 until values.length) {
           val sj = values(j)

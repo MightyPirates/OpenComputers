@@ -4,8 +4,12 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -13,12 +17,13 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware {
+import scala.collection.convert.WrapAsJava._
+
+class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
@@ -29,6 +34,15 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   var totalRequiredEnergy = 0.0
 
   var requiredEnergy = 0.0
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Assembler",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Factorizer R1D1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -42,12 +56,12 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
-  override protected def energyThroughput = Settings.get.assemblerRate
+  override def energyThroughput = Settings.get.assemblerRate
 
-  override def currentState = {
-    if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
-    else if (canAssemble) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isAssembling) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else if (canAssemble) util.EnumSet.of(api.util.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //
@@ -127,11 +141,11 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
     }
     else if (nbt.hasKey(Settings.namespace + "robot")) {
       // Backwards compatibility.
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "robot")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")

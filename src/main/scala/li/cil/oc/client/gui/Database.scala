@@ -1,15 +1,16 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.Tier
 import li.cil.oc.common.container
+import li.cil.oc.common.inventory.DatabaseInventory
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11
 
-class Database(playerInventory: InventoryPlayer, val databaseInventory: DatabaseInventory) extends DynamicGuiContainer(new container.Database(playerInventory, databaseInventory)) {
+class Database(playerInventory: InventoryPlayer, val databaseInventory: DatabaseInventory) extends DynamicGuiContainer(new container.Database(playerInventory, databaseInventory)) with traits.LockedHotbar {
   ySize = 256
+
+  override def lockedStack = databaseInventory.container
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {}
 
@@ -28,14 +29,4 @@ class Database(playerInventory: InventoryPlayer, val databaseInventory: Database
       drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     }
   }
-
-  override def doesGuiPauseGame = false
-
-  protected override def handleMouseClick(slot: Slot, slotNumber: Int, button: Int, shift: Int) {
-    if (slot == null || slot.getStack != databaseInventory.container) {
-      super.handleMouseClick(slot, slotNumber, button, shift)
-    }
-  }
-
-  protected override def checkHotbarKeys(slot: Int) = false
 }

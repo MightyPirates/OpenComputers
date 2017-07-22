@@ -4,15 +4,19 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -22,21 +26,31 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable with traits.StateAware {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable with traits.StateAware with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
 
-  val connectors = mutable.Set.empty[(Vec3, Connector)]
+  val connectors = mutable.Set.empty[Chargeable]
 
   var chargeSpeed = 0.0
 
   var hasPower = false
 
   var invertSignal = false
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Charger",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "PowerUpper"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -45,15 +59,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
-  override protected def energyThroughput = Settings.get.chargerRate
+  override def energyThroughput = Settings.get.chargerRate
 
-  override def currentState = {
+  override def getCurrentState = {
     // TODO Refine to only report working if present robots/drones actually *need* power.
     if (connectors.nonEmpty) {
-      if (hasPower) util.EnumSet.of(traits.State.IsWorking)
-      else util.EnumSet.of(traits.State.CanWork)
+      if (hasPower) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+      else util.EnumSet.of(api.util.StateAware.State.CanWork)
     }
-    else util.EnumSet.noneOf(classOf[traits.State])
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
@@ -74,8 +88,30 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
-      val canCharge = charge > 0 && node.globalBuffer >= charge * 0.5
+      var canCharge = Settings.get.ignorePower
+
+      // Charging of external devices.
+      {
+        val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
+        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        if (canCharge) {
+          connectors.foreach(connector => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge))))
+        }
+      }
+
+      // Charging of internal devices.
+      {
+        val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
+        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        if (canCharge) {
+          (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (stack != null) {
+            val offered = charge + node.changeBuffer(-charge)
+            val surplus = ItemCharge.charge(stack, offered)
+            node.changeBuffer(surplus)
+          })
+        }
+      }
+
       if (hasPower && !canCharge) {
         hasPower = false
         ServerPacketSender.sendChargerState(this)
@@ -84,40 +120,18 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         hasPower = true
         ServerPacketSender.sendChargerState(this)
       }
-      if (canCharge) {
-        connectors.foreach {
-          case (_, connector) => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge)))
-        }
-      }
-
-      // Charge tablet if present.
-      val stack = getStackInSlot(0)
-      if (stack != null && chargeSpeed > 0) {
-        def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
-          if (energy < maxEnergy) {
-            val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
-            if (node.tryChangeBuffer(-itemCharge))
-              handler(itemCharge)
-          }
-        }
-        val data = new TabletData(stack)
-        tryCharge(data.energy, data.maxEnergy, (amount) => {
-          data.energy = math.min(data.maxEnergy, data.energy + amount)
-          data.save(stack)
-        })
-      }
     }
 
     if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
-      connectors.foreach {
-        case (position, _) =>
-          val theta = world.rand.nextDouble * Math.PI
-          val phi = world.rand.nextDouble * Math.PI * 2
-          val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
-          val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
-          val dz = 0.45 * Math.cos(theta)
-          world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
-      }
+      connectors.foreach(connector => {
+        val position = connector.pos
+        val theta = world.rand.nextDouble * Math.PI
+        val phi = world.rand.nextDouble * Math.PI * 2
+        val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
+        val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
+        val dz = 0.45 * Math.cos(theta)
+        world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
+      })
     }
   }
 
@@ -159,22 +173,17 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
+  override def isComponentSlot(slot: Int, stack: ItemStack): Boolean =
+    super.isComponentSlot(slot, stack) && (Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver) => driver.slot(stack) == Slot.Tablet
+      case _ => false
+    })
+
   override def getSizeInventory = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
-    case (0, Some(driver)) => driver.slot(stack) == Slot.Tablet
-    case _ => false
-  }
-
-  override protected def onItemAdded(slot: Int, stack: ItemStack) {
-    super.onItemAdded(slot, stack)
-    Tablet.Server.cache.invalidate(Tablet.getId(stack))
-    components(slot) match {
-      case Some(environment) => environment.node match {
-        case component: Component => component.setVisibility(Visibility.Network)
-      }
-      case _ =>
-    }
+    case (0, Some(driver)) if driver.slot(stack) == Slot.Tablet => true
+    case _ => ItemCharge.canCharge(stack)
   }
 
   // ----------------------------------------------------------------------- //
@@ -196,23 +205,86 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   def updateConnectors() {
-    val robotConnectors = ForgeDirection.VALID_DIRECTIONS.map(side => {
+    val robots = ForgeDirection.VALID_DIRECTIONS.map(side => {
       val blockPos = BlockPosition(this).offset(side)
       if (world.blockExists(blockPos)) Option(world.getTileEntity(blockPos))
       else None
     }).collect {
-      case Some(t: RobotProxy) => (BlockPosition(t).toVec3, t.robot.node.asInstanceOf[Connector])
+      case Some(t: RobotProxy) => new RobotChargeable(t.robot)
     }
-    val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
-      case drone: Drone => (Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
+
+    val bounds = BlockPosition(this).bounds.expand(1, 1, 1)
+    val drones = world.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
+      case drone: Drone => new DroneChargeable(drone)
+    }
+
+    val players = world.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
+      case player: EntityPlayer if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.
-    if (connectors.size != robotConnectors.size + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+
+    val newConnectors = robots ++ drones ++ players
+    if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
       connectors.clear()
-      connectors ++= robotConnectors
-      connectors ++= droneConnectors
+      connectors ++= newConnectors
       world.notifyBlocksOfNeighborChange(x, y, z, block)
     }
   }
+
+  trait Chargeable {
+    def pos: Vec3
+
+    def changeBuffer(delta: Double): Double
+  }
+
+  abstract class ConnectorChargeable(val connector: Connector) extends Chargeable {
+    override def changeBuffer(delta: Double): Double = connector.changeBuffer(delta)
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: ConnectorChargeable => chargeable.connector == connector
+      case _ => false
+    }
+  }
+
+  class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.node.asInstanceOf[Connector]) {
+    override def pos: Vec3 = BlockPosition(robot).toVec3
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: RobotChargeable => chargeable.robot == robot
+      case _ => false
+    }
+
+    override def hashCode(): Int = robot.hashCode()
+  }
+
+  class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
+    override def pos: Vec3 = Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ)
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: DroneChargeable => chargeable.drone == drone
+      case _ => false
+    }
+
+    override def hashCode(): Int = drone.hashCode()
+  }
+
+  class PlayerChargeable(val player: EntityPlayer) extends Chargeable {
+    override def pos: Vec3 = Vec3.createVectorHelper(player.posX, player.posY, player.posZ)
+
+    override def changeBuffer(delta: Double): Double = {
+      api.Nanomachines.getController(player) match {
+        case controller: Controller => controller.changeBuffer(delta)
+        case _ => delta // Cannot charge.
+      }
+    }
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: PlayerChargeable => chargeable.player == player
+      case _ => false
+    }
+
+    override def hashCode(): Int = player.hashCode()
+  }
+
 }

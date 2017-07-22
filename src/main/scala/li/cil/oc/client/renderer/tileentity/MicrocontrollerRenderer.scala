@@ -6,6 +6,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -44,14 +45,10 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     t.draw()
 
     if (mcu.isRunning) {
-      bindTexture(Textures.blockMicrocontrollerFrontOn)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(0, 1, 0, 0, 1)
-      t.addVertexWithUV(1, 1, 0, 1, 1)
-      t.addVertexWithUV(1, 0, 0, 1, 0)
-      t.addVertexWithUV(0, 0, 0, 0, 0)
-      t.draw()
+      renderFrontOverlay(Textures.blockMicrocontrollerFrontOn)
+    }
+    else if (mcu.hasErrored && RenderUtil.shouldShowErrorLight(mcu.hashCode)) {
+      renderFrontOverlay(Textures.blockMicrocontrollerFrontError)
     }
 
     RenderState.enableLighting()
@@ -60,5 +57,16 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  private def renderFrontOverlay(texture: ResourceLocation): Unit = {
+    bindTexture(texture)
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(0, 1, 0, 0, 1)
+    t.addVertexWithUV(1, 1, 0, 1, 1)
+    t.addVertexWithUV(1, 0, 0, 1, 0)
+    t.addVertexWithUV(0, 0, 0, 0, 0)
+    t.draw()
   }
 }

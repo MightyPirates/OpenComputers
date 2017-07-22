@@ -1,30 +1,43 @@
 package li.cil.oc.server.component
 
-import java.io.{BufferedWriter, FileNotFoundException, IOException, InputStream, OutputStreamWriter}
+import java.io.BufferedWriter
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
+import java.nio.channels.SelectionKey
+import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
-import java.util.concurrent.{Callable, ConcurrentLinkedQueue, ExecutionException, Future}
+import java.util
+import java.util.UUID
+import java.util.concurrent._
 
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.Constants
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Network, prefab}
+import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 
+import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class InternetCard extends prefab.ManagedEnvironment {
+class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
-
-  val romInternet = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/internet"), "internet"))
 
   protected var owner: Option[Context] = None
 
@@ -32,10 +45,21 @@ class InternetCard extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Communication,
+    DeviceAttribute.Description -> "Internet modem",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "SuperLink X-D4NK"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
   @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback(doc = """function(url:string[, postData:string]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
+  @Callback(doc = """function(url:string[, postData:string[, headers:table]]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
@@ -46,7 +70,14 @@ class InternetCard extends prefab.ManagedEnvironment {
       throw new IOException("too many open connections")
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
-    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post)
+    val headers = if (args.isTable(2)) args.checkTable(2).collect {
+      case (key: String, value: AnyRef) => (key, value.toString)
+    }.toMap
+    else Map.empty[String, String]
+    if (!Settings.get.httpHeadersEnabled && headers.nonEmpty) {
+      return result(Unit, "http request headers are unavailable")
+    }
+    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers)
     connections += request
     result(request)
   }
@@ -83,7 +114,6 @@ class InternetCard extends prefab.ManagedEnvironment {
     super.onConnect(node)
     if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
       owner = Some(node.host.asInstanceOf[Context])
-      romInternet.foreach(fs => node.connect(fs.node))
     }
   }
 
@@ -95,7 +125,6 @@ class InternetCard extends prefab.ManagedEnvironment {
         connections.foreach(_.close())
         connections.clear()
       }
-      romInternet.foreach(_.node.remove())
     }
   }
 
@@ -109,18 +138,6 @@ class InternetCard extends prefab.ManagedEnvironment {
         }
       case _ =>
     }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    romInternet.foreach(_.load(nbt.getCompoundTag("romInternet")))
-  }
-
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    romInternet.foreach(fs => nbt.setNewCompoundTag("romInternet", fs.save))
   }
 
   // ----------------------------------------------------------------------- //
@@ -167,6 +184,51 @@ object InternetCard {
     def close(): Unit
   }
 
+  object TCPNotifier extends Thread {
+    private var selector = Selector.open()
+    private val toAccept = new ConcurrentLinkedQueue[(SocketChannel, () => Unit)]
+
+    override def run(): Unit = {
+      while (true) {
+        try {
+          Stream.continually(toAccept.poll).takeWhile(_ != null).foreach({
+            case (channel: SocketChannel, action: (() => Unit)) =>
+              channel.register(selector, SelectionKey.OP_READ, action)
+          })
+
+          selector.select()
+
+          import scala.collection.JavaConversions._
+          val selectedKeys = selector.selectedKeys
+          val readableKeys = mutable.HashSet[SelectionKey]()
+          selectedKeys.filter(_.isReadable).foreach(key => {
+            key.attachment.asInstanceOf[() => Unit].apply()
+            readableKeys += key
+          })
+
+          if(readableKeys.nonEmpty) {
+            val newSelector = Selector.open()
+            selectedKeys.filter(!readableKeys.contains(_)).foreach(key => {
+              key.channel.register(newSelector, SelectionKey.OP_READ, key.attachment)
+            })
+            selector.close()
+            selector = newSelector
+          }
+        } catch {
+          case e: IOException =>
+            OpenComputers.log.error("Error in TCP selector loop.", e)
+        }
+      }
+    }
+
+    def add(e: (SocketChannel, () => Unit)) {
+      toAccept.offer(e)
+      selector.wakeup()
+    }
+  }
+
+  TCPNotifier.start()
+
   class TCPSocket extends AbstractValue with Closable {
     def this(owner: InternetCard, uri: URI, port: Int) {
       this()
@@ -180,18 +242,37 @@ object InternetCard {
     private var address: Future[InetAddress] = null
     private var channel: SocketChannel = null
     private var isAddressResolved = false
+    private val id = UUID.randomUUID()
+
+    private def setupSelector() {
+      TCPNotifier.add((channel, () => {
+        owner match {
+          case Some(internetCard) =>
+            internetCard.node.sendToVisible("computer.signal", "internet_ready", id.toString)
+          case _ =>
+            channel.close()
+        }
+      }))
+    }
 
     @Callback(doc = """function():boolean -- Ensures a socket is connected. Errors if the connection failed.""")
-    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized(result(checkConnected()))
+    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = {
+      val r = this.synchronized(result(checkConnected()))
+      setupSelector()
+      r
+    }
 
     @Callback(doc = """function([n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(0, Int.MaxValue)))
       if (checkConnected()) {
         val buffer = ByteBuffer.allocate(n)
         val read = channel.read(buffer)
-        if (read == -1) result(null)
-        else result(buffer.array.view(0, read).toArray)
+        if (read == -1) result(Unit)
+        else {
+          setupSelector()
+          result(buffer.array.view(0, read).toArray)
+        }
       }
       else result(Array.empty[Byte])
     }
@@ -209,6 +290,11 @@ object InternetCard {
     def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       close()
       null
+    }
+
+    @Callback(direct = true, doc = """function():string -- Returns connection ID.""")
+    def id(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      result(id.toString)
     }
 
     override def dispose(context: Context): Unit = {
@@ -264,22 +350,23 @@ object InternetCard {
         resolved
       }
     }
+
   }
 
   def checkLists(inetAddress: InetAddress, host: String) {
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_ (inetAddress, host))) {
       throw new FileNotFoundException("address is not whitelisted")
     }
-    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_ (inetAddress, host))) {
       throw new FileNotFoundException("address is blacklisted")
     }
   }
 
   class HTTPRequest extends AbstractValue with Closable {
-    def this(owner: InternetCard, url: URL, post: Option[String]) {
+    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String]) {
       this()
       this.owner = Some(owner)
-      this.stream = threadPool.submit(new RequestSender(url, post))
+      this.stream = threadPool.submit(new RequestSender(url, post, headers))
     }
 
     private var owner: Option[InternetCard] = None
@@ -296,15 +383,15 @@ object InternetCard {
     def response(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       response match {
         case Some((code, message, headers)) => result(code, message, headers)
-        case _ => result(null)
+        case _ => result(Unit)
       }
     }
 
     @Callback(doc = """function([n:number]):string -- Tries to read data from the response. Returns the read byte array.""")
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(0, Int.MaxValue)))
       if (checkResponse()) {
-        if (eof && queue.isEmpty) result(null)
+        if (eof && queue.isEmpty) result(Unit)
         else {
           val buffer = ByteBuffer.allocate(n)
           var read = 0
@@ -378,13 +465,14 @@ object InternetCard {
     }
 
     // This one doesn't (see comment in TCP socket), but I like to keep it consistent.
-    private class RequestSender(val url: URL, val post: Option[String]) extends Callable[InputStream] {
+    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {
             http.setDoInput(true)
+            headers.foreach(Function.tupled(http.setRequestProperty))
             if (post.isDefined) {
               http.setRequestMethod("POST")
               http.setDoOutput(true)

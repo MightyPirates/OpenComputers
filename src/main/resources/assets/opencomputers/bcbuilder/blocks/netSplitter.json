@@ -1,0 +1,6 @@
+[{
+  "includes": [
+    "traits/environment.json",
+    "traits/redstone.json"
+  ]
+}]

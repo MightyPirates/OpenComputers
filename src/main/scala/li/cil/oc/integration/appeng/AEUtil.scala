@@ -1,7 +1,6 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
-import appeng.tile.misc.TileInterface
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.integration.Mods
@@ -20,7 +19,7 @@ object AEUtil {
     else areChannelsEnabledOld
   }
 
-  private def areChannelsEnabledNew: Boolean = AEApi.instance.definitions.blocks.controller.maybeStack(0).isPresent
+  private def areChannelsEnabledNew: Boolean = AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
 
   private def areChannelsEnabledOld: Boolean = AEApi.instance.blocks != null && AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null
 
@@ -34,17 +33,14 @@ object AEUtil {
     else null
 
   private def controllerClassNew: Class[_] =
-    if (areChannelsEnabled)
-      AEApi.instance.definitions.blocks.controller.maybeEntity.orNull
-    else
-      AEApi.instance.definitions.blocks.iface.maybeEntity.orNull
+    if (areChannelsEnabled) AEApi.instance.definitions.blocks.controller.maybeEntity.orNull
+    else null: Class[_] // ... why -.-
 
-  private def controllerClassOld: Class[_] =
-    if (areChannelsEnabled)
+  private def controllerClassOld: Class[_] = {
     // Not classOf[TileController] because that derps the compiler when it tries to resolve the class (says can't find API classes from RotaryCraft).
-      Class.forName("appeng.tile.networking.TileController")
-    else
-      classOf[TileInterface]
+    if (areChannelsEnabled) Class.forName("appeng.tile.networking.TileController")
+    else null
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -54,20 +50,14 @@ object AEUtil {
   }
 
   private def isControllerNew(stack: ItemStack): Boolean =
-    if (areChannelsEnabled)
+    areChannelsEnabled &&
       AEApi.instance.definitions.blocks.controller.isSameAs(stack)
-    else
-      AEApi.instance.definitions.blocks.iface.isSameAs(stack)
 
   private def isControllerOld(stack: ItemStack): Boolean =
-    AEApi.instance.blocks != null && {
-      if (areChannelsEnabled)
-        AEApi.instance.blocks.blockController != null &&
-          AEApi.instance.blocks.blockController.sameAsStack(stack)
-      else
-        AEApi.instance.blocks.blockInterface != null &&
-          AEApi.instance.blocks.blockInterface.sameAsStack(stack)
-    }
+    areChannelsEnabled &&
+      AEApi.instance.blocks != null &&
+      AEApi.instance.blocks.blockController != null &&
+      AEApi.instance.blocks.blockController.sameAsStack(stack)
 
   // ----------------------------------------------------------------------- //
 

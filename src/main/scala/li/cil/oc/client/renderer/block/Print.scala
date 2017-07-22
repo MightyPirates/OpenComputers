@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.block
 
+import com.google.common.base.Strings
 import li.cil.oc.Constants
 import li.cil.oc.api.Items
 import li.cil.oc.common.block
@@ -17,12 +18,13 @@ object Print {
 
   def render(data: PrintData, state: Boolean, facing: ForgeDirection, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
     val shapes = if (state) data.stateOn else data.stateOff
-    if (shapes.size == 0) {
+    printBlock.isSingleShape = shapes.size == 1
+    if (shapes.isEmpty) {
       printBlock.textureOverride = Option(resolveTexture("missingno"))
       renderer.setRenderBounds(0, 0, 0, 1, 1, 1)
       renderer.renderStandardBlock(block, x, y, z)
     }
-    else for (shape <- shapes) {
+    else for (shape <- shapes if !Strings.isNullOrEmpty(shape.texture)) {
       val bounds = shape.bounds.rotateTowards(facing)
       printBlock.colorMultiplierOverride = shape.tint
       printBlock.textureOverride = Option(resolveTexture(shape.texture))
@@ -33,6 +35,7 @@ object Print {
     }
     printBlock.colorMultiplierOverride = None
     printBlock.textureOverride = None
+    printBlock.isSingleShape = false
   }
 
   def resolveTexture(name: String): IIcon = {

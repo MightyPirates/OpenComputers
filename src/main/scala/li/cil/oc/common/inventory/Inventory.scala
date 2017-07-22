@@ -2,13 +2,11 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-trait Inventory extends IInventory {
+trait Inventory extends SimpleInventory {
   def items: Array[Option[ItemStack]]
 
   def updateItems(slot: Int, stack: ItemStack) = items(slot) = Option(stack)
@@ -17,24 +15,6 @@ trait Inventory extends IInventory {
 
   override def getStackInSlot(slot: Int) =
     if (slot >= 0 && slot < getSizeInventory) items(slot).orNull
-    else null
-
-  override def decrStackSize(slot: Int, amount: Int) =
-    if (slot >= 0 && slot < getSizeInventory) {
-      (items(slot) match {
-        case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
-          setInventorySlotContents(slot, null)
-          stack
-        case Some(stack) =>
-          val result = stack.splitStack(amount)
-          markDirty()
-          result
-        case _ => null
-      }) match {
-        case stack: ItemStack if stack.stackSize > 0 => stack
-        case _ => null
-      }
-    }
     else null
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
@@ -66,16 +46,6 @@ trait Inventory extends IInventory {
     }
   }
 
-  def getInventoryStackRequired = 1
-
-  override def getStackInSlotOnClosing(slot: Int) = null
-
-  override def openInventory() {}
-
-  override def closeInventory() {}
-
-  override def hasCustomInventoryName = false
-
   override def getInventoryName = Settings.namespace + "container." + inventoryName
 
   protected def inventoryName = getClass.getSimpleName
@@ -83,11 +53,23 @@ trait Inventory extends IInventory {
   // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
-      val slot = slotNbt.getByte("slot")
-      if (slot >= 0 && slot < items.length) {
-        updateItems(slot, ItemUtils.loadStack(slotNbt.getCompoundTag("item")))
+    // Implicit slot numbers are compatibility code for loading old server save format.
+    // TODO 1.7 remove compat code.
+    var count = 0
+    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
+      if (tag.hasKey("slot")) {
+        val slot = tag.getByte("slot")
+        if (slot >= 0 && slot < items.length) {
+          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag("item")))
+        }
       }
+      else {
+        val slot = count
+        if (slot >= 0 && slot < items.length) {
+          updateItems(slot, ItemStack.loadItemStackFromNBT(tag))
+        }
+      }
+      count += 1
     })
   }
 

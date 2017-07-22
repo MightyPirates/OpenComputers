@@ -4,15 +4,15 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import mods.immibis.redlogic.api.wiring.IConnectable
 import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
 import mods.immibis.redlogic.api.wiring.IWire
-import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -36,7 +36,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     if (value != isOutputEnabled) {
       _isOutputEnabled = value
       if (!value) {
-        for (i <- 0 until _output.length) {
+        for (i <- _output.indices) {
           _output(i) = 0
         }
       }
@@ -45,7 +45,15 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     this
   }
 
-  def input(side: ForgeDirection) = _input(side.ordinal())
+  def input(side: ForgeDirection) = _input(side.ordinal()) max 0
+
+  def input(side: ForgeDirection, newInput: Int): Unit = {
+    val oldInput = _input(side.ordinal())
+    _input(side.ordinal()) = newInput
+    if (oldInput >= 0 && newInput != oldInput) {
+      onRedstoneInputChanged(side, oldInput, newInput)
+    }
+  }
 
   def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
 
@@ -68,20 +76,20 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     if (isServer) {
       if (shouldUpdateInput) {
         shouldUpdateInput = false
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          updateRedstoneInput(side)
-        }
+        ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput)
       }
     }
   }
 
-  def updateRedstoneInput(side: ForgeDirection) {
-    val oldInput = _input(side.ordinal())
-    val newInput = computeInput(side)
-    _input(side.ordinal()) = newInput
-    if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
+  override def validate(): Unit = {
+    super.validate()
+    if (!canUpdate) {
+      EventHandler.scheduleServer(() => ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput))
     }
+  }
+
+  def updateRedstoneInput(side: ForgeDirection) {
+    input(side, BundledRedstone.computeInput(position, side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -116,29 +124,6 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   }
 
   // ----------------------------------------------------------------------- //
-
-  protected def computeInput(side: ForgeDirection) = {
-    val blockPos = BlockPosition(x, y, z).offset(side)
-    if (!world.blockExists(blockPos)) 0
-    else {
-      // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
-        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos) else 0)
-      val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(blockPos) match {
-          case emitter: IRedstoneEmitter =>
-            var strength = 0
-            for (i <- -1 to 5) {
-              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-            }
-            strength
-          case _ => 0
-        }
-      }
-      else 0
-      math.max(vanilla, redLogic)
-    }
-  }
 
   protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {}
 

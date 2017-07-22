@@ -1,3 +1,3 @@
 package li.cil.oc.common.item
 
-class CardBase(val parent: Delegator) extends Delegate
+class CardBase(val parent: Delegator) extends traits.Delegate

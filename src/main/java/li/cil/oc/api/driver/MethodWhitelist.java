@@ -15,7 +15,7 @@ package li.cil.oc.api.driver;
  * suppress inventory functionality if your TileEntity implements IInventory.
  * <p/>
  * To do so, implement this interface in the <em>environment</em> that you
- * return from your driver's {@link Block#createEnvironment(net.minecraft.world.World, int, int, int)}
+ * return from your driver's {@link SidedBlock#createEnvironment(net.minecraft.world.World, int, int, int, net.minecraftforge.common.util.ForgeDirection)}
  * method, and provide the names of the allowed methods from {@link #whitelistedMethods()}.
  * <p/>
  * <em>Important</em>: if multiple drivers apply to a single block that each

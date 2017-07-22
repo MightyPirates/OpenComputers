@@ -4,6 +4,7 @@ import codechicken.lib.data.MCDataInput
 import codechicken.lib.data.MCDataOutput
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
+import codechicken.microblock.ISidedHollowConnect
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
@@ -31,7 +32,7 @@ import net.minecraft.util.MovingObjectPosition
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
 
-class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with network.Environment {
+class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TSlottedPart with ISidedHollowConnect with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   private var _color = Color.LightGray
@@ -60,6 +61,8 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
 
   def getType = Settings.namespace + Constants.BlockName.Cable
 
+  override def getStrength(hit: MovingObjectPosition, player: EntityPlayer): Float = api.Items.get(Constants.BlockName.Cable).block().getBlockHardness(world, hit.blockX, hit.blockY, hit.blockZ)
+
   override def doesTick = false
 
   override def getBounds = new Cuboid6(Cable.bounds(world, x, y, z))
@@ -67,6 +70,10 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
   override def getOcclusionBoxes = WrapAsJava.asJavaIterable(Iterable(new Cuboid6(AxisAlignedBB.getBoundingBox(-0.125 + 0.5, -0.125 + 0.5, -0.125 + 0.5, 0.125 + 0.5, 0.125 + 0.5, 0.125 + 0.5))))
 
   override def getRenderBounds = new Cuboid6(Cable.bounds(world, x, y, z).offset(x, y, z))
+
+  override def getHollowSize(side: Int) = 4 // 4 pixels as this is width of cable.
+
+  override def getSlotMask = 1 << 6 // 6 is center part.
 
   // ----------------------------------------------------------------------- //
 

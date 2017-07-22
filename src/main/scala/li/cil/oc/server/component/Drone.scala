@@ -1,7 +1,13 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -13,14 +19,26 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
 import net.minecraftforge.common.util.ForgeDirection
 
-class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent {
+import scala.collection.convert.WrapAsJava._
+
+class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
     withConnector(Settings.get.bufferDrone).
     create()
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Drone",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Overwatcher",
+    DeviceAttribute.Capacity -> agent.inventorySize.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
   override protected def checkSideForAction(args: Arguments, n: Int) =
-    args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    args.checkSideAny(n)
 
   override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(position) ++ super.suckableItems(side)
 

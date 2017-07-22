@@ -2,18 +2,21 @@ package li.cil.oc.common.block
 
 import java.util.Random
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
+import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock with traits.SpecialBlock {
+class Keyboard extends SimpleBlock(Material.rock) with traits.SpecialBlock {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
@@ -87,10 +90,12 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock {
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite) => // Can stay.
+      case keyboard: tileentity.Keyboard =>
+        if (!canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite)) {
+          world.setBlockToAir(x, y, z)
+          InventoryUtils.spawnStackInWorld(BlockPosition(x, y, z, world), api.Items.get(Constants.BlockName.Keyboard).createItemStack(1))
+        }
       case _ =>
-        dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
-        world.setBlockToAir(x, y, z)
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =

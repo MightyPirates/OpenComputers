@@ -1,12 +1,19 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -14,16 +21,42 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
-  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
+  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
 
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Bus,
+    DeviceAttribute.Description -> "Adapter",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Multiplug Ext.1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def defaultState = true
+
+  override def setSideOpen(side: ForgeDirection, value: Boolean) {
+    super.setSideOpen(side, value)
+    if (isServer) {
+      ServerPacketSender.sendAdapterState(this)
+      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+      world.notifyBlocksOfNeighborChange(x, y, z, block)
+      neighborChanged(side)
+    } else {
+      world.markBlockForUpdate(x, y, z)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -55,8 +88,8 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          Option(api.Driver.driverFor(world, x, y, z)) match {
-            case Some(newDriver) => blocks(d.ordinal()) match {
+          Option(api.Driver.driverFor(world, x, y, z, d)) match {
+            case Some(newDriver) if isSideOpen(d) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
                   // This is... odd. Maybe moved by some other mod? First, clean up.
@@ -66,7 +99,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   node.disconnect(oldEnvironment.node)
 
                   // Then rebuild - if we have something.
-                  val environment = newDriver.createEnvironment(world, x, y, z)
+                  val environment = newDriver.createEnvironment(world, x, y, z, d)
                   if (environment != null) {
                     blocks(d.ordinal()) = Some((environment, newDriver))
                     if (environment.canUpdate) {
@@ -77,8 +110,11 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   }
                 } // else: the more things change, the more they stay the same.
               case _ =>
+                if (!isSideOpen(d)) {
+                  return
+                }
                 // A challenger appears. Maybe.
-                val environment = newDriver.createEnvironment(world, x, y, z)
+                val environment = newDriver.createEnvironment(world, x, y, z, d)
                 if (environment != null) {
                   blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {
@@ -162,7 +198,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
     super.writeToNBTForServer(nbt)
 
     val blocksNbt = new NBTTagList()
-    for (i <- 0 until blocks.length) {
+    for (i <- blocks.indices) {
       val blockNbt = new NBTTagCompound()
       blocksData(i) match {
         case Some(data) =>

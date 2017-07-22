@@ -1,8 +1,10 @@
 package li.cil.oc.client.renderer.markdown.segment
 
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.util.matching.Regex
 
 trait Segment {
@@ -45,6 +47,25 @@ trait Segment {
    * properties.
    */
   def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+
+  def renderAsText(format: MarkupFormat.Value): Iterable[String] = {
+    var segment = this
+    val result = mutable.Buffer.empty[String]
+    val builder = mutable.StringBuilder.newBuilder
+    while (segment != null) {
+      builder.append(segment.toString(format))
+      if (segment.isLast) {
+        result += builder.toString()
+        builder.clear()
+      }
+      segment = segment.next
+    }
+    result.toIterable
+  }
+
+  def toString(format: MarkupFormat.Value): String
+
+  override def toString: String = toString(MarkupFormat.Markdown)
 
   // ----------------------------------------------------------------------- //
 

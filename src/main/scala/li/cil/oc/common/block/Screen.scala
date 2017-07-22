@@ -10,6 +10,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
@@ -25,7 +26,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Screen(val tier: Int) extends RedstoneAware {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 5, 5, 5)
 
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = toLocal(world, x, y, z, side) != ForgeDirection.SOUTH
 
@@ -337,7 +338,7 @@ class Screen(val tier: Int) extends RedstoneAware {
     if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z)) && getValidRotations(world, x, y, z).contains(side) && !force) false
     else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getTileEntity(x, y, z) match {
-      case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
+      case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.origin.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
         // if, but it is clearer this way (to trigger it from the server we
         // would have to give screens a "container", which we do not want).

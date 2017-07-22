@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Sound
+import li.cil.oc.common.SaveHandler
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
@@ -20,7 +21,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def z = zCoord
 
-  def position = BlockPosition(x, y, z)
+  def position = BlockPosition(x, y, z, world)
 
   def block = getBlockType
 
@@ -88,10 +89,17 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   override def getDescriptionPacket = {
     val nbt = new NBTTagCompound()
-    try writeToNBTForClient(nbt) catch {
-      case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
+
+    // See comment on savingForClients variable.
+    SaveHandler.savingForClients = true
+    try {
+      try writeToNBTForClient(nbt) catch {
+        case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
+      }
+      if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(x, y, z, -1, nbt)
+    } finally {
+      SaveHandler.savingForClients = false
     }
-    if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(x, y, z, -1, nbt)
   }
 
   override def onDataPacket(manager: NetworkManager, packet: S35PacketUpdateTileEntity) {

@@ -2,6 +2,8 @@
 
 ![AAA](oredict:oc:accessPoint)
 
+*This block is deprecated and will be removed in a future version.* Craft it into a [relay](relay.md) to avoid losing it.
+
 The access point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see [components](../general/computer.md) in other networks, while still allowing to send network messages to the machines in other networks.
 
 In addition to that, this block can act as a repeater: it can re-send wired messages as wired messages to other devices; or wireless messages as wired or wireless messages. 

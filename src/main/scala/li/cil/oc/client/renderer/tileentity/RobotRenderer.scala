@@ -3,6 +3,8 @@ package li.cil.oc.client.renderer.tileentity
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api.driver.item.UpgradeRenderer
+import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
@@ -18,10 +20,10 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
@@ -30,10 +32,27 @@ import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 
+import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
+
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
 
-  private val mountPoints = Array.fill(7)(new RobotRenderEvent.MountPoint())
+  private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
+
+  private val slotNameMapping = Map(
+    UpgradeRenderer.MountPointName.TopLeft -> 0,
+    UpgradeRenderer.MountPointName.TopRight -> 1,
+    UpgradeRenderer.MountPointName.TopBack -> 2,
+    UpgradeRenderer.MountPointName.BottomLeft -> 3,
+    UpgradeRenderer.MountPointName.BottomRight -> 4,
+    UpgradeRenderer.MountPointName.BottomBack -> 5,
+    UpgradeRenderer.MountPointName.BottomFront -> 6
+  )
+
+  for ((name, index) <- slotNameMapping) {
+    mountPoints(index) = new RobotRenderEvent.MountPoint(name)
+  }
 
   private val gap = 1.0f / 28.0f
   private val gt = 0.5f + gap
@@ -119,65 +138,68 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   def resetMountPoints(running: Boolean) {
     val offset = if (running) 0 else -0.06f
 
-    // Back.
+    // Left top.
     mountPoints(0).offset.setX(0)
-    mountPoints(0).offset.setY(-0.2f)
+    mountPoints(0).offset.setY(0.2f)
     mountPoints(0).offset.setZ(0.24f)
     mountPoints(0).rotation.setX(0)
     mountPoints(0).rotation.setY(1)
     mountPoints(0).rotation.setZ(0)
-    mountPoints(0).rotation.setW(180)
+    mountPoints(0).rotation.setW(90)
 
+    // Right top.
     mountPoints(1).offset.setX(0)
-    mountPoints(1).offset.setY(0.2f + offset)
+    mountPoints(1).offset.setY(0.2f)
     mountPoints(1).offset.setZ(0.24f)
     mountPoints(1).rotation.setX(0)
     mountPoints(1).rotation.setY(1)
     mountPoints(1).rotation.setZ(0)
-    mountPoints(1).rotation.setW(180)
+    mountPoints(1).rotation.setW(-90)
 
-    // Front.
+    // Back top.
     mountPoints(2).offset.setX(0)
-    mountPoints(2).offset.setY(-0.2f)
+    mountPoints(2).offset.setY(0.2f)
     mountPoints(2).offset.setZ(0.24f)
     mountPoints(2).rotation.setX(0)
     mountPoints(2).rotation.setY(1)
     mountPoints(2).rotation.setZ(0)
-    mountPoints(2).rotation.setW(0)
+    mountPoints(2).rotation.setW(180)
 
-    // Left.
+    // Left bottom.
     mountPoints(3).offset.setX(0)
-    mountPoints(3).offset.setY(-0.2f)
+    mountPoints(3).offset.setY(-0.2f - offset)
     mountPoints(3).offset.setZ(0.24f)
     mountPoints(3).rotation.setX(0)
     mountPoints(3).rotation.setY(1)
     mountPoints(3).rotation.setZ(0)
     mountPoints(3).rotation.setW(90)
 
+    // Right bottom.
     mountPoints(4).offset.setX(0)
-    mountPoints(4).offset.setY(0.2f + offset)
+    mountPoints(4).offset.setY(-0.2f - offset)
     mountPoints(4).offset.setZ(0.24f)
     mountPoints(4).rotation.setX(0)
     mountPoints(4).rotation.setY(1)
     mountPoints(4).rotation.setZ(0)
-    mountPoints(4).rotation.setW(90)
+    mountPoints(4).rotation.setW(-90)
 
-    // Right.
+    // Back bottom.
     mountPoints(5).offset.setX(0)
-    mountPoints(5).offset.setY(-0.2f)
+    mountPoints(5).offset.setY(-0.2f - offset)
     mountPoints(5).offset.setZ(0.24f)
     mountPoints(5).rotation.setX(0)
     mountPoints(5).rotation.setY(1)
     mountPoints(5).rotation.setZ(0)
-    mountPoints(5).rotation.setW(-90)
+    mountPoints(5).rotation.setW(180)
 
+    // Front bottom.
     mountPoints(6).offset.setX(0)
-    mountPoints(6).offset.setY(0.2f + offset)
+    mountPoints(6).offset.setY(-0.2f - offset)
     mountPoints(6).offset.setZ(0.24f)
     mountPoints(6).rotation.setX(0)
     mountPoints(6).rotation.setY(1)
     mountPoints(6).rotation.setZ(0)
-    mountPoints(6).rotation.setW(-90)
+    mountPoints(6).rotation.setW(0)
   }
 
   def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
@@ -208,13 +230,14 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
+
+      if (MinecraftForgeClient.getRenderPass > 0) return
+
       GL11.glCallList(displayList)
       GL11.glColor3f(1, 1, 1)
 
       if (isRunning) {
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.disableLighting()
-        }
+        RenderState.disableLighting()
 
         // Additive blending for the light.
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
@@ -248,9 +271,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         t.addVertexWithUV(l, gt, l, u1, v0)
         t.draw()
 
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.enableLighting()
-        }
+        RenderState.enableLighting()
       }
     }
   }
@@ -260,9 +281,10 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
-    val worldTime = EventHandler.totalWorldTicks + f
+    val worldTime = entity.getWorldObj.getTotalWorldTime + f
 
     GL11.glPushMatrix()
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -307,16 +329,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-    if (MinecraftForgeClient.getRenderPass == 0) {
-      val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot, offset)
-    }
+    val offset = timeJitter + worldTime / 20.0
+    renderChassis(robot, offset)
 
     if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
           val itemRenderer = RenderManager.instance.itemRenderer
 
+          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
           GL11.glPushMatrix()
           try {
             // Copy-paste from player render code, with minor adjustments for
@@ -329,8 +350,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
 
             if (robot.isAnimatingSwing) {
-              val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-              GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
+              val wantedTicksPerCycle = 10
+              val cycles = math.max(robot.animationTicksTotal / wantedTicksPerCycle, 1)
+              val ticksPerCycle = robot.animationTicksTotal / cycles
+              val remaining = (robot.animationTicksLeft - f) / ticksPerCycle.toDouble
+              GL11.glRotatef((Math.sin((remaining - remaining.toInt) * Math.PI) * 45).toFloat, 1, 0, 0)
             }
 
             val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
@@ -371,23 +395,31 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GL11.glRotatef(20, 0, 0, 1)
             }
 
-            if (stack.getItem.requiresMultipleRenderPasses) {
-              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
-                val tint = stack.getItem.getColorFromItemStack(stack, pass)
-                val r = ((tint >> 16) & 0xFF) / 255f
-                val g = ((tint >> 8) & 0xFF) / 255f
-                val b = ((tint >> 0) & 0xFF) / 255f
-                GL11.glColor4f(r, g, b, 1)
-                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
-              }
-            }
-            else {
-              val tint = stack.getItem.getColorFromItemStack(stack, 0)
+            val pass = MinecraftForgeClient.getRenderPass
+            def renderPass(): Unit = {
+              val tint = stack.getItem.getColorFromItemStack(stack, pass)
               val r = ((tint >> 16) & 0xFF) / 255f
               val g = ((tint >> 8) & 0xFF) / 255f
               val b = ((tint >> 0) & 0xFF) / 255f
               GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, 0)
+              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
+            }
+
+            if (stack.getItem.requiresMultipleRenderPasses()) {
+              val passes = stack.getItem.getRenderPasses(stack.getItemDamage)
+              if (pass < passes) {
+                renderPass()
+              }
+              // Tile entities only get two render passes, so if items need
+              // more, we have to fake them.
+              if (pass == 1 && passes > 2) {
+                for (fakePass <- 2 until passes) {
+                  renderPass()
+                }
+              }
+            }
+            else if (pass == 0) {
+              renderPass()
             }
           }
           catch {
@@ -398,25 +430,40 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           GL11.glEnable(GL11.GL_CULL_FACE)
           GL11.glDisable(GL12.GL_RESCALE_NORMAL)
           GL11.glPopMatrix()
+          GL11.glPopAttrib()
         case _ =>
       }
 
-      val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).filter(stack => stack != null && MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null).padTo(mountPoints.length, null).take(mountPoints.length)
-      for ((stack, mountPoint) <- stacks.zip(mountPoints)) {
-        try {
-          if (stack != null && (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
-            val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
-            val r = ((tint >> 16) & 0xFF) / 255f
-            val g = ((tint >> 8) & 0xFF) / 255f
-            val b = ((tint >> 0) & 0xFF) / 255f
-            GL11.glColor4f(r, g, b, 1)
-            GL11.glPushMatrix()
-            GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-            GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
-            GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-            RenderManager.instance.itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
-            GL11.glPopMatrix()
+      if (MinecraftForgeClient.getRenderPass == 0) {
+        lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
+        lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
+        lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
+
+        val renderers = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
+          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }
+
+        for ((stack, renderer) <- renderers) {
+          val preferredSlot = renderer.computePreferredMountPoint(stack, robot, availableSlots)
+          if (availableSlots.remove(preferredSlot)) {
+            slotMapping(slotNameMapping(preferredSlot)) = (stack, renderer)
           }
+          else if (preferredSlot == MountPointName.Any) {
+            wildcardRenderers += ((stack, renderer))
+          }
+        }
+
+        var firstEmpty = slotMapping.indexOf(null)
+        for (entry <- wildcardRenderers if firstEmpty >= 0) {
+          slotMapping(firstEmpty) = entry
+          firstEmpty = slotMapping.indexOf(null)
+        }
+
+        for ((info, mountPoint) <- (slotMapping, mountPoints).zipped if info != null) try {
+          val (stack, renderer) = info
+          GL11.glPushMatrix()
+          GL11.glTranslatef(0.5f, 0.5f, 0.5f)
+          renderer.render(stack, mountPoint, robot, f)
+          GL11.glPopMatrix()
         }
         catch {
           case e: Throwable =>
@@ -470,6 +517,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     GL11.glPopMatrix()
+    GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

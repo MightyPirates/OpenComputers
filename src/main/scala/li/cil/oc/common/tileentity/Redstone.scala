@@ -3,15 +3,13 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
-import li.cil.oc.common.tileentity.traits.Environment
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Redstone extends Environment with BundledRedstoneAware {
+class Redstone extends traits.Environment with traits.BundledRedstoneAware {
   val instance =
     if (BundledRedstone.isAvailable)
       new component.Redstone.Bundled(this)
@@ -46,7 +44,7 @@ class Redstone extends Environment with BundledRedstoneAware {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     if (node != null && node.network != null) {
       node.connect(dummyNode)
-      dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+      dummyNode.sendToNeighbors("redstone.changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
     }
   }
 }

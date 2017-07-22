@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.Power
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
@@ -34,7 +35,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
       val result = math.min(demand, conversionBuffer)
       conversionBuffer -= result
       result
-    }, Settings.get.ratioIndustrialCraft2)
+    }, Power.fromEU, Power.toEU)
   }
 
   override def validate() {
@@ -92,7 +93,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   def demandsEnergy: Int = {
     if (!useIndustrialCraft2ClassicPower) 0
     else if (conversionBuffer < energyThroughput * Settings.get.tickFrequency)
-      math.min(ForgeDirection.VALID_DIRECTIONS.map(globalDemand).max, energyThroughput / Settings.get.ratioIndustrialCraft2).toInt
+      math.min(ForgeDirection.VALID_DIRECTIONS.map(globalDemand).max, Power.toEU(energyThroughput)).toInt
     else 0
   }
 }

@@ -25,18 +25,15 @@ import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.common.block.Print
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ExtendedWorld._
-import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
@@ -167,7 +164,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
       // Update slot info in tile... kinda meh, but works.
       tile match {
         case slotted: TSlottedTile =>
-          for (i <- 0 until slotted.v_partMap.length) {
+          for (i <- slotted.v_partMap.indices) {
             if (slotted.v_partMap(i) == this)
               slotted.v_partMap(i) = null
           }
@@ -273,30 +270,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
       case print: PrintPart if print.data.emitRedstone(print.state) => math.max(power, print.data.redstoneLevel)
       case _ => power
     })
-    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(computeInput).max)
-  }
-
-  protected def computeInput(side: ForgeDirection): Int = {
-    val blockPos = BlockPosition(x, y, z).offset(side)
-    if (!world.blockExists(blockPos)) 0
-    else {
-      // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
-        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos) else 0)
-      val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(blockPos) match {
-          case emitter: IRedstoneEmitter =>
-            var strength = 0
-            for (i <- -1 to 5) {
-              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-            }
-            strength
-          case _ => 0
-        }
-      }
-      else 0
-      math.max(vanilla, redLogic)
-    }
+    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(BundledRedstone.computeInput(BlockPosition(x, y, z, world), _)).max)
   }
 
   // ----------------------------------------------------------------------- //

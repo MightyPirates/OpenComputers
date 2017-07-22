@@ -9,7 +9,7 @@ import appeng.api.networking.security.MachineSource
 import appeng.api.parts.IPartHost
 import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -25,33 +25,19 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-object DriverExportBus extends driver.Block with EnvironmentAware {
-  override def worksWith(world: World, x: Int, y: Int, z: Int) =
+object DriverExportBus extends driver.SidedBlock {
+  override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
       case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
       case _ => false
     }
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  override def providedEnvironment(stack: ItemStack) =
-    if (AEUtil.isExportBus(stack)) classOf[Environment]
-    else null
-
-  class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
+  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
-
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number, [ slot:number]):boolean -- DEPRECATED, use getExportConfiguration.")
-    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = getExportConfiguration(context, args)
-
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- DEPRECATED, use setExportConfiguration.")
-    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = setExportConfiguration(context, args)
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = getPartConfig[PartExportBus](context, args)
@@ -61,7 +47,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
 
     @Callback(doc = "function(side:number, slot:number):boolean -- Make the export bus facing the specified direction perform a single export operation into the specified slot.")
     def exportIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSideAny(0)
       host.getPart(side) match {
         case export: PartExportBus =>
           InventoryUtils.inventoryAt(BlockPosition(host.getLocation).offset(side)) match {
@@ -76,11 +62,11 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
                 case 4 => 96
                 case _ => 1
               }
-              // We need reflection here to avoid compiling against the return type,
-              // which has changed in rv2-beta-20 or so.
-              val fuzzyMode = export.getConfigManager.
-                getClass.getMethod("getSetting", classOf[Enum[_]]).
-                invoke(export.getConfigManager, Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
+              // We need reflection here to avoid compiling against the return and
+              // argument type, which has changed in rv2-beta-20 or so.
+              val fuzzyMode = (try export.getConfigManager.getClass.getMethod("getSetting", classOf[Enum[_]]) catch {
+                case _: NoSuchMethodException => export.getConfigManager.getClass.getMethod("getSetting", classOf[Settings])
+              }).invoke(export.getConfigManager, Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
               val source = new MachineSource(export)
               var didSomething = false
               for (slot <- 0 until config.getSizeInventory if count > 0) {
@@ -90,7 +76,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
                     itemStorage.getStorageList.findFuzzy(filter, fuzzyMode).toSeq
                   else
                     Seq(itemStorage.getStorageList.findPrecise(filter))
-                for (ais <- stacks if count > 0 && ais != null) {
+                for (ais <- stacks.filter(_ != null).map(_.copy()) if count > 0) {
                   val is = ais.getItemStack
                   is.stackSize = count
                   if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
@@ -118,6 +104,13 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
         case _ => result(Unit, "no export bus")
       }
     }
+  }
+
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (AEUtil.isExportBus(stack))
+        classOf[Environment]
+      else null
   }
 
 }

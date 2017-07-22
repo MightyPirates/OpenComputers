@@ -15,6 +15,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.Power
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -46,7 +47,7 @@ trait AppliedEnergistics2 extends Common {
         else 0.0
       }
       else 0.0
-    }, Settings.get.ratioAppliedEnergistics2)
+    }, Power.fromAE, Power.toAE)
   }
 
   override def validate() {

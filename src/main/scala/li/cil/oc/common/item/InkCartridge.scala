@@ -4,7 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import net.minecraft.item.ItemStack
 
-class InkCartridge(val parent: Delegator) extends Delegate {
+class InkCartridge(val parent: Delegator) extends traits.Delegate {
   override def maxStackSize = 1
 
   override def getContainerItem(stack: ItemStack): ItemStack = {

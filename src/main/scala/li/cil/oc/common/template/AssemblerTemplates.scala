@@ -3,8 +3,9 @@ package li.cil.oc.common.template
 import java.lang.reflect.Method
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
@@ -64,7 +65,7 @@ object AssemblerTemplates {
     }
 
     def assemble(inventory: IInventory) = IMC.tryInvokeStatic(assembler, inventory)(null: Array[AnyRef]) match {
-      case Array(stack: ItemStack, energy: java.lang.Double) => (stack, energy: Double)
+      case Array(stack: ItemStack, energy: java.lang.Number) => (stack, energy.doubleValue(): Double)
       case Array(stack: ItemStack) => (stack, 0.0)
       case _ => (null, 0.0)
     }
@@ -74,7 +75,11 @@ object AssemblerTemplates {
     def validate(inventory: IInventory, slot: Int, stack: ItemStack) = validator match {
       case Some(method) => IMC.tryInvokeStatic(method, inventory, slot.underlying(), tier.underlying(), stack)(false)
       case _ => Option(hostClass.fold(api.Driver.driverFor(stack))(api.Driver.driverFor(stack, _))) match {
-        case Some(driver) => driver.slot(stack) == kind && driver.tier(stack) <= tier
+        case Some(driver) => try driver.slot(stack) == kind && driver.tier(stack) <= tier catch {
+          case t: AbstractMethodError =>
+            OpenComputers.log.warn(s"Error trying to query driver '${driver.getClass.getName}' for slot and/or tier information. Probably their fault. Yell at them before coming to OpenComputers for support. :P")
+            false
+        }
         case _ => false
       }
     }

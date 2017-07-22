@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -26,7 +24,7 @@ import scala.collection.convert.WrapAsJava._
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with traits.InputBuffer {
   override protected val buffer = robot.components.collect {
-    case Some(buffer: api.component.TextBuffer) => buffer
+    case Some(buffer: api.internal.TextBuffer) => buffer
   }.headOption.orNull
 
   override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
@@ -77,8 +75,6 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val selectionSize = 20
   private val selectionsStates = 17
   private val selectionStepV = 1 / selectionsStates.toDouble
-
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0) {

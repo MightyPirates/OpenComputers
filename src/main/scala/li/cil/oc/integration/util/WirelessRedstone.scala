@@ -7,7 +7,7 @@ import scala.collection.mutable
 object WirelessRedstone {
   val systems = mutable.Set.empty[WirelessRedstoneSystem]
 
-  def isAvailable = systems.size > 0
+  def isAvailable = systems.nonEmpty
 
   def addReceiver(rs: RedstoneWireless) {
     systems.foreach(system => try system.addReceiver(rs) catch {

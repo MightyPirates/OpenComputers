@@ -6,6 +6,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -35,25 +36,13 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
 
     if (computer.isRunning) {
-      bindTexture(Textures.blockCaseFrontOn)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(0, 1, 0, 0, 1)
-      t.addVertexWithUV(1, 1, 0, 1, 1)
-      t.addVertexWithUV(1, 0, 0, 1, 0)
-      t.addVertexWithUV(0, 0, 0, 0, 0)
-      t.draw()
-
-      if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        bindTexture(Textures.blockCaseFrontActivity)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, 1, 0, 0, 1)
-        t.addVertexWithUV(1, 1, 0, 1, 1)
-        t.addVertexWithUV(1, 0, 0, 1, 0)
-        t.addVertexWithUV(0, 0, 0, 0, 0)
-        t.draw()
+      renderFrontOverlay(Textures.blockCaseFrontOn)
+      if (System.currentTimeMillis() - computer.lastFileSystemAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
+        renderFrontOverlay(Textures.blockCaseFrontActivity)
       }
+    }
+    else if (computer.hasErrored && RenderUtil.shouldShowErrorLight(computer.hashCode)) {
+      renderFrontOverlay(Textures.blockCaseFrontError)
     }
 
     RenderState.enableLighting()
@@ -62,5 +51,16 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  private def renderFrontOverlay(texture: ResourceLocation): Unit = {
+    bindTexture(texture)
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(0, 1, 0, 0, 1)
+    t.addVertexWithUV(1, 1, 0, 1, 1)
+    t.addVertexWithUV(1, 0, 0, 1, 0)
+    t.addVertexWithUV(0, 0, 0, 0, 0)
+    t.draw()
   }
 }

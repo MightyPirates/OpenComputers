@@ -21,9 +21,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.KeyBindings
@@ -40,10 +42,13 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
@@ -51,7 +56,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate {
+class Tablet(val parent: Delegator) extends traits.Delegate with Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -122,6 +127,23 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   // ----------------------------------------------------------------------- //
 
+  def canCharge(stack: ItemStack): Boolean = true
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    if (amount < 0) amount
+    else {
+      val data = new TabletData(stack)
+      val charge = math.min(data.maxEnergy - data.energy, amount)
+      if (!simulate) {
+        data.energy += charge
+        data.save(stack)
+      }
+      amount - charge
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
     entity match {
       case player: EntityPlayer =>
@@ -160,7 +182,7 @@ class Tablet(val parent: Delegator) extends Delegate {
             val computer = Tablet.get(stack, player).machine
             if (computer.isRunning) {
               val data = new NBTTagCompound()
-              computer.node.sendToReachable("tablet.use", data, stack, player, position, ForgeDirection.getOrientation(side), float2Float(hitX), float2Float(hitY), float2Float(hitZ))
+              computer.node.sendToReachable("tablet.use", data, stack, player, position, ForgeDirection.getOrientation(side), Float.box(hitX), Float.box(hitY), Float.box(hitZ))
               if (!data.hasNoTags) {
                 computer.signal("tablet_use", data)
               }
@@ -212,17 +234,23 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   val tablet = if (world.isRemote) null else new component.Tablet(this)
 
+  var autoSave = true
+
   private var isInitialized = !world.isRemote
 
   private var lastRunning = false
+
+  def isCreative = data.tier == Tier.Four
 
   def items = data.items
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toLocal(value: ForgeDirection) =
+    RotationHelper.toLocal(ForgeDirection.NORTH, facing, value)
 
-  override def toGlobal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toGlobal(value: ForgeDirection) =
+    RotationHelper.toGlobal(ForgeDirection.NORTH, facing, value)
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -235,7 +263,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     }
   }
 
-  def writeToNBT() {
+  def writeToNBT(clearState: Boolean = true) {
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
     }
@@ -247,9 +275,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
       data.setNewCompoundTag(Settings.namespace + "data", machine.save)
 
-      // Force tablets into stopped state to avoid errors when trying to
-      // load deleted machine states.
-      data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+      if (clearState) {
+        // Force tablets into stopped state to avoid errors when trying to
+        // load deleted machine states.
+        data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+      }
     }
     save(data)
   }
@@ -257,7 +287,6 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   readFromNBT()
   if (!world.isRemote) {
     api.Network.joinNewNetwork(machine.node)
-    machine.stop()
     val charge = math.max(0, this.data.energy - tablet.node.globalBuffer)
     tablet.node.changeBuffer(charge)
     writeToNBT()
@@ -271,8 +300,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       node.connect(tablet.node)
     }
     else node.host match {
-      case buffer: api.component.TextBuffer =>
-        buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+      case buffer: api.internal.TextBuffer =>
+        buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
       case _ =>
     }
@@ -281,11 +310,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
     if (node != null) node.host match {
-      case buffer: api.component.TextBuffer => components collect {
-        case Some(keyboard: api.component.Keyboard) => buffer.node.connect(keyboard.node)
+      case buffer: api.internal.TextBuffer => components collect {
+        case Some(keyboard: api.internal.Keyboard) => buffer.node.connect(keyboard.node)
       }
-      case keyboard: api.component.Keyboard => components collect {
-        case Some(buffer: api.component.TextBuffer) => keyboard.node.connect(buffer.node)
+      case keyboard: api.internal.Keyboard => components collect {
+        case Some(buffer: api.internal.TextBuffer) => keyboard.node.connect(buffer.node)
       }
       case _ =>
     }
@@ -314,7 +343,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case _ => false
   })
 
-  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
+  override def isUseableByPlayer(player: EntityPlayer) = machine != null && machine.canInteract(player.getCommandSenderName)
 
   override def markDirty(): Unit = {
     data.save(stack)
@@ -346,7 +375,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     })
 
   override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case slot if isComponentSlot(slot) && getStackInSlot(slot) != null => getStackInSlot(slot)
+    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
@@ -371,12 +400,15 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       // caused this wrapper's initialization).
       connectComponents()
       components collect {
-        case Some(buffer: api.component.TextBuffer) =>
-          buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+        case Some(buffer: api.internal.TextBuffer) =>
+          buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
           buffer.setMaximumResolution(80, 25)
       }
     }
     if (!world.isRemote) {
+      if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+        machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+      }
       machine.update()
       updateComponents()
       data.isRunning = machine.isRunning
@@ -437,6 +469,14 @@ object Tablet {
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
     Client.cleanUp()
+    MinecraftServer.getServer match {
+      case integrated: IntegratedServer if Minecraft.getMinecraft.isGamePaused =>
+        // While the game is paused, manually keep all tablets alive, to avoid
+        // them being cleared from the cache, causing them to stop.
+        Client.keepAlive()
+        Server.keepAlive()
+      case _ => // Never mind!
+    }
   }
 
   @SubscribeEvent
@@ -468,6 +508,8 @@ object Tablet {
         // Force re-load on world change, in case some components store a
         // reference to the world object.
         if (holder.worldObj != wrapper.world) {
+          wrapper.writeToNBT(clearState = false)
+          wrapper.autoSave = false
           cache.invalidate(id)
           cache.cleanUp()
           wrapper = cache.get(id, this)
@@ -487,12 +529,12 @@ object Tablet {
       val tablet = e.getValue
       if (tablet.node != null) {
         // Server.
-        tablet.writeToNBT()
+        if (tablet.autoSave) tablet.writeToNBT()
         tablet.machine.stop()
         for (node <- tablet.machine.node.network.nodes) {
           node.remove()
         }
-        tablet.writeToNBT()
+        if (tablet.autoSave) tablet.writeToNBT()
       }
     }
 
@@ -506,6 +548,11 @@ object Tablet {
 
     def cleanUp() {
       cache.synchronized(cache.cleanUp())
+    }
+
+    def keepAlive() = {
+      // Just touching to update last access time.
+      cache.getAllPresent(asJavaIterable(cache.asMap.keys))
     }
   }
 

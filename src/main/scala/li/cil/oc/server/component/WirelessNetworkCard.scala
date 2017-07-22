@@ -1,11 +1,15 @@
 package li.cil.oc.server.component
 
 import java.io._
+import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -13,6 +17,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
@@ -25,6 +30,19 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   // ----------------------------------------------------------------------- //
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Network,
+    DeviceAttribute.Description -> "Wireless ethernet controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "62i230 (MPW-01)",
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Width -> Settings.get.maxWirelessRange.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
   override def x = BlockPosition(host).x
 
   override def y = BlockPosition(host).y
@@ -33,6 +51,12 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   override def world = host.world
 
+  def receivePacket(packet: Packet, source: WirelessEndpoint) {
+    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
+    val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    receivePacket(packet, distance)
+  }
+
   // ----------------------------------------------------------------------- //
 
   @Callback(direct = true, doc = """function():number -- Get the signal strength (range) used when sending messages.""")
@@ -40,7 +64,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when sending messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
-    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
+    strength = math.max(0, math.min(args.checkDouble(0), Settings.get.maxWirelessRange))
     result(strength)
   }
 
@@ -91,7 +115,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.node || !world.blockExists(x, y, z)) {
       api.Network.leaveWirelessNetwork(this)
     }
   }

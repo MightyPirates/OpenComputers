@@ -6,6 +6,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.internal
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.RotationHelper
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
@@ -16,58 +17,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Lookup tables
   // ----------------------------------------------------------------------- //
 
-  /**
-   * Translates forge directions based on the block's pitch and yaw. The base
-   * forward direction is facing south with no pitch. The outer array is for
-   * the three different pitch states, the inner for the four different yaw
-   * states.
-   */
-  private val translations = Array(
-    // Pitch = Down
-    Array(
-      // Yaw = North
-      Array(D.south, D.north, D.up, D.down, D.east, D.west, D.unknown),
-      // Yaw = South
-      Array(D.south, D.north, D.down, D.up, D.west, D.east, D.unknown),
-      // Yaw = West
-      Array(D.south, D.north, D.west, D.east, D.up, D.down, D.unknown),
-      // Yaw = East
-      Array(D.south, D.north, D.east, D.west, D.down, D.up, D.unknown)),
-    // Pitch = Up
-    Array(
-      // Yaw = North
-      Array(D.north, D.south, D.down, D.up, D.east, D.west, D.unknown),
-      // Yaw = South
-      Array(D.north, D.south, D.up, D.down, D.west, D.east, D.unknown),
-      // Yaw = West
-      Array(D.north, D.south, D.west, D.east, D.down, D.up, D.unknown),
-      // Yaw = East
-      Array(D.north, D.south, D.east, D.west, D.up, D.down, D.unknown)),
-    // Pitch = Forward (North|East|South|West)
-    Array(
-      // Yaw = North
-      Array(D.down, D.up, D.south, D.north, D.east, D.west, D.unknown),
-      // Yaw = South
-      Array(D.down, D.up, D.north, D.south, D.west, D.east, D.unknown),
-      // Yaw = West
-      Array(D.down, D.up, D.west, D.east, D.south, D.north, D.unknown),
-      // Yaw = East
-      Array(D.down, D.up, D.east, D.west, D.north, D.south, D.unknown)))
+  private val pitch2Direction = Array(ForgeDirection.UP, ForgeDirection.NORTH, ForgeDirection.DOWN)
 
-  private val pitch2Direction = Array(D.up, D.north, D.down)
-
-  private val yaw2Direction = Array(D.south, D.west, D.north, D.east)
-
-  /** Shortcuts for forge directions to make the above more readable. */
-  private object D {
-    val down = ForgeDirection.DOWN
-    val up = ForgeDirection.UP
-    val north = ForgeDirection.NORTH
-    val south = ForgeDirection.SOUTH
-    val west = ForgeDirection.WEST
-    val east = ForgeDirection.EAST
-    val unknown = ForgeDirection.UNKNOWN
-  }
+  private val yaw2Direction = Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
 
   // ----------------------------------------------------------------------- //
   // State
@@ -78,12 +30,6 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   /** One of the four cardinal directions. */
   private var _yaw = ForgeDirection.SOUTH
-
-  /** Translation for facings based on current pitch and yaw. */
-  private var cachedTranslation = translations(_pitch.ordinal)(_yaw.ordinal - 2)
-
-  /** Translation from local to global coordinates. */
-  private var cachedInverseTranslation = invert(cachedTranslation)
 
   // ----------------------------------------------------------------------- //
   // Accessors
@@ -147,9 +93,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else false
   }
 
-  override def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
+  override def toLocal(value: ForgeDirection) = RotationHelper.toLocal(_pitch, _yaw, value)
 
-  override def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
+  override def toGlobal(value: ForgeDirection) = RotationHelper.toGlobal(_pitch, _yaw, value)
 
   def validFacings = Array(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.EAST)
 
@@ -213,13 +159,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   /** Updates cached translation array and sends notification to clients. */
   private def updateTranslation() = {
-    val newTranslation = translations(_pitch.ordinal)(_yaw.ordinal - 2)
-    if (cachedTranslation != newTranslation) {
-      cachedTranslation = newTranslation
-      cachedInverseTranslation = invert(cachedTranslation)
-      if (world != null) {
-        onRotationChanged()
-      }
+    if (world != null) {
+      onRotationChanged()
     }
   }
 
@@ -239,7 +180,4 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     }
     changed
   }
-
-  private def invert(t: Array[ForgeDirection]) =
-    (0 until t.length).map(i => ForgeDirection.getOrientation(t.indexOf(ForgeDirection.getOrientation(i))))
 }

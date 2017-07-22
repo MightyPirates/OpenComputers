@@ -22,15 +22,17 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   override def open(path: String, mode: Mode) = this.synchronized(mode match {
     case Mode.Read => super.open(path, mode)
-    case _ => if (!isDirectory(path)) {
-      val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
-      openOutputHandle(handle, path, mode) match {
-        case Some(fileHandle) =>
-          handles += handle -> fileHandle
-          handle
-        case _ => throw new FileNotFoundException()
-      }
-    } else throw new FileNotFoundException()
+    case _ =>
+      FileSystem.validatePath(path)
+      if (!isDirectory(path)) {
+        val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
+        openOutputHandle(handle, path, mode) match {
+          case Some(fileHandle) =>
+            handles += handle -> fileHandle
+            handle
+          case _ => throw new FileNotFoundException(path)
+        }
+      } else throw new FileNotFoundException(path)
   })
 
   override def getHandle(handle: Int): api.fs.Handle = this.synchronized(Option(super.getHandle(handle)).orElse(handles.get(handle)).orNull)

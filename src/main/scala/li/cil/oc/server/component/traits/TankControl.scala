@@ -7,10 +7,10 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
 
 trait TankControl extends TankAware {
-  @Callback
+  @Callback(doc = "function():number -- The number of tanks installed in the device.")
   def tankCount(context: Context, args: Arguments): Array[AnyRef] = result(tank.tankCount)
 
-  @Callback
+  @Callback(doc = "function([index:number]):number -- Select a tank and/or get the number of the currently selected tank.")
   def selectTank(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count > 0 && args.checkAny(0) != null) {
       selectedTank = args.checkTank(tank, 0)
@@ -18,7 +18,7 @@ trait TankControl extends TankAware {
     result(selectedTank + 1)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = "function([index:number]):number -- Get the fluid amount in the specified or selected tank.")
   def tankLevel(context: Context, args: Arguments): Array[AnyRef] = {
     val index =
       if (args.count > 0 && args.checkAny(0) != null) args.checkTank(tank, 0)
@@ -29,7 +29,7 @@ trait TankControl extends TankAware {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = "function([index:number]):number -- Get the remaining fluid capacity in the specified or selected tank.")
   def tankSpace(context: Context, args: Arguments): Array[AnyRef] = {
     val index =
       if (args.count > 0 && args.checkAny(0) != null) args.checkTank(tank, 0)
@@ -40,7 +40,7 @@ trait TankControl extends TankAware {
     })
   }
 
-  @Callback
+  @Callback(doc = "function(index:number):boolean -- Compares the fluids in the selected and the specified tank. Returns true if equal.")
   def compareFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkTank(tank, 0)
     result((fluidInTank(selectedTank), fluidInTank(index)) match {
@@ -50,10 +50,10 @@ trait TankControl extends TankAware {
     })
   }
 
-  @Callback
+  @Callback(doc = "function(index:number[, count:number=1000]):boolean -- Move the specified amount of fluid from the selected tank into the specified tank.")
   def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkTank(tank, 0)
-    val count = args.optionalFluidCount(1)
+    val count = args.optFluidCount(1)
     if (index == selectedTank || count == 0) {
       result(true)
     }

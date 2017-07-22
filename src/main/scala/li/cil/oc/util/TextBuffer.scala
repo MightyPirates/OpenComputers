@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
-import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api
 import net.minecraft.nbt._
 import net.minecraftforge.common.util.Constants.NBT
 
@@ -129,7 +129,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
           val c = s(x - col)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
           setChar(line, lineColor, bx, c)
-          bx += math.max(1, FontUtil.wcwidth(c))
+          bx += math.max(1, FontUtils.wcwidth(c))
         }
         changed
       }
@@ -148,7 +148,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       for (x <- bx until math.min(col + w, width) if bx < line.length) {
         changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
         setChar(line, lineColor, bx, c)
-        bx += math.max(1, FontUtil.wcwidth(c))
+        bx += math.max(1, FontUtils.wcwidth(c))
       }
     }
     changed
@@ -185,7 +185,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
               changed = changed || (nl(nx) != ol(ox)) || (nc(nx) != oc(ox))
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
-              for (offset <- 1 until FontUtil.wcwidth(nl(nx))) {
+              for (offset <- 1 until FontUtils.wcwidth(nl(nx))) {
                 nl(nx + offset) = ol(' ')
                 nc(nx + offset) = oc(nx)
               }
@@ -198,26 +198,26 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
-    if (FontUtil.wcwidth(c) > 1 && x >= line.length - 1) {
+    if (FontUtils.wcwidth(c) > 1 && x >= line.length - 1) {
       // Don't allow setting wide chars in right-most col.
       return
     }
-    if (x > 0 && line(x) == ' ' && FontUtil.wcwidth(line(x - 1)) > 1) {
+    if (x > 0 && line(x) == ' ' && FontUtils.wcwidth(line(x - 1)) > 1) {
       // Don't allow setting the cell following a wide char.
       return
     }
     line(x) = c
     lineColor(x) = packed
-    for (x1 <- x + 1 until x + FontUtil.wcwidth(c)) {
+    for (x1 <- x + 1 until x + FontUtils.wcwidth(c)) {
       line(x1) = ' '
       lineColor(x1) = packed
     }
   }
 
   def load(nbt: NBTTagCompound): Unit = {
-    val maxResolution = math.max(Settings.screenResolutionsByTier(2)._1, Settings.screenResolutionsByTier(2)._2)
-    val w = nbt.getInteger("width") max 1 min maxResolution
-    val h = nbt.getInteger("height") max 1 min maxResolution
+    val maxResolution = math.max(Settings.screenResolutionsByTier.last._1, Settings.screenResolutionsByTier.last._2)
+    val w = nbt.getInteger("width") min maxResolution max 1
+    val h = nbt.getInteger("height") min maxResolution max 1
     size = (w, h)
 
     val b = nbt.getTagList("buffer", NBT.TAG_STRING)
@@ -226,7 +226,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       System.arraycopy(value.toCharArray, 0, buffer(i), 0, math.min(value.length, buffer(i).length))
     }
 
-    val depth = ColorDepth.values.apply(nbt.getInteger("depth") min (ColorDepth.values.length - 1) max 0)
+    val depth = api.internal.TextBuffer.ColorDepth.values.apply(nbt.getInteger("depth") min (api.internal.TextBuffer.ColorDepth.values.length - 1) max 0)
     _format = PackedColor.Depth.format(depth)
     _format.load(nbt)
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
@@ -261,7 +261,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     nbt.setInteger("background", _background.value)
     nbt.setBoolean("backgroundIsPalette", _background.isPalette)
 
-    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt).toArray))
+    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt)))
   }
 
   override def toString = {

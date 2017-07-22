@@ -3,6 +3,7 @@ package li.cil.oc.common.event
 import java.util
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
 import li.cil.oc.util.BlockPosition
@@ -22,10 +23,13 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
   override def ticketsLoaded(tickets: util.List[Ticket], world: World) {
     for (ticket <- tickets) {
       val data = ticket.getModData
-      restoredTickets += data.getString("address") -> ticket
+      val address = data.getString("address")
+      restoredTickets += address -> ticket
       if (data.hasKey("x") && data.hasKey("z")) {
         val x = data.getInteger("x")
         val z = data.getInteger("z")
+        OpenComputers.log.info(s"Restoring chunk loader ticket for upgrade at chunk ($x, $z) with address $address.")
+
         ForgeChunkManager.forceChunk(ticket, new ChunkCoordIntPair(x, z))
       }
     }

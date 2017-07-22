@@ -1,10 +1,15 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -22,7 +27,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
-class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller {
+class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
   override def node = null
@@ -47,17 +52,29 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def runSound = None // Microcontrollers are silent.
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.System,
+    DeviceAttribute.Description -> "Microcontroller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Cubicle",
+    DeviceAttribute.Capacity -> getSizeInventory.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = side != facing
+
+  override def sidedNode(side: ForgeDirection): Node = if (side != facing) super.sidedNode(side) else null
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) snooperNode else null)
 
-  override protected def energyThroughput = Settings.get.caseRate(Tier.One)
+  override def energyThroughput = Settings.get.caseRate(Tier.One)
 
   override def getWorld = world
 
@@ -97,13 +114,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   @Callback(direct = true, doc = """function(side:number):boolean -- Get whether network messages are sent via the specified side.""")
   def isSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing): _*)
+    val side = args.checkSideExcept(0, facing)
     result(outputSides(side.ordinal()))
   }
 
   @Callback(doc = """function(side:number, open:boolean):boolean -- Set whether network messages are sent via the specified side.""")
   def setSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing): _*)
+    val side = args.checkSideExcept(0, facing)
     val oldValue = outputSides(side.ordinal())
     outputSides(side.ordinal()) = args.checkBoolean(1)
     result(oldValue)
@@ -134,6 +151,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def connectItemNode(node: Node) {
     if (machine.node != null && node != null) {
+      api.Network.joinNewNetwork(machine.node)
       machine.node.connect(node)
     }
   }
@@ -154,6 +172,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
       plug.node.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
+    connectComponents()
   }
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
@@ -171,8 +190,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   }
 
   override def onMessage(message: Message): Unit = {
-    if (message.source.network == snooperNode.network) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS if outputSides(side.ordinal)) {
+    if (message.name == "network.message" && message.source.network == snooperNode.network) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS if outputSides(side.ordinal) && side != facing) {
         sidedNode(side).sendToReachable(message.name, message.data: _*)
       }
     }
@@ -235,6 +254,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // Nope.
   override def decrStackSize(slot: Int, amount: Int) = null
+
+  // Nope.
+  override def getStackInSlotOnClosing(slot: Int) = null
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {

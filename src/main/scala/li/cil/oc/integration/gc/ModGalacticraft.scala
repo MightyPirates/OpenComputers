@@ -9,5 +9,7 @@ object ModGalacticraft extends ModProxy {
 
   override def initialize() {
     api.Driver.add(DriverWorldSensorCard)
+
+    api.Driver.add(DriverWorldSensorCard.Provider)
   }
 }

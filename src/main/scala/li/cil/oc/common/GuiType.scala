@@ -20,18 +20,22 @@ object GuiType extends ScalaEnum {
   val Database = new EnumVal { def name = "Database"; def subType = GuiType.Category.Item }
   val Disassembler = new EnumVal { def name = "Disassembler"; def subType = GuiType.Category.Block }
   val DiskDrive = new EnumVal { def name = "DiskDrive"; def subType = GuiType.Category.Block }
+  val Drive = new EnumVal { def name = "Drive"; def subType = GuiType.Category.Item }
   val Drone = new EnumVal { def name = "Drone"; def subType = GuiType.Category.Entity }
   val Manual = new EnumVal { def name = "Manual"; def subType = GuiType.Category.None }
   val Printer = new EnumVal { def name = "Printer"; def subType = GuiType.Category.Block }
   val Rack = new EnumVal { def name = "Rack"; def subType = GuiType.Category.Block }
   val Raid = new EnumVal { def name = "Raid"; def subType = GuiType.Category.Block }
+  val Relay = new EnumVal { def name = "Relay"; def subType = GuiType.Category.Block }
   val Robot = new EnumVal { def name = "Robot"; def subType = GuiType.Category.Block }
   val Screen = new EnumVal { def name = "Screen"; def subType = GuiType.Category.Block }
   val Server = new EnumVal { def name = "Server"; def subType = GuiType.Category.Item }
+  val ServerInRack = new EnumVal { def name = "ServerInRack"; def subType = GuiType.Category.Block }
   val Switch = new EnumVal { def name = "Switch"; def subType = GuiType.Category.Block }
   val Tablet = new EnumVal { def name = "Tablet"; def subType = GuiType.Category.Item }
   val TabletInner = new EnumVal { def name = "TabletInner"; def subType = GuiType.Category.Item }
   val Terminal = new EnumVal { def name = "Terminal"; def subType = GuiType.Category.Item }
+  val Waypoint = new EnumVal { def name = "Waypoint"; def subType = GuiType.Category.Block }
 
   object Category extends ScalaEnum {
     sealed trait EnumVal extends Value
@@ -41,4 +45,10 @@ object GuiType extends ScalaEnum {
     val Entity = new EnumVal { def name = "Entity" }
     val Item = new EnumVal { def name = "Item" }
   }
+
+  def embedSlot(y: Int, slot: Int) = (y & 0x00FFFFFF) | (slot << 24)
+
+  def extractY(value: Int) = value & 0x00FFFFFF
+
+  def extractSlot(value: Int) = (value >>> 24) & 0xFF
 }

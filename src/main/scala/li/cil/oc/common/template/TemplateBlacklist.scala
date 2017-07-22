@@ -1,15 +1,16 @@
 package li.cil.oc.common.template
 
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._
 
 object TemplateBlacklist {
-  private lazy val TheBlacklist = { // scnr
+  private lazy val TheBlacklist = {
+    // scnr
     val pattern = """^([^@]+)(?:@(\d+))?$""".r
     def parseDescriptor(id: String, meta: Int) = {
       val item = Item.itemRegistry.getObject(id).asInstanceOf[Item]
@@ -37,7 +38,7 @@ object TemplateBlacklist {
   }
 
   def register(): Unit = {
-    FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerFilter", "li.cil.oc.common.template.TemplateBlacklist.filter")
+    api.IMC.registerAssemblerFilter("li.cil.oc.common.template.TemplateBlacklist.filter")
   }
 
   def filter(stack: ItemStack): Boolean = {

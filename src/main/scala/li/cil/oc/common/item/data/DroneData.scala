@@ -2,11 +2,10 @@ package li.cil.oc.common.item.data
 
 import com.google.common.base.Strings
 import li.cil.oc.Constants
-import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DroneData extends MicrocontrollerData {
+class DroneData extends MicrocontrollerData(Constants.ItemName.Drone) {
   def this(stack: ItemStack) = {
     this()
     load(stack)
@@ -32,11 +31,5 @@ class DroneData extends MicrocontrollerData {
       }
       nbt.getCompoundTag("display").setString("Name", name)
     }
-  }
-
-  override def createItemStack(): ItemStack = {
-    val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
-    save(stack)
-    stack
   }
 }

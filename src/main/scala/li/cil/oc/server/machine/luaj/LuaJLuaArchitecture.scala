@@ -102,13 +102,10 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     memory > 0
   }
 
-  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
-    case Some(driver: Memory) =>
-      val sizes = Settings.get.ramSizes
-      val tier = math.round(driver.amount(stack)).toInt - 1
-      sizes(tier max 0 min (sizes.length - 1)) * 1024
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  }))
+  })).toInt max 0 min Settings.get.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 
@@ -215,6 +212,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     }
   }
 
+  override def onSignal(): Unit = {}
+
   // ----------------------------------------------------------------------- //
 
   override def initialize() = {
@@ -233,7 +232,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
     recomputeMemory(machine.host.internalComponents)
 
-    val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=kernel", "t", lua)
+    val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=machine", "t", lua)
     thread = new LuaThread(lua, kernel) // Left as the first value on the stack.
 
     true

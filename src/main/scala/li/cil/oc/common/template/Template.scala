@@ -4,16 +4,12 @@ import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver._
-import li.cil.oc.api.driver.item.Container
-import li.cil.oc.api.driver.item.Inventory
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IChatComponent
+import org.apache.commons.lang3.tuple
 
 import scala.collection.mutable
 
@@ -22,24 +18,32 @@ abstract class Template {
     "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
     "Screen" -> hasComponent(Constants.BlockName.ScreenTier1) _,
     "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array(Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3).exists(name => hasComponent(name)(inventory))),
+    "GraphicsCard" -> ((inventory: IInventory) => Array(
+      Constants.ItemName.APUCreative,
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3).
+      exists(name => hasComponent(name)(inventory))),
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
 
-  protected def hostClass: Class[_ <: EnvironmentHost]
+  protected def hostClass: Class[_ <: api.network.EnvironmentHost]
 
   protected def validateComputer(inventory: IInventory): Array[AnyRef] = {
     val hasCase = caseTier(inventory) != Tier.None
     val hasCPU = this.hasCPU(inventory)
     val hasRAM = this.hasRAM(inventory)
+    val requiresRAM = this.requiresRAM(inventory)
     val complexity = this.complexity(inventory)
     val maxComplexity = this.maxComplexity(inventory)
 
-    val valid = hasCase && hasCPU && hasRAM && complexity <= maxComplexity
+    val valid = hasCase && hasCPU && (hasRAM || !requiresRAM) && complexity <= maxComplexity
 
     val progress =
       if (!hasCPU) Localization.Assembler.InsertCPU
-      else if (!hasRAM) Localization.Assembler.InsertRAM
+      else if (!hasRAM && requiresRAM) Localization.Assembler.InsertRAM
       else Localization.Assembler.Complexity(complexity, maxComplexity)
 
     val warnings = mutable.ArrayBuffer.empty[IChatComponent]
@@ -48,7 +52,7 @@ abstract class Template {
         warnings += Localization.Assembler.Warning(name)
       }
     }
-    if (warnings.length > 0) {
+    if (warnings.nonEmpty) {
       warnings.prepend(Localization.Assembler.Warnings)
     }
 
@@ -63,14 +67,23 @@ abstract class Template {
   }
 
   protected def hasCPU(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Processor => true
+    case _: api.driver.item.Processor => true
     case _ => false
   })
 
   protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Memory => true
+    case _: api.driver.item.Memory => true
     case _ => false
   })
+
+  protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getSizeInventory).
+    map(inventory.getStackInSlot).
+    exists(stack => api.Driver.driverFor(stack, hostClass) match {
+      case driver: api.driver.item.Processor =>
+        val architecture = driver.architecture(stack)
+        architecture != null && architecture.getAnnotation(classOf[api.machine.Architecture.NoMemoryRequirements]) != null
+      case _ => false
+    })
 
   protected def hasComponent(name: String)(inventory: IInventory) = exists(inventory, stack => Option(api.Items.get(stack)) match {
     case Some(descriptor) => descriptor.name == name
@@ -78,7 +91,7 @@ abstract class Template {
   })
 
   protected def hasInventory(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Inventory => true
+    case _: api.driver.item.Inventory => true
     case _ => false
   })
 
@@ -92,8 +105,8 @@ abstract class Template {
     for (slot <- 1 until inventory.getSizeInventory) {
       val stack = inventory.getStackInSlot(slot)
       acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
-        case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
-        case Some(driver: Container) => (1 + driver.tier(stack)) * 2
+        case Some(driver: api.driver.item.Processor) => 0 // CPUs are exempt, since they control the limit.
+        case Some(driver: api.driver.item.Container) => (1 + driver.tier(stack)) * 2
         case Some(driver) if driver.slot(stack) != Slot.EEPROM => 1 + driver.tier(stack)
         case _ => 0
       })
@@ -106,7 +119,7 @@ abstract class Template {
     val cpuTier = (0 until inventory.getSizeInventory).foldRight(0)((slot, acc) => {
       val stack = inventory.getStackInSlot(slot)
       acc + (api.Driver.driverFor(stack, hostClass) match {
-        case processor: Processor => processor.tier(stack)
+        case processor: api.driver.item.Processor => processor.tier(stack)
         case _ => 0
       })
     })
@@ -117,4 +130,8 @@ abstract class Template {
   }
 
   protected def caseTier(inventory: IInventory): Int
+
+  protected def toPair(t: (String, Int)): tuple.Pair[String, java.lang.Integer] =
+    if (t == null) null
+    else tuple.Pair.of(t._1, t._2)
 }

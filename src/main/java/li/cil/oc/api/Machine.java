@@ -46,6 +46,18 @@ public final class Machine {
     }
 
     /**
+     * Get the name of the specified architecture.
+     *
+     * @param architecture the architecture to get the name for.
+     * @return the name of the specified architecture.
+     */
+    public static String getArchitectureName(Class<? extends Architecture> architecture) {
+        if (API.machine != null)
+            return API.machine.getArchitectureName(architecture);
+        return null;
+    }
+
+    /**
      * Creates a new machine for the specified host.
      * <p/>
      * You are responsible for calling update and save / load functions on the

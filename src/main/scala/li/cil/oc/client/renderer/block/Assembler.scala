@@ -4,6 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.RenderHelper
 import org.lwjgl.opengl.GL11
 
 object Assembler {
@@ -55,7 +56,7 @@ object Assembler {
 
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     RenderState.makeItBlend()
-    RenderState.disableLighting()
+    RenderHelper.disableStandardItemLighting()
 
     renderer.setOverrideBlockTexture(Textures.Assembler.iconTopOn)
     renderer.setRenderBounds(0, 0, 0, 1, 1.05, 1)
@@ -70,7 +71,7 @@ object Assembler {
     BlockRenderer.renderFaceZNeg(block, metadata, renderer)
 
     renderer.clearOverrideBlockTexture()
-    RenderState.enableLighting()
+    RenderHelper.enableStandardItemLighting()
     GL11.glPopAttrib()
   }
 }

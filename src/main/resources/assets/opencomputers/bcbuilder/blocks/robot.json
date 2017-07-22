@@ -1,0 +1,24 @@
+[{
+  "includes": [
+    "traits/computer.json",
+    "traits/environment.json",
+    "traits/inventory.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "display",
+      "oc:components",
+      "oc:containers",
+      "oc:lightColor",
+      "oc:owner",
+      "oc:ownerUuid",
+      "oc:robot",
+      "oc:robotEnergy",
+      "oc:selectedSlot",
+      "oc:selectedTank",
+      "oc:storedEnergy"
+    ]
+  }
+}]

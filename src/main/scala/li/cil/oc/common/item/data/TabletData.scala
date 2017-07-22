@@ -1,14 +1,14 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-class TabletData extends ItemData {
+class TabletData extends ItemData(Constants.ItemName.Tablet) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -25,7 +25,7 @@ class TabletData extends ItemData {
     nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(ItemUtils.loadStack(slotNbt.getCompoundTag("item")))
+        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
       }
     })
     isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
@@ -33,7 +33,7 @@ class TabletData extends ItemData {
     maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
     tier = nbt.getInteger(Settings.namespace + "tier")
     if (nbt.hasKey(Settings.namespace + "container")) {
-      container = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "container")))
+      container = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "container")))
     }
   }
 

@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
+import li.cil.oc.client.gui
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
@@ -115,8 +116,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
-    val bw = origin.buffer.getWidth
-    val bh = origin.buffer.getHeight
+    val bw = origin.buffer.getViewportWidth
+    val bh = origin.buffer.getViewportHeight
     val (bpw, bph) = (origin.buffer.renderWidth / iw.toDouble, origin.buffer.renderHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
@@ -242,21 +243,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         }
       })
     }
-    if (arrows.size > 0) {
+    if (arrows.nonEmpty) {
       for (arrow <- arrows) {
         val hitX = arrow.posX - x
         val hitY = arrow.posY - y
         val hitZ = arrow.posZ - z
-        val hitXInner = math.abs(hitX - 0.5) < 0.45
-        val hitYInner = math.abs(hitY - 0.5) < 0.45
-        val hitZInner = math.abs(hitZ - 0.5) < 0.45
-        if (hitXInner && hitYInner && !hitZInner ||
-          hitXInner && !hitYInner && hitZInner ||
-          !hitXInner && hitYInner && hitZInner) {
-          arrow.shootingEntity match {
-            case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
-            case _ =>
-          }
+        arrow.shootingEntity match {
+          case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
+          case _ =>
         }
       }
       arrows.clear()
@@ -271,6 +265,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   override def dispose() {
     super.dispose()
     screens.clone().foreach(_.checkMultiBlock())
+    if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case screenGui: gui.Screen if screenGui.buffer == buffer =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
+    }
   }
 
   override protected def onColorChanged() {

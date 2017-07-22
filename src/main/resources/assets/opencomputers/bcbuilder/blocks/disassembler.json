@@ -1,0 +1,14 @@
+[{
+  "includes": [
+    "traits/environment.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "oc:buffer",
+      "oc:queue",
+      "oc:total"
+    ]
+  }
+}]

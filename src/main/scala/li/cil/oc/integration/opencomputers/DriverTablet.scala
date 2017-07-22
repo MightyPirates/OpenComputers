@@ -3,8 +3,11 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
+import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.item.data.TabletData
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -14,12 +17,24 @@ object DriverTablet extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.Tablet))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
-    val data = new TabletData(stack)
-    data.items.collect {
-      case Some(fs) if DriverFileSystem.worksWith(fs) => fs
-    }.headOption.map(DriverFileSystem.createEnvironment(_, host)).orNull
-  }
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+    if (host.world != null && host.world.isRemote) null
+    else {
+      Tablet.Server.cache.invalidate(Tablet.getId(stack))
+      val data = new TabletData(stack)
+      data.items.collect {
+        case Some(fs) if DriverFileSystem.worksWith(fs) => fs
+      }.headOption.map(DriverFileSystem.createEnvironment(_, host)) match {
+        case Some(environment) => environment.node match {
+          case component: Component =>
+            component.setVisibility(Visibility.Network)
+            environment.save(dataTag(stack))
+            environment
+          case _ => null
+        }
+        case _ => null
+      }
+    }
 
   override def slot(stack: ItemStack) = Slot.Tablet
 

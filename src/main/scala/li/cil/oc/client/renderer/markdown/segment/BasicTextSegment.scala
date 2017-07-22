@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.markdown.segment
 
-import li.cil.oc.client.renderer.markdown.Document
+import li.cil.oc.client.renderer.markdown.{Document, MarkupFormat}
 import net.minecraft.client.gui.FontRenderer
 
 trait BasicTextSegment extends Segment {
@@ -38,6 +38,8 @@ trait BasicTextSegment extends Segment {
     lines * lineHeight(renderer)
   }
 
+  override def toString(format: MarkupFormat.Value): String = text
+
   // ----------------------------------------------------------------------- //
 
   protected def text: String
@@ -55,9 +57,21 @@ trait BasicTextSegment extends Segment {
     while (pos < s.length) {
       pos += 1
       val width = stringWidth(s.take(pos), renderer)
-      if (width >= maxWidth) {
-        if (lastBreak > 0 || fullWidth <= maxLineWidth || s.exists(breaks.contains)) return lastBreak + 1
-        else return pos - 1
+      val exceedsLineLength = width >= maxWidth
+      if (exceedsLineLength) {
+        val mayUseFullLine = maxWidth == maxLineWidth
+        val canFitInLine = fullWidth <= maxLineWidth
+        val matchesFullLine = fullWidth == maxLineWidth
+        if (lastBreak >= 0) {
+          return lastBreak + 1 // Can do a soft split.
+        }
+        if (mayUseFullLine && matchesFullLine) {
+          return s.length // Special case for exact match.
+        }
+        if (canFitInLine && !mayUseFullLine) {
+          return 0 // Wrap line, use next line.
+        }
+        return pos - 1 // Gotta split hard.
       }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
     }

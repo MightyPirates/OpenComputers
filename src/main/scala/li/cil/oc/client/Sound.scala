@@ -12,7 +12,6 @@ import com.google.common.base.Charsets
 import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
-import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
@@ -25,7 +24,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
-import paulscode.sound.SoundSystem
 import paulscode.sound.SoundSystemConfig
 
 import scala.collection.mutable
@@ -42,16 +40,20 @@ object Sound {
   if (Settings.get.soundVolume > 0) {
     updateTimer.scheduleAtFixedRate(new TimerTask {
       override def run() {
-        updateVolume()
-        processQueue()
+        sources.synchronized(updateCallable = Some(() => {
+          updateVolume()
+          processQueue()
+        }))
       }
     }, 500, 50)
   }
 
+  private var updateCallable = None: Option[() => Unit]
+
   // Set in init event.
   var manager: SoundManager = _
 
-  def soundSystem: SoundSystem = ReflectionHelper.getPrivateValue(classOf[SoundManager], manager, "sndSystem", "field_148620_e", "e")
+  def soundSystem = if (manager != null) manager.sndSystem else null
 
   private def updateVolume() {
     val volume =
@@ -117,26 +119,33 @@ object Sound {
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {
-    if (!hasPreloaded && soundSystem != null) {
-      hasPreloaded = true
-      new Thread(new Runnable() {
-        override def run(): Unit = {
-          val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
-          val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
-          for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
-            val url = getClass.getClassLoader.getResource(location)
-            if (url != null) try {
-              val sourceName = "preload_" + location
-              soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
-              soundSystem.activate(sourceName)
-              soundSystem.removeSource(sourceName)
-            } catch {
-              case _: Throwable => // Meh.
+    if (soundSystem != null) {
+      if (!hasPreloaded) {
+        hasPreloaded = true
+        new Thread(new Runnable() {
+          override def run(): Unit = {
+            val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
+            val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
+            for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
+              val url = getClass.getClassLoader.getResource(location)
+              if (url != null) try {
+                val sourceName = "preload_" + location
+                soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
+                soundSystem.activate(sourceName)
+                soundSystem.removeSource(sourceName)
+              } catch {
+                case _: Throwable => // Meh.
+              }
+              else OpenComputers.log.warn(s"Couldn't preload sound $location!")
             }
-            else OpenComputers.log.warn(s"Couldn't preload sound $location!")
           }
-        }
-      })
+        })
+      }
+
+      sources.synchronized {
+        updateCallable.foreach(_())
+        updateCallable = None
+      }
     }
   }
 
@@ -163,7 +172,7 @@ object Sound {
     }
   }
 
-  private class StopCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+  private class StopCommand(tileEntity: TileEntity) extends Command(System.currentTimeMillis() + 1, tileEntity) {
     override def apply() {
       sources.synchronized {
         sources.remove(tileEntity) match {
@@ -180,7 +189,7 @@ object Sound {
     }
   }
 
-  private class UpdatePositionCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+  private class UpdatePositionCommand(tileEntity: TileEntity) extends Command(System.currentTimeMillis(), tileEntity) {
     override def apply() {
       sources.synchronized {
         sources.get(tileEntity) match {
@@ -199,7 +208,8 @@ object Sound {
     }
 
     def updatePosition() {
-      soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      if (tileEntity != null) soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      else soundSystem.setPosition(source, 0, 0, 0)
     }
 
     def play(name: String) {
@@ -208,7 +218,8 @@ object Sound {
       val resource = (sound.func_148720_g: SoundPoolEntry).getSoundPoolEntryLocation
       if (!initialized) {
         initialized = true
-        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
+        if (tileEntity != null) soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
+        else soundSystem.newSource(false, source, toUrl(resource), resource.toString, false, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 0)
         updateVolume()
         soundSystem.activate(source)
       }

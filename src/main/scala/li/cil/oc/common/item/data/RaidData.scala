@@ -2,14 +2,12 @@ package li.cil.oc.common.item.data
 
 import li.cil.oc.Constants
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-class RaidData extends ItemData {
+class RaidData extends ItemData(Constants.BlockName.Raid) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -23,7 +21,7 @@ class RaidData extends ItemData {
 
   override def load(nbt: NBTTagCompound): Unit = {
     disks = nbt.getTagList(Settings.namespace + "disks", NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemUtils.loadStack)
+      toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
     filesystem = nbt.getCompoundTag(Settings.namespace + "filesystem")
     if (nbt.hasKey(Settings.namespace + "label")) {
       label = Option(nbt.getString(Settings.namespace + "label"))
@@ -34,11 +32,5 @@ class RaidData extends ItemData {
     nbt.setNewTagList(Settings.namespace + "disks", disks.toIterable)
     nbt.setTag(Settings.namespace + "filesystem", filesystem)
     label.foreach(nbt.setString(Settings.namespace + "label", _))
-  }
-
-  def createItemStack() = {
-    val stack = api.Items.get(Constants.BlockName.Raid).createItemStack(1)
-    save(stack)
-    stack
   }
 }

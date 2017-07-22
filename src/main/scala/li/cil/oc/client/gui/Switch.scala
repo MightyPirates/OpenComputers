@@ -7,8 +7,8 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
+// TODO Remove in 1.7
 class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) extends DynamicGuiContainer(new container.Switch(playerInventory, switch)) {
-  private val switchContainer = inventorySlots.asInstanceOf[container.Switch]
   private val format = new DecimalFormat("#.##hz")
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
@@ -28,14 +28,14 @@ class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) ex
       14, 58, 0x404040)
 
     fontRendererObj.drawString(
-      format.format(20f / switchContainer.relayDelay),
+      format.format(20f / inventoryContainer.relayDelay),
       108, 20, 0x404040)
     fontRendererObj.drawString(
-      switchContainer.packetsPerCycleAvg + " / " + switchContainer.relayAmount,
-      108, 39, thresholdBasedColor(switchContainer.packetsPerCycleAvg, math.ceil(switchContainer.relayAmount / 2f).toInt, switchContainer.relayAmount))
+      inventoryContainer.packetsPerCycleAvg + " / " + inventoryContainer.relayAmount,
+      108, 39, thresholdBasedColor(inventoryContainer.packetsPerCycleAvg, math.ceil(inventoryContainer.relayAmount / 2f).toInt, inventoryContainer.relayAmount))
     fontRendererObj.drawString(
-      switchContainer.queueSize + " / " + switchContainer.maxQueueSize,
-      108, 58, thresholdBasedColor(switchContainer.queueSize, switchContainer.maxQueueSize / 2, switchContainer.maxQueueSize))
+      inventoryContainer.queueSize + " / " + inventoryContainer.maxQueueSize,
+      108, 58, thresholdBasedColor(inventoryContainer.queueSize, inventoryContainer.maxQueueSize / 2, inventoryContainer.maxQueueSize))
   }
 
   private def thresholdBasedColor(value: Int, yellow: Int, red: Int) = {

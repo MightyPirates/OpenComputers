@@ -3,8 +3,7 @@ package li.cil.oc.client.renderer.block
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
-import li.cil.oc.common.block._
-import li.cil.oc.common.tileentity
+import li.cil.oc.common
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
@@ -19,12 +18,20 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
   override def shouldRender3DInInventory(modelID: Int) = true
 
-  override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
+  override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, realRenderer: RenderBlocks) {
     RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme)")
 
+    val renderer = patchedRenderer(realRenderer, block)
     GL11.glPushMatrix()
     block match {
-      case cable: Cable =>
+      case _: common.block.Assembler =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        Assembler.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
+      case _: common.block.Cable =>
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
@@ -32,36 +39,43 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
-      case proxy@(_: RobotProxy | _: RobotAfterimage) =>
-        GL11.glScalef(1.5f, 1.5f, 1.5f)
-        GL11.glTranslatef(-0.5f, -0.4f, -0.5f)
-        RobotRenderer.renderChassis()
-
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
-      case assembler: Assembler =>
-        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
-        Assembler.render(block, metadata, renderer)
-        Tessellator.instance.draw()
-
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
-      case hologram: Hologram =>
+      case _: common.block.Hologram =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Hologram.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
-      case printer: Printer =>
+      case _: common.block.Printer =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Printer.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: printer")
+      case _@(_: common.block.RobotProxy | _: common.block.RobotAfterimage) =>
+        GL11.glScalef(1.5f, 1.5f, 1.5f)
+        GL11.glTranslatef(-0.5f, -0.4f, -0.5f)
+        RobotRenderer.renderChassis()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
+      case _: common.block.NetSplitter =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        NetSplitter.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: splitter")
+      case _: common.block.Transposer =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        Transposer.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: transposer")
       case _ =>
         block match {
-          case simple: SimpleBlock =>
+          case simple: common.block.SimpleBlock =>
             simple.setBlockBoundsForItemRender(metadata)
             simple.preItemRender(metadata)
           case _ => block.setBlockBoundsForItemRender()
@@ -89,46 +103,58 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
     val renderer = patchedRenderer(realRenderer, block)
     world.getTileEntity(x, y, z) match {
-      case cable: tileentity.Cable =>
-        Cable.render(world, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: cable")
-
-        true
-      case keyboard: tileentity.Keyboard =>
-        val result = Keyboard.render(keyboard, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard")
-
-        result
-      case print: tileentity.Print =>
-        Print.render(print.data, print.state, print.facing, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
-
-        true
-      case printer: tileentity.Printer =>
-        Printer.render(block, x, y, z, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
-
-        true
-      case rack: tileentity.ServerRack =>
-        ServerRack.render(rack, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
-
-        true
-      case assembler: tileentity.Assembler =>
+      case assembler: common.tileentity.Assembler =>
         Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")
 
         true
-      case hologram: tileentity.Hologram =>
+      case _: common.tileentity.Cable =>
+        Cable.render(world, x, y, z, block, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: cable")
+
+        true
+      case hologram: common.tileentity.Hologram =>
         Hologram.render(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram")
+
+        true
+      case keyboard: common.tileentity.Keyboard =>
+        val result = Keyboard.render(keyboard, x, y, z, block, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard")
+
+        result
+      case print: common.tileentity.Print =>
+        Print.render(print.data, print.state, print.facing, x, y, z, block, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
+
+        true
+      case _: common.tileentity.Printer =>
+        Printer.render(block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
+
+        true
+      case rack: common.tileentity.Rack =>
+        Rack.render(rack, x, y, z, block.asInstanceOf[common.block.Rack], renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
+
+        true
+      case splitter: common.tileentity.NetSplitter =>
+        NetSplitter.render(ForgeDirection.VALID_DIRECTIONS.map(splitter.isSideOpen), block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: splitter")
+
+        true
+      case _: common.tileentity.Transposer =>
+        Transposer.render(block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: transposer")
 
         true
       case _ =>
@@ -140,32 +166,39 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     }
   }
 
+  private def needsFlipping(block: Block) =
+    block.isInstanceOf[common.block.Hologram] ||
+      block.isInstanceOf[common.block.Printer] ||
+      block.isInstanceOf[common.block.Print] ||
+      block.isInstanceOf[common.block.NetSplitter] ||
+      block.isInstanceOf[common.block.Transposer]
+
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =
-    if (block.isInstanceOf[Hologram] || block.isInstanceOf[Printer] || block.isInstanceOf[Print]) {
-    PatchedRenderBlocks.blockAccess = renderer.blockAccess
-    PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
-    PatchedRenderBlocks.flipTexture = renderer.flipTexture
-    PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
-    PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
-    PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
-    PatchedRenderBlocks.renderMinX = renderer.renderMinX
-    PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
-    PatchedRenderBlocks.renderMinY = renderer.renderMinY
-    PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
-    PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
-    PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
-    PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
-    PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
-    PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
-    PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
-    PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
-    PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
-    PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
-    PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
-    PatchedRenderBlocks
-  }
-  else renderer
+    if (needsFlipping(block)) {
+      PatchedRenderBlocks.blockAccess = renderer.blockAccess
+      PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
+      PatchedRenderBlocks.flipTexture = renderer.flipTexture
+      PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
+      PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
+      PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
+      PatchedRenderBlocks.renderMinX = renderer.renderMinX
+      PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
+      PatchedRenderBlocks.renderMinY = renderer.renderMinY
+      PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
+      PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
+      PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
+      PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
+      PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
+      PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
+      PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
+      PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
+      PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
+      PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
+      PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
+      PatchedRenderBlocks
+    }
+    else renderer
 
   object PatchedRenderBlocks extends RenderBlocks {
     override def renderFaceXPos(block: Block, x: Double, y: Double, z: Double, texture: IIcon) {

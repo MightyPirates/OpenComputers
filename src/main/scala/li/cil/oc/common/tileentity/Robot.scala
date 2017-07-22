@@ -16,6 +16,7 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.common.item.data.RobotData
@@ -33,7 +34,6 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
@@ -65,67 +65,19 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def isCreative = tier == Tier.Four
 
-  val equipmentInventory = new IInventory {
+  val equipmentInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = 4
-
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-      slot >= 0 && slot < getSizeInventory && Robot.this.isItemValidForSlot(slot, stack)
-
-    override def getStackInSlot(slot: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.getStackInSlot(slot)
-      else null
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.setInventorySlotContents(slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.decrStackSize(slot, amount)
-      else null
-
-    override def getInventoryName = Robot.this.getInventoryName
-
-    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
-
-    override def openInventory() {}
-
-    override def closeInventory() {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
   }
 
   // Wrapper for the part of the inventory that is mutable.
-  val mainInventory = new IInventory {
+  val mainInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = Robot.this.inventorySize
 
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(equipmentInventory.getSizeInventory + slot)
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(equipmentInventory.getSizeInventory + slot, amount)
-
-    override def getInventoryName = Robot.this.getInventoryName
-
-    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
-
-    override def openInventory() {}
-
-    override def closeInventory() {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+    override def offset = equipmentInventory.getSizeInventory
   }
 
   val actualInventorySize = 100
@@ -186,6 +138,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     info.lightColor = value
     ServerPacketSender.sendRobotLightChange(this)
   }
+
+  override def shouldAnimate = isRunning
 
   // ----------------------------------------------------------------------- //
 
@@ -321,7 +275,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   def setAnimateMove(fromPosition: BlockPosition, ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = ticks + 2
     prepareForAnimation()
     moveFromX = fromPosition.x
     moveFromY = fromPosition.y
@@ -329,7 +283,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   def setAnimateSwing(ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = math.max(ticks, 5)
     prepareForAnimation()
     swingingTool = true
   }
@@ -562,7 +516,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (isFloppySlot(slot)) {
         common.Sound.playDiskInsert(this)
       }
-      if (isComponentSlot(slot)) {
+      if (isComponentSlot(slot, stack)) {
         super.onItemAdded(slot, stack)
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
@@ -570,6 +524,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
+    else super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
@@ -588,7 +543,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (isInventorySlot(slot)) {
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
-      if (isComponentSlot(slot)) {
+      if (isComponentSlot(slot, stack)) {
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
     }
@@ -616,17 +571,17 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
     if (node != null) node.host match {
-      case buffer: api.component.TextBuffer =>
+      case buffer: api.internal.TextBuffer =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case keyboard: api.component.Keyboard => buffer.node.connect(keyboard.node)
+            case keyboard: api.internal.Keyboard => buffer.node.connect(keyboard.node)
             case _ =>
           }
         }
-      case keyboard: api.component.Keyboard =>
+      case keyboard: api.internal.Keyboard =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case buffer: api.component.TextBuffer => keyboard.node.connect(buffer.node)
+            case buffer: api.internal.TextBuffer => keyboard.node.connect(buffer.node)
             case _ =>
           }
         }
@@ -634,7 +589,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     }
   }
 
-  override def isComponentSlot(slot: Int) = (containerSlots ++ componentSlots) contains slot
+  override def isComponentSlot(slot: Int, stack: ItemStack) = (containerSlots ++ componentSlots) contains slot
 
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
@@ -660,13 +615,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def isInventorySlot(slot: Int) = inventorySlots contains slot
 
-  def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+  def isFloppySlot(slot: Int) = getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) && {
+    val stack = getStackInSlot(slot)
+    Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver) => driver.slot(stack) == Slot.Floppy
       case _ => false
     }
-    case _ => false
-  })
+  }
 
   def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
 
@@ -734,7 +689,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
     if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
-      if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
+      if (stack != null && stack.stackSize > 1 && isComponentSlot(slot, stack)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
           player().inventory.addItemStackToInventory(stack)
@@ -854,5 +809,5 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def getTankInfo(from: ForgeDirection) =
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
-    }.toArray
+    }
 }

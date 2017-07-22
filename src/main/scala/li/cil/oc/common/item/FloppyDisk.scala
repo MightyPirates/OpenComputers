@@ -1,19 +1,18 @@
 package li.cil.oc.common.item
 
-import java.util
-
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class FloppyDisk(val parent: Delegator) extends Delegate {
+class FloppyDisk(val parent: Delegator) extends traits.Delegate with traits.FileSystemLike {
   // Necessary for anonymous subclasses used for loot disks.
   override def unlocalizedName = "FloppyDisk"
 
-  override protected def tooltipName = None
+  val kiloBytes = Settings.get.floppySize
 
   val icons = Array.fill[Icon](16)(null)
 
@@ -24,16 +23,6 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
     else
       Some(icons(8))
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-      val nbt = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-      if (nbt.hasKey(Settings.namespace + "fs.label")) {
-        tooltip.add(nbt.getString(Settings.namespace + "fs.label"))
-      }
-    }
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
-
   override def registerIcons(iconRegister: IconRegister) {
     val baseTextureName = Settings.resourceDomain + ":" + unlocalizedName + "_"
     Color.dyes.zipWithIndex.foreach {
@@ -41,4 +30,6 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
         icons(index) = iconRegister.registerIcon(baseTextureName + color)
     }
   }
+
+  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
 }

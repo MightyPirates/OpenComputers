@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
-import li.cil.oc.util.FontUtil
+import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.IReloadableResourceManager
@@ -19,7 +19,7 @@ import scala.collection.mutable
  */
 class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
   private val glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
-    case _ => new FontParserUnifont()
+    case _ => new FontParserHex()
   }
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
@@ -75,7 +75,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 
   private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
-    if (FontUtil.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
+    if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
     }
@@ -95,7 +95,11 @@ object DynamicFontRenderer {
   class CharTexture(val owner: DynamicFontRenderer) {
     private val id = GL11.glGenTextures()
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
-    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+    if (Settings.get.textLinearFiltering) {
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
+    } else {
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+    }
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
     GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, size, size, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
 
@@ -121,10 +125,10 @@ object DynamicFontRenderer {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
     }
 
-    def isFull(char: Char) = chars + FontUtil.wcwidth(char) > capacity
+    def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
 
     def add(char: Char) = {
-      val glyphWidth = FontUtil.wcwidth(char)
+      val glyphWidth = FontUtils.wcwidth(char)
       val w = owner.charWidth * glyphWidth
       val h = owner.charHeight
       // Force line break if we have a char that's wider than what space remains in this row.

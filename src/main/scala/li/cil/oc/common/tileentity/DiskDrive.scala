@@ -1,9 +1,18 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
@@ -12,14 +21,14 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
-  val node = api.Network.newNode(this, Visibility.None).create()
+import scala.collection.convert.WrapAsJava._
 
+class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
@@ -28,13 +37,51 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     case _ => None
   }
 
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Disk,
+    DeviceAttribute.Description -> "Floppy disk drive",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Spinner 520p1"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
   // ----------------------------------------------------------------------- //
+  // Environment
+
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("disk_drive").
+    create()
+
+  @Callback(doc = """function():boolean -- Checks whether some medium is currently in the drive.""")
+  def isEmpty(context: Context, args: Arguments): Array[AnyRef] = {
+    result(filesystemNode.isEmpty)
+  }
+
+  @Callback(doc = """function([velocity:number]):boolean -- Eject the currently present medium from the drive.""")
+  def eject(context: Context, args: Arguments): Array[AnyRef] = {
+    val velocity = args.optDouble(0, 0) max 0 min 1
+    val ejected = decrStackSize(0, 1)
+    if (ejected != null && ejected.stackSize > 0) {
+      val entity = InventoryUtils.spawnStackInWorld(position, ejected, Option(facing))
+      if (entity != null) {
+        val vx = facing.offsetX * velocity
+        val vy = facing.offsetY * velocity
+        val vz = facing.offsetZ * velocity
+        entity.addVelocity(vx, vy, vz)
+      }
+      result(true)
+    }
+    else result(false)
+  }
+
+  // ----------------------------------------------------------------------- //
+  // Analyzable
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
 
-  override def canUpdate = false
-
   // ----------------------------------------------------------------------- //
+  // IInventory
 
   override def getSizeInventory = 1
 
@@ -42,6 +89,9 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     case (0, Some(driver)) => driver.slot(stack) == Slot.Floppy
     case _ => false
   }
+
+  // ----------------------------------------------------------------------- //
+  // ComponentInventory
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
@@ -66,20 +116,23 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   }
 
   // ----------------------------------------------------------------------- //
+  // TileEntity
+
+  override def canUpdate = false
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    items(0) match {
-      case Some(stack) => nbt.setNewCompoundTag("disk", stack.writeToNBT)
-      case _ =>
+    if (nbt.hasKey("disk")) {
+      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("disk")))
     }
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    if (nbt.hasKey("disk")) {
-      setInventorySlotContents(0, ItemUtils.loadStack(nbt.getCompoundTag("disk")))
+    items(0) match {
+      case Some(stack) => nbt.setNewCompoundTag("disk", stack.writeToNBT)
+      case _ =>
     }
   }
 }

@@ -1,6 +1,5 @@
 package li.cil.oc.server.machine
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
@@ -25,6 +24,12 @@ object Callbacks {
     case peripheral: ManagedPeripheral => dynamicAnalyze(host)
     case filtered: FilteredEnvironment => dynamicAnalyze(host)
     case _ => cache.getOrElseUpdate(host.getClass, dynamicAnalyze(host))
+  }
+
+  // Clear the cache; used when world is unloaded, mostly to allow reacting to
+  // stuff (aka configs) that may influence which @Callbacks are enabled.
+  def clear(): Unit = {
+    cache.clear()
   }
 
   def fromClass(environment: Class[_]) = staticAnalyze(environment)
@@ -69,7 +74,7 @@ object Callbacks {
     (host match {
       case multi: CompoundBlockEnvironment => multi.environments.map(env => process(env._2))
       case single => Seq(process(single))
-    }).sortBy(-_._1).map(_._2).foreach(_())
+    }).sortBy(-_._1).map(_._2).foreach(_ ())
 
     callbacks.toMap
   }
@@ -95,7 +100,7 @@ object Callbacks {
         else {
           val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
           val name = if (a.value != null && a.value.trim != "") a.value else m.getName
-          if (shouldAdd.fold(true)(_(name))) {
+          if (shouldAdd.fold(true)(_ (name))) {
             callbacks += name -> new ComponentCallback(m, a)
           }
         }
@@ -113,11 +118,9 @@ object Callbacks {
   }
 
   class ComponentCallback(val method: Method, annotation: machine.Callback) extends Callback(annotation) {
-    override def apply(instance: AnyRef, context: Context, args: Arguments) = try {
-      method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
-    } catch {
-      case e: InvocationTargetException => throw e.getCause
-    }
+    final val callWrapper = CallbackWrapper.createCallbackWrapper(method)
+
+    override def apply(instance: AnyRef, context: Context, args: Arguments) = callWrapper.call(instance, context, args)
   }
 
   class PeripheralCallback(name: String) extends Callback(new PeripheralAnnotation(name)) {

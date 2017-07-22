@@ -1,12 +1,33 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.driver.EnvironmentHost
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
+import li.cil.oc.Settings
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
+import scala.collection.convert.WrapAsJava._
+
 trait RedstoneBundled extends RedstoneVanilla {
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Communication,
+    DeviceAttribute.Description -> "Advanced redstone controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Rb800-M",
+    DeviceAttribute.Capacity -> "65536",
+    DeviceAttribute.Width -> "16"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
   override def redstone: EnvironmentHost with BundledRedstoneAware
 
   @Callback(direct = true, doc = """function(side:number[, color:number]):number or table -- Get the bundled redstone input on the specified side and with the specified color.""")
@@ -36,14 +57,16 @@ trait RedstoneBundled extends RedstoneVanilla {
         case (color, number: Number) => redstone.bundledOutput(side, color, number.intValue())
         case _ =>
       }
-      context.pause(0.1)
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
       result(true)
     }
     else {
       val color = checkColor(args, 1)
       val value = args.checkInteger(2)
       redstone.bundledOutput(side, color, value)
-      context.pause(0.1)
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
       result(redstone.bundledOutput(side, color))
     }
   }

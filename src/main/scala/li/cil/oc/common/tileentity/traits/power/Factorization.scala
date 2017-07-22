@@ -8,6 +8,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.Power
 import net.minecraft.nbt.NBTTagCompound
 
 @Injectable.Interface(value = "factorization.api.IChargeConductor", modid = Mods.IDs.Factorization)
@@ -33,7 +34,7 @@ trait Factorization extends Common {
   private def updateEnergy() {
     getCharge.update()
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      tryAllSides((demand, _) => getCharge.deplete(demand.toInt), Settings.get.ratioFactorization)
+      tryAllSides((demand, _) => getCharge.deplete(demand.toInt), Power.fromCharge, Power.toCharge)
     }
   }
 

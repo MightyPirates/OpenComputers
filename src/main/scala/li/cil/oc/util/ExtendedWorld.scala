@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
@@ -28,12 +28,16 @@ object ExtendedWorld {
     def getTileEntity(host: EnvironmentHost): TileEntity = getTileEntity(BlockPosition(host))
 
     def isAirBlock(position: BlockPosition) = world.isAirBlock(position.x, position.y, position.z)
+
+    def getLightBrightnessForSkyBlocks(position: BlockPosition, minBrightness: Int) = world.getLightBrightnessForSkyBlocks(position.x, position.y, position.z, minBrightness)
   }
 
   class ExtendedWorld(override val world: World) extends ExtendedBlockAccess(world) {
     def blockExists(position: BlockPosition) = world.blockExists(position.x, position.y, position.z)
 
     def breakBlock(position: BlockPosition, drops: Boolean = true) = world.func_147480_a(position.x, position.y, position.z, drops)
+
+    def destroyBlockInWorldPartially(entityId: Int, position: BlockPosition, progress: Int) = world.destroyBlockInWorldPartially(entityId, position.x, position.y, position.z, progress)
 
     def extinguishFire(player: EntityPlayer, position: BlockPosition, side: ForgeDirection) = world.extinguishFire(player, position.x, position.y, position.z, side.ordinal)
 
@@ -42,6 +46,11 @@ object ExtendedWorld {
     def getBlockHarvestLevel(position: BlockPosition) = getBlock(position).getHarvestLevel(getBlockMetadata(position))
 
     def getBlockHarvestTool(position: BlockPosition) = getBlock(position).getHarvestTool(getBlockMetadata(position))
+
+    // Passing `side` instead of `side.getOpposite` is *correct* here, because Minecraft.
+    def computeRedstoneSignal(position: BlockPosition, side: ForgeDirection) = math.max(world.isBlockProvidingPowerTo(position.offset(side), side), world.getIndirectPowerLevelTo(position.offset(side), side))
+
+    def isBlockProvidingPowerTo(position: BlockPosition, side: ForgeDirection) = world.isBlockProvidingPowerTo(position.x, position.y, position.z, side.ordinal)
 
     def getIndirectPowerLevelTo(position: BlockPosition, side: ForgeDirection) = world.getIndirectPowerLevelTo(position.x, position.y, position.z, side.ordinal)
 

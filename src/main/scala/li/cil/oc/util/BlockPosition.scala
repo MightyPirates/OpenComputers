@@ -1,8 +1,9 @@
 package li.cil.oc.util
 
 import appeng.api.util.DimensionalCoord
+import com.google.common.hash.Hashing
 import cpw.mods.fml.common.Optional
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.integration.Mods
 import net.minecraft.entity.Entity
 import net.minecraft.util.AxisAlignedBB
@@ -40,6 +41,18 @@ class BlockPosition(val x: Int, val y: Int, val z: Int, val world: Option[World]
     case position: BlockPosition => position.x == x && position.y == y && position.z == z && position.world == world
     case _ => super.equals(obj)
   }
+
+  override def hashCode(): Int = {
+    Hashing.
+      goodFastHash(32).
+      newHasher(16).
+      putInt(x).
+      putInt(y).
+      putInt(z).
+      putInt(world.hashCode()).
+      hash().
+      asInt()
+  }
 }
 
 object BlockPosition {
@@ -50,6 +63,10 @@ object BlockPosition {
   def apply(x: Double, y: Double, z: Double, world: World) = new BlockPosition(x, y, z, Option(world))
 
   def apply(x: Double, y: Double, z: Double) = new BlockPosition(x, y, z, None)
+
+  def apply(v: Vec3) = new BlockPosition(v.xCoord, v.yCoord, v.zCoord, None)
+
+  def apply(v: Vec3, world: World) = new BlockPosition(v.xCoord, v.yCoord, v.zCoord, Option(world))
 
   def apply(host: EnvironmentHost): BlockPosition = BlockPosition(host.xPosition, host.yPosition, host.zPosition, host.world)
 

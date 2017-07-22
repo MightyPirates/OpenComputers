@@ -71,11 +71,13 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
   override protected def doCustomDrops(tileEntity: tileentity.Raid, player: EntityPlayer, willHarvest: Boolean): Unit = {
     super.doCustomDrops(tileEntity, player, willHarvest)
     val stack = createItemStack()
-    val data = new RaidData()
-    data.disks = tileEntity.items.map(_.orNull)
-    tileEntity.filesystem.foreach(_.save(data.filesystem))
-    data.label = Option(tileEntity.label.getLabel)
-    data.save(stack)
+    if (tileEntity.items.exists(_.isDefined)) {
+      val data = new RaidData()
+      data.disks = tileEntity.items.map(_.orNull)
+      tileEntity.filesystem.foreach(_.save(data.filesystem))
+      data.label = Option(tileEntity.label.getLabel)
+      data.save(stack)
+    }
     dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, stack)
   }
 }

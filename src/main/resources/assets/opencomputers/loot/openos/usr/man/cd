@@ -1,0 +1,42 @@
+NAME
+  cd - change the current working directory
+
+SYNOPSIS
+  cd [directory]
+  cd -
+
+DESCRIPTION
+  `cd` allows changing the current working directory, i.e the directory based on which relative paths are resolved.
+
+  If no operand is given then HOME environment variable is used.
+  
+  If the operand is - (just a single dash) then OLDPWD environment variable is used.
+  
+  Relative path components ./ and ../ may be used to denote the working directory and the parent directory, respectively. An operand starting with ./ is equivalent to PWD environment variable. See examples for illustrations.
+  
+  Lastly, cd will attempt to change the current directory to the path defined by the operand, reporting errors if any.
+  
+  If cd is successful, OLDPWD environment variable will also be set to the previous value of PWD (that is the current working directory immediately prior to the call to cd).
+
+ENVIRONMENT VARIABLES
+  PWD
+    Parent Working Directory, the current working directory
+
+  OLDPWD
+    Old PWD, set each time the PWD is changed by calling the cd utility
+
+  HOME
+    Represents the path of the user's home directory
+
+EXAMPLES
+  cd a
+    Changes to directory `a` in the current working directory
+
+  cd /bin
+    Changes to directory `/bin`, using the specified absolute path
+
+  cd ../
+    Changes to the parent directory of the current working directory
+
+  cd -
+    Changes to the previos directory, defined by OLDPWD, and set each time cd changes PWD

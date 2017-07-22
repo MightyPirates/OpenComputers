@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.markdown.segment
 import li.cil.oc.api.manual.ImageRenderer
 import li.cil.oc.api.manual.InteractiveImageRenderer
 import li.cil.oc.client.renderer.markdown.Document
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
@@ -74,5 +75,8 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
     hovered
   }
 
-  override def toString: String = s"{RendererSegment: title = $title, imageRenderer = $imageRenderer}"
+  override def toString(format: MarkupFormat.Value): String = format match {
+    case MarkupFormat.Markdown => s"![$title]($imageRenderer)"
+    case MarkupFormat.IGWMod => "(Sorry, images only work in the OpenComputers manual for now.)" // TODO
+  }
 }

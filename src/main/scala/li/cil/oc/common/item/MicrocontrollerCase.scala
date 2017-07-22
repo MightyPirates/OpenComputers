@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import net.minecraft.item.ItemStack
 
-class MicrocontrollerCase(val parent: Delegator, val tier: Int) extends Delegate with ItemTier {
+class MicrocontrollerCase(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
   override val unlocalizedName = super.unlocalizedName + tier
 
   override protected def tierFromDriver(stack: ItemStack) = tier

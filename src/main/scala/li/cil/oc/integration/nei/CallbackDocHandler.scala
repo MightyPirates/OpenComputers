@@ -2,6 +2,7 @@ package li.cil.oc.integration.nei
 
 import codechicken.nei.recipe.IUsageHandler
 import com.google.common.base.Strings
+import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.prefab
 import li.cil.oc.server.driver.Registry
@@ -14,9 +15,9 @@ import scala.collection.convert.WrapAsScala._
 class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler(pages) {
   def this() = this(None)
 
-  private val DocPattern = """^function(\([^)]*\)[^-]*) -- (.*)$""".r
+  private val DocPattern = """(?s)^function(\(.*?\).*?) -- (.*)$""".r
 
-  private val VexPattern = """^function(\([^)]*\)[^-]*); (.*)$""".r
+  private val VexPattern = """(?s)^function(\(.*?\).*?); (.*)$""".r
 
   override def getRecipeName = "OpenComputers API"
 
@@ -24,19 +25,24 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
     if (input == "item") {
       ingredients.collect {
         case stack: ItemStack if stack.getItem != null =>
-          val callbacks = Option(Registry.driverFor(stack)) match {
-            case Some(driver: EnvironmentAware) =>
-              getCallbacks(driver.providedEnvironment(stack))
-            case _ => Registry.blocks.collect {
-              case driver: prefab.DriverTileEntity with EnvironmentAware =>
-                if (driver.getTileEntityClass != null && !driver.getTileEntityClass.isInterface)
-                  driver.providedEnvironment(stack)
-                else null
-              case driver: EnvironmentAware => driver.providedEnvironment(stack)
-            }.filter(_ != null).map(getCallbacks).flatten
+          val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
+
+          // TODO remove in OC 1.7
+          if (callbacks.isEmpty) {
+            callbacks ++= (Option(Registry.driverFor(stack)) match {
+              case Some(driver: EnvironmentAware) =>
+                getCallbacks(driver.providedEnvironment(stack))
+              case _ => Registry.blocks.collect {
+                case driver: prefab.DriverTileEntity with EnvironmentAware =>
+                  if (driver.getTileEntityClass != null && !driver.getTileEntityClass.isInterface)
+                    driver.providedEnvironment(stack)
+                  else null
+                case driver: EnvironmentAware => driver.providedEnvironment(stack)
+              }.filter(_ != null).flatMap(getCallbacks)
+            })
           }
 
-          if (callbacks.size > 0) {
+          if (callbacks.nonEmpty) {
             val fullDocumentation = callbacks.toArray.sorted.mkString("\n\n")
             val pages = fullDocumentation.lines.grouped(12).map(_.mkString("\n")).toArray
             Option(new CallbackDocHandler(Option(pages)))

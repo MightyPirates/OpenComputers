@@ -5,14 +5,20 @@
 # Names of more or less famous robots and AIs, are welcome. Feel free to add
 # more via pull requests. Let's hope this won't get us sued...
 
-# When adding names, please keep the list sorted alphabetially, make sure it's
+# When adding names, please keep the list sorted alphabetically, make sure it's
 # not already in the list, and, where appropriate, provide a concise source.
+# And since we now also have that special case, ignore special characters when
+# sorting.
 
 Adventure Core     # Portal
+Adjutant 23-46     # Starcraft 2
 Anson Argyris      # Perry Rhodan
 ASIMO              # Honda
 Atlas              # Portal
 Augustus           # Perry Rhodan
+Ava                # Ex Machina
+Baymax             # Big Hero 6
+BB-8               # Star Wars
 Bender             # Futurama
 BMO                # Adventure Time
 BraitenBurg        # Simple intelligent agents.
@@ -20,18 +26,29 @@ C-3PO              # Star Wars
 Cairol             # Perry Rhodan
 Calculon           # Futurama
 Callister Raynes   # Eureka
+Chappie            # Chappie
 Clamps             # Futurama
 Clank              # Ratchet & Clank
 Claptrap           # Borderlands
+Codsworth          # Fallout 4
+Continuity         # Mona Lisa Overdrive
 Crypto             # Kodos
+Curiosity          # Mars Rover
 Daedalus           # Deus Ex
 Dalek Sec          # Doctor Who
-Deputy ANDY        # Eureka
+Data               # Star Trek
+David              # A.I. (the movie)
 Death Trap         # Borderlands 2's Mechromancer
+Deep Thought       # Hitchhiker's Guide to the Galaxy
+Deputy ANDY        # Eureka
 Dog                # Half-Life
 Donald Duck        # Perry Rhodan
+EDI                # Mass Effect
+Eliza Cassan       # Deus Ex
 Elmer              # One of the first two robots developed by William Gray Walter.
 Elsie              # One of the first two robots developed by William Gray Walter.
+*Emilia            # Digital: A Love Story
+E.V.E              # Anno 2070
 Eve                # Wall-E
 Fact Core          # Portal
 Flexo              # Futurama
@@ -40,11 +57,13 @@ GLaDOS             # Portal
 HAL 9000           # Space Odyssey
 Harkness           # Fallout 3
 Heron              # Vexatos
+Hex                # Discworld
 Homunk             # Perry Rhodan
+*Hyun-ae           # Analogue: A Hate Story / Hate Plus
 Icarus             # Deus Ex
-J.A.R.V.I.S        # Iron Man
-JoshTheEnder       # Contributor
+J.A.R.V.I.S.       # Iron Man
 Johnny 5           # Short Circuit
+LizzyTrickster     # Contributor
 K-9                # Doctor Who
 KARR               # Knight Rider
 Kilobyte           # Contributor
@@ -55,20 +74,26 @@ Loader 1340        # Borderlands 2
 LordFokas          # Contributor
 Marvin             # Hitchhiker's Guide to the Galaxy
 Michiyo            # Contributor
+*Mute              # Analogue: A Hate Story / Hate Plus
+Mycroft Holmes     # The Moon Is a Harsh Mistress
 P-Body             # Portal
+Pintsize           # Questionable Content
 PixelToast         # Contributor
 QT-1               # I, Robot
-R2-D2              # Star Wars
 R. Daneel Olivaw   # Isaac Asimov's
 R. Giskard Reventlov # Isaac Asimov's
+R2-D2              # Star Wars
 Replicator         # Stargate
 Robby              # Forbidden Planet
 Roomba             # Under your couch... wait.
 Rosie              # The Jetsons
 Shakey             # The first general-purpose mobile robot that could reason about its actions.
+SHODAN             # System Shock
 Skynet             # Terminator
 Space Core         # Portal
 SpiritedDusty      # Contributor
+T-800              # Terminator
+T-1000             # Terminator
 Tachikoma          # Ghost in the Shell
 TARA UH            # Perry Rhodan
 Terminator         # Terminator
@@ -77,8 +102,10 @@ Uniblab            # The Jetsons
 Unimate            # First programmable robot.
 Vertigo            # Perry Rhodan
 Vexatos            # Contributor
+V.I.K.I.           # Virtual Interactive Kinetic Intelligence - I, Robot
 Wall-E             # Wall-E
 Watson             # IBM Watson
 Weebo              # Flubber
 Wheatley           # Portal
+Wintermute         # Neuromancer
 Wobbo              # Contributor

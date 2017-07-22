@@ -68,7 +68,7 @@ public class ConverterIIndividual implements Converter {
     };
 
     private interface IAlleleConverter<A extends IAllele> {
-        public Object convert(A allele);
+        Object convert(A allele);
     }
 
     private static final Map<Class<? extends IAllele>, IAlleleConverter<?>> converters =
@@ -245,7 +245,6 @@ public class ConverterIIndividual implements Converter {
                 output.put("generation", bee.getGeneration());
                 output.put("hasEffect", bee.hasEffect());
                 output.put("isAlive", bee.isAlive());
-                output.put("isIrregularMating", bee.isIrregularMating());
                 output.put("isNatural", bee.isNatural());
 
                 if (isAnalyzed) genomeReader = new BeeGenomeReader(bee.getGenome());

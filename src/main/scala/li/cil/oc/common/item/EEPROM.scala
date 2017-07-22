@@ -5,7 +5,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class EEPROM extends SimpleItem {
+class EEPROM extends traits.SimpleItem {
   override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = true
 
   override def getItemStackDisplayName(stack: ItemStack): String = {

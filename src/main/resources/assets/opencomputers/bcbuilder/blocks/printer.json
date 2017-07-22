@@ -1,0 +1,16 @@
+[{
+  "includes": [
+    "traits/environment.json",
+    "traits/inventory.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "oc:active",
+      "oc:amountInk",
+      "oc:amountMaterial",
+      "oc:limit",
+      "oc:remaining",
+      "oc:total"
+    ]
+  }
+}]

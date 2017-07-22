@@ -57,7 +57,18 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
   /** Used to pass the current screen along to call(). */
   private var hologram: Hologram = null
 
+  /**
+   * Whether initialization failed (e.g. due to an out of memory error) and we
+   * should render using the fallback renderer instead.
+   */
+  private var failed = false
+
   override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    if (failed) {
+      HologramRendererFallback.renderTileEntityAt(te, x, y, z, f)
+      return
+    }
+
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     hologram = te.asInstanceOf[Hologram]
@@ -87,6 +98,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
       case _ => // No pitch.
     }
+
+    GL11.glRotatef(hologram.rotationAngle, hologram.rotationX, hologram.rotationY, hologram.rotationZ)
+    GL11.glRotatef(hologram.rotationSpeed * (hologram.getWorldObj.getTotalWorldTime % (360 * 20 - 1) + f) / 20f, hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
 
     GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
     GL11.glTranslated(
@@ -142,12 +156,13 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
   }
 
   def draw(glBuffer: Int) {
-    initialize()
-    validate(glBuffer)
-    publish(glBuffer)
+    if (initialize()) {
+      validate(glBuffer)
+      publish(glBuffer)
+    }
   }
 
-  private def initialize() {
+  private def initialize(): Boolean = !failed && (try {
     // First run only, create structure information.
     if (commonBuffer == 0) {
       dataBuffer = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 6 * 4 * 2)
@@ -222,11 +237,18 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
       GL15.glBufferData(GL15.GL_ARRAY_BUFFER, data, GL15.GL_STATIC_DRAW)
     }
+    true
   }
+  catch {
+    case oom: OutOfMemoryError =>
+      HologramRendererFallback.text = "Not enough memory"
+      failed = true
+      false
+  })
 
   private def validate(glBuffer: Int) {
     // Refresh indexes when the hologram's data changed.
-    if (hologram.dirty) {
+    if (hologram.needsRendering) {
       def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
 
       def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
@@ -314,7 +336,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       // Reset for the next operation.
       dataBuffer.clear()
 
-      hologram.dirty = false
+      hologram.needsRendering = false
     }
   }
 
@@ -341,7 +363,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     val glBuffer = GL15.glGenBuffers()
 
     // Force re-indexing.
-    hologram.dirty = true
+    hologram.needsRendering = true
 
     glBuffer
   }

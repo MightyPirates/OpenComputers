@@ -4,15 +4,18 @@ import java.util.Random
 
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.Tier
+import net.minecraft.block.Block
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemBucket
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraftforge.oredict.ShapelessOreRecipe
 
@@ -44,36 +47,38 @@ object ItemUtils {
 
   def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
-  def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
-
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
-    def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Double) = inputs.filter(input =>
+    def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Int) = (inputs.filter(input =>
       input != null &&
       input.getItem != null &&
-      math.floor(input.stackSize / outputSize) > 0 &&
+      input.stackSize / outputSize > 0 &&
       // Strip out buckets, because those are returned when crafting, and
       // we have no way of returning the fluid only (and I can't be arsed
       // to make it output fluids into fluiducts or such, sorry).
-      !input.getItem.isInstanceOf[ItemBucket]).toArray
-    def getOutputSize(recipe: IRecipe) =
-      if (recipe != null && recipe.getRecipeOutput != null)
-        recipe.getRecipeOutput.stackSize
-      else
-        Double.PositiveInfinity
-
-    val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
-    val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
-    val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
-    val ingredients = recipe match {
-      case Some(recipe: ShapedRecipes) => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
-      case Some(recipe: ShapelessRecipes) => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
-      case Some(recipe: ShapedOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-      case Some(recipe: ShapelessOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-      case _ => Array.empty
+      !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
+    def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.stackSize
+    def isInputBlacklisted(stack: ItemStack) = stack.getItem match {
+      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.blockRegistry.getNameForObject(item.field_150939_a))
+      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.itemRegistry.getNameForObject(item))
+      case _ => false
     }
+
+    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
+      filter(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack)).collect {
+        case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
+        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
+        case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
+        case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
+      }.collectFirst {
+        case (inputs, outputSize) if !inputs.exists(isInputBlacklisted) => (inputs, outputSize)
+      } match {
+        case Some((inputs, outputSize)) => (inputs, outputSize)
+        case _ => return Array.empty
+      }
+
     // Avoid positive feedback loops.
     if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
-      return Array.empty
+      return Array.empty[ItemStack]
     }
     // Merge equal items for size division by output size.
     val merged = mutable.ArrayBuffer.empty[ItemStack]
@@ -98,7 +103,7 @@ object ItemUtils {
   catch {
     case t: Throwable =>
       OpenComputers.log.warn("Whoops, something went wrong when trying to figure out an item's parts.", t)
-      Array.empty
+      Array.empty[ItemStack]
   }
 
   private lazy val rng = new Random()

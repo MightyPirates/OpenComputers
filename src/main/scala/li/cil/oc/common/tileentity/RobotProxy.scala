@@ -68,6 +68,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
+  override def shouldAnimate(): Boolean = robot.shouldAnimate
+
   // ----------------------------------------------------------------------- //
 
   override def componentCount = robot.componentCount

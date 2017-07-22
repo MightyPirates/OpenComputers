@@ -1,0 +1,16 @@
+NAME
+  resolution - get or set screen resolution
+
+SYNOPSIS
+  resolution
+  resolution WIDTH HEIGHT
+
+DESCRIPTION
+  The `resolution` program is used to write the resolution of the current primary screen to the standard output, or to change the resolution to a new value.
+
+EXAMPLES
+  resolution
+    Displays the current screen resolution.
+
+  resolution 30 10
+    Sets the screen's resolution to 30 by 10 characters.

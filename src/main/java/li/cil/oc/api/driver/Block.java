@@ -20,7 +20,11 @@ import net.minecraft.world.World;
  * Note that it is possible to write one driver that supports as many different
  * blocks as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular.
+ *
+ * @deprecated Use {@link SidedBlock} instead, ignoring the side argument if
+ * the side doesn't matter.
  */
+@Deprecated // TODO Remove in OC 1.7
 public interface Block {
     /**
      * Used to determine the block types this driver handles.

@@ -7,7 +7,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
 import net.minecraft.item.ItemStack
 
-class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with ItemTier {
+class RedstoneCard(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
   override val unlocalizedName = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)

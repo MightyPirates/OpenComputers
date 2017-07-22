@@ -1,0 +1,6 @@
+KERNELSPACE
+  kernel.modules - module array
+  kernel._K - raw global envirnoment, used by kernelspace and modulespace
+  kernel._G - current userspace
+  kernel.userspace - Shared userspace
+  

@@ -634,6 +634,14 @@ local function spcall(...)
   end
 end
 
+local sgcco
+
+local function sgcf(self, gc)
+  while true do
+    self, gc = coroutine.yield(pcall(gc, self))
+  end
+end
+
 local function sgc(self)
   local oldDeadline, oldHitDeadline = deadline, hitDeadline
   local mt = debug.getmetatable(self)
@@ -642,11 +650,16 @@ local function sgc(self)
   if type(gc) ~= "function" then
     return
   end
-  local co = coroutine.create(gc)
-  debug.sethook(co, checkDeadline, "", hookInterval)
+  if not sgcco then
+    sgcco = coroutine.create(sgcf)
+  end
+  debug.sethook(sgcco, checkDeadline, "", hookInterval)
   deadline, hitDeadline = math.min(oldDeadline, computer.realTime() + 0.5), true
-  local result, reason = coroutine.resume(co, self)
-  debug.sethook(co)
+  local _, result, reason = coroutine.resume(sgcco, self, gc)
+  debug.sethook(sgcco)
+  if coroutine.status(sgcco) == "dead" then
+    sgcco = nil
+  end
   deadline, hitDeadline = oldDeadline, oldHitDeadline
   if not result then
     error(reason, 0)
@@ -670,7 +683,7 @@ sandbox = {
     end
     local result = getmetatable(t)
     -- check if we have a wrapped __gc using mt
-    if type(result) == "table" and rawget(result, "__gc") == sgc then
+    if type(result) == "table" and system.allowGC() and rawget(result, "__gc") == sgc then
       result = rawget(result, "mt")
     end
     return result
@@ -700,26 +713,39 @@ sandbox = {
     if type(mt) ~= "table" then
       return setmetatable(t, mt)
     end
-    if type(rawget(mt, "__gc")) == "function" then
-      -- For all user __gc functions we enforce a much tighter deadline.
-      -- This is because these functions may be called from the main
-      -- thread under certain circumstanced (such as when saving the world),
-      -- which can lead to noticeable lag if the __gc function behaves badly.
-      local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
-                      -- kinda ok to have a shallow copy instead... meh.
-      for k, v in pairs(mt) do
-        sbmt[k] = v
+    if rawget(mt, "__gc") ~= nil then -- If __gc is set to ANYTHING not `nil`, we're gonna have issues
+      -- Garbage collector callbacks apparently can't be sandboxed after
+      -- all, because hooks are disabled while they're running. So we just
+      -- disable them altogether by default.
+      if system.allowGC() then
+        -- For all user __gc functions we enforce a much tighter deadline.
+        -- This is because these functions may be called from the main
+        -- thread under certain circumstanced (such as when saving the world),
+        -- which can lead to noticeable lag if the __gc function behaves badly.
+        local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
+                        -- kinda ok to have a shallow copy instead... meh.
+        for k, v in next, mt do
+          sbmt[k] = v
+        end
+        sbmt.__gc = sgc
+        sbmt.mt = mt
+        mt = sbmt
+      else
+        -- Don't allow marking for finalization, but use the raw metatable.
+        local gc = rawget(mt, "__gc")
+        rawset(mt, "__gc", nil) -- remove __gc
+        local ret = table.pack(pcall(setmetatable, t, mt))
+        rawset(mt, "__gc", gc) -- restore __gc
+        if not ret[1] then error(ret[2], 0) end
+        return table.unpack(ret, 2, ret.n)
       end
-      sbmt.mt = mt
-      sbmt.__gc = sgc
-      mt = sbmt
     end
     return setmetatable(t, mt)
   end,
   tonumber = tonumber,
   tostring = tostring,
   type = type,
-  _VERSION = "Lua 5.2",
+  _VERSION = _VERSION:match("5.3") and "Lua 5.3" or "Lua 5.2",
   xpcall = function(f, msgh, ...)
     local handled = false
     local result = table.pack(xpcall(f, function(...)
@@ -773,7 +799,9 @@ sandbox = {
     end,
     yield = function(...) -- custom yield part for bubbling sysyields
       return coroutine.yield(nil, ...)
-    end
+    end,
+    -- Lua 5.3.
+    isyieldable = coroutine.isyieldable
   },
 
   string = {
@@ -790,7 +818,11 @@ sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper
+    upper = string.upper,
+    -- Lua 5.3.
+    pack = string.pack,
+    unpack = string.unpack,
+    packsize = string.packsize
   },
 
   table = {
@@ -799,7 +831,9 @@ sandbox = {
     pack = table.pack,
     remove = table.remove,
     sort = table.sort,
-    unpack = table.unpack
+    unpack = table.unpack,
+    -- Lua 5.3.
+    move = table.move
   },
 
   math = {
@@ -823,7 +857,9 @@ sandbox = {
     min = math.min,
     modf = math.modf,
     pi = math.pi,
-    pow = math.pow,
+    pow = math.pow or function(a, b) -- Deprecated in Lua 5.3
+      return a^b
+    end,
     rad = math.rad,
     random = function(...)
       return spcall(math.random, ...)
@@ -835,10 +871,17 @@ sandbox = {
     sinh = math.sinh,
     sqrt = math.sqrt,
     tan = math.tan,
-    tanh = math.tanh
+    tanh = math.tanh,
+    -- Lua 5.3.
+    maxinteger = math.maxinteger,
+    mininteger = math.mininteger,
+    tointeger = math.tointeger,
+    type = math.type,
+    ult = math.ult
   },
 
-  bit32 = {
+  -- Deprecated in Lua 5.3.
+  bit32 = bit32 and {
     arshift = bit32.arshift,
     band = bit32.band,
     bnot = bit32.bnot,
@@ -875,7 +918,37 @@ sandbox = {
   },
 
   debug = {
+    getinfo = function(...)
+      local result = debug.getinfo(...)
+      if result then
+        -- Only make primitive information available in the sandbox.
+        return {
+          source = result.source,
+          short_src = result.short_src,
+          linedefined = result.linedefined,
+          lastlinedefined = result.lastlinedefined,
+          what = result.what,
+          currentline = result.currentline,
+          nups = result.nups,
+          nparams = result.nparams,
+          isvararg = result.isvararg,
+          name = result.name,
+          namewhat = result.namewhat,
+          istailcall = result.istailcall
+        }
+      end
+    end,
     traceback = debug.traceback
+  },
+
+  -- Lua 5.3.
+  utf8 = utf8 and {
+    char = utf8.char,
+    charpattern = utf8.charpattern,
+    codes = utf8.codes,
+    codepoint = utf8.codepoint,
+    len = utf8.len,
+    offset = utf8.offset
   },
 
   checkArg = checkArg
@@ -984,7 +1057,7 @@ local userdataWrapper = {
   __metatable = "userdata",
   __tostring = function(self)
     local data = wrappedUserdata[self]
-    return tostring(select(2, pcall(data.toString, data)))
+    return tostring(select(2, pcall(tostring, data)))
   end
 }
 
@@ -1261,7 +1334,30 @@ local libcomputer = {
   end,
 
   beep = function(...)
-    libcomponent.invoke(computer.address(), "beep", ...)
+    return libcomponent.invoke(computer.address(), "beep", ...)
+  end,
+  getDeviceInfo = function()
+    return libcomponent.invoke(computer.address(), "getDeviceInfo")
+  end,
+  getProgramLocations = function()
+    return libcomponent.invoke(computer.address(), "getProgramLocations")
+  end,
+
+  getArchitectures = function(...)
+    return spcall(computer.getArchitectures, ...)
+  end,
+  getArchitecture = function(...)
+    return spcall(computer.getArchitecture, ...)
+  end,
+  setArchitecture = function(...)
+    local result, reason = spcall(computer.setArchitecture, ...)
+    if not result then
+      if reason then
+        return result, reason
+      end
+    else
+      coroutine.yield(true) -- reboot
+    end
   end
 }
 sandbox.computer = libcomputer

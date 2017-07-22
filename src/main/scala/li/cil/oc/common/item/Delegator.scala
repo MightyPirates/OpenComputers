@@ -8,7 +8,11 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.driver
+import li.cil.oc.api.driver.item.Chargeable
+import li.cil.oc.api.event.RobotRenderEvent.MountPoint
+import li.cil.oc.api.internal.Robot
+import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
@@ -34,7 +38,7 @@ object Delegator {
     else None
 }
 
-class Delegator extends Item {
+class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
   setUnlocalizedName("oc.multi")
@@ -50,15 +54,15 @@ class Delegator extends Item {
       case _ => maxStackSize
     }
 
-  val subItems = mutable.ArrayBuffer.empty[Delegate]
+  val subItems = mutable.ArrayBuffer.empty[traits.Delegate]
 
-  def add(subItem: Delegate) = {
+  def add(subItem: traits.Delegate) = {
     val itemId = subItems.length
     subItems += subItem
     itemId
   }
 
-  def subItem(stack: ItemStack): Option[Delegate] =
+  def subItem(stack: ItemStack): Option[traits.Delegate] =
     if (stack != null) subItem(stack.getItemDamage) match {
       case Some(subItem) if stack.getItem == this => Some(subItem)
       case _ => None
@@ -74,7 +78,7 @@ class Delegator extends Item {
   override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]) {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subItems.length).filter(subItems(_).showInItemList).
+    subItems.indices.filter(subItems(_).showInItemList).
       map(subItems(_).createItemStack()).
       sortBy(_.getUnlocalizedName).
       foreach(add(list, _))
@@ -118,14 +122,13 @@ class Delegator extends Item {
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
-  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    world.getTileEntity(x, y, z) match {
-      case drive: tileentity.DiskDrive => true
+  // ----------------------------------------------------------------------- //
+
+  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
+    Delegator.subItem(player.getHeldItem) match {
+      case Some(subItem) => subItem.doesSneakBypassUse(BlockPosition(x, y, z, world), player)
       case _ => super.doesSneakBypassUse(world, x, y, z, player)
     }
-  }
-
-  // ----------------------------------------------------------------------- //
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     Delegator.subItem(stack) match {
@@ -247,4 +250,24 @@ class Delegator extends Item {
   }
 
   override def toString = getUnlocalizedName
+
+  // ----------------------------------------------------------------------- //
+
+  def canCharge(stack: ItemStack): Boolean =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => true
+      case _ => false
+    }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => subItem.charge(stack, amount, simulate)
+      case _ => 0.0
+    }
+
+  // ----------------------------------------------------------------------- //
+
+  override def computePreferredMountPoint(stack: ItemStack, robot: Robot, availableMountPoints: util.Set[String]): String = UpgradeRenderer.preferredMountPoint(stack, availableMountPoints)
+
+  override def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
 }

@@ -30,7 +30,7 @@ abstract class TextureFontRenderer {
     }
   }
 
-  def drawBuffer(buffer: TextBuffer) {
+  def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
     val format = buffer.format
 
     GL11.glPushMatrix()
@@ -46,12 +46,12 @@ abstract class TextureFontRenderer {
     // Background first. We try to merge adjacent backgrounds of the same
     // color to reduce the number of quads we have to draw.
     GL11.glBegin(GL11.GL_QUADS)
-    for (y <- 0 until buffer.height) {
+    for (y <- 0 until (viewportHeight min buffer.height)) {
       val color = buffer.color(y)
       var cbg = 0x000000
       var x = 0
       var width = 0
-      for (col <- color.map(PackedColor.unpackBackground(_, format))) {
+      for (col <- color.map(PackedColor.unpackBackground(_, format)) if x + width < viewportWidth) {
         if (col != cbg) {
           drawQuad(cbg, x, y, width)
           cbg = col
@@ -74,7 +74,7 @@ abstract class TextureFontRenderer {
 
     // Foreground second. We only have to flush when the color changes, so
     // unless every char has a different color this should be quite efficient.
-    for (y <- 0 until buffer.height) {
+    for (y <- 0 until (viewportHeight min buffer.height)) {
       val line = buffer.buffer(y)
       val color = buffer.color(y)
       val ty = y * charHeight
@@ -83,7 +83,7 @@ abstract class TextureFontRenderer {
         GL11.glBegin(GL11.GL_QUADS)
         var cfg = -1
         var tx = 0f
-        for (n <- 0 until line.length) {
+        for (n <- 0 until viewportWidth) {
           val ch = line(n)
           val col = PackedColor.unpackForeground(color(n), format)
           // Check if color changed.

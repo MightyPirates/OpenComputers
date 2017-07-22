@@ -1,6 +1,6 @@
 package li.cil.oc.server.machine.luaj
 
-import li.cil.oc.util.FontUtil
+import li.cil.oc.util.FontUtils
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
@@ -37,14 +37,14 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     })
 
     unicode.set("isWide", (args: Varargs) =>
-      LuaValue.valueOf(FontUtil.wcwidth(args.checkjstring(1).codePointAt(0)) > 1))
+      LuaValue.valueOf(FontUtils.wcwidth(args.checkjstring(1).codePointAt(0)) > 1))
 
     unicode.set("charWidth", (args: Varargs) =>
-      LuaValue.valueOf(FontUtil.wcwidth(args.checkjstring(1).codePointAt(0))))
+      LuaValue.valueOf(FontUtils.wcwidth(args.checkjstring(1).codePointAt(0))))
 
     unicode.set("wlen", (args: Varargs) => {
       val value = args.checkjstring(1)
-      LuaValue.valueOf(value.toCharArray.map(ch => math.max(1, FontUtil.wcwidth(ch))).sum)
+      LuaValue.valueOf(value.toCharArray.map(ch => math.max(1, FontUtils.wcwidth(ch))).sum)
     })
 
     unicode.set("wtrunc", (args: Varargs) => {
@@ -53,7 +53,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       var width = 0
       var end = 0
       while (width < count) {
-        width += FontUtil.wcwidth(value(end))
+        width += math.max(1, FontUtils.wcwidth(value(end)))
         end += 1
       }
       if (end > 1) LuaValue.valueOf(value.substring(0, end - 1))

@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.gui
 
-import li.cil.oc.api.component.TextBuffer
+import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
@@ -16,7 +16,7 @@ object BufferRenderer {
 
   private var displayLists = 0
 
-  def init(tm: TextureManager) = this.synchronized(if (!textureManager.isDefined) {
+  def init(tm: TextureManager) = this.synchronized(if (textureManager.isEmpty) {
     RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme)")
 
     textureManager = Some(tm)
@@ -87,7 +87,7 @@ object BufferRenderer {
       GL11.glCallList(displayLists)
     }
 
-  def drawText(screen: TextBuffer) =
+  def drawText(screen: api.internal.TextBuffer) =
     if (textureManager.isDefined) {
       GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
       GL11.glDepthMask(false)

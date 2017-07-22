@@ -1,0 +1,19 @@
+NAME
+  echo - display a line of text
+
+SYNOPSIS
+  echo [STRING]...
+
+DESCRIPTION
+  `echo` writes the provided string(s) to the standard output.
+
+  -n      do not output the trialing newline
+
+  --help  display this help and exit
+
+EXAMPLES
+  echo test
+    Print `test` to the standard output (which is usually the terminal).
+
+  echo "a   b"
+    Writes the string `a   b`.

@@ -23,22 +23,22 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def exists(path: String) = new io.File(root, path).exists()
+  override def exists(path: String) = new io.File(root, FileSystem.validatePath(path)).exists()
 
-  override def size(path: String) = new io.File(root, path) match {
+  override def size(path: String) = new io.File(root, FileSystem.validatePath(path)) match {
     case file if file.isFile => file.length()
     case _ => 0L
   }
 
-  override def isDirectory(path: String) = new io.File(root, path).isDirectory
+  override def isDirectory(path: String) = new io.File(root, FileSystem.validatePath(path)).isDirectory
 
-  override def lastModified(path: String) = new io.File(root, path).lastModified
+  override def lastModified(path: String) = new io.File(root, FileSystem.validatePath(path)).lastModified
 
-  override def list(path: String) = new io.File(root, path) match {
+  override def list(path: String) = new io.File(root, FileSystem.validatePath(path)) match {
     case file if file.exists() && file.isFile => Array(file.getName)
     case directory if directory.exists() && directory.isDirectory && directory.list() != null =>
       directory.listFiles().map(file => if (file.isDirectory) file.getName + "/" else file.getName)
-    case _ => throw new io.FileNotFoundException("no such file or directory")
+    case _ => throw new io.FileNotFoundException("no such file or directory: " + path)
   }
 
   // ----------------------------------------------------------------------- //

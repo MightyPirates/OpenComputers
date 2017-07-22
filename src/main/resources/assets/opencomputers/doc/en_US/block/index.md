@@ -7,8 +7,8 @@ Keep in mind that some of these may not be available, depending on the recipe se
 ## Computers
 * [Computer Case](case1.md)
 * [Microcontroller](microcontroller.md)
+* [Rack](rack.md)
 * [Robot](robot.md)
-* [Server Rack](serverRack.md)
 
 ## Components
 
@@ -23,10 +23,11 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ### Extensions
 * [Adapter](adapter.md)
-* [Cable](cable.md)
 * [Geolyzer](geolyzer.md)
 * [Motion Sensor](motionSensor.md)
 * [Redstone I/O](redstone.md)
+* [Transposer](transposer.md)
+* [Waypoint](waypoint.md)
 
 ## Assembly / Printing
 * [3D Print](print.md)
@@ -36,8 +37,9 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Disassembler](disassembler.md)
 
 ## Networking
-* [Access Point](accessPoint.md)
-* [Switch](switch.md)
+* [Cable](cable.md)
+* [Net Splitter](netSplitter.md)
+* [Relay](relay.md)
 
 ## Power management
 * [Capacitor](capacitor.md)

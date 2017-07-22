@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui.traits
 
-import li.cil.oc.api.component.TextBuffer
+import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.util.NEI
@@ -15,11 +15,11 @@ import org.lwjgl.opengl.GL11
 import scala.collection.mutable
 
 trait InputBuffer extends DisplayBuffer {
-  protected def buffer: TextBuffer
+  protected def buffer: api.internal.TextBuffer
 
-  override protected def bufferColumns = if (buffer == null) 0 else buffer.getWidth
+  override protected def bufferColumns = if (buffer == null) 0 else buffer.getViewportWidth
 
-  override protected def bufferRows = if (buffer == null) 0 else buffer.getHeight
+  override protected def bufferRows = if (buffer == null) 0 else buffer.getViewportHeight
 
   protected def hasKeyboard: Boolean
 
@@ -83,7 +83,7 @@ trait InputBuffer extends DisplayBuffer {
           case _ => // Wasn't pressed while viewing the screen.
         }
 
-        if (KeyBindings.clipboardPaste.getKeyCode == code && Keyboard.getEventKeyState) {
+        if (KeyBindings.isPastingClipboard) {
           buffer.clipboard(GuiScreen.getClipboardString, null)
         }
       }
@@ -96,7 +96,7 @@ trait InputBuffer extends DisplayBuffer {
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
     val isMiddleMouseButton = button == 2
-    val isBoundMouseButton = KeyBindings.clipboardPaste.getKeyCode < 0 && button == KeyBindings.clipboardPaste.getKeyCode + 100
+    val isBoundMouseButton = KeyBindings.isPastingClipboard
     if (buffer != null && (isMiddleMouseButton || isBoundMouseButton)) {
       if (hasKeyboard) {
         buffer.clipboard(GuiScreen.getClipboardString, null)

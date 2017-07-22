@@ -4,8 +4,12 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -19,9 +23,10 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -36,13 +41,22 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   var disassembleNextInstantly = false
 
-  def progress = if (queue.isEmpty) 0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
+  def progress = if (queue.isEmpty) 0.0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
 
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
     world.notifyBlocksOfNeighborChange(x, y, z, block)
   }
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Disassembler",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Break.3R-100"
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
@@ -51,12 +65,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
-  override protected def energyThroughput = Settings.get.disassemblerRate
+  override def energyThroughput = Settings.get.disassemblerRate
 
-  override def currentState = {
-    if (isActive) util.EnumSet.of(traits.State.IsWorking)
-    else if (queue.nonEmpty) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isActive) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else if (queue.nonEmpty) util.EnumSet.of(api.util.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //
@@ -83,11 +97,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         while (buffer >= Settings.get.disassemblerItemCost && queue.nonEmpty) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          if (world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
+          if (disassembleNextInstantly || world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
             drop(stack)
           }
         }
       }
+      disassembleNextInstantly = queue.nonEmpty // If we have nothing left to do, stop being creative.
     }
   }
 
@@ -105,15 +120,17 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
       if (instant) {
         buffer = totalRequiredEnergy
-        disassembleNextInstantly = false // Just to be sure...
       }
+    }
+    else {
+      drop(stack)
     }
   }
 
   private def drop(stack: ItemStack) {
     if (stack != null) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
-        InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), side.getOpposite)
+        InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), Some(side.getOpposite))
       }
       if (stack.stackSize > 0) {
         spawnStackInWorld(stack, Option(ForgeDirection.UP))
@@ -127,7 +144,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     super.readFromNBTForServer(nbt)
     queue.clear()
     queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
-      map((tag: NBTTagCompound) => ItemUtils.loadStack(tag))
+      map((tag: NBTTagCompound) => ItemStack.loadItemStackFromNBT(tag))
     buffer = nbt.getDouble(Settings.namespace + "buffer")
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     isActive = queue.nonEmpty
@@ -155,12 +172,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def getSizeInventory = 1
 
-  override def getInventoryStackLimit = 64
-
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     allowDisassembling(stack) &&
       (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
-        DisassemblerTemplates.select(stack) != None)
+        DisassemblerTemplates.select(stack).isDefined)
 
   private def allowDisassembling(stack: ItemStack) = stack != null && (!stack.hasTagCompound || !stack.getTagCompound.getBoolean(Settings.namespace + "undisassemblable"))
 

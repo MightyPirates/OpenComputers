@@ -71,7 +71,7 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       withComponent(args.checkjstring(1), component => {
         val method = args.checkjstring(2)
         val methods = machine.methods(component.host)
-        owner.documentation(() => methods(method).doc)
+        owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
 

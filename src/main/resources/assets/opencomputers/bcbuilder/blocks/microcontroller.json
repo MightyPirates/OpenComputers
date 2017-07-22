@@ -1,0 +1,18 @@
+[{
+  "includes": [
+    "traits/computer.json",
+    "traits/hub.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "oc:info",
+      "oc:snooper",
+      "oc:componentNodes",
+      "oc:outputs"
+    ]
+  }
+}]

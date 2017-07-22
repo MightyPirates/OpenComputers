@@ -4,6 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
+import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
@@ -15,6 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection
 @Injectable.InterfaceList(Array(
   new Injectable.Interface(value = "appeng.api.implementations.items.IAEWrench", modid = Mods.IDs.AppliedEnergistics2),
   new Injectable.Interface(value = "buildcraft.api.tools.IToolWrench", modid = Mods.IDs.BuildCraftTools),
+  new Injectable.Interface(value = "com.bluepowermod.api.misc.IScrewdriver", modid = Mods.IDs.BluePower),
   new Injectable.Interface(value = "cofh.api.item.IToolHammer", modid = Mods.IDs.CoFHItem),
   new Injectable.Interface(value = "crazypants.enderio.tool.ITool", modid = Mods.IDs.EnderIO),
   new Injectable.Interface(value = "mekanism.api.IMekWrench", modid = Mods.IDs.Mekanism),
@@ -23,8 +25,9 @@ import net.minecraftforge.common.util.ForgeDirection
   new Injectable.Interface(value = "mods.railcraft.api.core.items.IToolCrowbar", modid = Mods.IDs.Railcraft),
   new Injectable.Interface(value = "ic2.api.item.IBoxable", modid = Mods.IDs.IndustrialCraft2)
 ))
-class Wrench extends SimpleItem with api.internal.Wrench {
+class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
+  setMaxStackSize(1)
 
   override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = true
 
@@ -48,11 +51,18 @@ class Wrench extends SimpleItem with api.internal.Wrench {
 
   def canWrench(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
 
+  // BluePower
+  def damage(stack: ItemStack, damage: Int, player: EntityPlayer, simulated: Boolean): Boolean = damage == 0
+
   // BuildCraft
 
   def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
 
   def wrenchUsed(player: EntityPlayer, x: Int, y: Int, z: Int): Unit = player.swingItem()
+
+  def canWrench(player: EntityPlayer, entity: Entity): Boolean = true
+
+  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
 
   // CoFH
 
@@ -72,7 +82,13 @@ class Wrench extends SimpleItem with api.internal.Wrench {
 
   // Project Red
 
+  def canUse(entityPlayer: EntityPlayer, itemStack: ItemStack): Boolean = true
+
+  // pre v4.7
   def damageScrewdriver(world: World, player: EntityPlayer): Unit = {}
+
+  // v4.7+
+  def damageScrewdriver(player: EntityPlayer, stack: ItemStack): Unit = {}
 
   // Railcraft
 

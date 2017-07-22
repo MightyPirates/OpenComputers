@@ -1,5 +1,6 @@
 package li.cil.oc.common.asm.template;
 
+import com.google.common.base.Strings;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
@@ -29,8 +30,15 @@ public final class StaticSimpleEnvironment {
         if (SideTracker.isClient()) {
             return null;
         }
-        if (!nodes.containsKey(self)) {
-            final String name = self.getComponentName();
+        final String name = self.getComponentName();
+        // If the name is null (or empty) this indicates we don't have a valid
+        // component right now, so if we have a node we kill it.
+        if (Strings.isNullOrEmpty(name)) {
+            final Node node = nodes.remove(self);
+            if (node != null) {
+                node.remove();
+            }
+        } else if (!nodes.containsKey(self)) {
             nodes.put(self, Network.
                     newNode(self, Visibility.Network).
                     withComponent(name).

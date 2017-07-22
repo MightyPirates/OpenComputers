@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import java.io.DataInputStream
 import java.io.InputStream
-import java.util.zip.GZIPInputStream
+import java.util.zip.InflaterInputStream
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
@@ -10,8 +10,9 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
-import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -28,20 +29,27 @@ abstract class PacketHandler {
     try {
       val stream = new ByteBufInputStream(data)
       if (stream.read() == 0) dispatch(new PacketParser(stream, player))
-      else dispatch(new PacketParser(new GZIPInputStream(stream), player))
+      else dispatch(new PacketParser(new InflaterInputStream(stream), player))
     } catch {
       case e: Throwable =>
         OpenComputers.log.warn("Received a badly formatted packet.", e)
     }
+
+    // Avoid AFK kicks by marking players as non-idle when they send packets.
+    // This will usually be stuff like typing while in screen GUIs.
+    player match {
+      case mp: EntityPlayerMP => mp.func_143004_u()
+      case _ => // Uh... OK?
+    }
   }
 
   /**
-   * Gets the world for the specified dimension.
-   *
-   * For clients this returns the client's world if it is the specified
-   * dimension; None otherwise. For the server it returns the world for the
-   * specified dimension, if such a dimension exists; None otherwise.
-   */
+    * Gets the world for the specified dimension.
+    *
+    * For clients this returns the client's world if it is the specified
+    * dimension; None otherwise. For the server it returns the world for the
+    * specified dimension, if such a dimension exists; None otherwise.
+    */
   protected def world(player: EntityPlayer, dimension: Int): Option[World]
 
   protected def dispatch(p: PacketParser): Unit
@@ -106,12 +114,18 @@ abstract class PacketHandler {
     def readItemStack() = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemUtils.loadStack(readNBT())
+        ItemStack.loadItemStackFromNBT(readNBT())
       }
       else null
     }
 
-    def readNBT() = CompressedStreamTools.readCompressed(this)
+    def readNBT() = {
+      val haveNbt = readBoolean()
+      if (haveNbt) {
+        CompressedStreamTools.read(this)
+      }
+      else null
+    }
 
     def readPacketType() = PacketType(readByte())
   }

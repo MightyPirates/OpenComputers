@@ -1,8 +1,14 @@
 package li.cil.oc.server.component
 
+import java.util
+
+import li.cil.oc.Constants
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.api.event.GeolyzerEvent.Analyze
 import li.cil.oc.api.internal
@@ -27,34 +33,69 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.language.existentials
 
-class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
+class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().
     create()
 
-  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
-  def scan(computer: Context, args: Arguments): Array[AnyRef] = {
-    val rx = args.checkInteger(0)
-    val rz = args.checkInteger(1)
-    val options = if (args.isBoolean(2)) mapAsJavaMap(Map("includeReplaceable" -> !args.checkBoolean(2))) else args.optTable(2, Map.empty[AnyRef, AnyRef])
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Generic,
+    DeviceAttribute.Description -> "Geolyzer",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "Terrain Analyzer MkII",
+    DeviceAttribute.Capacity -> Settings.get.geolyzerRange.toString
+  )
 
-    if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback(doc = """function(x:number, z:number[, y:number, w:number, d:number, h:number][, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
+  def scan(computer: Context, args: Arguments): Array[AnyRef] = {
+    val (minX, minY, minZ, maxX, maxY, maxZ, optIndex) = getScanArgs(args)
+    val volume = (maxX - minX + 1) * (maxZ - minZ + 1) * (maxY - minY + 1)
+    if (volume > 64) throw new IllegalArgumentException("volume too large (maximum is 64)")
+    val options = if (args.isBoolean(optIndex)) mapAsJavaMap(Map("includeReplaceable" -> !args.checkBoolean(optIndex))) else args.optTable(optIndex, Map.empty[AnyRef, AnyRef])
+    if (math.abs(minX) > Settings.get.geolyzerRange || math.abs(maxX) > Settings.get.geolyzerRange ||
+      math.abs(minY) > Settings.get.geolyzerRange || math.abs(maxY) > Settings.get.geolyzerRange ||
+      math.abs(minZ) > Settings.get.geolyzerRange || math.abs(maxZ) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
-    val event = new GeolyzerEvent.Scan(host, options, rx, rz)
+    val event = new GeolyzerEvent.Scan(host, options, minX, minY, minZ, maxX, maxY, maxZ)
     MinecraftForge.EVENT_BUS.post(event)
     if (event.isCanceled) result(Unit, "scan was canceled")
     else result(event.data)
   }
 
+  private def getScanArgs(args: Arguments) = {
+    val minX = args.checkInteger(0)
+    val minZ = args.checkInteger(1)
+    if (args.isInteger(2) && args.isInteger(3) && args.isInteger(4) && args.isInteger(5)) {
+      val minY = args.checkInteger(2)
+      val w = args.checkInteger(3)
+      val d = args.checkInteger(4)
+      val h = args.checkInteger(5)
+      val maxX = minX + w - 1
+      val maxY = minY + h - 1
+      val maxZ = minZ + d - 1
+
+      (math.min(minX, maxX), math.min(minY, maxY), math.min(minZ, maxZ),
+        math.max(minX, maxX), math.max(minY, maxY), math.max(minZ, maxZ),
+        6)
+    }
+    else {
+      (minX, -32, minZ, minX, 31, minZ, 2)
+    }
+  }
+
   @Callback(doc = """function(side:number[,options:table]):table -- Get some information on a directly adjacent block.""")
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     val globalSide = host match {
       case rotatable: internal.Rotatable => rotatable.toGlobal(side)
       case _ => side
@@ -74,7 +115,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(side:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack representation of the block on the specified side in a database component.""")
   def store(computer: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     val globalSide = host match {
       case rotatable: internal.Rotatable => rotatable.toGlobal(side)
       case _ => side
@@ -93,8 +134,8 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
       val stack = new ItemStack(item, 1, damage)
       DatabaseAccess.withDatabase(node, args.checkString(1), database => {
         val toSlot = args.checkSlot(database.data, 2)
-        val nonEmpty = database.data.getStackInSlot(toSlot) != null
-        database.data.setInventorySlotContents(toSlot, stack)
+        val nonEmpty = database.getStackInSlot(toSlot) != null
+        database.setStackInSlot(toSlot, stack)
         result(nonEmpty)
       })
     }

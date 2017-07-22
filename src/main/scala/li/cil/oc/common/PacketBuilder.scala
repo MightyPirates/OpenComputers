@@ -1,15 +1,17 @@
 package li.cil.oc.common
 
+import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
-import java.util.zip.GZIPOutputStream
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -18,6 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import org.apache.logging.log4j.LogManager
 
 import scala.collection.convert.WrapAsScala._
 
@@ -47,11 +50,19 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     }
   }
 
-  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
+  def writeNBT(nbt: NBTTagCompound) = {
+    val haveNbt = nbt != null
+    writeBoolean(haveNbt)
+    if (haveNbt) {
+      CompressedStreamTools.write(nbt, this)
+    }
+  }
 
   def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
+
+  def sendToPlayersNearEntity(e: Entity, range: Option[Double] = None): Unit = sendToNearbyPlayers(e.worldObj, e.posX, e.posY, e.posZ, range)
 
   def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
 
@@ -78,26 +89,53 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 }
 
 // Necessary to keep track of the GZIP stream.
-abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream)
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(new BufferedOutputStream(stream)) {
+  var tileEntity: Option[TileEntity] = None
 
-class SimplePacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
-  writeByte(packetType.id)
-
-  override protected def packet = {
-    new FMLProxyPacket(Unpooled.wrappedBuffer(stream.toByteArray), "OpenComputers")
+  override def writeTileEntity(t: TileEntity): Unit = {
+    super.writeTileEntity(t)
+    if (PacketBuilder.isProfilingEnabled) {
+      tileEntity = Option(t)
+    }
   }
 }
 
-class CompressedPacketBuilder(packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
+class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
   writeByte(packetType.id)
 
   override protected def packet = {
+    flush()
+    val payload = stream.toByteArray
+    PacketBuilder.logPacket(packetType, payload.length, tileEntity)
+    new FMLProxyPacket(Unpooled.wrappedBuffer(payload), "OpenComputers")
+  }
+}
+
+class CompressedPacketBuilder(val packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new DeflaterOutputStream(data, new Deflater(Deflater.BEST_SPEED))) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
+    flush()
     stream.finish()
-    new FMLProxyPacket(Unpooled.wrappedBuffer(data.toByteArray), "OpenComputers")
+    val payload = data.toByteArray
+    PacketBuilder.logPacket(packetType, payload.length, tileEntity)
+    new FMLProxyPacket(Unpooled.wrappedBuffer(payload), "OpenComputers")
   }
 }
 
 object PacketBuilder {
+  val log = LogManager.getLogger(OpenComputers.Name + "-PacketBuilder")
+  var isProfilingEnabled = false
+
+  def logPacket(packetType: PacketType.Value, payloadSize: Int, tileEntity: Option[TileEntity]): Unit = {
+    if (PacketBuilder.isProfilingEnabled) {
+      tileEntity match {
+        case Some(t) => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes from (${t.xCoord}, ${t.yCoord}, ${t.zCoord}).")
+        case _ => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes.")
+      }
+    }
+  }
+
   def newData(compressed: Boolean) = {
     val data = new ByteArrayOutputStream
     data.write(if (compressed) 1 else 0)

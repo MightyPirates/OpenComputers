@@ -16,7 +16,7 @@ class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends 
 
     fontRendererObj.drawSplitString(
       Localization.Raid.Warning,
-      8, 48, 0x404040, width - 16)
+      8, 46, 0x404040, width - 16)
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

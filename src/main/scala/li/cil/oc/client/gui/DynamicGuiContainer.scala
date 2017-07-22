@@ -3,6 +3,7 @@ package li.cil.oc.client.gui
 import codechicken.nei.ItemPanel
 import codechicken.nei.LayoutManager
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -21,7 +22,7 @@ import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
 
-abstract class DynamicGuiContainer(container: Container) extends CustomGuiContainer(container) {
+abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomGuiContainer(container) {
   protected var hoveredSlot: Option[Slot] = None
 
   protected var hoveredStackNEI: Option[ItemStack] = None
@@ -179,7 +180,8 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     val panel = LayoutManager.itemPanel
     if (panel == null) return
     zLevel += 350
-    for (index <- 0 until ItemPanel.items.size()) {
+    val itemsPerPage = ReflectionHelper.getPrivateValue(classOf[ItemPanel], LayoutManager.itemPanel, "itemsPerPage").asInstanceOf[Int]
+    for (index <- 0 until itemsPerPage) {
       val rect = panel.getSlotRect(index)
       val slot = panel.getSlotMouseOver(rect.x, rect.y)
       if (slot != null) hoveredSlot match {

@@ -1,6 +1,8 @@
 package li.cil.oc.util
 
 import net.minecraft.block.Block
+import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fluids.IFluidBlock
 
 import scala.language.implicitConversions
 
@@ -18,6 +20,18 @@ object ExtendedBlock {
     def getSelectedBoundingBoxFromPool(position: BlockPosition) = block.getSelectedBoundingBoxFromPool(position.world.get, position.x, position.y, position.z)
 
     def getCollisionBoundingBoxFromPool(position: BlockPosition) = block.getCollisionBoundingBoxFromPool(position.world.get, position.x, position.y, position.z)
+
+    def getComparatorInputOverride(position: BlockPosition, side: ForgeDirection) = block.getComparatorInputOverride(position.world.get, position.x, position.y, position.z, side.ordinal())
+  }
+
+  implicit def extendedFluidBlock(block: IFluidBlock): ExtendedFluidBlock = new ExtendedFluidBlock(block)
+
+  class ExtendedFluidBlock(val block: IFluidBlock) {
+    def drain(position: BlockPosition, doDrain: Boolean) = block.drain(position.world.get, position.x, position.y, position.z, doDrain)
+
+    def canDrain(position: BlockPosition) = block.canDrain(position.world.get, position.x, position.y, position.z)
+
+    def getFilledPercentage(position: BlockPosition) = block.getFilledPercentage(position.world.get, position.x, position.y, position.z)
   }
 
 }

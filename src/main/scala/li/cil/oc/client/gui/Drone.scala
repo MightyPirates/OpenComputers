@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
@@ -36,6 +34,8 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     override def dirty_=(value: Boolean) = _dirty = value
 
     override def data = buffer
+
+    override def viewport: (Int, Int) = buffer.size
   }
 
   override protected val bufferX = 9
@@ -52,8 +52,6 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
   private val selectionsStates = 17
   private val selectionStepV = 1 / selectionsStates.toDouble
 
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0) {
       ClientPacketSender.sendDronePower(drone, !drone.isRunning)
@@ -62,9 +60,9 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     powerButton.toggled = drone.isRunning
-    bufferRenderer.dirty = drone.statusText.lines.zipWithIndex.map {
+    bufferRenderer.dirty = drone.statusText.lines.zipWithIndex.exists {
       case (line, i) => buffer.set(0, i, line, vertical = false)
-    }.contains(true)
+    }
     super.drawScreen(mouseX, mouseY, dt)
   }
 

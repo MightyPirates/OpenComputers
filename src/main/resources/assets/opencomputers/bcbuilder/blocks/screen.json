@@ -1,0 +1,14 @@
+[{
+  "includes": [
+    "traits/environment.json",
+    "traits/externalData.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "oc:hasPower",
+      "oc:hadRedstoneInput"
+    ]
+  }
+}]

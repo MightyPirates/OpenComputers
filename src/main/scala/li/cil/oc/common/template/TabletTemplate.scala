@@ -1,6 +1,5 @@
 package li.cil.oc.common.template
 
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -8,18 +7,24 @@ import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.TabletData
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
+
+import scala.collection.convert.WrapAsJava._
 
 object TabletTemplate extends Template {
   override protected val suggestedComponents = Array(
     "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
     "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array(Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3).exists(name => hasComponent(name)(inventory))),
+    "GraphicsCard" -> ((inventory: IInventory) => Array(
+      Constants.ItemName.APUCreative,
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3).
+      exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
   override protected def hostClass = classOf[internal.Tablet]
@@ -44,7 +49,7 @@ object TabletTemplate extends Template {
     data.save(stack)
     val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
 
-    Array(stack, double2Double(energy))
+    Array(stack, Double.box(energy))
   }
 
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.Tablet)
@@ -52,122 +57,99 @@ object TabletTemplate extends Template {
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new TabletData(stack)
     val itemName = Constants.ItemName.TabletCase(info.tier)
-    Array(api.Items.get(itemName).createItemStack(1)) ++ info.items.collect {
+    (Array(api.Items.get(itemName).createItemStack(1), info.container.orNull) ++ info.items.collect {
       case Some(item) => item
-    }.drop(1) // Screen.
+    }.drop(1) /* Screen */).filter(_ != null)
   }
 
   def register() {
     // Tier 1
-    {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", "Tablet (Tier 1)")
-      nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.selectTier1")
-      nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
-      nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")
-      nbt.setString("hostClass", "li.cil.oc.api.internal.Tablet")
-
-      val upgradeSlots = new NBTTagList()
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Two))
-      upgradeSlots.appendTag(Map("tier" -> Tier.One))
-      nbt.setTag("upgradeSlots", upgradeSlots)
-
-      val componentSlots = new NBTTagList()
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-      componentSlots.appendTag(new NBTTagCompound())
-      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
-      componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Two))
-      nbt.setTag("componentSlots", componentSlots)
-
-      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
-    }
+    api.IMC.registerAssemblerTemplate(
+      "Tablet (Tier 1)",
+      "li.cil.oc.common.template.TabletTemplate.selectTier1",
+      "li.cil.oc.common.template.TabletTemplate.validate",
+      "li.cil.oc.common.template.TabletTemplate.assemble",
+      hostClass,
+      null,
+      Array(
+        Tier.Three,
+        Tier.Two,
+        Tier.One
+      ),
+      asJavaIterable(Iterable(
+        (Slot.Card, Tier.Two),
+        (Slot.Card, Tier.Two),
+        null,
+        (Slot.CPU, Tier.Two),
+        (Slot.Memory, Tier.Two),
+        (Slot.Memory, Tier.Two),
+        (Slot.EEPROM, Tier.Any),
+        (Slot.HDD, Tier.Two)
+      ).map(toPair)))
 
     // Tier 2
-    {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", "Tablet (Tier 2)")
-      nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.selectTier2")
-      nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
-      nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")
-      nbt.setString("hostClass", "li.cil.oc.api.internal.Tablet")
-
-      val containerSlots = new NBTTagList()
-      containerSlots.appendTag(Map("tier" -> Tier.Two))
-      nbt.setTag("containerSlots", containerSlots)
-
-      val upgradeSlots = new NBTTagList()
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Two))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Two))
-      nbt.setTag("upgradeSlots", upgradeSlots)
-
-      val componentSlots = new NBTTagList()
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-      componentSlots.appendTag(new NBTTagCompound())
-      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
-      componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Two))
-      nbt.setTag("componentSlots", componentSlots)
-
-      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
-    }
+    api.IMC.registerAssemblerTemplate(
+      "Tablet (Tier 2)",
+      "li.cil.oc.common.template.TabletTemplate.selectTier2",
+      "li.cil.oc.common.template.TabletTemplate.validate",
+      "li.cil.oc.common.template.TabletTemplate.assemble",
+      hostClass,
+      Array(
+        Tier.Two
+      ),
+      Array(
+        Tier.Three,
+        Tier.Two,
+        Tier.Two
+      ),
+      asJavaIterable(Iterable(
+        (Slot.Card, Tier.Three),
+        (Slot.Card, Tier.Two),
+        null,
+        (Slot.CPU, Tier.Three),
+        (Slot.Memory, Tier.Two),
+        (Slot.Memory, Tier.Two),
+        (Slot.EEPROM, Tier.Any),
+        (Slot.HDD, Tier.Two)
+      ).map(toPair)))
 
     // Creative
-    {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", "Tablet (Creative)")
-      nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.selectCreative")
-      nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
-      nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")
-      nbt.setString("hostClass", "li.cil.oc.api.internal.Tablet")
-
-      val containerSlots = new NBTTagList()
-      containerSlots.appendTag(Map("tier" -> Tier.Three))
-      nbt.setTag("containerSlots", containerSlots)
-
-      val upgradeSlots = new NBTTagList()
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-      nbt.setTag("upgradeSlots", upgradeSlots)
-
-      val componentSlots = new NBTTagList()
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
-      componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Three))
-      nbt.setTag("componentSlots", componentSlots)
-
-      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
-    }
+    api.IMC.registerAssemblerTemplate(
+      "Tablet (Creative)",
+      "li.cil.oc.common.template.TabletTemplate.selectCreative",
+      "li.cil.oc.common.template.TabletTemplate.validate",
+      "li.cil.oc.common.template.TabletTemplate.assemble",
+      hostClass,
+      Array(
+        Tier.Three
+      ),
+      Array(
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three,
+        Tier.Three
+      ),
+      asJavaIterable(Iterable(
+        (Slot.Card, Tier.Three),
+        (Slot.Card, Tier.Three),
+        (Slot.Card, Tier.Three),
+        (Slot.CPU, Tier.Three),
+        (Slot.Memory, Tier.Three),
+        (Slot.Memory, Tier.Three),
+        (Slot.EEPROM, Tier.Any),
+        (Slot.HDD, Tier.Three)
+      ).map(toPair)))
 
     // Disassembler
-    {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", "Tablet")
-      nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.selectDisassembler")
-      nbt.setString("disassemble", "li.cil.oc.common.template.TabletTemplate.disassemble")
-
-      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
-    }
+    api.IMC.registerDisassemblerTemplate(
+      "Tablet",
+      "li.cil.oc.common.template.TabletTemplate.selectDisassembler",
+      "li.cil.oc.common.template.TabletTemplate.disassemble")
   }
 
   override protected def maxComplexity(inventory: IInventory) = super.maxComplexity(inventory) / 2 + 5

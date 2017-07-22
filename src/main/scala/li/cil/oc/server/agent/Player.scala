@@ -10,9 +10,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.magtools.ModMagnanimousTools
+import li.cil.oc.integration.tcon.ModTinkersConstruct
 import li.cil.oc.integration.util.PortalGun
-import li.cil.oc.integration.util.TinkersConstruct
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -175,10 +177,10 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
-        case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
+        case living: EntityLivingBase if getHeldItem != null => getHeldItem.interactWithEntity(this, living)
         case _ => false
       }))
-      if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {
+      if (getHeldItem != null && getHeldItem.stackSize <= 0) {
         destroyCurrentEquippedItem()
       }
       result
@@ -269,7 +271,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }, repair = false)
   }
 
-  def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
+  def clickBlock(x: Int, y: Int, z: Int, side: Int, immediate: Boolean = false): Double = {
     callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side, world))) {
         return 0
@@ -298,7 +300,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       block.onBlockClicked(world, x, y, z, this)
       world.extinguishFire(this, x, y, z, side)
 
-      val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
+      val hardness = block.getBlockHardness(world, x, y, z)
+      val isBlockUnbreakable = hardness < 0
       val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
       if (!canDestroyBlock) {
         return 0
@@ -314,7 +317,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      val hardness = block.getBlockHardness(world, x, y, z)
       val strength = getBreakSpeed(block, false, metadata, x, y, z)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
@@ -331,12 +333,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       // their break logic in onBlockStartBreak but return true to cancel
       // further processing. We also need to adjust our offset for their ray-
       // tracing implementation.
-      if (TinkersConstruct.isInfiTool(stack)) {
+      val needsSpecialPlacement = ModTinkersConstruct.isInfiTool(stack) || ModMagnanimousTools.isMagTool(stack)
+      if (needsSpecialPlacement) {
         posY -= 1.62
         prevPosY = posY
       }
       val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
-      if (cancel && TinkersConstruct.isInfiTool(stack)) {
+      if (cancel && needsSpecialPlacement) {
         posY += 1.62
         prevPosY = posY
         return adjustedBreakTime
@@ -344,6 +347,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       if (cancel) {
         return 0
       }
+
+      if (!immediate) {
+        EventHandler.scheduleServer(() => new DamageOverTime(this, x, y, z, side, (adjustedBreakTime * 20).toInt).tick())
+        return adjustedBreakTime
+      }
+
+      world.destroyBlockInWorldPartially(-1, x, y, z, -1)
 
       world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))
 
@@ -396,10 +406,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
     val oldStack = if (stack != null) stack.copy() else null
+    this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
     try {
       f(stack)
     }
     finally {
+      this.inventory.currentItem = 0
       val newStack = inventory.getStackInSlot(slot)
       if (newStack != null) {
         if (newStack.stackSize <= 0) {
@@ -516,7 +528,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def onItemPickup(entity: Entity, count: Int) {}
 
-  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
+  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack): Unit = {
+    if (slot == 0 && agent.equipmentInventory.getSizeInventory > 0) {
+      agent.equipmentInventory.setInventorySlotContents(slot, stack)
+    }
+    // else: armor slots, which are unsupported in agents.
+  }
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
 
@@ -549,4 +566,34 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def func_146101_a(tileEntity: TileEntityFurnace) {}
 
   override def func_146093_a(tileEntity: TileEntityHopper) {}
+
+  // ----------------------------------------------------------------------- //
+
+  class DamageOverTime(val player: Player, val x: Int, val y: Int, val z: Int, val side: Int, val ticksTotal: Int) {
+    val world = player.world
+    var ticks = 0
+    var lastDamageSent = 0
+
+    def tick(): Unit = {
+      // Cancel if the agent stopped or our action is invalidated some other way.
+      if (world != player.world || !world.blockExists(x, y, z) || world.isAirBlock(x, y, z) || !player.agent.machine.isRunning) {
+        world.destroyBlockInWorldPartially(-1, x, y, z, -1)
+        return
+      }
+
+      val damage = 10 * ticks / math.max(ticksTotal, 1)
+      if (damage >= 10) {
+        player.clickBlock(x, y, z, side, immediate = true)
+      }
+      else {
+        ticks += 1
+        if (damage != lastDamageSent) {
+          lastDamageSent = damage
+          world.destroyBlockInWorldPartially(-1, x, y, z, damage)
+        }
+        EventHandler.scheduleServer(() => tick())
+      }
+    }
+  }
+
 }

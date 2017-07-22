@@ -4,13 +4,13 @@ Also know as "how to build your first computer". To get your first [computer](co
 
 **Disclaimer**: this will be step-by-step, and also provide some information on how to look for issues yourself later on, so this is quite long. If you have never built a computer in real life, and/or are completely new to the mod, it is highly recommended you read through it all.
 
-First off, you will need a [computer case](../block/case1.md). This is the block which will contain of the components, defining the behavior of the computer you are building.
+First off, you will need a [computer case](../block/case1.md). This is the block which will contain all of the components, defining the behavior of the computer you are building.
 
 ![A tier two computer case.](oredict:oc:case2)
 
 For example, you will need to choose what tier of [graphics card](../item/graphicsCard1.md) you wish to use, if you need a [network card](../item/lanCard.md), a [redstone card](../item/redstoneCard1.md) or, if you're just playing around in creative mode, maybe even a [debug card](../item/debugCard.md).
 
-When you open the [computer case](../block/case1.md)'s GUI you will see a few slots to the right. The number of slots, and what tier of component can be placed into them (indicated by the small roman numeral in the slot) depends on the tier of the case itself.
+When you open the [computer case](../block/case1.md)'s GUI, you will see a few slots to the right. The number of slots, and what tier of component can be placed into them (indicated by the small roman numeral in the slot) depends on the tier of the case itself.
 ![GUI of a tier two computer case.](opencomputers:doc/img/configuration_case1.png)
 In their empty state, [computer cases](../block/case1.md) are pretty useless. You can try to power up your [computer](computer.md) now, but it'll immediately print an error message to your chat log, and make its dissatisfaction heard by beeping at you. Good thing the error message is telling you what you can do to fix this situation: it requires energy. Connect your [computer](computer.md) to some power, either directly or via a [power converter](../block/powerConverter.md).
 

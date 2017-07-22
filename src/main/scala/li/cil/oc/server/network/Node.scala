@@ -1,5 +1,6 @@
 package li.cil.oc.server.network
 
+import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.network.Environment
@@ -42,7 +43,7 @@ trait Node extends ImmutableNode {
 
   def remove() = if (network != null) network.remove(this)
 
-  private def isInSameNetwork(other: ImmutableNode) = network != null && network == other.network
+  private def isInSameNetwork(other: ImmutableNode) = network != null && other != null && network == other.network
 
   // ----------------------------------------------------------------------- //
 
@@ -67,7 +68,7 @@ trait Node extends ImmutableNode {
   def load(nbt: NBTTagCompound) = {
     if (nbt.hasKey("address")) {
       val newAddress = nbt.getString("address")
-      if (newAddress != address) network match {
+      if (!Strings.isNullOrEmpty(newAddress) && newAddress != address) network match {
         case wrapper: Network.Wrapper => wrapper.network.remap(this, newAddress)
         case _ => address = newAddress
       }

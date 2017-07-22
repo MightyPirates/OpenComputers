@@ -1,0 +1,24 @@
+NAME
+  alias - displays and manipulates aliases for programs
+
+SYNOPSIS
+  alias
+  alias name
+  alias name=value
+
+DESCRIPTION
+  `alias` allows listing and editing aliases for programs. An alias is an alternative name that can be used to start a program. A program can have multiple aliases. Aliases can also contain parameters and options to pass to the actual program. An alias can also, in turn, have aliases.
+
+EXAMPLES
+  alias
+    Displays the list of all current aliases.
+
+  alias name
+    Displays the value the specified alias, i.e. what the specified alias stands for.
+
+  alias name=value
+  alias name='value with arguments'
+    Sets the value of the alias with the specified name. Note that white space separates arguments to a command, thus to have an alias whose value has whitespace, quote the value
+
+  alias name1 name2 name3=value
+    You can also return the value, or set the value, of an arbitrary number of aliases.

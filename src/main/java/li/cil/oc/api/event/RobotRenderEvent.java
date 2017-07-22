@@ -1,9 +1,14 @@
 package li.cil.oc.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import li.cil.oc.api.driver.item.UpgradeRenderer;
 import li.cil.oc.api.internal.Agent;
+import li.cil.oc.api.internal.Robot;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
+
+import java.util.Set;
 
 /**
  * Fired directly before the robot's chassis is rendered.
@@ -57,5 +62,20 @@ public class RobotRenderEvent extends RobotEvent {
          * Note that the rotation is applied <em>before</em> the translation.
          */
         public final Vector4f rotation = new Vector4f(0, 0, 0, 0);
+
+        /**
+         * The mount point's reference name.
+         * <p/>
+         * This is what's used in {@link UpgradeRenderer#computePreferredMountPoint(ItemStack, Robot, Set)}.
+         */
+        public final String name;
+
+        public MountPoint() {
+            name = null;
+        }
+
+        public MountPoint(String name) {
+            this.name = name;
+        }
     }
 }

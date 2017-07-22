@@ -83,7 +83,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       withComponent(lua.checkString(1), component => {
         val method = lua.checkString(2)
         val methods = machine.methods(component.host)
-        owner.documentation(() => methods(method).doc)
+        owner.documentation(() => Option(methods.get(method)).map(_.doc).orNull)
       })
     })
     lua.setField(-2, "doc")

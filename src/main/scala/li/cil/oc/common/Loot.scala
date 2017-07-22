@@ -2,54 +2,107 @@ package li.cil.oc.common
 
 import java.io
 import java.util.Random
+import java.util.concurrent.Callable
 
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, Settings.get.lootProbability) {
+class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).createItemStack(1), 1, 1, Settings.get.lootProbability) {
+  override def generateChestContent(random: Random, newInventory: IInventory) =
+    if (Loot.disksForSampling.nonEmpty)
+      ChestGenHooks.generateStacks(random, Loot.disksForSampling(random.nextInt(Loot.disksForSampling.length)),
+        theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
+    else Array.empty[ItemStack]
+}
+
+object Loot {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
     ChestGenHooks.PYRAMID_JUNGLE_CHEST,
     ChestGenHooks.STRONGHOLD_LIBRARY)
 
-  val builtInDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val factories = mutable.Map.empty[String, Callable[FileSystem]]
 
-  val worldDisks = mutable.Map.empty[String, (ItemStack, Int)]
+  val globalDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
-  val disks = mutable.ArrayBuffer.empty[ItemStack]
+  val worldDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
+
+  def disksForCycling = if(disksForCyclingClient.nonEmpty) disksForCyclingClient else disksForCyclingServer
+
+  val disksForCyclingServer = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForCyclingClient = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
+
+  val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
+
+  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
+
+  def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    val mod = Loader.instance.activeModContainer.getModId
+
+    OpenComputers.log.info(s"Registering loot disk '$name' from mod $mod.")
+
+    val modSpecificName = mod + ":" + name
+
+    val data = new NBTTagCompound()
+    data.setString(Settings.namespace + "fs.label", name)
+
+    val nbt = new NBTTagCompound()
+    nbt.setTag(Settings.namespace + "data", data)
+
+    // Store this top level, so it won't get wiped on save.
+    nbt.setString(Settings.namespace + "lootFactory", modSpecificName)
+    nbt.setInteger(Settings.namespace + "color", color max 0 min 15)
+
+    val stack = Items.get(Constants.ItemName.Floppy).createItemStack(1)
+    stack.setTagCompound(nbt)
+
+    Loot.factories += modSpecificName -> factory
+
+    if(doRecipeCycling) {
+      Loot.disksForCyclingServer += stack
+    }
+
+    stack.copy()
+  }
 
   def init() {
     for (container <- containers) {
-      ChestGenHooks.addItem(container, Loot)
+      ChestGenHooks.addItem(container, new Loot())
     }
 
     val list = new java.util.Properties()
     val listStream = getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/loot/loot.properties")
     list.load(listStream)
     listStream.close()
-    parseLootDisks(list, builtInDisks)
+    parseLootDisks(list, globalDisks, external = false)
   }
 
   @SubscribeEvent
-  def initForWorld(e: WorldEvent.Load) {
+  def initForWorld(e: WorldEvent.Load): Unit = if (!e.world.isRemote && e.world.provider.dimensionId == 0) {
     worldDisks.clear()
-    disks.clear()
+    disksForSampling.clear()
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")
     if (path.exists && path.isDirectory) {
       val listFile = new io.File(path, "loot.properties")
@@ -59,33 +112,33 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
           val list = new java.util.Properties()
           list.load(listStream)
           listStream.close()
-          parseLootDisks(list, worldDisks)
+          parseLootDisks(list, worldDisks, external = true)
         }
         catch {
           case t: Throwable => OpenComputers.log.warn("Failed opening loot descriptor file in saves folder.")
         }
       }
     }
-    for ((name, entry) <- builtInDisks if !worldDisks.contains(name)) {
-      worldDisks += name -> entry
+    for (entry <- globalDisks if !worldDisks.contains(entry)) {
+      worldDisks += entry
     }
-    for ((_, (stack, count)) <- worldDisks) {
+    for ((stack, count) <- worldDisks) {
       for (i <- 0 until count) {
-        disks += stack
+        disksForSampling += stack
       }
     }
   }
 
-  private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)]) {
+  private def parseLootDisks(list: java.util.Properties, acc: mutable.ArrayBuffer[(ItemStack, Int)], external: Boolean) {
     for (key <- list.stringPropertyNames) {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
-          acc += key -> ((createLootDisk(name, key, Some(color)), count.toInt))
+          acc += ((createLootDisk(name, key, external, Some(Color.dyes.indexOf(color))), count.toInt))
         case Array(name, count) =>
-          acc += key -> ((createLootDisk(name, key), count.toInt))
+          acc += ((createLootDisk(name, key, external), count.toInt))
         case _ =>
-          acc += key -> ((createLootDisk(value, key), 1))
+          acc += ((createLootDisk(value, key, external), 1))
       }
       catch {
         case t: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value, t)
@@ -93,29 +146,17 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
     }
   }
 
-  def createLootDisk(name: String, path: String, color: Option[String] = None) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", name)
-
-    val tag = new NBTTagCompound()
-    tag.setTag(Settings.namespace + "data", data)
-    // Store this top level, so it won't get wiped on save.
-    tag.setString(Settings.namespace + "lootPath", path)
-    color match {
-      case Some(oreDictName) =>
-        tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
-      case _ =>
+  def createLootDisk(name: String, path: String, external: Boolean, color: Option[Int] = None) = {
+    val callable = if (external) new Callable[FileSystem] {
+      override def call(): FileSystem = api.FileSystem.asReadOnly(api.FileSystem.fromSaveDirectory("loot/" + path, 0, false))
+    } else new Callable[FileSystem] {
+      override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-
-    val disk = Items.get(Constants.ItemName.LootDisk).createItemStack(1)
-    disk.setTagCompound(tag)
-
-    disk
+    val stack = registerLootDisk(path, color.getOrElse(8), callable, doRecipeCycling = true)
+    stack.setStackDisplayName(name)
+    if (!external) {
+      Items.registerStack(stack, path)
+    }
+    stack
   }
-
-  override def generateChestContent(random: Random, newInventory: IInventory) =
-    if (disks.length > 0)
-      ChestGenHooks.generateStacks(random, disks(random.nextInt(disks.length)),
-        theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
-    else Array.empty
 }

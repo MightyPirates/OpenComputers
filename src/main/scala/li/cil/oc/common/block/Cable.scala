@@ -18,13 +18,19 @@ import li.cil.oc.integration.fmp.CablePart
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Cable extends SimpleBlock with traits.SpecialBlock {
+import scala.reflect.ClassTag
+
+class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.SpecialBlock with traits.CustomDrops[tileentity.Cable] {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
@@ -55,6 +61,17 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  @SideOnly(Side.CLIENT)
+  override def getRenderColor(metadata: Int) = metadata
+
+  // ----------------------------------------------------------------------- //
+
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+    world.getTileEntity(x, y, z) match {
+      case t: tileentity.Cable => t.createItemStack()
+      case _ => null
+    }
+
   // ----------------------------------------------------------------------- //
 
   override def hasTileEntity(metadata: Int) = true
@@ -70,6 +87,20 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 
   override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int): Unit = {
     setBlockBounds(Cable.bounds(world, x, y, z))
+  }
+
+  override protected def doCustomInit(tileEntity: tileentity.Cable, player: EntityLivingBase, stack: ItemStack): Unit = {
+    super.doCustomInit(tileEntity, player, stack)
+    if (!tileEntity.world.isRemote) {
+      tileEntity.fromItemStack(stack)
+    }
+  }
+
+  override protected def doCustomDrops(tileEntity: tileentity.Cable, player: EntityPlayer, willHarvest: Boolean): Unit = {
+    super.doCustomDrops(tileEntity, player, willHarvest)
+    if (!player.capabilities.isCreativeMode) {
+      dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, tileEntity.createItemStack())
+    }
   }
 }
 

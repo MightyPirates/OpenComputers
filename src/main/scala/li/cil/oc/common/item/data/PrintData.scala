@@ -1,9 +1,11 @@
 package li.cil.oc.common.item.data
 
+import java.lang.reflect.Method
+
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.util.Color
+import li.cil.oc.common.IMC
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -13,7 +15,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class PrintData extends ItemData {
+class PrintData extends ItemData(Constants.BlockName.Print) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -28,8 +30,10 @@ class PrintData extends ItemData {
   val stateOn = mutable.Set.empty[PrintData.Shape]
   var isBeaconBase = false
   var lightLevel = 0
+  var noclipOff = false
+  var noclipOn = false
 
-  def hasActiveState = stateOn.size > 0
+  def hasActiveState = stateOn.nonEmpty
 
   def emitLight = lightLevel > 0
 
@@ -66,6 +70,8 @@ class PrintData extends ItemData {
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean("isBeaconBase")
     lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min 15
+    noclipOff = nbt.getBoolean("noclipOff")
+    noclipOn = nbt.getBoolean("noclipOn")
 
     opacityDirty = true
   }
@@ -80,12 +86,8 @@ class PrintData extends ItemData {
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
     nbt.setBoolean("isBeaconBase", isBeaconBase)
     nbt.setByte("lightLevel", lightLevel.toByte)
-  }
-
-  def createItemStack() = {
-    val stack = api.Items.get(Constants.BlockName.Print).createItemStack(1)
-    save(stack)
-    stack
+    nbt.setBoolean("noclipOff", noclipOff)
+    nbt.setBoolean("noclipOn", noclipOn)
   }
 }
 
@@ -103,9 +105,13 @@ object PrintData {
   private val step = stepping / 16f
   private val invMaxVolume = 1f / (stepping * stepping * stepping)
 
+  private val inkProviders = mutable.LinkedHashSet.empty[Method]
+
+  def addInkProvider(provider: Method): Unit = inkProviders += provider
+
   def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
     var volume = 1f
-    if (shapes.size > 0) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
+    if (shapes.nonEmpty) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
       val bounds = AxisAlignedBB.getBoundingBox(
         x * step, y * step, z * step,
         (x + 1) * step, (y + 1) * step, (z + 1) * step)
@@ -119,6 +125,7 @@ object PrintData {
   def computeCosts(data: PrintData) = {
     val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
     val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+    val multiplier = if (data.noclipOff || data.noclipOn) Settings.get.noclipMultiplier else 1
 
     if (totalVolume > 0) {
       val baseMaterialRequired = (totalVolume / 2) max 1
@@ -127,13 +134,12 @@ object PrintData {
         else baseMaterialRequired
       val inkRequired = (totalSurface / 6) max 1
 
-      Option((materialRequired, inkRequired))
+      Option(((materialRequired * multiplier).toInt, inkRequired))
     }
     else None
   }
 
   private val materialPerItem = Settings.get.printMaterialValue
-  private val inkPerCartridge = Settings.get.printInkValue
 
   def materialValue(stack: ItemStack) = {
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
@@ -148,12 +154,14 @@ object PrintData {
     else 0
   }
 
-  def inkValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
-      inkPerCartridge
-    else if (Color.isDye(stack))
-      inkPerCartridge / 10
-    else 0
+  def inkValue(stack: ItemStack): Int = {
+    for (provider <- inkProviders) {
+      val value = IMC.tryInvokeStatic(provider, stack)(0)
+      if (value > 0) {
+        return value
+      }
+    }
+    0
   }
 
   def nbtToShape(nbt: NBTTagCompound): Shape = {
