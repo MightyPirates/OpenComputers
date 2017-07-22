@@ -2,6 +2,7 @@ package li.cil.oc.server.machine.luaj
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.machine.Value
+import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
@@ -16,7 +17,7 @@ class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     userdata.set("apply", (args: Varargs) => {
       val value = args.checkuserdata(1, classOf[Value]).asInstanceOf[Value]
       val params = toSimpleJavaObjects(args, 2)
-      owner.invoke(() => Array(value.apply(machine, new ArgumentsImpl(params))))
+      owner.invoke(() => Registry.convert(Array(value.apply(machine, new ArgumentsImpl(params)))))
     })
 
     userdata.set("unapply", (args: Varargs) => {
@@ -31,7 +32,7 @@ class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     userdata.set("call", (args: Varargs) => {
       val value = args.checkuserdata(1, classOf[Value]).asInstanceOf[Value]
       val params = toSimpleJavaObjects(args, 2)
-      owner.invoke(() => value.call(machine, new ArgumentsImpl(params)))
+      owner.invoke(() => Registry.convert(value.call(machine, new ArgumentsImpl(params))))
     })
 
     userdata.set("dispose", (args: Varargs) => {
