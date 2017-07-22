@@ -12,7 +12,8 @@ end
 
 shell.prime()
 local update_gpu = io.output().tty
-local interactive = io.input().tty
+local needs_profile = io.input().tty
+local input_handler = {hint = sh.hintHandler}
 
 if #args == 0 then
   while true do
@@ -20,15 +21,13 @@ if #args == 0 then
       while not tty.isAvailable() do
         event.pull("term_available")
       end
-      if interactive == true then -- first time run AND interactive
-        interactive = 0
-        tty.setReadHandler({hint = sh.hintHandler})
+      if needs_profile then -- first time run AND interactive
+        needs_profile = nil
         dofile("/etc/profile.lua")
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
-      tty.setCursorBlink(true)
     end
-    local command = io.read()
+    local command = tty:read(input_handler)
     if command then
       command = text.trim(command)
       if command == "exit" then

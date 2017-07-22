@@ -2,6 +2,8 @@ local fs = require("filesystem")
 local shell = require("shell")
 local tty = require("tty")
 local unicode = require("unicode")
+local tx = require("transforms")
+local text = require("text")
 
 local dirsArg, ops = shell.parse(...)
 
@@ -32,7 +34,6 @@ if #dirsArg == 0 then
 end
 
 local ec = 0
-local gpu = tty.gpu()
 local fOut = tty.isAvailable() and io.output().tty
 local function perr(msg) io.stderr:write(msg,"\n") ec = 2 end
 local function stat(names, index)
@@ -56,42 +57,30 @@ local function stat(names, index)
   return info
 end
 local function toArray(i) local r={} for n in i do r[#r+1]=n end return r end
-local restore_color = function() end
 local set_color = function() end
-local prev_color
-local function colorize() return prev_color end
+local function colorize() return end
 if fOut and not ops["no-color"] then
-  local LSC = os.getenv("LS_COLORS")
-  if type(LSC) == "string" then
-    LSC = require("serialization").unserialize(LSC)
+  local LSC = tx.foreach(text.split(os.getenv("LS_COLORS") or "", {":"}, true), function(e)
+    local parts = text.split(e, {"="}, true)
+    return parts[2], parts[1]
+  end)
+  colorize = function(info)
+    return
+      info.isLink and LSC.ln or
+      info.isDir and LSC.di or
+      LSC['*'..info.ext] or
+      LSC.fi
   end
-  if not LSC then
-    perr("ls: unparsable value for LS_COLORS environment variable")
-  else
-    prev_color = gpu.getForeground()
-    restore_color = function() gpu.setForeground(prev_color) end
-    colorize = function(info)
-      return
-        info.isLink and LSC.LINK or
-        info.isDir and LSC.DIR or
-        LSC['*'..info.ext] or
-        LSC.FILE or
-        prev_color
-    end
-    set_color=function(c)
-      if gpu.getForeground() ~= c then
-        io.stdout:flush()
-        gpu.setForeground(c)
-      end
-    end
+  set_color=function(c)
+    io.write(string.char(0x1b), "[", c or "", "m")
   end
 end
 local msft={reports=0,proxies={}}
 function msft.report(files, dirs, used, proxy)
   local free = proxy.spaceTotal() - proxy.spaceUsed()
-  restore_color()
-  local pattern = "%5i File(s) %11i bytes\n%5i Dir(s)  %11s bytes free\n"
-  io.write(string.format(pattern, files, used, dirs, tostring(free)))
+  set_color()
+  local pattern = "%5i File(s) %s bytes\n%5i Dir(s)  %11s bytes free\n"
+  io.write(string.format(pattern, files, tostring(used), dirs, tostring(free)))
 end
 function msft.tail(names)
   local fsproxy = fs.get(names.path)
@@ -123,7 +112,7 @@ function msft.final()
   for proxy,report in pairs(msft.proxies) do
     table.insert(groups, {proxy=proxy,report=report})
   end
-  restore_color()
+  set_color()
   print("Total Files Listed:")
   for _,pair in ipairs(groups) do
     local proxy, report = pair.proxy, pair.report
@@ -263,7 +252,7 @@ local function display(names)
       local format = "%s-r%s %+"..tostring(max_size_width).."s %"..tostring(max_date_width).."s"
       local meta = string.format(format, file_type, write_mode, size, modDate)
       local item = info.name..link_target
-      return {{color = prev_color, name = meta}, {color = colorize(info), name = item}}
+      return {{name = meta}, {color = colorize(info), name = item}}
     end
   elseif ops["1"] or not fOut then
     lines.n = #names
@@ -332,7 +321,7 @@ local header = function() end
 if #dirsArg > 1 or ops.R then
   header = function(path)
     if not first_display then print() end
-    restore_color()
+    set_color()
     io.write(path,":\n")
   end
 end
@@ -366,11 +355,20 @@ for _,dir in ipairs(dirsArg) do
     table.insert(file_set, dir)
   end
 end
+
 io.output():setvbuf("line")
-if #file_set > 0 then display(sort(file_set)) end
-displayDirList(dir_set)
-msft.final()
+
+local ok, msg = pcall(function()
+  if #file_set > 0 then display(sort(file_set)) end
+  displayDirList(dir_set)
+  msft.final()
+end)
+
 io.output():flush()
 io.output():setvbuf("no")
-restore_color()
+set_color()
+
+assert(ok, msg)
+
 return ec
+
