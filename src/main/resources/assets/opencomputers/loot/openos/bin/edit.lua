@@ -684,4 +684,4 @@ while running do
 end
 
 term.clear()
-term.setCursorBlink(false)
+term.setCursorBlink(true)
