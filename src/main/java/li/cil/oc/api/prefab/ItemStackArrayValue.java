@@ -44,7 +44,7 @@ public class ItemStackArrayValue extends AbstractValue {
 		if (this.iteratorIndex >= this.array.length)
 			return null;
 		int index = this.iteratorIndex++;
-		if (this.array[index] == null)//TODO 1.11 change to ItemStack.EMPTY?
+		if (this.array[index] == null || this.array[index].isEmpty())
 			return new Object[]{ emptyMap };
 		return new Object[]{ this.array[index] != null ? this.array[index] : emptyMap };
 	}
@@ -77,9 +77,9 @@ public class ItemStackArrayValue extends AbstractValue {
 			for (int i = 0; i < tagList.tagCount(); ++i){
 				NBTTagCompound el = tagList.getCompoundTagAt(i);
 				if (el.hasNoTags())
-					this.array[i] = null;//TODO 1.11 change to ItemStack.EMPTY?
+					this.array[i] = ItemStack.EMPTY;
 				else
-					this.array[i] = ItemStack.loadItemStackFromNBT(el);
+					this.array[i] = new ItemStack(el);
 			}
 		} else {
 			this.array = null;
