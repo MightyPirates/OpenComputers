@@ -133,7 +133,7 @@ function sh.expand(value)
   end)
   :gsub("%${(.*)}", function(key)
     if sh.internal.isIdentifier(key) then
-      return sh.internal.expandKey(key)
+      return os.getenv(key) or ''
     end
     io.stderr:write("${" .. key .. "}: bad substitution\n")
     os.exit(1)
@@ -272,7 +272,6 @@ function sh.hintHandler(full_line, cursor)
   return sh.internal.hintHandlerImpl(full_line, cursor)
 end
 
-require("package").delay(sh, "/opt/core/full_sh.lua")
-require("package").delay(sh.internal, "/opt/core/full_sh.lua")
+require("package").delay(sh, "/lib/core/full_sh.lua")
 
 return sh

@@ -4,7 +4,7 @@ local args, options = shell.parse(...)
 local ec, error_prefix = 0, "alias:"
 
 if options.help then
-  print(string.format("Usage: alias: [name[=value] ... ]", cmd_name))
+  print(string.format("Usage: alias: [name[=value] ... ]"))
   return
 end
 
@@ -53,7 +53,7 @@ if not next(args) then -- no args
     print(string.format("alias %s='%s'", k, v))
   end
 else
-  for k,v in pairs(args) do
+  for _,v in ipairs(args) do
     checkArg(1,v,"string")
     handlePair(splitPair(v))
   end

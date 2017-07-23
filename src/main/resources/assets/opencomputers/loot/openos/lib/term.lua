@@ -24,7 +24,7 @@ local function as_window(window, func, ...)
   data.window = window
   local ret = table.pack(func(...))
   data.window = prev
-  return table.unpack(ret, ret.n)
+  return table.unpack(ret, 1, ret.n)
 end
 
 function term.internal.open(...)
@@ -55,7 +55,7 @@ function term.internal.open(...)
     tty.window = nil
     setmetatable(tty,
     {
-      __index = function(tbl, key)
+      __index = function(_, key)
         if key == "window" then
           return term.internal.window()
         end
@@ -68,32 +68,34 @@ function term.internal.open(...)
 end
 
 local function build_horizontal_reader(cursor)
-  cursor.clear_tail = function(_)
-    local w,h,dx,dy,x,y = tty.getViewport()
-    local s1,s2=tty.internal.split(_)
+  cursor.clear_tail = function(self)
+    local w,_,dx,dy,x,y = tty.getViewport()
+    local _,s2=tty.internal.split(self)
     local wlen = math.min(unicode.wlen(s2),w-x+1)
     tty.gpu().fill(x+dx,y+dy,wlen,1," ")
   end
-  cursor.move = function(_,n)
+  cursor.move = function(self, n)
     local win = tty.window
-    local a = _.index
-    local b = math.max(0,math.min(unicode.len(_.data),_.index+n))
-    _.index = b
-    a,b = a<b and a or b,a<b and b or a
-    local wlen_moved = unicode.wlen(unicode.sub(_.data,a+1,b))
+    local a = self.index
+    local b = math.max(0,math.min(unicode.len(self.data), self.index+n))
+    self.index = b
+    a, b = a < b and a or b, a < b and b or a
+    local wlen_moved = unicode.wlen(unicode.sub(self.data, a + 1, b))
     win.x = win.x + wlen_moved * (n<0 and -1 or 1)
-    _:scroll()
+    self:scroll()
   end
   cursor.draw = function(_, text)
-    tty.drawText(text, true)
+    local nowrap = tty.window.nowrap
+    tty.window.nowrap = true
+    tty:write(text)
+    tty.window.nowrap = nowrap
   end
-  cursor.scroll = function(_)
+  cursor.scroll = function(self)
     local win = tty.window
-    local gpu,data,px,i = win.gpu,_.data,_.promptx,_.index
-    local w,h,dx,dy,x,y = tty.getViewport()
-    win.x = math.max(_.promptx, math.min(w, x))
-    local len = unicode.len(data)
-    local available,sx,sy,last = w-px+1,px+dx,y+dy,i==len
+    local gpu,data,px,i = win.gpu, self.data, self.promptx, self.index
+    local w,_,dx,dy,x,y = tty.getViewport()
+    win.x = math.max(self.promptx, math.min(w, x))
+    local available,sx,sy = w-px+1,px+dx,y+dy
     if x > w then
       local blank
       if i == unicode.len(data) then
@@ -106,20 +108,20 @@ local function build_horizontal_reader(cursor)
       local ending = unicode.wtrunc(rev, available+1)
       data = unicode.reverse(ending)
       gpu.set(sx,sy,data..blank)
-      win.x=math.min(w,_.promptx+unicode.wlen(data))
-    elseif x < _.promptx then
-      data = unicode.sub(data,_.index+1)
+      win.x=math.min(w,self.promptx+unicode.wlen(data))
+    elseif x < self.promptx then
+      data = unicode.sub(data, self.index+1)
       if unicode.wlen(data) > available then
         data = unicode.wtrunc(data,available+1)
       end
       gpu.set(sx,sy,data)
     end
   end
-  cursor.clear = function(_)
+  cursor.clear = function(self)
     local win = tty.window
-    local gpu,data,px=win.gpu,_.data,_.promptx
-    local w,h,dx,dy,x,y = tty.getViewport()
-    _.index,_.data,win.x=0,"",px
+    local gpu, px = win.gpu, self.promptx
+    local w,_,dx,dy,_,y = tty.getViewport()
+    self.index, self.data, win.x = 0, "", px
     gpu.fill(px+dx,y+dy,w-px+1-dx,1," ")
   end
 end
@@ -138,14 +140,14 @@ local function inject_filter(handler, filter)
       __newindex = function(tbl, key, value)
         if key == "key_down" then
           local tty_key_down = value
-          value = function(handler, cursor, char, code)
+          value = function(_handler, cursor, char, code)
             if code == keys.enter or code == keys.numpadenter then
               if not filter(cursor.data) then
                 computer.beep(2000, 0.1)
                 return false -- ignore
               end
             end
-            return tty_key_down(handler, cursor, char, code)
+            return tty_key_down(_handler, cursor, char, code)
           end
         end
         rawset(tbl, key, value)
@@ -170,7 +172,7 @@ local function inject_mask(cursor, dobreak, pwchar)
   end
 
   local cursor_draw = cursor.draw
-  cursor.draw = function(cursor, text)
+  cursor.draw = function(self, text)
     local pre, newline = text:match("(.-)(\n?)$")
     if dobreak == false then
       newline = ""
@@ -178,14 +180,20 @@ local function inject_mask(cursor, dobreak, pwchar)
     if pwchar then
       pre = pwchar(pre)
     end
-    return cursor_draw(cursor, pre .. newline)
+    return cursor_draw(self, pre .. newline)
   end
 end
 
+-- cannot use term.write = io.write because io.write invokes metatable
+function term.write(value, wrap)
+  local previous_nowrap = tty.window.nowrap
+  tty.window.nowrap = wrap == false
+  io.write(value)
+  io.stdout:flush()
+  tty.window.nowrap = previous_nowrap
+end
+
 function term.read(history, dobreak, hint, pwchar, filter)
-  if not io.stdin.tty then
-    return io.read("*L")
-  end
   history = history or {}
   local handler = history
   handler.hint = handler.hint or hint
@@ -198,7 +206,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
   inject_filter(handler, filter)
   inject_mask(cursor, dobreak, pwchar or history.pwchar)
 
-  return tty.read(handler, cursor)
+  return tty:read(handler, cursor)
 end
 
 function term.getGlobalArea(window)
@@ -208,9 +216,9 @@ end
 
 function term.clearLine(window)
   window = window or tty.window
-  local w,h,dx,dy,x,y = as_window(window, tty.getViewport)
-  window.gpu.fill(dx+1,dy+math.max(1,math.min(y,h)),w,1," ")
-  window.x=1
+  local w, h, dx, dy, _, y = as_window(window, tty.getViewport)
+  window.gpu.fill(dx + 1, dy + math.max(1, math.min(y, h)), w, 1, " ")
+  window.x = 1
 end
 
 function term.pull(...)

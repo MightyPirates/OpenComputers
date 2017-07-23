@@ -25,7 +25,7 @@ object ObfNames {
   final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "de")
   final val Method_recreateLeashDesc = Array("()V")
   final val Method_renderLeash = Array("renderLeash", "func_110827_b", "b")
-  final val Method_renderLeashDesc = Array("(Lsg;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
+  final val Method_renderLeashDesc = Array("(L"+Class_EntityLiving(1)+";DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
   final val Method_validate = Array("validate", "func_145829_t")
   final val Method_invalidate = Array("invalidate", "func_145843_s")
   final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")

@@ -10,11 +10,12 @@ local arg = args[1]
 local path = shell.resolve(arg)
 
 if ops.help then
-  print([[Usage: list [path]
+  io.write([[Usage: list [path]
   path:
     optional argument (defaults to ./)
   Displays a list of files in the given path with no added formatting
-  Intended for low memory systems]])
+  Intended for low memory systems
+]])
   return 0
 end
 
@@ -28,5 +29,5 @@ if why then
 end
 
 for item in fs.list(real) do
-  print(item)
+  io.write(item, '\n')
 end
