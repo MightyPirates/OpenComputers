@@ -4,7 +4,6 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
-import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -43,7 +42,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         if (dye.isEmpty)
           return ItemStack.EMPTY
 
-        val itemColor = EntitySheep.getDyeRgb(Color.byOreName(dye.get))
+        val itemColor = Color.byOreName(dye.get).getColorComponentValues
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt
