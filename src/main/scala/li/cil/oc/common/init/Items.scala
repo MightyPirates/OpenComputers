@@ -31,7 +31,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.NonNullList
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.registries.{GameData}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -52,26 +52,26 @@ object Items extends ItemAPI {
     case _ => null
   }
 
-  def registerBlock[T <: Block](instance: T, id: String): T = {
+  def registerBlock(instance: Block, id: String): Block = {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleBlock =>
           instance.setUnlocalizedName("oc." + id)
           instance.setRegistryName(id)
-          GameRegistry.register(instance)
+          GameData.register_impl(instance)
           OpenComputers.proxy.registerModel(instance, id)
 
-          val item = new common.block.Item(instance)
+          val item : Item = new common.block.Item(instance)
           item.setUnlocalizedName("oc." + id)
           item.setRegistryName(id)
-          GameRegistry.register(item)
+          GameData.register_impl(item)
           OpenComputers.proxy.registerModel(item, id)
         case _ =>
       }
       descriptors += id -> new ItemInfo {
         override def name: String = id
 
-        override def block: T = instance
+        override def block = instance
 
         override def item = null
 
@@ -107,7 +107,7 @@ object Items extends ItemAPI {
       instance match {
         case simple: SimpleItem =>
           simple.setUnlocalizedName("oc." + id)
-          GameRegistry.register(simple, new ResourceLocation(Settings.resourceDomain, id))
+          GameData.register_impl(simple.setRegistryName(new ResourceLocation(Settings.resourceDomain, id)))
           OpenComputers.proxy.registerModel(instance, id)
         case _ =>
       }
@@ -523,7 +523,9 @@ object Items extends ItemAPI {
 
       override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]): Unit = {
         super.getSubItems(tab, list)
-        configuredItems.foreach(list.add)
+        if(isInCreativeTab(tab)){
+          configuredItems.foreach(list.add)
+        }
       }
     }, "misc")
 
@@ -534,7 +536,7 @@ object Items extends ItemAPI {
 
   private def newItem[T <: Item](item: T, name: String): T = {
     item.setUnlocalizedName("oc." + name)
-    GameRegistry.register(item, new ResourceLocation(Settings.resourceDomain, name))
+    GameData.register_impl(item.setRegistryName(new ResourceLocation(Settings.resourceDomain, name)))
     item
   }
 }

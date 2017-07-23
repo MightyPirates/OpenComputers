@@ -73,10 +73,12 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 
   override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]) {
     // Workaround for MC's untyped lists...
-    subItems.indices.filter(subItems(_).showInItemList).
-      map(subItems(_).createItemStack()).
-      sortBy(_.getUnlocalizedName).
-      foreach(list.add)
+    if(isInCreativeTab(tab)){
+      subItems.indices.filter(subItems(_).showInItemList).
+        map(subItems(_).createItemStack()).
+        sortBy(_.getUnlocalizedName).
+        foreach(list.add)
+    }
   }
 
   // ----------------------------------------------------------------------- //

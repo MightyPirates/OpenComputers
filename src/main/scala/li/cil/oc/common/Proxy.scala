@@ -20,11 +20,13 @@ import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.RegistryEvent.MissingMappings
 import net.minecraftforge.fml.common.FMLLog
 import net.minecraftforge.fml.common.event._
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
-import net.minecraftforge.fml.common.registry.EntityRegistry
-import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.registry.{EntityRegistry}
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
@@ -35,6 +37,8 @@ class Proxy {
     checkForBrokenJavaVersion()
 
     Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
+
+    MinecraftForge.EVENT_BUS.register(this)
 
     OpenComputers.log.info("Initializing blocks and items.")
 
@@ -150,25 +154,28 @@ class Proxy {
     OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack
   )
 
-  def missingMappings(e: FMLMissingMappingsEvent) {
-    for (missing <- e.get()) {
-      if (missing.`type` == GameRegistry.Type.BLOCK) {
-        blockRenames.get(missing.name) match {
+  @SubscribeEvent
+  def missingBlockMappings(e: MissingMappings[Block]) {
+    for (missing <- e.getAllMappings()) {
+        blockRenames.get(missing.key.getResourcePath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
             else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
-      }
-      else if (missing.`type` == GameRegistry.Type.ITEM) {
-        itemRenames.get(missing.name) match {
+    }
+  }
+
+  @SubscribeEvent
+  def missingItemMappings(e: MissingMappings[Item]) {
+    for (missing <- e.getAllMappings()) {
+        itemRenames.get(missing.key.getResourcePath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
             else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
       }
-    }
   }
 
   // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.

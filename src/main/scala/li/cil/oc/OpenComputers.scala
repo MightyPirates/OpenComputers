@@ -51,9 +51,6 @@ object OpenComputers {
   }
 
   @EventHandler
-  def missingMappings(e: FMLMissingMappingsEvent): Unit = proxy.missingMappings(e)
-
-  @EventHandler
   def serverStart(e: FMLServerStartingEvent): Unit = CommandHandler.register(e)
 
   @EventHandler

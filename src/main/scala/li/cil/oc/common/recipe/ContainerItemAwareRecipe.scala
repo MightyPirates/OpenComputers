@@ -3,7 +3,7 @@ package li.cil.oc.common.recipe
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.crafting.IRecipe
 import net.minecraftforge.common.ForgeHooks
-import net.minecraftforge.fml.common.registry.IForgeRegistryEntry
+import net.minecraftforge.registries.IForgeRegistryEntry
 
 trait ContainerItemAwareRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe {
   override def getRemainingItems(inv: InventoryCrafting) = ForgeHooks.defaultRecipeGetRemainingItems(inv)
