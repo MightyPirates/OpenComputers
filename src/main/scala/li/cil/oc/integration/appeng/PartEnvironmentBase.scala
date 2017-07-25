@@ -1,5 +1,7 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.implementations.tiles.ISegmentedInventory
+import appeng.api.parts.IPartHost
 import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
