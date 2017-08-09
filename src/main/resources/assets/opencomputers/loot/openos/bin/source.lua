@@ -24,9 +24,6 @@ local source_data = process.list[source_proc].data
 source_data.aliases = current_data.aliases -- hacks to propogate sub shell env changes
 source_data.vars = current_data.vars
 source_data.io[0] = file -- set stdin to the file
-if options.q then
-  source_data.io[1] = {tty=false,write=function()end} -- set stdin to the file
-end
-process.internal.continue(source_proc)
+process.internal.continue(source_proc, "-c")
 
 file:close() -- should have closed when the process closed, but just to be sure
