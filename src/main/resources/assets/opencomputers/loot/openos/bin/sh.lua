@@ -4,14 +4,10 @@ local tty = require("tty")
 local text = require("text")
 local sh = require("sh")
 
-local input = table.pack(...)
-local args = shell.parse(select(3,table.unpack(input)))
-if input[2] then
-  table.insert(args, 1, input[2])
-end
+local args, options = shell.parse(...)
 
 shell.prime()
-local update_gpu = io.output().tty
+local update_gpu = io.output().tty and not options.c
 local needs_profile = io.input().tty
 local input_handler = {hint = sh.hintHandler}
 
@@ -38,7 +34,7 @@ if #args == 0 then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
-    elseif not interactive then
+    else
       return -- eof
     end
     if update_gpu and tty.getCursor() > 1 then
