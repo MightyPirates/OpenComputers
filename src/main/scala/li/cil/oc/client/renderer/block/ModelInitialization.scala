@@ -18,8 +18,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.registry.RegistrySimple
-import net.minecraftforge.client.event.ModelBakeEvent
-import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
+import net.minecraftforge.client.model.{ModelLoader, ModelLoaderRegistry}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
@@ -53,7 +53,8 @@ object ModelInitialization {
     registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, RobotAfterimageItemLocation)
   }
 
-  def init(): Unit = {
+  @SubscribeEvent
+  def onModelRegistration(event: ModelRegistryEvent): Unit = {
     registerItems()
     registerSubItems()
     registerSubItemsCustom()
@@ -102,27 +103,24 @@ object ModelInitialization {
       }
     }
 
-    val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
     for (item <- meshableItems) {
-      modelMeshes.register(item, meshDefinition)
+      ModelLoader.setCustomMeshDefinition(item, meshDefinition)
     }
     meshableItems.clear()
   }
 
   private def registerSubItems(): Unit = {
-    val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
     for ((id, item) <- itemDelegates) {
       val location = Settings.resourceDomain + ":" + id
-      modelMeshes.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
+      ModelLoader.setCustomModelResourceLocation(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
       ModelBakery.registerItemVariants(item.parent, new ResourceLocation(location))
     }
     itemDelegates.clear()
   }
 
   private def registerSubItemsCustom(): Unit = {
-    val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
     for (item <- itemDelegatesCustom) {
-      modelMeshes.register(item.parent, new ItemMeshDefinition {
+      ModelLoader.setCustomMeshDefinition(item.parent, new ItemMeshDefinition {
         override def getModelLocation(stack: ItemStack): ModelResourceLocation = Delegator.subItem(stack) match {
           case Some(subItem: CustomModel) => subItem.getModelLocation(stack)
           case _ => null

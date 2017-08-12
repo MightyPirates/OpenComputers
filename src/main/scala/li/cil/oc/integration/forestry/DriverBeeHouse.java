@@ -85,12 +85,12 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAllele allele1 = mutation.getAllele0();
                 if (allele1 != null) {
-                    mutationMap.put("allele1", allele1.getName());
+                    mutationMap.put("allele1", allele1.getAlleleName());
                 }
 
                 final IAllele allele2 = mutation.getAllele1();
                 if (allele2 != null) {
-                    mutationMap.put("allele2", allele2.getName());
+                    mutationMap.put("allele2", allele2.getAlleleName());
                 }
 
                 mutationMap.put("chance", mutation.getBaseChance());
@@ -99,7 +99,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAllele[] template = mutation.getTemplate();
                 if (template != null && template.length > 0) {
-                    mutationMap.put("result", template[0].getName());
+                    mutationMap.put("result", template[0].getAlleleName());
                 }
                 result.add(mutationMap);
             }
@@ -152,7 +152,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAlleleSpecies species = (IAlleleSpecies) allele;
                 final String uid = species.getUID().toLowerCase();
-                final String localizedName = species.getName().toLowerCase();
+                final String localizedName = species.getAlleleName().toLowerCase();
                 if (localizedName.equals(childType) || uid.equals(childType)) {
                     result.add(mutation);
                 }
