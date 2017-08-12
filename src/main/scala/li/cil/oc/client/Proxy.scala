@@ -49,7 +49,6 @@ private[oc] class Proxy extends CommonProxy {
 
     OpenComputers.channel.register(client.PacketHandler)
 
-    ModelInitialization.init()
     ColorHandler.init()
 
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)

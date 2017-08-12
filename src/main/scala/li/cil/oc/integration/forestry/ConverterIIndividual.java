@@ -112,7 +112,7 @@ public class ConverterIIndividual implements Converter {
             if (allele == null) return "missing";
             @SuppressWarnings("unchecked")
             IAlleleConverter<IAllele> converter = (IAlleleConverter<IAllele>) converters.get(cls);
-            return converter != null ? converter.convert(allele) : allele.getName();
+            return converter != null ? converter.convert(allele) : allele.getAlleleName();
         }
 
         protected abstract void addAlleleInfo(GenomeAccess access, Map<String, Object> result);
