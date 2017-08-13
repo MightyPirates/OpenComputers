@@ -42,7 +42,7 @@ class ClassTransformer extends IClassTransformer {
   private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
   private val log = LogManager.getLogger("OpenComputers")
 
-  override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
+  override def transform(obfName: String, name: String, basicClass: Array[Byte]): Array[Byte] = {
     if (basicClass == null || name.startsWith("scala.")) return basicClass
     var transformedClass = basicClass
     try {
