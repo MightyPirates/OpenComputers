@@ -24,7 +24,6 @@ end
 local function saveConfig()
   local root = filesystem.get("/")
   if root and not root.isReadOnly() then
-    filesystem.makeDirectory("/etc")
     local f = filesystem.open("/etc/filesystem.cfg", "w")
     if f then
       f:write("autorun="..tostring(isAutorunEnabled))

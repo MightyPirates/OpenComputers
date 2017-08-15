@@ -3,8 +3,11 @@ local tty = require("tty")
 local fs = require("filesystem")
 
 if tty.isAvailable() then
-  tty:write("\27[40m\27[37m")
-  tty.clear()
+  if io.stdout.tty then
+    io.write("\27[40m\27[37m")
+    tty.clear()
+  end
+  tty.setCursorBlink(true)
 end
 dofile("/etc/motd")
 
@@ -31,11 +34,11 @@ os.setenv("IFS", " ")
 os.setenv("MANPATH", "/usr/man:.")
 os.setenv("PAGER", "/bin/more")
 os.setenv("PS1", "\27[40m\27[31m$HOSTNAME$HOSTNAME_SEPARATOR$PWD # \27[37m")
-os.setenv("LS_COLORS", "{FILE=0xFFFFFF,DIR=0x66CCFF,LINK=0xFFAA00,['*.lua']=0x00FF00}")
+os.setenv("LS_COLORS", "di=0;36:fi=0:ln=0;33:*.lua=0;32")
 
 shell.setWorkingDirectory(os.getenv("HOME"))
 
 local home_shrc = shell.resolve(".shrc")
 if fs.exists(home_shrc) then
-  loadfile(shell.resolve("source", "lua"))(home_shrc, "-q")
+  loadfile(shell.resolve("source", "lua"))(home_shrc)
 end

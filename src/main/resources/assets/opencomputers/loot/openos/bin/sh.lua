@@ -4,15 +4,12 @@ local tty = require("tty")
 local text = require("text")
 local sh = require("sh")
 
-local input = table.pack(...)
-local args = shell.parse(select(3,table.unpack(input)))
-if input[2] then
-  table.insert(args, 1, input[2])
-end
+local args, options = shell.parse(...)
 
 shell.prime()
-local update_gpu = io.output().tty
-local interactive = io.input().tty
+local update_gpu = io.output().tty and not options.c
+local needs_profile = io.input().tty
+local input_handler = {hint = sh.hintHandler}
 
 if #args == 0 then
   while true do
@@ -20,15 +17,13 @@ if #args == 0 then
       while not tty.isAvailable() do
         event.pull("term_available")
       end
-      if interactive == true then -- first time run AND interactive
-        interactive = 0
-        tty.setReadHandler({hint = sh.hintHandler})
+      if needs_profile then -- first time run AND interactive
+        needs_profile = nil
         dofile("/etc/profile.lua")
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
-      tty.setCursorBlink(true)
     end
-    local command = io.read()
+    local command = tty:read(input_handler)
     if command then
       command = text.trim(command)
       if command == "exit" then
@@ -39,7 +34,7 @@ if #args == 0 then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
-    elseif not interactive then
+    else
       return -- eof
     end
     if update_gpu and tty.getCursor() > 1 then
