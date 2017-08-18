@@ -297,7 +297,7 @@ class ClassTransformer extends IClassTransformer {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
         val descDeObf = mapper.mapMethodDesc(method.desc)
-        val methodNameDeObf = mapper.mapMethodName(ObfNames.Class_TileEntity(1), method.name, method.desc)
+        val methodNameDeObf = mapper.mapMethodName(ObfNames.Class_TileEntity(0), method.name, method.desc)
         val areSamePlain = method.name + descDeObf == methodName + desc
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
