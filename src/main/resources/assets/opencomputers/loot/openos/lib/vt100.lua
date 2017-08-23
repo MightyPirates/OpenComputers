@@ -137,10 +137,8 @@ rules[{"[DEM]"}] = function(window, dir)
   end
 end
 
--- 7               save cursor position and attributes
--- 8               restore cursor position and attributes
-rules[{"[78]"}] = function(window, restore)
-  if restore == "8" then
+local function save_attributes(window, save)
+  if save then
     local data = window.saved or {1, 1, {0x0}, {0xffffff}}
     window.x = data[1]
     window.y = data[2]
@@ -149,6 +147,18 @@ rules[{"[78]"}] = function(window, restore)
   else
     window.saved = {window.x, window.y, {window.gpu.getBackground()}, {window.gpu.getForeground()}}
   end
+end
+
+-- 7               save cursor position and attributes
+-- 8               restore cursor position and attributes
+rules[{"[78]"}] = function(window, restore)
+  save_attributes(window, restore == "8")
+end
+
+-- s               save cursor position
+-- u               restore cursor position
+rules[{"%[", "[su]"}] = function(window, _, restore)
+  save_attributes(window, restore == "u")
 end
 
 function vt100.parse(window)
