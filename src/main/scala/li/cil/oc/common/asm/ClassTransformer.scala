@@ -297,7 +297,7 @@ class ClassTransformer extends IClassTransformer {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
         val descDeObf = mapper.mapMethodDesc(method.desc)
-        val methodNameDeObf = mapper.mapMethodName(ObfNames.Class_TileEntity(0), method.name, method.desc)
+        val methodNameDeObf = mapper.mapMethodName(mapper.unmap(ObfNames.Class_TileEntity(0)), method.name, method.desc)
         val areSamePlain = method.name + descDeObf == methodName + desc
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
@@ -353,7 +353,7 @@ class ClassTransformer extends IClassTransformer {
     if (classNode == null) false
     else {
       log.trace(s"Checking if class ${classNode.name} is a TileEntity...")
-      ObfNames.Class_TileEntity.contains(classNode.name) ||
+      ObfNames.Class_TileEntity.contains(FMLDeobfuscatingRemapper.INSTANCE.map(classNode.name)) ||
         (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
     }
   }
