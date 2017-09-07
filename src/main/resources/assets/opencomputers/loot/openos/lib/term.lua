@@ -70,7 +70,7 @@ end
 local function build_horizontal_reader(cursor)
   cursor.clear_tail = function(self)
     local w,_,dx,dy,x,y = tty.getViewport()
-    local _,s2=tty.internal.split(self)
+    local _,s2=tty.split(self)
     local wlen = math.min(unicode.wlen(s2),w-x+1)
     tty.gpu().fill(x+dx,y+dy,wlen,1," ")
   end
@@ -198,15 +198,16 @@ function term.read(history, dobreak, hint, pwchar, filter)
   local handler = history
   handler.hint = handler.hint or hint
 
-  local cursor = tty.internal.build_vertical_reader()
+  local cursor = tty.build_vertical_reader()
   if handler.nowrap then
     build_horizontal_reader(cursor)
   end
 
   inject_filter(handler, filter)
   inject_mask(cursor, dobreak, pwchar or history.pwchar)
+  handler.cursor = cursor
 
-  return tty:read(handler, cursor)
+  return tty.read(handler)
 end
 
 function term.getGlobalArea(window)
@@ -228,7 +229,15 @@ function term.pull(...)
     timeout = table.remove(args, 1)
     args.n = args.n - 1
   end
-  return tty.pull(nil, timeout, table.unpack(args, 1, args.n))
+  local stdin_stream = io.stdin.stream
+  if stdin_stream.pull then
+    return stdin_stream:pull(nil, timeout, table.unpack(args, 1, args.n))
+  end
+  -- if stdin does not have pull() we can build the result
+  local result = io.read(1)
+  if result then
+    return "clipboard", nil, result
+  end
 end
 
 function term.bind(gpu, window)

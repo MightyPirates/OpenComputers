@@ -1,9 +1,11 @@
 local args, options = require("shell").parse(...)
 if options.help then
-  print([[`echo` writes the provided string(s) to the standard output.
+  io.write([[
+`echo` writes the provided string(s) to the standard output.
   -n      do not output the trialing newline
   -e      enable interpretation of backslash escapes
-  --help  display this help and exit]])
+  --help  display this help and exit
+]])
   return
 end
 if options.e then
@@ -16,5 +18,5 @@ if options.e then
 end
 io.write(table.concat(args," "))
 if not options.n then
-  print()
+  io.write("\n")
 end
