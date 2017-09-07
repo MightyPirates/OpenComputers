@@ -86,6 +86,7 @@ function box_thread:resume()
   if coroutine.status(self.pco.root) == "suspended" and not mt.reg then
     mt.register(0)
   end
+  return true
 end
 
 function box_thread:suspend()
@@ -98,6 +99,7 @@ function box_thread:suspend()
   if pco_status == "running" or pco_status == "normal" then
     mt.coma()
   end
+  return true
 end
 
 function box_thread:status()
