@@ -53,7 +53,7 @@ end
 
 local stdin_stream = io.stdin.stream
 if stdin_stream.pull then
-  return stdin_stream:pull(nil, total_time, "interrupted")
+  stdin_stream:pull(nil, total_time, "interrupted")
 else
-  os.sleep(total_time)
+  require("event").pull(total_time, "interrupted")
 end
