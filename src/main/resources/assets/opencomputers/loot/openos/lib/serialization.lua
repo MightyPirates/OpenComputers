@@ -20,11 +20,7 @@ function serialization.serialize(value, pretty)
   local result_pack = {}
   local function recurse(current_value, depth)
     local t = type(current_value)
-    if t == "nil" then
-      table.insert(result_pack, "nil")
-    elseif t == "boolean" then
-      table.insert(result_pack, current_value and "true" or "false")
-    elseif t == "number" then
+    if t == "number" then
       if current_value ~= current_value then
         table.insert(result_pack, "0/0")
       elseif current_value == math.huge then
@@ -36,7 +32,10 @@ function serialization.serialize(value, pretty)
       end
     elseif t == "string" then
       table.insert(result_pack, (string.format("%q", current_value):gsub("\\\n","\\n")))
-    elseif t == "table" and pretty and getmetatable(current_value) and getmetatable(current_value).__tostring then
+    elseif
+      t == "nil" or
+      t == "boolean" or
+      pretty and (t ~= "table" or (getmetatable(current_value) or {}).__tostring) then
       table.insert(result_pack, tostring(current_value))
     elseif t == "table" then
       if ts[current_value] then
@@ -111,17 +110,13 @@ function serialization.serialize(value, pretty)
       ts[current_value] = nil -- allow writing same table more than once
       table.insert(result_pack, "}")
     else
-      if pretty then
-        table.insert(result_pack, tostring(current_value))
-      else
-        error("unsupported type: " .. t)
-      end
+      error("unsupported type: " .. t)
     end
   end
   recurse(value, 1)
   local result = table.concat(result_pack)
-  local limit = type(pretty) == "number" and pretty or 10
   if pretty then
+    local limit = type(pretty) == "number" and pretty or 10
     local truncate = 0
     while limit > 0 and truncate do
       truncate = string.find(result, "\n", truncate + 1, true)
