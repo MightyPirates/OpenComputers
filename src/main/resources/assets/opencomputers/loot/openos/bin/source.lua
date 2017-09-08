@@ -1,6 +1,5 @@
 local shell = require("shell")
-local fs = require("filesystem")
-local sh = require("sh")
+local process = require("process")
 
 local args, options = shell.parse(...)
 
@@ -9,23 +8,22 @@ if #args ~= 1 then
   return 1
 end
 
-local file, reason = io.open(args[1], "r")
+local file, open_reason = io.open(args[1], "r")
 
 if not file then
   if not options.q then
-    io.stderr:write(string.format("could not source %s because: %s\n", args[1], reason));
+    io.stderr:write(string.format("could not source %s because: %s\n", args[1], open_reason));
   end
   return 1
-else
-  local status, reason = xpcall(function()
-    repeat
-      local line = file:read()
-      if line then
-        sh.execute(nil, line)
-      end
-    until not line
-  end, function(msg) return {msg, debug.traceback()} end)
-
-  file:close()
-  if not status and reason then assert(false, tostring(reason[1]) .."\n".. tostring(reason[2])) end
 end
+
+local current_data = process.info().data
+
+local source_proc = process.load((assert(os.getenv("SHELL"), "no $SHELL set")))
+local source_data = process.list[source_proc].data
+source_data.aliases = current_data.aliases -- hacks to propogate sub shell env changes
+source_data.vars = current_data.vars
+source_data.io[0] = file -- set stdin to the file
+process.internal.continue(source_proc, "-c")
+
+file:close() -- should have closed when the process closed, but just to be sure

@@ -1,5 +1,4 @@
 local fs = require("filesystem")
-local text = require("text")
 local unicode = require("unicode")
 local process = require("process")
 
@@ -19,58 +18,11 @@ function shell.getShell()
   if shells[shellName] then
     return shells[shellName]
   end
-  local sh, reason = loadfile(shellName, "t")
+  local sh, load_reason = loadfile(shellName)
   if sh then
     shells[shellName] = sh
   end
-  return sh, reason
-end
-
-local function findFile(name, ext)
-  checkArg(1, name, "string")
-  local function findIn(dir)
-    if dir:sub(1, 1) ~= "/" then
-      dir = shell.resolve(dir)
-    end
-    dir = fs.concat(fs.concat(dir, name), "..")
-    local name = fs.name(name)
-    local list = fs.list(dir)
-    if list and name then
-      local files = {}
-      for file in list do
-        files[file] = true
-      end
-      if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
-        -- Name already contains extension, prioritize.
-        if files[name] then
-          return true, fs.concat(dir, name)
-        end
-      elseif files[name] then
-        -- Check exact name.
-        return true, fs.concat(dir, name)
-      elseif ext then
-        -- Check name with automatially added extension.
-        local name = name .. "." .. ext
-        if files[name] then
-          return true, fs.concat(dir, name)
-        end
-      end
-    end
-    return false
-  end
-  if unicode.sub(name, 1, 1) == "/" then
-    local found, where = findIn("/")
-    if found then return where end
-  elseif unicode.sub(name, 1, 2) == "./" then
-    local found, where = findIn(shell.getWorkingDirectory())
-    if found then return where end
-  else
-    for path in string.gmatch(shell.getPath(), "[^:]+") do
-      local found, where = findIn(path)
-      if found then return where end
-    end
-  end
-  return false
+  return sh, load_reason
 end
 
 -------------------------------------------------------------------------------
@@ -103,29 +55,6 @@ function shell.setAlias(alias, value)
   process.info().data.aliases[alias] = value
 end
 
-function shell.aliases()
-  return pairs(process.info().data.aliases)
-end
-
-function shell.resolveAlias(command, args)
-  checkArg(1, command, "string")
-  checkArg(2, args, "table", "nil")
-  args = args or {}
-  local program, lastProgram = command, nil
-  while true do
-    local tokens = text.tokenize(shell.getAlias(program) or program)
-    program = tokens[1]
-    if program == lastProgram then
-      break
-    end
-    lastProgram = program
-    for i = #tokens, 2, -1 do
-      table.insert(args, 1, tokens[i])
-    end
-  end
-  return program, args
-end
-
 function shell.getWorkingDirectory()
   -- if no env PWD default to /
   return os.getenv("PWD") or "/"
@@ -144,48 +73,38 @@ function shell.setWorkingDirectory(dir)
   end
 end
 
-function shell.getPath()
-  return os.getenv("PATH")
-end
-
-function shell.setPath(value)
-  os.setenv("PATH", value)
-end
-
 function shell.resolve(path, ext)
-  if ext then
-    checkArg(2, ext, "string")
-    local where = findFile(path, ext)
-    if where then
-      return where
-    else
-      return nil, "file not found"
-    end
-  else
-    if unicode.sub(path, 1, 1) == "/" then
-      return fs.canonical(path)
-    else
-      return fs.concat(shell.getWorkingDirectory(), path)
-    end
-  end
-end
+  checkArg(1, path, "string")
 
-function shell.execute(command, env, ...)
-  local sh, reason = shell.getShell()
-  if not sh then
-    return false, reason
+  local dir = path
+  if dir:find("/") ~= 1 then
+    dir = fs.concat(shell.getWorkingDirectory(), dir)
   end
-  local result = table.pack(coroutine.resume(process.load(function(...)
-    return sh(...)
-  end), env, command, ...))
-  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      return true
-    else
-      return false, "terminated"
+  local name = fs.name(path)
+  dir = fs[name and "path" or "canonical"](dir)
+  local fullname = fs.concat(dir, name or "")
+
+  if not ext then
+    return fullname
+  elseif name then
+    checkArg(2, ext, "string")
+    -- search for name in PATH if no dir was given
+    -- no dir was given if path has no /
+    local search_in = path:find("/") and dir or os.getenv("PATH")
+    for search_path in string.gmatch(search_in, "[^:]+") do
+      -- resolve search_path because they may be relative
+      local search_name = fs.concat(shell.resolve(search_path), name)
+      if not fs.exists(search_name) then
+        search_name = search_name .. "." .. ext
+      end
+      -- extensions are provided when the caller is looking for a file
+      if fs.exists(search_name) and not fs.isDirectory(search_name) then
+        return search_name
+      end
     end
   end
-  return table.unpack(result, 1, result.n)
+
+  return nil, "file not found"
 end
 
 function shell.parse(...)
@@ -198,13 +117,13 @@ function shell.parse(...)
     if not doneWithOptions and type(param) == "string" then
       if param == "--" then
         doneWithOptions = true -- stop processing options at `--`
-      elseif unicode.sub(param, 1, 2) == "--" then
-        if param:match("%-%-(.-)=") ~= nil then
-          options[param:match("%-%-(.-)=")] = param:match("=(.*)")
-        else
-          options[unicode.sub(param, 3)] = true
+      elseif param:sub(1, 2) == "--" then
+        local key, value = param:match("%-%-(.-)=(.*)")
+        if not key then
+          key, value = param:sub(3), true
         end
-      elseif unicode.sub(param, 1, 1) == "-" and param ~= "-" then
+        options[key] = value
+      elseif param:sub(1, 1) == "-" and param ~= "-" then
         for j = 2, unicode.len(param) do
           options[unicode.sub(param, j, j)] = true
         end
@@ -219,5 +138,7 @@ function shell.parse(...)
 end
 
 -------------------------------------------------------------------------------
+
+require("package").delay(shell, "/lib/core/full_shell.lua")
 
 return shell

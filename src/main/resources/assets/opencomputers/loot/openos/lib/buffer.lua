@@ -9,6 +9,8 @@ local metatable = {
 
 function buffer.new(mode, stream)
   local result = {
+    closed = false,
+    tty = false,
     mode = {},
     stream = stream,
     bufferRead = "",
@@ -98,7 +100,7 @@ function buffer:readLine(chop, timeout)
         if reason then
           return nil, reason
         else -- eof
-          local result = #self.bufferRead > 0 and self.bufferRead or nil
+          result = #self.bufferRead > 0 and self.bufferRead or nil
           self.bufferRead = ""
           return result
         end
@@ -116,15 +118,10 @@ function buffer:read(...)
     self:flush()
   end
 
-  local formats = table.pack(...)
-  if formats.n == 0 then
+  if select("#", ...) == 0 then
     return self:readLine(true)
   end
-  return require("tools/buffered_read").read(self, readChunk, formats)
-end
-
-function buffer:seek(whence, offset)
-  return require("tools/buffered_read").seek(self, whence, offset)
+  return self:formatted_read(readChunk, ...)
 end
 
 function buffer:setvbuf(mode, size)
@@ -140,14 +137,6 @@ function buffer:setvbuf(mode, size)
   self.bufferSize = size
 
   return self.bufferMode, self.bufferSize
-end
-
-function buffer:getTimeout()
-  return self.readTimeout
-end
-
-function buffer:setTimeout(value)
-  self.readTimeout = tonumber(value)
 end
 
 function buffer:write(...)
@@ -172,7 +161,7 @@ function buffer:write(...)
     if self.bufferMode == "no" then
       result, reason = self.stream:write(arg)
     else
-      result, reason = require("tools/buffered_write").write(self, arg)
+      result, reason = self:buffered_write(arg)
     end
 
     if not result then
@@ -182,5 +171,7 @@ function buffer:write(...)
 
   return self
 end
+
+require("package").delay(buffer, "/lib/core/full_buffer.lua")
 
 return buffer

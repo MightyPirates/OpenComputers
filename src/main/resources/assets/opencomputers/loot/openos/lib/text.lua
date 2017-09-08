@@ -1,27 +1,15 @@
 local unicode = require("unicode")
 local tx = require("transforms")
 
--- --[[@@]] are not just comments, but custom annotations for delayload methods.
--- See package.lua and the api wiki for more information
-
 local text = {}
-local local_env = {tx=tx,unicode=unicode}
-
 text.internal = {}
 
-text.syntax = {"^%d?>>?&%d+$",";","&&","||?","^%d?>>?",">>?","<"}
+text.syntax = {"^%d?>>?&%d+$","^%d?>>?",">>?","<%&%d+","<",";","&&","||?"}
 
-function --[[@delayloaded-start@]] text.detab(value, tabWidth)
-  checkArg(1, value, "string")
-  checkArg(2, tabWidth, "number", "nil")
-  tabWidth = tabWidth or 8
-  local function rep(match)
-    local spaces = tabWidth - match:len() % tabWidth
-    return match .. string.rep(" ", spaces)
-  end
-  local result = value:gsub("([^\n]-)\t", rep) -- truncate results
-  return result
-end --[[@delayloaded-end@]]
+function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
+  local from = string.match(value, "^%s*()")
+  return from > #value and "" or string.match(value, ".*%S", from)
+end
 
 -- used in motd
 function text.padRight(value, length)
@@ -32,21 +20,6 @@ function text.padRight(value, length)
   else
     return value .. string.rep(" ", length - unicode.wlen(value))
   end
-end
-
-function --[[@delayloaded-start@]] text.padLeft(value, length)
-  checkArg(1, value, "string", "nil")
-  checkArg(2, length, "number")
-  if not value or unicode.wlen(value) == 0 then
-    return string.rep(" ", length)
-  else
-    return string.rep(" ", length - unicode.wlen(value)) .. value
-  end
-end --[[@delayloaded-end@]]
-
-function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
-  local from = string.match(value, "^%s*()")
-  return from > #value and "" or string.match(value, ".*%S", from)
 end
 
 function text.wrap(value, width, maxWidth)
@@ -69,38 +42,16 @@ function text.wrap(value, width, maxWidth)
 end
 
 function text.wrappedLines(value, width, maxWidth)
-  local line, nl
+  local line
   return function()
     if value then
-      line, value, nl = text.wrap(value, width, maxWidth)
+      line, value = text.wrap(value, width, maxWidth)
       return line
     end
   end
 end
 
--------------------------------------------------------------------------------
-
--- separate string value into an array of words delimited by whitespace
--- groups by quotes
--- options is a table used for internal undocumented purposes
-function text.tokenize(value, options)
-  checkArg(1, value, "string")
-  checkArg(2, options, "table", "nil")
-  options = options or {}
-
-  local tokens, reason = text.internal.tokenize(value, options)
-
-  if type(tokens) ~= "table" then
-    return nil, reason
-  end
-
-  if options.doNotNormalize then
-    return tokens
-  end
-
-  return text.internal.normalize(tokens)
-end
-
+-- used by lib/sh
 function text.escapeMagic(txt)
   return txt:gsub('[%(%)%.%%%+%-%*%?%[%^%$]', '%%%1')
 end
@@ -108,50 +59,6 @@ end
 function text.removeEscapes(txt)
   return txt:gsub("%%([%(%)%.%%%+%-%*%?%[%^%$])","%1")
 end
-
--------------------------------------------------------------------------------
--- like tokenize, but does not drop any text such as whitespace
--- splits input into an array for sub strings delimited by delimiters
--- delimiters are included in the result if not dropDelims
-function --[[@delayloaded-start@]] text.split(input, delimiters, dropDelims, di)
-  checkArg(1, input, "string")
-  checkArg(2, delimiters, "table")
-  checkArg(3, dropDelims, "boolean", "nil")
-  checkArg(4, di, "number", "nil")
-
-  if #input == 0 then return {} end
-  di = di or 1
-  local result = {input}
-  if di > #delimiters then return result end
-
-  local function add(part, index, r, s, e)
-    local sub = part:sub(s,e)
-    if #sub == 0 then return index end
-    local subs = r and text.split(sub,delimiters,dropDelims,r) or {sub}
-    for i=1,#subs do
-      table.insert(result, index+i-1, subs[i])
-    end
-    return index+#subs
-  end
-
-  local i,d=1,delimiters[di]
-  while true do
-    local next = table.remove(result,i)
-    if not next then break end
-    local si,ei = next:find(d)
-    if si and ei and ei~=0 then -- delim found
-      i=add(next, i, di+1, 1, si-1)
-      i=dropDelims and i or add(next, i, false, si, ei)
-      i=add(next, i, di, ei+1)
-    else
-      i=add(next, i, di+1, 1, #next)
-    end
-  end
-  
-  return result
-end --[[@delayloaded-end@]]
-
------------------------------------------------------------------------------
 
 function text.internal.tokenize(value, options)
   checkArg(1, value, "string")
@@ -182,10 +89,10 @@ function text.internal.words(input, options)
   local show_escapes = options.show_escapes
   local qr = nil
   quotes = quotes or {{"'","'",true},{'"','"'},{'`','`'}}
-  local function append(dst, txt, qr)
+  local function append(dst, txt, _qr)
     local size = #dst
-    if size == 0 or dst[size].qr ~= qr then
-      dst[size+1] = {txt=txt, qr=qr}
+    if size == 0 or dst[size].qr ~= _qr then
+      dst[size+1] = {txt=txt, qr=_qr}
     else
       dst[size].txt = dst[size].txt..txt
     end
@@ -237,160 +144,6 @@ function text.internal.words(input, options)
   return tokens
 end
 
--- splits each word into words at delimiters
--- delimiters are kept as their own words
--- quoted word parts are not split
-function --[[@delayloaded-start@]] text.internal.splitWords(words, delimiters)
-  checkArg(1,words,"table")
-  checkArg(2,delimiters,"table")
+require("package").delay(text, "/lib/core/full_text.lua")
 
-  local split_words = {}
-  local next_word
-  local function add_part(part)
-    if next_word then
-      split_words[#split_words+1] = {}
-    end
-    table.insert(split_words[#split_words], part)
-    next_word = false
-  end
-  for wi=1,#words do local word = words[wi]
-    next_word = true
-    for pi=1,#word do local part = word[pi]
-      local qr = part.qr
-      if qr then
-        add_part(part)
-      else
-        local part_text_splits = text.split(part.txt, delimiters)
-        tx.foreach(part_text_splits, function(sub_txt, spi)
-          local delim = #text.split(sub_txt, delimiters, true) == 0
-          next_word = next_word or delim
-          add_part({txt=sub_txt,qr=qr})
-          next_word = delim
-        end)
-      end
-    end
-  end
-
-  return split_words
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] text.internal.normalize(words, omitQuotes)
-  checkArg(1, words, "table")
-  checkArg(2, omitQuotes, "boolean", "nil")
-  local norms = {}
-  for _,word in ipairs(words) do
-    local norm = {}
-    for _,part in ipairs(word) do
-      norm = tx.concat(norm, not omitQuotes and part.qr and {part.qr[1], part.txt, part.qr[2]} or {part.txt})
-    end
-    norms[#norms+1]=table.concat(norm)
-  end
-  return norms
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] text.internal.stream_base(binary)
-  return
-  {
-    binary = binary,
-    plen = binary and string.len or unicode.len,
-    psub = binary and string.sub or unicode.sub,
-    seek = function (handle, whence, to)
-      if not handle.txt then
-        return nil, "bad file descriptor"
-      end
-      to = to or 0
-      local offset = handle:indexbytes()
-      if whence == "cur" then
-        offset = offset + to
-      elseif whence == "set" then
-        offset = to
-      elseif whence == "end" then
-        offset = handle.len + to
-      end
-      offset = math.max(0, math.min(offset, handle.len))
-      handle:byteindex(offset)
-      return offset
-    end,
-    indexbytes = function (handle)
-      return handle.psub(handle.txt, 1, handle.index):len()
-    end,
-    byteindex = function (handle, offset)
-      local sub = string.sub(handle.txt, 1, offset)
-      handle.index = handle.plen(sub)
-    end,
-  }
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] text.internal.reader(txt, mode)
-  checkArg(1, txt, "string")
-  local reader = setmetatable(
-  {
-    txt = txt,
-    len = string.len(txt),
-    index = 0,
-    read = function(_, n)
-      checkArg(1, n, "number")
-      if not _.txt then
-        return nil, "bad file descriptor"
-      end
-      if _.index >= _.plen(_.txt) then
-        return nil
-      end
-      local next = _.psub(_.txt, _.index + 1, _.index + n)
-      _.index = _.index + _.plen(next)
-      return next
-    end,
-    close = function(_)
-      if not _.txt then
-        return nil, "bad file descriptor"
-      end
-      _.txt = nil
-      return true
-    end,
-  }, {__index=text.internal.stream_base(mode:match("b"))})
-
-  return require("buffer").new("r", reader)
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] text.internal.writer(ostream, mode, append_txt)
-  if type(ostream) == "table" then
-    local mt = getmetatable(ostream) or {}
-    checkArg(1, mt.__call, "function")
-  end
-  checkArg(1, ostream, "function", "table")
-  checkArg(2, append_txt, "string", "nil")
-  local writer = setmetatable(
-  {
-    txt = "",
-    index = 0, -- last location of write
-    len = 0,
-    write = function(_, ...)
-      if not _.txt then
-        return nil, "bad file descriptor"
-      end
-      local pre = _.psub(_.txt, 1, _.index)
-      local vs = {}
-      local pos = _.psub(_.txt, _.index + 1)
-      for i,v in ipairs({...}) do
-        table.insert(vs, v)
-      end
-      vs = table.concat(vs)
-      _.index = _.index + _.plen(vs)
-      _.txt = pre .. vs .. pos
-      _.len = string.len(_.txt)
-      return true
-    end,
-    close = function(_)
-      if not _.txt then
-        return nil, "bad file descriptor"
-      end
-      ostream((append_txt or "") .. _.txt)
-      _.txt = nil
-      return true
-    end,
-  }, {__index=text.internal.stream_base(mode:match("b"))})
-
-  return require("buffer").new("w", writer)
-end --[[@delayloaded-end@]]
-
-return text, local_env
+return text

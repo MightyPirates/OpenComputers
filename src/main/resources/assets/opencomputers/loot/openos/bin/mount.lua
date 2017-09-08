@@ -55,12 +55,12 @@ else
     io.stderr:write(reason,"\n")
     return 1
   elseif ops.r then
-    proxy = require("tools/ro_wrapper").wrap(proxy)
+    proxy = dofile("/lib/core/ro_wrapper.lua").wrap(proxy)
   end
 
-  local result, reason = fs.mount(proxy, shell.resolve(args[2]))
+  local result, mount_failure = fs.mount(proxy, shell.resolve(args[2]))
   if not result then
-    io.stderr:write(reason,"\n")
+    io.stderr:write(mount_failure, "\n")
     return 2 -- error code
   end
 end

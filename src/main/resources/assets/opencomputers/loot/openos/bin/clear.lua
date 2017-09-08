@@ -1,3 +1,2 @@
-local term = require("term")
-
-term.clear()
+local tty = require("tty")
+tty.clear()

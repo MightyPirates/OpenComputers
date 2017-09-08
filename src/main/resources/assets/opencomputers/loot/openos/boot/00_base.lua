@@ -1,7 +1,10 @@
-function loadfile(filename, mode, env)
-  local handle, reason = require("filesystem").open(filename)
+function loadfile(filename, ...)
+  if filename:sub(1,1) ~= "/" then
+    filename = (os.getenv("PWD") or "/") .. "/" .. filename
+  end
+  local handle, open_reason = require("filesystem").open(filename)
   if not handle then
-    return nil, reason
+    return nil, open_reason
   end
   local buffer = {}
   while true do
@@ -13,11 +16,9 @@ function loadfile(filename, mode, env)
       end
       break
     end
-    table.insert(buffer, data)
+    buffer[#buffer + 1] = data
   end
-  buffer[1] = (buffer[1] or ""):gsub("^#![^\n]+", "") -- remove shebang if any
-  buffer = table.concat(buffer)
-  return load(buffer, "=" .. filename, mode, env)
+  return load(table.concat(buffer), "=" .. filename, ...)
 end
 
 function dofile(filename)
@@ -31,15 +32,14 @@ end
 function print(...)
   local args = table.pack(...)
   local stdout = io.stdout
+  local old_mode, old_size = stdout:setvbuf()
   stdout:setvbuf("line")
+  local pre = ""
   for i = 1, args.n do
-    local arg = tostring(args[i])
-    if i > 1 then
-      arg = "\t" .. arg
-    end
-    stdout:write(arg)
+    stdout:write(pre, tostring(args[i]))
+    pre = "\t"
   end
   stdout:write("\n")
-  stdout:setvbuf("no")
+  stdout:setvbuf(old_mode, old_size)
   stdout:flush()
 end

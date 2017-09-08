@@ -117,16 +117,16 @@ local function dynamic_list(path, fsnode)
   local nodes, links, dirs = {}, {}, {}
   local node = findNode(path)
   if node then
-    for name,node in child_iterator(node) do
-      if node.proxy and node.proxy.link then
-        links[name] = node.proxy.link
-      elseif node.proxy and node.proxy.list then
+    for name,cnode in child_iterator(node) do
+      if cnode.proxy and cnode.proxy.link then
+        links[name] = cnode.proxy.link
+      elseif cnode.proxy and cnode.proxy.list then
         local child = {name=name,parent=fsnode}
         local child_path = path .. "/" .. name
         inject_dynamic_pairs(child, child_path, true)
         dirs[name] = child
       else
-        nodes[name] = node
+        nodes[name] = cnode
       end
     end
   end
@@ -143,7 +143,7 @@ inject_dynamic_pairs = function(fsnode, path, bStoreUse)
       local bLinks = key == "links"
       local bChildren = key == "children"
       if not bLinks and not bChildren then return end
-      local nodes, links, dirs = dynamic_list(path, tbl)
+      local _, links, dirs = dynamic_list(path, tbl)
       if bStoreUse then
         tbl.children = dirs
         tbl.links = links
@@ -153,7 +153,7 @@ inject_dynamic_pairs = function(fsnode, path, bStoreUse)
   })
 end
 
-local label_lib = dofile("/lib/tools/device_labeling.lua")
+local label_lib = dofile("/lib/core/device_labeling.lua")
 label_lib.loadRules()
 api.getDeviceLabel = label_lib.getDeviceLabel
 api.setDeviceLabel = label_lib.setDeviceLabel
@@ -163,7 +163,7 @@ function api.register(public_proxy)
   if registered then return end
   registered = true
 
-  local start_path = "/lib/tools/devfs/"
+  local start_path = "/lib/core/devfs/"
   for starter in fs.list(start_path) do
     local full_path = start_path .. starter
     local _,matched = starter:gsub("%.lua$","")
@@ -182,7 +182,7 @@ end
 
 function api.proxy.list(path)
   local result = {}
-  for name,node in pairs(dynamic_list(path, false, false)) do
+  for name in pairs(dynamic_list(path, false, false)) do
     table.insert(result, name)
   end
   return result
@@ -195,7 +195,7 @@ end
 
 function api.proxy.size(path)
   checkArg(1, path, "string")
-  local node, why = findNode(path)
+  local node = findNode(path)
   if not node or not node.proxy then
     return 0
   end

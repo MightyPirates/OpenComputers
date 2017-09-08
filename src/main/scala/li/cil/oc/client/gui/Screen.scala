@@ -16,7 +16,7 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
 
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
-  private var didDrag = false
+  private var didClick = false
 
   private var x, y = 0
 
@@ -57,13 +57,13 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
   protected override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (hasMouse && button >= 0) {
-      if (didDrag) {
+      if (didClick) {
         toBufferCoordinates(mouseX, mouseY) match {
           case Some((bx, by)) => buffer.mouseUp(bx, by, button, null)
           case _ => buffer.mouseUp(-1.0, -1.0, button, null)
         }
       }
-      didDrag = false
+      didClick = false
       mx = -1
       my = -1
     }
@@ -74,7 +74,7 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
       case Some((bx, by)) if bx.toInt != mx || (by*2).toInt != my =>
         if (mx >= 0 && my >= 0) buffer.mouseDrag(bx, by, button, null)
         else buffer.mouseDown(bx, by, button, null)
-        didDrag = mx >= 0 && my >= 0
+        didClick = true
         mx = bx.toInt
         my = (by*2).toInt // for high precision mode, sends some unnecessary packets when not using it, but eh
       case _ =>
