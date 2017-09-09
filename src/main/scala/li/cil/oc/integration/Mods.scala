@@ -93,7 +93,7 @@ object Mods {
 
   val Proxies = Array(
     //    integration.agricraft.ModAgriCraft,
-    //    integration.appeng.ModAppEng,
+    integration.appeng.ModAppEng,
     //    integration.betterrecords.ModBetterRecords,
     //    integration.bloodmagic.ModBloodMagic,
     //    integration.bluepower.ModBluePower,

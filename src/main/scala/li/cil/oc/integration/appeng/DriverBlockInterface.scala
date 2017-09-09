@@ -1,6 +1,8 @@
 package li.cil.oc.integration.appeng
 
-import appeng.tile.misc.TileInterface
+import appeng.api.implementations.tiles.ISegmentedInventory
+import appeng.api.networking.security.IActionHost
+import appeng.api.util.AEPartLocation
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.internal.Database
@@ -14,17 +16,20 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverBlockInterface extends DriverSidedTileEntity {
-  def getTileEntityClass: Class[_] = classOf[TileInterface]
+  def getTileEntityClass: Class[_] = AEUtil.interfaceClass
 
-  def createEnvironment(world: World, x: Int, y: Int, z: Int, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
+  def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntity with ISegmentedInventory with IActionHost])
 
-  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {
+  final class Environment(val tile: TileEntity with ISegmentedInventory with IActionHost) extends ManagedTileEntityEnvironment[TileEntity with ISegmentedInventory with IActionHost](tile, "me_interface") with NamedBlock with NetworkControl[TileEntity with ISegmentedInventory with IActionHost] {
     override def preferredName = "me_interface"
+    override def pos: AEPartLocation = AEPartLocation.INTERNAL
 
     override def priority = 5
 

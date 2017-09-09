@@ -195,6 +195,7 @@ dependencies {
     deobfCompile "mezz.jei:jei_1.10.2:${config.jei.version}"
     deobfCompile "net.darkhax.tesla:Tesla:${config.tesla.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
+
 /*
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"*/
     //provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:deobf"
@@ -208,7 +209,11 @@ dependencies {
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
-    }
+    }*/
+
+	provided files("libs/appliedenergistics2-rv4-alpha-11-api.jar")
+
+/*
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"*/
     provided ("codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal") {
         exclude module: 'NotEnoughItems'
@@ -282,7 +287,7 @@ sourceSets {
     main {
         scala {
             exclude 'li/cil/oc/integration/agricraft/**'
-            exclude 'li/cil/oc/integration/appeng/**'
+            //exclude 'li/cil/oc/integration/appeng/**'
             exclude 'li/cil/oc/integration/bloodmagic/**'
             exclude 'li/cil/oc/integration/bluepower/**'
             exclude 'li/cil/oc/integration/buildcraft/**'
