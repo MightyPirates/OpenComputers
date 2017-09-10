@@ -150,4 +150,11 @@ function process.internal.continue(co, ...)
   return table.unpack(result, 2, result.n)
 end
 
+function process.running(level) -- kept for backwards compat, prefer process.info
+  local info = process.info(level)
+  if info then
+    return info.path, info.env, info.command
+  end
+end
+
 return process

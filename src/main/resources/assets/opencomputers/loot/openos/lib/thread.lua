@@ -77,17 +77,29 @@ local function get_box_thread_handle(handles, bCreate)
 end
 
 function box_thread:resume()
-  if self:status() ~= "suspended" then
-    return nil, "cannot resume " .. self:status() .. " thread"
+  local mt = getmetatable(self)
+  if mt.__status ~= "suspended" then
+    return nil, "cannot resume " .. mt.__status .. " thread"
   end
-  getmetatable(self).__status = "running"
+  mt.__status = "running"
+  -- register the thread to wake up
+  if coroutine.status(self.pco.root) == "suspended" and not mt.reg then
+    mt.register(0)
+  end
+  return true
 end
 
 function box_thread:suspend()
-  if self:status() ~= "running" then
-    return nil, "cannot suspend " .. self:status() .. " thread"
+  local mt = getmetatable(self)
+  if mt.__status ~= "running" then
+    return nil, "cannot suspend " .. mt.__status .. " thread"
   end
-  getmetatable(self).__status = "suspended"
+  mt.__status = "suspended"
+  local pco_status = coroutine.status(self.pco.root)
+  if pco_status == "running" or pco_status == "normal" then
+    mt.coma()
+  end
+  return true
 end
 
 function box_thread:status()
@@ -113,34 +125,49 @@ function box_thread:attach(parent)
   if not proc then return nil, "thread failed to attach, process not found" end
   if mt.attached == proc then return self end -- already attached
 
-  local waiting_handler
   if mt.attached then
     local prev_btHandle = assert(get_box_thread_handle(mt.attached.data.handles), "thread panic: no thread handle")
     for i,h in ipairs(prev_btHandle) do
       if h == self then
         table.remove(prev_btHandle, i)
-        if mt.id then
-          waiting_handler = assert(mt.attached.data.handlers[mt.id], "thread panic: no event handler")
-          mt.attached.data.handlers[mt.id] = nil
-        end
         break
       end
     end
   end
 
+  -- registration happens on the attached proc, unregister before reparenting
+  local waiting_handler = mt.unregister()
+
   -- attach to parent or the current process
   mt.attached = proc
-  local handles = proc.data.handles
 
   -- this process may not have a box_thread manager handle
-  local btHandle = get_box_thread_handle(handles, true)
+  local btHandle = get_box_thread_handle(proc.data.handles, true)
   table.insert(btHandle, self)
 
+  -- register on the new parent
   if waiting_handler then -- event-waiting
     mt.register(waiting_handler.timeout - computer.uptime())
   end
 
   return self
+end
+
+function thread.current()
+  local proc = process.findProcess()
+  local thread_root
+  while proc do
+    if thread_root then
+      for _,bt in ipairs(get_box_thread_handle(proc.data.handles) or {}) do
+        if bt.pco.root == thread_root then
+          return bt
+        end
+      end
+    else
+      thread_root = proc.data.coroutine_handler.root
+    end
+    proc = proc.parent
+  end
 end
 
 function thread.create(fp, ...)
@@ -153,8 +180,8 @@ function thread.create(fp, ...)
     mt.__status = "running"
     local fp_co = t.pco.create(fp)
     -- run fp_co until dead
-    -- pullSignal will yield_all past this point
-    -- but yield will return here, we pullSignal from here to yield_all
+    -- pullSignal will yield_past this point
+    -- but yield will return here, we pullSignal from here to yield_past
     local args = table.pack(...)
     while true do
       local result = table.pack(t.pco.resume(fp_co, table.unpack(args, 1, args.n)))
@@ -188,7 +215,7 @@ function thread.create(fp, ...)
 
   --special resume to keep track of process death
   function mt.private_resume(...)
-    mt.id = nil
+    mt.unregister()
     -- this thread may have been killed
     if t:status() == "dead" then return end
     local result = table.pack(t.pco.resume(t.pco.root, ...))
@@ -209,17 +236,50 @@ function thread.create(fp, ...)
       timeout, -- wait for the time specified by the caller
       1, -- we only want this thread to wake up once
       mt.attached.data.handlers) -- optional arg, to specify our own handlers
+    mt.reg = mt.attached.data.handlers[mt.id]
+  end
+
+  function mt.unregister()
+    local id = mt.id
+    local reg = mt.reg
+    mt.id = nil
+    mt.reg = nil
+    -- before just removing a handler, make sure it is still ours
+    if id and mt.attached and mt.attached.data.handlers[id] == reg then
+      mt.attached.data.handlers[id] = nil
+      return reg
+    end
+  end
+
+  function mt.coma()
+    mt.unregister() -- we should not wake up again (until resumed)
+    while mt.__status == "suspended" do
+      t.pco.yield_past(t.pco.root, 0)
+    end
   end
 
   function mt.process.data.pull(_, timeout)
+    --[==[
+    yield_past(root) will yield until out of this thread
+    registration puts in a callback to resume this thread
+
+    Subsequent registrations are necessary in case the thread is suspended
+    This thread yields when suspended, entering a coma state
+    -> coma state: yield without registration
+
+    resume will regsiter a wakeup call, breaks coma
+
+    subsequent yields need not specify a timeout because
+    we already legitimately resumed only to find out we had been suspended
+
+    3 places register for wake up
+    1. computer.pullSignal [this path]
+    2. t:attach(proc) will unregister and re-register
+    3. t:resume() of a suspended thread
+    ]==]
     mt.register(timeout)
-    -- yield_past(root) will yield until out of this thread
-    -- the callback will resume this stack
-    local event_data
-    repeat
-      event_data = table.pack(t.pco.yield_past(t.pco.root, timeout))
-      -- during sleep, we may have been suspended
-    until t:status() ~= "suspended"
+    local event_data = table.pack(t.pco.yield_past(t.pco.root, timeout))
+    mt.coma()
     return table.unpack(event_data, 1, event_data.n)
   end
 

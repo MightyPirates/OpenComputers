@@ -68,7 +68,7 @@ local function confirm()
   if bForce then
     return true
   end
-  local r = io.read("*l")
+  local r = io.read()
   return r == 'y' or r == 'yes'
 end
 
