@@ -7,7 +7,6 @@ if tty.isAvailable() then
     io.write("\27[40m\27[37m")
     tty.clear()
   end
-  tty.setCursorBlink(true)
 end
 dofile("/etc/motd")
 

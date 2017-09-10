@@ -1,14 +1,14 @@
 local buffer = require("buffer")
-local tty = require("tty")
+local tty_stream = require("tty").stream
 
-local core_stdin = buffer.new("r", tty)
-local core_stdout = buffer.new("w", tty)
+local core_stdin = buffer.new("r", tty_stream)
+local core_stdout = buffer.new("w", tty_stream)
 local core_stderr = buffer.new("w", setmetatable(
 {
   write = function(_, str)
-    return tty:write("\27[31m"..str.."\27[37m")
+    return tty_stream:write("\27[31m"..str.."\27[37m")
   end
-  }, {__index=tty}))
+  }, {__index=tty_stream}))
 
 core_stdout:setvbuf("no")
 core_stderr:setvbuf("no")
@@ -16,9 +16,9 @@ core_stdin.tty = true
 core_stdout.tty = true
 core_stderr.tty = true
 
-core_stdin.close = tty.close
-core_stdout.close = tty.close
-core_stderr.close = tty.close
+core_stdin.close = tty_stream.close
+core_stdout.close = tty_stream.close
+core_stderr.close = tty_stream.close
 
 local io_mt = getmetatable(io) or {}
 io_mt.__index = function(_, k)
