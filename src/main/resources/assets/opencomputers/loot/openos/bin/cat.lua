@@ -17,18 +17,18 @@ for i = 1, #args do
     if args[i] == "-" then
       file, reason = io.stdin, "missing stdin"
     else
-      file, reason = io.open(shell.resolve(args[i]))
+      file, reason = fs.open(shell.resolve(args[i]))
     end
     if not file then
       io.stderr:write(string.format("cat: %s: %s\n", args[i], tostring(reason)))
       ec = 1
     else
       repeat
-        local line = file:read("*L")
-        if line then
-          io.write(line)
+        local chunk = file:read(2048)
+        if chunk then
+          io.write(chunk)
         end
-      until not line
+      until not chunk
       file:close()
     end
   end

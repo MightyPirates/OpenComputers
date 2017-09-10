@@ -92,7 +92,7 @@ function tty.gpu()
 end
 
 function tty.clear()
-  tty.scroll(math.huge)
+  tty.stream.scroll(math.huge)
   tty.setCursor(1, 1)
 end
 
@@ -101,73 +101,62 @@ function tty.isAvailable()
   return not not (gpu and gpu.getScreen())
 end
 
-function tty.stream:pull(cursor, timeout, ...)
-  local blink = tty.getCursorBlink()
-  timeout = timeout or math.huge
-  local blink_timeout = blink and .5 or math.huge
-  local gpu = tty.gpu()
+function tty.stream:blink(done)
   local width, height, dx, dy, x, y = tty.getViewport()
-
-  if gpu then
-    if x < 1 or x > width or y < 1 or y > height then
-      if cursor then
-        cursor:move(0)
-        cursor:scroll()
-      else
-        gpu = nil
-      end
-    end
-    x, y = tty.getCursor()
-    x, y = x + dx, y + dy
+  local gpu = tty.gpu()
+  if not gpu or x < 1 or x > width or y < 1 or y > height then
+    return true
   end
-
-  local bgColor, bgIsPalette
-  local fgColor, fgIsPalette
-  local char_at_cursor
-  if gpu then
+  x, y = x + dx, y + dy
+  local blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor = table.unpack(self.blink_cache or {})
+  if done == nil then -- reset
+    blinked = false
     bgColor, bgIsPalette = gpu.getBackground()
     -- it can happen during a type of race condition when a screen is removed
     if not bgColor then
-      return nil, "interrupted"
+      return
     end
 
     fgColor, fgIsPalette = gpu.getForeground()
     char_at_cursor = gpu.get(x, y)
   end
 
+  if not blinked and not done then
+    gpu.setForeground(bgColor, bgIsPalette)
+    gpu.setBackground(fgColor, fgIsPalette)
+    gpu.set(x, y, char_at_cursor)
+    gpu.setForeground(fgColor, fgIsPalette)
+    gpu.setBackground(bgColor, bgIsPalette)
+    blinked = true
+  elseif blinked and (done or tty.window.blink) then
+    gpu.set(x, y, char_at_cursor)
+    blinked = false
+  end
+
+  self.blink_cache = table.pack(blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor)
+  return true
+end
+
+function tty.stream:pull(timeout, ...)
+  timeout = timeout or math.huge
+  local blink_timeout = tty.window.blink and .5 or math.huge
+
+  -- it can happen during a type of race condition when a screen is removed
+  if not self:blink() then
+    return nil, "interrupted"
+  end
+
   -- get the next event
-  local blinked = false
-  local done = false
-  local signal
   while true do
-    if gpu then
-      if not blinked and not done then
-        gpu.setForeground(bgColor, bgIsPalette)
-        gpu.setBackground(fgColor, fgIsPalette)
-        gpu.set(x, y, char_at_cursor)
-        gpu.setForeground(fgColor, fgIsPalette)
-        gpu.setBackground(bgColor, bgIsPalette)
-        blinked = true
-      elseif blinked and (done or blink) then
-        gpu.set(x, y, char_at_cursor)
-        blinked = false
-      end
-    end
+    local signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
+
+    timeout = timeout - blink_timeout
+    local done = signal.n > 1 or timeout < blink_timeout
+    self:blink(done)
 
     if done then
       return table.unpack(signal, 1, signal.n)
     end
-
-    -- if vt100 ansi codes have anything buffered for read, return that first
-    if tty.window.ansi_response then
-      signal = {"clipboard", tty.keyboard(), tty.window.ansi_response, n=3}
-      tty.window.ansi_response = nil
-    else
-      signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
-    end
-
-    timeout = timeout - blink_timeout
-    done = signal.n > 1 or timeout < blink_timeout
   end
 end
 
@@ -180,16 +169,20 @@ function tty.split(cursor)
 end
 
 function tty.build_vertical_reader()
-  local x, y = tty.getCursor()
   return
   {
-    promptx = x,
-    prompty = y,
+    promptx = tty.window.x,
+    prompty = tty.window.y,
     index = 0,
     data = "",
     sy = 0,
-    scroll = function(self)
-      self.sy = self.sy + tty.scroll()
+    scroll = function(self, goback, prev_x, prev_y)
+      local width, x = tty.window.width, tty.getCursor() - 1
+      tty.setCursor(x % width + 1, tty.window.y + math.floor(x / width))
+      self:draw("")
+      if goback then
+        tty.setCursor(prev_x, prev_y - self.sy)
+      end
     end,
     move = function(self, n)
       local win = tty.window
@@ -242,11 +235,10 @@ function tty.build_vertical_reader()
       end
 
       -- redraw suffix
-      if s2 ~= "" then
-        local ps, px, py = self.sy, tty.getCursor()
-        self:draw(s2)
-        tty.setCursor(px, py - (self.sy - ps))
-      end
+      local prev_x, prev_y = tty.getCursor()
+      prev_y = prev_y + self.sy -- scroll will remove it
+      self:draw(s2)
+      self:scroll(s2 ~= "", prev_x, prev_y)
     end,
     clear = function(self)
       self:move(-math.huge)
@@ -264,9 +256,9 @@ end
 function tty.read(handler)
   tty.window.handler = handler
 
-  local result = table.pack(pcall(io.read))
+  local stdin = io.stdin
+  local result = table.pack(pcall(stdin.readLine, stdin, false))
   tty.window.handler = nil
-
   return select(2, assert(table.unpack(result)))
 end
 
@@ -279,7 +271,7 @@ function tty.stream:read()
   handler.index = 0
 
   while true do
-    local name, address, char, code = tty.stream:pull(cursor)
+    local name, address, char, code = self:pull()
     -- we may have lost tty during the pull
     if not tty.isAvailable() then
       return
@@ -290,7 +282,7 @@ function tty.stream:read()
     local main_kb = tty.keyboard()
     local main_sc = tty.screen()
     if name == "interrupted" then
-      tty.stream:write("^C\n")
+      self:write("^C\n")
       return false
     elseif address == main_kb or address == main_sc then
       local handler_method = handler[name] or
@@ -369,7 +361,7 @@ function tty.stream:write(value)
 
     -- scroll before parsing next line
     -- the value may only have been a newline
-    sy = sy + tty.scroll()
+    sy = sy + self.scroll()
     -- we may have needed to scroll one last time [nowrap adjustments]
     if #value == 0 then
       break
@@ -385,15 +377,18 @@ function tty.stream:write(value)
       local tail = ""
       local wlen_needed = unicode.wlen(segment)
       local wlen_remaining = window.width - x + 1
-      if not window.nowrap and wlen_remaining < wlen_needed then
+      if wlen_remaining < wlen_needed then
         segment = unicode.wtrunc(segment, wlen_remaining + 1)
-        wlen_needed = unicode.wlen(segment)
+        local wlen_used = unicode.wlen(segment)
         -- we can clear the line because we already know remaining < needed
-        tail = (" "):rep(wlen_remaining - wlen_needed)
-        -- we have to reparse the delimeter
-        ei = #segment
-        -- fake a newline
-        delim = "\n" 
+        tail = (" "):rep(wlen_remaining - wlen_used)
+        if not window.nowrap then
+          -- we have to reparse the delimeter
+          ei = #segment
+          -- fake a newline
+          delim = "\n"
+          wlen_needed = wlen_used
+        end
       end
       gpu.set(gpu_x, gpu_y, segment..tail)
       x = x + wlen_needed
@@ -417,14 +412,6 @@ function tty.stream:write(value)
     window.cr_last = delim == "\r"
   end
   return sy
-end
-
-function tty.setCursorBlink(enabled)
-  tty.window.blink = enabled
-end
-
-function tty.getCursorBlink()
-  return tty.window.blink
 end
 
 local gpu_intercept = {}
@@ -493,7 +480,7 @@ function tty.screen()
   return gpu.getScreen()
 end
 
-function tty.scroll(lines)
+function tty.stream.scroll(lines)
   local gpu = tty.gpu()
   if not gpu then
     return 0

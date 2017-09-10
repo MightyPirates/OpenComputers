@@ -51,9 +51,11 @@ for _,v in ipairs(args) do
   total_time = total_time + time_type_multiplier(time_type) * interval
 end
 
-local stdin_stream = io.stdin.stream
-if stdin_stream.pull then
-  stdin_stream:pull(nil, total_time, "interrupted")
-else
-  require("event").pull(total_time, "interrupted")
+local ins = io.stdin.stream
+local pull = ins.pull
+local start = 1
+if not pull then
+  pull = require("event").pull
+  start = 2
 end
+pull(select(start, ins, total_time, "interrupted"))
