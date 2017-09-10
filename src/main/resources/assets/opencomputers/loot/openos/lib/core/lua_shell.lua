@@ -10,12 +10,11 @@ end
 
 local env -- forward declare for binding in metamethod
 env = setmetatable({}, {
-  __index = function(t, k)
+  __index = function(_, k)
     _ENV[k] = _ENV[k] or optrequire(k)
     return _ENV[k]
   end,
-  __pairs = function(self)
-    local t = self
+  __pairs = function(t)
     return function(_, key)
       local k, v = next(t, key)
       if not k and t == env then
@@ -94,7 +93,7 @@ io.write("Press Ctrl+D to exit the interpreter.\n\27[37m")
 
 while tty.isAvailable() do
   io.write(env._PROMPT)
-  local command = tty:read(read_handler)
+  local command = tty.read(read_handler)
   if not command then -- eof
     return
   end

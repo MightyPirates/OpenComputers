@@ -16,7 +16,7 @@ tty.window =
   y = 1,
 }
 
-tty.internal = {}
+tty.stream = {}
 
 function tty.key_down_handler(handler, cursor, char, code)
   local data = cursor.data
@@ -92,7 +92,7 @@ function tty.gpu()
 end
 
 function tty.clear()
-  tty.scroll(math.huge)
+  tty.stream.scroll(math.huge)
   tty.setCursor(1, 1)
 end
 
@@ -101,77 +101,66 @@ function tty.isAvailable()
   return not not (gpu and gpu.getScreen())
 end
 
-function tty.pull(cursor, timeout, ...)
-  local blink = tty.getCursorBlink()
-  timeout = timeout or math.huge
-  local blink_timeout = blink and .5 or math.huge
-  local gpu = tty.gpu()
+function tty.stream:blink(done)
   local width, height, dx, dy, x, y = tty.getViewport()
-
-  if gpu then
-    if x < 1 or x > width or y < 1 or y > height then
-      if cursor then
-        cursor:move(0)
-        cursor:scroll()
-      else
-        gpu = nil
-      end
-    end
-    x, y = tty.getCursor()
-    x, y = x + dx, y + dy
+  local gpu = tty.gpu()
+  if not gpu or x < 1 or x > width or y < 1 or y > height then
+    return true
   end
-
-  local bgColor, bgIsPalette
-  local fgColor, fgIsPalette
-  local char_at_cursor
-  if gpu then
+  x, y = x + dx, y + dy
+  local blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor = table.unpack(self.blink_cache or {})
+  if done == nil then -- reset
+    blinked = false
     bgColor, bgIsPalette = gpu.getBackground()
     -- it can happen during a type of race condition when a screen is removed
     if not bgColor then
-      return nil, "interrupted"
+      return
     end
 
     fgColor, fgIsPalette = gpu.getForeground()
     char_at_cursor = gpu.get(x, y)
   end
 
+  if not blinked and not done then
+    gpu.setForeground(bgColor, bgIsPalette)
+    gpu.setBackground(fgColor, fgIsPalette)
+    gpu.set(x, y, char_at_cursor)
+    gpu.setForeground(fgColor, fgIsPalette)
+    gpu.setBackground(bgColor, bgIsPalette)
+    blinked = true
+  elseif blinked and (done or tty.window.blink) then
+    gpu.set(x, y, char_at_cursor)
+    blinked = false
+  end
+
+  self.blink_cache = table.pack(blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor)
+  return true
+end
+
+function tty.stream:pull(timeout, ...)
+  timeout = timeout or math.huge
+  local blink_timeout = tty.window.blink and .5 or math.huge
+
+  -- it can happen during a type of race condition when a screen is removed
+  if not self:blink() then
+    return nil, "interrupted"
+  end
+
   -- get the next event
-  local blinked = false
-  local done = false
-  local signal
   while true do
-    if gpu then
-      if not blinked and not done then
-        gpu.setForeground(bgColor, bgIsPalette)
-        gpu.setBackground(fgColor, fgIsPalette)
-        gpu.set(x, y, char_at_cursor)
-        gpu.setForeground(fgColor, fgIsPalette)
-        gpu.setBackground(bgColor, bgIsPalette)
-        blinked = true
-      elseif blinked and (done or blink) then
-        gpu.set(x, y, char_at_cursor)
-        blinked = false
-      end
-    end
+    local signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
+
+    timeout = timeout - blink_timeout
+    local done = signal.n > 1 or timeout < blink_timeout
+    self:blink(done)
 
     if done then
       return table.unpack(signal, 1, signal.n)
     end
-
-    -- if vt100 ansi codes have anything buffered for read, return that first
-    if tty.window.ansi_response then
-      signal = {"clipboard", tty.keyboard(), tty.window.ansi_response, n=3}
-      tty.window.ansi_response = nil
-    else
-      signal = table.pack(event.pull(math.min(blink_timeout, timeout), ...))
-    end
-
-    timeout = timeout - blink_timeout
-    done = signal.n > 1 or timeout < blink_timeout
   end
 end
 
-function tty.internal.split(cursor)
+function tty.split(cursor)
   local data, index = cursor.data, cursor.index
   local dlen = unicode.len(data)
   index = math.max(0, math.min(index, dlen))
@@ -179,22 +168,26 @@ function tty.internal.split(cursor)
   return unicode.sub(data, 1, index), tail == 0 and "" or unicode.sub(data, -tail)
 end
 
-function tty.internal.build_vertical_reader()
-  local x, y = tty.getCursor()
+function tty.build_vertical_reader()
   return
   {
-    promptx = x,
-    prompty = y,
+    promptx = tty.window.x,
+    prompty = tty.window.y,
     index = 0,
     data = "",
     sy = 0,
-    scroll = function(self)
-      self.sy = self.sy + tty.scroll()
+    scroll = function(self, goback, prev_x, prev_y)
+      local width, x = tty.window.width, tty.getCursor() - 1
+      tty.setCursor(x % width + 1, tty.window.y + math.floor(x / width))
+      self:draw("")
+      if goback then
+        tty.setCursor(prev_x, prev_y - self.sy)
+      end
     end,
     move = function(self, n)
       local win = tty.window
       self.index = math.min(math.max(0, self.index + n), unicode.len(self.data))
-      local s1, s2 = tty.internal.split(self)
+      local s1, s2 = tty.split(self)
       s2 = unicode.sub(s2.." ", 1, 1)
       local data_remaining = ("_"):rep(self.promptx - 1)..s1..s2
       win.y = self.prompty - self.sy
@@ -221,7 +214,7 @@ function tty.internal.build_vertical_reader()
       tty.gpu().fill(cx + dx, ey + dy, width - cx + 1, 1, " ")
     end,
     update = function(self, arg)
-      local s1, s2 = tty.internal.split(self)
+      local s1, s2 = tty.split(self)
       if type(arg) == "string" then
         self.data = s1 .. arg .. s2
         self.index = self.index + unicode.len(arg)
@@ -242,11 +235,10 @@ function tty.internal.build_vertical_reader()
       end
 
       -- redraw suffix
-      if s2 ~= "" then
-        local ps, px, py = self.sy, tty.getCursor()
-        self:draw(s2)
-        tty.setCursor(px, py - (self.sy - ps))
-      end
+      local prev_x, prev_y = tty.getCursor()
+      prev_y = prev_y + self.sy -- scroll will remove it
+      self:draw(s2)
+      self:scroll(s2 ~= "", prev_x, prev_y)
     end,
     clear = function(self)
       self:move(-math.huge)
@@ -256,28 +248,30 @@ function tty.internal.build_vertical_reader()
       self.data = ""
     end,
     draw = function(self, text)
-      self.sy = self.sy + tty:write(text)
+      self.sy = self.sy + tty.stream:write(text)
     end
   }
 end
 
--- PLEASE do not use this method directly, use io.read or tty.read
-function tty.read(_, handler, cursor)
-  checkArg(1, handler, "table", "number")
-  checkArg(2, cursor, "table", "nil")
+function tty.read(handler)
+  tty.window.handler = handler
 
-  if not io.stdin.tty then
-    return io.stdin:readLine(false)
-  end
+  local stdin = io.stdin
+  local result = table.pack(pcall(stdin.readLine, stdin, false))
+  tty.window.handler = nil
+  return select(2, assert(table.unpack(result)))
+end
 
-  if type(handler) ~= "table" then
-    handler = {}
-  end
+-- PLEASE do not use this method directly, use io.read or term.read
+function tty.stream:read()
+  local handler = tty.window.handler or {}
+  local cursor = handler.cursor or tty.build_vertical_reader()
+
+  tty.window.handler = nil
   handler.index = 0
-  cursor = cursor or tty.internal.build_vertical_reader()
 
   while true do
-    local name, address, char, code = tty.pull(cursor)
+    local name, address, char, code = self:pull()
     -- we may have lost tty during the pull
     if not tty.isAvailable() then
       return
@@ -288,7 +282,7 @@ function tty.read(_, handler, cursor)
     local main_kb = tty.keyboard()
     local main_sc = tty.screen()
     if name == "interrupted" then
-      tty:write("^C\n")
+      self:write("^C\n")
       return false
     elseif address == main_kb or address == main_sc then
       local handler_method = handler[name] or
@@ -321,10 +315,7 @@ function tty.setCursor(x, y)
 end
 
 -- PLEASE do not use this method directly, use io.write or term.write
-function tty.write(_, value)
-  if not io.stdout.tty then
-    return io.write(value)
-  end
+function tty.stream:write(value)
   local gpu = tty.gpu()
   if not gpu then
     return
@@ -370,7 +361,7 @@ function tty.write(_, value)
 
     -- scroll before parsing next line
     -- the value may only have been a newline
-    sy = sy + tty.scroll()
+    sy = sy + self.scroll()
     -- we may have needed to scroll one last time [nowrap adjustments]
     if #value == 0 then
       break
@@ -386,15 +377,18 @@ function tty.write(_, value)
       local tail = ""
       local wlen_needed = unicode.wlen(segment)
       local wlen_remaining = window.width - x + 1
-      if not window.nowrap and wlen_remaining < wlen_needed then
+      if wlen_remaining < wlen_needed then
         segment = unicode.wtrunc(segment, wlen_remaining + 1)
-        wlen_needed = unicode.wlen(segment)
+        local wlen_used = unicode.wlen(segment)
         -- we can clear the line because we already know remaining < needed
-        tail = (" "):rep(wlen_remaining - wlen_needed)
-        -- we have to reparse the delimeter
-        ei = #segment
-        -- fake a newline
-        delim = "\n" 
+        tail = (" "):rep(wlen_remaining - wlen_used)
+        if not window.nowrap then
+          -- we have to reparse the delimeter
+          ei = #segment
+          -- fake a newline
+          delim = "\n"
+          wlen_needed = wlen_used
+        end
       end
       gpu.set(gpu_x, gpu_y, segment..tail)
       x = x + wlen_needed
@@ -420,14 +414,6 @@ function tty.write(_, value)
   return sy
 end
 
-function tty.setCursorBlink(enabled)
-  tty.window.blink = enabled
-end
-
-function tty.getCursorBlink()
-  return tty.window.blink
-end
-
 local gpu_intercept = {}
 function tty.bind(gpu)
   checkArg(1, gpu, "table")
@@ -446,10 +432,12 @@ function tty.bind(gpu)
     end
   end
   local window = tty.window
-  window.gpu = gpu
-  window.keyboard = nil -- without a keyboard bound, always use the screen's main keyboard (1st)
+  if not window.gpu or window.gpu == gpu then
+    window.gpu = gpu
+    window.keyboard = nil -- without a keyboard bound, always use the screen's main keyboard (1st)
+    tty.getViewport()
+  end
   screen_reset(gpu)
-  tty.getViewport()
 end
 
 function tty.keyboard()
@@ -492,17 +480,29 @@ function tty.screen()
   return gpu.getScreen()
 end
 
-function tty.scroll(number)
+function tty.stream.scroll(lines)
   local gpu = tty.gpu()
   if not gpu then
     return 0
   end
   local width, height, dx, dy, x, y = tty.getViewport()
 
-  local lines = number or (y - height)
-  if lines == 0 -- if zero scroll length is requested, do nothing
-     or not number and lines < 0 then -- do not auto scroll back up, only down
-    return 0 
+  -- nil lines indicates a request to auto scroll
+  -- auto scroll is when the cursor has gone below the bottom on the terminal
+  -- and the text is scroll up, pulling the cursor back into view
+
+  -- lines<0 scrolls up (text down)
+  -- lines>0 scrolls down (text up)
+
+  -- no lines count given, the user is asking to auto scroll y back into view
+  if not lines then
+    if y < 1 then
+      lines = y - 1 -- y==0 scrolls back -1
+    elseif y > height then
+      lines = y - height -- y==height+1 scroll forward 1
+    else
+      return 0 -- do nothing
+    end
   end
 
   lines = math.min(lines, height)
@@ -516,16 +516,16 @@ function tty.scroll(number)
   gpu.copy(dx + 1, dy + 1 + math.max(0, lines), width, box_height, 0, -lines)
   gpu.fill(dx + 1, fill_top, width, abs_lines, ' ')
 
-  tty.setCursor(x, math.min(y, height))
+  tty.setCursor(x, math.max(1, math.min(y, height)))
 
   return lines
 end
 
 -- stream methods
 local function bfd() return nil, "tty: invalid operation" end
-tty.close = bfd
-tty.seek = bfd
-tty.handle = "tty"
+tty.stream.close = bfd
+tty.stream.seek = bfd
+tty.stream.handle = "tty"
 
 require("package").delay(tty, "/lib/core/full_tty.lua")
 

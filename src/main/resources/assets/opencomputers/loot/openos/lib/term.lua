@@ -70,7 +70,7 @@ end
 local function build_horizontal_reader(cursor)
   cursor.clear_tail = function(self)
     local w,_,dx,dy,x,y = tty.getViewport()
-    local _,s2=tty.internal.split(self)
+    local _,s2=tty.split(self)
     local wlen = math.min(unicode.wlen(s2),w-x+1)
     tty.gpu().fill(x+dx,y+dy,wlen,1," ")
   end
@@ -87,15 +87,16 @@ local function build_horizontal_reader(cursor)
   cursor.draw = function(_, text)
     local nowrap = tty.window.nowrap
     tty.window.nowrap = true
-    tty:write(text)
+    tty.stream:write(text)
     tty.window.nowrap = nowrap
   end
-  cursor.scroll = function(self)
+  cursor.scroll = function(self, goback, prev_x)
     local win = tty.window
-    local gpu,data,px,i = win.gpu, self.data, self.promptx, self.index
-    local w,_,dx,dy,x,y = tty.getViewport()
-    win.x = math.max(self.promptx, math.min(w, x))
-    local available,sx,sy = w-px+1,px+dx,y+dy
+    win.x = goback and prev_x or win.x
+    local x = win.x
+    local w = win.width
+    local data,px,i = self.data, self.promptx, self.index
+    local available = w-px+1
     if x > w then
       local blank
       if i == unicode.len(data) then
@@ -107,14 +108,19 @@ local function build_horizontal_reader(cursor)
       local rev = unicode.reverse(data)
       local ending = unicode.wtrunc(rev, available+1)
       data = unicode.reverse(ending)
-      gpu.set(sx,sy,data..blank)
-      win.x=math.min(w,self.promptx+unicode.wlen(data))
+      win.x = self.promptx
+      self:draw(data..blank)
+      -- wide chars may place the cursor not exactly at the end
+      win.x = math.min(w, self.promptx + unicode.wlen(data))
+    -- x could be negative, we scroll it back into view
     elseif x < self.promptx then
       data = unicode.sub(data, self.index+1)
       if unicode.wlen(data) > available then
         data = unicode.wtrunc(data,available+1)
       end
-      gpu.set(sx,sy,data)
+      win.x = self.promptx
+      self:draw(data)
+      win.x = math.max(px, math.min(w, x))
     end
   end
   cursor.clear = function(self)
@@ -135,25 +141,15 @@ local function inject_filter(handler, filter)
       end
     end
 
-    local mt =
-    {
-      __newindex = function(tbl, key, value)
-        if key == "key_down" then
-          local tty_key_down = value
-          value = function(_handler, cursor, char, code)
-            if code == keys.enter or code == keys.numpadenter then
-              if not filter(cursor.data) then
-                computer.beep(2000, 0.1)
-                return false -- ignore
-              end
-            end
-            return tty_key_down(_handler, cursor, char, code)
-          end
+    handler.key_down = function(self, cursor, char, code)
+      if code == keys.enter or code == keys.numpadenter then
+        if not filter(cursor.data) then
+          computer.beep(2000, 0.1)
+          return false -- ignore
         end
-        rawset(tbl, key, value)
       end
-    }
-    setmetatable(handler, mt)
+      return tty.key_down_handler(self, cursor, char, code)
+    end
   end
 end
 
@@ -198,15 +194,16 @@ function term.read(history, dobreak, hint, pwchar, filter)
   local handler = history
   handler.hint = handler.hint or hint
 
-  local cursor = tty.internal.build_vertical_reader()
+  local cursor = tty.build_vertical_reader()
   if handler.nowrap then
     build_horizontal_reader(cursor)
   end
 
   inject_filter(handler, filter)
   inject_mask(cursor, dobreak, pwchar or history.pwchar)
+  handler.cursor = cursor
 
-  return tty:read(handler, cursor)
+  return tty.read(handler)
 end
 
 function term.getGlobalArea(window)
@@ -221,6 +218,14 @@ function term.clearLine(window)
   window.x = 1
 end
 
+function term.setCursorBlink(enabled)
+  tty.window.blink = enabled
+end
+
+function term.getCursorBlink()
+  return tty.window.blink
+end
+
 function term.pull(...)
   local args = table.pack(...)
   local timeout = nil
@@ -228,7 +233,15 @@ function term.pull(...)
     timeout = table.remove(args, 1)
     args.n = args.n - 1
   end
-  return tty.pull(nil, timeout, table.unpack(args, 1, args.n))
+  local stdin_stream = io.stdin.stream
+  if stdin_stream.pull then
+    return stdin_stream:pull(nil, timeout, table.unpack(args, 1, args.n))
+  end
+  -- if stdin does not have pull() we can build the result
+  local result = io.read(1)
+  if result then
+    return "clipboard", nil, result
+  end
 end
 
 function term.bind(gpu, window)
