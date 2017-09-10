@@ -1,4 +1,5 @@
-local shell = require('shell')
+local shell = require("shell")
+local tty = require("tty")
 local args, options = shell.parse(...)
 
 if options.help then
@@ -50,4 +51,11 @@ for _,v in ipairs(args) do
   total_time = total_time + time_type_multiplier(time_type) * interval
 end
 
-os.sleep(total_time)
+local ins = io.stdin.stream
+local pull = ins.pull
+local start = 1
+if not pull then
+  pull = require("event").pull
+  start = 2
+end
+pull(select(start, ins, total_time, "interrupted"))
