@@ -147,7 +147,7 @@ function buffer:readBytesOrChars(readChunk, n)
       local result, reason = readChunk(self)
       if not result then
         if reason then
-          return nil, reason
+          return result, reason
         else -- eof
           return #data > 0 and data or nil
         end
@@ -164,7 +164,7 @@ function buffer:readAll(readChunk)
   repeat
     local result, reason = readChunk(self)
     if not result and reason then
-      return nil, reason
+      return result, reason
     end
   until not result -- eof
   local result = self.bufferRead
