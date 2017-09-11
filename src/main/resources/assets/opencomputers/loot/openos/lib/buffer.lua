@@ -73,7 +73,7 @@ local function readChunk(self)
     self.bufferRead = self.bufferRead .. result
     return self
   else -- error or eof
-    return nil, reason
+    return result, reason
   end
 end
 
@@ -98,7 +98,7 @@ function buffer:readLine(chop, timeout)
       local result, reason = readChunk(self)
       if not result then
         if reason then
-          return nil, reason
+          return result, reason
         else -- eof
           result = #self.bufferRead > 0 and self.bufferRead or nil
           self.bufferRead = ""

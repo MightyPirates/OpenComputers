@@ -283,7 +283,7 @@ function tty.stream:read()
     local main_sc = tty.screen()
     if name == "interrupted" then
       self:write("^C\n")
-      return false
+      return false, name
     elseif address == main_kb or address == main_sc then
       local handler_method = handler[name] or
       -- this handler listing hack is to delay load tty
