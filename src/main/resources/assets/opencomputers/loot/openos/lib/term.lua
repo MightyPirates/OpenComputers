@@ -235,7 +235,7 @@ function term.pull(...)
   end
   local stdin_stream = io.stdin.stream
   if stdin_stream.pull then
-    return stdin_stream:pull(nil, timeout, table.unpack(args, 1, args.n))
+    return stdin_stream:pull(timeout, table.unpack(args, 1, args.n))
   end
   -- if stdin does not have pull() we can build the result
   local result = io.read(1)

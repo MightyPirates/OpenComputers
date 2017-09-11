@@ -7,13 +7,13 @@ local sh = require("sh")
 local args, options = shell.parse(...)
 
 shell.prime()
-local update_gpu = io.output().tty and not options.c
 local needs_profile = io.input().tty
+local has_prompt = needs_profile and io.output().tty and not options.c
 local input_handler = {hint = sh.hintHandler}
 
 if #args == 0 then
   while true do
-    if update_gpu then
+    if has_prompt then
       while not tty.isAvailable() do
         event.pull("term_available")
       end
@@ -34,10 +34,10 @@ if #args == 0 then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
-    else
+    elseif command == nil then -- false only means the input was interrupted
       return -- eof
     end
-    if update_gpu and tty.getCursor() > 1 then
+    if has_prompt and tty.getCursor() > 1 then
       io.write("\n")
     end
   end
