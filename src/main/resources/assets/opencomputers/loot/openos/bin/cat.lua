@@ -7,7 +7,7 @@ if #args == 0 then
   args = {"-"}
 end
 
-local input_method, input_param = "read", 2048
+local input_method, input_param = "read", require("tty").window.width
 
 for i = 1, #args do
   local arg = shell.resolve(args[i])
