@@ -1,11 +1,7 @@
+local buffer = require("buffer")
 local keyboard = require("keyboard")
 local shell = require("shell")
-local term = require("term") -- TODO use tty and cursor position instead of global area and gpu
-local text = require("text")
-
-if not io.output().tty then
-  return loadfile(shell.resolve("cat", "lua"), "bt", _G)(...)
-end
+local tty = require("tty")
 
 local args = shell.parse(...)
 if #args > 1 then
@@ -13,55 +9,49 @@ if #args > 1 then
   io.write("- or no args reads stdin\n")
   return 1
 end
-local arg = args[1] or "-"
-local file, reason
-if arg == "-" then
-  file, reason = io.stdin, "this process has no stdin"
-else
-  file, reason = io.open(shell.resolve(arg))
-end
-if not file then
-  io.stderr:write(reason,'\n')
-  return 1
+
+local function clear_line()
+  tty.window.x = 1 -- move cursor to start of line
+  io.write("\27[2K") -- clear line
 end
 
-local line = nil
-local function readlines(num)
-  local _, _, w, h = term.getGlobalArea()
-  num = num or (h - 1)
-  for _ = 1, num do
-    if not line then
-      line = file:read("*l")
-      if not line then -- eof
-        return nil
+if io.output().tty then
+  io.write("\27[2J\27[H")
+
+  local intercept_active = true
+  local original_stream = io.stdout.stream
+  local custom_stream = setmetatable({
+    scroll = function(...)
+      local _, height, _, _, _, y = tty.getViewport()
+      local lines_below = height - y
+      if intercept_active and lines_below < 1 then
+        intercept_active = false
+        original_stream.scroll(-lines_below) -- if zero no scroll action is made [good]
+        tty.setCursor(1, height) -- move to end
+        clear_line()
+        io.write(":") -- status
+        local _, _, _, code = original_stream:pull(nil, "key_down") -- nil timeout is math.huge
+        if code == keyboard.keys.q then
+          clear_line()
+          os.exit(1) -- abort
+        elseif code == keyboard.keys["end"] then
+          io.stdout.stream.scroll = nil -- remove handler
+        elseif code == keyboard.keys.space or code == keyboard.keys.pageDown then
+          io.write("\27[2J\27[H") -- clear whole screen, get new page drawn; move cursor to 1,1
+        elseif code == keyboard.keys.enter or code == keyboard.keys.down then
+          clear_line() -- remove status bar
+          original_stream.scroll(1) -- move everything up one
+          tty.setCursor(1, height - 1)
+        end
+        intercept_active = true
       end
+      return original_stream.scroll(...)
     end
-    local wrapped
-    wrapped, line = text.wrap(text.detab(line), w, w)
-    io.write(wrapped,"\n")
-  end
-  term.setCursor(1, h)
-  term.write(":")
-  return true
+  }, {__index=original_stream})
+
+  local custom_output_buffer = buffer.new("w", custom_stream)
+  custom_output_buffer:setvbuf("no")
+  io.output(custom_output_buffer)
 end
 
-while true do
-  term.clear()
-  if not readlines() then
-    return
-  end
-  while true do
-    local _, _, _, code = term.pull("key_down")
-    if code == keyboard.keys.q then
-      term.clearLine()
-      return
-    elseif code == keyboard.keys.space or code == keyboard.keys.pageDown then
-      break
-    elseif code == keyboard.keys.enter or code == keyboard.keys.down then
-      term.clearLine()
-      if not readlines(1) then
-        return
-      end
-    end
-  end
-end
+return loadfile(shell.resolve("cat", "lua"))(...)

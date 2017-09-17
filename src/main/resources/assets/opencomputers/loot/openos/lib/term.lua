@@ -248,5 +248,12 @@ function term.bind(gpu, window)
   return as_window(window, tty.bind, gpu)
 end
 
-return term
+function term.scroll(...)
+  if io.stdout.tty then
+    return io.stdout.stream.scroll(...)
+  end
+end
 
+term.internal.run_in_window = as_window
+
+return term
