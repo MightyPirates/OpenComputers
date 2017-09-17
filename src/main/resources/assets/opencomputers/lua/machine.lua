@@ -577,7 +577,7 @@ do
     checkArg(3, repl, "number", "string", "function", "table")
     checkArg(4, n, "number", "nil")
 
-    if #s < SHORT_STRING or type(repl) == "function" then
+    if #s < SHORT_STRING then
       return string_gsub(s, pattern, repl, n)
     end
 
