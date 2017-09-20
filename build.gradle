@@ -57,7 +57,7 @@ minecraft {
     mappings = config.minecraft.mappings
 
     replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
 }
 
 repositories {
