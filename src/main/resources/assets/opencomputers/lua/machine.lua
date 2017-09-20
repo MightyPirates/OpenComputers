@@ -1302,6 +1302,7 @@ local libcomputer = {
   uptime = computer.uptime,
   energy = computer.energy,
   maxEnergy = computer.maxEnergy,
+  realTime = computer.realTime,
 
   getBootAddress = computer.getBootAddress,
   setBootAddress = function(...)
