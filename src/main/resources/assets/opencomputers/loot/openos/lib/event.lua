@@ -42,25 +42,26 @@ computer.pullSignal = function(...) -- dispatch
   end
   local event_data = table.pack(handlers(...))
   local signal = event_data[1]
-  local ids = {}
-  for id in pairs(handlers) do
-    ids[#ids+1] = id
+  local copy = {}
+  for id,handler in pairs(handlers) do
+    copy[id] = handler
   end
-  for _,id in ipairs(ids) do
-    local handler = handlers[id]
+  for id,handler in pairs(copy) do
     -- timers have false keys
     -- nil keys match anything
     if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
       handler.times = handler.times - 1
       handler.timeout = current_time + handler.interval
-      if handler.times <= 0 then
+      -- we have to remove handlers before making the callback in case of timers that pull
+      -- and we have to check handlers[id] == handler because callbacks may have unregistered things
+      if handler.times <= 0 and handlers[id] == handler then
         handlers[id] = nil
       end
       -- call
       local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
       if not result then
         pcall(event.onError, message)
-      elseif message == false then
+      elseif message == false and handlers[id] == handler then
         handlers[id] = nil
       end
     end
