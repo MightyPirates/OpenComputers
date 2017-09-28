@@ -124,7 +124,7 @@ public class ItemStackArrayValue extends AbstractValue {
 	public Object[] getAll(Context context, Arguments arguments) throws Exception {
 		TreeMap<Integer,Object> map = new TreeMap<Integer,Object>();
 		for (int i=0; i<this.array.length; i++){
-			map.put(i, this.array[i] != null ? this.array[i] : emptyMap);
+			map.put(i + 1, this.array[i] != null ? this.array[i] : emptyMap);
 		}
 		return new Object[] { map };
 	}
