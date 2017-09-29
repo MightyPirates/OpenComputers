@@ -23,6 +23,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.SleepResult
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
+import net.minecraft.inventory.EntityEquipmentSlot
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
@@ -218,9 +219,28 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     })
   }
 
+  private var offHand: (IInventory, Int) = _
+
+  override def setItemStackToSlot(slotIn: EntityEquipmentSlot, stack: ItemStack): Unit = {
+    if (slotIn == EntityEquipmentSlot.MAINHAND) {
+      agent.equipmentInventory.setInventorySlotContents(0, stack)
+    } else if(slotIn == EntityEquipmentSlot.OFFHAND && offHand != null) {
+      offHand._1.setInventorySlotContents(offHand._2, stack)
+    }
+    super.setItemStackToSlot(slotIn, stack)
+  }
+
+  override def getItemStackFromSlot(slotIn: EntityEquipmentSlot): ItemStack = {
+    if (slotIn == EntityEquipmentSlot.MAINHAND)
+      agent.equipmentInventory.getStackInSlot(0)
+    else if(slotIn == EntityEquipmentSlot.OFFHAND && offHand != null)
+      offHand._1.getStackInSlot(offHand._2)
+    else super.getItemStackFromSlot(slotIn)
+  }
+
   def fireRightClickBlock(pos: BlockPos, side: EnumFacing): PlayerInteractEvent.RightClickBlock = {
     val hitVec = new Vec3d(0.5 + side.getDirectionVec.getX * 0.5, 0.5 + side.getDirectionVec.getY * 0.5, 0.5 + side.getDirectionVec.getZ * 0.5)
-    val event = new PlayerInteractEvent.RightClickBlock(this, EnumHand.MAIN_HAND, getHeldItemMainhand, pos, side, hitVec)
+    val event = new PlayerInteractEvent.RightClickBlock(this, EnumHand.OFF_HAND, getHeldItemMainhand, pos, side, hitVec)
     MinecraftForge.EVENT_BUS.post(event)
     event
   }
@@ -434,6 +454,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val stack = inventory.getStackInSlot(slot)
     val oldStack = if (stack != null) stack.copy() else null
     this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
+    this.offHand = (inventory, slot)
     try {
       f(stack)
     }
@@ -449,6 +470,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           else ForgeEventFactory.onPlayerDestroyItem(this, newStack, EnumHand.MAIN_HAND)
         }
       }
+      this.offHand = null
       collectDroppedItems(itemsBefore)
     }
   }
@@ -472,7 +494,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       else {
         val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
         setPosition(posX, posY - fakeEyeHeight, posZ)
-        val didPlace = stack.onItemUse(this, world, pos, EnumHand.MAIN_HAND, side, hitX, hitY, hitZ)
+        val didPlace = stack.onItemUse(this, world, pos, EnumHand.OFF_HAND, side, hitX, hitY, hitZ)
         setPosition(posX, posY + fakeEyeHeight, posZ)
         if (didPlace == EnumActionResult.SUCCESS) {
           MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(agent, stack, world, pos))
