@@ -222,12 +222,22 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   private var offHand: (IInventory, Int) = _
 
   override def setItemStackToSlot(slotIn: EntityEquipmentSlot, stack: ItemStack): Unit = {
+    var superCall: () => Unit = () => super.setItemStackToSlot(slotIn, stack)
     if (slotIn == EntityEquipmentSlot.MAINHAND) {
       agent.equipmentInventory.setInventorySlotContents(0, stack)
+      superCall = () => {
+        val slot = inventory.currentItem
+        // So, if we're not in the main inventory, currentItem is set to -1
+        // for compatibility with mods that try accessing the inv directly
+        // using inventory.currentItem. See li.cil.oc.server.agent.Inventory
+        if(inventory.currentItem < 0) inventory.currentItem = ~inventory.currentItem
+        super.setItemStackToSlot(slotIn, stack)
+        inventory.currentItem = slot
+      }
     } else if(slotIn == EntityEquipmentSlot.OFFHAND && offHand != null) {
       offHand._1.setInventorySlotContents(offHand._2, stack)
     }
-    super.setItemStackToSlot(slotIn, stack)
+    superCall()
   }
 
   override def getItemStackFromSlot(slotIn: EntityEquipmentSlot): ItemStack = {
