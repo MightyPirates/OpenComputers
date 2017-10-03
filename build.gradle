@@ -16,8 +16,8 @@ apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -81,6 +81,7 @@ dependencies {
     deobfCompile ("net.sengir.forestry:forestry_1.12:${config.forestry.version}") {
         exclude module: "jei_1.12"
     }
+    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 

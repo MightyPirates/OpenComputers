@@ -19,6 +19,7 @@ object Mods {
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
   val Forge = new SimpleMod(IDs.Forge)
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -29,6 +30,7 @@ object Mods {
 
   val Proxies = Array(
     integration.forestry.ModForestry,
+    integration.ic2.ModIndustrialCraft2,
     integration.minecraftforge.ModMinecraftForge,
     integration.tis3d.ModTIS3D,
     integration.minecraft.ModMinecraft,
@@ -61,6 +63,7 @@ object Mods {
   object IDs {
     final val Forestry = "forestry"
     final val Forge = "forge"
+    final val IndustrialCraft2 = "ic2"
     final val JustEnoughItems = "jei"
     final val Minecraft = "minecraft"
     final val OpenComputers = "opencomputers"

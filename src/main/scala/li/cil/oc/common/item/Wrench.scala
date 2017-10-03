@@ -1,6 +1,8 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.api
+import li.cil.oc.common.asm.Injectable
+import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
@@ -12,6 +14,9 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
+@Injectable.InterfaceList(Array(
+  new Injectable.Interface(value = "ic2.api.item.IBoxable", modid = Mods.IDs.IndustrialCraft2)
+))
 class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
   setMaxStackSize(1)
@@ -34,4 +39,7 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
     if (!simulate) player.swingArm(EnumHand.MAIN_HAND)
     true
   }
+
+  // IndustrialCraft 2
+  def canBeStoredInToolbox(stack: ItemStack): Boolean = true
 }

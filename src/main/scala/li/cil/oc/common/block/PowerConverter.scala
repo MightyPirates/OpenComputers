@@ -9,7 +9,6 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -29,6 +28,9 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 //    if (Mods.Factorization.isAvailable) {
 //      addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
 //    }
+    if (Mods.IndustrialCraft2.isModAvailable) {
+      addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
+    }
   }
 
   private def addExtension(x: Double) =
