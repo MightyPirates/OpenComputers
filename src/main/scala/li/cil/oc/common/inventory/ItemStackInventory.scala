@@ -12,8 +12,11 @@ trait ItemStackInventory extends Inventory {
   override def items = inventory
 
   // Initialize the list automatically if we have a container.
-  if (!container.isEmpty) {
-    reinitialize()
+  {
+    val _container = container
+    if (_container != null && !_container.isEmpty) {
+      reinitialize()
+    }
   }
 
   // Load items from tag.
