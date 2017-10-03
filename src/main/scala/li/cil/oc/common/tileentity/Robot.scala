@@ -591,6 +591,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
             case keyboard: api.internal.Keyboard => buffer.node.connect(keyboard.node)
+            case gpu: li.cil.oc.server.component.GraphicsCard => buffer.node.connect(gpu.node)
             case _ =>
           }
         }
