@@ -65,6 +65,7 @@ repositories {
     maven { url "http://maven.amadornes.com/" }
     maven { url "http://maven.cil.li/" }
     maven { url "http://maven.ic2.player.to/" }
+    maven { url "http://tehnut.info/maven" }
 }
 
 configurations {
@@ -82,6 +83,7 @@ dependencies {
         exclude module: "jei_1.12"
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
+    deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
