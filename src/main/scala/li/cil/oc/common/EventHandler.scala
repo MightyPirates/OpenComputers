@@ -26,7 +26,6 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
@@ -107,6 +106,16 @@ object EventHandler {
   def scheduleClient(f: () => Unit) {
     pendingClient.synchronized {
       pendingClient += f
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
+    if (SideTracker.isServer) pendingServer.synchronized {
+      pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
+      })
     }
   }
 

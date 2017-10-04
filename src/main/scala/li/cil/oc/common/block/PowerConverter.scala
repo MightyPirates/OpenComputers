@@ -28,6 +28,9 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 //    if (Mods.Factorization.isAvailable) {
 //      addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
 //    }
+    if (Mods.IndustrialCraft2.isModAvailable) {
+      addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
+    }
   }
 
   private def addExtension(x: Double) =
