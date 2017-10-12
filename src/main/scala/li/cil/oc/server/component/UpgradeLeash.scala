@@ -82,7 +82,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
   }
 
   private def unleashAll() {
-    entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
+    entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
       if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashedToEntity == host) {
         entity.clearLeashed(true, false)
       }
@@ -100,7 +100,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     // entities only remember their leashee if it's an EntityLivingBase...
     EventHandler.scheduleServer(() => {
       val foundEntities = mutable.Set.empty[UUID]
-      entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
+      entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
         if (leashedEntities.contains(entity.getUniqueID)) {
           entity.setLeashedToEntity(host, true)
           foundEntities += entity.getUniqueID

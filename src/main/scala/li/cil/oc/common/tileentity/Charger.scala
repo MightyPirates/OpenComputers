@@ -228,7 +228,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }).collect {
       case Some(t: RobotProxy) => new RobotChargeable(t.robot)
     }
-    val bounds = BlockPosition(this).bounds.expand(1, 1, 1)
+    val bounds = BlockPosition(this).bounds.grow(1, 1, 1)
     val drones = getWorld.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
       case drone: Drone => new DroneChargeable(drone)
     }

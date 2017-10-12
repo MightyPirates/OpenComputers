@@ -51,7 +51,7 @@ object Waypoints {
   def findWaypoints(pos: BlockPosition, range: Double): Iterable[Waypoint] = {
     dimensions.get(pos.world.get.provider.getDimension) match {
       case Some(set) =>
-        val bounds = pos.bounds.expand(range * 0.5, range * 0.5, range * 0.5)
+        val bounds = pos.bounds.grow(range * 0.5, range * 0.5, range * 0.5)
         set.query((bounds.minX, bounds.minY, bounds.minZ), (bounds.maxX, bounds.maxY, bounds.maxZ))
       case _ => Iterable.empty
     }

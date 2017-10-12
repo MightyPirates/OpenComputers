@@ -25,3 +25,7 @@
 # OS X
 .DS_Store
 /run
+
+# VS Code
+/.vscode
+

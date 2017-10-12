@@ -29,7 +29,7 @@ object MFUTargetRenderer {
           if (player.getEntityWorld.provider.getDimension != dimension) return
           if (player.getDistance(x, y, z) > 64) return
 
-          val bounds = BlockPosition(x, y, z).bounds.expand(0.1, 0.1, 0.1)
+          val bounds = BlockPosition(x, y, z).bounds.grow(0.1, 0.1, 0.1)
 
           val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
           val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks

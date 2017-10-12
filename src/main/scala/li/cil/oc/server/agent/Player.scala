@@ -132,7 +132,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   private def adjacentItems = {
-    world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.expand(2, 2, 2))
+    world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.grow(2, 2, 2))
   }
 
   private def collectDroppedItems(itemsBefore: Iterable[EntityItem]) {

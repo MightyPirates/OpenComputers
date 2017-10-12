@@ -45,7 +45,7 @@ class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironme
 
   @Callback(doc = "function():table -- Returns a table of trades in range as userdata objects.")
   def getTrades(context: Context, args: Arguments): Array[AnyRef] = {
-    result(entitiesInBounds[Entity](classOf[Entity], position.bounds.expand(maxRange, maxRange, maxRange)).
+    result(entitiesInBounds[Entity](classOf[Entity], position.bounds.grow(maxRange, maxRange, maxRange)).
       filter(isInRange).
       collect { case merchant: IMerchant => merchant }.
       flatMap(merchant => merchant.getRecipes(null).indices.map(new Trade(this, merchant, _))))

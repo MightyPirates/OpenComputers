@@ -51,7 +51,7 @@ object UpgradeTractorBeam {
 
   @Callback(doc = """function():boolean -- Tries to pick up a random item in the robots' vicinity.""")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
-    val items = world.getEntitiesWithinAABB(classOf[EntityItem], position.bounds.expand(pickupRadius, pickupRadius, pickupRadius))
+    val items = world.getEntitiesWithinAABB(classOf[EntityItem], position.bounds.grow(pickupRadius, pickupRadius, pickupRadius))
       .filter(item => item.isEntityAlive && !item.cannotPickup)
     if (items.nonEmpty) {
       val item = items(world.rand.nextInt(items.size))

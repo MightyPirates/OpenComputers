@@ -330,7 +330,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def getRenderBoundingBox: AxisAlignedBB =
     if (getBlockType != null && getWorld != null)
-      getBlockType.getCollisionBoundingBox(getWorld.getBlockState(getPos), getWorld, getPos).expand(0.5, 0.5, 0.5).offset(getPos)
+      getBlockType.getCollisionBoundingBox(getWorld.getBlockState(getPos), getWorld, getPos).grow(0.5, 0.5, 0.5).offset(getPos)
     else
       new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(getPos)
 
