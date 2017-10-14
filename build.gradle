@@ -46,9 +46,6 @@ def getGitRef() {
 if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
 
-if (config.oc.subversion != null && config.oc.subversion != "")
-    version += "-${config.oc.subversion}"
-
 if (System.getenv("BUILD_NUMBER") == null)
     version += "+" + getGitRef()
 
