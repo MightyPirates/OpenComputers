@@ -90,7 +90,7 @@ repositories {
     }
     maven {
         name = "mobius"
-        url = "http://mobiusstrip.eu/maven"
+        url = "http://default.mobiusstrip.eu/maven"
     }
     maven {
         name = "dmodoomsirius"
@@ -112,10 +112,10 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
-    ivy {
-        name 'ColoredLightCore'
-        artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
-    }
+    // ivy {
+    //     name 'ColoredLightCore'
+    //     artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
+    // }
     ivy {
         name "BuildCraft"
         artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
@@ -199,7 +199,7 @@ dependencies {
     provided ("mrtjp:ProjectRed:${config.projred.version}:dev") {
         exclude module: 'CoFHCore'
     }
-    provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
+    // provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
