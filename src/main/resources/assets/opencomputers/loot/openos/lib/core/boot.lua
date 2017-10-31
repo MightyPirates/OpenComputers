@@ -42,8 +42,6 @@ if gpu and screen then
   gpu.fill(1, 1, w, h, " ")
 end
 local y = 1
-local uptime = computer.uptime
-local last_sleep = uptime()
 local function status(msg)
   if gpu and screen then
     gpu.set(1, y, msg)
@@ -53,10 +51,6 @@ local function status(msg)
     else
       y = y + 1
     end
-  end
-  if uptime() - last_sleep > 1 then
-    computer.pullSignal(0)
-    last_sleep = uptime()
   end
 end
 
