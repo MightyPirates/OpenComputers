@@ -356,7 +356,7 @@ function sh.internal.hasValidPiping(words, pipes)
     return true
   end
 
-  local semi_split = tx.find(text.syntax, {";"}) -- symbols before ; are redirects and follow slightly different rules, see buildCommandRedirects
+  local semi_split = tx.first(text.syntax, {{";"}}) -- symbols before ; are redirects and follow slightly different rules, see buildCommandRedirects
   pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
   local state = "" -- cannot start on a pipe
