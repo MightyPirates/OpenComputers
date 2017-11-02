@@ -1028,7 +1028,7 @@ object Machine extends MachineAPI {
         architecture.getConstructor(classOf[machine.Machine])
       }
       catch {
-        case t: Throwable => throw new IllegalArgumentException("Architecture does not have required constructor.")
+        case t: Throwable => throw new IllegalArgumentException("Architecture does not have required constructor.", t)
       }
       checked += architecture
     }

@@ -204,6 +204,7 @@ object Mods {
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
     final val IndustrialCraft2Classic = "IC2-Classic"
+    final val IndustrialCraft2Spmod = "IC2-Classic-Spmod"
     final val IngameWiki = "IGWMod"
     final val JustEnoughItems = "JEI"
     final val MCMultiPart = "mcmultipart"
