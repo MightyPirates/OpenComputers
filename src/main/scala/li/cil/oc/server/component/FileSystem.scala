@@ -246,7 +246,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   def checkHandle(args: Arguments, index: Int) = {
     if (args.isInteger(index)) {
       args.checkInteger(index)
-    } else args.checkAny(0) match {
+    } else args.checkAny(index) match {
       case handle: HandleValue => handle.handle
       case _ => throw new IOException("bad file descriptor")
     }

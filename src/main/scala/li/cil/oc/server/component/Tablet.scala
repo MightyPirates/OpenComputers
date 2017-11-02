@@ -38,4 +38,7 @@ class Tablet(val tablet: TabletWrapper) extends AbstractManagedEnvironment with 
 
   @Callback(doc = """function():number -- Gets the pitch of the player holding the tablet.""")
   def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationPitch)
+  
+  @Callback(doc = """function():number -- Gets the yaw of the player holding the tablet.""")
+  def getYaw(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationYaw)
 }

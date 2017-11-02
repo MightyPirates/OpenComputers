@@ -15,19 +15,6 @@ function lib.sub(tbl,f,l)
   return r
 end 
 
--- if value was made by lib.sub then find can find from whence
-function lib.find(tbl, sub, first, last)
-  checkArg(1, tbl, 'table')
-  checkArg(2, sub, 'table')
-  local sub_len = #sub
-  return lib.first(tbl, function(element, index, projected_table)
-    for n=0,sub_len-1 do
-      if projected_table[n + index] ~= sub[n + 1] then return nil end
-    end
-    return 1, sub_len
-  end, first, last)
-end 
-
 -- Returns a list of subsets of tbl where partitioner acts as a delimiter.
 function lib.partition(tbl,partitioner,dropEnds,f,l)
   checkArg(1,tbl,'table')

@@ -1,5 +1,5 @@
 # Диск
 
-![Памяти Terry Pratchett.](oredict:oc:materialDisk)
+![Discworld. Памяти Терри Пратчетта.](oredict:oc:materialDisk)
 
 Базовый компонент для создания устройств хранения информации, таких как [дискеты](floppy.md) и [жесткие диски](hdd1.md).
