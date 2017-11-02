@@ -42,6 +42,11 @@ if gpu and screen then
   gpu.fill(1, 1, w, h, " ")
 end
 local y = 1
+local uptime = computer.uptime
+-- we actually want to ref the original pullSignal here because /lib/event intercepts it later
+-- because of that, we must re-pushSignal when we use this, else things break badly
+local pull = computer.pullSignal
+local last_sleep = uptime()
 local function status(msg)
   if gpu and screen then
     gpu.set(1, y, msg)
@@ -51,6 +56,16 @@ local function status(msg)
     else
       y = y + 1
     end
+  end
+  -- boot can be slow in some environments, protect from timeouts
+  if uptime() - last_sleep > 1 then
+    local signal = table.pack(pull(0))
+    -- there might not be any signal
+    if signal.n > 0 then
+      -- push the signal back in queue for the system to use it
+      computer.pushSignal(table.unpack(signal, 1, signal.n))
+    end
+    last_sleep = uptime()
   end
 end
 

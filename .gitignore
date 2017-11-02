@@ -26,6 +26,5 @@
 .DS_Store
 /run
 
-# VS Code
+# VSCode
 /.vscode
-
