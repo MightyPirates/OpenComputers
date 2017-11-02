@@ -1,6 +1,6 @@
 package li.cil.oc.integration.ic2
 
-import cpw.mods.fml.common.Loader
+import net.minecraftforge.fml.common.Loader
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
