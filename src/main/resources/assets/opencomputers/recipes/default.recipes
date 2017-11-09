@@ -385,12 +385,14 @@ ingotiron {
 }
 chipdiamond {
   type: shapeless
-  input: gemDiamond
+  input: ["oc:materialCuttingWire", gemDiamond]
   output: 6
 }
 gemDiamond = false
 
-cuttingwire = false
+cuttingwire {
+  input: [[stickWood, nuggetIron, stickWood]]
+}
 acid {
   type: shapeless
   input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone]
