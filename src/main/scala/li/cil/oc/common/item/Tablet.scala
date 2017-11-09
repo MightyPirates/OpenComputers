@@ -378,7 +378,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   def containerSlotTier: Int =
     if (data.container.isEmpty) Tier.None
-    else Option(Driver.driverFor(stack, getClass)) match {
+    else Option(Driver.driverFor(data.container, getClass)) match {
       case Some(driver: Container) => driver.providedTier(stack)
       case _ => Tier.None
     }

@@ -41,6 +41,11 @@ object ConverterItemStack extends api.driver.Converter {
             mkString("\n")
         }
 
+        // IC2 reactor items custom damage
+        if (stack.hasTagCompound && stack.getTagCompound.hasKey("advDmg", NBT.TAG_INT)) {
+          output += "customDamage" -> Int.box(stack.getTagCompound.getInteger("advDmg"))
+        }
+
         val enchantments = mutable.ArrayBuffer.empty[mutable.Map[String, Any]]
         EnchantmentHelper.getEnchantments(stack).collect {
           case (enchantment, level) =>
