@@ -18,10 +18,14 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
+  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
   val Forge = new SimpleMod(IDs.Forge)
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
+  val Mekanism = new SimpleMod(IDs.Mekanism)
+  val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
@@ -30,10 +34,14 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
+    integration.appeng.ModAppEng,
+    integration.ec.ModExtraCells,
     integration.forestry.ModForestry,
     integration.ic2.ModIndustrialCraft2,
     integration.minecraftforge.ModMinecraftForge,
     integration.tis3d.ModTIS3D,
+    integration.mekanism.ModMekanism,
+    integration.mekanism.gas.ModMekanismGas,
     integration.minecraft.ModMinecraft,
     integration.waila.ModWaila,
 
@@ -63,11 +71,15 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   object IDs {
+    final val AppliedEnergistics2 = "appliedenergistics2"
+    final val ExtraCells = "extracells"
     final val Forestry = "forestry"
     final val Forge = "forge"
     final val IndustrialCraft2 = "ic2"
     final val IndustrialCraft2Spmod = "IC2-Classic-Spmod"
     final val JustEnoughItems = "jei"
+    final val Mekanism = "mekanism"
+    final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "minecraft"
     final val OpenComputers = "opencomputers"
     final val TIS3D = "tis3d"
