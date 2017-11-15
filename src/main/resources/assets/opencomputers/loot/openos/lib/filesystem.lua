@@ -184,8 +184,8 @@ function filesystem.mount(fs, path)
       return nil, why
     end
 
-    if filesystem.exists(real) then
-      return nil, "file already exists"
+    if filesystem.exists(real) and not filesystem.isDirectory(real) then
+      return nil, "mount point is not a directory"
     end
   end
 

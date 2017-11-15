@@ -67,7 +67,8 @@ for dev, path in fs.mounts() do
   devices[dev] = devices[dev] and #devices[dev] < #path and devices[dev] or path
 end
 
-devices[fs.get("/dev/") or false] = nil
+local dev_dev = fs.get("/dev")
+devices[dev_dev == rootfs or dev_dev] = nil
 local tmpAddress = computer.tmpAddress()
 
 for dev, path in pairs(devices) do
