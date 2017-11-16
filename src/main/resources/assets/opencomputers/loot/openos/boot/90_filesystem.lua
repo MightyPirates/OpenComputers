@@ -1,29 +1,12 @@
-local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
 
-local isInitialized, pendingAutoruns = false, {}
-
-local function onInit()
-  isInitialized = true
-  for _, run in ipairs(pendingAutoruns) do
-    local result, reason = pcall(run)
-    if not result then
-      local path = fs.concat(os.getenv("TMPDIR") or "/tmp", "event.log")
-      local log = io.open(path, "a")
-      if log then
-        log:write(tostring(result) .. ":" .. tostring(reason) .. "\n")
-        log:close()
-      end
-    end
-  end
-  pendingAutoruns = nil
-end
+local pendingAutoruns = {}
 
 local function onComponentAdded(_, address, componentType)
   if componentType == "filesystem" and require("computer").tmpAddress() ~= address then
-    local proxy = component.proxy(address)
+    local proxy = fs.proxy(address)
     if proxy then
       local name = address:sub(1, 3)
       while fs.exists(fs.concat("/mnt", name)) and
@@ -37,13 +20,11 @@ local function onComponentAdded(_, address, componentType)
         local file = shell.resolve(fs.concat(name, "autorun"), "lua") or
                       shell.resolve(fs.concat(name, ".autorun"), "lua")
         if file then
-          local run = function()
-            assert(shell.execute(file, _ENV, proxy))
-          end
-          if isInitialized then
-            run()
-          else
+          local run = {file, _ENV, proxy}
+          if pendingAutoruns then
             table.insert(pendingAutoruns, run)
+          else
+            xpcall(shell.execute, event.onError, table.unpack(run))
           end
         end
       end
@@ -60,7 +41,14 @@ local function onComponentRemoved(_, address, componentType)
   end
 end
 
-event.listen("init", onInit)
+event.listen("init", function()
+  for _, run in ipairs(pendingAutoruns) do
+    xpcall(shell.execute, event.onError, table.unpack(run))
+  end
+  pendingAutoruns = nil
+  return false
+end)
+
 event.listen("component_added", onComponentAdded)
 event.listen("component_removed", onComponentRemoved)
 

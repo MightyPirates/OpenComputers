@@ -145,7 +145,7 @@ end
 function event.onError(message)
   local log = io.open("/tmp/event.log", "a")
   if log then
-    pcall(log.write, log, message, "\n")
+    pcall(log.write, log, tostring(message), "\n")
     log:close()
   end
 end
