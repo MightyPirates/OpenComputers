@@ -184,6 +184,7 @@ local function bind_proxy(path)
     end
   end
   local bind = {
+    type = "filesystem_bind",
     address = real,
     isReadOnly = real_fs.isReadOnly,
     list = wrap_relative(real_fs.list),
@@ -192,6 +193,7 @@ local function bind_proxy(path)
     lastModified = wrap_relative(real_fs.lastModified),
     exists = wrap_relative(real_fs.exists),
     open = wrap_relative(real_fs.open),
+    remove = wrap_relative(real_fs.remove),
     read = real_fs.read,
     write = real_fs.write,
     close = real_fs.close,

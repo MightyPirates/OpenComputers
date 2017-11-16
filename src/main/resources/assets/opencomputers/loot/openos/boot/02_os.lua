@@ -62,5 +62,5 @@ os.setenv("TMP", "/tmp") -- Deprecated
 os.setenv("TMPDIR", "/tmp")
 
 if computer.tmpAddress() then
-  fs.mount(computer.tmpAddress(), os.getenv("TMPDIR") or "/tmp")
+  fs.mount(computer.tmpAddress(), "/tmp")
 end

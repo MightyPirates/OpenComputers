@@ -1,11 +1,12 @@
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
+local tmp = require("computer").tmpAddress()
 
 local pendingAutoruns = {}
 
 local function onComponentAdded(_, address, componentType)
-  if componentType == "filesystem" and require("computer").tmpAddress() ~= address then
+  if componentType == "filesystem" and tmp ~= address then
     local proxy = fs.proxy(address)
     if proxy then
       local name = address:sub(1, 3)
