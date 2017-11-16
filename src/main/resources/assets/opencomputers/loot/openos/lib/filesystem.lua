@@ -234,23 +234,13 @@ function filesystem.name(path)
   return parts[#parts]
 end
 
-function filesystem.proxy(filter)
+function filesystem.proxy(filter, options)
   checkArg(1, filter, "string")
-  local address
-  for c in component.list("filesystem", true) do
-    if component.invoke(c, "getLabel") == filter then
-      address = c
-      break
-    end
-    if c:sub(1, filter:len()) == filter then
-      address = c
-      break
-    end
+  if not component.list("filesystem")[filter] then
+    -- if not, load fs full library, it has a smarter proxy that also supports options
+    return filesystem.internal.proxy(filter, options)
   end
-  if not address then
-    return nil, "no such file system"
-  end
-  return component.proxy(address)
+  return component.proxy(filter) -- it might be a perfect match
 end
 
 function filesystem.exists(path)

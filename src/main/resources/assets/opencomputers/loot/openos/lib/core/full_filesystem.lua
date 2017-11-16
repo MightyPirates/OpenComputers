@@ -1,4 +1,5 @@
 local filesystem = require("filesystem")
+local component = require("component")
 
 function filesystem.makeDirectory(path)
   if filesystem.exists(path) then
@@ -136,3 +137,101 @@ function filesystem.copy(fromPath, toPath)
   return data == nil, reason
 end
 
+local function readonly_wrap(proxy)
+  checkArg(1, proxy, "table")
+  if proxy.isReadOnly() then
+    return proxy
+  end
+
+  local function roerr() return nil, "filesystem is readonly" end
+  return setmetatable({
+    rename = roerr,
+    open = function(path, mode)
+      checkArg(1, path, "string")
+      checkArg(2, mode, "string")
+      if mode:match("[wa]") then
+        return roerr()
+      end
+      return proxy.open(path, mode)
+    end,
+    isReadOnly = function()
+      return true
+    end,
+    write = roerr,
+    setLabel = roerr,
+    makeDirectory = roerr,
+    remove = roerr,
+  }, {__index=proxy})
+end
+
+local function bind_proxy(path)
+  local real, reason = filesystem.realPath(path)
+  if not real then
+    return nil, reason
+  end
+  local real_fs, real_fs_path = filesystem.get(real)
+  if real == real_fs_path then
+    return real_fs
+  end
+  -- turn /tmp/foo into foo
+  local rest = real:sub(#real_fs_path + 1)
+  local function wrap_relative(fp)
+    return function(path, ...)
+      return fp(filesystem.concat(rest, path), ...)
+    end
+  end
+  local bind = {
+    address = real,
+    isReadOnly = real_fs.isReadOnly,
+    list = wrap_relative(real_fs.list),
+    isDirectory = wrap_relative(real_fs.isDirectory),
+    size = wrap_relative(real_fs.size),
+    lastModified = wrap_relative(real_fs.lastModified),
+    exists = wrap_relative(real_fs.exists),
+    open = wrap_relative(real_fs.open),
+    read = real_fs.read,
+    write = real_fs.write,
+    close = real_fs.close,
+    getLabel = function() return "" end,
+    setLabel = function() return nil, "cannot set the label of a bind point" end,
+  }
+  setmetatable(bind, { __index = function(...)
+    print("missing bind method", ...)
+  end
+  })
+  return bind
+end
+
+filesystem.internal = {}
+function filesystem.internal.proxy(filter, options)
+  checkArg(1, filter, "string")
+  checkArg(2, options, "table", "nil")
+  options = options or {}
+  local address, proxy, reason
+  if options.bind then
+    proxy, reason = bind_proxy(filter)
+  else
+    -- no options: filter should be a label or partial address
+    for c in component.list("filesystem", true) do
+      if component.invoke(c, "getLabel") == filter then
+        address = c
+        break
+      end
+      if c:sub(1, filter:len()) == filter then
+        address = c
+        break
+      end
+    end
+    if not address then
+      return nil, "no such file system"
+    end
+    proxy, reason = component.proxy(address)
+  end
+  if not proxy then
+    return proxy, reason
+  end
+  if options.readonly then
+    proxy = readonly_wrap(proxy)
+  end
+  return proxy
+end
