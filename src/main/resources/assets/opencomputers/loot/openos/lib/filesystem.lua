@@ -236,7 +236,7 @@ end
 
 function filesystem.proxy(filter, options)
   checkArg(1, filter, "string")
-  if not component.list("filesystem")[filter] then
+  if not component.list("filesystem")[filter] or next(options or {}) then
     -- if not, load fs full library, it has a smarter proxy that also supports options
     return filesystem.internal.proxy(filter, options)
   end

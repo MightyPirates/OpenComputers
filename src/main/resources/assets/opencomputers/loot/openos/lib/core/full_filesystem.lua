@@ -169,6 +169,9 @@ local function bind_proxy(path)
   if not real then
     return nil, reason
   end
+  if not filesystem.isDirectory(real) then
+    return nil, "must bind to a directory"
+  end
   local real_fs, real_fs_path = filesystem.get(real)
   if real == real_fs_path then
     return real_fs
@@ -195,10 +198,6 @@ local function bind_proxy(path)
     getLabel = function() return "" end,
     setLabel = function() return nil, "cannot set the label of a bind point" end,
   }
-  setmetatable(bind, { __index = function(...)
-    print("missing bind method", ...)
-  end
-  })
   return bind
 end
 
