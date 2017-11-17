@@ -38,6 +38,6 @@ os.setenv("LS_COLORS", "di=0;36:fi=0:ln=0;33:*.lua=0;32")
 shell.setWorkingDirectory(os.getenv("HOME"))
 
 local home_shrc = shell.resolve(".shrc")
-if fs.size(home_shrc) > 0 then
+if fs.exists(home_shrc) then
   loadfile(shell.resolve("source", "lua"))(home_shrc)
 end
