@@ -19,7 +19,7 @@ object Mods {
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
-  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.2,)")
+  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.5.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
   val Forge = new SimpleMod(IDs.Forge)
