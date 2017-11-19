@@ -32,11 +32,11 @@ function tty.key_down_handler(handler, cursor, char, code)
   elseif code == keys.enter or code == keys.numpadenter then
     cursor:move(math.huge)
     cursor:draw("\n")
-    if #data > 0 then
+    if data:find("%S") and data ~= handler[1] then
       table.insert(handler, 1, data)
       handler[(tonumber(os.getenv("HISTSIZE")) or 10)+1]=nil
-      handler[0]=nil
     end
+    handler[0]=nil
     return nil, data .. "\n"
   elseif code == keys.up or code == keys.down then
     local ni = handler.index + (code == keys.up and 1 or -1)
