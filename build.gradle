@@ -66,6 +66,11 @@ repositories {
     maven { url "http://maven.cil.li/" }
     maven { url "http://maven.ic2.player.to/" }
     maven { url "http://tehnut.info/maven" }
+	maven { url "http://maven.thiakil.com" }
+	ivy {
+        name 'ExtraCells'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
+    }
 }
 
 configurations {
@@ -84,6 +89,15 @@ dependencies {
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
+	
+	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
+		transitive = false
+	}
+	provided name: 'ExtraCells', version: config.extracells.version, ext: 'jar'
+	
+	provided (name: 'Mekanism', version: config.mekanism.version, classifier: 'api') {
+		transitive = false
+	}
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
