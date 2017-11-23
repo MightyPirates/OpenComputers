@@ -8,7 +8,7 @@ local core_stderr = buffer.new("w", setmetatable(
   write = function(_, str)
     return tty_stream:write("\27[31m"..str.."\27[37m")
   end
-  }, {__index=tty_stream}))
+}, {__index=tty_stream}))
 
 core_stdout:setvbuf("no")
 core_stderr:setvbuf("no")

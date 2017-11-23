@@ -61,13 +61,19 @@ local targets = {}
 
 -- tmpfs is not a candidate unless it is specified
 
+local comps = require("component").list("filesystem")
 local devices = {}
 
+-- not all mounts are components, only use components
 for dev, path in fs.mounts() do
-  devices[dev] = devices[dev] and #devices[dev] < #path and devices[dev] or path
+  if comps[dev.address] then
+    local known = devices[dev]
+    devices[dev] = known and #known < #path and known or path
+  end
 end
 
-devices[fs.get("/dev/") or false] = nil
+local dev_dev = fs.get("/dev")
+devices[dev_dev == rootfs or dev_dev] = nil
 local tmpAddress = computer.tmpAddress()
 
 for dev, path in pairs(devices) do
