@@ -101,7 +101,10 @@ while tty.isAvailable() do
   if string.sub(command, 1, 1) == "=" then
     code, reason = load("return " .. string.sub(command, 2), "=stdin", "t", env)
   else
-    code, reason = load(command, "=stdin", "t", env)
+    code, reason = load("return " .. command, "=stdin", "t", env)
+    if not code then
+      code, reason = load(command, "=stdin", "t", env)
+    end
   end
   if code then
     local result = table.pack(xpcall(code, debug.traceback))
