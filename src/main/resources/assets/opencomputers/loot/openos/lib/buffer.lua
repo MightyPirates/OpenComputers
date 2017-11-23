@@ -39,14 +39,8 @@ function buffer:flush()
     local tmp = self.bufferWrite
     self.bufferWrite = ""
     local result, reason = self.stream:write(tmp)
-    if result then
-      self.bufferWrite = ""
-    else
-      if reason then
-        return nil, reason
-      else
-        return nil, "bad file descriptor"
-      end
+    if not result then
+      return nil, reason or "bad file descriptor"
     end
   end
 
