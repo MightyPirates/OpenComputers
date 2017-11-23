@@ -40,7 +40,7 @@ object Mods {
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
   val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[1.10.2-3.0.1.132,)")
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
-  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
+  val ExtraCells = new SimpleMod(IDs.ExtraCells)
   val Factorization = new SimpleMod(IDs.Factorization)
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val Forge = new SimpleMod(IDs.Forge)
@@ -106,7 +106,7 @@ object Mods {
     //    integration.cofh.item.ModCoFHItem,
     //    integration.cofh.tileentity.ModCoFHTileEntity,
     //    integration.cofh.transport.ModCoFHTransport,
-    //    integration.ec.ModExtraCells,
+    integration.ec.ModExtraCells,
     integration.enderio.ModEnderIO,
     integration.enderstorage.ModEnderStorage,
     //    integration.dsu.ModDeepStorageUnit,
@@ -116,8 +116,8 @@ object Mods {
     //    integration.gregtech.ModGregtech,
     integration.ic2.ModIndustrialCraft2,
     integration.mcmp.ModMCMultiPart,
-    //    integration.mekanism.ModMekanism,
-    //    integration.mekanism.gas.ModMekanismGas,
+    integration.mekanism.ModMekanism,
+    integration.mekanism.gas.ModMekanismGas,
     //    integration.mfr.ModMineFactoryReloaded,
     integration.minecraftforge.ModMinecraftForge,
     //    integration.mystcraft.ModMystcraft,

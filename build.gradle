@@ -141,10 +141,12 @@ repositories {
         name 'Galacticraft'
         artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
     }
+	*/
     ivy {
         name 'Mekanism'
-        artifactPattern "http://ci.cil.li/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.mekanism.cf}/[module]-[revision].[ext]"
     }
+	/*
     ivy {
         name 'immibis'
         artifactPattern "https://dl.dropboxusercontent.com/u/2944265/mods/autobuilt/files/[module]-[revision].[ext]"
@@ -169,10 +171,12 @@ repositories {
         name 'BloodMagic'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
     }
+	*/
     ivy {
         name 'ExtraCells'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
     }
+	/*
     ivy {
         name 'ThaumicEnergistics'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.thaumicenergistics.cf}/[module]-[revision].[ext]"
@@ -250,7 +254,9 @@ dependencies {
 /*
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
-    provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
+*/
+    provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
+/*
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
     provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
@@ -258,7 +264,9 @@ dependencies {
     provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
-    provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
+*/
+    provided name: 'ExtraCells', version: config.extracells.version, ext: 'jar'
+/*
     provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
 */
@@ -291,13 +299,13 @@ sourceSets {
             exclude 'li/cil/oc/integration/cofh/**'
             //exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
-            exclude 'li/cil/oc/integration/ec/**'
+            //exclude 'li/cil/oc/integration/ec/**'
             //exclude 'li/cil/oc/integration/enderio/**'
             //exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
-            exclude 'li/cil/oc/integration/mekanism/**'
+            //exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
             exclude 'li/cil/oc/integration/nei/**'
