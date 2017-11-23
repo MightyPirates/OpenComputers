@@ -72,9 +72,9 @@ end
 function package.delay(lib, file)
   local mt = {
     __index = function(tbl, key)
-      dofile(file)
       setmetatable(lib, nil)
       setmetatable(lib.internal or {}, nil)
+      dofile(file)
       return tbl[key]
     end
   }

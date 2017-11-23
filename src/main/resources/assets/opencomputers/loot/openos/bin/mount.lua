@@ -1,18 +1,37 @@
 local fs = require("filesystem")
 local shell = require("shell")
 
-local args, ops = shell.parse(...)
-local argc = #args
+local function usage()
+  io.stderr:write([==[
+Usage: mount [OPTIONS] [device path]")
+  If no args are given, all current mount points are printed.
+  <Options> Note that multiple options can be used together
+  -r, --ro    Mount the filesystem read only
+      --bind  Create a mount bind point, folder to folder
+  <Args>
+  device      Specify filesystem device by one of:
+              a. label
+              b. address (can be abbreviated)
+              c. folder path (requires --bind)
+  path        Target folder path to mount to
 
-if ops and (ops.h or ops.help) then
-  print("see `man mount` for help");
+See `man mount` for more details
+  ]==])
   os.exit(1)
 end
-    
-if argc == 0 then 
+
+-- smart parse, follow arg after -o
+local args, opts = shell.parse(...)
+opts.readonly = opts.r or opts.readonly
+
+if opts.h or opts.help then
+  usage()
+end
+
+local function print_mounts()
   -- for each mount
   local mounts = {}
-    
+  
   for proxy,path in fs.mounts() do
     local device = {}
 
@@ -25,7 +44,7 @@ if argc == 0 then
     local dev_mounts = mounts[device.dev_path]
     table.insert(dev_mounts, device)
   end
-  
+
   local smounts = {}
   for key,value in pairs(mounts) do
     smounts[#smounts+1] = {key, value}
@@ -38,29 +57,40 @@ if argc == 0 then
       local rw_ro = "(" .. device.rw_ro .. ")"
       local fs_label = "\"" .. device.fs_label .. "\""
             
-      io.write(string.format("%s on %-10s %s %s\n",
+      io.write(string.format("%-8s on %-10s %s %s\n",
         dev_path:sub(1,8),
         device.mount_path,
         rw_ro,
         fs_label))
     end
   end
-elseif argc ~= 2 then
-  print("Usage: mount [<label|address> <path>]")
-  print("Note that the address may be abbreviated.")
-  return 1 -- error code
-else
-  local proxy, reason = fs.proxy(args[1])
+end
+
+local function do_mount()
+  -- bind converts a path to a proxy
+  local proxy, reason = fs.proxy(args[1], opts)
   if not proxy then
-    io.stderr:write(reason,"\n")
-    return 1
-  elseif ops.r then
-    proxy = dofile("/lib/core/ro_wrapper.lua").wrap(proxy)
+    io.stderr:write("Failed to mount: ", tostring(reason), "\n")
+    os.exit(1)
   end
 
   local result, mount_failure = fs.mount(proxy, shell.resolve(args[2]))
   if not result then
     io.stderr:write(mount_failure, "\n")
-    return 2 -- error code
+    os.exit(2) -- error code
   end
+end
+
+if #args == 0 then
+  if next(opts) then
+    io.stderr:write("Missing argument\n")
+    usage()
+  else
+    print_mounts()
+  end
+elseif #args == 2 then
+  do_mount()
+else
+  io.stderr:write("wrong number of arguments: ", #args, "\n")
+  usage()
 end

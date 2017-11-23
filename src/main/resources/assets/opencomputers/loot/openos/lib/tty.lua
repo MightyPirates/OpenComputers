@@ -32,11 +32,11 @@ function tty.key_down_handler(handler, cursor, char, code)
   elseif code == keys.enter or code == keys.numpadenter then
     cursor:move(math.huge)
     cursor:draw("\n")
-    if #data > 0 then
+    if data:find("%S") and data ~= handler[1] then
       table.insert(handler, 1, data)
       handler[(tonumber(os.getenv("HISTSIZE")) or 10)+1]=nil
-      handler[0]=nil
     end
+    handler[0]=nil
     return nil, data .. "\n"
   elseif code == keys.up or code == keys.down then
     local ni = handler.index + (code == keys.up and 1 or -1)
@@ -101,49 +101,23 @@ function tty.isAvailable()
   return not not (gpu and gpu.getScreen())
 end
 
-function tty.stream:blink(done)
-  local width, height, dx, dy, x, y = tty.getViewport()
-  local gpu = tty.gpu()
-  if not gpu or x < 1 or x > width or y < 1 or y > height then
-    return true
-  end
-  x, y = x + dx, y + dy
-  local blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor = table.unpack(self.blink_cache or {})
-  if done == nil then -- reset
-    blinked = false
-    bgColor, bgIsPalette = gpu.getBackground()
-    -- it can happen during a type of race condition when a screen is removed
-    if not bgColor then
-      return
-    end
-
-    fgColor, fgIsPalette = gpu.getForeground()
-    char_at_cursor = gpu.get(x, y)
-  end
-
-  if not blinked and not done then
-    gpu.setForeground(bgColor, bgIsPalette)
-    gpu.setBackground(fgColor, fgIsPalette)
-    gpu.set(x, y, char_at_cursor)
-    gpu.setForeground(fgColor, fgIsPalette)
-    gpu.setBackground(bgColor, bgIsPalette)
-    blinked = true
-  elseif blinked and (done or tty.window.blink) then
-    gpu.set(x, y, char_at_cursor)
-    blinked = false
-  end
-
-  self.blink_cache = table.pack(blinked, bgColor, bgIsPalette, fgColor, fgIsPalette, char_at_cursor)
-  return true
-end
-
 function tty.stream:pull(timeout, ...)
   timeout = timeout or math.huge
   local blink_timeout = tty.window.blink and .5 or math.huge
 
-  -- it can happen during a type of race condition when a screen is removed
-  if not self:blink() then
-    return nil, "interrupted"
+  local width, height, dx, dy, x, y = tty.getViewport()
+  local gpu = tty.gpu()
+  if x < 1 or x > width or y < 1 or y > height then
+    gpu = nil
+  end
+  local char_at_cursor
+  local blinked
+  if gpu then
+    blinked, char_at_cursor = pcall(gpu.get, x + dx, y + dy)
+    if not blinked then
+      return nil, "interrupted"
+    end
+    io.write("\0277\27[7m", char_at_cursor, "\0278")
   end
 
   -- get the next event
@@ -152,7 +126,15 @@ function tty.stream:pull(timeout, ...)
 
     timeout = timeout - blink_timeout
     local done = signal.n > 1 or timeout < blink_timeout
-    self:blink(done)
+    if gpu then
+      if not blinked and not done then
+        io.write("\0277\27[7m", char_at_cursor, "\0278")
+        blinked = true
+      elseif blinked and (done or tty.window.blink) then
+        io.write("\0277", char_at_cursor, "\0278")
+        blinked = false
+      end
+    end
 
     if done then
       return table.unpack(signal, 1, signal.n)
@@ -336,27 +318,7 @@ function tty.stream:write(value)
       -- parse the instruction in segment
       -- [ (%d+;)+ %d+m
       window.ansi_escape = window.ansi_escape .. value
-      local color_attributes = {tonumber(window.ansi_escape:match("^%[(%d%d)m"))}
-      if not color_attributes[1] then
-        color_attributes, ansi_print, value = require("vt100").parse(window)
-      else
-        value = window.ansi_escape:sub(5)
-      end
-      for _,catt in ipairs(color_attributes) do
-        -- B6 is closer to cyan in 4 bit color
-        local colors = {0x0,0xff0000,0x00ff00,0xffff00,0x0000ff,0xff00ff,0x00B6ff,0xffffff}
-        catt = catt - 29
-        local method = "setForeground"
-        if catt > 10 then
-          method = "setBackground"
-          catt = catt - 10
-        end
-        local c = colors[catt]
-        if c then
-          gpu[method](c)
-        end
-        window.ansi_escape = nil -- might happen multiple times, that's fine
-      end
+      value, ansi_print = require("vt100").parse(window)
     end
 
     -- scroll before parsing next line
