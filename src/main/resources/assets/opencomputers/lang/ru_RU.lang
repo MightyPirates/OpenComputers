@@ -1,5 +1,5 @@
 # This is the Russian localization file.
-# Authors: YuRaNnNzZZ, Sodiet, Adaptivity, cyber01
+# Authors: YuRaNnNzZZ, Sodiet, Adaptivity, cyber01, makkarpov
 # Use [nl] to for a line break.
 
 # Blocks
@@ -392,8 +392,8 @@ achievement.oc.adapter=Мы едины
 achievement.oc.adapter.desc=Дайте поработать с другими модами!
 achievement.oc.assembler=Великолепно
 achievement.oc.assembler.desc=Время захватывать мир!
-achievement.oc.cable=Подключи это!
-achievement.oc.cable.desc=Не беритесь руками за оголенный провод.
+achievement.oc.cable=Не трогай провода!
+achievement.oc.cable.desc=... они от этого ржавеют
 achievement.oc.capacitor=Батарея в комплекте
 achievement.oc.capacitor.desc=Вы не можете остановить это.
 achievement.oc.card=Мы принимаем карточки
@@ -402,16 +402,16 @@ achievement.oc.case=В случае возникновения неполадо�
 achievement.oc.case.desc=Открывайте боковую крышку летом.
 achievement.oc.charger=Ладно, сделаем это
 achievement.oc.charger.desc=Пошла зарядка.. черт, опять забыл редстоун сигнал.
-achievement.oc.chip=Все это мелочи
-achievement.oc.chip.desc=Потому, что вакуумные трубы устарели.
+achievement.oc.chip=Полезные мелочи
+achievement.oc.chip.desc=Ведь электронные лампы - прошлый век
 achievement.oc.cpu=Разогнанный
 achievement.oc.cpu.desc=Время нагрузить его по полной.
-achievement.oc.disassembler=Сотрите это
-achievement.oc.disassembler.desc=Когда великолепные идеи перестают быть великолепными.
+achievement.oc.disassembler=Больше не нужно
+achievement.oc.disassembler.desc=Когда великолепные идеи оказываются не такими уж и великолепными
 achievement.oc.diskDrive=Карусель
-achievement.oc.diskDrive.desc=Этот приятный звук.
-achievement.oc.drone=Полетели
-achievement.oc.drone.desc=Сохраняйте спокойствие и сбросьте бомбу с орбиты.
+achievement.oc.diskDrive.desc=Небольшая емкость, зато какой звук!
+achievement.oc.drone=Вездесущее око
+achievement.oc.drone.desc=Небольшой брат следит за тобой.
 achievement.oc.eeprom=Он может быть только один
 achievement.oc.eeprom.desc=Для каждого компьютера, то есть. Для загрузки компьютера, вы знали?
 achievement.oc.floppy=Не подносить магнит
@@ -422,9 +422,9 @@ achievement.oc.graphicsCard=Последнее поколение
 achievement.oc.graphicsCard.desc=Покажи это.
 achievement.oc.hdd=Продавец хотдогов
 achievement.oc.hdd.desc=Нет, подождите, это не то, о чем вы подумали. Не роняйте его...
-achievement.oc.hologram=Новое измерение
-achievement.oc.hologram.desc=Потому, что 2D устарел. Не так ли?
-achievement.oc.keyboard=Клацатель3000
+achievement.oc.hologram=Гиперпространство
+achievement.oc.hologram.desc=Когда двух измерений уже не хватает
+achievement.oc.keyboard=Крошкохранитель-3000
 achievement.oc.keyboard.desc=Не рекомендуется переворачивать и трясти его
 achievement.oc.microcontroller=Маленькая сестренка
 achievement.oc.microcontroller.desc=Просто маленький компьютер
@@ -438,16 +438,16 @@ achievement.oc.powerDistributor=Поделись с ближним
 achievement.oc.powerDistributor.desc=Когда вы помогаете распределять энергию.
 achievement.oc.rack=Прямо в стойку
 achievement.oc.rack.desc=Не знаю, о чем думаете вы, я думал о серверной стойке.
-achievement.oc.raid=Нужно больше дисков
-achievement.oc.raid.desc=Не вынимайте их.
+achievement.oc.raid=Чрезмерная избыточность
+achievement.oc.raid.desc=Только диски не вынимайте.
 achievement.oc.ram=Случайный доступ к памяти
 achievement.oc.ram.desc=Поздравляем, вы делаете это правильно.
 achievement.oc.redstoneCard=Есть контакт
 achievement.oc.redstoneCard.desc=Возврат к аналоговой технике.
-achievement.oc.redstoneIO=Неудачник
-achievement.oc.redstoneIO.desc=Принимает сигналы там, где вам удобно.
-achievement.oc.robot=Пип пип
-achievement.oc.robot.desc=ИСТРЕБЛЯТЬ!
+achievement.oc.redstoneIO=Выскочка
+achievement.oc.redstoneIO.desc=Когда все сигналы в нужных местах
+achievement.oc.robot=Бип-пип
+achievement.oc.robot.desc=УНИЧТОЖИТЬ!
 achievement.oc.screen=Вы пробовали выключить и снова включить?
 achievement.oc.screen.desc=Серьезно. Редстоун сигнал может выключать монитор.
 achievement.oc.server=Выделенный сервер
