@@ -17,7 +17,7 @@ import net.minecraft.world.World
 object DriverImportBus extends driver.SidedBlock {
   override def worksWith(world: World, pos: BlockPos, side: EnumFacing) =
     world.getTileEntity(pos) match {
-      case container: IPartHost => EnumFacing.VALUES.map(container.getPart).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isImportBus)
+      case container: IPartHost => EnumFacing.VALUES.map(container.getPart).filter(obj => { obj != null }).map(_.getItemStack(PartItemStack.PICK)).filter(obj => { obj != null }).exists(AEUtil.isImportBus)
       case _ => false
     }
 
