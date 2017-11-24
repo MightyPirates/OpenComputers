@@ -80,8 +80,6 @@ object ModOpenComputers extends ModProxy {
     api.IMC.registerProgramDiskLabel("md5sum", "data", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("sha256sum", "data", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("refuel", "generator", "Lua 5.2", "Lua 5.3", "LuaJ")
-    api.IMC.registerProgramDiskLabel("pastebin", "internet", "Lua 5.2", "Lua 5.3", "LuaJ")
-    api.IMC.registerProgramDiskLabel("wget", "internet", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("irc", "irc", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("maze", "maze", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("arp", "network", "Lua 5.2", "Lua 5.3", "LuaJ")
@@ -100,6 +98,7 @@ object ModOpenComputers extends ModProxy {
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(BlockChangeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
@@ -142,6 +141,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverContainerUpgrade)
 
     api.Driver.add(DriverGeolyzer)
+    api.Driver.add(DriverMotionSensor)
     api.Driver.add(DriverScreen)
     api.Driver.add(DriverTransposer)
 
@@ -168,6 +168,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
     api.Driver.add(DriverUpgradeTrading)
+    api.Driver.add(DriverUpgradeMF)
 
     api.Driver.add(DriverAPU.Provider)
     api.Driver.add(DriverDataCard.Provider)
@@ -181,6 +182,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverWirelessNetworkCard.Provider)
 
     api.Driver.add(DriverGeolyzer.Provider)
+    api.Driver.add(DriverMotionSensor.Provider)
     api.Driver.add(DriverScreen.Provider)
     api.Driver.add(DriverTransposer.Provider)
 
@@ -195,6 +197,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeSign.Provider)
     api.Driver.add(DriverUpgradeTankController.Provider)
     api.Driver.add(DriverUpgradeTractorBeam.Provider)
+    api.Driver.add(DriverUpgradeMF.Provider)
 
     api.Driver.add(EnvironmentProviderBlocks)
 
@@ -203,6 +206,7 @@ object ModOpenComputers extends ModProxy {
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
+      Constants.BlockName.MotionSensor,
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,

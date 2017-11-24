@@ -19,7 +19,7 @@ class DebugCard(val parent: Delegator) extends traits.Delegate {
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
-    if (player.isSneaking) {
+    if (!world.isRemote && player.isSneaking) {
       val data = new DebugCardData(stack)
       val name = player.getCommandSenderName
 

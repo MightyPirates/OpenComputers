@@ -17,40 +17,40 @@ function serialization.serialize(value, pretty)
                ["until"]=true, ["while"]=true}
   local id = "^[%a_][%w_]*$"
   local ts = {}
-  local function s(v, l)
-    local t = type(v)
-    if t == "nil" then
-      return "nil"
-    elseif t == "boolean" then
-      return v and "true" or "false"
-    elseif t == "number" then
-      if v ~= v then
-        return "0/0"
-      elseif v == math.huge then
-        return "math.huge"
-      elseif v == -math.huge then
-        return "-math.huge"
+  local result_pack = {}
+  local function recurse(current_value, depth)
+    local t = type(current_value)
+    if t == "number" then
+      if current_value ~= current_value then
+        table.insert(result_pack, "0/0")
+      elseif current_value == math.huge then
+        table.insert(result_pack, "math.huge")
+      elseif current_value == -math.huge then
+        table.insert(result_pack, "-math.huge")
       else
-        return tostring(v)
+        table.insert(result_pack, tostring(current_value))
       end
     elseif t == "string" then
-      return string.format("%q", v):gsub("\\\n","\\n")
-    elseif t == "table" and pretty and getmetatable(v) and getmetatable(v).__tostring then
-      return tostring(v)
+      table.insert(result_pack, (string.format("%q", current_value):gsub("\\\n","\\n")))
+    elseif
+      t == "nil" or
+      t == "boolean" or
+      pretty and (t ~= "table" or (getmetatable(current_value) or {}).__tostring) then
+      table.insert(result_pack, tostring(current_value))
     elseif t == "table" then
-      if ts[v] then
+      if ts[current_value] then
         if pretty then
-          return "recursion"
+          table.insert(result_pack, "recursion")
+          return
         else
           error("tables with cycles are not supported")
         end
       end
-      ts[v] = true
-      local i, r = 1, nil
+      ts[current_value] = true
       local f
       if pretty then
         local ks, sks, oks = {}, {}, {}
-        for k in local_pairs(v) do
+        for k in local_pairs(current_value) do
           if type(k) == "number" then
             table.insert(ks, k)
           elseif type(k) == "string" then
@@ -72,46 +72,51 @@ function serialization.serialize(value, pretty)
           n = n + 1
           local k = ks[n]
           if k ~= nil then
-            return k, v[k]
+            return k, current_value[k]
           else
             return nil
           end
         end)
       else
-        f = table.pack(local_pairs(v))
+        f = table.pack(local_pairs(current_value))
       end
+      local i = 1
+      local first = true
+      table.insert(result_pack, "{")
       for k, v in table.unpack(f) do
-        if r then
-          r = r .. "," .. (pretty and ("\n" .. string.rep(" ", l)) or "")
-        else
-          r = "{"
+        if not first then
+          table.insert(result_pack, ",")
+          if pretty then
+            table.insert(result_pack, "\n" .. string.rep(" ", depth))
+          end
         end
+        first = nil
         local tk = type(k)
         if tk == "number" and k == i then
           i = i + 1
-          r = r .. s(v, l + 1)
+          recurse(v, depth + 1)
         else
           if tk == "string" and not kw[k] and string.match(k, id) then
-            r = r .. k
+            table.insert(result_pack, k)
           else
-            r = r .. "[" .. s(k, l + 1) .. "]"
+            table.insert(result_pack, "[")
+            recurse(k, depth + 1)
+            table.insert(result_pack, "]")
           end
-          r = r .. "=" .. s(v, l + 1)
+          table.insert(result_pack, "=")
+          recurse(v, depth + 1)
         end
       end
-      ts[v] = nil -- allow writing same table more than once
-      return (r or "{") .. "}"
+      ts[current_value] = nil -- allow writing same table more than once
+      table.insert(result_pack, "}")
     else
-      if pretty then
-        return tostring(v)
-      else
-        error("unsupported type: " .. t)
-      end
+      error("unsupported type: " .. t)
     end
   end
-  local result = s(value, 1)
-  local limit = type(pretty) == "number" and pretty or 10
+  recurse(value, 1)
+  local result = table.concat(result_pack)
   if pretty then
+    local limit = type(pretty) == "number" and pretty or 10
     local truncate = 0
     while limit > 0 and truncate do
       truncate = string.find(result, "\n", truncate + 1, true)
@@ -126,7 +131,7 @@ end
 
 function serialization.unserialize(data)
   checkArg(1, data, "string")
-  local result, reason = load("return " .. data, "=data", _, {math={huge=math.huge}})
+  local result, reason = load("return " .. data, "=data", nil, {math={huge=math.huge}})
   if not result then
     return nil, reason
   end

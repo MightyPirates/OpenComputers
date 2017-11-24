@@ -1,85 +1,44 @@
 local event = require("event")
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
 local text = require("text")
 local sh = require("sh")
 
-local input = table.pack(...)
-local args, options = shell.parse(select(3,table.unpack(input)))
-if input[2] then
-  table.insert(args, 1, input[2])
-end
+local args, options = shell.parse(...)
 
-local history = {}
 shell.prime()
+local needs_profile = io.input().tty
+local has_prompt = needs_profile and io.output().tty and not options.c
+local input_handler = {hint = sh.hintHandler}
 
-if #args == 0 and (io.stdin.tty or options.i) and not options.c then
-  -- interactive shell.
-  -- source profile
-  if not term.isAvailable() then event.pull("term_available") end
-  loadfile(shell.resolve("source","lua"))("/etc/profile")
+if #args == 0 then
   while true do
-    if not term.isAvailable() then -- don't clear unless we lost the term
-      while not term.isAvailable() do
+    if has_prompt then
+      while not tty.isAvailable() do
         event.pull("term_available")
       end
-      term.clear()
+      if needs_profile then -- first time run AND interactive
+        needs_profile = nil
+        dofile("/etc/profile.lua")
+      end
+      io.write(sh.expand(os.getenv("PS1") or "$ "))
     end
-    local gpu = term.gpu()
-    while term.isAvailable() do
-      local foreground = gpu.setForeground(0xFF0000)
-      term.write(sh.expand(os.getenv("PS1") or "$ "))
-      gpu.setForeground(foreground)
-      term.setCursorBlink(true)
-      local ok, command = pcall(term.read, history, nil, sh.hintHandler)
-      if not ok then
-        if command == "interrupted" then -- hard interrupt
-          io.write("^C\n")
-          break
-        elseif not term.isAvailable() then
-          break
-        else -- crash?
-          io.stderr:write("\nshell crashed: " .. tostring(command) .. "\n")
-          break
-        end
-      end
-      if not command then
-        if command == false then
-          break -- soft interrupt
-        end
-        io.write("exit\n") -- pipe closed
-        return -- eof
-      end
+    local command = tty.read(input_handler)
+    if command then
       command = text.trim(command)
       if command == "exit" then
         return
       elseif command ~= "" then
-        local result, reason = os.execute(command)
-        if term.getCursor() > 1 then
-          print()
-        end
+        local result, reason = sh.execute(_ENV, command)
         if not result then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
+    elseif command == nil then -- false only means the input was interrupted
+      return -- eof
     end
-  end
-elseif #args == 0 and not io.stdin.tty then
-  while true do
-    io.write(sh.expand(os.getenv("PS1") or "$ "))
-    local command = io.read("*l")
-    if not command then
-      command = "exit"
-      io.write(command,"\n")
-    end
-    command = text.trim(command)
-    if command == "exit" then
-      return
-    elseif command ~= "" then
-      local result, reason = os.execute(command)
-      if not result then
-        io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
-      end
+    if has_prompt and tty.getCursor() > 1 then
+      io.write("\n")
     end
   end
 else

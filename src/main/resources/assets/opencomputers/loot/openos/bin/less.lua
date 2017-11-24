@@ -1,10 +1,14 @@
 local keyboard = require("keyboard")
 local shell = require("shell")
-local term = require("term")
+local term = require("term") -- using term for negative scroll feature
 local text = require("text")
 local unicode = require("unicode")
 local computer = require("computer")
 local tx = require("transforms")
+
+if not io.output().tty then
+  return loadfile(shell.resolve("cat", "lua"), "bt", _G)(...)
+end
 
 local args = shell.parse(...)
 if #args > 1 then

@@ -142,25 +142,25 @@ local term = require "term"
 local args, options = shell.parse(...)
 
 if options.h or options.help then
-	print("opl-flash [-hqr] [--label=EEPROMLabel]")
-	print("        --label=  Set specified label for the EEPROM")
-	print("    -q  --quiet   Do not output anything, and don't ask if sure")
-	print("    -r  --reboot  Reboot after installing")
-	print("    -h  --help    Display this help")
-	return
+  print("opl-flash [-hqr] [--label=EEPROMLabel]")
+  print("        --label=  Set specified label for the EEPROM")
+  print("    -q  --quiet   Do not output anything, and don't ask if sure")
+  print("    -r  --reboot  Reboot after installing")
+  print("    -h  --help    Display this help")
+  return
 end
 
 local say = not (options.q or options.quiet) and print or function()end
 say ("Do you really want to flash openloader to EEPROM("..tostring(#eeprom).." bytes)[Y/n]")
 
-if options.q or options.quiet or io.read():lower() == "y" then
-	say("Flashing... Do not reboot now!")
-	component.eeprom.set(eeprom)
-	component.eeprom.setLabel((type(options.label) == "string" and options.label) or version)
-	if options.r or options.reboot then
-		computer.shutdown(true)
-	else
-		say("Done. you can reboot now")
-	end
+if options.q or options.quiet or ((io.read() or "n").."y"):match("^%s*[Yy]") then
+  say("Flashing... Do not reboot now!")
+  component.eeprom.set(eeprom)
+  component.eeprom.setLabel((type(options.label) == "string" and options.label) or version)
+  if options.r or options.reboot then
+    computer.shutdown(true)
+  else
+    say("Done. you can reboot now")
+  end
 end
 

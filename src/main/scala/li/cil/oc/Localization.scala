@@ -170,6 +170,8 @@ object Localization {
     def PrintLightValue(level: Int) = localizeImmediately("tooltip.Print.LightValue", level.toString)
 
     def PrintRedstoneLevel(level: Int) = localizeImmediately("tooltip.Print.RedstoneLevel", level.toString)
+
+    def MFULinked(isLinked: Boolean) = localizeImmediately(if (isLinked) "tooltip.UpgradeMF.Linked" else "tooltip.UpgradeMF.Unlinked")
   }
 
 }

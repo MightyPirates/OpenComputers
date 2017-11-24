@@ -4,6 +4,7 @@ object PacketType extends Enumeration {
   val
   // Server -> Client
   AbstractBusState,
+  AdapterState,
   Analyze,
   ChargerState,
   ClientLog,
@@ -24,6 +25,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   HologramValues,
   LootDisk,
+  CyclingDisk,
   NanomachinesConfiguration,
   NanomachinesInputs,
   NanomachinesPower,

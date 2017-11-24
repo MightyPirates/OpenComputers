@@ -1,6 +1,6 @@
 --Plan9k userspace init for pipes kernel
 
---TODO: pcall all + emergency shell(or do it higher, in pipes)
+--TODO: pcall all + emergency shell(or do it lower, in pipes)
 
 local pipes = require("pipes")
 local filesystem = require("filesystem")
@@ -52,6 +52,8 @@ end
 
 local sin, sout
 
+local services_ran = false
+
 local free_gpus = {}
 local free_screens = {}
 local used_gpus = {}
@@ -69,7 +71,9 @@ local function runtty(gpu, screen)
     local getty = os.spawnp("/bin/getty.lua", mi, mo, nil, gpu, screen)
     local readkey = os.spawnp("/bin/readkey.lua", nil, mo, mo, screen, interruptHandler)
     
-    if not sout then
+    if not services_ran then
+        services_ran = true
+        
         sin = si
         sout = so
         
@@ -113,7 +117,7 @@ if not sout then
     io.output(sout)
 end
 
-pcall(services)
+--pcall(services)
 
 local kout = io.popen(function()
     if filesystem.exists("/kern.log") then
@@ -143,7 +147,6 @@ for address, ctype in component.list() do
 end
 
 computer.pushSignal("init")
-os.sleep(0)
 
 local signal = {}
 local on_component_add = {}
@@ -243,6 +246,16 @@ function signal.component_removed(_, addr, ctype, ...)
         on_component_remove[ctype](addr, ctype, ...)
     end
 end
+
+function signal.init()
+    if not services_ran then
+        services_ran = true
+        
+        pcall(services)
+    end
+end
+
+os.sleep(0)
 
 while true do
     local sig = {computer.pullSignal()}

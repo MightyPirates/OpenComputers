@@ -41,7 +41,7 @@ path = resolved
 local oldpwd = shell.getWorkingDirectory()
 local result, reason = shell.setWorkingDirectory(path)
 if not result then
-  io.stderr:write("cd: ",reason)
+  io.stderr:write("cd: ", path, ": ", reason)
   return 1
 else
   os.setenv("OLDPWD", oldpwd)

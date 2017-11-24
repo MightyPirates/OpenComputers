@@ -32,6 +32,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendAdapterState(t: tileentity.Adapter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.AdapterState)
+
+    pb.writeTileEntity(t)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendAnalyze(address: String, player: EntityPlayerMP) {
     val pb = new SimplePacketBuilder(PacketType.Analyze)
 
@@ -54,6 +63,14 @@ object PacketSender {
     val pb = new CompressedPacketBuilder(PacketType.ClientLog)
 
     pb.writeUTF(line)
+
+    pb.sendToPlayer(player)
+  }
+
+  def sendClipboard(player: EntityPlayerMP, text: String) {
+    val pb = new SimplePacketBuilder(PacketType.Clipboard)
+
+    pb.writeUTF(text)
 
     pb.sendToPlayer(player)
   }
@@ -290,6 +307,13 @@ object PacketSender {
     val stacks = Loot.worldDisks.map(_._1)
     for (stack <- stacks) {
       val pb = new SimplePacketBuilder(PacketType.LootDisk)
+
+      pb.writeItemStack(stack)
+
+      pb.sendToPlayer(p)
+    }
+    for (stack <- Loot.disksForCyclingServer) {
+      val pb = new SimplePacketBuilder(PacketType.CyclingDisk)
 
       pb.writeItemStack(stack)
 

@@ -23,7 +23,9 @@ end
 local mounts = {}
 if #args == 0 then
   for proxy, path in fs.mounts() do
-    mounts[path] = proxy
+    if not mounts[proxy] or mounts[proxy]:len() > path:len() then
+      mounts[proxy] = path
+    end
   end
 else
   for i = 1, #args do
@@ -31,13 +33,13 @@ else
     if not proxy then
       io.stderr:write(args[i], ": no such file or directory\n")
     else
-      mounts[path] = proxy
+      mounts[proxy] = path
     end
   end
 end
 
 local result = {{"Filesystem", "Used", "Available", "Use%", "Mounted on"}}
-for path, proxy in pairs(mounts) do
+for proxy, path in pairs(mounts) do
   local label = proxy.getLabel() or proxy.address
   local used, total = proxy.spaceUsed(), proxy.spaceTotal()
   local available, percent

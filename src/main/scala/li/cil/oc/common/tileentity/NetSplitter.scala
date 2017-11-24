@@ -1,17 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
-import li.cil.oc.api
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class NetSplitter extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
-  private final val SideCount = ForgeDirection.VALID_DIRECTIONS.length
+class NetSplitter extends traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment {
 
   _isOutputEnabled = true
 
@@ -20,19 +17,10 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
 
   var isInverted = false
 
-  var openSides = Array.fill(SideCount)(false)
+  override def isSideOpen(side: ForgeDirection) =  if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
 
-  def compressSides = (ForgeDirection.VALID_DIRECTIONS, openSides).zipped.foldLeft(0)((acc, entry) => acc | (if (entry._2) entry._1.flag else 0)).toByte
-
-  def uncompressSides(byte: Byte) = ForgeDirection.VALID_DIRECTIONS.map(d => (d.flag & byte) != 0)
-
-  def isSideOpen(side: ForgeDirection) = side != ForgeDirection.UNKNOWN && {
-    val isOpen = openSides(side.ordinal())
-    if (isInverted) !isOpen else isOpen
-  }
-
-  def setSideOpen(side: ForgeDirection, value: Boolean): Unit = if (side != ForgeDirection.UNKNOWN && openSides(side.ordinal()) != value) {
-    openSides(side.ordinal()) = value
+  override def setSideOpen(side: ForgeDirection, value: Boolean) {
+    super.setSideOpen(side, value)
     if (isServer) {
       node.remove()
       api.Network.joinOrCreateNetwork(this)
@@ -83,25 +71,21 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
     isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
-    openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
     nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
-    nbt.setByte(Settings.namespace + "openSides", compressSides)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
     isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
-    openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
     nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
-    nbt.setByte(Settings.namespace + "openSides", compressSides)
   }
 }

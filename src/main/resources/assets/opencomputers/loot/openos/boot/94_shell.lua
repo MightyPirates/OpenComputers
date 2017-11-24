@@ -1,10 +1,4 @@
-local shell = require("shell")
-
-require("event").listen("init", function()
-  local file = io.open("/etc/hostname")
-  if file then
-    os.setenv("HOSTNAME", file:read("*l"))
-    os.setenv("PS1", "$HOSTNAME:$PWD# ")
-    file:close()
-  end
-end)
+-- there doesn't seem to be a reason to update $HOSTNAME after the init signal
+-- as user space /etc/profile comes after this point anyways
+loadfile("/bin/hostname.lua")("--update")
+os.setenv("SHELL","/bin/sh.lua")

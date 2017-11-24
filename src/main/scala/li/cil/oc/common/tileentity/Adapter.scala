@@ -13,6 +13,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -23,7 +24,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter with DeviceInfo {
+class Adapter extends traits.Environment with traits.ComponentInventory with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
@@ -40,6 +41,22 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def defaultState = true
+
+  override def setSideOpen(side: ForgeDirection, value: Boolean) {
+    super.setSideOpen(side, value)
+    if (isServer) {
+      ServerPacketSender.sendAdapterState(this)
+      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+      world.notifyBlocksOfNeighborChange(x, y, z, block)
+      neighborChanged(side)
+    } else {
+      world.markBlockForUpdate(x, y, z)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -72,7 +89,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
         // inventories, which I actually consider a plus :P
         case _ =>
           Option(api.Driver.driverFor(world, x, y, z, d)) match {
-            case Some(newDriver) => blocks(d.ordinal()) match {
+            case Some(newDriver) if isSideOpen(d) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
                   // This is... odd. Maybe moved by some other mod? First, clean up.
@@ -93,6 +110,9 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   }
                 } // else: the more things change, the more they stay the same.
               case _ =>
+                if (!isSideOpen(d)) {
+                  return
+                }
                 // A challenger appears. Maybe.
                 val environment = newDriver.createEnvironment(world, x, y, z, d)
                 if (environment != null) {

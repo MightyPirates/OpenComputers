@@ -2,13 +2,13 @@
 
 Здесь представлен список предметов, доступных в OpenComputers. Если вы ищете блоки, проверьте [список блоков](../block/index.md).
 
-Некоторые блоки могут быть недоступны, в зависимости от рецепта.
+Некоторые предметы могут быть недоступны в зависимости от используемого набора рецептов.
 
 ## Инструменты
 * [Анализатор](analyzer.md)
 * [Руководство](manual.md)
-* [Терминал](terminal.md)
-* [Выбор текстур](texturePicker.md)
+* [Беспроводной терминал](terminal.md)
+* [Определитель текстур](texturePicker.md)
 * [Ключ](wrench.md)
 
 ## Устройства
@@ -26,40 +26,41 @@
 * [Интернет карта](internetCard.md)
 * [Связанная карта](linkedCard.md)
 * [Сетевая карта](lanCard.md)
-* [Редстоун карта](redstoneCard1.md)
+* [Карта на красном камне](redstoneCard1.md)
 * [Беспроводная сетевая карта](wlanCard.md)
-* [Мировой сенсор](worldSensorCard.md)
+* [Карта-мировой сенсор](worldSensorCard.md)
 
 ### Улучшения
-* [Ангельское](angelUpgrade.md)
-* [Аккумулятор](batteryUpgrade1.md)
-* [Хранилище карт](cardContainer1.md)
-* [Чанклоадер](chunkloaderUpgrade.md)
-* [Верстак](craftingUpgrade.md)
-* [База данных](databaseUpgrade1.md)
-* [Опыт](experienceUpgrade.md)
-* [Генератор](generatorUpgrade.md)
-* [Парение](hoverUpgrade1.md)
-* [Контроллер инвентаря](inventoryControllerUpgrade.md)
-* [Инвентарь](inventoryUpgrade.md)
-* [Поводок](leashUpgrade.md)
-* [Навигация](navigationUpgrade.md)
-* [Поршень](pistonUpgrade.md)
-* [Табличка](signUpgrade.md)
-* [Солнечная панель](solarGeneratorUpgrade.md)
-* [Контроллер жидкости](tankControllerUpgrade.md)
-* [Жидкость](tankUpgrade.md)
-* [Притягивающий луч](tractorBeamUpgrade.md)
-* [Торговля](tradingUpgrade.md)
-* [Улучшение](upgradeContainer1.md)
+* ["Ангельское" улучшение](angelUpgrade.md)
+* [Улучшение "Ёмкость"](batteryUpgrade1.md)
+* [Контейнер для карты](cardContainer1.md)
+* [Улучшение "Загрузчик чанков"](chunkloaderUpgrade.md)
+* [Улучшение "Верстак"](craftingUpgrade.md)
+* [Улучшение "База данных"](databaseUpgrade1.md)
+* [Улучшение "Опыт"](experienceUpgrade.md)
+* [Улучшение "Генератор"](generatorUpgrade.md)
+* [Улучшение "Парение"](hoverUpgrade1.md)
+* [Улучшение "Контроллер инвентаря"](inventoryControllerUpgrade.md)
+* [Улучшение "Инвентарь"](inventoryUpgrade.md)
+* [Улучшение "Поводок"](leashUpgrade.md)
+* [МФУ](mfu.md)
+* [Улучшение "Навигация"](navigationUpgrade.md)
+* [Улучшение "Поршень"](pistonUpgrade.md)
+* [Улучшение "Контроллер табличек"](signUpgrade.md)
+* [Улучшение "Солнечный генератор"](solarGeneratorUpgrade.md)
+* [Улучшение "Контроллер жидкости"](tankControllerUpgrade.md)
+* [Улучшение "Бак для жидкостей"](tankUpgrade.md)
+* [Улучшение "Притягивающий луч"](tractorBeamUpgrade.md)
+* [Улучшение "Торговля"](tradingUpgrade.md)
+* [Контейнер для улучшения](upgradeContainer1.md)
 
-### Для монтажа в стойку
-* [Подключаемый дисковод](diskDriveMountable.md)
+### Для установки в стойку
+* [Дисковод для серверной стойки](diskDriveMountable.md)
 * [Сервер](server1.md)
-* [Терминальный сервер](terminalServer.md)
+* [Сервер терминалов](terminalServer.md)
 
 ### Другое
-* [Процессор с видеркартой (APU)](apu1.md)
+* [Процессор с видеокартой (APU)](apu1.md)
 * [Компонентная шина](componentBus1.md)
 * [Процессор](cpu1.md)
 * [EEPROM](eeprom.md)
@@ -70,18 +71,18 @@
 ## Крафт
 * [Кислота](acid.md)
 * [АЛУ](alu.md)
-* [Стрелочки](arrowKeys.md)
+* [Клавиши со стрелочками](arrowKeys.md)
 * [Группа кнопок](buttonGroup.md)
-* [Карта](card.md)
-* [Печатная плата](circuitBoard.md)
+* [Основа для карт](card.md)
+* [Нетравленая печатная плата](circuitBoard.md)
 * [Блок управления](controlUnit.md)
 * [Проволока](cuttingWire.md)
 * [Диск](disk.md)
-* [Интерсеть](interweb.md)
+* [Интерпаутина](interweb.md)
 * [Микрочип](chip1.md)
-* [Цифровая клавиатура](numPad.md)
-* [Отпечатанная печатная плата](printedCircuitBoard.md)
-* [Заготовка печатной платы](rawCircuitBoard.md)
+* [Цифровой блок клавиш](numPad.md)
+* [Печатная плата](printedCircuitBoard.md)
+* [Основа для печатной платы](rawCircuitBoard.md)
 * [Транзистор](transistor.md)
 
 ## Сборка / Печать
@@ -92,5 +93,5 @@
 * [Корпус планшета](tabletCase1.md)
 
 ## Прочее
-* [Реактивные ботинки](hoverBoots.md)
+* [Парящие ботинки](hoverBoots.md)
 * [Нанороботы](nanomachines.md)

@@ -1,64 +1,14 @@
 local buffer = require("buffer")
-local term = require("term")
+local tty_stream = require("tty").stream
 
-local io_open = io.open
-function io.open(path, mode)
-  return io_open(require("shell").resolve(path), mode)
-end
-
-local stdinStream = {handle="stdin"}
-local stdoutStream = {handle="stdout"}
-local stderrStream = {handle="stderr"}
-local stdinHistory = {}
-
-local function badFileDescriptor()
-  return nil, "bad file descriptor"
-end
-
-function stdinStream:close()
-  return nil, "cannot close standard file"
-end
-stdoutStream.close = stdinStream.close
-stderrStream.close = stdinStream.close
-
-function stdinStream:read(n, dobreak)
-  stdinHistory.dobreak = dobreak
-  local result = term.readKeyboard(stdinHistory)
-  return result
-end
-
-function stdoutStream:write(str)
-  term.drawText(str, self.wrap ~= false)
-  return self
-end
-
-function stderrStream:write(str)
-  local gpu = term.gpu()
-  local set_depth = gpu and gpu.getDepth() and gpu.getDepth() > 1
-
-  if set_depth then
-    set_depth = gpu.setForeground(0xFF0000)
+local core_stdin = buffer.new("r", tty_stream)
+local core_stdout = buffer.new("w", tty_stream)
+local core_stderr = buffer.new("w", setmetatable(
+{
+  write = function(_, str)
+    return tty_stream:write("\27[31m"..str.."\27[37m")
   end
-    
-  term.drawText(str, true)
-
-  if set_depth then
-    gpu.setForeground(set_depth)
-  end
-
-  return self
-end
-
-stdinStream.seek = badFileDescriptor
-stdinStream.write = badFileDescriptor
-stdoutStream.read = badFileDescriptor
-stdoutStream.seek = badFileDescriptor
-stderrStream.read = badFileDescriptor
-stderrStream.seek = badFileDescriptor
-
-local core_stdin = buffer.new("r", stdinStream)
-local core_stdout = buffer.new("w", stdoutStream)
-local core_stderr = buffer.new("w", stderrStream)
+}, {__index=tty_stream}))
 
 core_stdout:setvbuf("no")
 core_stderr:setvbuf("no")
@@ -66,34 +16,21 @@ core_stdin.tty = true
 core_stdout.tty = true
 core_stderr.tty = true
 
-core_stdin.close = stdinStream.close
-core_stdout.close = stdinStream.close
-core_stderr.close = stdinStream.close
-
-local fd_map =
-{
-  -- key name => method name
-  stdin = 'input',
-  stdout = 'output',
-  stderr = 'error'
-}
+core_stdin.close = tty_stream.close
+core_stdout.close = tty_stream.close
+core_stderr.close = tty_stream.close
 
 local io_mt = getmetatable(io) or {}
-io_mt.__index = function(t, k)
-  if fd_map[k] then
-    return io[fd_map[k]]()
-  end
-end
-io_mt.__newindex = function(t, k, v)
-  if fd_map[k] then
-    io[fd_map[k]](v)
-  else
-    rawset(io, k, v)
-  end
+io_mt.__index = function(_, k)
+  return
+    k == 'stdin' and io.input() or
+    k == 'stdout' and io.output() or
+    k == 'stderr' and io.error() or
+    nil
 end
 
 setmetatable(io, io_mt)
 
-io.stdin = core_stdin
-io.stdout = core_stdout
-io.stderr = core_stderr
+io.input(core_stdin)
+io.output(core_stdout)
+io.error(core_stderr)

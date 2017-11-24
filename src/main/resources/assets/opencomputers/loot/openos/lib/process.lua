@@ -20,13 +20,6 @@ function process.findProcess(co)
 end
 
 -------------------------------------------------------------------------------
-local function parent_data(pre, tbl, k, ...)
-  if tbl and k then
-    return parent_data(pre, tbl[k], ...)
-  end
-  return setmetatable(pre, {__index=tbl})
-end
-
 function process.load(path, env, init, name)
   checkArg(1, path, "string", "function")
   checkArg(2, env, "table", "nil")
@@ -34,52 +27,29 @@ function process.load(path, env, init, name)
   checkArg(4, name, "string", "nil")
 
   assert(type(path) == "string" or env == nil, "process cannot load function environemnts")
-  name = name or ""
 
   local p = process.findProcess()
-  if p then
-    env = env or p.env
-  end
-  env = setmetatable({}, {__index=env or _G})
-
-  local code = nil
-  if type(path) == 'string' then
+  env = env or p.env
+  local code
+  if type(path) == "string" then
     code = function(...)
       local fs, shell = require("filesystem"), require("shell")
-      local program, reason = shell.resolve(path, 'lua')
+      local program, reason = shell.resolve(path, "lua")
       if not program then
-        if fs.isDirectory(shell.resolve(path)) then
-          io.stderr:write(path .. ": is a directory\n")
-          return 126
-        end
-        io.stderr:write(path .. ": " .. reason .. "\n")
-        return 127
+        return require("tools/programLocations").reportNotFound(path, reason)
       end
       os.setenv("_", program)
-      local f, reason = io.open(program)
-      if not f then
-        io.stderr:write("could not read '" .. program .. "': " .. tostring(reason) .. "\n")
-        return 1
-      end
-      local shabang = f:read(2)
-      local command = f:read()
-      f:close()
-      if shabang == "#!" then
-        if require("text").trim(command or "") == "" then
-          return -- nothing to do
+      local f = fs.open(program)
+      if f then
+        local shebang = (f:read(1024) or ""):match("^#!([^\n]+)")
+        f:close()
+        if shebang then
+          path = shebang:gsub("%s","")
+          return code(program, ...)
         end
-        local result = table.pack(require("shell").execute(command, env, program, ...))
-        if not result[1] then
-          error(result[2])
-        end
-        return table.unpack(result)
       end
-      command, reason = loadfile(program, "bt", env)
-      if not command then
-        io.stderr:write(program..(reason or ""):gsub("^[^:]*", "").."\n")
-        return 128
-      end
-      return command(...)
+      -- local command
+      return assert(loadfile(program, "bt", env))(...)
     end
   else -- path is code
     code = path
@@ -91,54 +61,47 @@ function process.load(path, env, init, name)
     local result =
     {
       xpcall(function(...)
-          os.setenv("_", name)
           init = init or function(...) return ... end
           return code(init(...))
         end,
         function(msg)
-          -- msg can be a custom error object
-          if type(msg) == 'table' then
-            if msg.reason ~= "terminated" then
-              io.stderr:write(msg.reason.."\n")
-            end
-            return msg.code
+          if type(msg) == "table" and msg.reason == "terminated" then
+            return msg.code or 0
           end
-          local stack = debug.traceback():gsub('^([^\n]*\n)[^\n]*\n[^\n]*\n','%1')
-          io.stderr:write(string.format('%s:\n%s', msg or '', stack))
+          local stack = debug.traceback():gsub("^([^\n]*\n)[^\n]*\n[^\n]*\n","%1")
+          io.stderr:write(string.format("%s:\n%s", msg or "", stack))
           return 128 -- syserr
         end, ...)
     }
-    process.internal.close(thread)
+    process.internal.close(thread, result)
     --result[1] is false if the exception handler also crashed
     if not result[1] and type(result[2]) ~= "number" then
       require("event").onError(string.format("process library exception handler crashed: %s", tostring(result[2])))
     end
     return select(2, table.unpack(result))
   end, true)
-  process.list[thread] = {
+  local new_proc =
+  {
     path = path,
-    command = name,
+    command = name or tostring(path),
     env = env,
-    data = parent_data(
+    data =
     {
       handles = {},
-      io = parent_data({}, p, "data", "io"),
-      coroutine_handler = parent_data({}, p, "data", "coroutine_handler"),
-    }, p, "data"),
+      io = {},
+    },
     parent = p,
     instances = setmetatable({}, {__mode="v"}),
   }
+  setmetatable(new_proc.data.io, {__index=p.data.io})
+  setmetatable(new_proc.data, {__index=p.data})
+  process.list[thread] = new_proc
+
   return thread
 end
 
-function process.running(level) -- kept for backwards compat, prefer process.info
-  local info = process.info(level)
-  if info then
-    return info.path, info.env, info.command
-  end
-end
-
 function process.info(levelOrThread)
+  checkArg(1, levelOrThread, "thread", "number", "nil")
   local p
   if type(levelOrThread) == "thread" then
     p = process.findProcess(levelOrThread)
@@ -158,13 +121,36 @@ end
 --table of undocumented api subject to change and intended for internal use
 process.internal = {}
 --this is a future stub for a more complete method to kill a process
-function process.internal.close(thread)
+function process.internal.close(thread, result)
   checkArg(1,thread,"thread")
   local pdata = process.info(thread).data
-  for k,v in pairs(pdata.handles) do
-    v:close()
+  pdata.result = result
+  for _,v in pairs(pdata.handles) do
+    pcall(v.close, v)
   end
   process.list[thread] = nil
+end
+
+function process.internal.continue(co, ...)
+  local result = {}
+  -- Emulate CC behavior by making yields a filtered event.pull()
+  local args = table.pack(...)
+  while coroutine.status(co) ~= "dead" do
+    result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
+    if coroutine.status(co) ~= "dead" then
+      args = table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
+    elseif not result[1] then
+      io.stderr:write(result[2])
+    end
+  end
+  return table.unpack(result, 2, result.n)
+end
+
+function process.running(level) -- kept for backwards compat, prefer process.info
+  local info = process.info(level)
+  if info then
+    return info.path, info.env, info.command
+  end
 end
 
 return process

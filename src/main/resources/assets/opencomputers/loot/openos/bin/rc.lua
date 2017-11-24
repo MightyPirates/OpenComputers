@@ -1,6 +1,5 @@
 local rc = require("rc")
 local fs = require("filesystem")
-local shell = require("shell")
 
 local function loadConfig()
   local env = {}
@@ -117,9 +116,7 @@ local function allRunCommand(cmd, ...)
   return results
 end
 
-local args = table.pack(...)
-
-if #args == 0 then  
+if select("#", ...) == 0 then  
   local results,reason = allRunCommand("start")
   if not results then
     local msg = "rc failed to start:"..tostring(reason)
@@ -127,16 +124,16 @@ if #args == 0 then
     require("event").onError(msg)
     return
   end
-  for name, result in pairs(results) do
+  for _, result in pairs(results) do
     local ok, reason = table.unpack(result)
     if not ok then
-      io.stderr:write(reason .. "\n")
+      io.stderr:write(reason, "\n")
     end
   end
 else
-  local result, reason = runCommand(table.unpack(args))
+  local result, reason = runCommand(...)
   if not result then
-    io.stderr:write(reason .. "\n")
+    io.stderr:write(reason, "\n")
     return 1
   end
 end

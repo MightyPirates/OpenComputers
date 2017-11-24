@@ -2,12 +2,7 @@ local computer = require("computer")
 local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
-local unicode = require("unicode")
-local process = require("process")
-
-local function env()
-  return process.info().data.vars
-end
+local info = require("process").info
 
 os.execute = function(command)
   if not command then
@@ -21,37 +16,26 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  if varname == '#' then
-    return #env()
-  elseif varname ~= nil then
-    return env()[varname]
-  else
-    return env()
+  local env = info().data.vars
+  if not varname then
+    return env
+  elseif varname == '#' then
+    return #env
   end
+  return env[varname]
 end
 
 function os.setenv(varname, value)
   checkArg(1, varname, "string", "number")
-  if value == nil then
-    env()[varname] = nil
-  else
-    local success, val = pcall(tostring, value)
-    if success then
-      env()[varname] = val
-      return env()[varname]
-    else
-      return nil, val
-    end
+  if value ~= nil then
+    value = tostring(value)
   end
+  info().data.vars[varname] = value
+  return value
 end
 
-function os.remove(...)
-  return fs.remove(...)
-end
-
-function os.rename(...)
-  return fs.rename(...)
-end
+os.remove = fs.remove
+os.rename = fs.rename
 
 function os.sleep(timeout)
   checkArg(1, timeout, "number", "nil")
@@ -64,7 +48,7 @@ end
 function os.tmpname()
   local path = os.getenv("TMPDIR") or "/tmp"
   if fs.exists(path) then
-    for i = 1, 10 do
+    for _ = 1, 10 do
       local name = fs.concat(path, tostring(math.random(1, 0x7FFFFFFF)))
       if not fs.exists(name) then
         return name
@@ -78,5 +62,5 @@ os.setenv("TMP", "/tmp") -- Deprecated
 os.setenv("TMPDIR", "/tmp")
 
 if computer.tmpAddress() then
-  fs.mount(computer.tmpAddress(), os.getenv("TMPDIR") or "/tmp")
+  fs.mount(computer.tmpAddress(), "/tmp")
 end

@@ -8,13 +8,14 @@ https://raw.githubusercontent.com/OpenPrograms/Wobbo-Programs/master/grep/grep.l
 
 local fs = require("filesystem")
 local shell = require("shell")
-local term = require("term")
+local tty = require("tty")
+local computer = require("computer")
 
 -- Process the command line arguments
 
 local args, options = shell.parse(...)
 
-local gpu = term.gpu()
+local gpu = tty.gpu()
 
 local function printUsage(ostream, msg)
   local s = ostream or io.stdout
@@ -106,7 +107,7 @@ local m_only = pop('o','only-matching')
 local quiet = pop('q','quiet','silent')
 
 local print_count = pop('c','count')
-local colorize = pop('color','colour') and io.output().tty and term.isAvailable()
+local colorize = pop('color','colour') and io.output().tty and tty.isAvailable()
 
 local noop = function(...)return ...;end
 local setc = colorize and gpu.setForeground or noop
@@ -195,7 +196,7 @@ local function readLines()
         meta.label = file
         local file, reason = resolve(file)
         if fs.exists(file) then
-          curHand = io.open(file, 'r')
+          curHand, reason = io.open(file, 'r')
           if not curHand then
             local msg = string.format("failed to read from %s: %s", meta.label, reason)
             stderr:write("grep: ",msg,"\n")
@@ -265,7 +266,7 @@ local function test(m,p)
     if max_matches == 0 then os.exit(1) end
     any_hit_ec = 0
     m.hits, hit_value = m.hits + hit_value, 0
-    if max_matches == m.hits or f_only or no_only then
+    if f_only or no_only then
       m.close = true
     end
     if flush or quiet then return end
@@ -294,8 +295,18 @@ local function test(m,p)
     elseif p:find("^^") and not plain then p="^$" end
   end
   if not empty_line then write("\n") end
+  if max_matches ~= math.huge and max_matches >= m.hits then
+    m.close = true
+  end
 end
+
+local uptime = computer.uptime
+local last_sleep = uptime()
 for meta,status in readLines() do
+  if uptime() - last_sleep > 1 then
+    os.sleep(0)
+    last_sleep = uptime()
+  end
   if not meta then
     if type(status) == 'table' then if flush then
       flush(status) end -- this was the last object, closing out

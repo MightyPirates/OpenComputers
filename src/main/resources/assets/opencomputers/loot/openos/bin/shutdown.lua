@@ -1,5 +1,5 @@
 local computer = require("computer")
-local term = require("term")
+local tty = require("tty")
 
-term.clear()
+tty.clear()
 computer.shutdown()

@@ -4,7 +4,7 @@ local filesystem = require "filesystem"
 local args = {...}
 local options = {}
 options.count = math.huge
-options.bs = 1
+options.bs = 128
 options["if"] = "-"
 options.of = "-"
 

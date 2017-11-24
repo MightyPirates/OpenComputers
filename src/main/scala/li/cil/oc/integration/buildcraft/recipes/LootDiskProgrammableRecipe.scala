@@ -24,7 +24,7 @@ object LootDiskProgrammableRecipe extends IProgrammingRecipe {
     val options = mutable.ArrayBuffer.empty[ItemStack]
     options.sizeHint(width * height)
 
-    for ((stack, _) <- Loot.worldDisks) {
+    for (stack <- Loot.disksForCycling) {
       options += stack.copy()
     }
 

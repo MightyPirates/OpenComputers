@@ -1,21 +1,19 @@
 do
   local loadfile = load([[return function(file)
+    local pc,cp = computer or package.loaded.computer, component or package.loaded.component
+    local addr, invoke = pc.getBootAddress(), cp.invoke
     local handle, reason = invoke(addr, "open", file)
-    if not handle then
-      error(reason)
-    end
+    assert(handle, reason)
     local buffer = ""
     repeat
       local data, reason = invoke(addr, "read", handle, math.huge)
-      if not data and reason then
-        error(reason)
-      end
+      assert(data or not reason, reason)
       buffer = buffer .. (data or "")
     until not data
     invoke(addr, "close", handle)
     return load(buffer, "=" .. file, "bt", _G)
-  end]], "=loadfile", "bt", {load=load,math=math,addr=computer.getBootAddress(), invoke=component.invoke})()
-  loadfile("/lib/tools/boot.lua")(loadfile)
+  end]], "=loadfile", "bt", _G)()
+  loadfile("/lib/core/boot.lua")(loadfile)
 end
 
 while true do

@@ -26,7 +26,6 @@ object EnvironmentProviderBlocks extends EnvironmentProvider {
       else if (isOneOf(block.field_150939_a, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]
-      else if (isOneOf(block.field_150939_a, Constants.BlockName.MotionSensor)) classOf[tileentity.MotionSensor]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.Printer)) classOf[tileentity.Printer]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]

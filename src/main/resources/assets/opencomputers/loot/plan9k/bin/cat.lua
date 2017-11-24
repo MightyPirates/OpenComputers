@@ -20,6 +20,6 @@ else
       end
     until not line
     file:close()
-    io.write("\n")
+    io.stderr:write("\n")
   end
 end
