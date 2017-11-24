@@ -212,7 +212,7 @@ dependencies {
         exclude module: 'buildcraft'
     }*/
 
-	provided files("libs/appliedenergistics2-rv4-alpha-11-api.jar")
+	provided files("libs/appliedenergistics2-rv4-stable-1-api.jar")
 
 /*
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"*/
