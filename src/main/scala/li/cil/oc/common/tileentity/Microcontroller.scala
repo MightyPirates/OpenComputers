@@ -18,6 +18,7 @@ import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -27,7 +28,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller with DeviceInfo {
+class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with ISidedInventory with internal.Microcontroller with DeviceInfo {
   val info = new MicrocontrollerData()
 
   override def node = null
@@ -146,7 +147,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   // ----------------------------------------------------------------------- //
 
   override protected def connectItemNode(node: Node) {
-    if (machine.node != null && node != null) {
+    if (machine != null && machine.node != null && node != null) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(node)
     }
@@ -258,6 +259,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // Nope.
   override def removeStackFromSlot(slot: Int) = null
+
+  // Nope.
+  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array()
+
+  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) = false
+
+  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = false
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {
