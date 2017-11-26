@@ -13,6 +13,7 @@ import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.LoadingCallback
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraft.entity.Entity
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -72,6 +73,9 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
     val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
 
     loader.ticket.foreach(ticket => {
+      if (ticket.getType() == ForgeChunkManager.Type.ENTITY && ticket.getEntity() == null && loader.host.isInstanceOf[Entity])
+        ticket.bindEntity(loader.host.asInstanceOf[Entity])
+
       ticket.getChunkList.collect {
         case chunk: ChunkCoordIntPair if !robotChunks.contains(chunk) => ForgeChunkManager.unforceChunk(ticket, chunk)
       }
