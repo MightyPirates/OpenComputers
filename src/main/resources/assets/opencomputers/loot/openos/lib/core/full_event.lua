@@ -40,8 +40,8 @@ end
 
 function event.cancel(timerId)
   checkArg(1, timerId, "number")
-  if handlers[timerId] then
-    handlers[timerId] = nil
+  if event.handlers[timerId] then
+    event.handlers[timerId] = nil
     return true
   end
   return false
@@ -50,9 +50,9 @@ end
 function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  for id, handler in pairs(handlers) do
+  for id, handler in pairs(event.handlers) do
     if handler.key == name and handler.callback == callback then
-      handlers[id] = nil
+      event.handlers[id] = nil
       return true
     end
   end
