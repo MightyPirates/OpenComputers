@@ -267,6 +267,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = false
 
+  // Nope.
+  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array()
+
+  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) = false
+
+  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = false
+
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {
     val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get(Constants.ItemName.EEPROM))
