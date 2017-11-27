@@ -263,18 +263,11 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def removeStackFromSlot(slot: Int) = ItemStack.EMPTY
 
   // Nope.
-  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array()
+  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing) = false
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) = false
+  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing) = false
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = false
-
-  // Nope.
-  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array()
-
-  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) = false
-
-  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = false
+  override def getSlotsForFace(side: EnumFacing): Array[Int] = Array()
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack): StackOption = {
