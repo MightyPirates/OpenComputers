@@ -114,8 +114,13 @@ while tty.isAvailable() do
       end
       io.stderr:write(tostring(result[2]) .. "\n")
     else
-      for i = 2, result.n do
-        io.write(require("serialization").serialize(result[i], true) .. "\t")
+      local ok, why = pcall(function()
+        for i = 2, result.n do
+          io.write(require("serialization").serialize(result[i], true) .. "\t")
+        end
+      end)
+      if not ok then
+        io.stderr:write("crashed serializing result: ", tostring(why))
       end
       if tty.getCursor() > 1 then
         io.write("\n")
