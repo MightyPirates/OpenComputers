@@ -48,7 +48,8 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     DeviceAttribute.Description -> "Ethernet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "42i520 (MPN-01)",
-    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Width -> Settings.get.maxNetworkPacketParts
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
