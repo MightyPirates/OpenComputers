@@ -35,7 +35,8 @@ class LinkedCard extends AbstractManagedEnvironment with QuantumNetwork.QuantumN
     DeviceAttribute.Description -> "Quantumnet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "HyperLink IV: Ender Edition",
-    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Width -> Settings.get.maxNetworkPacketParts
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
