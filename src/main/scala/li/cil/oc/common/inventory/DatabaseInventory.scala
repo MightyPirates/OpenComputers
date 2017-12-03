@@ -11,9 +11,9 @@ trait DatabaseInventory extends ItemStackInventory {
 
   override protected def inventoryName = "Database"
 
-  override def getInventoryStackLimit = 0
+  override def getInventoryStackLimit = 1
 
-  override def getInventoryStackRequired = 0
+  override def getInventoryStackRequired = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = stack != container
 }
