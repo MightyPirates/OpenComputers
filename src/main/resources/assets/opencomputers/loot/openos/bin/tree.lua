@@ -1,3 +1,4 @@
+local computer = require("computer")
 local shell = require("shell")
 local fs = require("filesystem")
 local tx = require("transforms")
@@ -53,6 +54,14 @@ do -- handle cli
 
   if opts.color ~= "always" and opts.color ~= "never" then
     die("Invalid value for --color=WHEN option; WHEN should be auto, always or never")
+  end
+end
+
+local lastYield = computer.uptime()
+local function yieldopt()
+  if computer.uptime() - lastYield > 2 then
+    lastYield = computer.uptime()
+    os.sleep(0)
   end
 end
 
@@ -313,6 +322,7 @@ for entry, levelStack in dig(roots) do
     end
   end
   writeEntry(entry, levelStack)
+  yieldopt()
 end
 
 if not opts.C then
