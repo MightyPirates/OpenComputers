@@ -135,7 +135,7 @@ object DroneTemplate extends Template {
   }
 
   override protected def maxComplexity(inventory: IInventory) =
-    if (caseTier(inventory) == Tier.Two) 8
+    if (caseTier(inventory) == Tier.Two) 9
     else if (caseTier(inventory) == Tier.Four) 9001 // Creative
     else 5
 
