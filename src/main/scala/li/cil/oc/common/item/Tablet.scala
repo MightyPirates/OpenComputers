@@ -303,6 +303,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       case buffer: api.internal.TextBuffer =>
         buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
+        buffer.setPowerState(true)
       case _ =>
     }
   }

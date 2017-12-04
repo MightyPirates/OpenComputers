@@ -88,7 +88,7 @@ object GuiHandler extends CommonGuiHandler {
               item.Tablet.get(stack, player).components.collect {
                 case Some(buffer: api.internal.TextBuffer) => buffer
               }.headOption match {
-                case Some(buffer: api.internal.TextBuffer) => new gui.Screen(buffer, true, () => true, () => true)
+                case Some(buffer: api.internal.TextBuffer) => new gui.Screen(buffer, true, () => true, () => buffer.isRenderingEnabled)
                 case _ => null
               }
             }
