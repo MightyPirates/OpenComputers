@@ -85,8 +85,11 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     result(openPorts.contains(port))
   }
 
-  @Callback(direct = true, doc = """function():boolean -- Whether this is a wireless network card.""")
+  @Callback(direct = true, doc = """function():boolean -- Whether this card has wireless networking capability.""")
   def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(false)
+  
+  @Callback(direct = true, doc = """function():boolean -- Whether this card has wired networking capability.""")
+  def isWired(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
   @Callback(doc = """function(address:string, port:number, data...) -- Sends the specified data to the specified target.""")
   def send(context: Context, args: Arguments): Array[AnyRef] = {
@@ -107,7 +110,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     result(true)
   }
 
-  // TODO 1.7 Remove, covered by device info now
+  //Removed in MC 1.11
   @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 

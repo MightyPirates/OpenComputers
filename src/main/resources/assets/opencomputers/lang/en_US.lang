@@ -153,7 +153,8 @@ item.oc.UpgradeTank.name=Tank Upgrade
 item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.UpgradeTrading.name=Trading Upgrade
-item.oc.WirelessNetworkCard.name=Wireless Network Card
+item.oc.WirelessNetworkCard0.name=Wireless Network Card (Tier 1)
+item.oc.WirelessNetworkCard1.name=Wireless Network Card (Tier 2)
 item.oc.WorldSensorCard.name=World Sensor Card
 item.oc.wrench.name=Scrench
 
