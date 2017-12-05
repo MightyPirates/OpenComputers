@@ -303,7 +303,6 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       case buffer: api.internal.TextBuffer =>
         buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
-        buffer.setPowerState(true)
       case _ =>
     }
   }
@@ -419,6 +418,13 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       if (lastRunning != machine.isRunning) {
         lastRunning = machine.isRunning
         markDirty()
+
+        if (machine.isRunning) {
+          components collect {
+            case Some(buffer: api.internal.TextBuffer) =>
+              buffer.setPowerState(true)
+          }
+        }
       }
     }
   }
