@@ -140,7 +140,8 @@ class Proxy {
     OpenComputers.ID + ":droneCase" -> Constants.ItemName.DroneCaseTier1,
     OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1,
     OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1,
-    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack
+    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack,
+    OpenComputers.ID + ":wlanCard" -> Constants.ItemName.WirelessNetworkCardTier1
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

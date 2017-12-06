@@ -107,7 +107,8 @@ item.oc.UpgradeSolarGenerator.name=Upgrade Panneli Solari
 item.oc.UpgradeTank.name=Upgrade Taniche
 item.oc.UpgradeTankController.name=Upgrade Controllore Taniche
 item.oc.UpgradeTractorBeam.name=Upgrade Raggio Traente
-item.oc.WirelessNetworkCard.name=Scheda di Rete Wireless
+item.oc.WirelessNetworkCard0.name=Scheda di Rete Wireless (Livello 1)
+item.oc.WirelessNetworkCard1.name=Scheda di Rete Wireless (Livello 2)
 
 # GUI
 oc:gui.Analyzer.Address=§6Indirizzo§f: %s

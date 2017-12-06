@@ -1,6 +1,6 @@
 # Drahtlosnetzwerkkarte
 
-![Kann Krebs verursachen. Oder nicht.](oredict:oc:wlanCard)
+![Kann Krebs verursachen. Oder nicht.](oredict:oc:wlanCard2)
 
 Die kabellose Netzwerkkarte ist eine aufgewertete [Netzwerkkarte](lanCard.md) die, zusätzlich zu verkabelten Nachrichten, zudem das Senden von Nachrichten über kabellose Netzwerke ermöglicht. Die Signalstärke kontrolliert die Distanz über die Nachrichten versendet werden können. Die Signalstärke gleicht der Distanz in Blöcken.
 

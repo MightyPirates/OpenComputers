@@ -36,6 +36,8 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     create()
 
   protected val openPorts = mutable.Set.empty[Int]
+  
+  protected def maxOpenPorts = Settings.get.maxOpenPorts
 
   protected var wakeMessage: Option[String] = None
 
@@ -48,7 +50,9 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     DeviceAttribute.Description -> "Ethernet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "42i520 (MPN-01)",
+    DeviceAttribute.Version -> "1.0",
     DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Size -> maxOpenPorts.toString,
     DeviceAttribute.Width -> Settings.get.maxNetworkPacketParts.toString
   )
 
@@ -60,7 +64,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     if (openPorts.contains(port)) result(false)
-    else if (openPorts.size >= Settings.get.maxOpenPorts) {
+    else if (openPorts.size >= maxOpenPorts) {
       throw new java.io.IOException("too many open ports")
     }
     else result(openPorts.add(port))

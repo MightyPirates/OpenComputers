@@ -37,12 +37,12 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   lazy final val WirelessNetworkCardTier1 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
   lazy final val WirelessNetworkCardTier2 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
   lazy final val LinkedCard = api.Items.get(Constants.ItemName.LinkedCard)
-
-  var isWirelessEnabled = false
   
-  var wirelessTier = Tier.Two
+  var wirelessTier = -1
   
-  var strength = Settings.get.maxWirelessRange(wirelessTier)
+  override def isWirelessEnabled = wirelessTier >= Tier.One
+  
+  var strength = Settings.get.maxWirelessRange(Tier.Two)
 
   var isRepeater = true
 
@@ -213,10 +213,8 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
       case Some(driver) if driver.slot(stack) == Slot.Card =>
         val descriptor = api.Items.get(stack)
-        if (descriptor == WirelessNetworkCardTier1 || descriptor == WirelessNetworkCardTier2) {
-          isWirelessEnabled = true
+        if (descriptor == WirelessNetworkCardTier1 || descriptor == WirelessNetworkCardTier2)
           wirelessTier = if (descriptor == WirelessNetworkCardTier1) Tier.One else Tier.Two
-        }
         if (descriptor == LinkedCard) {
           val data = DriverLinkedCard.dataTag(stack)
           if (data.hasKey(Settings.namespace + "tunnel")) {
@@ -236,8 +234,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
       case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
       case driver if driver.slot(stack) == Slot.HDD => maxQueueSize = queueBaseSize
       case driver if driver.slot(stack) == Slot.Card =>
-        isWirelessEnabled = false
-        wirelessTier = Tier.One
+        wirelessTier = -1
         isLinkedEnabled = false
         QuantumNetwork.remove(this)
     }

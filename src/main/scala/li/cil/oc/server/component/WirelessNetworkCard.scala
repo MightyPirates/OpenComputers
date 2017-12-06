@@ -31,8 +31,6 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
   
   protected def maxWirelessRange: Double
   
-  protected def maxOpenPorts: Int
-  
   protected def shouldSendWiredTraffic: Boolean
   
   var strength = maxWirelessRange
@@ -65,15 +63,6 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
   
   override def isWired(context: Context, args: Arguments): Array[AnyRef] = result(shouldSendWiredTraffic)
-
-  override def open(context: Context, args: Arguments): Array[AnyRef] = {
-    val port = checkPort(args.checkInteger(0))
-    if (openPorts.contains(port)) result(false)
-    else if (openPorts.size >= maxOpenPorts) {
-      throw new java.io.IOException("too many open ports")
-    }
-    else result(openPorts.add(port))
-  }
   
   override protected def doSend(packet: Packet) {
     if (strength > 0) {
@@ -159,6 +148,7 @@ object WirelessNetworkCard {
       DeviceAttribute.Description -> "Wireless ethernet controller",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
       DeviceAttribute.Product -> "39i110 (LPPW-01)",
+      DeviceAttribute.Version -> "1.0",
       DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
       DeviceAttribute.Size -> maxOpenPorts.toString,
       DeviceAttribute.Width -> maxWirelessRange.toString
@@ -183,6 +173,7 @@ object WirelessNetworkCard {
       DeviceAttribute.Description -> "Wireless ethernet controller",
       DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
       DeviceAttribute.Product -> "62i230 (MPW-01)",
+      DeviceAttribute.Version -> "2.0",
       DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
       DeviceAttribute.Size -> maxOpenPorts.toString,
       DeviceAttribute.Width -> maxWirelessRange.toString

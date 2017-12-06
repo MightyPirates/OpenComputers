@@ -27,7 +27,7 @@ Gardez en tête que certains d'entre eux ne sont pas disponibles, en fonction de
 * [Carte liée](linkedCard.md)
 * [Carte réseau](lanCard.md)
 * [Carte de Redstone](redstoneCard1.md)
-* [Carte de réseau sans-fil](wlanCard.md)
+* [Carte de réseau sans-fil](wlanCard1.md)
 * [Carte de capteur du monde](worldSensorCard.md)
 
 ### Améliorations
