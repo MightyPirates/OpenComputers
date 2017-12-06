@@ -427,6 +427,13 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       if (lastRunning != machine.isRunning) {
         lastRunning = machine.isRunning
         markDirty()
+
+        if (machine.isRunning) {
+          components collect {
+            case Some(buffer: api.internal.TextBuffer) =>
+              buffer.setPowerState(true)
+          }
+        }
       }
     }
   }
