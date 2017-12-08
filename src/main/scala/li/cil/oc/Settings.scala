@@ -338,13 +338,12 @@ class Settings(val config: Config) {
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!
   val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 4
-  val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
-  val maxOpenPortsWireless = Array(config.getIntList("misc.maxOpenPortsWireless"): _*) match {
-    case Array(tier1, tier2) =>
-      Array((tier1: Int) max 0, (tier2: Int) max 0)
+  val maxOpenPorts = Array(config.getIntList("misc.maxOpenPorts"): _*) match {
+    case Array(wired, tier1, tier2) =>
+      Array((wired: Int) max 0, (tier1: Int) max 0, (tier2: Int) max 0)
     case _ =>
-      OpenComputers.log.warn("Bad number of wireless card max open ports, ignoring.")
-      Array(1, 16)
+      OpenComputers.log.warn("Bad number of max open ports, ignoring.")
+      Array(16, 1, 16)
   }
   val maxWirelessRange = Array(config.getDoubleList("misc.maxWirelessRange"): _*) match {
     case Array(tier1, tier2) =>
@@ -547,7 +546,8 @@ object Settings {
     // TODO Update next version when its known what it will actually be
     VersionRange.createFromVersionSpec("[0.0, 1.7.1)") -> Array(
       "power.cost.wirelessCostPerRange",
-      "misc.maxWirelessRange"
+      "misc.maxWirelessRange",
+      "misc.maxOpenPorts"
     )
   )
 

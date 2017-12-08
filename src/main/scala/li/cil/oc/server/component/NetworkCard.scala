@@ -4,6 +4,7 @@ import java.util
 
 import com.google.common.base.Charsets
 import li.cil.oc.Constants
+import li.cil.oc.common.Tier
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
@@ -37,7 +38,8 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   protected val openPorts = mutable.Set.empty[Int]
   
-  protected def maxOpenPorts = Settings.get.maxOpenPorts
+  // wired network card is the 1st in the max ports list (before both wireless cards)
+  protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.One)
 
   protected var wakeMessage: Option[String] = None
 

@@ -45,6 +45,9 @@ class Proxy {
     OreDictionary.registerOre("nuggetGold", net.minecraft.init.Items.gold_nugget)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.chest)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.trapped_chest)
+    
+    // Make mods that use old wireless card name not have broken recipes
+    OreDictionary.registerOre("oc:wlanCard", Items.get(Constants.ItemName.WirelessNetworkCardTier2).createItemStack(1))
 
     tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.iron_ingot, "ingotIron")
     tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
@@ -141,7 +144,7 @@ class Proxy {
     OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1,
     OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1,
     OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack,
-    OpenComputers.ID + ":wlanCard" -> Constants.ItemName.WirelessNetworkCardTier1
+    OpenComputers.ID + ":wlanCard" -> Constants.ItemName.WirelessNetworkCardTier2
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {
