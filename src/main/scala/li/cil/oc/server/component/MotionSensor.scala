@@ -106,9 +106,9 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
       val target = new Vec3d(entity.posX, entity.posY, entity.posZ)
       val path = origin.subtract(target).normalize()
       origin = origin.addVector(
-        path.xCoord * 0.75,
-        path.yCoord * 0.75,
-        path.zCoord * 0.75
+        path.x * 0.75,
+        path.y * 0.75,
+        path.z * 0.75
       )
       world.rayTraceBlocks(origin, target) == null
     }
