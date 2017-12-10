@@ -1,5 +1,7 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.JNormalOcclusion
 import codechicken.multipart.NormalOcclusionTest
@@ -18,7 +20,7 @@ import li.cil.oc.integration.fmp.CablePart
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
-import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
@@ -89,6 +91,10 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
     setBlockBounds(Cable.bounds(world, x, y, z))
   }
 
+  override def addCollisionBoxesToList(world: World, x: Int, y: Int, z: Int, entityBox: AxisAlignedBB, boxes: util.List[_], entity: Entity): Unit = {
+    Cable.parts(world, x, y, z, entityBox, boxes.asInstanceOf[util.List[AxisAlignedBB]])
+  }
+
   override protected def doCustomInit(tileEntity: tileentity.Cable, player: EntityLivingBase, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
     if (!tileEntity.world.isRemote) {
@@ -105,23 +111,29 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 }
 
 object Cable {
+  private final val MIN = 0.375
+  private final val MAX = 1 - MIN
+
+  final val center: AxisAlignedBB = AxisAlignedBB.getBoundingBox(MIN, MIN, MIN, MAX, MAX, MAX)
+
+  final val cachedParts: Array[AxisAlignedBB] = Array(
+    AxisAlignedBB.getBoundingBox( MIN, 0, MIN, MAX, MIN, MAX ), // Down
+    AxisAlignedBB.getBoundingBox( MIN, MAX, MIN, MAX, 1, MAX ), // Up
+    AxisAlignedBB.getBoundingBox( MIN, MIN, 0, MAX, MAX, MIN ), // North
+    AxisAlignedBB.getBoundingBox( MIN, MIN, MAX, MAX, MAX, 1 ), // South
+    AxisAlignedBB.getBoundingBox( 0, MIN, MIN, MIN, MAX, MAX ), // West
+    AxisAlignedBB.getBoundingBox( MAX, MIN, MIN, 1, MAX, MAX )) // East
+
   val cachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
-      val bounds = AxisAlignedBB.getBoundingBox(-0.125, -0.125, -0.125, 0.125, 0.125, 0.125)
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        if ((side.flag & mask) != 0) {
-          if (side.offsetX < 0) bounds.minX += side.offsetX * 0.375
-          else bounds.maxX += side.offsetX * 0.375
-          if (side.offsetY < 0) bounds.minY += side.offsetY * 0.375
-          else bounds.maxY += side.offsetY * 0.375
-          if (side.offsetZ < 0) bounds.minZ += side.offsetZ * 0.375
-          else bounds.maxZ += side.offsetZ * 0.375
-        }
-      }
-      bounds.setBounds(
-        bounds.minX + 0.5, bounds.minY + 0.5, bounds.minZ + 0.5,
-        bounds.maxX + 0.5, bounds.maxY + 0.5, bounds.maxZ + 0.5)
+      val center = Cable.center.copy()
+
+      // Union all boxes together
+      ForgeDirection.VALID_DIRECTIONS.foldLeft(center)((bound, side) => {
+        if ((side.flag & mask) != 0) bound.func_111270_a(Cable.cachedParts(side.ordinal()))
+        else bound
+      })
     }).toArray
   }
 
@@ -149,6 +161,19 @@ object Cable {
   }
 
   def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) = Cable.cachedBounds(Cable.neighbors(world, x, y, z)).copy()
+
+  def parts(world: IBlockAccess, x: Int, y: Int, z: Int, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB]) = {
+    val center = Cable.center.getOffsetBoundingBox(x, y, z)
+    if (entityBox.intersectsWith(center)) boxes.add(center)
+
+    val flag = Cable.neighbors(world, x, y, z)
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      if ((side.flag & flag) != 0) {
+        val part = Cable.cachedParts(side.ordinal()).getOffsetBoundingBox(x, y, z)
+        if (entityBox.intersectsWith(part)) boxes.add(part)
+      }
+    }
+  }
 
   private def hasNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
