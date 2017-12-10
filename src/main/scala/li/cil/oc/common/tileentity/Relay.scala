@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
+import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.network.Component
 import li.cil.oc.server.PacketSender
@@ -23,6 +25,7 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverLinkedCard
 import li.cil.oc.server.network.QuantumNetwork
 import li.cil.oc.util.ExtendedNBT._
@@ -108,6 +111,19 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   // ----------------------------------------------------------------------- //
 
+  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
+    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
+        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
+          case x => x
+        }: _*))
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def receivePacket(packet: Packet, source: WirelessEndpoint): Unit = {
     if (isWirelessEnabled) {
       tryEnqueuePacket(None, packet)
@@ -118,6 +134,18 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
     if (isLinkedEnabled) {
       tryEnqueuePacket(None, packet)
     }
+  }
+
+  val computers = mutable.Buffer.empty[AnyRef]
+
+  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
+    if (Mods.ComputerCraft.isModAvailable) {
+      packet.data.headOption match {
+        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+      }
+    }
+    super.tryEnqueuePacket(sourceSide, packet)
   }
 
   override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet): Unit = {

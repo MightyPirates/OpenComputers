@@ -19,6 +19,7 @@ object Mods {
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
+  val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.5.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
@@ -44,6 +45,8 @@ object Mods {
     integration.mekanism.gas.ModMekanismGas,
     integration.minecraft.ModMinecraft,
     integration.waila.ModWaila,
+
+    integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
@@ -72,6 +75,7 @@ object Mods {
 
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
+    final val ComputerCraft = "computercraft"
     final val ExtraCells = "extracells"
     final val Forestry = "forestry"
     final val Forge = "forge"

@@ -67,6 +67,7 @@ repositories {
     maven { url "http://maven.ic2.player.to/" }
     maven { url "http://tehnut.info/maven" }
 	maven { url "http://maven.thiakil.com" }
+    maven { url "http://cc.crzd.me/maven/" }
 	ivy {
         name 'ExtraCells'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
@@ -89,6 +90,7 @@ dependencies {
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
+    deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
 	
 	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
 		transitive = false

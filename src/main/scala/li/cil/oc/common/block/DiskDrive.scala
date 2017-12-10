@@ -1,5 +1,7 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
@@ -7,6 +9,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.BlockStateContainer
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
@@ -20,6 +23,15 @@ class DiskDrive extends SimpleBlock with traits.GUI {
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+    super.tooltipTail(metadata, stack, world, tooltip, flag)
+    if (Mods.ComputerCraft.isModAvailable) {
+      tooltip.addAll(Tooltip.get(getClass.getSimpleName + ".CC"))
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
