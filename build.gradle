@@ -12,6 +12,10 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.matthewprenger.cursegradle" version "1.0.9"
+}
+
 apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'idea'
@@ -40,10 +44,11 @@ def getGitRef() {
     }
 }
 
-if (System.getenv("BUILD_NUMBER") != null)
+if (System.getenv("PROMOTED_NUMBER") != null)
+    version += ".${System.getenv("PROMOTED_NUMBER")}"
+else if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
-
-if (System.getenv("BUILD_NUMBER") == null)
+else
     version += "+" + getGitRef()
 
 ext.simpleVersion = version
@@ -414,6 +419,18 @@ publishing {
         maven {
             url "${config.maven.url}"
         }
+    }
+}
+
+curseforge {
+    apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+    project {
+        id = config.curse.project.id
+        releaseType = config.curse.project.releaseType
+        changelogType = "markdown"
+        changelog = file("changelog.md")
+        addGameVersion config.minecraft.version
+        addGameVersion "Java 8"
     }
 }
 
