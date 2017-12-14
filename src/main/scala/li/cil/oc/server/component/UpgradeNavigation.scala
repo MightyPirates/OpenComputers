@@ -18,6 +18,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.item.data.NavigationUpgradeData
+import li.cil.oc.common.Tier
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
@@ -68,9 +69,9 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
 
   @Callback(doc = """function(range:number):table -- Find waypoints in the specified range.""")
   def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
-    val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange
+    val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange(Tier.Two)
     if (range <= 0) return result(Array.empty)
-    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
+    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange(Tier.Two) * 0.25)) return result(Unit, "not enough energy")
     context.pause(0.5)
     val position = BlockPosition(host)
     val positionVec = position.toVec3

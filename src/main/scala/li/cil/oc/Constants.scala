@@ -162,7 +162,8 @@ object Constants {
     final val UpgradeContainerTier1 = "upgradeContainer1"
     final val UpgradeContainerTier2 = "upgradeContainer2"
     final val UpgradeContainerTier3 = "upgradeContainer3"
-    final val WirelessNetworkCard = "wlanCard"
+    final val WirelessNetworkCardTier1 = "wlanCard1"
+    final val WirelessNetworkCardTier2 = "wlanCard2"
     final val WorldSensorCard = "worldSensorCard"
     final val Wrench = "wrench"
 

@@ -27,7 +27,7 @@ Je nach dem, welches Recipe Set verwendet wird können einzelne Items nicht verf
 * [Verknüpfte Karte](linkedCard.md)
 * [Netzwerkkarte](lanCard.md)
 * [Redstonekarte](redstoneCard1.md)
-* [Drahtlosnetzwerkkarte](wlanCard.md)
+* [Drahtlosnetzwerkkarte](wlanCard1.md)
 * [Weltsensorkarte](worldSensorCard.md)
 
 ### Upgrades

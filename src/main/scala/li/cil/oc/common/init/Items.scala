@@ -42,7 +42,8 @@ object Items extends ItemAPI {
   val names = mutable.Map.empty[Any, String]
 
   val aliases = Map(
-    "dataCard" -> Constants.ItemName.DataCardTier1
+    "dataCard" -> Constants.ItemName.DataCardTier1,
+    "wlanCard" -> Constants.ItemName.WirelessNetworkCardTier2
   )
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
@@ -195,7 +196,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.TankControllerUpgrade),
       safeGetStack(Constants.ItemName.LeashUpgrade),
 
-      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
       safeGetStack(Constants.ItemName.CPUTier3),
       safeGetStack(Constants.ItemName.RAMTier6),
@@ -215,7 +216,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.PistonUpgrade),
 
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
-      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
       safeGetStack(Constants.ItemName.CPUTier3),
       safeGetStack(Constants.ItemName.RAMTier6),
@@ -246,7 +247,7 @@ object Items extends ItemAPI {
 
       safeGetStack(Constants.ItemName.GraphicsCardTier3),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
-      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
       safeGetStack(Constants.ItemName.InternetCard),
 
       safeGetStack(Constants.ItemName.CPUTier3),
@@ -283,7 +284,7 @@ object Items extends ItemAPI {
 
       Option(safeGetStack(Constants.ItemName.GraphicsCardTier2)),
       Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
-      Option(safeGetStack(Constants.ItemName.WirelessNetworkCard)),
+      Option(safeGetStack(Constants.ItemName.WirelessNetworkCardTier2)),
 
       Option(safeGetStack(Constants.ItemName.CPUTier3)),
       Option(safeGetStack(Constants.ItemName.RAMTier6)),
@@ -344,7 +345,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.GraphicsCard(multi, Tier.Three), Constants.ItemName.GraphicsCardTier3, "oc:graphicsCard3")
     Recipes.addSubItem(new item.NetworkCard(multi), Constants.ItemName.NetworkCard, "oc:lanCard")
     Recipes.addSubItem(new item.RedstoneCard(multi, Tier.Two), Constants.ItemName.RedstoneCardTier2, "oc:redstoneCard2")
-    Recipes.addSubItem(new item.WirelessNetworkCard(multi), Constants.ItemName.WirelessNetworkCard, "oc:wlanCard")
+    Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.Two), Constants.ItemName.WirelessNetworkCardTier2, "oc:wlanCard2")
 
     Recipes.addSubItem(new item.UpgradeCrafting(multi), Constants.ItemName.CraftingUpgrade, "oc:craftingUpgrade")
     Recipes.addSubItem(new item.UpgradeGenerator(multi), Constants.ItemName.GeneratorUpgrade, "oc:generatorUpgrade")
@@ -539,6 +540,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeTrading(multi), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
     registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
     Recipes.addSubItem(new item.UpgradeMF(multi), Constants.ItemName.MFU, "oc:mfu")
+    
+    // 1.7.?
+    Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
 
     registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
 

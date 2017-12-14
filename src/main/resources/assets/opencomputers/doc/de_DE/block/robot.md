@@ -2,7 +2,7 @@
 
 ![Er hieß Retobor.](block:OpenComputers:robot)
 
-Im Gegensatz zu [Computern](../general/computer.md) können Roboter sich bewegen und mit der Welt fast wie ein Spieler interagieren. Sie können jedoch *nicht* mit externen Komponenten interagieren. Wenn die Kommunikation mit einem Computer benötigt wird, muss eine [kabellose Netzwerkkarte](../item/wlanCard.md) verwendet werden, oder ein Low-Level-Protokoll mit Redstonesignalen erstellt werden.
+Im Gegensatz zu [Computern](../general/computer.md) können Roboter sich bewegen und mit der Welt fast wie ein Spieler interagieren. Sie können jedoch *nicht* mit externen Komponenten interagieren. Wenn die Kommunikation mit einem Computer benötigt wird, muss eine [kabellose Netzwerkkarte](../item/wlanCard1.md) verwendet werden, oder ein Low-Level-Protokoll mit Redstonesignalen erstellt werden.
 
 Roboter werden gebaut, indem ein [Computergehäuse](case1.md) jeder Stufe in einer [Elektronik-Werkbank](assembler.md) verwendet werden. Hochstufige [Computergehäuse](case1.md) erlauben komplexere Roboter, da sie eine bessere [CPU](../item/cpu1.md) verwalten können. Die Komplexität des Roboters ist von den Stufen der verwendeten Komponenten und Upgrades abhängig, wobei hochstufige Komponenten komplexer sind als niedrigstufige Komponenten. Wenn der Roboter zu komplex ist, kann die [Elektronik-Werkbank](assembler.md) den Roboter nicht bauen.
 

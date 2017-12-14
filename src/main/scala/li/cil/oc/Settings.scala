@@ -193,7 +193,13 @@ class Settings(val config: Config) {
   val robotTurnCost = config.getDouble("power.cost.robotTurn") max 0
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
-  val wirelessCostPerRange = config.getDouble("power.cost.wirelessCostPerRange") max 0
+  val wirelessCostPerRange = Array(config.getDoubleList("power.cost.wirelessCostPerRange"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of wireless card energy costs, ignoring.")
+      Array(0.05, 0.05)
+  }
   val abstractBusPacketCost = config.getDouble("power.cost.abstractBusPacket") max 0
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
@@ -332,8 +338,20 @@ class Settings(val config: Config) {
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!
   val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 4
-  val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
-  val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
+  val maxOpenPorts = Array(config.getIntList("misc.maxOpenPorts"): _*) match {
+    case Array(wired, tier1, tier2) =>
+      Array((wired: Int) max 0, (tier1: Int) max 0, (tier2: Int) max 0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of max open ports, ignoring.")
+      Array(16, 1, 16)
+  }
+  val maxWirelessRange = Array(config.getDoubleList("misc.maxWirelessRange"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of wireless card max ranges, ignoring.")
+      Array(16.0, 400.0)
+  }
   val rTreeMaxEntries = 10
   val terminalsPerServer = 4
   val updateCheck = config.getBoolean("misc.updateCheck")
@@ -523,6 +541,13 @@ object Settings {
     // Upgrading to version 1.5.20, changed relay delay default.
     VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
       "switch.relayDelayUpgrade"
+    ),
+    // Upgrading past version 1.7.1 (?), changed wireless card stuff for t1 card.
+    // TODO Update next version when its known what it will actually be
+    VersionRange.createFromVersionSpec("[0.0, 1.7.2)") -> Array(
+      "power.cost.wirelessCostPerRange",
+      "misc.maxWirelessRange",
+      "misc.maxOpenPorts"
     )
   )
 
