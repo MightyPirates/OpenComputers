@@ -541,9 +541,8 @@ object Items extends ItemAPI {
     registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
     Recipes.addSubItem(new item.UpgradeMF(multi), Constants.ItemName.MFU, "oc:mfu")
     
-    // 1.7.?
+    // 1.7.3
     Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
-
     registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
 
     // Register aliases.
