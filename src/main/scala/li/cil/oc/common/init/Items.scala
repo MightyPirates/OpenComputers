@@ -540,6 +540,8 @@ object Items extends ItemAPI {
     registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
     Recipes.addSubItem(new item.UpgradeMF(multi), Constants.ItemName.MFU, "oc:mfu")
 
+    registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
+
     // Register aliases.
     for ((k, v) <- aliases) {
       descriptors.getOrElseUpdate(k, descriptors(v))
