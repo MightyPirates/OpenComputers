@@ -542,9 +542,8 @@ object Settings {
     VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
       "switch.relayDelayUpgrade"
     ),
-    // Upgrading past version 1.7.1 (?), changed wireless card stuff for t1 card.
-    // TODO Update next version when its known what it will actually be
-    VersionRange.createFromVersionSpec("[0.0, 1.7.2)") -> Array(
+    // Upgrading past version 1.7.2, changed wireless card stuff for t1 card.
+    VersionRange.createFromVersionSpec("[0.0, 1.7.3)") -> Array(
       "power.cost.wirelessCostPerRange",
       "misc.maxWirelessRange",
       "misc.maxOpenPorts"
