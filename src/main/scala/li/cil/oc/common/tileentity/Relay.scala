@@ -41,8 +41,14 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   var wirelessTier = -1
   
   override def isWirelessEnabled = wirelessTier >= Tier.One
+
+  def maxWirelessRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
+    Settings.get.maxWirelessRange(wirelessTier) else 0
+
+  def wirelessCostPerRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
+    Settings.get.wirelessCostPerRange(wirelessTier) else 0
   
-  var strength = Settings.get.maxWirelessRange(Tier.Two)
+  var strength = maxWirelessRange
 
   var isRepeater = true
 
@@ -85,7 +91,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when relaying messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized {
-    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange(wirelessTier)))
+    strength = math.max(args.checkDouble(0), math.min(0, maxWirelessRange))
     result(strength)
   }
 
@@ -146,14 +152,14 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
 
     if (isWirelessEnabled && strength > 0 && (sourceSide.isDefined || isRepeater)) {
-      val cost = Settings.get.wirelessCostPerRange(Tier.Two)
+      val cost = wirelessCostPerRange
       if (tryChangeBuffer(-strength * cost)) {
         api.Network.sendWirelessPacket(this, strength, packet)
       }
     }
 
     if (isLinkedEnabled && sourceSide.isDefined) {
-      val cost = packet.size / 32.0 + Settings.get.wirelessCostPerRange(wirelessTier) * Settings.get.maxWirelessRange(wirelessTier) * 5
+      val cost = packet.size / 32.0 + wirelessCostPerRange * maxWirelessRange * 5
       if (tryChangeBuffer(-cost)) {
         val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
         for (endpoint <- endpoints) {
@@ -260,7 +266,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
 
     if (nbt.hasKey(Settings.namespace + "strength")) {
-      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange(wirelessTier)
+      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min maxWirelessRange
     }
     if (nbt.hasKey(Settings.namespace + "isRepeater")) {
       isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")
