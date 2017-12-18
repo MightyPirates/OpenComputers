@@ -1,13 +1,10 @@
 package li.cil.oc.common.asm
 
-import com.google.common.collect.ListMultimap
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.integration.Mods
 import net.minecraft.launchwrapper.IClassTransformer
 import net.minecraft.launchwrapper.LaunchClassLoader
-import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
-import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData
 import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -44,19 +41,6 @@ object ClassTransformer {
 class ClassTransformer extends IClassTransformer {
   private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
   private val log = LogManager.getLogger("OpenComputers")
-
-  // Stuff to help us remove the @Optional annotations below. We set
-  // this up outside of the method so that it only has to be done once.
-  private val optionalsField = classOf[ModAPITransformer].getDeclaredField("optionals")
-  optionalsField.setAccessible(true)
-  private val transformers = loader.getTransformers()
-  private var foundModAPITransformer = false
-  // If these weren't lazy, they'd run before the ModAPITransformer gets added.
-  private lazy val modAPITransformer = {
-    foundModAPITransformer = true
-    transformers.find(_.isInstanceOf[ModAPITransformer]).get
-  }
-  private lazy val optionals = optionalsField.get(modAPITransformer).asInstanceOf[ListMultimap[String, ASMData]]
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     if (basicClass == null || name.startsWith("scala.")) return basicClass
@@ -160,17 +144,6 @@ class ClassTransformer extends IClassTransformer {
                 log.warn(s"Failed injecting component logic into class $name.", e)
                 ClassTransformer.hadSimpleComponentErrors = true
             }
-          }
-        }
-        if(foundModAPITransformer || transformers.find(_.isInstanceOf[ModAPITransformer]).isDefined) {
-          // Forge makes the list of @Optional annotations before we can remove
-          // them from the class, so we need to remove them from its list instead.
-          val lookupName = if(name.endsWith("$class")) name.substring(0, name.length() - 6) else name
-          val ourOptionals = optionals.get(lookupName)
-          val filteredOptionals = ourOptionals.filter(_.getAnnotationInfo().get("modid") == "opencomputers")
-          if(!filteredOptionals.isEmpty) {
-            filteredOptionals.foreach(ourOptionals.remove)
-            log.info(s"Successfully removed our lowercase @Optional annotations from class $name.")
           }
         }
       }
