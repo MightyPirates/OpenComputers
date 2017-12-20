@@ -1,6 +1,9 @@
 package li.cil.oc.util
 
 import java.io.IOException
+import java.io.{BufferedReader, InputStreamReader}
+import java.nio.charset.StandardCharsets
+import scala.util.control.Breaks.break
 
 import li.cil.oc.OpenComputers
 
@@ -10,19 +13,37 @@ object FontUtils {
   // file... seems having an array with 0x10000 entries leads to stack overflows,
   // who would have known!
   private val widths = {
-    val ba = Array.fill[Byte](0x10000)(-1)
-    // Note to self: NOT VIA THE FUCKING RESOURCE SYSTEM BECAUSE IT'S FUCKING CLIENT ONLY YOU IDIOT.
-    val is = FontUtils.getClass.getResourceAsStream("/assets/opencomputers/wcwidth.bin")
-    if (is != null) {
+    val values: Array[Byte] = Array.fill[Byte](0x10000)(1)
+    try {
+      // Note to self: NOT VIA THE FUCKING RESOURCE SYSTEM BECAUSE IT'S FUCKING CLIENT ONLY YOU IDIOT.
+      val font = FontUtils.getClass.getResourceAsStream("/assets/opencomputers/font.hex")
       try {
-        is.read(ba)
-        is.close()
-      } catch {
-        case e: IOException => OpenComputers.log.warn("Failed loading character widths. Font rendering will probably be derpy as all hell.", e)
+        val input = new BufferedReader(new InputStreamReader(font, StandardCharsets.UTF_8))
+        while (true) {
+          val line = input.readLine()
+          if (line == null) break()
+          val info = line.split(":")
+          val charCode = Integer.parseInt(info(0), 16)
+          if (charCode >= 0 && charCode < values.length) {
+            if (info(1).length > 0 && info(1).length % 32 == 0) {
+              values(charCode) = (info(1).length / 32).asInstanceOf[Byte]
+            }
+          }
+        }
+      } finally {
+        try {
+          font.close()
+        } catch {
+          case ex: IOException => OpenComputers.log.warn("Error parsing font.", ex)
+          case _ => OpenComputers.log.warn("unknown exception")
+        }
       }
+    } catch {
+      case ex: IOException => OpenComputers.log.warn("Failed loading glyphs.", ex)
+      case _ => OpenComputers.log.warn("unknown exception")
     }
-    ba
+    values
   }
 
-  def wcwidth(ch: Int) = if (ch < 0 || ch >= widths.length) -1 else widths(ch)
+  def wcwidth(ch: Int) = if (ch < 0 || ch >= widths.length) -1 else widths(ch).asInstanceOf[Int]
 }
