@@ -73,6 +73,7 @@ object Constants {
     final val ComponentBusTier1 = "componentBus1"
     final val ComponentBusTier2 = "componentBus2"
     final val ComponentBusTier3 = "componentBus3"
+    final val ComponentBusCreative = "componentBusCreative"
     final val CPUTier1 = "cpu1"
     final val CPUTier2 = "cpu2"
     final val CPUTier3 = "cpu3"

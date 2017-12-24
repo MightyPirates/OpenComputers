@@ -62,11 +62,11 @@ class Settings(val config: Config) {
   val eepromSize = config.getInt("computer.eepromSize") max 0
   val eepromDataSize = config.getInt("computer.eepromDataSize") max 0
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
-    case Array(tier1, tier2, tier3) =>
-      Array(tier1: Int, tier2: Int, tier3: Int)
+    case Array(tier1, tier2, tier3, tierCreative) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tierCreative: Int)
     case _ =>
       OpenComputers.log.warn("Bad number of CPU component counts, ignoring.")
-      Array(8, 12, 16)
+      Array(8, 12, 16, 1024)
   }
   val callBudgets = Array(config.getDoubleList("computer.callBudgets"): _*) match {
     case Array(tier1, tier2, tier3) =>
@@ -517,6 +517,10 @@ object Settings {
     // Potion whitelist was fixed in 1.6.2.
     VersionRange.createFromVersionSpec("[0.0, 1.6.2)") -> Array(
       "nanomachines.potionWhitelist"
+    ),
+    // Creative component bus added in 1.7.2.
+    VersionRange.createFromVersionSpec("[0.0, 1.7.2)") -> Array(
+      "computer.cpuComponentCount"
     )
   )
 

@@ -430,6 +430,9 @@ object Items extends ItemAPI {
     // 1.6
     Recipes.addSubItem(new item.TerminalServer(components), Constants.ItemName.TerminalServer, "oc:terminalServer")
     Recipes.addSubItem(new item.DiskDriveMountable(components), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
+
+    // 1.7.2
+    registerItem(new item.ComponentBus(components, Tier.Four), Constants.ItemName.ComponentBusCreative)
   }
 
   // Card components.
