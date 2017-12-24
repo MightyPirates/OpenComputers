@@ -34,8 +34,12 @@ abstract class PacketHandler {
       process(data, player)
     }
     else {
+      data.retain()
       thread.addScheduledTask(new Runnable {
-        override def run(): Unit = process(data, player)
+        override def run(): Unit = {
+          process(data, player)
+          data.release()
+        }
       })
     }
   }
