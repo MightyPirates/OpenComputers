@@ -47,6 +47,9 @@ class Proxy {
     OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.REDSTONE_TORCH)
     OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ENDER_PEARL)
 
+    // Make mods that use old wireless card name not have broken recipes
+    OreDictionary.registerOre("oc:wlanCard", Items.get(Constants.ItemName.WirelessNetworkCardTier2).createItemStack(1))
+
     tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.IRON_INGOT, "ingotIron")
     tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.DIAMOND, "gemDiamond")
 
@@ -147,7 +150,8 @@ class Proxy {
   // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
   private val itemRenames = Map[String, String](
     OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1,
-    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack
+    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack,
+    OpenComputers.ID + ":wlanCard" -> Constants.ItemName.WirelessNetworkCardTier2
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -7,6 +8,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -15,9 +17,9 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-// TODO Remove in 1.7
+// Removed in MC 1.11
 class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
-  var strength = Settings.get.maxWirelessRange
+  var strength = Settings.get.maxWirelessRange(Tier.Two)
 
   var isRepeater = true
 
@@ -53,7 +55,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when relaying messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized {
-    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
+    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange(Tier.Two)))
     result(strength)
   }
 
@@ -75,7 +77,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
     if (strength > 0 && (sourceSide.isDefined || isRepeater)) {
-      val cost = Settings.get.wirelessCostPerRange
+      val cost = Settings.get.wirelessCostPerRange(Tier.Two)
       val tryChangeBuffer = sourceSide match {
         case Some(side) =>
           (amount: Double) => plugs(side.ordinal).node.asInstanceOf[Connector].tryChangeBuffer(amount)
@@ -121,7 +123,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   override def readFromNBTForServer(nbt: NBTTagCompound) = {
     super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "strength")) {
-      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
+      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange(Tier.Two)
     }
     if (nbt.hasKey(Settings.namespace + "isRepeater")) {
       isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")

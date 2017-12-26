@@ -192,7 +192,7 @@ repositories {
 configurations {
     provided
     embedded
-    compile.extendsFrom provided, embedded
+    compile.extendsFrom embedded
 }
 
 dependencies {
@@ -284,6 +284,9 @@ dependencies {
     testCompile "org.scalactic:scalactic_2.11:2.2.6"
     testCompile "org.scalatest:scalatest_2.11:2.2.6"
 }
+
+// Add the "provided" dependencies to the compile (but NOT runtime) classpath.
+sourceSets.main.compileClasspath += [configurations.provided]
 
 idea.module.scopes.PROVIDED.plus += [configurations.provided]
 // eclipse.classpath.plusConfigurations += [configurations.provided]

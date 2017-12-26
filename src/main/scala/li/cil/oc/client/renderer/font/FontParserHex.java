@@ -17,7 +17,7 @@ public class FontParserHex implements IGlyphProvider {
     private static final byte[] OPAQUE = {(byte) 255, (byte) 255, (byte) 255, (byte) 255};
     private static final byte[] TRANSPARENT = {0, 0, 0, 0};
 
-    private final byte[][] glyphs = new byte[0x10000][];
+    private final byte[][] glyphs = new byte[FontUtils.codepoint_limit()][];
 
     @Override
     public void initialize() {
@@ -26,7 +26,6 @@ public class FontParserHex implements IGlyphProvider {
         }
         try {
             final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
-            OpenComputers.log().info("Initialized unicode glyph provider.");
             try {
                 OpenComputers.log().info("Initializing unicode glyph provider.");
                 final BufferedReader input = new BufferedReader(new InputStreamReader(font));

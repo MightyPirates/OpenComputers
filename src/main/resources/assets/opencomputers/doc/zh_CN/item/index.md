@@ -27,7 +27,7 @@
 * [连接卡](linkedCard.md)
 * [网卡](lanCard.md)
 * [红石卡](redstoneCard1.md)
-* [无线网卡](wlanCard.md)
+* [无线网卡](wlanCard1.md)
 * [世界传感器卡](worldSensorCard.md)
 
 ### 升级

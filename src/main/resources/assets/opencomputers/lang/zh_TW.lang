@@ -147,7 +147,8 @@ item.oc.UpgradeSolarGenerator.name=太陽能發電升級
 item.oc.UpgradeTank.name=水箱升級
 item.oc.UpgradeTankController.name=高級水箱升級
 item.oc.UpgradeTractorBeam.name=牽引光束升級
-item.oc.WirelessNetworkCard.name=無線網卡
+item.oc.WirelessNetworkCard0.name=無線網卡
+item.oc.WirelessNetworkCard1.name=無線網卡
 item.oc.WorldSensorCard.name=世界傳感器卡
 item.oc.wrench.name=螺絲刀扳手
 

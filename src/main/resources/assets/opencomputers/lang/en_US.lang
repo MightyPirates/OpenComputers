@@ -57,6 +57,7 @@ item.oc.CircuitBoard.name=Circuit Board
 item.oc.ComponentBus0.name=Component Bus (Tier 1)
 item.oc.ComponentBus1.name=Component Bus (Tier 2)
 item.oc.ComponentBus2.name=Component Bus (Tier 3)
+item.oc.ComponentBus3.name=Component Bus (Creative)
 item.oc.ControlUnit.name=Control Unit (CU)
 item.oc.CPU0.name=Central Processing Unit (CPU) (Tier 1)
 item.oc.CPU1.name=Central Processing Unit (CPU) (Tier 2)
@@ -153,7 +154,8 @@ item.oc.UpgradeTank.name=Tank Upgrade
 item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.UpgradeTrading.name=Trading Upgrade
-item.oc.WirelessNetworkCard.name=Wireless Network Card
+item.oc.WirelessNetworkCard0.name=Wireless Network Card (Tier 1)
+item.oc.WirelessNetworkCard1.name=Wireless Network Card (Tier 2)
 item.oc.WorldSensorCard.name=World Sensor Card
 item.oc.wrench.name=Scrench
 
