@@ -7,6 +7,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
+import li.cil.oc.common.Tier
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.EnvironmentHost
@@ -21,12 +22,13 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
+abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().
     create()
 
+<<<<<<< HEAD
   var strength = Settings.get.maxWirelessRange
 
   // ----------------------------------------------------------------------- //
@@ -45,6 +47,36 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
   // ----------------------------------------------------------------------- //
 
   def position = BlockPosition(host)
+||||||| merged common ancestors
+  var strength = Settings.get.maxWirelessRange
+
+  // ----------------------------------------------------------------------- //
+
+  private final lazy val deviceInfo = Map(
+    DeviceAttribute.Class -> DeviceClass.Network,
+    DeviceAttribute.Description -> "Wireless ethernet controller",
+    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+    DeviceAttribute.Product -> "62i230 (MPW-01)",
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Width -> Settings.get.maxWirelessRange.toString
+  )
+
+  override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+  // ----------------------------------------------------------------------- //
+
+  override def x = BlockPosition(host).x
+=======
+  protected def wirelessCostPerRange: Double
+  
+  protected def maxWirelessRange: Double
+  
+  protected def shouldSendWiredTraffic: Boolean
+  
+  var strength = maxWirelessRange
+    
+  override def x = BlockPosition(host).x
+>>>>>>> master-MC1.7.10
 
   override def x = position.x
 
@@ -61,24 +93,27 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
   }
 
   // ----------------------------------------------------------------------- //
-
+  
   @Callback(direct = true, doc = """function():number -- Get the signal strength (range) used when sending messages.""")
   def getStrength(context: Context, args: Arguments): Array[AnyRef] = result(strength)
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when sending messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
-    strength = math.max(0, math.min(args.checkDouble(0), Settings.get.maxWirelessRange))
+    strength = math.max(0, math.min(args.checkDouble(0), maxWirelessRange))
     result(strength)
   }
 
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
-
+  
+  override def isWired(context: Context, args: Arguments): Array[AnyRef] = result(shouldSendWiredTraffic)
+  
   override protected def doSend(packet: Packet) {
     if (strength > 0) {
       checkPower()
       api.Network.sendWirelessPacket(this, strength, packet)
     }
-    super.doSend(packet)
+    if (shouldSendWiredTraffic)
+      super.doSend(packet)
   }
 
   override protected def doBroadcast(packet: Packet) {
@@ -86,11 +121,12 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
       checkPower()
       api.Network.sendWirelessPacket(this, strength, packet)
     }
-    super.doBroadcast(packet)
+    if (shouldSendWiredTraffic)
+      super.doBroadcast(packet)
   }
-
+  
   private def checkPower() {
-    val cost = Settings.get.wirelessCostPerRange
+    val cost = wirelessCostPerRange
     if (cost > 0 && !Settings.get.ignorePower) {
       if (!node.tryChangeBuffer(-strength * cost)) {
         throw new IOException("not enough energy")
@@ -130,12 +166,66 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (nbt.hasKey(StrengthTag)) {
-      strength = nbt.getDouble(StrengthTag) max 0 min Settings.get.maxWirelessRange
+      strength = nbt.getDouble(StrengthTag) max 0 min maxWirelessRange
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setDouble(StrengthTag, strength)
+  }
+}
+
+object WirelessNetworkCard {
+  class Tier1(host: EnvironmentHost) extends WirelessNetworkCard(host) {
+    override protected def wirelessCostPerRange = Settings.get.wirelessCostPerRange(Tier.One)
+    
+    override protected def maxWirelessRange = Settings.get.maxWirelessRange(Tier.One)
+    
+    // wired network card is before wireless cards in max port list
+    override protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.One + 1)
+    
+    override protected def shouldSendWiredTraffic = false
+
+    // ----------------------------------------------------------------------- //
+
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Network,
+      DeviceAttribute.Description -> "Wireless ethernet controller",
+      DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+      DeviceAttribute.Product -> "39i110 (LPPW-01)",
+      DeviceAttribute.Version -> "1.0",
+      DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+      DeviceAttribute.Size -> maxOpenPorts.toString,
+      DeviceAttribute.Width -> maxWirelessRange.toString
+    )
+
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
+  }
+  
+  class Tier2(host: EnvironmentHost) extends Tier1(host) {
+    override protected def wirelessCostPerRange = Settings.get.wirelessCostPerRange(Tier.Two)
+    
+    override protected def maxWirelessRange = Settings.get.maxWirelessRange(Tier.Two)
+    
+    // wired network card is before wireless cards in max port list
+    override protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.Two + 1)
+    
+    override protected def shouldSendWiredTraffic = true
+
+    // ----------------------------------------------------------------------- //
+
+    private final lazy val deviceInfo = Map(
+      DeviceAttribute.Class -> DeviceClass.Network,
+      DeviceAttribute.Description -> "Wireless ethernet controller",
+      DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
+      DeviceAttribute.Product -> "62i230 (MPW-01)",
+      DeviceAttribute.Version -> "2.0",
+      DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+      DeviceAttribute.Size -> maxOpenPorts.toString,
+      DeviceAttribute.Width -> maxWirelessRange.toString
+    )
+    
+    override def getDeviceInfo: util.Map[String, String] = deviceInfo
   }
 }

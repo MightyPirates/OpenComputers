@@ -102,15 +102,15 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      var origin = new Vec3d(x, y, z)
+      val origin = new Vec3d(x, y, z)
       val target = new Vec3d(entity.posX, entity.posY, entity.posZ)
-      val path = origin.subtract(target).normalize()
-      origin = origin.addVector(
+      val path = target.subtract(origin).normalize()
+      val moved_origin = origin.addVector(
         path.xCoord * 0.75,
         path.yCoord * 0.75,
         path.zCoord * 0.75
       )
-      world.rayTraceBlocks(origin, target) == null
+      world.rayTraceBlocks(moved_origin, target) == null
     }
 
   private def sendSignal(entity: EntityLivingBase) {

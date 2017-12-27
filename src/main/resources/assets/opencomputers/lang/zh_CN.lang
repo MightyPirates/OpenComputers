@@ -152,7 +152,8 @@ item.oc.upgradetank.name=水箱升级
 item.oc.upgradetankcontroller.name=高级水箱升级
 item.oc.upgradetractorbeam.name=牵引光束升级
 item.oc.upgradetrading.name=交易升级
-item.oc.wirelessnetworkcard.name=无线网卡
+item.oc.wirelessnetworkcard0.name=无线网卡
+item.oc.wirelessnetworkcard1.name=无线网卡
 item.oc.worldsensorcard.name=世界感应卡
 item.oc.wrench.name=螺丝刀扳手
 

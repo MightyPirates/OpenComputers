@@ -151,7 +151,8 @@ item.oc.UpgradeTank.name=Tank-Upgrade
 item.oc.UpgradeTankController.name=Tankbedienungs-Upgrade
 item.oc.UpgradeTractorBeam.name=Traktorstrahl-Upgrade
 item.oc.UpgradeTrading.name=Handels-Upgrade
-item.oc.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
+item.oc.WirelessNetworkCard0.name=Drahtlosnetzwerkkarte (Stufe 1)
+item.oc.WirelessNetworkCard1.name=Drahtlosnetzwerkkarte (Stufe 2)
 item.oc.WorldSensorCard.name=Weltsensorkarte
 item.oc.wrench.name=Schraubenziehschlüssel
 

@@ -10,7 +10,7 @@ Nanomachines provide a certain number of "inputs" that can be triggered, causing
 
 Which input triggers what effect depends on the current configuration of the nanomachines, the actual "connections" being random per configuration. This means you'll have to try enabling different inputs to see what they do. If you're unhappy with a configuration, you can always reconfigure your nanomachines by injecting a new batch (just eat some more). To completely get rid of the nanomachines in you, consider drinking some [grog](acid.md). Beware that enabling too many inputs at a time has severe negative effects on you!
 
-By default, the nanomachines will be on standby. You'll need to control them using wireless messages, so carrying a [tablet](tablet.md) with a [wireless network card](wlanCard.md) is strongly recommended. Nanomachines will only react to wireless signals emitted by devices no further than two meters away, but they will react to messages on any port, and from any device!
+By default, the nanomachines will be on standby. You'll need to control them using wireless messages, so carrying a [tablet](tablet.md) with a [wireless network card](wlanCard1.md) is strongly recommended. Nanomachines will only react to wireless signals emitted by devices no further than two meters away, but they will react to messages on any port, and from any device!
 
 Nanomachines react to a simple, proprietary protocol: each packet must consist of multiple parts, the first of which is the "header" and must equal the string `nanomachines`. The second part must be the command name. Additional parts are parameters for the command. The following commands are available, formatted as `commandName(arg1, ...)`:
 

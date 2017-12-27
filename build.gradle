@@ -75,7 +75,7 @@ repositories {
 
 configurations {
     embedded
-    compile.extendsFrom embedded
+    compile.extendsFrom provided, embedded
 }
 
 dependencies {

@@ -14,6 +14,7 @@ import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.item.data.NanomachineData
+import li.cil.oc.common.Tier
 import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.BlockPosition
@@ -151,7 +152,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   def respond(endpoint: WirelessEndpoint, data: Any*): Unit = {
     queuedCommand = Option(() => {
       if (responsePort > 0) {
-        val cost = Settings.get.wirelessCostPerRange * CommandRange
+        val cost = Settings.get.wirelessCostPerRange(Tier.Two) * CommandRange
         val epsilon = 0.1
         if (changeBuffer(-cost) > -epsilon) {
           val packet = api.Network.newPacket(uuid, null, responsePort, (Iterable("nanomachines") ++ data.map(_.asInstanceOf[AnyRef])).toArray)

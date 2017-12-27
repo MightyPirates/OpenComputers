@@ -63,7 +63,8 @@ item.oc.upgradegenerator.name=Melhoramento: Gerador
 item.oc.upgradenavigation.name=Melhoramento: Navegação
 item.oc.upgradesign.name=Melhoramento: Escrita e Leitura de Placas
 item.oc.upgradesolargenerator.name=Melhoramento: Gerador Solar
-item.oc.wirelessnetworkcard.name=Placa de Rede sem Fios
+item.oc.wirelessnetworkcard0.name=Placa de Rede sem Fios
+item.oc.WirelessNetworkCard1.name=Placa de Rede sem Fios
 
 # GUI
 oc:gui.Analyzer.Address=§6Endereço§f: %s

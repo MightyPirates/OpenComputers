@@ -15,15 +15,17 @@ object DriverComponentBus extends Item with Processor {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.ComponentBusTier1),
     api.Items.get(Constants.ItemName.ComponentBusTier2),
-    api.Items.get(Constants.ItemName.ComponentBusTier3))
+    api.Items.get(Constants.ItemName.ComponentBusTier3),
+    api.Items.get(Constants.ItemName.ComponentBusCreative))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 
   override def slot(stack: ItemStack) = Slot.ComponentBus
 
+  // Clamp item tier because the creative bus needs to fit into tier 3 slots.
   override def tier(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(bus: item.ComponentBus) => bus.tier
+      case Some(bus: item.ComponentBus) => bus.tier min Tier.Three
       case _ => Tier.One
     }
 

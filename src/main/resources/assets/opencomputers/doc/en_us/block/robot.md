@@ -2,7 +2,7 @@
 
 ![His name was Tobor.](block:OpenComputers:robot)
 
-Unlike [computers](../general/computer.md), robots can move around and interact with the world much like a player can. They can *not* interact with external components, however! If you need to communicate with a [computer](../general/computer.md) or other robots, use a [wireless network card](../item/wlanCard.md), or create some low-level protocol using redstone signals via a [redstone card](../item/redstoneCard1.md), for example.
+Unlike [computers](../general/computer.md), robots can move around and interact with the world much like a player can. They can *not* interact with external components, however! If you need to communicate with a [computer](../general/computer.md) or other robots, use a [wireless network card](../item/wlanCard1.md), or create some low-level protocol using redstone signals via a [redstone card](../item/redstoneCard1.md), for example.
 
 Robots are built by placing a [computer case](case1.md) of any tier in an [assembler](assembler.md). Higher tier [computer cases](case1.md) can build more complex robots, due to being able to hold a higher tier [CPU](../item/cpu1.md). Complexity of the robot (as shown in the [assembler](assembler.md)) is determined by the tier of the components and upgrades placed in the robot slots; higher tier components will increase the complexity more than a lower tier component. If the complexity of the robot is too high, the [assembler](assembler.md) will not build the robot.
 
