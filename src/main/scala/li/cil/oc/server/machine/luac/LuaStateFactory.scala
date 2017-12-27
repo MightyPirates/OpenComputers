@@ -99,7 +99,7 @@ abstract class LuaStateFactory {
     else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X64) "native.64.dll"
     else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X86) "native.32.dll"
 
-    else null
+    else "native.so"
   }
 
   // Register a custom library loader with JNLua. We have to trigger
