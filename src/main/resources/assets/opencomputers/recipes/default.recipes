@@ -16,7 +16,7 @@ manual {
   input: [book, "oc:circuitChip1"]
 }
 nanomachines {
-  input: [["oc:chamelium", "oc:wlanCard", "oc:chamelium"]
+  input: [["oc:chamelium", "oc:wlanCard2", "oc:chamelium"]
           ["oc:cpu2", "oc:materialAcid", "oc:ram1"]
           ["oc:chamelium", "oc:capacitor", "oc:chamelium"]]
 }
@@ -69,7 +69,7 @@ microcontrollercase2 {
 }
 terminal {
   input: [[iron_nugget, "oc:solarGeneratorUpgrade", iron_nugget]
-          ["oc:circuitChip3", "oc:screen2", "oc:wlanCard"]
+          ["oc:circuitChip3", "oc:screen2", "oc:wlanCard2"]
           [iron_nugget, "oc:keyboard", iron_nugget]]
 }
 tabletcase1 {
@@ -105,7 +105,7 @@ server3 {
 }
 terminalserver {
   input: [[obsidian, "oc:wlanCard", obsidian]
-          ["oc:wlanCard", "oc:circuitChip2", "oc:wlanCard"]
+          ["oc:wlanCard", "oc:circuitChip2", "oc:wlanCard2"]
           [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
 }
 
@@ -200,7 +200,11 @@ lancard {
   input: [["oc:cable", "oc:circuitChip1", ""]
           ["", "oc:materialCard", ""]]
 }
-wlancard {
+wlancard1 {
+  input: [[torchRedstoneActive, "oc:circuitChip1", torchRedstoneActive]
+          ["", "oc:materialCard", ""]]
+}
+wlancard2 {
   input: [[materialEnderPearl, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
 }
@@ -636,7 +640,7 @@ powerdistributor {
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 rack {
-  input: [[gemDiamond, "oc:wlanCard", gemDiamond]
+  input: [[gemDiamond, "oc:wlanCard2", gemDiamond]
           [fenceIron, chest, fenceIron]
           ["oc:relay", "oc:materialCircuitBoardPrinted", "oc:powerDistributor"]]
 }

@@ -151,7 +151,8 @@ item.oc.upgradetank.name=Aprimoramento de Tanque
 item.oc.upgradetankcontroller.name=Aprimoramento de Controlador de Tanque
 item.oc.upgradetractorbeam.name=Aprimoramento de Raio Trator
 item.oc.upgradetrading.name=Aprimoramento de Troca
-item.oc.wirelessnetworkcard.name=Cartão de Rede Sem Fio
+item.oc.wirelessnetworkcard0.name=Cartão de Rede Sem Fio (Nível 1)
+item.oc.wirelessnetworkcard1.name=Cartão de Rede Sem Fio (Nível 2)
 item.oc.worldsensorcard.name=Cartão de Sensor de Mundo
 item.oc.wrench.name=Chave de fenda-boca
 

@@ -144,7 +144,8 @@ item.oc.upgradesolargenerator.name=Amélioration du générateur solaire
 item.oc.upgradetank.name=Amélioration de réservoir
 item.oc.upgradetankcontroller.name=Amélioration du contrôleur de réservoir
 item.oc.upgradetractorbeam.name=Amélioration du rayon tracteur
-item.oc.wirelessnetworkcard.name=Carte de réseau sans-fils
+item.oc.wirelessnetworkcard0.name=Carte de réseau sans-fils (Niveau 1)
+item.oc.wirelessnetworkcard1.name=Carte de réseau sans-fils (Niveau 2)
 item.oc.worldsensorcard.name=Carte de capteur du monde
 item.oc.wrench.name=Crisseur
 

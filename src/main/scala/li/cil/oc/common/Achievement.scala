@@ -218,7 +218,8 @@ object Achievement {
   val WirelessNetworkCard: MCAchievement = newAchievement("wirelessNetworkCard").
     at(2, -6).
     withParent(NetworkCard).
-    whenCrafting(Constants.ItemName.WirelessNetworkCard).
+    whenCrafting(Constants.ItemName.WirelessNetworkCardTier1).
+    whenCrafting(Constants.ItemName.WirelessNetworkCardTier2).
     add()
 
   val Cable: MCAchievement = newAchievement("cable").

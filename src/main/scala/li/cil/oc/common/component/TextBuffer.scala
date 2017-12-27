@@ -158,7 +158,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange * Settings.get.maxWirelessRange)))
+      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange(Tier.Two) * Settings.get.maxWirelessRange(Tier.Two))))
       _pendingCommands = None
     }
 

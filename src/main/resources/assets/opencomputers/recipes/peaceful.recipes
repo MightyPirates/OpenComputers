@@ -4,7 +4,11 @@ redstonecard2 {
   input: [[blockRedstone, "oc:circuitChip2", gemDiamond]
           ["", "oc:materialCard", ""]]
 }
-wlancard {
+wlancard1 {
+  input: [[torchRedstoneActive, "oc:circuitChip1", torchRedstoneActive]
+          ["", "oc:materialCard", ""]]
+}
+wlancard2 {
   input: [[gemDiamond, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
 }

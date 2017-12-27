@@ -19,6 +19,7 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
+import li.cil.oc.common.Tier
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
@@ -37,6 +38,9 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
     create()
 
   protected val openPorts = mutable.Set.empty[Int]
+  
+  // wired network card is the 1st in the max ports list (before both wireless cards)
+  protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.One)
 
   protected var wakeMessage: Option[String] = None
 
@@ -49,7 +53,9 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
     DeviceAttribute.Description -> "Ethernet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "42i520 (MPN-01)",
+    DeviceAttribute.Version -> "1.0",
     DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Size -> maxOpenPorts.toString,
     DeviceAttribute.Width -> Settings.get.maxNetworkPacketParts.toString
   )
 
@@ -61,7 +67,7 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     if (openPorts.contains(port)) result(false)
-    else if (openPorts.size >= Settings.get.maxOpenPorts) {
+    else if (openPorts.size >= maxOpenPorts) {
       throw new java.io.IOException("too many open ports")
     }
     else result(openPorts.add(port))
@@ -86,8 +92,11 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
     result(openPorts.contains(port))
   }
 
-  @Callback(direct = true, doc = """function():boolean -- Whether this is a wireless network card.""")
+  @Callback(direct = true, doc = """function():boolean -- Whether this card has wireless networking capability.""")
   def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(false)
+  
+  @Callback(direct = true, doc = """function():boolean -- Whether this card has wired networking capability.""")
+  def isWired(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
   @Callback(doc = """function(address:string, port:number, data...) -- Sends the specified data to the specified target.""")
   def send(context: Context, args: Arguments): Array[AnyRef] = {

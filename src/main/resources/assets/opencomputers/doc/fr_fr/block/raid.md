@@ -8,4 +8,4 @@ Le RAID fonctionne uniquement (et se présente en tant que système de fichiers)
 
 Faites attention, car l'ajout d'un [disque dur](../item/hdd1.md) au bloc de RAID effacera son contenu. Retirer un [disque dur](../item/hdd1.md) du RAID effacera le contenu complet du RAID. Remettre le disque en place *ne restaurera pas* les anciens fichiers; le RAID sera ré-initialisé en tant que système de fichiers vierge.
 
-Casser un bloc de RAID gardera son contenu, dons il peut être déplacé en tout sécurité sans risque de perte de données.
+Casser un bloc de RAID gardera son contenu, il peut donc être déplacé en tout sécurité sans risque de perte de données.

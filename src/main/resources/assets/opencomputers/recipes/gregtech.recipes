@@ -124,7 +124,12 @@ lancard {
           ["oc:cable", "oc:materialCard", "oc:cable"]
           [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
 }
-wlancard {
+wlancard1 {
+  input: [[screwAluminium , "oc:circuitChip2" , screwAluminium]
+          [torchRedstoneActive, "oc:lanCard", torchRedstoneActive]
+          [screwAluminium , craftingToolScrewdriver, screwAluminium]]
+}
+wlancard2 {
   input: [[screwTitanium , "oc:circuitChip3" , screwTitanium]
           [materialEnderPearl, "oc:lanCard", materialEnderPearl]
           [screwTitanium , craftingToolScrewdriver, screwTitanium]]
@@ -312,7 +317,7 @@ powerdistributor {
           ["oc:materialCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
 rack {
-  input: [[craftingToolScrewdriver, "oc:wlanCard", craftingToolWrench]
+  input: [[craftingToolScrewdriver, "oc:wlanCard2", craftingToolWrench]
           [{item="ic2.reactorVentDiamond", subID=1}, chest, {item="ic2.reactorVentDiamond", subID=1}]
           ["oc:relay", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
 }

@@ -153,7 +153,8 @@ item.oc.upgradetank.name=Улучшение "Бак для жидкостей"
 item.oc.upgradetankcontroller.name=Улучшение "Контроллер бака"
 item.oc.upgradetractorbeam.name=Улучшение "Притягивающий луч"
 item.oc.upgradetrading.name=Улучшение "Торговля"
-item.oc.wirelessnetworkcard.name=Плата беспроводной сети
+item.oc.wirelessnetworkcard0.name=Плата беспроводной сети (1-ый уровень)
+item.oc.wirelessnetworkcard1.name=Плата беспроводной сети (2-ой уровень)
 item.oc.worldsensorcard.name=Карта-мировой сенсор
 item.oc.wrench.name=Ключ
 
