@@ -661,7 +661,19 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the metadata of the block at the specified coordinates.""")
     def getMetadata(context: Context, args: Arguments): Array[AnyRef] = {
       checkAccess()
-      result(world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
+      val state = world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(state.getBlock.getMetaFromState(state))
+    }
+
+    @Callback(doc = """function(x:number, y:number, z:number[, actualState:boolean=false]) - gets the block state for the block at the specified position, optionally getting additional display related data""")
+    def getBlockState(context: Context, args: Arguments): Array[AnyRef] = {
+      checkAccess()
+      val pos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      var state = world.getBlockState(pos)
+      if (args.optBoolean(3, false)) {
+        state = state.getActualState(world, pos)
+      }
+      result(state)
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates is loaded.""")
