@@ -55,6 +55,7 @@ item.oc.circuitboard.name=Circuit Board
 item.oc.componentbus0.name=Component Bus (Tier 1)
 item.oc.componentbus1.name=Component Bus (Tier 2)
 item.oc.componentbus2.name=Component Bus (Tier 3)
+item.oc.componentbus3.name=Component Bus (Creative)
 item.oc.controlunit.name=Control Unit (CU)
 item.oc.cpu0.name=Central Processing Unit (CPU) (Tier 1)
 item.oc.cpu1.name=Central Processing Unit (CPU) (Tier 2)
