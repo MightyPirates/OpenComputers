@@ -49,7 +49,7 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   var wirelessTier = -1
   
-  override def isWirelessEnabled = wirelessTier >= Tier.One
+  def isWirelessEnabled = wirelessTier >= Tier.One
 
   def maxWirelessRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
     Settings.get.maxWirelessRange(wirelessTier) else 0
