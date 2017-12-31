@@ -296,7 +296,7 @@ object Items extends ItemAPI {
 
       safeGetStack(Constants.ItemName.GraphicsCardTier2),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
-      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
       safeGetStack(Constants.ItemName.CPUTier3),
       safeGetStack(Constants.ItemName.RAMTier6),
