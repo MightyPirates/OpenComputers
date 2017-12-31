@@ -154,6 +154,7 @@ object FontUtils {
       try {
         var line: String = null
         val input = new BufferedReader(new InputStreamReader(font, StandardCharsets.UTF_8))
+        var out_of_range_glyph: Int = 0
         while ({line = input.readLine; line != null}) {
           val info = line.split(":")
           val charCode = Integer.parseInt(info(0), 16)
@@ -164,8 +165,14 @@ object FontUtils {
               case n => OpenComputers.log.warn(s"Invalid glyph size detected in font.hex. Expected 64 or 32, got: $n")
             }
           } else {
-            OpenComputers.log.warn(f"Invalid glyph char code detected in font.hex. Expected 0<= charCode <$codepoint_limit%X, got: $charCode%X")
+            if (out_of_range_glyph == 0) {
+              OpenComputers.log.warn(f"Invalid glyph char code detected in font.hex. Expected 0<= charCode <$codepoint_limit%X, got: $charCode%X")
+            }
+            out_of_range_glyph += 1
           }
+        }
+        if (out_of_range_glyph > 1) {
+          OpenComputers.log.warn(f"${out_of_range_glyph} total invalid glyph char codes detected in font.hex")
         }
       } finally {
         try {
