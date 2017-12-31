@@ -166,6 +166,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       case dx if tx > 0 => dx
       case dx => dx.swap
     }
+    val left_edge = math.min(dx0, dx1) - 1
+    if (left_edge >= width - 1) return false // no work
     val (dy0, dy1) = (math.max(0, math.min(height - 1, row + ty + h - 1)), math.max(0, math.min(height, row + ty))) match {
       case dy if ty > 0 => dy
       case dy => dy.swap
@@ -186,10 +188,16 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
               for (offset <- 1 until FontUtils.wcwidth(nl(nx))) {
-                nl(nx + offset) = ol(' ')
+                nl(nx + offset) = ' '
                 nc(nx + offset) = oc(nx)
               }
             case _ => /* Got no source column. */
+          }
+          // any wide chars along the left edge of the target rectangle need to be cleared
+          // don't change their colors
+          if (left_edge >= 0 && FontUtils.wcwidth(nl(left_edge)) > 1) {
+            nl(left_edge) = ' '
+            changed = true
           }
         case _ => /* Got no source row. */
       }
@@ -202,15 +210,15 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       // Don't allow setting wide chars in right-most col.
       return
     }
-    if (x > 0 && line(x) == ' ' && FontUtils.wcwidth(line(x - 1)) > 1) {
-      // Don't allow setting the cell following a wide char.
-      return
-    }
     line(x) = c
     lineColor(x) = packed
     for (x1 <- x + 1 until x + FontUtils.wcwidth(c)) {
       line(x1) = ' '
       lineColor(x1) = packed
+    }
+    if (x > 0 && FontUtils.wcwidth(line(x - 1)) > 1) {
+      // remove previous wide char (but don't change its color)
+      line(x - 1) = ' '
     }
   }
 
