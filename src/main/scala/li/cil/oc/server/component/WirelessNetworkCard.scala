@@ -28,55 +28,15 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
     withConnector().
     create()
 
-<<<<<<< HEAD
-  var strength = Settings.get.maxWirelessRange
+  protected def wirelessCostPerRange: Double
 
-  // ----------------------------------------------------------------------- //
+  protected def maxWirelessRange: Double
 
-  private final lazy val deviceInfo = Map(
-    DeviceAttribute.Class -> DeviceClass.Network,
-    DeviceAttribute.Description -> "Wireless ethernet controller",
-    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> "62i230 (MPW-01)",
-    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
-    DeviceAttribute.Width -> Settings.get.maxWirelessRange.toString
-  )
+  protected def shouldSendWiredTraffic: Boolean
 
-  override def getDeviceInfo: util.Map[String, String] = deviceInfo
-
-  // ----------------------------------------------------------------------- //
+  var strength = maxWirelessRange
 
   def position = BlockPosition(host)
-||||||| merged common ancestors
-  var strength = Settings.get.maxWirelessRange
-
-  // ----------------------------------------------------------------------- //
-
-  private final lazy val deviceInfo = Map(
-    DeviceAttribute.Class -> DeviceClass.Network,
-    DeviceAttribute.Description -> "Wireless ethernet controller",
-    DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
-    DeviceAttribute.Product -> "62i230 (MPW-01)",
-    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
-    DeviceAttribute.Width -> Settings.get.maxWirelessRange.toString
-  )
-
-  override def getDeviceInfo: util.Map[String, String] = deviceInfo
-
-  // ----------------------------------------------------------------------- //
-
-  override def x = BlockPosition(host).x
-=======
-  protected def wirelessCostPerRange: Double
-  
-  protected def maxWirelessRange: Double
-  
-  protected def shouldSendWiredTraffic: Boolean
-  
-  var strength = maxWirelessRange
-    
-  override def x = BlockPosition(host).x
->>>>>>> master-MC1.7.10
 
   override def x = position.x
 
