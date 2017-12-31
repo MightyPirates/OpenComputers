@@ -444,7 +444,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.RedstoneCard(cards, Tier.One), Constants.ItemName.RedstoneCardTier1, "oc:redstoneCard1")
     Recipes.addSubItem(new item.RedstoneCard(cards, Tier.Two), Constants.ItemName.RedstoneCardTier2, "oc:redstoneCard2")
     Recipes.addSubItem(new item.NetworkCard(cards), Constants.ItemName.NetworkCard, "oc:lanCard")
-    Recipes.addSubItem(new item.WirelessNetworkCard(cards), Constants.ItemName.WirelessNetworkCard, "oc:wlanCard")
+    Recipes.addSubItem(new item.WirelessNetworkCard(cards, Tier.Two), Constants.ItemName.WirelessNetworkCardTier2, "oc:wlanCard2")
     Recipes.addSubItem(new item.InternetCard(cards), Constants.ItemName.InternetCard, "oc:internetCard")
     Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
 
@@ -497,8 +497,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeMF(upgrades), Constants.ItemName.MFU, "oc:mfu")
 
     // 1.7.2
-    Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
-    registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
+    Recipes.addSubItem(new item.WirelessNetworkCard(upgrades, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
+    registerItem(new item.ComponentBus(upgrades, Tier.Four), Constants.ItemName.ComponentBusCreative)
   }
 
   // Storage media of all kinds.
