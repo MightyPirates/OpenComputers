@@ -142,9 +142,7 @@ class Settings(val config: Config) {
 
   // ----------------------------------------------------------------------- //
   // power
-  var is3rdPartyPowerSystemPresent = false
-  val pureIgnorePower = config.getBoolean("power.ignorePower")
-  lazy val ignorePower = pureIgnorePower || (!is3rdPartyPowerSystemPresent && !Mods.isPowerProvidingModPresent)
+  val ignorePower = config.getBoolean("power.ignorePower")
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRateExternal = config.getDouble("power.chargerChargeRate")
   val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
@@ -154,6 +152,11 @@ class Settings(val config: Config) {
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
   val printerTickAmount = config.getDouble("power.printerTickAmount") max 1
   val powerModBlacklist = config.getStringList("power.modBlacklist")
+
+  // power.carpetedCapacitors
+  val sheepPower = config.getDouble("power.carpetedCapacitors.sheepPower") max 0
+  val ocelotPower = config.getDouble("power.carpetedCapacitors.ocelotPower") max 0
+  val carpetDamageChance = config.getDouble("power.carpetedCapacitors.damageChance") max 0 min 1.0
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0

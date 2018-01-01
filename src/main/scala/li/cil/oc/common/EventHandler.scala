@@ -188,9 +188,6 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          player.addChatMessage(Localization.Chat.WarningPower)
-        }
         if (Recipes.hadErrors) {
           player.addChatMessage(Localization.Chat.WarningRecipes)
         }

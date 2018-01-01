@@ -567,6 +567,14 @@ cable {
           ["", nuggetIron, ""]]
   output: 4
 }
+luaBios {
+  type: shapeless
+  input: ["oc:eeprom", "oc:manual"]
+}
+carpetedCapacitor {
+  type: shapeless
+  input: [carpet, "oc:capacitor"]
+}
 capacitor {
   input: [[ingotIron, "oc:materialTransistor", ingotIron]
           [nuggetGold, paper, nuggetGold]

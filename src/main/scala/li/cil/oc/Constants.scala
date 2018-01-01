@@ -10,6 +10,7 @@ object Constants {
     final val Assembler = "assembler"
     final val Cable = "cable"
     final val Capacitor = "capacitor"
+    final val CarpetedCapacitor = "carpetedCapacitor"
     final val CaseCreative = "caseCreative"
     final val CaseTier1 = "case1"
     final val CaseTier2 = "case2"
