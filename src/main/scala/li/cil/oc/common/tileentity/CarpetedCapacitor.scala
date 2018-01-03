@@ -8,13 +8,14 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.passive.{EntityOcelot, EntitySheep}
-import net.minecraft.util.{AxisAlignedBB, DamageSource}
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.DamageSource
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.tileentity.traits.Tickable
 
-class CarpetedCapacitor extends Capacitor {
+class CarpetedCapacitor extends Capacitor with Tickable {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Battery",
@@ -24,8 +25,6 @@ class CarpetedCapacitor extends Capacitor {
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
-
-  override def canUpdate = true
 
   private val rng = scala.util.Random
   private val chance: Double = Settings.get.carpetDamageChance
@@ -54,7 +53,6 @@ class CarpetedCapacitor extends Capacitor {
   override def updateEntity() {
     if (node != null && (world.getTotalWorldTime + hashCode) % 20 == 0) {
       val entities = world.getEntitiesWithinAABB(classOf[EntityLivingBase], capacitorPowerBounds)
-        .map(_.asInstanceOf[EntityLivingBase])
         .filter(entity => entity.isEntityAlive)
         .toSet
       val sheepPower = energyFromGroup(entities.filter(_.isInstanceOf[EntitySheep]), Settings.get.sheepPower)
@@ -66,5 +64,5 @@ class CarpetedCapacitor extends Capacitor {
     }
   }
 
-  private def capacitorPowerBounds = position.offset(ForgeDirection.UP).bounds
+  private def capacitorPowerBounds = position.offset(EnumFacing.UP).bounds
 }
