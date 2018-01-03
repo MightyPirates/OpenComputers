@@ -87,8 +87,6 @@ object Localization {
 
     def WarningProjectRed = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
 
-    def WarningPower = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningPower"))
-
     def WarningFingerprint(event: FMLFingerprintViolationEvent) = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.getExpectedFingerprint, event.getFingerprints.toArray.mkString(", ")))
 
     def WarningRecipes = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
