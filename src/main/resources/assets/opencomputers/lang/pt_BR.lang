@@ -194,7 +194,6 @@ oc:gui.Chat.WarningClassTransformer=Houve um erro §cerros§f ao rodar o 'class 
 oc:gui.Chat.WarningFingerprint=§cATENÇÃO§f - impressão digital não reconhecida! Experado '§a%s§f' mas recebido '§e%s§f'. Há não ser que seja um moderador e esteja rodando uma versão desofuscada, é §lextremamente§f recomendável que baixe novamente o OpenComputers, por que o JAR que está usando talvez esteja adulterado.
 oc:gui.Chat.WarningLink=Não pode abrir o atalho: %s
 oc:gui.Chat.WarningLuaFallback=Bibliotecas de LUA nativas não disponíveis, computadores não serão capazes de persistir seus estados. Eles reiniciarizaram com chunkloaders.
-oc:gui.Chat.WarningPower=Nenhum mod supprtado que provê energia foi encontrado. Computadores, monitores e todos os outros componentes §lnão§f requiriram energia. Instale um dos mods para habilitar a energia: BuildCraft, Electrical Age, IndustrialCraft2, Mekanism ou Thermal Expansion. Disabilite a energia nas confgurações para que esse aviso não apareça.
 oc:gui.Chat.WarningProjectRed=Você está usando a versão Project: Red que é incompativel com OpenComputers. Tente atualizar sua versão do Project: Red.
 oc:gui.Chat.WarningRecipes=Houve erros ao carregar uma ou mais receitas. Algumas não poderão ser construídas. Por favor verifique seu arquivo de log para mais informações.
 oc:gui.Chat.WarningSimpleComponent=Um addon (seu?) usa a interface §aSimpleComponent§f que faz §ealgo errado§f. A lógica de componente não pode ser injetada. Por favor verifique seu arquivo de log para mais informações.
