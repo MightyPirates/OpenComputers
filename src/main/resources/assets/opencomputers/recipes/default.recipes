@@ -564,7 +564,7 @@ luaBios {
   type: shapeless
   input: ["oc:eeprom", "oc:manual"]
 }
-carpetedCapacitor {
+carpetedcapacitor {
   type: shapeless
   input: [carpet, "oc:capacitor"]
 }

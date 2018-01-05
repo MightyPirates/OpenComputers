@@ -26,7 +26,7 @@ class CarpetedCapacitor extends Capacitor with Tickable {
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  private def _world: net.minecraft.world.World = asInstanceOf[Capacitor].world
+  private def _world: net.minecraft.world.World = getWorld
   private val rng = scala.util.Random
   private val chance: Double = Settings.get.carpetDamageChance
   private var nextChanceTime: Long = 0

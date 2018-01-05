@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/carpetedCapacitor",
+    "parent": "opencomputers:block/carpetedcapacitor",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

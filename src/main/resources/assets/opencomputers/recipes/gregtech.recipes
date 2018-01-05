@@ -271,7 +271,7 @@ cable {
   time: 64
   output: 8
 }
-carpetedCapacitor {
+carpetedcapacitor {
   type: shapeless
   input: [carpet, "oc:capacitor"]
 }

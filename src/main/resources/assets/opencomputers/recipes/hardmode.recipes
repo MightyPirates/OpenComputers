@@ -316,7 +316,7 @@ cable {
           ["", iron_nugget, ""]]
   output: 4
 }
-carpetedCapacitor {
+carpetedcapacitor {
   type: shapeless
   input: [carpet, "oc:capacitor"]
 }
