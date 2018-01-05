@@ -76,5 +76,5 @@ class Capacitor extends traits.Environment with DeviceInfo {
 
   private def indirectNeighbors = EnumFacing.values.map(getPos.offset(_, 2))
 
-  private def maxCapacity = Settings.get.bufferCapacitor + Settings.get.bufferCapacitorAdjacencyBonus * 9
+  protected def maxCapacity = Settings.get.bufferCapacitor + Settings.get.bufferCapacitorAdjacencyBonus * 9
 }

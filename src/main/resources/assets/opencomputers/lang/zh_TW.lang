@@ -190,7 +190,6 @@ oc:gui.Chat.WarningClassTransformer=There were §cerrors§f running the class tr
 oc:gui.Chat.WarningFingerprint=§c警告§f - 指紋不符！預期 '§a%s§f' 但得到 '§e%s§f'. Unless you are a modder and are running the deobfuscated version of the mod, it is §lstrongly§f recommended to redownload OpenComputers, because the JAR you are using may have been tampered with.
 oc:gui.Chat.WarningLink=無法打開鏈接: %s
 oc:gui.Chat.WarningLuaFallback=本機 LUA 函式庫無法使用,電腦將無法維持狀態,他會重新啟動並且載入區塊
-oc:gui.Chat.WarningPower=沒有發現支援的能量供應模組. 電腦螢幕與全部其他的電腦設備 §lnot§f 需要能量. 安裝下列模組之一能夠提供能源: BuildCraft 或 IndustrialCraft2. 在配置裡面可以設定不使用這個電源警告
 oc:gui.Chat.WarningProjectRed=你正在使用的 Project: Red 模組與 OpenComputers 不相容. 請嘗試更新 Project: Red.
 oc:gui.Chat.WarningRecipes=There were errors loading one or more recipes. Some items may be uncraftable. Please check your log file for more information.
 oc:gui.Chat.WarningSimpleComponent=An addon (yours?) using the §aSimpleComponent§f interface did §esomething wrong§f. Component logic could not be injected. Please check your log file for more information.

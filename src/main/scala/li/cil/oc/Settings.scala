@@ -153,6 +153,11 @@ class Settings(val config: Config) {
   val printerTickAmount = config.getDouble("power.printerTickAmount") max 1
   val powerModBlacklist = config.getStringList("power.modBlacklist")
 
+  // power.carpetedCapacitors
+  val sheepPower = config.getDouble("power.carpetedCapacitors.sheepPower") max 0
+  val ocelotPower = config.getDouble("power.carpetedCapacitors.ocelotPower") max 0
+  val carpetDamageChance = config.getDouble("power.carpetedCapacitors.damageChance") max 0 min 1.0
+
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
   val bufferCapacitorAdjacencyBonus = config.getDouble("power.buffer.capacitorAdjacencyBonus") max 0

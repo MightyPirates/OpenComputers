@@ -14,6 +14,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
+    GameRegistry.registerTileEntity(classOf[tileentity.CarpetedCapacitor], Settings.namespace + "carpetedCapacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "diskDrive")
@@ -79,5 +80,8 @@ object Blocks {
 
     // v1.5.16
     Recipes.addBlock(new Transposer(), Constants.BlockName.Transposer, "oc:transposer")
+
+    // v1.7.2
+    Recipes.addBlock(new CarpetedCapacitor(), Constants.BlockName.CarpetedCapacitor, "oc:carpetedCapacitor")
   }
 }
