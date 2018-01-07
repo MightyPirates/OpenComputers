@@ -13,21 +13,16 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
-import net.minecraft.item.ItemStack
+import net.minecraft.inventory.{InventoryCraftResult, SlotCrafting}
 import net.minecraft.item.crafting.CraftingManager
-import net.minecraft.item.crafting.CraftingManager
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
-import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.collection.convert.WrapAsJava._
-import scala.collection.mutable
 import scala.util.control.Breaks._
+import net.minecraft.item.ItemStack
 
 class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -53,50 +48,45 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
     override def canInteractWith(player: EntityPlayer) = true
   }, 3, 3) {
     var amountPossible = 0
-
     def craft(wantedCount: Int): Seq[_] = {
-      load()
+      copyItemsFromHost()
       var countCrafted = 0
-      val canCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world) != null
-      breakable {
-        while (countCrafted < wantedCount) {
-          val result = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
-          if (result == null || result.getRecipeOutput.getCount < 1) break()
-          countCrafted += result.getRecipeOutput.getCount
-          var output = result.getRecipeOutput.copy()
-          FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, output, this)
-          val surplus = mutable.ArrayBuffer.empty[ItemStack]
-          for (slot <- 0 until getSizeInventory) {
-            val stack = getStackInSlot(slot)
-            if (!stack.isEmpty) {
-              decrStackSize(slot, 1)
-              val item = stack.getItem
-              if (item.hasContainerItem(stack)) {
-                val container = item.getContainerItem(stack)
-                if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container, null))
-                }
-                else if (!getStackInSlot(slot).isEmpty) {
-                  surplus += container
-                }
-                else {
-                  setInventorySlotContents(slot, container)
-                }
-              }
-            }
+      val initialCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
+      if (initialCraft != null) {
+        def tryCraft() : Boolean = {
+          val craft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
+          // if craft != initialCraft then the craft has changed
+          // for now we'll mimic what < 1.12 has been doing, and that is ignore the craft change
+          // if we make a change to respect the craft we'll do it in a single change the merges up
+          if (craft == null) {
+            return false
           }
-          save()
-          InventoryUtils.addToPlayerInventory(output, host.player)
-          for (stack <- surplus) {
-            InventoryUtils.addToPlayerInventory(stack, host.player)
+
+          val craftResult = new InventoryCraftResult
+          val craftingSlot = new SlotCrafting(host.player, CraftingInventory, craftResult, 0, 0, 0)
+          val craftedResult = craft.getCraftingResult(this)
+          craftResult.setInventorySlotContents(0, craftedResult)
+          if (!craftingSlot.getHasStack)
+            return false
+
+          val stack = craftingSlot.getStack
+          countCrafted += stack.getCount max 1
+          val taken = craftingSlot.onTake(host.player(), stack)
+          if (taken.getCount > 0) {
+            copyItemsToHost()
+            InventoryUtils.addToPlayerInventory(taken, host.player)
+            copyItemsFromHost()
           }
-          load()
+          true
+        }
+        while (countCrafted < wantedCount && tryCraft()) {
+          //
         }
       }
-      Seq(canCraft, countCrafted)
+      Seq(countCrafted > 0, countCrafted)
     }
 
-    def load() {
+    def copyItemsFromHost() {
       val inventory = host.mainInventory()
       amountPossible = Int.MaxValue
       for (slot <- 0 until getSizeInventory) {
@@ -108,7 +98,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       }
     }
 
-    def save() {
+    def copyItemsToHost() {
       val inventory = host.mainInventory()
       for (slot <- 0 until getSizeInventory) {
         inventory.setInventorySlotContents(toParentSlot(slot), getStackInSlot(slot))
@@ -121,5 +111,4 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       row * 4 + col
     }
   }
-
 }
