@@ -53,20 +53,6 @@ if cmd == "select" then
       end
       os.exit(1)
     end
-    local index_of_rw_source
-    for index,entry in ipairs(devices) do
-      if not entry.dev.isReadOnly() then
-        if index_of_rw_source then
-          -- this means there was another rw source, no special action required
-          index_of_rw_source = nil
-          break
-        end
-        index_of_rw_source = index
-      end
-    end
-    if index_of_rw_source then
-      table.remove(devices, index_of_rw_source)
-    end
     return select_prompt(devices, "What do you want to install?")
   elseif arg == "targets" then
     if #devices == 0 then
@@ -77,7 +63,6 @@ if cmd == "select" then
       end
       os.exit(1)
     end
-
     return select_prompt(devices, "Where do you want to install to?")
   end
 end
