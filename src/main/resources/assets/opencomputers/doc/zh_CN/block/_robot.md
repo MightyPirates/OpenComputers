@@ -1,6 +1,6 @@
 # Robot
 ![His name was Tobor.](block:OpenComputers:robot)
-和电脑不同 ,机器人可以如同实体那样在地图上移动，但机器人无法和外界组件交互，但！如果要和电脑或者其他机器人通讯,请安装 [无线网卡](../item/wlanCard.md),或者是通过[红石卡](../item/redstoneCard1.md)收发红石信号建立底层的协议
+和电脑不同 ,机器人可以如同实体那样在地图上移动，但机器人无法和外界组件交互，但！如果要和电脑或者其他机器人通讯,请安装 [无线网卡](../item/wlanCard1.md),或者是通过[红石卡](../item/redstoneCard1.md)收发红石信号建立底层的协议
 
 把[任意机箱](case1.md)放进[组装机](assembler.md)就可以制作机器人. 
 高级的机箱由于有更高级的[CPU](../item/cpu1.md)，可以制造更复杂的机器人. 机器人的复杂度 (显示在 [组装机](assembler.md)GUI) 由槽内安装的组件和升级决定; 

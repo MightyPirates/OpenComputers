@@ -18,7 +18,7 @@ Gardez en tête que certains d'entre eux ne sont pas disponibles, en fonction de
 * [Ecran](screen1.md)
 
 ### Stockage
-* [Lecteur de disquette](diskDrive.md)
+* [Lecteur de disquettes](diskDrive.md)
 * [RAID](raid.md)
 
 ### Extensions

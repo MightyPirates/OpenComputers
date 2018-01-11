@@ -65,11 +65,7 @@ function process.load(path, env, init, name)
           return code(init(...))
         end,
         function(msg)
-          -- msg can be a custom error object
-          if type(msg) == "table" then
-            if msg.reason ~= "terminated" then
-              io.stderr:write(tostring(msg.reason), "\n")
-            end
+          if type(msg) == "table" and msg.reason == "terminated" then
             return msg.code or 0
           end
           local stack = debug.traceback():gsub("^([^\n]*\n)[^\n]*\n[^\n]*\n","%1")

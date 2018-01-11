@@ -20,6 +20,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.Mods
@@ -33,14 +34,23 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 class Relay extends traits.SwitchLike with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
-  lazy final val WirelessNetworkCard = api.Items.get(Constants.ItemName.WirelessNetworkCard)
+  lazy final val WirelessNetworkCardTier1 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
+  lazy final val WirelessNetworkCardTier2 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
   lazy final val LinkedCard = api.Items.get(Constants.ItemName.LinkedCard)
+  
+  var wirelessTier = -1
+  
+  override def isWirelessEnabled = wirelessTier >= Tier.One
 
-  var strength = Settings.get.maxWirelessRange
+  def maxWirelessRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
+    Settings.get.maxWirelessRange(wirelessTier) else 0
+
+  def wirelessCostPerRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
+    Settings.get.wirelessCostPerRange(wirelessTier) else 0
+  
+  var strength = maxWirelessRange
 
   var isRepeater = true
-
-  var isWirelessEnabled = false
 
   var isLinkedEnabled = false
 
@@ -81,7 +91,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when relaying messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized {
-    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
+    strength = math.max(args.checkDouble(0), math.min(0, maxWirelessRange))
     result(strength)
   }
 
@@ -142,14 +152,14 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
 
     if (isWirelessEnabled && strength > 0 && (sourceSide.isDefined || isRepeater)) {
-      val cost = Settings.get.wirelessCostPerRange
+      val cost = wirelessCostPerRange
       if (tryChangeBuffer(-strength * cost)) {
         api.Network.sendWirelessPacket(this, strength, packet)
       }
     }
 
     if (isLinkedEnabled && sourceSide.isDefined) {
-      val cost = packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5
+      val cost = packet.size / 32.0 + wirelessCostPerRange * maxWirelessRange * 5
       if (tryChangeBuffer(-cost)) {
         val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
         for (endpoint <- endpoints) {
@@ -195,7 +205,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     super.onItemAdded(slot, stack)
     updateLimits(slot, stack)
   }
-
+  
   private def updateLimits(slot: Int, stack: ItemStack) {
     Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver) if driver.slot(stack) == Slot.CPU =>
@@ -209,9 +219,8 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
       case Some(driver) if driver.slot(stack) == Slot.Card =>
         val descriptor = api.Items.get(stack)
-        if (descriptor == WirelessNetworkCard) {
-          isWirelessEnabled = true
-        }
+        if (descriptor == WirelessNetworkCardTier1 || descriptor == WirelessNetworkCardTier2)
+          wirelessTier = if (descriptor == WirelessNetworkCardTier1) Tier.One else Tier.Two
         if (descriptor == LinkedCard) {
           val data = DriverLinkedCard.dataTag(stack)
           if (data.hasKey(Settings.namespace + "tunnel")) {
@@ -231,7 +240,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
       case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
       case driver if driver.slot(stack) == Slot.HDD => maxQueueSize = queueBaseSize
       case driver if driver.slot(stack) == Slot.Card =>
-        isWirelessEnabled = false
+        wirelessTier = -1
         isLinkedEnabled = false
         QuantumNetwork.remove(this)
     }
@@ -243,7 +252,8 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.relay(slot)
       val tierSatisfied = driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
-      val cardTypeSatisfied = if (provided.slot == Slot.Card) api.Items.get(stack) == WirelessNetworkCard || api.Items.get(stack) == LinkedCard else true
+      val cardTypeSatisfied = if (provided.slot == Slot.Card) api.Items.get(stack) == WirelessNetworkCardTier1 ||
+        api.Items.get(stack) == WirelessNetworkCardTier2 || api.Items.get(stack) == LinkedCard else true
       tierSatisfied && cardTypeSatisfied
     })
 
@@ -256,7 +266,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
 
     if (nbt.hasKey(Settings.namespace + "strength")) {
-      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
+      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min maxWirelessRange
     }
     if (nbt.hasKey(Settings.namespace + "isRepeater")) {
       isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")

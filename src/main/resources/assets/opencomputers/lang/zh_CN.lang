@@ -152,7 +152,8 @@ item.oc.UpgradeTank.name=水箱升级
 item.oc.UpgradeTankController.name=高级水箱升级
 item.oc.UpgradeTractorBeam.name=牵引光束升级
 item.oc.UpgradeTrading.name=交易升级
-item.oc.WirelessNetworkCard.name=无线网卡
+item.oc.WirelessNetworkCard0.name=无线网卡
+item.oc.WirelessNetworkCard1.name=无线网卡
 item.oc.WorldSensorCard.name=世界感应卡
 item.oc.wrench.name=螺丝刀扳手
 
@@ -194,7 +195,6 @@ oc:gui.Chat.WarningClassTransformer=执行类转换器时发生§c错误§f. 请
 oc:gui.Chat.WarningFingerprint=§c警告§f - 指纹校验不匹配! 预期对应 '§a%s§f' 但识别到 '§e%s§f'. 如果您不是模组的作者, 或运行的不是反混淆版本, 我§l强烈§f 建议你重新下载开放式电脑模组, 因为当前使用的JAR文件已被篡改.
 oc:gui.Chat.WarningLink=无法打开链接: %s
 oc:gui.Chat.WarningLuaFallback=无法使用原有的Lua库, 电脑不会持续现在的状态. 它们会在区块载入时重启.
-oc:gui.Chat.WarningPower=没有检测到可提供能源的模组. 电脑,显示屏和所有其它组件将§l不需要§f能量来运作. 安装下列任意一个组来启用能量需求:建筑(Buildcraft),电子时代(Electrical Age),工业2(IndustrialCraft 2),通用机械(Mekanism)或热力膨胀(Thermal Expansion). 在配置文件中禁用能量设定可以让这条信息不再显示.
 oc:gui.Chat.WarningProjectRed=你目前使用的Project:Red版本不兼容OpenComputers. 请升级您的Project:Red后再试.
 oc:gui.Chat.WarningRecipes=加载合成表时遇到一个或多个错误. 部分物品或因此无法合成. 查阅日志文件以获取详细信息.
 oc:gui.Chat.WarningSimpleComponent=一个(您的?)扩展Mod使用了§aSimpleComponent§f接口但§e做错了一些事情§f. Component logic无法注入. 查阅日志文件以获取详细信息.

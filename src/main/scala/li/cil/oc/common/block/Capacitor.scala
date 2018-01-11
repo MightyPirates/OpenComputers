@@ -3,7 +3,6 @@ package li.cil.oc.common.block
 import java.util.Random
 
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.Block
 import net.minecraft.world.World

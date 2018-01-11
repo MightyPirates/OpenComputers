@@ -13,6 +13,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.prefab
+import li.cil.oc.common.Tier
 import li.cil.oc.server.network.QuantumNetwork
 import net.minecraft.nbt.NBTTagCompound
 
@@ -34,7 +35,8 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
     DeviceAttribute.Description -> "Quantumnet controller",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "HyperLink IV: Ender Edition",
-    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString
+    DeviceAttribute.Capacity -> Settings.get.maxNetworkPacketSize.toString,
+    DeviceAttribute.Width -> Settings.get.maxNetworkPacketParts.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
@@ -46,7 +48,7 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
     val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
     // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
     val packet = Network.newPacket(node.address, null, 0, args.asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
-    if (node.tryChangeBuffer(-(packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
+    if (node.tryChangeBuffer(-(packet.size / 32.0 + Settings.get.wirelessCostPerRange(Tier.Two) * Settings.get.maxWirelessRange(Tier.Two) * 5))) {
       for (endpoint <- endpoints) {
         endpoint.receivePacket(packet)
       }

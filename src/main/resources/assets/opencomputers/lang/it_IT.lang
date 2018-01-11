@@ -107,7 +107,8 @@ item.oc.UpgradeSolarGenerator.name=Upgrade Panneli Solari
 item.oc.UpgradeTank.name=Upgrade Taniche
 item.oc.UpgradeTankController.name=Upgrade Controllore Taniche
 item.oc.UpgradeTractorBeam.name=Upgrade Raggio Traente
-item.oc.WirelessNetworkCard.name=Scheda di Rete Wireless
+item.oc.WirelessNetworkCard0.name=Scheda di Rete Wireless (Livello 1)
+item.oc.WirelessNetworkCard1.name=Scheda di Rete Wireless (Livello 2)
 
 # GUI
 oc:gui.Analyzer.Address=§6Indirizzo§f: %s
@@ -139,7 +140,6 @@ oc:gui.Assembler.Warning.Screen=Schermo
 oc:gui.Chat.NewVersion=Una nuova versione è disponibile: %s
 oc:gui.Chat.WarningFingerprint=§cATTENZIONE§f - mancata corrispondenza dei fingerprint! Atteso '§a%s§f' ma ottenuto '§e%s§f'. Tranne nel caso tu sia un mod che stai utilizzando una versione decomppilata, è §lfortemente§f  raccomantado riscaricare OpenComputers, perché il file JAR che stai utilizzando potrebbe essere stato corrotto.
 oc:gui.Chat.WarningLuaFallback=Le librerie Lua Native non sono disponibili, i computers non saranno in gredo di mantenere il loro stato di persostenza. Essi verranno riavviati quando il chunk viene ricaricato.
-oc:gui.Chat.WarningPower=Nessun mod che fornisce energia disponibile. Computer, monitor e tutti gli altri componenti §lnon§f avranno bisogno di energia per funzionare. Installa uno dei seguenti mod per utilizzare il consumo di energia: BuildCraft, Electrical Age, IndustrialCraft2, Mekanism or Thermal Expansion. Disabilita l'utilizzo di energia nella configurazione per rimuovere questo avviso.
 oc:gui.Chat.WarningProjectRed=Stai utilizzando una versione di Project: Red che è incompatibile con OpenComputers. Prova ad aggriornare la tua versione di Project: Red.
 oc:gui.Error.ComponentOverflow=Troppi componenti connessi al computer.
 oc:gui.Error.InternalError=Errore interno, per favore vedi il file di log. Questo è probabilmente un bug.

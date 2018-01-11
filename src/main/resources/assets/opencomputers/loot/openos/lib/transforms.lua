@@ -11,8 +11,12 @@ end
 function lib.internal.table_view(tbl,f,l)
   return setmetatable({},
   {
-    __index=function(b,k)return(type(k)~='number'or(k>=f and k<=l))and tbl[k]or nil end,
-    __len=function(b)return#tbl end,
+    __index = function(_, key)
+      return (type(key) ~= 'number' or (key >= f and key <= l)) and tbl[key] or nil
+    end,
+    __len = function(_)
+      return l
+    end,
   })
 end
 local adjust=lib.internal.range_adjust

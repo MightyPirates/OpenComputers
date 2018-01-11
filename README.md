@@ -86,6 +86,8 @@ to create an IntelliJ IDEA project.
 
 Open the project and you will be asked to *import the Gradle project* (check your Event Log if you missed the pop-up). **Do so**. This will configure additionally referenced libraries.
 
+For more specific instructions, read [Steps to run master MC1.7.10 from IDEA][idea_1.7.10]
+
 In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather than `gradlew idea`.
 
 
@@ -108,3 +110,4 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 [wiki]: http://ocdoc.cil.li/
 [integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration
 [ingame manual]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/doc
+[idea_1.7.10]: http://ocdoc.cil.li/tutorial:debug_1.7.10

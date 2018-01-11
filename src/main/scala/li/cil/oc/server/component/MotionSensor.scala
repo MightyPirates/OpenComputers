@@ -97,21 +97,20 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
 
   private def isInRange(entity: EntityLivingBase) = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= radius * radius
 
-  private def isVisible(entity: EntityLivingBase) =
+  private def isVisible(entity: EntityLivingBase): Boolean =
     entity.getActivePotionEffect(Potion.invisibility) == null &&
       // Note: it only working in lit conditions works and is neat, but this
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
+      var origin = Vec3.createVectorHelper(x, y, z)
       val target = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ)
-      // Start trace outside of this block.
-      if (entity.posX < x) origin.xCoord -= 0.75
-      if (entity.posX > x + 1) origin.xCoord += 0.75
-      if (entity.posY < y) origin.yCoord -= 0.75
-      if (entity.posY > y + 1) origin.yCoord += 0.75
-      if (entity.posZ < z) origin.zCoord -= 0.75
-      if (entity.posZ > z + 1) origin.zCoord += 0.75
+      val path = origin.subtract(target).normalize()
+      origin = origin.addVector(
+        path.xCoord * 0.75,
+        path.yCoord * 0.75,
+        path.zCoord * 0.75
+      )
       world.rayTraceBlocks(origin, target) == null
     }
 

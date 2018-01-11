@@ -27,7 +27,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Linked Card](linkedCard.md)
 * [Network Card](lanCard.md)
 * [Redstone Card](redstoneCard1.md)
-* [Wireless Network Card](wlanCard.md)
+* [Wireless Network Card](wlanCard1.md)
 * [World Sensor Card](worldSensorCard.md)
 
 ### Upgrades

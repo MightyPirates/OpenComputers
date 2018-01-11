@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection
 object DriverImportBus extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartImportBus])
+      case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).filter(obj => { obj != null }).exists(_.isInstanceOf[PartImportBus])
       case _ => false
     }
 
