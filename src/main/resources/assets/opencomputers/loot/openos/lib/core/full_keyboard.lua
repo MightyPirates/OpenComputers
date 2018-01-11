@@ -134,7 +134,7 @@ setmetatable(keyboard.keys,
 {
   __index = function(tbl, k)
     if type(k) ~= "number" then return end
-    for name,value in pairs(tbl.keys) do
+    for name,value in pairs(tbl) do
       if value == k then
         return name
       end

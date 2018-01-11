@@ -61,13 +61,19 @@ local targets = {}
 
 -- tmpfs is not a candidate unless it is specified
 
+local comps = require("component").list("filesystem")
 local devices = {}
 
+-- not all mounts are components, only use components
 for dev, path in fs.mounts() do
-  devices[dev] = devices[dev] and #devices[dev] < #path and devices[dev] or path
+  if comps[dev.address] then
+    local known = devices[dev]
+    devices[dev] = known and #known < #path and known or path
+  end
 end
 
-devices[fs.get("/dev/") or false] = nil
+local dev_dev = fs.get("/dev")
+devices[dev_dev == rootfs or dev_dev] = nil
 local tmpAddress = computer.tmpAddress()
 
 for dev, path in pairs(devices) do
@@ -133,6 +139,19 @@ if #sources ~= 1 then
 end
 if not source then return end
 
+options =
+{
+  from     = source.path .. '/',
+  fromDir  = fs.canonical(options.fromDir or source.prop.fromDir or ""),
+  root     = fs.canonical(options.root or options.toDir or source.prop.root or ""),
+  update   = options.update or options.u,
+  label    = source.prop.label or label,
+  setlabel = not (options.nosetlabel or options.nolabelset) and source.prop.setlabel,
+  setboot  = not (options.nosetboot or options.noboot) and source.prop.setboot,
+  reboot   = not options.noreboot and source.prop.reboot,
+}
+local source_display = options.label or source.dev.getLabel() or source.path
+
 -- Remove the source from the target options
 for index,entry in ipairs(targets) do
   if entry.dev == source.dev then
@@ -143,23 +162,16 @@ end
 
 -- Ask the user to select a target
 if #targets ~= 1 then
-  utils = utils or loadfile(utils_path, "bt", _G)
+    if #sources == 1 then
+      io.write(source_display, " selected for install\n")
+    end
+
+    utils = utils or loadfile(utils_path, "bt", _G)
   target = utils("select", "targets", options, targets)
 end
 if not target then return end
 
-options =
-{
-  from     = source.path .. '/',
-  to       = target.path .. '/',
-  fromDir  = fs.canonical(options.fromDir or source.prop.fromDir or ""),
-  root     = fs.canonical(options.root or options.toDir or source.prop.root or ""),
-  update   = options.update or options.u,
-  label    = source.prop.label or label,
-  setlabel = not (options.nosetlabel or options.nolabelset) and source.prop.setlabel,
-  setboot  = not (options.nosetboot or options.noboot) and source.prop.setboot,
-  reboot   = not options.noreboot and source.prop.reboot,
-}
+options.to       = target.path .. '/'
 
 local cp_args =
 {
@@ -169,7 +181,6 @@ local cp_args =
   fs.concat(options.to  , options.root)
 }
 
-local source_display = options.label or source.dev.getLabel() or source.path
 local special_target = ""
 if #targets > 1 or target_filter or source_filter then
   special_target = " to " .. cp_args[4]

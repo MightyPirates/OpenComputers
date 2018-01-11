@@ -17,13 +17,20 @@ if not file then
   return 1
 end
 
-local current_data = process.info().data
+local lines = file:lines()
 
-local source_proc = process.load((assert(os.getenv("SHELL"), "no $SHELL set")))
-local source_data = process.list[source_proc].data
-source_data.aliases = current_data.aliases -- hacks to propogate sub shell env changes
-source_data.vars = current_data.vars
-source_data.io[0] = file -- set stdin to the file
-process.internal.continue(source_proc, "-c")
+while true do  
+  local line = lines()
+  if not line then
+    break
+  end
+  local current_data = process.info().data
+  
+  local source_proc = process.load((assert(os.getenv("SHELL"), "no $SHELL set")))
+  local source_data = process.list[source_proc].data
+  source_data.aliases = current_data.aliases -- hacks to propogate sub shell env changes
+  source_data.vars = current_data.vars
+  process.internal.continue(source_proc, _ENV, line)
+end
 
-file:close() -- should have closed when the process closed, but just to be sure
+file:close()

@@ -93,10 +93,6 @@ object IMC {
           case t: Throwable => OpenComputers.log.warn("Failed registering ink provider.", t)
         }
       }
-      else if (message.key == "registerCustomPowerSystem" && message.isStringMessage) {
-        OpenComputers.log.info(s"Was told there is an unknown power system present by mod ${message.getSender}.")
-        Settings.get.is3rdPartyPowerSystemPresent = message.getStringValue == "true"
-      }
       else if (message.key == "registerProgramDiskLabel" && message.isNBTMessage) {
         OpenComputers.log.info(s"Registering new program location mapping for program '${message.getNBTValue.getString("program")}' being on disk '${message.getNBTValue.getString("label")}' from mod ${message.getSender}.")
         ProgramLocations.addMapping(message.getNBTValue.getString("program"), message.getNBTValue.getString("label"), message.getNBTValue.getTagList("architectures", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).toArray: _*)

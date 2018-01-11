@@ -1,6 +1,6 @@
 # WLAN Card
 
-![May cause cancer. May not.](oredict:oc:wlanCard)
+![May cause cancer. May not.](oredict:oc:wlanCard2)
 
 无线网卡是 [网卡](lanCard.md) 的升级, 添加了收发无线信号的能力.无线信号发射强度决定了信息可以传多远, 信号强度等于方块距离.
 

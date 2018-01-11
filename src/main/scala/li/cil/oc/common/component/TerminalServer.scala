@@ -60,7 +60,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     keyboard
   }
 
-  var range = Settings.get.maxWirelessRange
+  var range = Settings.get.maxWirelessRange(Tier.Two)
   val keys = mutable.ListBuffer.empty[String]
 
   def address = rack.getMountableData(slot).getString("terminalAddress")

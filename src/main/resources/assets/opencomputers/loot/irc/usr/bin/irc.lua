@@ -217,9 +217,8 @@ local function handleCommand(prefix, command, args, message)
   elseif command == "PRIVMSG" then
     local ctcp = message:match("^\1(.-)\1$")
     if ctcp then
-      print("[" .. name(prefix) .. "] CTCP " .. ctcp)
-      local ctcp, param = ctcp:match("^(%S+) ?(.-)$")
-      ctcp = ctcp:upper()
+      local orig_ctcp, param = ctcp:match("^(%S+) ?(.-)$")
+      ctcp = orig_ctcp:upper()
       if ctcp == "TIME" then
         sock:write("NOTICE " .. name(prefix) .. " :\001TIME " .. os.date() .. "\001\r\n")
         sock:flush()
@@ -229,16 +228,17 @@ local function handleCommand(prefix, command, args, message)
       elseif ctcp == "PING" then
         sock:write("NOTICE " .. name(prefix) .. " :\001PING " .. param .. "\001\r\n")
         sock:flush()
+      elseif ctcp == "ACTION" then
+        print("[" .. args[1] .. "] * " .. name(prefix) .. string.gsub(string.gsub(message, "\001ACTION", ""), "\001", ""))
+      else
+        -- Here we print the CTCP message if it was unhandled...
+        print("[" .. name(prefix) .. "] CTCP " .. orig_ctcp)
       end
     else
       if string.find(message, nick) then
         computer.beep()
       end
-      if string.find(message, "\001ACTION") then
-        print("[" .. args[1] .. "] " .. name(prefix) .. string.gsub(string.gsub(message, "\001ACTION", ""), "\001", ""))
-      else
-        print("[" .. args[1] .. "] " .. name(prefix) .. ": " .. message)
-      end
+      print("[" .. args[1] .. "] " .. name(prefix) .. ": " .. message)
     end
   elseif command == "NOTICE" then
     print("[NOTICE] " .. message)

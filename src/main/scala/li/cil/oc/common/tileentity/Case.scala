@@ -25,7 +25,12 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsJava._
 
 class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
-  def this() = this(0)
+  def this() = {
+    this(0)
+    // If no tier was defined when constructing this case, then we don't yet know the inventory size
+    // this is set back to true when the nbt data is loaded
+    isSizeInventoryReady = false
+  }
 
   // Used on client side to check whether to render disk activity/network indicators.
   var lastFileSystemAccess = 0L
@@ -78,6 +83,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
     color = Color.byTier(tier)
     super.readFromNBTForServer(nbt)
+    isSizeInventoryReady = true
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {

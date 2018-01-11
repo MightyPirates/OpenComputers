@@ -28,7 +28,7 @@ import scala.collection.convert.WrapAsScala._
 object DriverExportBus extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
+      case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).filter(obj => { obj != null }).exists(_.isInstanceOf[PartExportBus])
       case _ => false
     }
 

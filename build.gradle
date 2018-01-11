@@ -15,6 +15,10 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.matthewprenger.cursegradle" version "1.0.9"
+}
+
 apply plugin: 'scala'
 apply plugin: 'forge'
 apply plugin: 'idea'
@@ -43,10 +47,11 @@ def getGitRef() {
   }
 }
 
-if (System.getenv("BUILD_NUMBER") != null)
+if (System.getenv("PROMOTED_NUMBER") != null)
+    version += ".${System.getenv("PROMOTED_NUMBER")}"
+else if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
-
-if (System.getenv("BUILD_NUMBER") == null)
+else
     version += "+" + getGitRef()
 
 ext.simpleVersion = version
@@ -173,7 +178,7 @@ repositories {
 configurations {
     provided
     embedded
-    compile.extendsFrom provided, embedded
+    compile.extendsFrom embedded
 }
 
 dependencies {
@@ -224,6 +229,9 @@ dependencies {
     testCompile "org.scalactic:scalactic_2.11:2.2.6"
     testCompile "org.scalatest:scalatest_2.11:2.2.6"
 }
+
+// Add the "provided" dependencies to the compile (but NOT runtime) classpath.
+sourceSets.main.compileClasspath += [configurations.provided]
 
 idea.module.scopes.PROVIDED.plus += [configurations.provided]
 // TODO Causes errors on Gradle 2 for me (No such property: allDependencies for class: java.io.File).
@@ -331,6 +339,18 @@ publishing {
         maven {
             url "${config.maven.url}"
         }
+    }
+}
+
+curseforge {
+    apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+    project {
+        id = config.curse.project.id
+        releaseType = config.curse.project.releaseType
+        changelogType = "markdown"
+        changelog = file("changelog.md")
+        addGameVersion config.minecraft.version
+        addGameVersion "Java 8"
     }
 }
 
