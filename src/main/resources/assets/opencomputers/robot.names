@@ -16,6 +16,7 @@ Anson Argyris      # Perry Rhodan
 ASIMO              # Honda
 Atlas              # Portal
 Augustus           # Perry Rhodan
+Autobot            # Transfomers
 Ava                # Ex Machina
 Baymax             # Big Hero 6
 BB-8               # Star Wars
@@ -39,6 +40,7 @@ Dalek Sec          # Doctor Who
 Data               # Star Trek
 David              # A.I. (the movie)
 Death Trap         # Borderlands 2's Mechromancer
+Decepticon         #Transformers
 Deep Thought       # Hitchhiker's Guide to the Galaxy
 Deputy ANDY        # Eureka
 Dog                # Half-Life
@@ -53,7 +55,9 @@ Eve                # Wall-E
 Fact Core          # Portal
 Flexo              # Futurama
 Gerty              # Moon (film)
+Ghost              # I, Robot quote "There have always been ghosts in the machine"
 GLaDOS             # Portal
+Gipsy Danger       # Pacific Rim
 HAL 9000           # Space Odyssey
 Harbinger          # Mass Effect
 Harkness           # Fallout 3
@@ -62,6 +66,7 @@ Hex                # Discworld
 Homunk             # Perry Rhodan
 *Hyun-ae           # Analogue: A Hate Story / Hate Plus
 Icarus             # Deus Ex
+Jaeger             # Pacific Rim (means hunter)
 J.A.R.V.I.S.       # Iron Man
 Johnny 5           # Short Circuit
 Legion             # Mass Effect
@@ -79,9 +84,11 @@ Mawhrin-skel       # The Player of Games (Iain M Banks)
 Michiyo            # Contributor
 *Mute              # Analogue: A Hate Story / Hate Plus
 Mycroft Holmes     # The Moon Is a Harsh Mistress
+Optimus            # Transformers. Seperated "Optimus Prime" into two names, as both are quite fitting robot names.
 P-Body             # Portal
 Pintsize           # Questionable Content
 PixelToast         # Contributor
+Prime              # Transformers. Seperated "Optimus Prime" into two names, as both are quite fitting robot names.
 QT-1               # I, Robot
 R. Daneel Olivaw   # Isaac Asimov's
 R. Giskard Reventlov # Isaac Asimov's
@@ -94,6 +101,7 @@ Skaffen-Amtiskaw   # Use of weapons (Iain M Banks)
 Shakey             # The first general-purpose mobile robot that could reason about its actions.
 SHODAN             # System Shock
 Skynet             # Terminator
+Sonny              # I, Robot
 Sovereign          # Mass Effect
 Space Core         # Portal
 SpiritedDusty      # Contributor
@@ -102,6 +110,7 @@ T-1000             # Terminator
 Tachikoma          # Ghost in the Shell
 TARA UH            # Perry Rhodan
 Terminator         # Terminator
+Rinzler            # Tron
 Twiki              # Buck Rodgers
 Uniblab            # The Jetsons
 Unimate            # First programmable robot.
@@ -114,3 +123,4 @@ Weebo              # Flubber
 Wheatley           # Portal
 Wintermute         # Neuromancer
 Wobbo              # Contributor
+Yui-MHCP001        # AKA Yui (Mental Health Counseling Program 001) - Sword Art Online
