@@ -24,7 +24,8 @@ rules[{"%[", "[%d;]*", "m"}] = function(window, _, number_text)
     
     if num == 7 then
       if not window.flip then
-        fg(bg(window.gpu.getForeground()))
+        local rgb, pal = bg(window.gpu.getForeground())
+        fg(pal or rgb, not not pal)
         fg, bg = bg, fg
       end
       window.flip = true
