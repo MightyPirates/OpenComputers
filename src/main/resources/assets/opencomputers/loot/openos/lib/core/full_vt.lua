@@ -81,13 +81,13 @@ end
 -- D               scroll up one line -- moves cursor down
 -- E               move to next line (acts the same ^, but x=1)
 -- M               scroll down one line -- moves cursor up
-rules[{"[DEM]"}] = function(window, dir)
+rules[{"%[", "[DEM]"}] = function(window, _, dir)
   if dir == "D" then
     window.y = window.y + 1
   elseif dir == "E" then
     window.y = window.y + 1
     window.x = 1
   else -- M
-    window.y = window.y - 1
+    window.y = window.y -  1
   end
 end
