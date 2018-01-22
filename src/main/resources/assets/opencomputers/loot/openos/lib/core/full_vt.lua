@@ -47,7 +47,7 @@ local function clear_line(window, _, n)
   n = tonumber(n) or 0
   local x = n == 0 and window.x or 1
   local rep = n == 1 and window.x or window.width
-  window.gpu.set(x, window.y, (" "):rep(rep))
+  window.gpu.fill(x, window.y, rep, 1, " ")
 end
 rules[{"%[", "[012]?", "K"}] = clear_line
 
