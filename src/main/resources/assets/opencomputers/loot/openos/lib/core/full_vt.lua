@@ -47,7 +47,7 @@ local function clear_line(window, _, n)
   n = tonumber(n) or 0
   local x = n == 0 and window.x or 1
   local rep = n == 1 and window.x or window.width
-  window.gpu.set(x, window.y, (" "):rep(rep))
+  window.gpu.fill(x, window.y, rep, 1, " ")
 end
 rules[{"%[", "[012]?", "K"}] = clear_line
 
@@ -81,13 +81,13 @@ end
 -- D               scroll up one line -- moves cursor down
 -- E               move to next line (acts the same ^, but x=1)
 -- M               scroll down one line -- moves cursor up
-rules[{"[DEM]"}] = function(window, dir)
+rules[{"%[", "[DEM]"}] = function(window, _, dir)
   if dir == "D" then
     window.y = window.y + 1
   elseif dir == "E" then
     window.y = window.y + 1
     window.x = 1
   else -- M
-    window.y = window.y - 1
+    window.y = window.y -  1
   end
 end

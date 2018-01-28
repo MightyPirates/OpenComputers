@@ -25,30 +25,16 @@ package.loaded.coroutine = _G.coroutine
 local kernel_load = _G.load
 local intercept_load
 intercept_load = function(source, label, mode, env)
-  if env then
-    local prev_load = env.load or intercept_load
-    local next_load = function(_source, _label, _mode, _env)
+  local prev_load = env and env.load or _G.load
+  local e = env and setmetatable({
+    load = function(_source, _label, _mode, _env)
       return prev_load(_source, _label, _mode, _env or env)
-    end
-    if rawget(env, "load") then -- overwrite load 
-      env.load = next_load
-    else -- else it must be an __index load, or it didn't have one
-      local env_mt = getmetatable(env) or {}
-      local env_mt_index = env_mt.__index
-      env_mt.__index = function(tbl, key)
-        if key == "load" then
-          return next_load
-        elseif type(env_mt_index) == "table" then
-          return env_mt_index[key]
-        elseif env_mt_index then
-          return env_mt_index(tbl, key)
-        end
-        return nil
-      end
-      setmetatable(env, env_mt)
-    end
-  end
-  return kernel_load(source, label, mode, env or process.info().env)
+    end}, {
+      __index = env,
+      __pairs = function(...) return pairs(env, ...) end,
+      __newindex = function(tbl, key, value) env[key] = value end,
+  })
+  return kernel_load(source, label, mode, e or process.info().env)
 end
 _G.load = intercept_load
 
