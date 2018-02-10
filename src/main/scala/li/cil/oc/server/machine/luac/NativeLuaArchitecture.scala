@@ -31,6 +31,8 @@ class NativeLua53Architecture(machine: api.machine.Machine) extends NativeLuaArc
 }
 
 abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
+  var unmanagedMemory = 0
+
   protected def factory: LuaStateFactory
 
   private[machine] var lua: LuaState = null
@@ -48,6 +50,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     new SystemAPI(this),
     new UnicodeAPI(this),
     new UserdataAPI(this),
+    new StringBufferAPI(this),
     // Persistence has to go last to ensure all other APIs can go into the permanent value table.
     persistence)
 
@@ -149,8 +152,8 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     Option(lua) match {
       case Some(l) if Settings.get.limitMemory =>
         l.setTotalMemory(Int.MaxValue)
-        if (kernelMemory > 0) {
-          l.setTotalMemory(kernelMemory + memory)
+        if (kernelMemory > 0 || unmanagedMemory > 0) {
+          l.setTotalMemory(kernelMemory + memory - (unmanagedMemory * ramScale).toInt)
         }
       case _ =>
     }
@@ -369,6 +372,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
       }
 
       kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
+      unmanagedMemory = nbt.getInteger("unmanagedMemory")
 
       for (api <- apis) {
         api.load(nbt)
@@ -407,6 +411,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
+      nbt.setInteger("unmanagedMemory", unmanagedMemory)
 
       for (api <- apis) {
         api.save(nbt)
