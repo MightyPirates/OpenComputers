@@ -1400,6 +1400,15 @@ local libunicode = {
 sandbox.unicode = libunicode
 
 -------------------------------------------------------------------------------
+local libstrbuf = {
+  new = function(size)
+    checkArg(1, size, "number")
+    return wrapSingleUserdata(spcall(strbuf.new, size))
+  end
+}
+sandbox.strbuf = libstrbuf
+
+-------------------------------------------------------------------------------
 
 local function bootstrap()
   local eeprom = libcomponent.list("eeprom")()

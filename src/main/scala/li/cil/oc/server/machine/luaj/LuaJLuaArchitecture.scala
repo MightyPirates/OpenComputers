@@ -41,7 +41,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     new OSAPI(this),
     new SystemAPI(this),
     new UnicodeAPI(this),
-    new UserdataAPI(this))
+    new UserdataAPI(this),
+    new StringBufferAPI(this))
 
   private[machine] def invoke(f: () => Array[AnyRef]): Varargs = try {
     f() match {
