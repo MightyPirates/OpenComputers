@@ -68,7 +68,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
         OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.dimensionId}.")
       }
       ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
-        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, if (host.isInstanceOf[Entity]) ForgeChunkManager.Type.ENTITY else ForgeChunkManager.Type.NORMAL))
+        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
         case _ => None
       })
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
@@ -97,7 +97,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   private def setActive(enabled: Boolean) = {
     if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, if (host.isInstanceOf[Entity]) ForgeChunkManager.Type.ENTITY else ForgeChunkManager.Type.NORMAL))
+      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
     }
     else if (!enabled && ticket.isDefined) {
