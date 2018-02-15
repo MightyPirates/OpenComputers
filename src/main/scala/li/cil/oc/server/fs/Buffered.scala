@@ -88,13 +88,14 @@ trait Buffered extends OutputStreamFileSystem {
     }
     deletions.clear()
 
-    def recurse(path: String) {
+    def recurse(path: String):Boolean = {
       val directory = new io.File(fileRoot, path)
       directory.mkdirs()
+      var dirChanged = false
       for (child <- list(path)) {
         val childPath = path + child
         if (isDirectory(childPath))
-          recurse(childPath)
+          dirChanged = recurse(childPath) || dirChanged
         else {
           val childFile = new io.File(fileRoot, childPath)
           val time = lastModified(childPath)
@@ -107,10 +108,14 @@ trait Buffered extends OutputStreamFileSystem {
             out.close()
             in.close()
             childFile.setLastModified(time)
+            dirChanged = true
           }
         }
       }
-      directory.setLastModified(lastModified(path))
+      if (dirChanged) {
+        directory.setLastModified(lastModified(path))
+        true
+      } else false
     }
     if (list("") == null || list("").isEmpty) {
       fileRoot.delete()
