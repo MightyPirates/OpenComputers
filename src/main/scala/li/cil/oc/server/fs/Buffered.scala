@@ -2,7 +2,12 @@ package li.cil.oc.server.fs
 
 import java.io
 import java.io.FileNotFoundException
+import java.util.concurrent.CancellationException
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.io.FileUtils
@@ -34,13 +39,26 @@ trait Buffered extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
+  private var saving: Option[Future[_]] = None
+
+  override def load(nbt: NBTTagCompound): Unit = {
+    saving.foreach(f => try {
+      f.get(120L, TimeUnit.SECONDS)
+    } catch {
+      case e: TimeoutException => OpenComputers.log.warn("Waiting for filesystem to save took two minutes! Aborting.")
+      case e: CancellationException => // NO-OP
+    })
+    loadFiles(nbt)
+    super.load(nbt)
+  }
+
+  private def loadFiles(nbt: NBTTagCompound): Unit = this.synchronized {
     def recurse(path: String, directory: io.File) {
       makeDirectory(path)
       for (child <- directory.listFiles() if FileSystem.isValidFilename(child.getName)) {
         val childPath = path + child.getName
         val childFile = new io.File(directory, child.getName)
-        if (child.exists() && child.isDirectory && child.list() != null) {
+        if (child.exists() && child .isDirectory && child.list() != null) {
           recurse(childPath + "/", childFile)
         }
         else if (!exists(childPath) || !isDirectory(childPath)) {
@@ -74,13 +92,14 @@ trait Buffered extends OutputStreamFileSystem {
       fileRoot.delete()
     }
     else recurse("", fileRoot)
-
-    super.load(nbt)
   }
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
+    saving = BufferedFileSaveHandler.scheduleSave(this)
+  }
 
+  def saveFiles(): Unit = this.synchronized {
     for ((path, time) <- deletions) {
       val file = new io.File(fileRoot, path)
       if (FileUtils.isFileOlder(file, time))

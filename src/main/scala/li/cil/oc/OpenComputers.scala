@@ -9,6 +9,7 @@ import cpw.mods.fml.common.network.FMLEventChannel
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.command.CommandHandler
+import li.cil.oc.server.fs.BufferedFileSaveHandler
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -54,7 +55,15 @@ object OpenComputers {
   def missingMappings(e: FMLMissingMappingsEvent) = proxy.missingMappings(e)
 
   @EventHandler
-  def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)
+  def serverStart(e: FMLServerStartingEvent): Unit = {
+    CommandHandler.register(e)
+    BufferedFileSaveHandler.newThreadPool()
+  }
+
+  @EventHandler
+  def serverStop(e: FMLServerStoppedEvent): Unit = {
+    BufferedFileSaveHandler.waitForSaving()
+  }
 
   @EventHandler
   def imc(e: IMCEvent) = IMC.handleEvent(e)
