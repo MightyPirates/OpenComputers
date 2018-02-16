@@ -9,7 +9,7 @@ import cpw.mods.fml.common.network.FMLEventChannel
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.command.CommandHandler
-import li.cil.oc.server.fs.BufferedFileSaveHandler
+import li.cil.oc.util.ThreadPoolFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -57,12 +57,12 @@ object OpenComputers {
   @EventHandler
   def serverStart(e: FMLServerStartingEvent): Unit = {
     CommandHandler.register(e)
-    BufferedFileSaveHandler.newThreadPool()
+    ThreadPoolFactory.safePools.foreach(_.newThreadPool())
   }
 
   @EventHandler
   def serverStop(e: FMLServerStoppedEvent): Unit = {
-    BufferedFileSaveHandler.waitForSaving()
+    ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
   }
 
   @EventHandler

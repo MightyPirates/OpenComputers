@@ -9,10 +9,16 @@ import java.util.concurrent.TimeoutException
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.fs.Mode
+import li.cil.oc.util.ThreadPoolFactory
+import li.cil.oc.util.SafeThreadPool
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.io.FileUtils
 
 import scala.collection.mutable
+
+object Buffered {
+  val fileSaveHandler: SafeThreadPool = ThreadPoolFactory.createSafePool("FileSystem", 1)
+}
 
 trait Buffered extends OutputStreamFileSystem {
   protected def fileRoot: io.File
@@ -58,7 +64,7 @@ trait Buffered extends OutputStreamFileSystem {
       for (child <- directory.listFiles() if FileSystem.isValidFilename(child.getName)) {
         val childPath = path + child.getName
         val childFile = new io.File(directory, child.getName)
-        if (child.exists() && child .isDirectory && child.list() != null) {
+        if (child.exists() && child.isDirectory && child.list() != null) {
           recurse(childPath + "/", childFile)
         }
         else if (!exists(childPath) || !isDirectory(childPath)) {
@@ -96,7 +102,9 @@ trait Buffered extends OutputStreamFileSystem {
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
-    saving = BufferedFileSaveHandler.scheduleSave(this)
+    saving = Buffered.fileSaveHandler.withPool(_.submit(new Runnable {
+      override def run(): Unit = saveFiles()
+    }))
   }
 
   def saveFiles(): Unit = this.synchronized {
