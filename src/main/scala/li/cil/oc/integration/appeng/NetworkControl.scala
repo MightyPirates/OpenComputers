@@ -16,6 +16,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
+import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -41,6 +42,41 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
 
   def node: Node
 
+  private def aeCraftItem(aeItem: IAEItemStack): IAEItemStack = {
+    val patterns = AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCraftingFor(aeItem, null, 0, tile.getWorld)
+    patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(aeItem))) match {
+      case Some(pattern) => pattern.getOutputs.find(_.isSameType(aeItem)).get
+      case _ => aeItem.copy.setStackSize(0) // Should not be possible, but hey...
+    }
+  }
+
+  private def aePotentialItem(aeItem: IAEItemStack): IAEItemStack = {
+    if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
+      aeItem
+    else
+      aeCraftItem(aeItem)
+  }
+
+  private def allItems: Iterable[IAEItemStack] = AEUtil.getGridStorage(tile.getGridNode(pos).getGrid).getInventory(AEUtil.itemStorageChannel).getStorageList
+  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
+
+  private def convert(aeItem: IAEItemStack, overrideSize: Integer = null): java.util.HashMap[String, AnyRef] = {
+    val result = Registry
+      .convert(Array[AnyRef](aeItem.createItemStack))
+      .collect { case hash: java.util.HashMap[String, AnyRef] => hash }
+    if (result.length > 0) {
+      val hash = result(0)
+      if (overrideSize != null)
+        hash.update("size", overrideSize)
+      return hash
+    }
+    null
+  }
+
+  private def convert(aeItem: IAEItemStack, overrideSize: Int): java.util.HashMap[String, AnyRef] = {
+    convert(aeItem, Int.box(overrideSize))
+  }
+
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
   def getCpus(context: Context, args: Arguments): Array[AnyRef] =
     result(AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCpus.map(cpu => Map(
@@ -54,15 +90,10 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
     val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
       case (key: String, value: AnyRef) => (key, value)
     }
-    result(AEUtil.getGridStorage(tile.getGridNode(pos).getGrid).getInventory(AEUtil.itemStorageChannel).getStorageList.
-      filter(_.isCraftable).filter(stack => matches(stack, filter)).map(stack => {
-      val patterns = AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCraftingFor(stack, null, 0, tile.getWorld)
-      val result = patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(stack))) match {
-        case Some(pattern) => pattern.getOutputs.find(_.isSameType(stack)).get
-        case _ => stack.copy.setStackSize(0) // Should not be possible, but hey...
-      }
-      new NetworkControl.Craftable(tile, pos, result)
-    }).toArray)
+    result(allCraftables
+      .map(aeCraftItem => aeCraftItem -> convert(aeCraftItem))
+      .collect{ case (aeCraftItem, hash: java.util.HashMap[String, AnyRef]) if matches(hash, filter) => new NetworkControl.Craftable(tile, pos, aeCraftItem) }
+      .toArray)
   }
 
   @Callback(doc = "function([filter:table]):table -- Get a list of the stored items in the network.")
@@ -70,7 +101,10 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
     val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
       case (key: String, value: AnyRef) => (key, value)
     }
-    result(AEUtil.getGridStorage(tile.getGridNode(pos).getGrid).getInventory(AEUtil.itemStorageChannel).getStorageList.filter(stack => matches(stack, filter)).map(_.createItemStack()).toArray)
+    result(allItems
+      .map(aeItem => convert(aePotentialItem(aeItem), aeItem.getStackSize.toInt))
+      .filter(hash => matches(hash, filter))
+      .toArray)
   }
 
   @Callback(doc = "function(filter:table, dbAddress:string[, startSlot:number[, count:number]]): Boolean -- Store items in the network matching the specified filter in the database with the specified address.")
@@ -79,14 +113,16 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
       case (key: String, value: AnyRef) => (key, value)
     }
     DatabaseAccess.withDatabase(node, args.checkString(1), database => {
-      val stacks = AEUtil.getGridStorage(tile.getGridNode(pos).getGrid).getInventory(AEUtil.itemStorageChannel).getStorageList.filter(stack => matches(stack, filter)).map(_.createItemStack()).filter(_ != null).toArray
+      val items = allItems
+        .map(aeItem => aePotentialItem(aeItem) -> aeItem.getStackSize.toInt)
+        .collect{ case (item, size) if matches(convert(item, size), filter) => item }.toArray
       val offset = args.optSlot(database.data, 2, 0)
-      val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min stacks.length
+      val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min items.length
       var slot = offset
       for (i <- 0 until count) {
-        val stack = Option(stacks(i)).map(_.copy()).orNull
-        while (database.getStackInSlot(slot) != null && slot < database.size) slot += 1
-        if (database.getStackInSlot(slot) == null) {
+        val stack = Option(items(i)).map(_.createItemStack.copy()).orNull
+        while (!database.getStackInSlot(slot).isEmpty && slot < database.size) slot += 1
+        if (database.getStackInSlot(slot).isEmpty) {
           database.setStackInSlot(slot, stack)
         }
       }
@@ -120,15 +156,20 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   def getStoredPower(context: Context, args: Arguments): Array[AnyRef] =
     result(AEUtil.getGridEnergy(tile.getGridNode(pos).getGrid).getStoredPower)
 
-  private def matches(stack: IAEItemStack, filter: scala.collection.mutable.Map[String, AnyRef]) = {
-    stack != null &&
-      filter.get("damage").forall(_.equals(stack.getItemDamage.toDouble)) &&
-      filter.get("maxDamage").forall(_.equals(stack.createItemStack().getMaxDamage.toDouble)) &&
-      filter.get("size").collect { case size: Number => size.intValue == stack.getStackSize || size.intValue == 0 }.getOrElse(true) &&
-      filter.get("maxSize").forall(_.equals(stack.createItemStack().getMaxStackSize.toDouble)) &&
-      filter.get("hasTag").forall(_.equals(stack.hasTagCompound)) &&
-      filter.get("name").forall(_.equals(Item.REGISTRY.getNameForObject(stack.getItem))) &&
-      filter.get("label").forall(_.equals(stack.createItemStack().getDisplayName))
+  private def matches(stack: java.util.HashMap[String, AnyRef], filter: scala.collection.mutable.Map[String, AnyRef]): Boolean = {
+    if (stack == null) return false
+    filter.forall {
+      case (key: String, value: AnyRef) => {
+        val stack_value = stack.get(key)
+        value match {
+          case number: Number => stack_value match {
+            case stack_number: Number => number.intValue == stack_number.intValue
+            case any => number.toString.equals(any.toString)
+          }
+          case any => any.toString.equals(stack_value.toString)
+        }
+      }
+    }
   }
 }
 
