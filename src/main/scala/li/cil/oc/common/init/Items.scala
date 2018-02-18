@@ -42,8 +42,8 @@ object Items extends ItemAPI {
   val names = mutable.Map.empty[Any, String]
 
   val aliases = Map(
-    "dataCard" -> Constants.ItemName.DataCardTier1,
-    "wlanCard" -> Constants.ItemName.WirelessNetworkCardTier2
+    "datacard" -> Constants.ItemName.DataCardTier1,
+    "wlancard" -> Constants.ItemName.WirelessNetworkCardTier2
   )
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
