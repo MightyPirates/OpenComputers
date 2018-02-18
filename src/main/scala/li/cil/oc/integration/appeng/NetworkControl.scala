@@ -78,12 +78,17 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   }
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
-  def getCpus(context: Context, args: Arguments): Array[AnyRef] =
-    result(AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCpus.map(cpu => Map(
-      "name" -> cpu.getName,
-      "storage" -> cpu.getAvailableStorage,
-      "coprocessors" -> cpu.getCoProcessors,
-      "busy" -> cpu.isBusy)))
+  def getCpus(context: Context, args: Arguments): Array[AnyRef] = {
+    val buffer = new mutable.ListBuffer[Map[String, Any]]
+    AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCpus.foreach(cpu => {
+      buffer.append(Map(
+        "name" -> cpu.getName,
+        "storage" -> cpu.getAvailableStorage,
+        "coprocessors" -> cpu.getCoProcessors,
+        "busy" -> cpu.isBusy))
+    })
+    result(buffer.toArray)
+  }
 
   @Callback(doc = "function([filter:table]):table -- Get a list of known item recipes. These can be used to issue crafting requests.")
   def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
