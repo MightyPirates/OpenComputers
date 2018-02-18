@@ -556,7 +556,7 @@ getKeyBindHandler = function(code)
     if type(keybinds) == "table" and keyBindHandlers[command] then
       for _, keybind in ipairs(keybinds) do
         if type(keybind) == "table" then
-          local alt, control, shift, key
+          local alt, control, shift, key = false, false, false
           for _, value in ipairs(keybind) do
             if value == "alt" then alt = true
             elseif value == "control" then control = true
@@ -564,9 +564,9 @@ getKeyBindHandler = function(code)
             else key = value end
           end
           local keyboardAddress = term.keyboard()
-          if (not alt or keyboard.isAltDown(keyboardAddress)) and
-             (not control or keyboard.isControlDown(keyboardAddress)) and
-             (not shift or keyboard.isShiftDown(keyboardAddress)) and
+          if (alt     == not not keyboard.isAltDown(keyboardAddress)) and
+             (control == not not keyboard.isControlDown(keyboardAddress)) and
+             (shift   == not not keyboard.isShiftDown(keyboardAddress)) and
              code == keyboard.keys[key] and
              #keybind > resultWeight
           then

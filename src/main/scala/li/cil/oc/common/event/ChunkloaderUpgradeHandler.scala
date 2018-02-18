@@ -45,8 +45,15 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
     // so if the save is because the game is being quit the tickets aren't
     // actually being cleared. This will *usually* not be a problem, but it
     // has room for improvement.
-    restoredTickets.values.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
-      case _: Throwable => // Ignored.
+    restoredTickets.values.foreach(ticket => {
+      try{
+        val data = ticket.getModData
+        OpenComputers.log.warn(s"A chunk loader ticket has been orphaned! Address: ${data.getString("address")}, position: (${data.getInteger("x")}, ${data.getInteger("z")}). Removing...")
+        ForgeChunkManager.releaseTicket(ticket)
+      }
+      catch {
+        case _: Throwable => // Ignored.
+      }
     })
     restoredTickets.clear()
   }
@@ -73,9 +80,6 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
     val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkPos(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
 
     loader.ticket.foreach(ticket => {
-      if (ticket.getType() == ForgeChunkManager.Type.ENTITY && ticket.getEntity() == null && loader.host.isInstanceOf[Entity])
-        ticket.bindEntity(loader.host.asInstanceOf[Entity])
-
       ticket.getChunkList.collect {
         case chunk: ChunkPos if !robotChunks.contains(chunk) => ForgeChunkManager.unforceChunk(ticket, chunk)
       }
