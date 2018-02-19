@@ -62,21 +62,20 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
   private def allItems: Iterable[IAEItemStack] = tile.getProxy.getStorage.getItemInventory.getStorageList
   private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
 
-  private def convert(aeItem: IAEItemStack, overrideSize: Integer = null): java.util.HashMap[String, AnyRef] = {
+  private def convert(aeItem: IAEItemStack): java.util.HashMap[String, AnyRef] = {
+    val potentialItem = aePotentialItem(aeItem)
     val result = Registry
-      .convert(Array[AnyRef](aeItem.getItemStack))
+      .convert(Array[AnyRef](potentialItem.getItemStack))
       .collect { case hash: java.util.HashMap[String, AnyRef] => hash }
     if (result.length > 0) {
       val hash = result(0)
-      if (overrideSize != null)
-        hash.update("size", overrideSize)
+      // it would have been nice to put these fields in a registry convert
+      // but the potential ae item needs the tile and position data
+      hash.update("size", Int.box(aeItem.getStackSize.toInt))
+      hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
       return hash
     }
     null
-  }
-
-  private def convert(aeItem: IAEItemStack, overrideSize: Int): java.util.HashMap[String, AnyRef] = {
-    convert(aeItem, Int.box(overrideSize))
   }
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
@@ -98,8 +97,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allCraftables
-      .map(aeCraftItem => aeCraftItem -> convert(aeCraftItem))
-      .collect{ case (aeCraftItem, hash: java.util.HashMap[String, AnyRef]) if matches(hash, filter) => new NetworkControl.Craftable(tile, aeCraftItem) }
+      .collect{ case aeCraftItem if matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, aeCraftItem) }
       .toArray)
   }
 
@@ -109,7 +107,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allItems
-      .map(aeItem => convert(aePotentialItem(aeItem), aeItem.getStackSize.toInt))
+      .map(convert)
       .filter(hash => matches(hash, filter))
       .toArray)
   }
@@ -121,8 +119,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
     DatabaseAccess.withDatabase(node, args.checkString(1), database => {
       val items = allItems
-        .map(aeItem => aePotentialItem(aeItem) -> aeItem.getStackSize.toInt)
-        .collect{ case (item, size) if matches(convert(item, size), filter) => item }.toArray
+        .collect{ case aeItem if matches(convert(aeItem), filter) => aePotentialItem(aeItem)}.toArray
       val offset = args.optSlot(database.data, 2, 0)
       val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min items.length
       var slot = offset
