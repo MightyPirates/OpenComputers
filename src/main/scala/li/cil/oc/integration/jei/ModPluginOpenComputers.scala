@@ -73,7 +73,7 @@ class ModPluginOpenComputers extends IModPlugin {
     )
 
     subtypeRegistry.registerSubtypeInterpreter(Items.get(Constants.ItemName.Floppy).item(), new ISubtypeInterpreter {
-      override def getSubtypeInfo(stack: ItemStack): String = {
+      override def apply(stack: ItemStack): String = {
         if (!stack.hasTagCompound) return null
         val compound: NBTTagCompound = stack.getTagCompound
         val data = new NBTTagCompound

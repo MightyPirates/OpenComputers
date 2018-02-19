@@ -60,7 +60,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     val bounds = nearBounds.union(farBounds)
     entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
       case Some(entity) =>
-        entity.setLeashedToEntity(host, true)
+        entity.setLeashHolder(host, true)
         leashedEntities += entity.getUniqueID
         context.pause(0.1)
         result(true)
@@ -83,7 +83,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
 
   private def unleashAll() {
     entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
-      if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashedToEntity == host) {
+      if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashHolder == host) {
         entity.clearLeashed(true, false)
       }
     })
@@ -102,7 +102,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
       val foundEntities = mutable.Set.empty[UUID]
       entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
         if (leashedEntities.contains(entity.getUniqueID)) {
-          entity.setLeashedToEntity(host, true)
+          entity.setLeashHolder(host, true)
           foundEntities += entity.getUniqueID
         }
       })

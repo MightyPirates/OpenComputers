@@ -61,7 +61,7 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
 
   override def canHarvestBlock(state: IBlockState): Boolean = state.getMaterial.isToolNotRequired || (!getCurrentItem.isEmpty && getCurrentItem.canHarvestBlock(state))
 
-  override def getStrVsBlock(state: IBlockState): Float = if (getCurrentItem.isEmpty) 1f else getCurrentItem.getStrVsBlock(state)
+  override def getDestroySpeed(state: IBlockState): Float = if (getCurrentItem.isEmpty) 1f else getCurrentItem.getDestroySpeed(state)
 
   override def writeToNBT(nbt: NBTTagList): NBTTagList = nbt
 

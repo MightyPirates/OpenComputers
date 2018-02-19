@@ -351,7 +351,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      if (world.getWorldInfo.getGameType.isAdventure && !canPlayerEdit(pos, side, stack)) {
+      if (world.getWorldInfo.getGameType.hasLimitedInteractions && !canPlayerEdit(pos, side, stack)) {
         return 0
       }
 

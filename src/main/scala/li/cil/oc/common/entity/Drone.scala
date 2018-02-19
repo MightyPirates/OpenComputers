@@ -142,7 +142,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = slot >= 0 && slot < getSizeInventory
 
-    override def isUsableByPlayer(player: EntityPlayer): Boolean = player.getDistanceSqToEntity(Drone.this) < 64
+    override def isUsableByPlayer(player: EntityPlayer): Boolean = player.getDistanceSq(Drone.this) < 64
   }
   val tank = new MultiTank {
     override def tankCount: Int = components.components.count {

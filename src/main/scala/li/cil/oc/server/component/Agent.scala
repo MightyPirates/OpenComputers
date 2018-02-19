@@ -308,7 +308,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       player.side.getFrontOffsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity(classOf[Entity]) match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3d(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new RayTraceResult(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3d(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistance(entity) => new RayTraceResult(entity)
       case _ => hit
     }
   }

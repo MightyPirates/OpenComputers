@@ -86,7 +86,7 @@ object ColorHandler {
 
   def register(handler: (ItemStack, Int) => Int, items: Item*): Unit = {
     Minecraft.getMinecraft.getItemColors.registerItemColorHandler(new IItemColor {
-      override def getColorFromItemstack(stack: ItemStack, tintIndex: Int): Int = handler(stack, tintIndex)
+      override def colorMultiplier(stack: ItemStack, tintIndex: Int): Int = handler(stack, tintIndex)
     }, items: _*)
   }
 }

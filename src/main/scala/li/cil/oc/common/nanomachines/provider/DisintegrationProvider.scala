@@ -61,7 +61,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
                 val event = new PlayerInteractEvent.LeftClickBlock(player, pos.toBlockPos, null, null)
                 MinecraftForge.EVENT_BUS.post(event)
                 val allowed = !event.isCanceled && event.getUseBlock != Event.Result.DENY && event.getUseItem != Event.Result.DENY
-                val adventureOk = !world.getWorldInfo.getGameType.isAdventure || player.canPlayerEdit(pos.toBlockPos, null, player.getHeldItemMainhand)
+                val adventureOk = !world.getWorldInfo.getGameType.hasLimitedInteractions || player.canPlayerEdit(pos.toBlockPos, null, player.getHeldItemMainhand)
                 if (allowed && adventureOk && !world.isAirBlock(pos)) {
                   val blockState = world.getBlockState(pos.toBlockPos)
                   val hardness = blockState.getBlock.getPlayerRelativeBlockHardness(world.getBlockState(pos.toBlockPos), player, world, pos.toBlockPos)
