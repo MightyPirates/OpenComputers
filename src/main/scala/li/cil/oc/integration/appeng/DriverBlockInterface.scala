@@ -55,7 +55,7 @@ object DriverBlockInterface extends DriverSidedTileEntity {
           case component: Component => component.host match {
             case database: Database =>
               val dbStack = database.getStackInSlot(entry - 1)
-              if (dbStack == null || size < 1) null
+              if (dbStack == null || size < 1 || dbStack.isEmpty) ItemStack.EMPTY
               else {
                 dbStack.setCount(math.min(size, dbStack.getMaxStackSize))
                 dbStack
@@ -65,9 +65,9 @@ object DriverBlockInterface extends DriverSidedTileEntity {
           case _ => throw new IllegalArgumentException("no such component")
         }
       }
-      else null
-      config.extractItem(slot, config.getStackInSlot(slot).getCount, true)
-      config.insertItem(slot, stack, true)
+      else ItemStack.EMPTY
+      config.extractItem(slot, config.getStackInSlot(slot).getCount, false)
+      config.insertItem(slot, stack, false)
       context.pause(0.5)
       result(true)
     }

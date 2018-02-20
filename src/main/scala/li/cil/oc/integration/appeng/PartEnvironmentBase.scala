@@ -9,6 +9,7 @@ import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
+import net.minecraft.item.ItemStack
 
 import scala.reflect.ClassTag
 
@@ -44,7 +45,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
             case component: Component => component.host match {
               case database: Database =>
                 val dbStack = database.getStackInSlot(entry - 1)
-                if (dbStack == null || size < 1) null
+                if (dbStack == null || size < 1 || dbStack.isEmpty) ItemStack.EMPTY
                 else {
                   dbStack.setCount(math.min(size, dbStack.getMaxStackSize))
                   dbStack
@@ -54,9 +55,9 @@ trait PartEnvironmentBase extends ManagedEnvironment {
             case _ => throw new IllegalArgumentException("no such component")
           }
         }
-        else null
-        config.extractItem(slot, config.getStackInSlot(slot).getCount, true)
-        config.insertItem(slot, stack, true)
+        else ItemStack.EMPTY
+        config.extractItem(slot, config.getStackInSlot(slot).getCount, false)
+        config.insertItem(slot, stack, false)
         context.pause(0.5)
         result(true)
       case _ => result(Unit, "no matching part")
