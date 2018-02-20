@@ -12,14 +12,13 @@ import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumDyeColor, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.math.AxisAlignedBB
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.{AxisAlignedBB, BlockPos, RayTraceResult, Vec3d}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
 
+import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] {
@@ -64,6 +63,27 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
     Cable.parts(world, pos, entityBox, boxes)
   }
 
+  override def collisionRayTrace(state: IBlockState, world: World, pos: BlockPos, start: Vec3d, end: Vec3d): RayTraceResult = {
+    var distance = Double.PositiveInfinity
+    var result: RayTraceResult = null
+
+    val boxes = new util.ArrayList[AxisAlignedBB]
+    Cable.parts(world, pos, Block.FULL_BLOCK_AABB.offset(pos), boxes)
+    for (part: AxisAlignedBB <- boxes) {
+      val hit = part.calculateIntercept(start, end)
+      if (hit != null) {
+        val hitDistance = hit.hitVec.squareDistanceTo(start)
+        if (hitDistance < distance) {
+          distance = hitDistance;
+          result = hit;
+        }
+      }
+    }
+
+    if (result == null) null
+    else new RayTraceResult(result.hitVec, result.sideHit, pos)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Cable()
@@ -91,8 +111,8 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 }
 
 object Cable {
-  private final val MIN = 0.375
-  private final val MAX = 1 - MIN
+  final val MIN = 0.375
+  final val MAX = 1 - MIN
 
   final val DefaultBounds: AxisAlignedBB = new AxisAlignedBB(MIN, MIN, MIN, MAX, MAX, MAX)
 
