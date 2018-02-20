@@ -50,9 +50,10 @@ object DriverExportBus extends driver.SidedBlock {
       val side = args.checkSideAny(0)
       val part = host.getPart(side)
 
-      if(AEUtil.isExportBus(part.getItemStack(PartItemStack.PICK))) {
+      if(part != null && AEUtil.isExportBus(part.getItemStack(PartItemStack.PICK))) {
         val export = part.asInstanceOf[ISegmentedInventory with IConfigurableObject with IUpgradeableHost with IActionHost]
-        InventoryUtils.inventoryAt(new BlockPosition(host.getLocation.x, host.getLocation.y, host.getLocation.z), side) match {
+        val location = host.getLocation
+        InventoryUtils.inventoryAt(new BlockPosition(location.x, location.y, location.z, Some(location.getWorld)).offset(side), side.getOpposite) match {
           case Some(inventory) =>
             val targetSlot = args.checkSlot(inventory, 1)
             val config = export.getInventoryByName("config")
