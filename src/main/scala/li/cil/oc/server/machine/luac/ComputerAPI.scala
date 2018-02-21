@@ -77,15 +77,18 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "users")
 
-    lua.pushScalaFunction(lua => try {
-      machine.addUser(lua.checkString(1))
-      lua.pushBoolean(true)
-      1
-    } catch {
-      case e: Throwable =>
-        lua.pushNil()
-        lua.pushString(Option(e.getMessage).getOrElse(e.toString))
-        2
+    lua.pushScalaFunction(lua => {
+      val user = lua.checkString(1)
+      try {
+        machine.addUser(user)
+        lua.pushBoolean(true)
+        1
+      } catch {
+        case e: Throwable =>
+          lua.pushNil()
+          lua.pushString(Option(e.getMessage).getOrElse(e.toString))
+          2
+      }
     })
     lua.setField(-2, "addUser")
 
