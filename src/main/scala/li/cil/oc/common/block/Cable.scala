@@ -1,14 +1,15 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumDyeColor
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.item.{EnumDyeColor, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.AxisAlignedBB
@@ -59,6 +60,10 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = Cable.bounds(world, pos)
 
+  override def addCollisionBoxToList(state : IBlockState, world : World, pos : BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB], entity : Entity) = {
+    Cable.parts(world, pos, entityBox, boxes)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Cable()
@@ -86,31 +91,28 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 }
 
 object Cable {
+  private final val MIN = 0.375
+  private final val MAX = 1 - MIN
+
+  final val DefaultBounds: AxisAlignedBB = new AxisAlignedBB(MIN, MIN, MIN, MAX, MAX, MAX)
+
+  final val CachedParts: Array[AxisAlignedBB] = Array(
+    new AxisAlignedBB( MIN, 0, MIN, MAX, MIN, MAX ), // Down
+    new AxisAlignedBB( MIN, MAX, MIN, MAX, 1, MAX ), // Up
+    new AxisAlignedBB( MIN, MIN, 0, MAX, MAX, MIN ), // North
+    new AxisAlignedBB( MIN, MIN, MAX, MAX, MAX, 1 ), // South
+    new AxisAlignedBB( 0, MIN, MIN, MIN, MAX, MAX ), // West
+    new AxisAlignedBB( MAX, MIN, MIN, 1, MAX, MAX )) // East
+
   final val CachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
-      var minX = -0.125
-      var minY = -0.125
-      var minZ = -0.125
-      var maxX = 0.125
-      var maxY = 0.125
-      var maxZ = 0.125
-      for (side <- EnumFacing.values) {
-        if (((1 << side.getIndex) & mask) != 0) {
-          if (side.getFrontOffsetX < 0) minX += side.getFrontOffsetX * 0.375
-          else maxX += side.getFrontOffsetX * 0.375
-          if (side.getFrontOffsetY < 0) minY += side.getFrontOffsetY * 0.375
-          else maxY += side.getFrontOffsetY * 0.375
-          if (side.getFrontOffsetZ < 0) minZ += side.getFrontOffsetZ * 0.375
-          else maxZ += side.getFrontOffsetZ * 0.375
-        }
-      }
-      new AxisAlignedBB(
-        minX + 0.5, minY + 0.5, minZ + 0.5,
-        maxX + 0.5, maxY + 0.5, maxZ + 0.5)
+      EnumFacing.VALUES.foldLeft(DefaultBounds)((bound, side) => {
+        if (((1 << side.getIndex) & mask) != 0) bound.union(CachedParts(side.ordinal()))
+        else bound
+      })
     }).toArray
   }
-  final val DefaultBounds = CachedBounds(0)
 
   def mask(side: EnumFacing, value: Int = 0) = value | (1 << side.getIndex)
 
@@ -139,6 +141,19 @@ object Cable {
   }
 
   def bounds(world: IBlockAccess, pos: BlockPos) = Cable.CachedBounds(Cable.neighbors(world, pos))
+
+  def parts(world: IBlockAccess, pos: BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB]) = {
+    val center = Cable.DefaultBounds.offset(pos)
+    if (entityBox.intersectsWith(center)) boxes.add(center)
+
+    val mask = Cable.neighbors(world, pos)
+    for (side <- EnumFacing.VALUES) {
+      if(((1 << side.getIndex) & mask) != 0) {
+        val part = Cable.CachedParts(side.ordinal()).offset(pos)
+        if (entityBox.intersectsWith(part)) boxes.add(part)
+      }
+    }
+  }
 
   private def hasNetworkNode(tileEntity: TileEntity, side: EnumFacing): Boolean = {
     if (tileEntity != null) {

@@ -52,13 +52,10 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       copyItemsFromHost()
       var countCrafted = 0
       val initialCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
-      if (initialCraft != null) {
+      if (initialCraft != null && !initialCraft.isEmpty) {
         def tryCraft() : Boolean = {
           val craft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
-          // if craft != initialCraft then the craft has changed
-          // for now we'll mimic what < 1.12 has been doing, and that is ignore the craft change
-          // if we make a change to respect the craft we'll do it in a single change the merges up
-          if (craft == null) {
+          if (craft == null || craft != initialCraft) {
             return false
           }
 
