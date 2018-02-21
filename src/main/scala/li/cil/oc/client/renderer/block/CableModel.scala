@@ -5,7 +5,6 @@ import java.util.Collections
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
-import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
@@ -40,7 +39,7 @@ class CableModel extends SmartBlockModelBase {
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
             val color = Some(t.getColor)
-            val mask = Cable.neighbors(t.world, t.getPos)
+            val mask = block.Cable.neighbors(t.world, t.getPos)
             faces ++= bakeQuads(Middle, cableTexture, color)
             for (side <- EnumFacing.values) {
               val connected = (mask & (1 << side.getIndex)) != 0
