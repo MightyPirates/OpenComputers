@@ -56,11 +56,14 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
       load()
       val cm = CraftingManager.getInstance
       var countCrafted = 0
-      val canCraft = cm.findMatchingRecipe(CraftingInventory, host.world) != null
+      val originalCraft = cm.findMatchingRecipe(CraftingInventory, host.world)
       breakable {
         while (countCrafted < wantedCount) {
           val result = cm.findMatchingRecipe(CraftingInventory, host.world)
           if (result == null || result.stackSize < 1) break()
+          if (!originalCraft.isItemEqual(result)) {
+            break()
+          }
           countCrafted += result.stackSize
           FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
@@ -91,7 +94,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
           load()
         }
       }
-      Seq(canCraft, countCrafted)
+      Seq(originalCraft != null, countCrafted)
     }
 
     def load() {
