@@ -60,8 +60,8 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   override def getBoundingBox(state: IBlockState, world: IBlockAccess, pos: BlockPos): AxisAlignedBB = Cable.bounds(world, pos)
 
-  override def addCollisionBoxToList(state : IBlockState, world : World, pos : BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB], entity : Entity) = {
-    Cable.parts(world, pos, entityBox, boxes)
+  override def addCollisionBoxToList(state: IBlockState, worldIn: World, pos: BlockPos, entityBox: AxisAlignedBB, collidingBoxes: util.List[AxisAlignedBB], entityIn: Entity, isActualState: Boolean): Unit = {
+    Cable.parts(worldIn, pos, entityBox, collidingBoxes)
   }
 
   // ----------------------------------------------------------------------- //
@@ -144,13 +144,13 @@ object Cable {
 
   def parts(world: IBlockAccess, pos: BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB]) = {
     val center = Cable.DefaultBounds.offset(pos)
-    if (entityBox.intersectsWith(center)) boxes.add(center)
+    if (entityBox.intersects(center)) boxes.add(center)
 
     val mask = Cable.neighbors(world, pos)
     for (side <- EnumFacing.VALUES) {
       if(((1 << side.getIndex) & mask) != 0) {
         val part = Cable.CachedParts(side.ordinal()).offset(pos)
-        if (entityBox.intersectsWith(part)) boxes.add(part)
+        if (entityBox.intersects(part)) boxes.add(part)
       }
     }
   }
