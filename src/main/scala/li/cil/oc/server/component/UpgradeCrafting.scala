@@ -57,6 +57,9 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
       val cm = CraftingManager.getInstance
       var countCrafted = 0
       val originalCraft = cm.findMatchingRecipe(CraftingInventory, host.world)
+      if (originalCraft == null) {
+        return Seq(false, 0)
+      }
       breakable {
         while (countCrafted < wantedCount) {
           val result = cm.findMatchingRecipe(CraftingInventory, host.world)
