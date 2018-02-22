@@ -52,7 +52,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       copyItemsFromHost()
       var countCrafted = 0
       val initialCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
-      if (initialCraft != null && !initialCraft.isEmpty) {
+      if (initialCraft != null) {
         def tryCraft() : Boolean = {
           val craft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
           if (craft == null || craft != initialCraft) {
