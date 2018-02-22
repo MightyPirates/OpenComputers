@@ -144,13 +144,13 @@ object Cable {
 
   def parts(world: IBlockAccess, pos: BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB]) = {
     val center = Cable.DefaultBounds.offset(pos)
-    if (entityBox.intersects(center)) boxes.add(center)
+    if (entityBox.intersectsWith(center)) boxes.add(center)
 
     val mask = Cable.neighbors(world, pos)
     for (side <- EnumFacing.VALUES) {
       if(((1 << side.getIndex) & mask) != 0) {
         val part = Cable.CachedParts(side.ordinal()).offset(pos)
-        if (entityBox.intersects(part)) boxes.add(part)
+        if (entityBox.intersectsWith(part)) boxes.add(part)
       }
     }
   }
