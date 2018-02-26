@@ -34,6 +34,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   protected def rotatedPlayer(facing: ForgeDirection = agent.facing, side: ForgeDirection = agent.facing) = {
     val player = agent.player.asInstanceOf[Player]
     Player.updatePositionAndRotation(player, facing, side)
+    // no need to set inventory, calling agent.Player already did that
+    //Player.setInventoryPlayerItems(player, agent)
     player
   }
 

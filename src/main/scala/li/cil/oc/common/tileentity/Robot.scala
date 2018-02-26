@@ -114,6 +114,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def player = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
+    agent.Player.setInventoryPlayerItems(player_, this)
     player_
   }
 
