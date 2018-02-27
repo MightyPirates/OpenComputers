@@ -162,6 +162,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
   override def player(): EntityPlayer = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
+    agent.Player.setInventoryPlayerItems(player_, this)
     player_
   }
 

@@ -23,8 +23,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.SleepResult
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
-import net.minecraft.inventory.EntityEquipmentSlot
-import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.{ContainerPlayer, EntityEquipmentSlot, IInventory}
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
@@ -88,6 +87,27 @@ object Player {
     player.prevRotationPitch = player.rotationPitch
     player.prevRotationYaw = player.rotationYaw
   }
+
+  def setInventoryPlayerItems(player: Player, agent: internal.Agent): Unit = {
+    // the offhand is simply the agent's tool item
+    def setCopyOrNull(inv: net.minecraft.util.NonNullList[ItemStack], agentInv: IInventory, slot: Int): Unit = {
+      val item = agentInv.getStackInSlot(slot)
+      inv(slot) = if (item != null) item.copy() else ItemStack.EMPTY
+    }
+
+    setCopyOrNull(player.inventory.offHandInventory, agent.equipmentInventory, 0)
+
+    // mainInventory is 36 items
+    // the agent inventory is 100 items with some space for components
+    // leaving us 88..we'll copy what we can
+    val size = player.inventory.mainInventory.length min agent.mainInventory.getSizeInventory
+    for (i <- 0 until size) {
+      setCopyOrNull(player.inventory.mainInventory, agent.mainInventory, i)
+    }
+    // no reason to sync to container, container already maps to agent inventory
+    // which we just copied from
+    //player.inventoryContainer.detectAndSendChanges()
+  }
 }
 
 class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
@@ -104,7 +124,30 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   setSize(1, 1)
 
-  this.inventory = new Inventory(this, agent)
+  {
+    this.inventory = new Inventory(this, agent)
+    // because the inventory was just overwritten, the container is now detached
+    this.inventoryContainer = new ContainerPlayer(this.inventory, !world.isRemote, this) {
+      override def detectAndSendChanges() {
+        super.detectAndSendChanges()
+        // now the fakeplayer's container should be sync'd with the fakeplayers inventory
+        // let's now overwrite our inventory to match
+        def setCopy(inv: IInventory, index: Int, item: ItemStack): Unit = {
+          val result = if (item != null) item.copy else ItemStack.EMPTY
+          val current = inv.getStackInSlot(index)
+          if (!ItemStack.areItemStacksEqual(result, current)) {
+            inv.setInventorySlotContents(index, result)
+          }
+        }
+        val size = inventory.mainInventory.length min agent.mainInventory.getSizeInventory
+        for (i <- 0 until size) {
+          setCopy(agent.mainInventory, i, inventory.mainInventory(i))
+        }
+        setCopy(agent.equipmentInventory, 0, inventory.offHandInventory(0))
+      }
+    }
+    this.openContainer = this.inventoryContainer
+  }
 
   var facing, side = EnumFacing.SOUTH
 
@@ -460,6 +503,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     finally {
       this.inventory.currentItem = 0
       val newStack = inventory.getStackInSlot(slot)
+      // this is only possible if f() modified the stack object in-place
+      // looking at you, ic2
+      if (ItemStack.areItemStacksEqual(oldStack, newStack) &&
+         !ItemStack.areItemStacksEqual(oldStack, stack)) {
+        inventory.setInventorySlotContents(slot, stack)
+      }
       if (!newStack.isEmpty) {
         if (newStack.getCount <= 0) {
           inventory.setInventorySlotContents(slot, ItemStack.EMPTY)

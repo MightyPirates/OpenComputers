@@ -17,9 +17,9 @@ import scala.collection.immutable
 
 class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends InventoryPlayer(playerEntity) {
 
-  def selectedItemStack: ItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
+  private def selectedItemStack: ItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 
-  def inventorySlots: immutable.IndexedSeq[Int] = (agent.selectedSlot until getSizeInventory) ++ (0 until agent.selectedSlot)
+  private def inventorySlots: immutable.IndexedSeq[Int] = (agent.selectedSlot until getSizeInventory) ++ (0 until agent.selectedSlot)
 
   override def getCurrentItem: ItemStack = agent.equipmentInventory.getStackInSlot(0)
 
@@ -55,6 +55,7 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
 //  }
 
   override def addItemStackToInventory(stack: ItemStack): Boolean = {
+    super.addItemStackToInventory(stack)
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, InventoryUtils.asItemHandler(this), slots = Option(slots))
   }
@@ -85,17 +86,23 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
     if (slot < 0) agent.equipmentInventory.getStackInSlot(~slot)
     else agent.mainInventory.getStackInSlot(slot)
 
-  override def decrStackSize(slot: Int, amount: Int): ItemStack =
+  override def decrStackSize(slot: Int, amount: Int): ItemStack = {
+    super.decrStackSize(slot, amount)
     if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
     else agent.mainInventory.decrStackSize(slot, amount)
+  }
 
-  override def removeStackFromSlot(slot: Int): ItemStack =
+  override def removeStackFromSlot(slot: Int): ItemStack = {
+    super.removeStackFromSlot(slot)
     if (slot < 0) agent.equipmentInventory.removeStackFromSlot(~slot)
     else agent.mainInventory.removeStackFromSlot(slot)
+  }
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit =
+  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
+    super.setInventorySlotContents(slot, stack)
     if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)
     else agent.mainInventory.setInventorySlotContents(slot, stack)
+  }
 
   override def getName: String = agent.mainInventory.getName
 
