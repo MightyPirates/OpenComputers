@@ -136,6 +136,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def player: Player = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
+    agent.Player.setInventoryPlayerItems(player_, this)
     player_
   }
 
