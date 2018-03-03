@@ -26,6 +26,18 @@ object LuaStateFactory {
     lua52 || lua53
   }
 
+  def include52 = {
+    Lua52.isAvailable && !Settings.get.forceLuaJ
+  }
+
+  def include53 = {
+    Lua53.isAvailable && Settings.get.enableLua53
+  }
+
+  def default53 = {
+    include53 && Settings.get.defaultLua53
+  }
+
   object Lua52 extends LuaStateFactory {
     override def version: String = "lua52"
 

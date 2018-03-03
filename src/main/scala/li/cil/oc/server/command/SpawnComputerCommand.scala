@@ -4,6 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.command.SimpleCommand
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.machine.luac.{LuaStateFactory, NativeLua53Architecture}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
@@ -75,7 +76,17 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
 
             api.Network.joinOrCreateNetwork(world.getTileEntity(casePos))
 
-            InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.APUCreative).createItemStack(1), casePos)
+            val apu = api.Items.get(Constants.ItemName.APUCreative).createItemStack(1)
+            if (LuaStateFactory.default53) {
+              Option(api.Driver.driverFor(apu)).foreach{
+                case driver: api.driver.item.MutableProcessor => {
+                  driver.setArchitecture(apu, classOf[NativeLua53Architecture])
+                }
+                case _ =>
+              }
+            }
+
+            InventoryUtils.insertIntoInventoryAt(apu, casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.RAMTier6).createItemStack(2), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.HDDTier3).createItemStack(1), casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.LuaBios).createItemStack(1), casePos)

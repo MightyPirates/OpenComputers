@@ -315,10 +315,6 @@ object ModOpenComputers extends ModProxy {
       }
     }
 
-    if (Settings.get.enableLua53 && LuaStateFactory.Lua53.isAvailable) {
-      api.Machine.add(classOf[NativeLua53Architecture])
-    }
-
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/"))
     api.Manual.addProvider("", TextureImageProvider)

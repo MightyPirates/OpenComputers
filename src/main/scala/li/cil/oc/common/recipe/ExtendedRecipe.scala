@@ -6,12 +6,14 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.machine.luac.{LuaStateFactory, NativeLua53Architecture}
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
@@ -37,6 +39,13 @@ object ExtendedRecipe {
     api.Items.get(Constants.ItemName.HDDTier2),
     api.Items.get(Constants.ItemName.HDDTier3)
   )
+  private lazy val cpus = Array(
+    api.Items.get(Constants.ItemName.CPUTier1),
+    api.Items.get(Constants.ItemName.CPUTier2),
+    api.Items.get(Constants.ItemName.CPUTier3),
+    api.Items.get(Constants.ItemName.APUTier1),
+    api.Items.get(Constants.ItemName.APUTier2)
+  )
   private lazy val robot = api.Items.get(Constants.BlockName.Robot)
   private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
   private lazy val print = api.Items.get(Constants.BlockName.Print)
@@ -49,7 +58,9 @@ object ExtendedRecipe {
   }
 
   def addNBTToResult(recipe: IRecipe, craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
-    if (api.Items.get(craftedStack) == navigationUpgrade) {
+    val craftedItemName = api.Items.get(craftedStack)
+
+    if (craftedItemName == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (stack <- getItems(inventory)) {
           if (stack.getItem == net.minecraft.init.Items.filled_map) {
@@ -60,7 +71,7 @@ object ExtendedRecipe {
         })
     }
 
-    if (api.Items.get(craftedStack) == linkedCard) {
+    if (craftedItemName == linkedCard) {
       if (weAreBeingCalledFromAppliedEnergistics2) return disabled.copy()
       if (SideTracker.isServer) {
         Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
@@ -70,7 +81,20 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == floppy || hdds.contains(api.Items.get(craftedStack))) {
+    if (cpus.contains(craftedItemName)) {
+      // set crafted default arch
+      if (LuaStateFactory.default53) {
+        val lua53: Class[_ <: Architecture] = classOf[NativeLua53Architecture]
+        Option(api.Driver.driverFor(craftedStack)).foreach{
+          case driver: api.driver.item.MutableProcessor => {
+            driver.setArchitecture(craftedStack, lua53)
+          }
+          case _ =>
+        }
+      }
+    }
+
+    if (craftedItemName == floppy || hdds.contains(craftedItemName)) {
       if (!craftedStack.hasTagCompound) {
         craftedStack.setTagCompound(new NBTTagCompound())
       }
@@ -103,7 +127,7 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == print &&
+    if (craftedItemName == print &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) {
@@ -155,7 +179,7 @@ object ExtendedRecipe {
     }
 
     // EEPROM copying.
-    if (api.Items.get(craftedStack) == eeprom &&
+    if (craftedItemName == eeprom &&
       craftedStack.stackSize == 2 &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
