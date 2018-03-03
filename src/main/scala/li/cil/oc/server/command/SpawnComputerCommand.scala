@@ -77,7 +77,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             api.Network.joinOrCreateNetwork(world.getTileEntity(casePos))
 
             val apu = api.Items.get(Constants.ItemName.APUCreative).createItemStack(1)
-            LuaStateFactory.setDefaultArch(craftedItemName)
+            LuaStateFactory.setDefaultArch(apu)
 
             InventoryUtils.insertIntoInventoryAt(apu, casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.RAMTier6).createItemStack(2), casePos)

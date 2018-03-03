@@ -10,10 +10,13 @@ import com.google.common.base.Strings
 import com.google.common.io.PatternFilenameFilter
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua
 import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
+import net.minecraft.item.ItemStack
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random

@@ -25,6 +25,7 @@ import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.machine.luac.LuaStateFactory
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -286,7 +287,7 @@ object Items extends ItemAPI {
       Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
       Option(safeGetStack(Constants.ItemName.WirelessNetworkCardTier2)),
 
-      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
+      Option(LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3))),
       Option(safeGetStack(Constants.ItemName.RAMTier6)),
       Option(safeGetStack(Constants.ItemName.RAMTier6)),
 

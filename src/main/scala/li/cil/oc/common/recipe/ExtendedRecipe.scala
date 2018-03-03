@@ -6,14 +6,13 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
-import li.cil.oc.server.machine.luac.{LuaStateFactory, NativeLua53Architecture}
+import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
@@ -82,7 +81,7 @@ object ExtendedRecipe {
     }
 
     if (cpus.contains(craftedItemName)) {
-      LuaStateFactory.setDefaultArch(craftedItemName)
+      LuaStateFactory.setDefaultArch(craftedStack)
     }
 
     if (craftedItemName == floppy || hdds.contains(craftedItemName)) {
