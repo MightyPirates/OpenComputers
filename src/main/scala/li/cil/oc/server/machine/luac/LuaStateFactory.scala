@@ -38,6 +38,19 @@ object LuaStateFactory {
     include53 && Settings.get.defaultLua53
   }
 
+  def setDefaultArch(stack: ItemStack): ItemStack = {
+    if (default53) {
+      val lua53: Class[_ <: Architecture] = classOf[NativeLua53Architecture]
+      Option(api.Driver.driverFor(stack)).foreach{
+        case driver: api.driver.item.MutableProcessor => {
+          driver.setArchitecture(stack, lua53)
+        }
+        case _ =>
+      }
+    }
+    stack
+  }
+
   object Lua52 extends LuaStateFactory {
     override def version: String = "lua52"
 

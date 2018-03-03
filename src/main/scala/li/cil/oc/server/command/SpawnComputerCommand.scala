@@ -77,14 +77,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
             api.Network.joinOrCreateNetwork(world.getTileEntity(casePos))
 
             val apu = api.Items.get(Constants.ItemName.APUCreative).createItemStack(1)
-            if (LuaStateFactory.default53) {
-              Option(api.Driver.driverFor(apu)).foreach{
-                case driver: api.driver.item.MutableProcessor => {
-                  driver.setArchitecture(apu, classOf[NativeLua53Architecture])
-                }
-                case _ =>
-              }
-            }
+            LuaStateFactory.setDefaultArch(craftedItemName)
 
             InventoryUtils.insertIntoInventoryAt(apu, casePos)
             InventoryUtils.insertIntoInventoryAt(api.Items.get(Constants.ItemName.RAMTier6).createItemStack(2), casePos)

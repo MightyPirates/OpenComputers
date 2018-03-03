@@ -82,16 +82,7 @@ object ExtendedRecipe {
     }
 
     if (cpus.contains(craftedItemName)) {
-      // set crafted default arch
-      if (LuaStateFactory.default53) {
-        val lua53: Class[_ <: Architecture] = classOf[NativeLua53Architecture]
-        Option(api.Driver.driverFor(craftedStack)).foreach{
-          case driver: api.driver.item.MutableProcessor => {
-            driver.setArchitecture(craftedStack, lua53)
-          }
-          case _ =>
-        }
-      }
+      LuaStateFactory.setDefaultArch(craftedItemName)
     }
 
     if (craftedItemName == floppy || hdds.contains(craftedItemName)) {
