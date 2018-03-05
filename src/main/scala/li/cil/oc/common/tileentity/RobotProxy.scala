@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -91,6 +92,19 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   @Callback(direct = true, doc = """function():boolean -- Returns whether the robot is running.""")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(machine.isRunning)
+
+  @Callback(doc = "function(name: string):string -- Sets a new name and returns the old name. Robot must not be running")
+  def setName(context: Context, args: Arguments): Array[AnyRef] = {
+    val oldName = robot.name
+    val newName: String = args.checkString(0)
+    if (machine.isRunning) return result(Unit, "is running")
+    setName(newName)
+    ServerPacketSender.sendRobotNameChange(robot)
+    result(oldName)
+  }
+
+  @Callback(doc = "function():string -- Returns the robot name.")
+  def getName(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
 
   override def onMessage(message: Message) {
     super.onMessage(message)
