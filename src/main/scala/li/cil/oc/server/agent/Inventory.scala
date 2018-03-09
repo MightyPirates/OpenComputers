@@ -55,7 +55,6 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
   }
 
   override def addItemStackToInventory(stack: ItemStack) = {
-    super.addItemStackToInventory(stack)
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
   }
@@ -97,7 +96,6 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     else agent.mainInventory.getStackInSlot(slot)
 
   override def decrStackSize(slot: Int, amount: Int) = {
-    super.decrStackSize(slot, amount)
     if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
     else agent.mainInventory.decrStackSize(slot, amount)
   }
@@ -107,7 +105,6 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     else agent.mainInventory.getStackInSlotOnClosing(slot)
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
-    super.setInventorySlotContents(slot, stack)
     if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)
     else agent.mainInventory.setInventorySlotContents(slot, stack)
   }

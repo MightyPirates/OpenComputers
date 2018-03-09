@@ -35,7 +35,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     val player = agent.player.asInstanceOf[Player]
     Player.updatePositionAndRotation(player, facing, side)
     // no need to set inventory, calling agent.Player already did that
-    //Player.setInventoryPlayerItems(player, agent)
+    //Player.setInventoryPlayerItems(player)
     player
   }
 
