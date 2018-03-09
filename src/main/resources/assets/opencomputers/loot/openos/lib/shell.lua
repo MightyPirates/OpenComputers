@@ -18,7 +18,7 @@ function shell.getShell()
   if shells[shellName] then
     return shells[shellName]
   end
-  local sh, load_reason = loadfile(shellName)
+  local sh, load_reason = loadfile(shellName, nil, setmetatable({}, {__index=_G}))
   if sh then
     shells[shellName] = sh
   end

@@ -210,7 +210,7 @@ object Items extends ItemAPI {
 
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
     ).filter(!_.isEmpty)
@@ -230,7 +230,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
     ).filter(!_.isEmpty)
@@ -262,7 +262,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
       safeGetStack(Constants.ItemName.InternetCard),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6),
 
@@ -298,7 +298,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3))),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6),
 

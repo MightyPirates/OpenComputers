@@ -15,6 +15,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.server._
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua52Architecture
+import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import net.minecraft.block.Block
 import net.minecraft.item.Item
@@ -76,12 +77,16 @@ class Proxy {
 
     api.API.config = Settings.get.config
 
-    api.Machine.LuaArchitecture =
-      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLua52Architecture]
-      else classOf[LuaJLuaArchitecture]
-    api.Machine.add(api.Machine.LuaArchitecture)
-    if (Settings.get.registerLuaJArchitecture)
+    if (LuaStateFactory.include52) {
+      api.Machine.add(classOf[NativeLua52Architecture])
+    }
+    if (LuaStateFactory.include53) {
+      api.Machine.add(classOf[NativeLua53Architecture])
+    }
+    if (api.Machine.architectures.size == 0) {
       api.Machine.add(classOf[LuaJLuaArchitecture])
+    }
+    api.Machine.LuaArchitecture = api.Machine.architectures.head
   }
 
   def init(e: FMLInitializationEvent) {

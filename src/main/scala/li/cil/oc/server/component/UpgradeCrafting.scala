@@ -49,7 +49,8 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
   }, 3, 3) {
     var amountPossible = 0
     def craft(wantedCount: Int): Seq[_] = {
-      copyItemsFromHost()
+      var player = host.player
+      copyItemsFromHost(player.inventory)
       var countCrafted = 0
       val initialCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
       if (initialCraft != null) {
@@ -60,7 +61,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
           }
 
           val craftResult = new InventoryCraftResult
-          val craftingSlot = new SlotCrafting(host.player, CraftingInventory, craftResult, 0, 0, 0)
+          val craftingSlot = new SlotCrafting(player, CraftingInventory, craftResult, 0, 0, 0)
           val craftedResult = craft.getCraftingResult(this)
           craftResult.setInventorySlotContents(0, craftedResult)
           if (!craftingSlot.getHasStack)
@@ -68,11 +69,11 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
 
           val stack = craftingSlot.getStack
           countCrafted += stack.getCount max 1
-          val taken = craftingSlot.onTake(host.player(), stack)
+          val taken = craftingSlot.onTake(player, stack)
           if (taken.getCount > 0) {
-            copyItemsToHost()
-            InventoryUtils.addToPlayerInventory(taken, host.player)
-            copyItemsFromHost()
+            copyItemsToHost(player.inventory)
+            InventoryUtils.addToPlayerInventory(taken, player)
+            copyItemsFromHost(player.inventory)
           }
           true
         }
@@ -83,8 +84,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       Seq(countCrafted > 0, countCrafted)
     }
 
-    def copyItemsFromHost() {
-      val inventory = host.mainInventory()
+    def copyItemsFromHost(inventory: IInventory) {
       amountPossible = Int.MaxValue
       for (slot <- 0 until getSizeInventory) {
         val stack = inventory.getStackInSlot(toParentSlot(slot))
@@ -95,8 +95,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       }
     }
 
-    def copyItemsToHost() {
-      val inventory = host.mainInventory()
+    def copyItemsToHost(inventory: IInventory) {
       for (slot <- 0 until getSizeInventory) {
         inventory.setInventorySlotContents(toParentSlot(slot), getStackInSlot(slot))
       }

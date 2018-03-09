@@ -121,6 +121,19 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(machine.isRunning)
 
+  @Callback(doc = "function(name: string):string -- Sets a new name and returns the old name. Robot must not be running")
+  def setName(context: Context, args: Arguments): Array[AnyRef] = {
+    val oldName = robot.name
+    val newName: String = args.checkString(0)
+    if (machine.isRunning) return result(Unit, "is running")
+    setName(newName)
+    ServerPacketSender.sendRobotNameChange(robot)
+    result(oldName)
+  }
+
+  @Callback(doc = "function():string -- Returns the robot name.")
+  def getName(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
+
   override def onMessage(message: Message) {
     super.onMessage(message)
     if (message.name == "network.message" && message.source != this.node) message.data match {
