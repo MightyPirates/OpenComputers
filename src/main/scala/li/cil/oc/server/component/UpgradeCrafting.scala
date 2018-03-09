@@ -17,7 +17,7 @@ import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
-import net.minecraft.inventory.{InventoryCraftResult, SlotCrafting}
+import net.minecraft.inventory.{IInventory, InventoryCraftResult, SlotCrafting}
 import net.minecraft.item.crafting.CraftingManager
 
 import scala.collection.convert.WrapAsJava._
