@@ -36,6 +36,13 @@ object ExtendedRecipe {
     api.Items.get(Constants.ItemName.HDDTier2),
     api.Items.get(Constants.ItemName.HDDTier3)
   )
+  private lazy val cpus = Array(
+    api.Items.get(Constants.ItemName.CPUTier1),
+    api.Items.get(Constants.ItemName.CPUTier2),
+    api.Items.get(Constants.ItemName.CPUTier3),
+    api.Items.get(Constants.ItemName.APUTier1),
+    api.Items.get(Constants.ItemName.APUTier2)
+  )
   private lazy val robot = api.Items.get(Constants.BlockName.Robot)
   private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
   private lazy val print = api.Items.get(Constants.BlockName.Print)
@@ -48,7 +55,9 @@ object ExtendedRecipe {
   }
 
   def addNBTToResult(recipe: IRecipe, craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
-    if (api.Items.get(craftedStack) == navigationUpgrade) {
+    val craftedItemName = api.Items.get(craftedStack)
+
+    if (craftedItemName == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (stack <- getItems(inventory)) {
           if (stack.getItem == net.minecraft.init.Items.FILLED_MAP) {
@@ -59,7 +68,7 @@ object ExtendedRecipe {
         })
     }
 
-    if (api.Items.get(craftedStack) == linkedCard) {
+    if (craftedItemName == linkedCard) {
       if (SideTracker.isServer) {
         Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
           val nbt = driver.dataTag(craftedStack)
@@ -68,7 +77,11 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == floppy || hdds.contains(api.Items.get(craftedStack))) {
+    if (cpus.contains(craftedItemName)) {
+      LuaStateFactory.setDefaultArch(craftedStack)
+    }
+
+    if (craftedItemName == floppy || hdds.contains(craftedItemName)) {
       if (!craftedStack.hasTagCompound) {
         craftedStack.setTagCompound(new NBTTagCompound())
       }
@@ -101,7 +114,7 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == print &&
+    if (craftedItemName == print &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) {
@@ -153,7 +166,7 @@ object ExtendedRecipe {
     }
 
     // EEPROM copying.
-    if (api.Items.get(craftedStack) == eeprom &&
+    if (craftedItemName == eeprom &&
       craftedStack.getCount == 2 &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&

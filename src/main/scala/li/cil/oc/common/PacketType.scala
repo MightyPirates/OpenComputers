@@ -44,6 +44,7 @@ object PacketType extends Enumeration {
   RobotInventoryChange,
   RobotLightChange,
   RobotMove,
+  RobotNameChange,
   RobotSelectedSlotChange,
   RotatableState,
   SwitchActivity,

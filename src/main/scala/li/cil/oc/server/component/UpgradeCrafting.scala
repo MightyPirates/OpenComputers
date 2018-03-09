@@ -18,6 +18,7 @@ import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
@@ -54,7 +55,8 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
     var amountPossible = 0
 
     def craft(wantedCount: Int): Seq[_] = {
-      load()
+      var player = host.player
+      load(player.inventory)
       val cm = CraftingManager.getInstance
       var countCrafted = 0
       val originalCraft = cm.findMatchingRecipe(CraftingInventory, host.world)
@@ -69,7 +71,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
             break()
           }
           countCrafted += result.getCount
-          FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
+          FMLCommonHandler.instance.firePlayerCraftingEvent(player, result, this)
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
           for (slot <- 0 until getSizeInventory) {
             val stack = getStackInSlot(slot)
@@ -79,7 +81,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
               if (item.hasContainerItem(stack)) {
                 val container = item.getContainerItem(stack)
                 if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container, null))
+                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container, null))
                 }
                 else if (!getStackInSlot(slot).isEmpty) {
                   surplus += container
@@ -90,19 +92,18 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
               }
             }
           }
-          save()
-          InventoryUtils.addToPlayerInventory(result, host.player)
+          save(player.inventory)
+          InventoryUtils.addToPlayerInventory(result, player)
           for (stack <- surplus) {
-            InventoryUtils.addToPlayerInventory(stack, host.player)
+            InventoryUtils.addToPlayerInventory(stack, player)
           }
-          load()
+          load(player.inventory)
         }
       }
       Seq(!(originalCraft == null || originalCraft.isEmpty), countCrafted)
     }
 
-    def load() {
-      val inventory = host.mainInventory()
+    def load(inventory: IInventory) {
       amountPossible = Int.MaxValue
       for (slot <- 0 until getSizeInventory) {
         val stack = inventory.getStackInSlot(toParentSlot(slot))
@@ -113,8 +114,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       }
     }
 
-    def save() {
-      val inventory = host.mainInventory()
+    def save(inventory: IInventory) {
       for (slot <- 0 until getSizeInventory) {
         inventory.setInventorySlotContents(toParentSlot(slot), getStackInSlot(slot))
       }
