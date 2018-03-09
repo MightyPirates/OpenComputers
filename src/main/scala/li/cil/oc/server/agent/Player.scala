@@ -123,6 +123,7 @@ object Player {
     for (i <- 0 until size) {
       setCopy(player.agent.mainInventory, i, player.inventory.mainInventory(i))
     }
+    setCopy(player.agent.equipmentInventory, 0, player.inventory.offHandInventory(0))
   }
 }
 
