@@ -13,6 +13,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.server.agent.Player
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandler

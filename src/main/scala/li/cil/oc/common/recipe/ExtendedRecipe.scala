@@ -11,6 +11,7 @@ import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker

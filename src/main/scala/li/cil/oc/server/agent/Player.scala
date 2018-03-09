@@ -121,11 +121,11 @@ object Player {
         inv.setInventorySlotContents(index, result)
       }
     }
-    val size = inventory.mainInventory.length min agent.mainInventory.getSizeInventory
+    val size = player.inventory.mainInventory.length min agent.mainInventory.getSizeInventory
     for (i <- 0 until size) {
-      setCopy(agent.mainInventory, i, inventory.mainInventory(i))
+      setCopy(agent.mainInventory, i, player.inventory.mainInventory(i))
     }
-    setCopy(agent.equipmentInventory, 0, inventory.offHandInventory(0))
+    setCopy(agent.equipmentInventory, 0, player.inventory.offHandInventory(0))
   }
 }
 
