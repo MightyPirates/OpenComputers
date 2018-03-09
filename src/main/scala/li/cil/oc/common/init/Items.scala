@@ -24,6 +24,7 @@ import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.machine.luac.LuaStateFactory
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.EnumDyeColor
@@ -213,7 +214,7 @@ object Items extends ItemAPI {
 
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
     )
@@ -233,7 +234,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6)
     )
@@ -265,7 +266,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
       safeGetStack(Constants.ItemName.InternetCard),
 
-      safeGetStack(Constants.ItemName.CPUTier3),
+      LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3)),
       safeGetStack(Constants.ItemName.RAMTier6),
       safeGetStack(Constants.ItemName.RAMTier6),
 
@@ -301,7 +302,7 @@ object Items extends ItemAPI {
       Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
       Option(safeGetStack(Constants.ItemName.WirelessNetworkCardTier2)),
 
-      Option(safeGetStack(Constants.ItemName.CPUTier3)),
+      Option(LuaStateFactory.setDefaultArch(safeGetStack(Constants.ItemName.CPUTier3))),
       Option(safeGetStack(Constants.ItemName.RAMTier6)),
       Option(safeGetStack(Constants.ItemName.RAMTier6)),
 

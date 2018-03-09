@@ -52,7 +52,6 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
 //  }
 
   override def addItemStackToInventory(stack: ItemStack) = {
-    super.addItemStackToInventory(stack)
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, InventoryUtils.asItemHandler(this), slots = Option(slots))
   }
@@ -84,19 +83,16 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
     else agent.mainInventory.getStackInSlot(slot)
 
   override def decrStackSize(slot: Int, amount: Int) = {
-    super.decrStackSize(slot, amount)
     if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
     else agent.mainInventory.decrStackSize(slot, amount)
   }
 
   override def removeStackFromSlot(slot: Int) = {
-    super.removeStackFromSlot(slot)
     if (slot < 0) agent.equipmentInventory.removeStackFromSlot(~slot)
     else agent.mainInventory.removeStackFromSlot(slot)
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
-    super.setInventorySlotContents(slot, stack)
     if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)
     else agent.mainInventory.setInventorySlotContents(slot, stack)
   }

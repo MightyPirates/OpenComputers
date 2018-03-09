@@ -93,6 +93,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
       case PacketType.RobotLightChange => onRobotLightChange(p)
       case PacketType.RobotMove => onRobotMove(p)
+      case PacketType.RobotNameChange => onRobotNameChange(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.SwitchActivity => onSwitchActivity(p)
@@ -543,6 +544,20 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) => t.robot.info.lightColor = p.readInt()
       case _ => // Invalid packet.
     }
+
+  def onRobotNameChange(p: PacketParser) = {
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => {
+        val len = p.readShort()
+        val name = new Array[Char](len)
+        for (x <- 0 until len) {
+          name(x) = p.readChar()
+        }
+        t.robot.setName(name.mkString)
+      }
+      case _ => // Invalid packet.
+    }
+  }
 
   def onRobotMove(p: PacketParser) = {
     val dimension = p.readInt()
