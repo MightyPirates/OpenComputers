@@ -4,11 +4,14 @@ import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.prefab.ItemStackArrayValue
 import li.cil.oc.server.component.result
-import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.{BlockPosition, DatabaseAccess, InventoryUtils}
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
+import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.oredict.OreDictionary
@@ -73,6 +76,36 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => result(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
+  }
+  else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number):userdata -- Get a description of all stacks in the inventory on the specified side of the device.""")
+  def getAllStacks(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+    val facing = checkSideForAction(args, 0)
+    withInventory(facing, inventory => {
+        val stacks = new Array[ItemStack](inventory.getSizeInventory)
+        for(i <- 0 until inventory.getSizeInventory){
+          stacks(i) = inventory.getStackInSlot(i)
+        }
+        result(new ItemStackArrayValue(stacks))
+      })
+  }
+  else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number):string -- Get the the name of the inventory on the specified side of the device.""")
+  def getInventoryName(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+    val facing = checkSideForAction(args, 0)
+    def blockAt(position: BlockPosition): Option[Block] = position.world match {
+      case Some(world) if world.blockExists(position) => world.getBlock(position) match {
+        case block: Block => Some(block)
+        case _ => None
+      }
+      case _ => None
+    }
+    withInventory(facing, inventory => blockAt(position.offset(facing)) match {
+      case Some(block) => result(block.getUnlocalizedName)
+      case _ => result(Unit, "Unknown")
+    })
   }
   else result(Unit, "not enabled in config")
 
