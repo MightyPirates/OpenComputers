@@ -47,9 +47,8 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
   private object CraftingInventory extends inventory.InventoryCrafting(new inventory.Container {
     override def canInteractWith(player: EntityPlayer) = true
   }, 3, 3) {
-    var amountPossible = 0
     def craft(wantedCount: Int): Seq[_] = {
-      var player = host.player
+      val player = host.player
       copyItemsFromHost(player.inventory)
       var countCrafted = 0
       val initialCraft = CraftingManager.findMatchingRecipe(CraftingInventory, host.world)
@@ -67,14 +66,14 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
           if (!craftingSlot.getHasStack)
             return false
 
-          val stack = craftingSlot.getStack
+          val stack = craftingSlot.decrStackSize(1)
           countCrafted += stack.getCount max 1
+          copyItemsToHost(player.inventory)
           val taken = craftingSlot.onTake(player, stack)
           if (taken.getCount > 0) {
-            copyItemsToHost(player.inventory)
             InventoryUtils.addToPlayerInventory(taken, player)
-            copyItemsFromHost(player.inventory)
           }
+          copyItemsFromHost(player.inventory)
           true
         }
         while (countCrafted < wantedCount && tryCraft()) {
@@ -85,13 +84,9 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
     }
 
     def copyItemsFromHost(inventory: IInventory) {
-      amountPossible = Int.MaxValue
       for (slot <- 0 until getSizeInventory) {
         val stack = inventory.getStackInSlot(toParentSlot(slot))
         setInventorySlotContents(slot, stack)
-        if (!stack.isEmpty) {
-          amountPossible = math.min(amountPossible, stack.getCount)
-        }
       }
     }
 

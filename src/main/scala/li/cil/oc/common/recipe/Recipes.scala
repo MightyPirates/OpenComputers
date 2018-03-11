@@ -243,7 +243,7 @@ object Recipes {
         mcu.createItemStack(1), eeprom.createItemStack(1)))
 
       // Drone recrafting.
-      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedFuzzyShapelessRecipe(
         drone.createItemStack(1),
         drone.createItemStack(1), eeprom.createItemStack(1)))
 
@@ -253,7 +253,7 @@ object Recipes {
         eeprom.createItemStack(1), eeprom.createItemStack(1)))
 
       // Robot recrafting.
-      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
+      Recipes.addRecipe(new ExtendedFuzzyShapelessRecipe(
         robot.createItemStack(1),
         robot.createItemStack(1), eeprom.createItemStack(1)))
 

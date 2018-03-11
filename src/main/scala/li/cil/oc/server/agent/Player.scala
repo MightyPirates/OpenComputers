@@ -105,9 +105,7 @@ object Player {
     for (i <- 0 until size) {
       setCopyOrNull(player.inventory.mainInventory, agent.mainInventory, i)
     }
-    // no reason to sync to container, container already maps to agent inventory
-    // which we just copied from
-    // player.inventoryContainer.detectAndSendChanges()
+    player.inventoryContainer.detectAndSendChanges()
   }
 
   def detectInventoryPlayerChanges(player: Player): Unit = {
