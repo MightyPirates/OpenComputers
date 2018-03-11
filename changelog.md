@@ -1,43 +1,55 @@
 ## New Features/Support
-* **Changed: Diamond Chip recipe**
-  - You now require cutting wire to cut the diamond.
-* Added: ExtraCells and Mekanism integration (DrummerMC) [1.10.2]
-* Added: ComputerCraft support is back [1.12.2]
-* Fixed: Accessing disk drives and other containers in Tablets [1.11.2]
-* Fixed: Putting items into Database Upgrades [1.11.2] 
-* Fixed: IC2-Classic mod incompatibility 
-* Added: Allow getting yaw of player through tablet component (ChristoCoder)
-* Fixed: Microcontroller interactions with EnderIO item conduits
-* Added: Maximum packet parts to device info of modems (Linked and Network Cards)
-* Fixed: Drones now properly work with chunkloader upgrades (TheCodex6824)
-* Fixed: Tablets not turning off their screen properly (AmandaCameron)
-* Fixed: Motion Sensor line of sight
-* Misc: Updated various translations
-  - Russian (S0ZDATEL, Fingercomp, makkarpov)
-  - Traditional Chinese (mymagadsl)
-  - German (Nex4rius)
+* Added: Tier 1 Wireless Network Card (TheCodex6824)
+  - Can only have one open port at a time
+  - Has a signal strength of 16 blocks
+  - The already existing wireless network card is now the Tier 2 card, has not been changed in any other way.
+* **Added: Sheep Power** (and ocelot power)
+  - **Carpeted Capacitors** exist now. They work and connect just like normal capacitors and form blocks with them.
+  - Carpeted Capacitors generate power when sheep or ocelots walk on them.
+  - Power is generated when at least 2 of a type of animal are present. A single sheep and a single ocelot generate no power.
+  - Ocelots are notorious for their tendency to summon electrostatic fields from the feline dimension. They generate more power than sheep do.
+  - Yes, this means you can now use OC without any energy-producing mod again without having to change the config. 
+  - Insert interesting reference mentioning electric sheep here
+* Added: Creative Component Bus (Xyxen)
+  - Allows servers to support up to 1024 components
+* **Changed: Lua 5.3 is now the default architecture for newly crafted CPUs**
+  - CPUs that were crafted prior to this update will continue running whichever architecture they were set to, or Lua 5.2
+* Added: You can now change the name of a robot using another computer.
+  - Added `setName` and `getName` to robots.
+  - Computers connected to the robot can access the robot as a component to call these functions.
+  - The Robot must be shut down for this to work
+* Fixed: Certain characters and glyph width in screen rendering
+* Fixed: Blocks with inventories failing to save under certain circumstances
+* Fixed: Drones with chunkloader upgrades not always properly loading chunks (TheCodex6824)
+* Fixed: AppliedEnergistics 2 integration
+  - Certain filters for `getItemsInNetwork()` not working
+  - `getCpus()` not returning the correct number
+  - `exportIntoSlot()` not working
+  - Added `isCraftable` to gathered item data
+* Fixed: `computer.addUser` not erroring properly
+* Fixed: Made cable collision box closer to cable shape (SquidDev)
+* Fixed: Crafting Upgrade not always crafting what it should be crafting
+* Fixed: Crafting Upgrade making items uncraftable
+* Fixed: Motion Sensor still not working properly
+* Fixed: Robots interacting with items that directly modify their inventory (like IC2 fluid cells)
+* Fixed: Potential memory leak in networking code
+* Fixed: `getMetadata` on the Debug Card on Minecraft 1.10 and above (BrisingrAerowing)
+* Added: `getBlockState` for the Debug Card  on Minecraft 1.10 and above (BrisingrAerowing)
+* Fixed: Crafting a robot or drone with an EEPROM not working on Minecraft 1.10 and above
+* Fixed: `getAllStacks()` on the Inventory Controller Upgrade and Transposer has been backported to Minecraft 1.7.10.
+
+* Misc: Updated French translation (Naheulf)
 
 ## OpenOS fixes/improvements
-* Fixed: Issues with booting OpenOS on very slow servers
-* Added: Allow custom error objects to print to stderr
-* Added: Allow mount points to use existing directories
-* Added: Bind mounts to mount a directory as another directory
-* Fixed: Allow .shrc to use tty stdin
-* **Added: Lua REPL input is now parsed with an implicit `return`** (SquidDev)
-  - Adding a `=` in front of the code to explicitly add it still works.
-* Changed: Shell history no longer adds items if they are duplicates (SquidDev)
-* Fixed: CTCP messages in IRC client (Michiyo, skyem123)
-* Fixed: Reverse lookup of keys in Keyboard API
-* Fixed: event.cancel and event.ignore
-* Fixed: Protect lua shell from serialization OOM failure
-* Fixed: Too long without yielding error in /bin/tree (LeshaInc)
-* Misc: Improvements to the vt100 library
-* Misc: Various minor improvements to reduce memory usage
+* Fixed: install.lua now should work more like one would expect
+* Changed: uuid.lua is now generating valid RFC4122 version 4 UUIDs (jobe1986)
+* Fixed: Various fixes to vt100 support
+* Fixed: Memory leak in process loading
+* Fixed: Made modifier keypresses more specific in /bin/edit
 
 ## List of contributors
 payonel, Vexatos,  
-S0ZDATEL, Fingercomp, makkarpov,  
-mymagadsl, Nex4rius, ChristoCoder,  
-DrummerMC, LeshaInc, SquidDev, Michiyo,  
-josephcsible, skyem123, TheCodex6824,  
-AmandaCameron, Pwootage
+Xyxen, TheCodex6824, SquidDev,  
+BrisingrAerowing, jobe1986,  
+Naheulf, SDPhantom,  
+Zerotiger, anar4732
