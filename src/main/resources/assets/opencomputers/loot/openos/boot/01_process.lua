@@ -1,4 +1,5 @@
 local process = require("process")
+local fs = require("filesystem")
 
 --Initialize coroutine library--
 local _coroutine = coroutine -- real coroutine backend
@@ -62,8 +63,20 @@ process.list[init_thread] = {
   data =
   {
     vars={},
+    handles={},
     io={}, --init will populate this
     coroutine_handler = _coroutine
   },
   instances = setmetatable({}, {__mode="v"})
 }
+
+-- intercept fs open
+local fs_open = fs.open 
+fs.open = function(...)
+  local fs_open_result = table.pack(fs_open(...))
+  if fs_open_result[1] then
+    process.closeOnExit(fs_open_result[1])
+  end
+  return table.unpack(fs_open_result, 1, fs_open_result.n)
+end
+

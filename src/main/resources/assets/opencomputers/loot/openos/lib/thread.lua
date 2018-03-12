@@ -60,22 +60,6 @@ function thread.waitForAll(threads, timeout)
 end
 
 local box_thread = {}
-local box_thread_list = {close = thread.waitForAll}
-
-local function get_process_threads(proc, bCreate)
-  local handles = proc.data.handles
-  for _,next_handle in ipairs(handles) do
-    local handle_mt = getmetatable(next_handle)
-    if handle_mt and handle_mt.__index == box_thread_list then
-      return next_handle
-    end
-  end
-  if bCreate then
-    local btm = setmetatable({}, {__index = box_thread_list})
-    table.insert(handles, btm)
-    return btm
-  end
-end
 
 function box_thread:resume()
   local mt = getmetatable(self)
@@ -120,31 +104,25 @@ function box_thread:detach()
 end
 
 function box_thread:attach(parent)
-  checkArg(1, parent, "thread", "number", "nil")
-  local mt = assert(getmetatable(self), "thread panic: no metadata")
   local proc = process.info(parent)
+  local mt = assert(getmetatable(self), "thread panic: no metadata")
   if not proc then return nil, "thread failed to attach, process not found" end
   if mt.attached == proc then return self end -- already attached
 
+  -- remove from old parent
+  local waiting_handler
   if mt.attached then
-    local prev_threads = assert(get_process_threads(mt.attached), "thread panic: no thread handle")
-    for index,t_in_list in ipairs(prev_threads) do
-      if t_in_list == self then
-        table.remove(prev_threads, index)
-        break
-      end
-    end
+    -- registration happens on the attached proc, unregister before reparenting
+    waiting_handler = mt.unregister()
+    mt.attached.data.handles[self] = nil
   end
 
-  -- registration happens on the attached proc, unregister before reparenting
-  local waiting_handler = mt.unregister()
+  -- fix close
+  self.close = self.join
 
   -- attach to parent or the current process
   mt.attached = proc
-
-  -- this process may not have a box_thread list
-  local threads = get_process_threads(proc, true)
-  table.insert(threads, self)
+  process.closeOnExit(self, proc)
 
   -- register on the new parent
   if waiting_handler then -- event-waiting
@@ -159,9 +137,9 @@ function thread.current()
   local thread_root
   while proc do
     if thread_root then
-      for _,bt in ipairs(get_process_threads(proc) or {}) do
-        if bt.pco.root == thread_root then
-          return bt
+      for handle in pairs(proc.data.handles) do
+        if handle.pco and handle.pco.root == thread_root then
+          return handle
         end
       end
     else
@@ -174,9 +152,8 @@ end
 function thread.create(fp, ...)
   checkArg(1, fp, "function")
 
-  local t = {}
   local mt = {__status="suspended",__index=box_thread}
-  setmetatable(t, mt)
+  local t = setmetatable({}, mt)
   t.pco = pipe.createCoroutineStack(function(...)
     mt.__status = "running"
     local fp_co = t.pco.create(fp)
@@ -246,7 +223,7 @@ function thread.create(fp, ...)
     mt.id = nil
     mt.reg = nil
     -- before just removing a handler, make sure it is still ours
-    if id and mt.attached and mt.attached.data.handlers[id] == reg then
+    if id and mt.attached.data.handlers[id] == reg then
       mt.attached.data.handlers[id] = nil
       return reg
     end
@@ -285,18 +262,12 @@ function thread.create(fp, ...)
   end
 
   function mt.close()
-    if t:status() == "dead" then
-      return
-    end
-    local threads = get_process_threads(mt.attached)
-    for index,t_in_list in ipairs(threads) do
-      if t_in_list == t then
-        table.remove(threads, index)
-        break
-      end
-    end
+    local old_status = t:status()
     mt.__status = "dead"
-    event.push("thread_exit")
+    mt.attached.data.handles[t] = nil
+    if old_status ~= "dead" then
+      event.push("thread_exit")
+    end
   end
 
   t:attach() -- the current process
@@ -321,8 +292,6 @@ do
     end
     assert(init_thread, "thread library panic: no init thread")
     handlers_mt.threaded = true
-    -- handles might be optimized out for memory
-    root_data.handles = root_data.handles or {}
     -- if we don't separate root handlers from thread handlers we see double dispatch
     -- because the thread calls dispatch on pull as well
     root_data.handlers = {} -- root handlers
