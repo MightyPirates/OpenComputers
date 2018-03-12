@@ -17,7 +17,11 @@ import scala.collection.mutable
 trait Hub extends traits.Environment with SidedEnvironment {
   override def node: Node = null
 
-  override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
+  override protected def isConnected = plugs.exists(plug =>
+    plug != null &&
+    plug.node != null &&
+    plug.node.address != null &&
+    plug.node.network != null)
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => createPlug(side))
 
@@ -120,7 +124,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     if (isServer) {
       nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
         val plugNbt = new NBTTagCompound()
-        plug.node.save(plugNbt)
+        if (plug.node != null)
+          plug.node.save(plugNbt)
         plugNbt
       }))
       nbt.setNewTagList(Settings.namespace + "queue", queue.map {
