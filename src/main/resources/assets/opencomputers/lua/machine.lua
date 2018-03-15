@@ -938,7 +938,9 @@ sandbox = {
         }
       end
     end,
-    traceback = debug.traceback
+    traceback = debug.traceback,
+    getlocal = function(...) return (debug.getlocal(...)) end,
+    getupvalue = function(...) return (debug.getupvalue(...)) end,
   },
 
   -- Lua 5.3.
