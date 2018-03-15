@@ -16,6 +16,8 @@ import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
+case class RedstoneChangedEventArgs (side: ForgeDirection, oldValue: Int, newValue: Int, color: Int = -1)
+
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = Mods.IDs.RedLogic),
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = Mods.IDs.RedLogic),
@@ -51,7 +53,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
+      onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldInput, newInput))
     }
   }
 
@@ -125,7 +127,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   // ----------------------------------------------------------------------- //
 
-  protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {}
+  protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {}
 
   protected def onRedstoneOutputEnabledChanged() {
     world.notifyBlocksOfNeighborChange(position, block)

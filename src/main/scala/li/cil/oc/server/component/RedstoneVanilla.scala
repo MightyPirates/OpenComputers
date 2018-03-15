@@ -12,7 +12,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.tileentity.traits.RedstoneAware
+import li.cil.oc.common.tileentity.traits.{RedstoneAware, RedstoneChangedEventArgs}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedBlock._
@@ -79,8 +79,8 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
-      case Array(side: ForgeDirection, oldMaxValue: Number, newMaxValue: Number) =>
-        onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
+      case Array(args: RedstoneChangedEventArgs) =>
+        onRedstoneChanged(args)
       case _ =>
     }
   }

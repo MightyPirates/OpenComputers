@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
@@ -51,10 +52,10 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs): Unit = {
+    super.onRedstoneInputChanged(args)
     val oldIsInverted = isInverted
-    isInverted = newMaxValue > 0
+    isInverted = args.newValue > 0
     if (isInverted != oldIsInverted) {
       if (isServer) {
         node.remove()

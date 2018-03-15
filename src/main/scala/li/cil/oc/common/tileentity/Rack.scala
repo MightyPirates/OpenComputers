@@ -20,6 +20,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
@@ -315,11 +316,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // RedstoneAware
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {
+    super.onRedstoneInputChanged(args)
     components.collect {
       case Some(mountable: RackMountable) if mountable.node != null =>
-        mountable.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+        mountable.node.sendToNeighbors("redstone.changed", args)
     }
   }
 

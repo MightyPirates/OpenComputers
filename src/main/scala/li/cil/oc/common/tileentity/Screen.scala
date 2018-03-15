@@ -7,6 +7,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
@@ -333,8 +334,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {
+    super.onRedstoneInputChanged(args)
     val hasRedstoneInput = screens.map(_.maxInput).max > 0
     if (hasRedstoneInput != hadRedstoneInput) {
       hadRedstoneInput = hasRedstoneInput

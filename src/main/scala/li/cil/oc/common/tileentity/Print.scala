@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.item.data.PrintData
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
@@ -42,10 +43,10 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
 
   override def canUpdate = false
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs): Unit = {
+    super.onRedstoneInputChanged(args)
     if (!data.emitRedstone && data.hasActiveState) {
-      state = newMaxValue > 0
+      state = args.newValue > 0
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       world.markBlockForUpdate(x, y, z)
       if (state && data.isButtonMode) {

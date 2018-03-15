@@ -15,9 +15,11 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
@@ -105,7 +107,7 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      onRedstoneChanged("wireless", if (on) 0 else 1, if (on) 1 else 0)
+      onRedstoneChanged(RedstoneChangedEventArgs(ForgeDirection.UNKNOWN, if (on) 0 else 1, if (on) 1 else 0))
     }
   }
 
