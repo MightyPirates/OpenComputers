@@ -939,6 +939,11 @@ sandbox = {
       end
     end,
     traceback = debug.traceback,
+    -- using () to wrap the return of debug methods because in Lua doing this
+    -- causes only the first return value to be selected
+    -- e.g. (1, 2) is only (1), the 2 is not returned
+    -- this is critically important here because the 2nd return value from these
+    -- debug methods is the value itself, which opens a door to exploit the sandbox
     getlocal = function(...) return (debug.getlocal(...)) end,
     getupvalue = function(...) return (debug.getupvalue(...)) end,
   },

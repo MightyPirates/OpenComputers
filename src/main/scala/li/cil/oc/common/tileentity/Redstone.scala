@@ -8,7 +8,6 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
 
 class Redstone extends traits.Environment with traits.BundledRedstoneAware {
   val instance =
