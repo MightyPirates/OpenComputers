@@ -237,6 +237,7 @@ object Items extends ItemAPI {
     data.components = Array(
       safeGetStack(Constants.BlockName.ScreenTier1),
       safeGetStack(Constants.BlockName.Keyboard),
+      safeGetStack(Constants.BlockName.Geolyzer),
       safeGetStack(Constants.ItemName.InventoryUpgrade),
       safeGetStack(Constants.ItemName.InventoryUpgrade),
       safeGetStack(Constants.ItemName.InventoryUpgrade),
@@ -245,6 +246,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.TankUpgrade),
       safeGetStack(Constants.ItemName.TankControllerUpgrade),
       safeGetStack(Constants.ItemName.CraftingUpgrade),
+      safeGetStack(Constants.ItemName.HoverUpgradeTier2),
 
       safeGetStack(Constants.ItemName.GraphicsCardTier3),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),

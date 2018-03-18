@@ -18,6 +18,9 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.common.tileentity.{Robot => EntityRobot, Microcontroller}
+import li.cil.oc.common.entity.{Drone => EntityDrone}
+import li.cil.oc.common.item.TabletWrapper
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
@@ -34,7 +37,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.language.existentials
 
-class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
+class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldControl with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().
@@ -52,8 +55,28 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
+  override protected def checkSideForAction(args: Arguments, n: Int): ForgeDirection = {
+    val side = args.checkSideAny(n)
+    val is_uc = host.isInstanceOf[Microcontroller]
+    host match {
+      case robot: EntityRobot => robot.proxy.toGlobal(side)
+      case drone: EntityDrone => drone.toGlobal(side)
+      case uc: Microcontroller => uc.toLocal(side) // not really sure what it is reversed for microcontrollers
+      case tablet: TabletWrapper => tablet.toGlobal(side)
+      case _ => side
+    }
+  }
+
+  override def position: BlockPosition = host match {
+    case robot: EntityRobot => robot.proxy.position
+    case drone: EntityDrone => BlockPosition(drone.posX, drone.posY, drone.posZ, drone.world)
+    case uc: Microcontroller => uc.position
+    case tablet: TabletWrapper => BlockPosition(tablet.xPosition, tablet.yPosition, tablet.zPosition, tablet.world)
+    case _ => BlockPosition(host)
+  }
+
   private def canSeeSky: Boolean = {
-    val blockPos = BlockPosition(host).offset(ForgeDirection.UP)
+    val blockPos = position.offset(ForgeDirection.UP)
     !host.world.provider.hasNoSky && host.world.canBlockSeeTheSky(blockPos.x, blockPos.y, blockPos.z)
   }
 
