@@ -26,6 +26,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.biome.BiomeGenDesert
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -50,6 +51,25 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
+
+  private def canSeeSky: Boolean = {
+    val blockPos = BlockPosition(host).offset(ForgeDirection.UP)
+    !host.world.provider.hasNoSky && host.world.canBlockSeeTheSky(blockPos.x, blockPos.y, blockPos.z)
+  }
+
+  @Callback(doc = """function():boolean -- Returns whether there is a clear line of sight to the sky directly above.""")
+  def canSeeSky(computer: Context, args: Arguments): Array[AnyRef] = {
+    result(canSeeSky)
+  }
+
+  @Callback(doc = """function():boolean -- Return whether the sun is currently visible directly above.""")
+  def isSunVisible(computer: Context, args: Arguments): Array[AnyRef] = {
+    val blockPos = BlockPosition(host).offset(ForgeDirection.UP)
+    result(
+      host.world.isDaytime &&
+      canSeeSky &&
+      (host.world.getWorldChunkManager.getBiomeGenAt(blockPos.x, blockPos.z).isInstanceOf[BiomeGenDesert] || (!host.world.isRaining && !host.world.isThundering)))
+  }
 
   @Callback(doc = """function(x:number, z:number[, y:number, w:number, d:number, h:number][, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
   def scan(computer: Context, args: Arguments): Array[AnyRef] = {
