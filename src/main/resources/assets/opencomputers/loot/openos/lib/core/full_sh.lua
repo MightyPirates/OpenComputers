@@ -78,7 +78,7 @@ end
 -- redirects as built by buildCommentRedirects
 function sh.internal.openCommandRedirects(redirects)
   local data = process.info().data
-  local ios, handles = data.io, data.handles
+  local ios = data.io
 
   for _,rjob in ipairs(redirects) do
     local from_io, to_io, mode = table.unpack(rjob)
@@ -93,7 +93,6 @@ function sh.internal.openCommandRedirects(redirects)
         io.stderr:write("could not open '" .. to_io .. "': " .. reason .. "\n")
         os.exit(1)
       end
-      table.insert(handles, file)
       ios[from_io] = file
     end
   end

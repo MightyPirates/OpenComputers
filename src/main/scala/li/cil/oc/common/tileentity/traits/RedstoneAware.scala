@@ -9,6 +9,8 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+case class RedstoneChangedEventArgs (side: EnumFacing, oldValue: Int, newValue: Int, color: Int = -1)
+
 trait RedstoneAware extends RotationAware {
   protected[tileentity] val _input: Array[Int] = Array.fill(6)(-1)
 
@@ -39,7 +41,7 @@ trait RedstoneAware extends RotationAware {
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
+      onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldInput, newInput))
     }
   }
 
@@ -117,7 +119,7 @@ trait RedstoneAware extends RotationAware {
 
   // ----------------------------------------------------------------------- //
 
-  protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
+  protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {}
 
   protected def onRedstoneOutputEnabledChanged() {
     if (getWorld != null) {

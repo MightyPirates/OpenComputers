@@ -51,54 +51,64 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     ItemStack.EMPTY
   }
 
-  protected def tryTransferStackInSlot(from: Slot, intoPlayerInventory: Boolean) {
+  // return true if all items have been moved or no more work to do
+  protected def tryMoveAllSlotToSlot(from: Slot, to: Slot): Boolean = {
+    if (to == null)
+      return false // nowhere to move it
+
+    if (from == null ||
+       !from.getHasStack ||
+        from.getStack.isEmpty)
+      return true // all moved because nothing to move
+
+    if (to.inventory == from.inventory)
+      return false // not intended for moving in the same inventory
+
+    // for ghost slots we don't care about stack size
     val fromStack = from.getStack
-    var somethingChanged = false
+    val toStack = if (to.getHasStack) to.getStack else null
+    val toStackSize = if (!toStack.isEmpty) toStack.getCount else 0
 
-    val step = if (intoPlayerInventory) -1 else 1
-    val (begin, end) =
-      if (intoPlayerInventory) (inventorySlots.size - 1, 0)
-      else (0, inventorySlots.size - 1)
+    val maxStackSize = math.min(fromStack.getMaxStackSize, to.getSlotStackLimit)
+    val itemsMoved = math.min(maxStackSize - toStackSize, fromStack.getCount)
 
-    if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.getCount > 0) {
-      val intoSlot = inventorySlots.get(i)
-      if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
-        val intoStack = intoSlot.getStack
-        val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
-        val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
-        val slotHasCapacity = intoStack.getCount < maxStackSize
-        if (itemsAreEqual && slotHasCapacity) {
-          val itemsMoved = math.min(maxStackSize - intoStack.getCount, fromStack.getCount)
-          if (itemsMoved > 0) {
-            intoStack.grow(from.decrStackSize(itemsMoved).getCount)
-            intoSlot.onSlotChanged()
-            somethingChanged = true
-          }
-        }
+    if (toStack != null) {
+      if (toStackSize < maxStackSize &&
+          fromStack.isItemEqual(toStack) &&
+          ItemStack.areItemStackTagsEqual(fromStack, toStack) &&
+          itemsMoved > 0) {
+        toStack.grow(from.decrStackSize(itemsMoved).getCount)
+      } else return false
+    } else if (to.isItemValid(fromStack)) {
+      to.putStack(from.decrStackSize(itemsMoved))
+      if (maxStackSize == 0) {
+        // Special case: we have an inventory with "phantom/ghost stacks", i.e.
+        // zero size stacks, usually used for configuring machinery. In that
+        // case we stop early if whatever we're shift clicking is already in a
+        // slot of the target inventory. This workaround can be problematic if
+        // an inventory has both real and phantom slots, but we don't have
+        // something like that, yet, so hey.
+        return true
       }
-    }
+    } else return false
 
-    for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.getCount > 0) {
-      val intoSlot = inventorySlots.get(i)
-      if (intoSlot.inventory != from.inventory && !intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
-        val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
-        val itemsMoved = math.min(maxStackSize, fromStack.getCount)
-        intoSlot.putStack(from.decrStackSize(itemsMoved))
-        if (maxStackSize == 0) {
-          // Special case: we have an inventory with "phantom/ghost stacks", i.e.
-          // zero size stacks, usually used for configuring machinery. In that
-          // case we stop early if whatever we're shift clicking is already in a
-          // slot of the target inventory. This workaround can be problematic if
-          // an inventory has both real and phantom slots, but we don't have
-          // something like that, yet, so hey.
-          return
-        }
-        somethingChanged = true
-      }
-    }
+    to.onSlotChanged()
+    from.onSlotChanged()
+    false
+  }
 
-    if (somethingChanged) {
-      from.onSlotChanged()
+  protected def fillOrder(backFill: Boolean): Seq[Int] = {
+    (if (backFill) inventorySlots.indices.reverse else inventorySlots.indices).sortBy(i => inventorySlots(i) match {
+      case s: Slot if s.getHasStack => -1
+      case s: ComponentSlot => s.tier
+      case _ => 99
+    })
+  }
+
+  protected def tryTransferStackInSlot(from: Slot, intoPlayerInventory: Boolean) {
+    for (i <- fillOrder(intoPlayerInventory)) {
+      if (inventorySlots.get(i) match { case slot: Slot => tryMoveAllSlotToSlot(from, slot) case _ => false })
+        return
     }
   }
 

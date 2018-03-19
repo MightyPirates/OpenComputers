@@ -32,38 +32,30 @@ trait BundledRedstoneAware extends RedstoneAware {
     super.isOutputEnabled_=(value)
   }
 
+  def bundledInput(side: EnumFacing, color: Int): Int =
+    math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
+
   def bundledInput(side: EnumFacing): Array[Int] =
     (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
 
   def bundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
-    val ownBundledInput = _bundledInput(side.ordinal())
-    val oldMaxValue = ownBundledInput.max
-    var changed = false
-    if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
-      ownBundledInput(color) = newBundledInput(color)
-    }
-    else for (color <- 0 until 16) {
-      changed = changed || ownBundledInput(color) > 0
-      ownBundledInput(color) = 0
-    }
-    if (changed) {
-      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
+    for (color <- 0 until 16) {
+      updateInput(_bundledInput, side, color, if (newBundledInput == null) 0 else newBundledInput(color))
     }
   }
 
-  def bundledInput(side: EnumFacing, color: Int): Int =
-    math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
+  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
 
-  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = {
-    val oldValue = _rednetInput(side.ordinal())(color)
-    if (oldValue != value) {
+  def updateInput(inputs: Array[Array[Int]], side: EnumFacing, color: Int, newValue: Int): Unit = {
+    val oldValue = inputs(side.ordinal())(color)
+    if (oldValue != newValue) {
       if (oldValue != -1) {
-        onRedstoneInputChanged(side, oldValue, value)
+        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, color))
       }
-      _rednetInput(side.ordinal())(color) = value
+      inputs(side.ordinal())(color) = newValue
     }
   }
+
 
   def bundledOutput(side: EnumFacing): Array[Int] = _bundledOutput(toLocal(side).ordinal())
 

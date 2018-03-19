@@ -1,6 +1,7 @@
 local process = require("process")
 local unicode = require("unicode")
 local event = require("event")
+local thread = require("thread")
 local event_mt = getmetatable(event.handlers)
 
 -- WARNING this code does not use official kernel API and is likely to change
@@ -42,33 +43,38 @@ local cols =
     return count == 0 and "-" or tostring(count)
   end},
   {"THREADS", function(_,p)
-    -- threads are handles with mt.close
+    -- threads are handles with mt.close == thread.waitForAll
     local count = 0
-    for _,h in pairs(p.data.handles or {}) do
+    for h in pairs(p.data.handles) do
       local mt = getmetatable(h)
-      if mt and mt.__index and mt.__index.close then
-        count = count + #h
-        break -- there is only one thread handle manager
+      if mt and mt.__status then
+        count = count + 1
       end
     end
     return count == 0 and "-" or tostring(count)
   end},
   {"PARENT", function(_,p)
     for _,process_info in pairs(process.list) do
-      for _,handle in pairs(process_info.data.handles or {}) do
+      for handle in pairs(process_info.data.handles) do
         local mt = getmetatable(handle)
-        if mt and mt.__index and mt.__index.close then
-          for _,ht in ipairs(handle) do
-            local ht_mt = getmetatable(ht)
-            if ht_mt.process == p then
-              return thread_id(nil,process_info)
-            end
+        if mt and mt.__status then
+          if mt.process == p then
+            return thread_id(nil, process_info)
           end
-          break
         end
       end
     end
-    return thread_id(nil,p.parent)
+    return thread_id(nil, p.parent)
+  end},
+  {"HANDLES", function(_, p)
+    local count = 0
+    for stream,closure in pairs(p.data.handles) do
+      cprint(string.format("%s %s", stream, closure))
+      if closure then
+        count = count + 1
+      end
+    end
+    return count == 0 and "-" or tostring(count)
   end},
   {"CMD", function(_,p) return p.command end},
 }

@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.server.component.RedstoneVanilla
@@ -43,11 +44,11 @@ class Redstone extends traits.Environment with traits.BundledRedstoneAware with 
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {
+    super.onRedstoneInputChanged(args)
     if (node != null && node.network != null) {
       node.connect(dummyNode)
-      dummyNode.sendToNeighbors("redstone.changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
+      dummyNode.sendToNeighbors("redstone.changed", args)
     }
   }
 }

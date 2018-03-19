@@ -7,6 +7,7 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.PrintData
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
@@ -145,9 +146,8 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     }
   }
 
-  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    val newState = newMaxValue > 0
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs): Unit = {
+    val newState = args.newValue > 0
     if (!data.emitRedstone && data.hasActiveState && state != newState) {
       toggleState()
     }
