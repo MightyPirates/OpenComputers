@@ -17,7 +17,11 @@ import scala.collection.mutable
 trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   override def node: Node = null
 
-  override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
+  override protected def isConnected = plugs.exists(plug =>
+    plug != null &&
+    plug.node != null &&
+    plug.node.address != null &&
+    plug.node.network != null)
 
   protected val plugs = EnumFacing.values.map(side => createPlug(side))
 
@@ -127,7 +131,8 @@ trait Hub extends traits.Environment with SidedEnvironment with Tickable {
     if (isServer) {
       nbt.setNewTagList(PlugsTag, plugs.map(plug => {
         val plugNbt = new NBTTagCompound()
-        plug.node.save(plugNbt)
+        if (plug.node != null)
+          plug.node.save(plugNbt)
         plugNbt
       }))
       nbt.setNewTagList(QueueTag, queue.map {

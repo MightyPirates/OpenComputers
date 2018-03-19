@@ -134,16 +134,16 @@ function pipe.buildPipeChain(progs)
     -- B needs to be a stack in case any thread in B calls read
     pipe.createCoroutineStack(thread)
     chain[i] = thread
-    local data = process.info(thread).data
-    local pio = data.io
+    local proc = process.info(thread)
+    local pio = proc.data.io
 
     local piped_stream
     if i < #progs then
       local handle = setmetatable({redirect = {rawget(pio, 1)},buffer = ""}, {__index = pipe_stream})
+      process.closeOnExit(handle, proc)
       piped_stream = buffer.new("rw", handle)
       piped_stream:setvbuf("no", 1024)
       pio[1] = piped_stream
-      table.insert(data.handles, piped_stream)
     end
 
     if prev_piped_stream then
@@ -194,7 +194,7 @@ function pipe.popen(prog, mode, env)
 
   local chain = {}
   -- to simplify the code - shell.execute is run within a function to pass (prog, env)
-  -- if cmd_proc where to come second (mode=="w") then the pipe_proc would have to pass
+  -- if cmd_proc were to come second (mode=="w") then the pipe_proc would have to pass
   -- the starting args. which is possible, just more complicated
   local cmd_proc = process.load(function() return shell.execute(prog, env) end, nil, nil, prog)
 

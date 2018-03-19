@@ -17,21 +17,32 @@ function buffer.new(mode, stream)
     bufferWrite = "",
     bufferSize = math.max(512, math.min(8 * 1024, computer.freeMemory() / 8)),
     bufferMode = "full",
-    readTimeout = math.huge
+    readTimeout = math.huge,
   }
   mode = mode or "r"
   for i = 1, unicode.len(mode) do
     result.mode[unicode.sub(mode, i, i)] = true
   end
+  -- when stream closes, result should close first
+  -- when result closes, stream should close after
+  -- when stream closes, it is removed from the proc
+  stream.close = setmetatable({close = stream.close,parent = result},{__call = buffer.close})
   return setmetatable(result, metatable)
 end
 
 function buffer:close()
-  if self.mode.w or self.mode.a then
-    self:flush()
+  -- self is either the buffer, or the stream.close callable
+  local meta = getmetatable(self)
+  if meta == metatable.__metatable then
+    return self.stream:close()
   end
-  self.closed = true
-  return self.stream:close()
+  local parent = self.parent
+
+  if parent.mode.w or parent.mode.a then
+    parent:flush()
+  end
+  parent.closed = true
+  return self.close(parent.stream)
 end
 
 function buffer:flush()
