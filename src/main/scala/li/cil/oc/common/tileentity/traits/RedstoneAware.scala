@@ -19,6 +19,8 @@ import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
+case class RedstoneChangedEventArgs (side: EnumFacing, oldValue: Int, newValue: Int, color: Int = -1)
+
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = Mods.IDs.RedLogic),
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = Mods.IDs.RedLogic),
@@ -54,7 +56,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
+      onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldInput, newInput))
     }
   }
 
@@ -132,7 +134,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
 
   // ----------------------------------------------------------------------- //
 
-  protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
+  protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs) {}
 
   protected def onRedstoneOutputEnabledChanged() {
     if (world != null) {

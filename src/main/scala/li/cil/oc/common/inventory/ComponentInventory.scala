@@ -130,7 +130,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   override def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot, stack)) {
+  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (slot >= 0 && slot < components.length && isComponentSlot(slot, stack)) {
     Option(Driver.driverFor(stack)).foreach(driver =>
       Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
@@ -154,7 +154,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       })
   }
 
-  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+  override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = if (slot >= 0 && slot < components.length) {
     // Uninstall component previously in that slot.
     components(slot) match {
       case Some(component) => this.synchronized {

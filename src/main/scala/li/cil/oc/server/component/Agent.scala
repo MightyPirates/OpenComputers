@@ -152,6 +152,17 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       reason = reason.orElse(Option(what))
     }
 
+    // all side attempts failed - but there could be a partial block that is hard to "see"
+    val (hasBlock, _) = blockContent(facing)
+    if (hasBlock) {
+      val blockPos = position.offset(facing)
+      val player = rotatedPlayer(facing, facing)
+      player.setSneaking(sneaky)
+      val (ok, why) = click(player, blockPos.toBlockPos, facing)
+      player.setSneaking(false)
+      return result(ok, why)
+    }
+
     result(false, reason.orNull)
   }
 

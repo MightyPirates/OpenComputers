@@ -125,7 +125,11 @@ function process.internal.close(thread, result)
   checkArg(1,thread,"thread")
   local pdata = process.info(thread).data
   pdata.result = result
-  for _,v in pairs(pdata.handles) do
+  local handles = {}
+  for s,_ in pairs(pdata.handles) do
+    table.insert(handles, s)
+  end
+  for _,v in ipairs(handles) do
     pcall(v.close, v)
   end
   process.list[thread] = nil
@@ -144,6 +148,20 @@ function process.internal.continue(co, ...)
     end
   end
   return table.unpack(result, 2, result.n)
+end
+
+function process.closeOnExit(stream, proc)
+  local handles = (proc or process.info()).data.handles
+  if not handles[stream] then
+    handles[stream] = stream.close
+    stream.close = function(...)
+      local close = handles[stream]
+      handles[stream] = nil
+      if close then
+        return close(...)
+      end
+    end
+  end
 end
 
 function process.running(level) -- kept for backwards compat, prefer process.info

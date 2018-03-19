@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.init.SoundEvents
 import net.minecraft.nbt.NBTTagCompound
@@ -52,10 +53,10 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+  override protected def onRedstoneInputChanged(args: RedstoneChangedEventArgs): Unit = {
+    super.onRedstoneInputChanged(args)
     val oldIsInverted = isInverted
-    isInverted = newMaxValue > 0
+    isInverted = args.newValue > 0
     if (isInverted != oldIsInverted) {
       if (isServer) {
         node.remove()

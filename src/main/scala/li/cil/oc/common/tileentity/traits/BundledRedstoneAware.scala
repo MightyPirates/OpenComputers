@@ -53,34 +53,25 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
     (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
 
   def bundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
-    val ownBundledInput = _bundledInput(side.ordinal())
-    val oldMaxValue = ownBundledInput.max
-    var changed = false
-    if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
-      ownBundledInput(color) = newBundledInput(color)
+    for (color <- 0 until 16) {
+      updateInput(_bundledInput, side, color, if (newBundledInput == null) 0 else newBundledInput(color))
     }
-    else for (color <- 0 until 16) {
-      changed = changed || ownBundledInput(color) > 0
-      ownBundledInput(color) = 0
-    }
-    if (changed) {
-      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
+  }
+
+  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
+
+  def updateInput(inputs: Array[Array[Int]], side: EnumFacing, color: Int, newValue: Int): Unit = {
+    val oldValue = inputs(side.ordinal())(color)
+    if (oldValue != newValue) {
+      if (oldValue != -1) {
+        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, color))
+      }
+      inputs(side.ordinal())(color) = newValue
     }
   }
 
   def bundledInput(side: EnumFacing, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
-
-  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = {
-    val oldValue = _rednetInput(side.ordinal())(color)
-    if (oldValue != value) {
-      if (oldValue != -1) {
-        onRedstoneInputChanged(side, oldValue, value)
-      }
-      _rednetInput(side.ordinal())(color) = value
-    }
-  }
 
   def bundledOutput(side: EnumFacing) = _bundledOutput(toLocal(side).ordinal())
 
