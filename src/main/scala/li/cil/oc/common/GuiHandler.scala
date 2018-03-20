@@ -87,7 +87,7 @@ abstract class GuiHandler extends IGuiHandler {
       case Some(tablet: item.Tablet) if id == GuiType.Tablet.id => mainItem
       case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id => mainItem
       case Some(terminal: item.Terminal) if id == GuiType.Terminal.id => mainItem
-      case _ => player.inventory.offHandInventory(0)
+      case _ => player.inventory.offHandInventory.get(0)
     }
   }
 }

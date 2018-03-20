@@ -56,7 +56,7 @@ class DiskDrive extends SimpleBlock with traits.GUI {
           if (hand == EnumHand.MAIN_HAND)
             player.inventory.decrStackSize(player.inventory.currentItem, 1)
           else
-            player.inventory.offHandInventory(0).stackSize -= 1
+            player.inventory.offHandInventory.get(0).shrink(1)
         }
         isDiskInDrive || isHoldingDisk
       case _ => false
