@@ -493,7 +493,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   private def callUsingItemInSlot[T](inventory: IInventory, slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
-    val oldStack = if (!stack.isEmpty) stack.copy() else null
+    val oldStack = stack.copy()
     this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
     this.offHand = (inventory, slot)
     try {
