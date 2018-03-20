@@ -7,6 +7,7 @@ import li.cil.oc.server.component.Server
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.network.IGuiHandler
 
@@ -51,29 +52,44 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Drone(player.inventory, drone)
           case _ => null
         }
-      case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItemMainhand) match {
+      case Some(GuiType.Category.Item) => {
+        val itemStackInUse = getItemStackInUse(id, player)
+        Delegator.subItem(itemStackInUse) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItemMainhand
+              override def container = itemStackInUse
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new container.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItemMainhand
+              override def container = itemStackInUse
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItemMainhand
+            val stack = itemStackInUse
             if (stack.hasTagCompound)
               new container.Tablet(player.inventory, item.Tablet.get(stack, player))
             else
               null
           case _ => null
         }
+      }
       case _ => null
+    }
+  }
+
+  def getItemStackInUse(id: Int, player: EntityPlayer): ItemStack = {
+    val mainItem: ItemStack = player.getHeldItemMainhand
+    Delegator.subItem(mainItem) match {
+      case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id => mainItem
+      case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id => mainItem
+      case Some(server: item.Server) if id == GuiType.Server.id => mainItem
+      case Some(tablet: item.Tablet) if id == GuiType.Tablet.id => mainItem
+      case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id => mainItem
+      case Some(terminal: item.Terminal) if id == GuiType.Terminal.id => mainItem
+      case _ => player.inventory.offHandInventory(0)
     }
   }
 }

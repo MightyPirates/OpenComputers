@@ -61,7 +61,11 @@ class DiskDrive extends SimpleBlock with traits.GUI {
         }
         if (isHoldingDisk) {
           // Insert the disk.
-          drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
+          drive.setInventorySlotContents(0, heldItem.copy().splitStack(1))
+          if (hand == EnumHand.MAIN_HAND)
+            player.inventory.decrStackSize(player.inventory.currentItem, 1)
+          else
+            player.inventory.offHandInventory(0).stackSize -= 1
         }
         isDiskInDrive || isHoldingDisk
       case _ => false

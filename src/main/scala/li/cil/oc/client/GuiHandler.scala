@@ -19,6 +19,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
+import net.minecraft.item.ItemStack
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
@@ -68,24 +69,25 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Drone(player.inventory, drone)
           case _ => null
         }
-      case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getHeldItemMainhand) match {
+      case Some(GuiType.Category.Item) => {
+        val itemStackInUse = getItemStackInUse(id, player)
+        Delegator.subItem(itemStackInUse) match {
           case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id =>
-            new gui.Drive(player.inventory, () => player.getHeldItemMainhand)
+            new gui.Drive(player.inventory, () => itemStackInUse)
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
-              override def container = player.getHeldItemMainhand
+              override def container = itemStackInUse
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new gui.Server(player.inventory, new ServerInventory {
-              override def container = player.getHeldItemMainhand
+              override def container = itemStackInUse
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
-            val stack = player.getHeldItemMainhand
+            val stack = itemStackInUse
             if (stack.hasTagCompound) {
               item.Tablet.get(stack, player).components.collect {
                 case Some(buffer: api.internal.TextBuffer) => buffer
@@ -96,13 +98,13 @@ object GuiHandler extends CommonGuiHandler {
             }
             else null
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getHeldItemMainhand
+            val stack = itemStackInUse
             if (stack.hasTagCompound) {
               new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
             }
             else null
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
-            val stack = player.getHeldItemMainhand
+            val stack = itemStackInUse
             if (stack.hasTagCompound) {
               val address = stack.getTagCompound.getString(Settings.namespace + "server")
               val key = stack.getTagCompound.getString(Settings.namespace + "key")
@@ -135,6 +137,7 @@ object GuiHandler extends CommonGuiHandler {
             null
           case _ => null
         }
+      }
       case Some(GuiType.Category.None) =>
         if (id == GuiType.Manual.id) new gui.Manual()
         else null
