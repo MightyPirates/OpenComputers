@@ -53,6 +53,11 @@ function tty.key_down_handler(handler, cursor, char, code)
     else
       c = value
     end
+  elseif ctrl and code == keys.u then
+    cursor:clear()
+    cursor:move(-math.huge)
+    handler.index = 1
+    return nil, ""
   elseif code == keys.right  then cursor:move(ctrl and ((data:find("%s[^%s]", cursor.index + 1) or math.huge) - cursor.index) or 1)
   elseif code == keys.home   then cursor:move(-math.huge)
   elseif code == keys["end"] then cursor:move( math.huge)
