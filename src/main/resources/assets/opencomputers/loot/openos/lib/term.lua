@@ -231,7 +231,7 @@ function term.pull(...)
     args.n = args.n - 1
   end
   local cursor = core_cursor.new(nil, tty.window, tty.stream) -- cursors can blink (base arg is optional)
-  while cursor:echo() and timeout >= computer.uptime() do
+  while timeout >= computer.uptime() and cursor:echo() do
     local s = table.pack(event.pull(.5, table.unpack(args, 1, args.n)))
     cursor:echo(not s[1])
     if s.n > 1 then return table.unpack(s, 1, s.n) end
