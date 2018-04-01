@@ -79,23 +79,22 @@ rules[{"[78]"}] = save_attributes
 -- u               restore cursor position
 rules[{"%[", "[su]"}] = save_attributes
 
--- returns 2 values
--- value: parsed text
--- ansi_print: failed to parse
+-- returns: anything that failed to parse
 function vt100.parse(window)
-  local ansi = window.ansi_escape
-  window.ansi_escape = nil
+  if window.output_buffer:sub(1, 1) ~= "\27" then
+    return ""
+  end
   local any_valid
 
   for rule,action in pairs(rules) do
-    local last_index = 0
+    local last_index = 1 -- start at 1 to skip the \27
     local captures = {}
     for _,pattern in ipairs(rule) do
-      if last_index >= #ansi then
+      if last_index >= #window.output_buffer then
         any_valid = true
         break
       end
-      local si, ei, capture = ansi:find("^(" .. pattern .. ")", last_index + 1)
+      local si, ei, capture = window.output_buffer:find("^(" .. pattern .. ")", last_index + 1)
       if not si then
         break
       end
@@ -105,7 +104,8 @@ function vt100.parse(window)
 
     if #captures == #rule then
       action(window, table.unpack(captures))
-      return ansi:sub(last_index + 1), ""
+      window.output_buffer = window.output_buffer:sub(last_index + 1)
+      return ""
     end
   end
 
@@ -113,18 +113,16 @@ function vt100.parse(window)
     -- maybe it did satisfy a rule, load more rules
     full = true
     dofile("/lib/core/full_vt.lua")
-    window.ansi_escape = ansi
     return vt100.parse(window)
   end
 
   if not any_valid then
     -- malformed
-    return ansi, "\27"
+    window.output_buffer = window.output_buffer:sub(2)
+    return "\27"
   end
 
   -- else, still consuming
-  window.ansi_escape = ansi
-  return "", ""
 end
 
 return vt100
