@@ -429,6 +429,13 @@ class Settings(val config: Config) {
   // integration.buildcraft
   val costProgrammingTable = config.getDouble("integration.buildcraft.programmingTableCost") max 0
 
+  // integration.enderstorage
+  import Settings.{EnderStorageFrequencyPolicy => ESFP}
+  val enderStorageFrequencyPolicy = config.getInt("integration.enderstorage.allowModifyingPrivateFrequencies") match {
+    case valid if ESFP.values.exists(_.id == valid) => ESFP(valid)
+    case _ => ESFP.PublicChestsOnly
+  }
+
   // ----------------------------------------------------------------------- //
   // debug
   val logLuaCallbackErrors = config.getBoolean("debug.logCallbackErrors")
@@ -603,6 +610,12 @@ object Settings {
     }
 
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
+  }
+
+  object EnderStorageFrequencyPolicy extends Enumeration {
+    val PublicChestsOnly = Value(0)
+    val DeviceOwnerIsSingleOwner = Value(1)
+    val Always = Value(2)
   }
 
   sealed trait DebugCardAccess {
