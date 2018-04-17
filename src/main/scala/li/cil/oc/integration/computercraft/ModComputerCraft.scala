@@ -9,6 +9,7 @@ object ModComputerCraft extends ModProxy {
 
   override def initialize() {
     PeripheralProvider.init()
+    BundledRedstoneProvider.init()
 
     Driver.add(DriverComputerCraftMedia)
     Driver.add(new DriverPeripheral())
