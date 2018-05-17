@@ -23,7 +23,7 @@
 
 ### 扩展
 * [适配器](adapter.md)
-* [扫描器](geolyzer.md)
+* [地质分析仪](geolyzer.md)
 * [运动传感器](motionSensor.md)
 * [红石IO接口](redstone.md)
 * [转置器（注：直译）](transposer.md)
