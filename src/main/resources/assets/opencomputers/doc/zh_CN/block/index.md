@@ -26,7 +26,7 @@
 * [地质分析仪](geolyzer.md)
 * [运动传感器](motionSensor.md)
 * [红石IO接口](redstone.md)
-* [转置器（注：直译）](transposer.md)
+* [转置器(注：直译)](transposer.md)
 * [路径点](waypoint.md)
 
 ## 组装 / 打印

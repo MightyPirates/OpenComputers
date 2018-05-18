@@ -2,7 +2,7 @@
 
 ![All right, let's do this.](oredict:oc:charger)
 
-充电器能为移动的设备 [机器人](robot.md), [无人机](../item/drone.md)和[平板电脑](../item/tablet.md)充能. 
+充电器能为移动设备 [机器人](robot.md), [无人机](../item/drone.md)和[平板电脑](../item/tablet.md)充能. 
 
 只有当通入红石信号时充电器才会工作！只有当通入红石信号时充电器才会工作！只有当通入红石信号时充电器才会工作！重要的事情要说三遍！！！！！！
 

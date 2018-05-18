@@ -2,10 +2,6 @@
 
 ![So... blank.](oredict:oc:chameliumBlock)
 
-几篇[印刷电路板](../item/chamelium.md) 可以被变成特殊装饰用途的有色方块. 
+几片[染色材料](../item/chamelium.md)可以合成特殊装饰用途的单色方块. 染色方块可以用Minecraft原版的16种染料任意染色.
 
-可以被原版任意染色
-
-A few pieces of [chamelium](../item/chamelium.md) can be combined to provide a monochrome block for decorative purposes. Chamelium blocks can also be dyed with any of the 16 Minecraft colors. 
-
-Using the Chamelium block as a texture for [3D prints](print.md) provides a clean white surface for applying tints. 
+从染色方块上为[3D打印制品](print.md)提取的纹理是纯白色的平面, 可用于进一步染色.

@@ -2,7 +2,7 @@
 
 ![Building bridges.](oredict:oc:switch)
 
-*本方块过期了，请换用中继器
+*本方块过期了, 请换用中继器
 
 The switch can be used to allow different subnetworks to send network messages to each other, without exposing components to [computers](../general/computer.md) in other networks. Keeping components local is usually a good idea, to avoid [computers](../general/computer.md) using the wrong [screen](screen1.md) or to avoid component overflows to happen (causing [computers](../general/computer.md) to crash and refuse to boot up).
 

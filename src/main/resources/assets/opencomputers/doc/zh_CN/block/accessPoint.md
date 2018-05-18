@@ -2,7 +2,7 @@
 
 ![AAA](oredict:oc:accessPoint)
 
-*本方块是过时的，将会在未来版本被移除 请换用 [中继器](relay.md) 避免丢失
+*本方块已过时, 将会在未来版本被移除 请换用 [中继器](relay.md) 避免丢失
 
 The access point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see [components](../general/computer.md) in other networks, while still allowing to send network messages to the machines in other networks.
 

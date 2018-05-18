@@ -1,23 +1,13 @@
-# 组装器
+# 组装机
 
 ![Harder, better, faster, stronger.](oredict:oc:assembler)
 
-组装器用来制作更加复杂的物品, 如 [机器人](robot.md), [无人机](../item/drone.md) 和 [平板](../item/tablet.md). 需要大量能源来组装设备, 推荐使用[电容版](capacitor.md)供电.
+组装机用来制作更加复杂的物品, 如 [机器人](robot.md), [无人机](../item/drone.md) 和 [平板电脑](../item/tablet.md). 组装机需要大量能源来组装设备, 因此推荐使用[电容](capacitor.md)供电.
 
-将设备零件放入组装器来组装物品. 对于 [机器人](robot.md),需要 任意[机箱](case1.md) ; 对于[平板](../item/tablet.md), 需要[平板外壳](../item/tabletCase1.md). 像大多数OC物品栏那样, 部件可以被放入任意几个栏; 在物品栏悬停可以指示你有什么东西可以放进去. 有NEI的话，NEI也能显示合适的物品. 添加你希望成品能包含的配件. 
+制作过程：首先, 将设备的基础零件放入组装机. 对于[机器人](robot.md), 你需要需要放入[机箱](case1.md); 对于[平板](../item/tablet.md), 则需要[平板外壳](../item/tabletCase1.md). 像大多数OC物品栏那样, 部件可以被放入特定的几个槽; 在物品/槽上悬停鼠标, 游戏会高亮能够放进去的槽/物品. 有NEI的话, NEI也能显示合适的物品. 继续添加你希望装进去的配件. 尤其注意别忘了装操作系统, 或者是准备好安装系统的方法(以机器人为例, 你可以装一个[软盘驱动器](diskDrive.md)以便以后插[软盘](../item/floppy.md)). 大多数设备的[EEPROM](../item/eeprom.md)在组装完成后可以更换, 只要把该设备和一张新的[EEPROM](../item/eeprom.md)合成, 设备就会装上它. 原来的[EEPROM](../item/eeprom.md)会退还.
 
-尤其注意你的操作系统, 或者你也可以选择一会再装(你可以为机器人安装[磁盘驱动器](diskDrive.md) 来使用 [软盘](../item/floppy.md) l). 对大多数设备来说 [E2PROM](../item/eeprom.md) 可以被再编程, 
+注意[机器人](robot.md)也可以装[屏幕](screen1.md). 你可以安装一个[T1屏幕](screen1.md), 否则你的机器人就没有屏幕; 还要安装[键盘](keyboard.md), 除非你不想/需要打字. 对于 [平板](../item/tablet.md), [屏幕](screen1.md)预装在[平板外壳](../item/tabletCase1.md)里面了, 但是你还是要安一个 [键盘](keyboard.md).
 
-插入不同的 [E2PROM](../item/eeprom.md) 后. 已有的 [E2PROM](../item/eeprom.md)会归还到物品栏
+一切就位后, 按下开始, 设备会被组装并和充能. 记住, 组装完成后设备就*无法*修改了, 除非你选择[拆解](disassembler.md)(注意拆解有5%的损耗率).
 
-注意[机器人](robot.md) 也可以有 [屏幕](screen1.md), 你可以安装一个[屏幕 (1级)](screen1.md)，这样可以敲入命令, 
-
-也可以安放 [键盘](keyboard.md). 对于 [平板](../item/tablet.md),  [屏幕](screen1.md)在[平板外壳](../item/tabletCase1.md)预装了, 
-
-但是你还是要安一个 [键盘](keyboard.md)
-
-一切就位后，按下开始，设备会被组装，充能。记住，一旦组装就无法更改了，除非[拆解](disassembler.md)。
-
-复杂度: 物品的级别决定了复杂度要求， 一级物品要求2复杂度，二级2，以此类推，箱子升级例外
-
-此时复杂度为2倍箱子 (eg: a tier 2 [upgrade containers](../item/upgradeContainer1.md) requires 4 complexity, and likewise for [card containers](../item/cardContainer1.md)).
+复杂度: 物件的等级决定了它要多少复杂度. T1物品消耗1复杂度, T2物品2, T3物品3. 插槽升级是个例外, 它消耗的复杂度是级数的两倍(比如说, 一个T2的[升级插槽](../item/upgradeContainer1.md)需要4点复杂度, [扩展卡插槽](../item/cardContainer1.md)同理). 如果复杂度超过了上限, 组装机将拒绝组装.

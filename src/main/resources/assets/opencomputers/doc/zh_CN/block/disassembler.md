@@ -2,7 +2,7 @@
 
 ![Build it, tear it down.](oredict:oc:disassembler)
 
-拆解机可以把OpenComputers里的大多数物件拆成它们的原始部件. 大多数情况下它被用来回收老旧而无用的零件, 或是拆掉用不着或是装错了的设备（比如说忘了往[机器人](robot.md)里装[操作系统](../general/openOS.md)）
+拆解机可以把OpenComputers里的大多数物件拆成它们的原始部件. 大多数情况下它被用来回收老旧而无用的零件, 或是拆掉用不着或是装错了的设备(比如说忘了往[机器人](robot.md)里装[操作系统](../general/openOS.md))
 
 拆解花费的时间很长, 同时也很吃电. 拆解过程中每个产物有5%的几率损毁.
 

@@ -1,8 +1,7 @@
-# OpenComputers Manual
+# OpenComputers使用手册
 
 OpenComputers 是一个持久化，模块化，高度可定制化的mod，在游戏中提供了 [电脑](general/computer.md), [服务器](item/server1.md), [机器人](block/robot.md), 和 [无人机](item/drone.md) .所有设备均可通过LUA5.2编写程序, 实现各种复杂的系统. 
 
-可能有的地方会因为省略的原因,说话有一点歧义,因为这个mod显示手册的时候,埋藏了操蛋的bug,英文状态下没问题,中文句子一长,这货就卡死了,还是经过几个小时的debug才发现的!
 
 通过 [关于手册](item/manual.md)学习mod (绿字是链接，可点击).
 

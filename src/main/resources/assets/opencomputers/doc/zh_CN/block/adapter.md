@@ -2,7 +2,6 @@
 
 ![Now with 100% more everything.](oredict:oc:adapter)
 
-允许 [电脑](../general/computer.md) 与原版和其他mod的方块交互. 相邻的支持方块将会在连接适配器的 [电脑](../general/computer.md) 显示
+适配器允许[电脑](../general/computer.md)与原版和其他mod的方块交互. 它支持的相邻方块将会在连接适配器的 [电脑](../general/computer.md)上显示.
 
-适配器还有多种选择器升级.比如, the [物品控制器升级](../item/inventoryControllerUpgrade.md) 允许电脑从相邻适配器的方块中获取更详细的物品信息, 就像这个升级呗安装在设备里面一样 (比如[机器人](robot.md) or [无人机](../item/drone.md)), and a [储罐控制器升级](../item/tankControllerUpgrade.md) provides similar functionality for fluid tanks next to the adapter.
-你还可以安装[MFU](../item/mfu.md) 来与更远的方块交互
+适配器还有个插槽, 可以插有限的几种升级. 比如, [物品控制器升级](../item/inventoryControllerUpgrade.md)允许电脑从与适配器相邻的方块中获取更详细的物品信息, 就像它安装在其它设备(比如[机器人](robot.md)或[无人机](../item/drone.md))里时一样, [储罐控制器升级](../item/tankControllerUpgrade.md)同理. 此外, 你还可以安装[MFU](../item/mfu.md) 来与更远的方块交互
