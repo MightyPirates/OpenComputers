@@ -1,6 +1,6 @@
 # OpenComputers使用手册
 
-OpenComputers这个mod向游戏加入了连续性的(persistent只能这么翻译了QAQ), 模块化的, 高度可定制化的[电脑](general/computer.md), [服务器](item/server1.md), [机器人](block/robot.md), 和[无人机](item/drone.md). 所有设备均可通过LUA 5.3编写程序, 以便根据用途改变系统的复杂程度. 
+OpenComputers这个mod向游戏加入了连续性的, 模块化的, 高度可定制化的[电脑](general/computer.md), [服务器](item/server1.md), [机器人](block/robot.md), 和[无人机](item/drone.md). 所有设备均可通过LUA 5.3编写程序, 以便根据用途改变系统的复杂程度. 
 
 通过[关于手册](item/manual.md)了解如何使用本手册(绿字是链接, 可点击).
 
