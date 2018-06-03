@@ -3,13 +3,17 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.integration.Mods
+
+import mrtjp.projectred.api.IBundledTile
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.common.Optional
 
-trait BundledRedstoneAware extends RedstoneAware {
+trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
 
   protected[tileentity] val _bundledInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))
 
@@ -115,4 +119,10 @@ trait BundledRedstoneAware extends RedstoneAware {
 
     nbt.setNewTagList(RednetInputTag, _rednetInput.view)
   }
+
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  override def canConnectBundled(side: Int): Boolean = isOutputEnabled
+
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  override def getBundledSignal(side: Int): Array[Byte] = bundledOutput(EnumFacing.getFront(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

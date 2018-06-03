@@ -99,6 +99,11 @@ dependencies {
 		transitive = false
 	}
 
+  provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
+        exclude module: 'NotEnoughItems'
+        exclude module: "CodeChickenLib"
+  }
+
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
     testCompile "org.mockito:mockito-all:1.10.19"
