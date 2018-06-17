@@ -1,108 +1,179 @@
 package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
+import li.cil.oc.OpenComputers
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
+import li.cil.oc.util.FontUtils
+import net.minecraft.client.renderer.GlStateManager
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 
-/**
- * Base class for texture based font rendering.
- *
- * Provides common logic for the static one (using an existing texture) and the
- * dynamic one (generating textures on the fly from a font).
- */
-abstract class TextureFontRenderer {
-  protected final val basicChars = """☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■"""
-
-  def charRenderWidth = charWidth / 2
-
-  def charRenderHeight = charHeight / 2
-
-  /**
-   * If drawString() is called inside display lists this should be called
-   * beforehand, outside the display list, to ensure no characters have to
-   * be generated inside the draw call.
-   */
-  def generateChars(chars: Array[Char]) {
-    for (char <- chars) {
-      generateChar(char)
-    }
+object TextureFontRenderer {
+  private val maxCharsRes = math.max(Settings.screenResolutionsByTier.last._1, Settings.screenResolutionsByTier.last._2)
+  
+  private val _glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
+    case _ => new FontParserHex()
   }
+  
+  _glyphProvider.initialize()
+  
+  //val texMaxPxWidth = maxCharsRes * _glyphProvider.getGlyphWidth 
+  //val texMaxPxHeight = maxCharsRes * _glyphProvider.getGlyphHeight
+  
+  
+	def createTexture(): Int = {
+    var texID = GlStateManager.generateTexture()
+    
+    RenderState.bindTexture(texID)
+    
+    if (Settings.get.textLinearFiltering) {
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
+    } else {
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+    }
+    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+    
+    
+    GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, _glyphProvider.getGlyphWidth, _glyphProvider.getGlyphHeight, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(_glyphProvider.getGlyphWidth * _glyphProvider.getGlyphHeight * 4))
+    
+    texID
+  }
+}
 
-  def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
+class TextureFontRenderer {
+  protected final val basicChars = """☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ """
+  
+  protected final val glyphProvider =  TextureFontRenderer._glyphProvider
+  final val charRenderWidth = glyphProvider.getGlyphWidth
+  final val charRenderHeight = glyphProvider.getGlyphHeight
+  
+  private final val staticbuff = BufferUtils.createByteBuffer(TextureFontRenderer.maxCharsRes * charRenderWidth * 4 * charRenderHeight);
+
+
+  def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int, texID: Int, forceRefresh: Boolean) {
     val format = buffer.format
 
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
-    GL11.glScalef(0.5f, 0.5f, 1)
+    //GlStateManager.scale(0.5f, 0.5f, 1)
 
     GL11.glDepthMask(false)
-    GL11.glDisable(GL11.GL_TEXTURE_2D)
+    RenderState.makeItBlend()
+    GL11.glEnable(GL11.GL_TEXTURE_2D)
+    
+    RenderState.bindTexture(texID)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
-
-    // Background first. We try to merge adjacent backgrounds of the same
-    // color to reduce the number of quads we have to draw.
-    GL11.glBegin(GL11.GL_QUADS)
-    for (y <- 0 until (viewportHeight min buffer.height)) {
-      val color = buffer.color(y)
-      var cbg = 0x000000
-      var x = 0
-      var width = 0
-      for (col <- color.map(PackedColor.unpackBackground(_, format)) if x + width < viewportWidth) {
-        if (col != cbg) {
-          drawQuad(cbg, x, y, width)
-          cbg = col
-          x += width
-          width = 0
-        }
-        width = width + 1
-      }
-      drawQuad(cbg, x, y, width)
+    
+    // Create texture if it does not exist
+    var texCharsWidth = viewportWidth
+    var texCharsHeight = viewportHeight max buffer.height
+    var texPxWidth = viewportWidth * charRenderWidth
+    var texPxHeight = texCharsHeight * charRenderHeight
+    
+    
+    var currentPxWidth = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH)
+    var currentPxHeight = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT)
+    if (texPxWidth != currentPxWidth || texPxHeight != currentPxHeight) {
+      GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, texPxWidth, texPxHeight, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(texPxWidth * texPxHeight * 4))
     }
-    GL11.glEnd()
-
-    RenderState.checkError(getClass.getName + ".drawBuffer: background")
-
-    GL11.glEnable(GL11.GL_TEXTURE_2D)
+    
 
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     }
-
-    // Foreground second. We only have to flush when the color changes, so
-    // unless every char has a different color this should be quite efficient.
+    
     for (y <- 0 until (viewportHeight min buffer.height)) {
       val line = buffer.buffer(y)
       val color = buffer.color(y)
-      val ty = y * charHeight
-      for (i <- 0 until textureCount) {
-        bindTexture(i)
-        GL11.glBegin(GL11.GL_QUADS)
-        var cfg = -1
-        var tx = 0f
-        for (n <- 0 until viewportWidth) {
-          val ch = line(n)
-          val col = PackedColor.unpackForeground(color(n), format)
-          // Check if color changed.
-          if (col != cfg) {
-            cfg = col
-            GL11.glColor3ub(
-              ((cfg & 0xFF0000) >> 16).toByte,
-              ((cfg & 0x00FF00) >> 8).toByte,
-              ((cfg & 0x0000FF) >> 0).toByte)
-          }
-          // Don't render whitespace.
-          if (ch != ' ') {
-            drawChar(tx, ty, ch)
-          }
-          tx += charWidth
+      val dirty = buffer.dirty(y)
+      
+      var ty = y * charRenderHeight
+      var tx = 0
+      
+      var backlogData = new Array[Int](viewportWidth)
+      var backlogPx = -1
+      var backlogSize = 0
+      var backlogWidth = 0
+      
+      var flush = () => {
+        var pxStrideOffset = 0
+          
+        for (backlogIdx <- 0 until backlogSize) {
+          val lineIdx = backlogData(backlogIdx)
+          val char = line(lineIdx);
+          val charWidth = FontUtils.wcwidth(char) * charRenderWidth
+          
+          val col = PackedColor.unpackForeground(color(lineIdx), format)
+          val back = PackedColor.unpackBackground(color(lineIdx), format)
+          
+          staticbuff.position(pxStrideOffset * 4)
+          glyphProvider.getGlyph(char, col, back, staticbuff, backlogWidth - charWidth)
+          
+          pxStrideOffset += charWidth
         }
-        GL11.glEnd()
+        
+    	  staticbuff.position(0)
+        GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, backlogPx, ty, backlogWidth, charRenderHeight, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, staticbuff)
+        
+        backlogPx = -1
+        backlogSize = 0
+        backlogWidth = 0
       }
+      
+      var n = 0
+      while (n < viewportWidth) {
+        val nChar = line(n)
+        val nCharWidth = FontUtils.wcwidth(nChar)
+        val nCharWidthPx = nCharWidth * charRenderWidth;
+        
+        if (dirty(n) || forceRefresh) {
+          dirty(n) = false
+          
+          backlogData(backlogSize) = n
+          backlogSize += 1
+          backlogWidth += nCharWidthPx
+          
+          if (backlogPx == -1) {
+            backlogPx = tx
+          }
+          
+        } else if (backlogSize != 0) {
+          // this one is not dirty, but the last one was
+          flush()
+        }
+        tx += nCharWidthPx;
+      
+        // OC represents wide chars as a wide char followed by a space
+        // The wide char will render over into that space so we can skip the next char
+        n += nCharWidth;
+      }
+    	if (backlogSize != 0) {
+          flush()
+    	}
     }
+    
+    GL11.glBegin(GL11.GL_QUADS)
+      var tx = 0
+      var ty = 0
+      var h = (viewportHeight min buffer.height) * charRenderHeight
+      var w = viewportWidth * charRenderWidth
+      var u1 = 0
+      var u2 = w.floatValue() / texPxWidth
+      var v1 = 0
+      var v2 = h.floatValue() / texPxHeight
+      GL11.glTexCoord2d(u1, v2)
+      GL11.glVertex2f(tx, ty + h)
+      GL11.glTexCoord2d(u2, v2)
+      GL11.glVertex2f(tx + w, ty + h)
+      GL11.glTexCoord2d(u2, v1)
+      GL11.glVertex2f(tx + w, ty)
+      GL11.glTexCoord2d(u1, v1)
+      GL11.glVertex2f(tx, ty)
+    GL11.glEnd()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
@@ -110,56 +181,5 @@ abstract class TextureFontRenderer {
     GL11.glPopMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
-  }
-
-  def drawString(s: String, x: Int, y: Int): Unit = {
-    GL11.glPushMatrix()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-
-    GL11.glTranslatef(x, y, 0)
-    GL11.glScalef(0.5f, 0.5f, 1)
-    GL11.glDepthMask(false)
-
-    for (i <- 0 until textureCount) {
-      bindTexture(i)
-      GL11.glBegin(GL11.GL_QUADS)
-      var tx = 0f
-      for (n <- 0 until s.length) {
-        val ch = s.charAt(n)
-        // Don't render whitespace.
-        if (ch != ' ') {
-          drawChar(tx, 0, ch)
-        }
-        tx += charWidth
-      }
-      GL11.glEnd()
-    }
-
-    GL11.glPopAttrib()
-    GL11.glPopMatrix()
-  }
-
-  protected def charWidth: Int
-
-  protected def charHeight: Int
-
-  protected def textureCount: Int
-
-  protected def bindTexture(index: Int): Unit
-
-  protected def generateChar(char: Char): Unit
-
-  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
-
-  private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
-    val x0 = x * charWidth
-    val x1 = (x + width) * charWidth
-    val y0 = y * charHeight
-    val y1 = (y + 1) * charHeight
-    GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
-    GL11.glVertex3d(x0, y1, 0)
-    GL11.glVertex3d(x1, y1, 0)
-    GL11.glVertex3d(x1, y0, 0)
-    GL11.glVertex3d(x0, y0, 0)
   }
 }
