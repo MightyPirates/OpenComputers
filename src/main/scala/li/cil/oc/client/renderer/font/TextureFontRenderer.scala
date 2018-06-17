@@ -6,7 +6,6 @@ import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
 import li.cil.oc.util.FontUtils
-import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 
@@ -24,9 +23,9 @@ object TextureFontRenderer {
   
   
 	def createTexture(): Int = {
-    var texID = GlStateManager.generateTexture()
+    var texID = GL11.glGenTextures()
     
-    RenderState.bindTexture(texID)
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID)
     
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -64,7 +63,7 @@ class TextureFontRenderer {
     RenderState.makeItBlend()
     GL11.glEnable(GL11.GL_TEXTURE_2D)
     
-    RenderState.bindTexture(texID)
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
     
