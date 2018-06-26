@@ -74,10 +74,7 @@ repositories {
     maven { url "http://tehnut.info/maven" }
 	maven { url "http://maven.thiakil.com" }
     maven { url "http://cc.crzd.me/maven/" }
-	ivy {
-        name 'ExtraCells'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
-    }
+	maven { url "https://minecraft.curseforge.com/api/maven/" }
 }
 
 configurations {
@@ -101,9 +98,9 @@ dependencies {
 	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
 		transitive = false
 	}
-	provided name: 'ExtraCells', version: config.extracells.version, ext: 'jar'
+	provided "extracells2:ExtraCells-api:${config.extracells.version}"
 	
-	provided (name: 'Mekanism', version: config.mekanism.version, classifier: 'api') {
+	provided("mekanism:Mekanism:${config.mekanism.version}:api") {
 		transitive = false
 	}
 
