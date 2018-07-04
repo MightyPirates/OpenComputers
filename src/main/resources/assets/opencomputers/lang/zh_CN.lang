@@ -39,6 +39,7 @@ tile.oc.screen3.name=超级显示屏
 tile.oc.rack.name=机架
 tile.oc.switch.name=§c开关§7
 tile.oc.switch.name=交换机
+tile.oc.transposer.name=数控传输机
 tile.oc.waypoint.name=路径点
 
 # Items
