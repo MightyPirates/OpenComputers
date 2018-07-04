@@ -127,6 +127,9 @@ abstract class LuaStateFactory {
     else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X64) "native.64.dll"
     else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X86) "native.32.dll"
 
+    else if (SystemUtils.IS_OS_SUN_OS && Architecture.IS_OS_X64) "native.64.sunos.so"
+    else if (SystemUtils.IS_OS_SUN_OS && Architecture.IS_OS_X86) "native.32.sunos.so"
+
     else null
   }
 
@@ -300,7 +303,7 @@ abstract class LuaStateFactory {
   init()
 
   if (!haveNativeLibrary) {
-    OpenComputers.log.warn("Unsupported platform, you won't be able to host games with persistent computers.")
+    OpenComputers.log.warn("Unsupported platform, you won't be able to host games with persistent computers. Your platform is: " + SystemUtils.OS_NAME)
   }
 
   // ----------------------------------------------------------------------- //
