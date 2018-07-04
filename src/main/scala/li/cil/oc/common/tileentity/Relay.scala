@@ -1,9 +1,12 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Charsets
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import dan200.computercraft.api.peripheral.IComputerAccess
+import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.network.Component
+import li.cil.oc.server.PacketSender
+
+import scala.collection.mutable
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -30,17 +33,23 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-class Relay extends traits.SwitchLike with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
-  lazy final val WirelessNetworkCardTier1 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
-  lazy final val WirelessNetworkCardTier2 = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
-  lazy final val LinkedCard = api.Items.get(Constants.ItemName.LinkedCard)
-  
+class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
+  lazy final val WirelessNetworkCardTier1: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
+  lazy final val WirelessNetworkCardTier2: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
+  lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
+
+  var strength: Double = maxWirelessRange
+
+  var isRepeater = true
+
   var wirelessTier = -1
   
-  override def isWirelessEnabled = wirelessTier >= Tier.One
+  def isWirelessEnabled = wirelessTier >= Tier.One
 
   def maxWirelessRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
     Settings.get.maxWirelessRange(wirelessTier) else 0
@@ -48,38 +57,44 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   def wirelessCostPerRange = if (wirelessTier == Tier.One || wirelessTier == Tier.Two)
     Settings.get.wirelessCostPerRange(wirelessTier) else 0
   
-  var strength = maxWirelessRange
-
-  var isRepeater = true
-
   var isLinkedEnabled = false
 
   var tunnel = "creative"
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  val componentNodes: Array[Component] = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("relay").
     create())
 
-  override def canUpdate = isServer
+  val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+
+  var lastMessage = 0L
+
+  def onSwitchActivity(): Unit = {
+    val now = System.currentTimeMillis()
+    if (now - lastMessage >= (relayDelay - 1) * 50) {
+      lastMessage = now
+      PacketSender.sendSwitchActivity(this)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = true
+  override protected def hasConnector(side: EnumFacing) = true
 
-  override protected def connector(side: ForgeDirection) = sidedNode(side) match {
+  override protected def connector(side: EnumFacing): Option[Connector] = sidedNode(side) match {
     case connector: Connector => Option(connector)
     case _ => None
   }
 
-  override def energyThroughput = Settings.get.accessPointRate
+  override def energyThroughput: Double = Settings.get.accessPointRate
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     if (isWirelessEnabled) {
-      player.addChatMessage(Localization.Analyzer.WirelessStrength(strength))
-      Array(componentNodes(side))
+      player.sendMessage(Localization.Analyzer.WirelessStrength(strength))
+      Array(componentNodes(side.getIndex))
     }
     else null
   }
@@ -131,8 +146,10 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
   }
 
-  override def tryEnqueuePacket(sourceSide: Option[ForgeDirection], packet: Packet): Boolean = {
-    if (Mods.ComputerCraft.isAvailable) {
+  val computers = mutable.Buffer.empty[AnyRef]
+
+  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
+    if (Mods.ComputerCraft.isModAvailable) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
         case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
@@ -141,7 +158,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     super.tryEnqueuePacket(sourceSide, packet)
   }
 
-  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet): Unit = {
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet): Unit = {
     super.relayPacket(sourceSide, packet)
 
     val tryChangeBuffer = sourceSide match {
@@ -173,7 +190,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   // ----------------------------------------------------------------------- //
 
-  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
+  override protected def createNode(plug: Plug): Connector = api.Network.newNode(plug, Visibility.Network).
     withConnector(math.round(Settings.get.bufferAccessPoint)).
     create()
 
@@ -246,9 +263,9 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
     }
   }
 
-  override def getSizeInventory = InventorySlots.relay.length
+  override def getSizeInventory: Int = InventorySlots.relay.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.relay(slot)
       val tierSatisfied = driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
@@ -259,29 +276,33 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
 
   // ----------------------------------------------------------------------- //
 
+  private final val StrengthTag = Settings.namespace + "strength"
+  private final val IsRepeaterTag = Settings.namespace + "isRepeater"
+  private final val ComponentNodesTag = Settings.namespace + "componentNodes"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    for (slot <- items.indices) items(slot) collect {
-      case stack => updateLimits(slot, stack)
+    for (slot <- items.indices) if (!items(slot).isEmpty) {
+      updateLimits(slot, items(slot))
     }
 
-    if (nbt.hasKey(Settings.namespace + "strength")) {
-      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min maxWirelessRange
+    if (nbt.hasKey(StrengthTag)) {
+      strength = nbt.getDouble(StrengthTag) max 0 min maxWirelessRange
     }
-    if (nbt.hasKey(Settings.namespace + "isRepeater")) {
-      isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")
+    if (nbt.hasKey(IsRepeaterTag)) {
+      isRepeater = nbt.getBoolean(IsRepeaterTag)
     }
-    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    nbt.getTagList(ComponentNodesTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => componentNodes(index).load(tag)
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    nbt.setDouble(Settings.namespace + "strength", strength)
-    nbt.setBoolean(Settings.namespace + "isRepeater", isRepeater)
-    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+    nbt.setDouble(StrengthTag, strength)
+    nbt.setBoolean(IsRepeaterTag, isRepeater)
+    nbt.setNewTagList(ComponentNodesTag, componentNodes.map {
       case node: Node =>
         val tag = new NBTTagCompound()
         node.save(tag)

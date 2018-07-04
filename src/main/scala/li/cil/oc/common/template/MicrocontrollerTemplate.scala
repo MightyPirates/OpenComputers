@@ -4,6 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.Microcontroller
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -17,21 +18,21 @@ object MicrocontrollerTemplate extends Template {
   override protected val suggestedComponents = Array(
     "BIOS" -> hasComponent("eeprom") _)
 
-  override protected def hostClass = classOf[internal.Microcontroller]
+  override protected def hostClass: Class[Microcontroller] = classOf[internal.Microcontroller]
 
-  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier1)
+  def selectTier1(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier1)
 
-  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier2)
+  def selectTier2(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier2)
 
-  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseCreative)
+  def selectTierCreative(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseCreative)
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
-  def assemble(inventory: IInventory) = {
+  def assemble(inventory: IInventory): Array[Object] = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new MicrocontrollerData()
     data.tier = caseTier(inventory)
-    data.components = items.drop(1).filter(_ != null).toArray
+    data.components = items.drop(1).filter(!_.isEmpty).toArray
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
     val stack = data.createItemStack()
     val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
@@ -39,9 +40,9 @@ object MicrocontrollerTemplate extends Template {
     Array(stack, Double.box(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.Microcontroller)
+  def selectDisassembler(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.BlockName.Microcontroller)
 
-  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
+  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]): Array[ItemStack] = {
     val info = new MicrocontrollerData(stack)
     val itemName = Constants.ItemName.MicrocontrollerCase(info.tier)
 
@@ -127,10 +128,10 @@ object MicrocontrollerTemplate extends Template {
       "li.cil.oc.common.template.MicrocontrollerTemplate.disassemble")
   }
 
-  override protected def maxComplexity(inventory: IInventory) =
+  override protected def maxComplexity(inventory: IInventory): Int =
     if (caseTier(inventory) == Tier.Two) 5
     else if (caseTier(inventory) == Tier.Four) 9001 // Creative
     else 4
 
-  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
+  override protected def caseTier(inventory: IInventory): Int = ItemUtils.caseTier(inventory.getStackInSlot(0))
 }

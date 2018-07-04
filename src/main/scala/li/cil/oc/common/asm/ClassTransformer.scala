@@ -1,10 +1,10 @@
 package li.cil.oc.common.asm
 
-import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.integration.Mods
 import net.minecraft.launchwrapper.IClassTransformer
 import net.minecraft.launchwrapper.LaunchClassLoader
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -16,21 +16,21 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object ObfNames {
-  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "ss")
-  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sw")
-  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bok")
-  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "aor")
-  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bx")
-  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bw")
-  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "bP")
+  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging")
+  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving")
+  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity")
+  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx")
+  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw")
+  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF")
   final val Method_recreateLeashDesc = Array("()V")
-  final val Method_renderHanging = Array("func_110827_b", "b")
-  final val Method_renderHangingDesc = Array("(Lsw;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
+  final val Method_renderLeash = Array("renderLeash", "func_110827_b")
+  final val Method_renderLeashDesc = Array("(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
   final val Method_validate = Array("validate", "func_145829_t")
   final val Method_invalidate = Array("invalidate", "func_145843_s")
   final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")
   final val Method_readFromNBT = Array("readFromNBT", "func_145839_a")
-  final val Method_writeToNBT = Array("writeToNBT", "func_145841_b")
+  final val Method_writeToNBT = Array("writeToNBT", "func_189515_b")
 }
 
 object ClassTransformer {
@@ -42,7 +42,7 @@ class ClassTransformer extends IClassTransformer {
   private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
   private val log = LogManager.getLogger("OpenComputers")
 
-  override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
+  override def transform(obfName: String, name: String, basicClass: Array[Byte]): Array[Byte] = {
     if (basicClass == null || name.startsWith("scala.")) return basicClass
     var transformedClass = basicClass
     try {
@@ -82,7 +82,7 @@ class ClassTransformer extends IClassTransformer {
                 case (Some(interfaceName: String), Some(modid: String)) =>
                   Mods.All.find(_.id == modid) match {
                     case Some(mod) =>
-                      if (mod.isAvailable) {
+                      if (mod.isModAvailable) {
                         val interfaceDesc = interfaceName.replaceAllLiterally(".", "/")
                         val node = classNodeFor(interfaceDesc)
                         if (node == null) {
@@ -103,7 +103,6 @@ class ClassTransformer extends IClassTransformer {
                       }
                       else {
                         log.info(s"Skipping interface $interfaceName from missing mod $modid.")
-                        mod.disablePower()
                       }
                     case _ =>
                       log.warn(s"Skipping interface $interfaceName from unknown mod $modid.")
@@ -192,12 +191,12 @@ class ClassTransformer extends IClassTransformer {
       //   if (entity instanceof Drone) {
       //     d5 = 0.0;
       //     d6 = 0.0;
-      //     d7 = -0.75;
+      //     d7 = -0.25;
       //   }
       // before the `instanceof EntityHanging` check in func_110827_b.
       if (ObfNames.Class_RenderLiving.contains(name.replace('.', '/'))) {
         val classNode = newClassNode(transformedClass)
-        insertInto(classNode, ObfNames.Method_renderHanging, ObfNames.Method_renderHangingDesc, instructions => instructions.toArray.sliding(3, 1).exists {
+        insertInto(classNode, ObfNames.Method_renderLeash, ObfNames.Method_renderLeashDesc, instructions => instructions.toArray.sliding(3, 1).exists {
           case Array(varNode: VarInsnNode, typeNode: TypeInsnNode, jumpNode: JumpInsnNode)
             if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 10 &&
               typeNode.getOpcode == Opcodes.INSTANCEOF && ObfNames.Class_EntityHanging.contains(typeNode.desc) &&
@@ -208,11 +207,11 @@ class ClassTransformer extends IClassTransformer {
             val skip = new LabelNode()
             toInject.add(new JumpInsnNode(Opcodes.IFEQ, skip))
             toInject.add(new LdcInsnNode(Double.box(0.0)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 16))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 17))
             toInject.add(new LdcInsnNode(Double.box(0.0)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 18))
-            toInject.add(new LdcInsnNode(Double.box(-0.75)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 20))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 19))
+            toInject.add(new LdcInsnNode(Double.box(-0.25)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 21))
             toInject.add(skip)
             instructions.insertBefore(varNode, toInject)
             true
@@ -298,7 +297,7 @@ class ClassTransformer extends IClassTransformer {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
         val descDeObf = mapper.mapMethodDesc(method.desc)
-        val methodNameDeObf = mapper.mapMethodName(ObfNames.Class_TileEntity(1), method.name, method.desc)
+        val methodNameDeObf = mapper.mapMethodName(mapper.unmap(ObfNames.Class_TileEntity(0)), method.name, method.desc)
         val areSamePlain = method.name + descDeObf == methodName + desc
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
@@ -342,7 +341,7 @@ class ClassTransformer extends IClassTransformer {
     replace(ObfNames.Method_invalidate(0), ObfNames.Method_invalidate(1), "()V")
     replace(ObfNames.Method_onChunkUnload(0), ObfNames.Method_onChunkUnload(1), "()V")
     replace(ObfNames.Method_readFromNBT(0), ObfNames.Method_readFromNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
-    replace(ObfNames.Method_writeToNBT(0), ObfNames.Method_writeToNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
+    replace(ObfNames.Method_writeToNBT(0), ObfNames.Method_writeToNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/nbt/NBTTagCompound;")
 
     log.trace("Injecting interface.")
     classNode.interfaces.add("li/cil/oc/common/asm/template/SimpleComponentImpl")
@@ -354,7 +353,7 @@ class ClassTransformer extends IClassTransformer {
     if (classNode == null) false
     else {
       log.trace(s"Checking if class ${classNode.name} is a TileEntity...")
-      ObfNames.Class_TileEntity.contains(classNode.name) ||
+      ObfNames.Class_TileEntity.contains(FMLDeobfuscatingRemapper.INSTANCE.map(classNode.name)) ||
         (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
     }
   }

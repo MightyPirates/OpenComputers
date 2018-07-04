@@ -1,7 +1,5 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.api.internal.Server
@@ -16,17 +14,19 @@ import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.integration.fmp.EventHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
+import net.minecraft.util.EnumHand
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
-  def onPacket(e: ServerCustomPacketEvent) =
-    onPacketData(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
+  def onPacket(e: ServerCustomPacketEvent): Unit =
+    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, e.getHandler.asInstanceOf[NetHandlerPlayServer].player)
 
   override protected def world(player: EntityPlayer, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))
@@ -43,7 +43,6 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
-      case PacketType.MultiPartPlace => onMultiPartPlace(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RackMountableMapping => onRackMountableMapping(p)
       case PacketType.RackRelayState => onRackRelayState(p)
@@ -56,7 +55,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onComputerPower(p: PacketParser) =
+  def onComputerPower(p: PacketParser): Unit =
     p.readTileEntity[Computer]() match {
       case Some(t) => p.player match {
         case player: EntityPlayerMP => trySetComputerPower(t.machine, p.readBoolean(), player)
@@ -65,7 +64,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onServerPower(p: PacketParser) =
+  def onServerPower(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) =>
         val mountableIndex = p.readInt()
@@ -80,25 +79,25 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onCopyToAnalyzer(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: TextBuffer) => buffer.copyToAnalyzer(p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
-  def onDriveMode(p: PacketParser) = p.player match {
+  def onDriveMode(p: PacketParser): Unit = p.player match {
     case player: EntityPlayerMP =>
-      Delegator.subItem(player.getHeldItem) match {
+      Delegator.subItem(player.getHeldItem(EnumHand.MAIN_HAND)) match {
         case Some(drive: FileSystemLike) =>
-          val data = new DriveData(player.getHeldItem)
+          val data = new DriveData(player.getHeldItem(EnumHand.MAIN_HAND))
           data.isUnmanaged = p.readBoolean()
-          data.save(player.getHeldItem)
+          data.save(player.getHeldItem(EnumHand.MAIN_HAND))
         case _ => // Invalid packet.
       }
     case _ => // Invalid packet.
   }
 
-  def onDronePower(p: PacketParser) =
+  def onDronePower(p: PacketParser): Unit =
     p.readEntity[Drone]() match {
       case Some(drone) => p.player match {
         case player: EntityPlayerMP =>
@@ -113,12 +112,12 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   private def trySetComputerPower(computer: Machine, value: Boolean, player: EntityPlayerMP) {
-    if (computer.canInteract(player.getCommandSenderName)) {
+    if (computer.canInteract(player.getName)) {
       if (value) {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+            case message if message != null => player.sendMessage(Localization.Analyzer.LastError(message))
             case _ =>
           }
         }
@@ -128,28 +127,28 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onKeyDown(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.keyDown(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onKeyUp(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.keyUp(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onClipboard(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.clipboard(p.readUTF(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onMouseClick(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
@@ -163,7 +162,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onMouseUp(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
@@ -175,7 +174,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onMouseScroll(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.world, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
@@ -186,33 +185,26 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onMultiPartPlace(p: PacketParser) {
-    p.player match {
-      case player: EntityPlayerMP => EventHandler.place(player)
-      case _ => // Invalid packet.
-    }
-  }
-
   def onPetVisibility(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP =>
         if (if (p.readBoolean()) {
-          PetVisibility.hidden.remove(player.getCommandSenderName)
+          PetVisibility.hidden.remove(player.getName)
         }
         else {
-          PetVisibility.hidden.add(player.getCommandSenderName)
+          PetVisibility.hidden.add(player.getName)
         }) {
           // Something changed.
-          PacketSender.sendPetVisibility(Some(player.getCommandSenderName))
+          PacketSender.sendPetVisibility(Some(player.getName))
         }
       case _ => // Invalid packet.
     }
   }
 
-  def onRackMountableMapping(p: PacketParser) =
+  def onRackMountableMapping(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) => p.player match {
-        case player: EntityPlayerMP if t.isUseableByPlayer(player) =>
+        case player: EntityPlayerMP if t.isUsableByPlayer(player) =>
           val mountableIndex = p.readInt()
           val nodeIndex = p.readInt()
           val side = p.readDirection()
@@ -222,17 +214,17 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRackRelayState(p: PacketParser) =
+  def onRackRelayState(p: PacketParser): Unit =
     p.readTileEntity[Rack]() match {
       case Some(t) => p.player match {
-        case player: EntityPlayerMP if t.isUseableByPlayer(player) =>
+        case player: EntityPlayerMP if t.isUsableByPlayer(player) =>
           t.isRelayEnabled = p.readBoolean()
         case _ =>
       }
       case _ => // Invalid packet.
     }
 
-  def onRobotAssemblerStart(p: PacketParser) =
+  def onRobotAssemblerStart(p: PacketParser): Unit =
     p.readTileEntity[Assembler]() match {
       case Some(assembler) =>
         if (assembler.start(p.player match {
@@ -242,9 +234,9 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotStateRequest(p: PacketParser) =
+  def onRobotStateRequest(p: PacketParser): Unit =
     p.readTileEntity[RobotProxy]() match {
-      case Some(proxy) => proxy.world.markBlockForUpdate(proxy.x, proxy.y, proxy.z)
+      case Some(proxy) => proxy.world.notifyBlockUpdate(proxy.getPos, proxy.world.getBlockState(proxy.getPos), proxy.world.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
     }
 
@@ -252,7 +244,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     p.player match {
       case entity: EntityPlayerMP =>
-        ComponentTracker.get(p.player.worldObj, address) match {
+        ComponentTracker.get(p.player.world, address) match {
           case Some(buffer: TextBuffer) =>
             if (buffer.host match {
               case screen: Screen if !screen.isOrigin => false
@@ -272,7 +264,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onWaypointLabel(p: PacketParser) =
+  def onWaypointLabel(p: PacketParser): Unit =
     p.readTileEntity[Waypoint]() match {
       case Some(waypoint) => p.player match {
         case player: EntityPlayerMP if player.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) <= 64 =>

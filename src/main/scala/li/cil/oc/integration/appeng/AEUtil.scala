@@ -1,121 +1,77 @@
 package li.cil.oc.integration.appeng
 
+import javax.annotation.Nonnull
+
 import appeng.api.AEApi
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.VersionRange
+import appeng.api.networking.IGrid
+import appeng.api.networking.crafting.ICraftingGrid
+import appeng.api.networking.energy.IEnergyGrid
+import appeng.api.networking.storage.IStorageGrid
+import appeng.api.storage.channels.{IFluidStorageChannel, IItemStorageChannel}
+import appeng.api.storage.data.{IAEFluidStack, IAEItemStack}
 import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.versioning.VersionRange
+import net.minecraftforge.fml.common.Loader
 
 object AEUtil {
-  val versionsWithNewItemDefinitionAPI = VersionRange.createFromVersionSpec("[rv2-beta-20,)")
+  val versionsWithNewItemDefinitionAPI = VersionRange.createFromVersionSpec("[rv4-alpha-1,)")
+
+  val itemStorageChannel = AEApi.instance.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
+  val fluidStorageChannel = AEApi.instance.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
 
   def useNewItemDefinitionAPI = versionsWithNewItemDefinitionAPI.containsVersion(
     Loader.instance.getIndexedModList.get(Mods.AppliedEnergistics2.id).getProcessedVersion)
 
   // ----------------------------------------------------------------------- //
 
-  def areChannelsEnabled: Boolean = AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) areChannelsEnabledNew
-    else areChannelsEnabledOld
-  }
-
-  private def areChannelsEnabledNew: Boolean = AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
-
-  private def areChannelsEnabledOld: Boolean = AEApi.instance.blocks != null && AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null
+  def areChannelsEnabled: Boolean = AEApi.instance != null && AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
 
   // ----------------------------------------------------------------------- //
 
   def controllerClass: Class[_] =
-    if (AEApi.instance != null) {
-      if (AEUtil.useNewItemDefinitionAPI) controllerClassNew
-      else controllerClassOld
-    }
+    if (AEApi.instance != null)
+      if (areChannelsEnabled) AEApi.instance.definitions.blocks.controller.maybeEntity.get()
+      else null: Class[_]
     else null
 
-  private def controllerClassNew: Class[_] =
-    if (areChannelsEnabled) AEApi.instance.definitions.blocks.controller.maybeEntity.orNull
-    else null: Class[_] // ... why -.-
+  // ----------------------------------------------------------------------- //
 
-  private def controllerClassOld: Class[_] = {
-    // Not classOf[TileController] because that derps the compiler when it tries to resolve the class (says can't find API classes from RotaryCraft).
-    if (areChannelsEnabled) Class.forName("appeng.tile.networking.TileController")
+  def interfaceClass: Class[_] =
+    if (AEApi.instance != null)
+      if (areChannelsEnabled) AEApi.instance.definitions.blocks.iface.maybeEntity.get()
+      else null: Class[_]
     else null
-  }
 
   // ----------------------------------------------------------------------- //
 
-  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isControllerNew(stack)
-    else isControllerOld(stack)
-  }
-
-  private def isControllerNew(stack: ItemStack): Boolean =
-    areChannelsEnabled &&
-      AEApi.instance.definitions.blocks.controller.isSameAs(stack)
-
-  private def isControllerOld(stack: ItemStack): Boolean =
-    areChannelsEnabled &&
-      AEApi.instance.blocks != null &&
-      AEApi.instance.blocks.blockController != null &&
-      AEApi.instance.blocks.blockController.sameAsStack(stack)
+  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && areChannelsEnabled && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
-  def isExportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isExportBusNew(stack)
-    else isExportBusOld(stack)
-  }
-
-  private def isExportBusNew(stack: ItemStack): Boolean =
-    AEApi.instance.definitions.parts.exportBus.isSameAs(stack)
-
-  private def isExportBusOld(stack: ItemStack): Boolean =
-    AEApi.instance.parts != null &&
-      AEApi.instance.parts.partExportBus != null &&
-      AEApi.instance.parts.partExportBus.sameAsStack(stack)
+  def isExportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.exportBus.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
-  def isImportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isImportBusNew(stack)
-    else isImportBusOld(stack)
-  }
-
-  private def isImportBusNew(stack: ItemStack): Boolean =
-    AEApi.instance.definitions.parts.importBus.isSameAs(stack)
-
-  private def isImportBusOld(stack: ItemStack): Boolean =
-    AEApi.instance.parts != null &&
-      AEApi.instance.parts.partImportBus != null &&
-      AEApi.instance.parts.partImportBus.sameAsStack(stack)
+  def isImportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.importBus.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
-  def isBlockInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isBlockInterfaceNew(stack)
-    else isBlockInterfaceOld(stack)
-  }
-
-  private def isBlockInterfaceNew(stack: ItemStack): Boolean =
-    AEApi.instance.definitions.blocks.iface.isSameAs(stack)
-
-  private def isBlockInterfaceOld(stack: ItemStack): Boolean =
-    AEApi.instance.blocks != null &&
-      AEApi.instance.blocks.blockInterface != null &&
-      AEApi.instance.blocks.blockInterface.sameAsStack(stack)
+  def isBlockInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.blocks.iface.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
-  def isPartInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isPartInterfaceNew(stack)
-    else isPartInterfaceOld(stack)
-  }
+  def isPartInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.iface.isSameAs(stack)
 
-  private def isPartInterfaceNew(stack: ItemStack): Boolean =
-    AEApi.instance.definitions.parts.iface.isSameAs(stack)
+  // ----------------------------------------------------------------------- //
 
-  private def isPartInterfaceOld(stack: ItemStack): Boolean =
-    AEApi.instance.parts != null &&
-      AEApi.instance.parts.partInterface != null &&
-      AEApi.instance.parts.partInterface.sameAsStack(stack)
+  def getGridStorage(@Nonnull grid: IGrid): IStorageGrid = grid.getCache( classOf[IStorageGrid] )
+
+  // ----------------------------------------------------------------------- //
+
+  def getGridCrafting(@Nonnull grid: IGrid): ICraftingGrid = grid.getCache( classOf[ICraftingGrid] )
+
+  // ----------------------------------------------------------------------- //
+
+  def getGridEnergy(@Nonnull grid: IGrid): IEnergyGrid = grid.getCache( classOf[IEnergyGrid] )
 }

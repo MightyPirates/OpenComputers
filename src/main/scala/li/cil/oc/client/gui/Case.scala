@@ -6,8 +6,8 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 
@@ -27,25 +27,25 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.GUI.ButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRendererObj.drawString(
-      Localization.localizeImmediately(computer.getInventoryName),
+    fontRenderer.drawString(
+      Localization.localizeImmediately(computer.getName),
       8, 6, 0x404040)
-    if (powerButton.func_146115_a) {
+    if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(if (computer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiComputer)
+    GlStateManager.color(1, 1, 1)
+    Textures.bind(Textures.GUI.Computer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 }

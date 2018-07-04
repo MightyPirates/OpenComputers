@@ -12,6 +12,6 @@ object InventoryProviderDatabase extends InventoryProvider {
   override def getInventory(stack: ItemStack, player: EntityPlayer): IInventory = new DatabaseInventory {
     override def container: ItemStack = stack
 
-    override def isUseableByPlayer(player: EntityPlayer): Boolean = player == player
+    override def isUsableByPlayer(player: EntityPlayer): Boolean = player == player
   }
 }

@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "opencomputers:microcontroller" },
+        "facing=south": { "model": "opencomputers:microcontroller", "y": 180 },
+        "facing=west":  { "model": "opencomputers:microcontroller", "y": 270 },
+        "facing=east":  { "model": "opencomputers:microcontroller", "y": 90 }
+    }
+}

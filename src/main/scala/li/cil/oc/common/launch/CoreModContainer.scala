@@ -1,14 +1,14 @@
 package li.cil.oc.common.launch
 
 import com.google.common.eventbus.EventBus
-import cpw.mods.fml.common.DummyModContainer
-import cpw.mods.fml.common.LoadController
-import cpw.mods.fml.common.ModMetadata
+import net.minecraftforge.fml.common.DummyModContainer
+import net.minecraftforge.fml.common.LoadController
+import net.minecraftforge.fml.common.ModMetadata
 
 class CoreModContainer extends DummyModContainer({
   val md = new ModMetadata()
   md.authorList.add("Sangar")
-  md.modId = "OpenComputers|Core"
+  md.modId = "opencomputers|core"
   md.version = "@VERSION@"
   md.name = "OpenComputers (Core)"
   md.url = "http://oc.cil.li/"

@@ -15,11 +15,12 @@ import net.minecraftforge.common.DimensionManager
 // As of OC 1.5.10, loot disks are generated using normal floppies, and using
 // a factory system that allows third-party mods to register loot disks.
 object DriverLootDisk extends Item {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get(Constants.ItemName.LootDisk))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.Floppy)) &&
+    (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (!host.world.isRemote && stack.hasTagCompound) {
+    if (!host.world.isRemote && stack.hasTagCompound && DimensionManager.getWorld(0) != null) {
       val lootPath = "loot/" + stack.getTagCompound.getString(Settings.namespace + "lootPath")
       val savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + lootPath)
       val fs =

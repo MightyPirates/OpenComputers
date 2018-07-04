@@ -26,6 +26,8 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionEffect
+import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsJava._
@@ -34,7 +36,7 @@ import scala.collection.mutable
 
 class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessEndpoint {
   if (isServer) api.Network.joinWirelessNetwork(this)
-  var previousDimension = player.worldObj.provider.dimensionId
+  var previousDimension = player.world.provider.getDimension
 
   lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
   final val FullSyncInterval = 20 * 60
@@ -100,9 +102,9 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
             case Array("getHunger") =>
               respond(sender, "hunger", player.getFoodStats.getFoodLevel, player.getFoodStats.getSaturationLevel)
             case Array("getAge") =>
-              respond(sender, "age", (player.getAge / 20f).toInt)
+              respond(sender, "age", (player.getIdleTime / 20f).toInt)
             case Array("getName") =>
-              respond(sender, "name", player.getDisplayName)
+              respond(sender, "name", player.getDisplayName.getUnformattedComponentText)
             case Array("getExperience") =>
               respond(sender, "experience", player.experienceLevel)
 
@@ -169,10 +171,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       activeBehaviorsDirty = true
 
       player match {
-        case playerMP: EntityPlayerMP if playerMP.playerNetServerHandler != null =>
-          player.addPotionEffect(new PotionEffect(Potion.blindness.id, 100))
-          player.addPotionEffect(new PotionEffect(Potion.poison.id, 150))
-          player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 200))
+        case playerMP: EntityPlayerMP if playerMP.connection != null =>
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 100))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 150))
+          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 200))
           changeBuffer(-Settings.get.nanomachineReconfigureCost)
 
           hasSentConfiguration = false
@@ -243,10 +245,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       // load is called while the world is still set to the overworld, but
       // no dimension change event is fired if the player actually logged
       // out in another dimension... yay)
-      if (player.worldObj.provider.dimensionId != previousDimension) {
+      if (player.world.provider.getDimension != previousDimension) {
         api.Network.leaveWirelessNetwork(this, previousDimension)
         api.Network.joinWirelessNetwork(this)
-        previousDimension = player.worldObj.provider.dimensionId
+        previousDimension = player.world.provider.getDimension
       }
       else {
         api.Network.updateWirelessNetwork(this)
@@ -284,7 +286,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         val energyRatio = getLocalBuffer / (getLocalBufferSize + 1)
         val triggerRatio = activeInputs / (configuration.triggers.length + 1)
         val intensity = (energyRatio + triggerRatio) * 0.25
-        PlayerUtils.spawnParticleAround(player, "portal", intensity)
+        PlayerUtils.spawnParticleAround(player, EnumParticleTypes.PORTAL, intensity)
       }
     }
 

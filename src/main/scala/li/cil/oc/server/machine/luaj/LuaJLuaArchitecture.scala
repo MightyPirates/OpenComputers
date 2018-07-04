@@ -194,8 +194,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
             if (isInnerError)
               if (results.isuserdata(3)) results.touserdata(3).toString
               else results.tojstring(3)
-            else
-            if (results.isuserdata(2)) results.touserdata(2).toString
+            else if (results.isuserdata(2)) results.touserdata(2).toString
             else results.tojstring(2)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")

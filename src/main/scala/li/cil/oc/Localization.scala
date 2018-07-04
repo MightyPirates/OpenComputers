@@ -1,12 +1,13 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.event.FMLFingerprintViolationEvent
 import li.cil.oc.client.CommandHandler.SetClipboardCommand
-import net.minecraft.event.ClickEvent
-import net.minecraft.event.HoverEvent
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.ChatComponentTranslation
-import net.minecraft.util.StatCollector
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.TextComponentString
+import net.minecraft.util.text.TextComponentTranslation
+import net.minecraft.util.text.event.ClickEvent
+import net.minecraft.util.text.event.HoverEvent
+import net.minecraft.util.text.translation.I18n
+import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent
 
 import scala.util.matching.Regex
 
@@ -15,161 +16,161 @@ object Localization {
 
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
-  def canLocalize(key: String) = StatCollector.canTranslate(key)
+  def canLocalize(key: String): Boolean = I18n.canTranslate(key)
 
-  def localizeLater(formatKey: String, values: AnyRef*) = new ChatComponentTranslation(resolveKey(formatKey), values: _*)
+  def localizeLater(formatKey: String, values: AnyRef*) = new TextComponentTranslation(resolveKey(formatKey), values: _*)
 
-  def localizeLater(key: String) = new ChatComponentTranslation(resolveKey(key))
+  def localizeLater(key: String) = new TextComponentTranslation(resolveKey(key))
 
-  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(formatKey: String, values: AnyRef*): String = I18n.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
 
-  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
+  def localizeImmediately(key: String): String = I18n.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
-    def Address(value: String) = {
+    def Address(value: String): TextComponentTranslation = {
       val result = localizeLater("gui.Analyzer.Address", value)
-      result.getChatStyle.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, s"/${SetClipboardCommand.name} $value"))
-      result.getChatStyle.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, localizeLater("gui.Analyzer.CopyToClipboard")))
+      result.getStyle.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, s"/${SetClipboardCommand.name} $value"))
+      result.getStyle.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, localizeLater("gui.Analyzer.CopyToClipboard")))
       result
     }
 
-    def AddressCopied = localizeLater("gui.Analyzer.AddressCopied")
+    def AddressCopied: TextComponentTranslation = localizeLater("gui.Analyzer.AddressCopied")
 
-    def ChargerSpeed(value: Double) = localizeLater("gui.Analyzer.ChargerSpeed", (value * 100).toInt + "%")
+    def ChargerSpeed(value: Double): TextComponentTranslation = localizeLater("gui.Analyzer.ChargerSpeed", (value * 100).toInt + "%")
 
-    def ComponentName(value: String) = localizeLater("gui.Analyzer.ComponentName", value)
+    def ComponentName(value: String): TextComponentTranslation = localizeLater("gui.Analyzer.ComponentName", value)
 
-    def Components(count: Int, maxCount: Int) = localizeLater("gui.Analyzer.Components", count + "/" + maxCount)
+    def Components(count: Int, maxCount: Int): TextComponentTranslation = localizeLater("gui.Analyzer.Components", count + "/" + maxCount)
 
-    def LastError(value: String) = localizeLater("gui.Analyzer.LastError", localizeLater(value))
+    def LastError(value: String): TextComponentTranslation = localizeLater("gui.Analyzer.LastError", localizeLater(value))
 
-    def RobotOwner(owner: String) = localizeLater("gui.Analyzer.RobotOwner", owner)
+    def RobotOwner(owner: String): TextComponentTranslation = localizeLater("gui.Analyzer.RobotOwner", owner)
 
-    def RobotName(name: String) = localizeLater("gui.Analyzer.RobotName", name)
+    def RobotName(name: String): TextComponentTranslation = localizeLater("gui.Analyzer.RobotName", name)
 
-    def RobotXp(experience: Double, level: Int) = localizeLater("gui.Analyzer.RobotXp", f"$experience%.2f", level.toString)
+    def RobotXp(experience: Double, level: Int): TextComponentTranslation = localizeLater("gui.Analyzer.RobotXp", f"$experience%.2f", level.toString)
 
-    def StoredEnergy(value: String) = localizeLater("gui.Analyzer.StoredEnergy", value)
+    def StoredEnergy(value: String): TextComponentTranslation = localizeLater("gui.Analyzer.StoredEnergy", value)
 
-    def TotalEnergy(value: String) = localizeLater("gui.Analyzer.TotalEnergy", value)
+    def TotalEnergy(value: String): TextComponentTranslation = localizeLater("gui.Analyzer.TotalEnergy", value)
 
-    def Users(list: Iterable[String]) = localizeLater("gui.Analyzer.Users", list.mkString(", "))
+    def Users(list: Iterable[String]): TextComponentTranslation = localizeLater("gui.Analyzer.Users", list.mkString(", "))
 
-    def WirelessStrength(value: Double) = localizeLater("gui.Analyzer.WirelessStrength", value.toInt.toString)
+    def WirelessStrength(value: Double): TextComponentTranslation = localizeLater("gui.Analyzer.WirelessStrength", value.toInt.toString)
   }
 
   object Assembler {
-    def InsertTemplate = localizeImmediately("gui.Assembler.InsertCase")
+    def InsertTemplate: String = localizeImmediately("gui.Assembler.InsertCase")
 
-    def CollectResult = localizeImmediately("gui.Assembler.Collect")
+    def CollectResult: String = localizeImmediately("gui.Assembler.Collect")
 
-    def InsertCPU = localizeLater("gui.Assembler.InsertCPU")
+    def InsertCPU: TextComponentTranslation = localizeLater("gui.Assembler.InsertCPU")
 
-    def InsertRAM = localizeLater("gui.Assembler.InsertRAM")
+    def InsertRAM: TextComponentTranslation = localizeLater("gui.Assembler.InsertRAM")
 
-    def Complexity(complexity: Int, maxComplexity: Int) = {
+    def Complexity(complexity: Int, maxComplexity: Int): ITextComponent = {
       val message = localizeLater("gui.Assembler.Complexity", complexity.toString, maxComplexity.toString)
-      if (complexity > maxComplexity) new ChatComponentText("§4").appendSibling(message)
+      if (complexity > maxComplexity) new TextComponentString("§4").appendSibling(message)
       else message
     }
 
-    def Run = localizeImmediately("gui.Assembler.Run")
+    def Run: String = localizeImmediately("gui.Assembler.Run")
 
-    def Progress(progress: Double, timeRemaining: String) = localizeImmediately("gui.Assembler.Progress", progress.toInt.toString, timeRemaining)
+    def Progress(progress: Double, timeRemaining: String): String = localizeImmediately("gui.Assembler.Progress", progress.toInt.toString, timeRemaining)
 
-    def Warning(name: String) = new ChatComponentText("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
+    def Warning(name: String): ITextComponent = new TextComponentString("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
 
-    def Warnings = localizeLater("gui.Assembler.Warnings")
+    def Warnings: TextComponentTranslation = localizeLater("gui.Assembler.Warnings")
   }
 
   object Chat {
-    def WarningLuaFallback = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
+    def WarningLuaFallback: ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
 
-    def WarningProjectRed = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
+    def WarningProjectRed: ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
 
-    def WarningFingerprint(event: FMLFingerprintViolationEvent) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
+    def WarningFingerprint(event: FMLFingerprintViolationEvent): ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.getExpectedFingerprint, event.getFingerprints.toArray.mkString(", ")))
 
-    def WarningRecipes = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
+    def WarningRecipes: ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
 
-    def WarningClassTransformer = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
+    def WarningClassTransformer: ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
 
-    def WarningSimpleComponent = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
+    def WarningSimpleComponent: ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
 
-    def WarningLink(url: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
+    def WarningLink(url: String): ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
 
-    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
+    def InfoNewVersion(version: String): ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
 
-    def TextureName(name: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
+    def TextureName(name: String): ITextComponent = new TextComponentString("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
   }
 
   object Computer {
-    def TurnOff = localizeImmediately("gui.Robot.TurnOff")
+    def TurnOff: String = localizeImmediately("gui.Robot.TurnOff")
 
-    def TurnOn = localizeImmediately("gui.Robot.TurnOn")
+    def TurnOn: String = localizeImmediately("gui.Robot.TurnOn")
 
-    def Power = localizeImmediately("gui.Robot.Power")
+    def Power: String = localizeImmediately("gui.Robot.Power")
   }
 
   object Drive {
-    def Managed = localizeImmediately("gui.Drive.Managed")
+    def Managed: String = localizeImmediately("gui.Drive.Managed")
 
-    def Unmanaged = localizeImmediately("gui.Drive.Unmanaged")
+    def Unmanaged: String = localizeImmediately("gui.Drive.Unmanaged")
 
-    def Warning = localizeImmediately("gui.Drive.Warning")
+    def Warning: String = localizeImmediately("gui.Drive.Warning")
   }
 
   object Raid {
-    def Warning = localizeImmediately("gui.Raid.Warning")
+    def Warning: String = localizeImmediately("gui.Raid.Warning")
   }
 
   object Rack {
-    def Top = localizeImmediately("gui.Rack.Top")
+    def Top: String = localizeImmediately("gui.Rack.Top")
 
-    def Bottom = localizeImmediately("gui.Rack.Bottom")
+    def Bottom: String = localizeImmediately("gui.Rack.Bottom")
 
-    def Left = localizeImmediately("gui.Rack.Left")
+    def Left: String = localizeImmediately("gui.Rack.Left")
 
-    def Right = localizeImmediately("gui.Rack.Right")
+    def Right: String = localizeImmediately("gui.Rack.Right")
 
-    def Back = localizeImmediately("gui.Rack.Back")
+    def Back: String = localizeImmediately("gui.Rack.Back")
 
-    def None = localizeImmediately("gui.Rack.None")
+    def None: String = localizeImmediately("gui.Rack.None")
 
-    def RelayEnabled = localizeImmediately("gui.Rack.Enabled")
+    def RelayEnabled: String = localizeImmediately("gui.Rack.Enabled")
 
-    def RelayDisabled = localizeImmediately("gui.Rack.Disabled")
+    def RelayDisabled: String = localizeImmediately("gui.Rack.Disabled")
   }
 
   object Switch {
-    def TransferRate = localizeImmediately("gui.Switch.TransferRate")
+    def TransferRate: String = localizeImmediately("gui.Switch.TransferRate")
 
-    def PacketsPerCycle = localizeImmediately("gui.Switch.PacketsPerCycle")
+    def PacketsPerCycle: String = localizeImmediately("gui.Switch.PacketsPerCycle")
 
-    def QueueSize = localizeImmediately("gui.Switch.QueueSize")
+    def QueueSize: String = localizeImmediately("gui.Switch.QueueSize")
   }
 
   object Terminal {
-    def InvalidKey = localizeLater("gui.Terminal.InvalidKey")
+    def InvalidKey: TextComponentTranslation = localizeLater("gui.Terminal.InvalidKey")
 
-    def OutOfRange = localizeLater("gui.Terminal.OutOfRange")
+    def OutOfRange: TextComponentTranslation = localizeLater("gui.Terminal.OutOfRange")
   }
 
   object Tooltip {
-    def DiskUsage(used: Long, capacity: Long) = localizeImmediately("tooltip.DiskUsage", used.toString, capacity.toString)
+    def DiskUsage(used: Long, capacity: Long): String = localizeImmediately("tooltip.diskusage", used.toString, capacity.toString)
 
-    def DiskMode(isUnmanaged: Boolean) = localizeImmediately(if (isUnmanaged) "tooltip.DiskModeUnmanaged" else "tooltip.DiskModeManaged")
+    def DiskMode(isUnmanaged: Boolean): String = localizeImmediately(if (isUnmanaged) "tooltip.diskmodeunmanaged" else "tooltip.diskmodemanaged")
 
-    def Materials = localizeImmediately("tooltip.Materials")
+    def Materials: String = localizeImmediately("tooltip.materials")
 
-    def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)
+    def Tier(tier: Int): String = localizeImmediately("tooltip.tier", tier.toString)
 
-    def PrintBeaconBase = localizeImmediately("tooltip.Print.BeaconBase")
+    def PrintBeaconBase: String = localizeImmediately("tooltip.print.BeaconBase")
 
-    def PrintLightValue(level: Int) = localizeImmediately("tooltip.Print.LightValue", level.toString)
+    def PrintLightValue(level: Int): String = localizeImmediately("tooltip.print.LightValue", level.toString)
 
-    def PrintRedstoneLevel(level: Int) = localizeImmediately("tooltip.Print.RedstoneLevel", level.toString)
+    def PrintRedstoneLevel(level: Int): String = localizeImmediately("tooltip.print.RedstoneLevel", level.toString)
 
-    def MFULinked(isLinked: Boolean) = localizeImmediately(if (isLinked) "tooltip.UpgradeMF.Linked" else "tooltip.UpgradeMF.Unlinked")
+    def MFULinked(isLinked: Boolean): String = localizeImmediately(if (isLinked) "tooltip.upgrademf.Linked" else "tooltip.upgrademf.Unlinked")
   }
 
 }

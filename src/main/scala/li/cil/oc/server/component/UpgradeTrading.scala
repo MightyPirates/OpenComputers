@@ -14,15 +14,16 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.Entity
 import net.minecraft.entity.IMerchant
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldAware with DeviceInfo {
+class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("trading").
     create()
@@ -40,11 +41,11 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
 
   def maxRange = Settings.get.tradingRange
 
-  def isInRange(entity: Entity) = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ).distanceTo(position.toVec3) <= maxRange
+  def isInRange(entity: Entity) = new Vec3d(entity.posX, entity.posY, entity.posZ).distanceTo(position.toVec3) <= maxRange
 
   @Callback(doc = "function():table -- Returns a table of trades in range as userdata objects.")
   def getTrades(context: Context, args: Arguments): Array[AnyRef] = {
-    result(entitiesInBounds[Entity](position.bounds.expand(maxRange, maxRange, maxRange)).
+    result(entitiesInBounds[Entity](classOf[Entity], position.bounds.grow(maxRange, maxRange, maxRange)).
       filter(isInRange).
       collect { case merchant: IMerchant => merchant }.
       flatMap(merchant => merchant.getRecipes(null).indices.map(new Trade(this, merchant, _))))

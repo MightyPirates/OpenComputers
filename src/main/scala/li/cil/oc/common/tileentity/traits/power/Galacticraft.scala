@@ -1,4 +1,5 @@
 package li.cil.oc.common.tileentity.traits.power
+/* TODO Galacticraft
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.asm.Injectable
@@ -40,3 +41,4 @@ trait Galacticraft extends Common {
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def canConnect(from: ForgeDirection, networkType: NetworkType): Boolean = networkType == NetworkType.POWER && canConnectPower(from)
 }
+*/

@@ -12,7 +12,7 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
   // Return None on success, else Some("failure reason")
   def onTransferContents(): Option[String]
 
-  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number[, sourceSlot:number[, sinkSlot:number]]]):number -- Transfer some items between two inventories.""")
+  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number[, sourceSlot:number[, sinkSlot:number]]]):boolean -- Transfer some items between two inventories.""")
   def transferItem(context: Context, args: Arguments): Array[AnyRef] = {
     val sourceSide = checkSideForAction(args, 0)
     val sourcePos = position.offset(sourceSide)
@@ -25,8 +25,8 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
         result(Unit, reason)
       case _ =>
         if (args.count > 3) {
-          val sourceSlot = args.checkSlot(InventoryUtils.inventoryAt(sourcePos).getOrElse(throw new IllegalArgumentException("no inventory")), 3)
-          val sinkSlot = args.optSlot(InventoryUtils.inventoryAt(sinkPos).getOrElse(throw new IllegalArgumentException("no inventory")), 4, -1)
+          val sourceSlot = args.checkSlot(InventoryUtils.inventoryAt(sourcePos, sourceSide).getOrElse(throw new IllegalArgumentException("no inventory")), 3)
+          val sinkSlot = args.optSlot(InventoryUtils.inventoryAt(sinkPos, sinkSide).getOrElse(throw new IllegalArgumentException("no inventory")), 4, -1)
 
           result(InventoryUtils.transferBetweenInventoriesSlotsAt(sourcePos, sourceSide.getOpposite, sourceSlot, sinkPos, Option(sinkSide.getOpposite), if (sinkSlot < 0) None else Option(sinkSlot), count))
         }

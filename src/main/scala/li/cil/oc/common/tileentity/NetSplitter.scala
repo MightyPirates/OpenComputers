@@ -1,16 +1,19 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import net.minecraft.init.SoundEvents
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class NetSplitter extends traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment {
-
   _isOutputEnabled = true
 
   val node = api.Network.newNode(this, Visibility.None).
@@ -18,32 +21,30 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
 
   var isInverted = false
 
-  override def isSideOpen(side: ForgeDirection) =  if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
+  override def isSideOpen(side: EnumFacing) = if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
 
-  override def setSideOpen(side: ForgeDirection, value: Boolean) {
+  override def setSideOpen(side: EnumFacing, value: Boolean) {
     super.setSideOpen(side, value)
     if (isServer) {
       node.remove()
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
-      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
-      world.notifyBlocksOfNeighborChange(x, y, z, block)
+      getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
+      getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
     }
     else {
-      world.markBlockForUpdate(x, y, z)
+      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def sidedNode(side: ForgeDirection) = if (isSideOpen(side)) node else null
+  override def sidedNode(side: EnumFacing) = if (isSideOpen(side)) node else null
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = isSideOpen(side)
+  override def canConnect(side: EnumFacing) = isSideOpen(side)
 
   // ----------------------------------------------------------------------- //
-
-  override def canUpdate = false
 
   override protected def initialize(): Unit = {
     super.initialize()
@@ -61,32 +62,37 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.in", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+        getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
       }
       else {
-        world.markBlockForUpdate(x, y, z)
+        getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
       }
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val IsInvertedTag = Settings.namespace + "isInverted"
+  private final val OpenSidesTag = Settings.namespace + "openSides"
+
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
-    isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
+    isInverted = nbt.getBoolean(IsInvertedTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
+    nbt.setBoolean(IsInvertedTag, isInverted)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
-    isInverted = nbt.getBoolean(Settings.namespace + "isInverted")
+    isInverted = nbt.getBoolean(IsInvertedTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean(Settings.namespace + "isInverted", isInverted)
+    nbt.setBoolean(IsInvertedTag, isInverted)
   }
 }

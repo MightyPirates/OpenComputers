@@ -1,13 +1,10 @@
 package li.cil.oc.common
 
+import java.io.File
+
 import com.google.common.base.Strings
-import cpw.mods.fml.common.FMLLog
-import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.EntityRegistry
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
-import li.cil.oc.api.machine.Architecture
+import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
@@ -20,8 +17,17 @@ import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua52Architecture
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
+import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.RegistryEvent.MissingMappings
+import net.minecraftforge.fml.common.FMLLog
+import net.minecraftforge.fml.common.event._
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.registry.{EntityRegistry}
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
@@ -31,7 +37,9 @@ class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
     checkForBrokenJavaVersion()
 
-    Settings.load(e.getSuggestedConfigurationFile)
+    Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
+
+    MinecraftForge.EVENT_BUS.register(this)
 
     OpenComputers.log.info("Initializing blocks and items.")
 
@@ -40,26 +48,22 @@ class Proxy {
 
     OpenComputers.log.info("Initializing additional OreDict entries.")
 
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
-    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
-    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
-    OreDictionary.registerOre("nuggetGold", net.minecraft.init.Items.gold_nugget)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.chest)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.trapped_chest)
-    
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.PISTON)
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.STICKY_PISTON)
+    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.REDSTONE_TORCH)
+    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ENDER_PEARL)
+
     // Make mods that use old wireless card name not have broken recipes
     OreDictionary.registerOre("oc:wlanCard", Items.get(Constants.ItemName.WirelessNetworkCardTier2).createItemStack(1))
 
-    tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.iron_ingot, "ingotIron")
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.DIAMOND, "gemDiamond")
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.
-    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.obsidian)
+    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.OBSIDIAN)
 
     // To still allow using normal endstone for crafting drones.
-    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.end_stone)
+    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.END_STONE)
 
     OpenComputers.log.info("Initializing OpenComputers API.")
 
@@ -92,13 +96,16 @@ class Proxy {
     Loot.init()
     Achievement.init()
 
-    EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
+    EntityRegistry.registerModEntity(new ResourceLocation(Settings.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
 
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+
+    OpenComputers.log.info("Initializing capabilities.")
+    Capabilities.init()
 
     api.API.isPowerEnabled = !Settings.get.ignorePower
   }
@@ -126,6 +133,12 @@ class Proxy {
     }
   }
 
+  def registerModel(instance: Delegate, id: String): Unit = {}
+
+  def registerModel(instance: Item, id: String): Unit = {}
+
+  def registerModel(instance: Block, id: String): Unit = {}
+
   private def registerExclusive(name: String, items: ItemStack*) {
     if (OreDictionary.getOres(name).isEmpty) {
       for (item <- items) {
@@ -145,33 +158,33 @@ class Proxy {
 
   // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
   private val itemRenames = Map[String, String](
-    OpenComputers.ID + ":microcontrollerCase" -> Constants.ItemName.MicrocontrollerCaseTier1,
-    OpenComputers.ID + ":droneCase" -> Constants.ItemName.DroneCaseTier1,
-    OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1,
     OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1,
     OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack,
     OpenComputers.ID + ":wlanCard" -> Constants.ItemName.WirelessNetworkCardTier2
   )
 
-  def missingMappings(e: FMLMissingMappingsEvent) {
-    for (missing <- e.get()) {
-      if (missing.`type` == GameRegistry.Type.BLOCK) {
-        blockRenames.get(missing.name) match {
+  @SubscribeEvent
+  def missingBlockMappings(e: MissingMappings[Block]) {
+    for (missing <- e.getAllMappings()) {
+        blockRenames.get(missing.key.getResourcePath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
+            else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
-      }
-      else if (missing.`type` == GameRegistry.Type.ITEM) {
-        itemRenames.get(missing.name) match {
-          case Some(name) =>
-            if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
-          case _ => missing.warn()
-        }
-      }
     }
+  }
+
+  @SubscribeEvent
+  def missingItemMappings(e: MissingMappings[Item]) {
+    for (missing <- e.getAllMappings()) {
+        itemRenames.get(missing.key.getResourcePath) match {
+          case Some(name) =>
+            if (Strings.isNullOrEmpty(name)) missing.ignore()
+            else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
+          case _ => missing.warn()
+        }
+      }
   }
 
   // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.

@@ -14,7 +14,7 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
     load(stack)
   }
 
-  var map = new ItemStack(net.minecraft.init.Items.filled_map)
+  var map = new ItemStack(net.minecraft.init.Items.FILLED_MAP)
 
   def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
     case _: Throwable => throw new Exception("invalid map")
@@ -25,9 +25,12 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
     128 * (1 << info.scale)
   }
 
+  private final val DataTag = Settings.namespace + "data"
+  private final val MapTag = Settings.namespace + "map"
+
   override def load(stack: ItemStack) {
     if (stack.hasTagCompound) {
-      load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+      load(stack.getTagCompound.getCompoundTag(DataTag))
     }
   }
 
@@ -35,18 +38,18 @@ class NavigationUpgradeData extends ItemData(Constants.ItemName.NavigationUpgrad
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
     }
-    save(stack.getCompoundTag(Settings.namespace + "data"))
+    save(stack.getCompoundTag(DataTag))
   }
 
   override def load(nbt: NBTTagCompound) {
-    if (nbt.hasKey(Settings.namespace + "map")) {
-      map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+    if (nbt.hasKey(MapTag)) {
+      map = new ItemStack(nbt.getCompoundTag(MapTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     if (map != null) {
-      nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
+      nbt.setNewCompoundTag(MapTag, map.writeToNBT)
     }
   }
 }

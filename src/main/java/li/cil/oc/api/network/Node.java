@@ -1,6 +1,8 @@
 package li.cil.oc.api.network;
 
 import li.cil.oc.api.Persistable;
+import li.cil.oc.api.driver.DriverBlock;
+import li.cil.oc.api.driver.DriverItem;
 
 /**
  * A single node in a {@link Network}.
@@ -17,9 +19,9 @@ import li.cil.oc.api.Persistable;
  * All other kinds of nodes you may come up with will also have to be
  * handled manually.
  * <p/>
- * Items have to be handled by a corresponding {@link li.cil.oc.api.driver.Item}.
+ * Items have to be handled by a corresponding {@link DriverItem}.
  * Existing blocks may be interfaced with the adapter block if a
- * {@link li.cil.oc.api.driver.Block} exists that supports the block.
+ * {@link DriverBlock} exists that supports the block.
  * <p/>
  * <em>Important</em>: like the <tt>Network</tt> interface you must not create
  * your own implementations of this interface. Use the factory methods in the

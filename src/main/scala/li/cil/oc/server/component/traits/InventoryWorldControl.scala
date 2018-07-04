@@ -1,30 +1,34 @@
 package li.cil.oc.server.component.traits
 
-import cpw.mods.fml.common.eventhandler.Event.Result
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
+import li.cil.oc.util.StackOption._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.item.ItemTossEvent
+import net.minecraftforge.fml.common.eventhandler.Event.Result
+
+import scala.collection.convert.WrapAsScala._
 
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:number[, fuzzy:boolean=false]):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
-      case Some(stack) => Option(stack.getItem) match {
+      case SomeStack(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
-          val blockPos = position.offset(side)
-          val idMatches = item.field_150939_a == world.getBlock(blockPos)
-          val subTypeMatches = args.optBoolean(1, false) || !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(blockPos)
+          val blockPos = position.offset(side).toBlockPos
+          val state = world.getBlockState(blockPos)
+          val idMatches = item.getBlock == state.getBlock
+          val subTypeMatches = args.optBoolean(1, false) || !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == state.getBlock.getMetaFromState(state)
           return result(idMatches && subTypeMatches)
         case _ =>
       }
@@ -38,17 +42,17 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val facing = checkSideForAction(args, 0)
     val count = args.optItemCount(1)
     val stack = inventory.getStackInSlot(selectedSlot)
-    if (stack != null && stack.stackSize > 0) {
+    if (!stack.isEmpty && stack.getCount > 0) {
       val blockPos = position.offset(facing)
-      InventoryUtils.inventoryAt(blockPos) match {
-        case Some(inv) if inv.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite) =>
-          if (!InventoryUtils.insertIntoInventory(stack, inv, Option(facing.getOpposite), count)) {
+      InventoryUtils.inventoryAt(blockPos, facing.getOpposite) match {
+        case Some(inv) if mayInteract(blockPos, facing.getOpposite, inv) =>
+          if (!InventoryUtils.insertIntoInventory(stack, inv, count)) {
             // Cannot drop into that inventory.
             return result(false, "inventory full")
           }
-          else if (stack.stackSize == 0) {
+          else if (stack.getCount == 0) {
             // Dropped whole stack.
-            inventory.setInventorySlotContents(selectedSlot, null)
+            inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
           }
           else {
             // Dropped partial stack.
@@ -63,7 +67,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
             val denied = event.hasResult && event.getResult == Result.DENY
             !canceled && !denied
           }
-          if (dropped != null && dropped.stackSize > 0) {
+          if (!dropped.isEmpty) {
             if (InventoryUtils.spawnStackInWorld(position, dropped, Some(facing), Some(validator)) == null)
               fakePlayer.inventory.addItemStackToInventory(dropped)
           }
@@ -82,18 +86,18 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val count = args.optItemCount(1)
 
     val blockPos = position.offset(facing)
-    if (InventoryUtils.inventoryAt(blockPos).exists(inventory => {
-      inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
+    if (InventoryUtils.inventoryAt(blockPos, facing.getOpposite).exists(inventory => {
+      mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots)), inventory, count)
     })) {
       context.pause(Settings.get.suckDelay)
       result(true)
     }
     else {
-      for (entity <- suckableItems(facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-        val stack = entity.getEntityItem
-        val size = stack.stackSize
+      for (entity <- suckableItems(facing) if !entity.isDead && !entity.cannotPickup) {
+        val stack = entity.getItem
+        val size = stack.getCount
         onSuckCollect(entity)
-        if (stack.stackSize < size || entity.isDead) {
+        if (stack.getCount < size || entity.isDead) {
           context.pause(Settings.get.suckDelay)
           return result(true)
         }
@@ -102,7 +106,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     }
   }
 
-  protected def suckableItems(side: ForgeDirection) = entitiesOnSide[EntityItem](side)
+  protected def suckableItems(side: EnumFacing) = entitiesOnSide(classOf[EntityItem], side)
 
   protected def onSuckCollect(entity: EntityItem): Unit = entity.onCollideWithPlayer(fakePlayer)
 }

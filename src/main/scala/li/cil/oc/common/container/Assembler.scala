@@ -1,14 +1,14 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.client.gui.Icons
+import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends Player(playerInventory, assembler) {
   // Computer case.
@@ -16,9 +16,9 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
       @SideOnly(Side.CLIENT) override
-      def func_111238_b() = !isAssembling && super.func_111238_b()
+      def isEnabled = !isAssembling && super.isEnabled
 
-      override def getBackgroundIconIndex = if (isAssembling) Icons.get(common.Tier.None) else super.getBackgroundIconIndex
+      override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })
   }
 

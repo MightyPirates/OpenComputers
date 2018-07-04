@@ -1,14 +1,14 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.Mod
-import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common.SidedProxy
-import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
-import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.network.FMLEventChannel
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.command.CommandHandler
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.SidedProxy
+import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
+import net.minecraftforge.fml.common.event._
+import net.minecraftforge.fml.common.network.FMLEventChannel
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -16,13 +16,13 @@ import org.apache.logging.log4j.Logger
   version = OpenComputers.Version,
   modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
 object OpenComputers {
-  final val ID = "OpenComputers"
+  final val ID = "opencomputers"
 
   final val Name = "OpenComputers"
 
   final val Version = "@VERSION@"
 
-  def log = logger.getOrElse(LogManager.getLogger(Name))
+  def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
 
   var logger: Option[Logger] = None
 
@@ -39,23 +39,20 @@ object OpenComputers {
   }
 
   @EventHandler
-  def init(e: FMLInitializationEvent) = {
+  def init(e: FMLInitializationEvent): Unit = {
     proxy.init(e)
     OpenComputers.log.info("Done with init phase.")
   }
 
   @EventHandler
-  def postInit(e: FMLPostInitializationEvent) = {
+  def postInit(e: FMLPostInitializationEvent): Unit = {
     proxy.postInit(e)
     OpenComputers.log.info("Done with post init phase.")
   }
 
   @EventHandler
-  def missingMappings(e: FMLMissingMappingsEvent) = proxy.missingMappings(e)
+  def serverStart(e: FMLServerStartingEvent): Unit = CommandHandler.register(e)
 
   @EventHandler
-  def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)
-
-  @EventHandler
-  def imc(e: IMCEvent) = IMC.handleEvent(e)
+  def imc(e: IMCEvent): Unit = IMC.handleEvent(e)
 }

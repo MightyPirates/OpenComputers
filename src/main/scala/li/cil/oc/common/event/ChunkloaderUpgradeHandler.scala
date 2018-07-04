@@ -2,17 +2,17 @@ package li.cil.oc.common.event
 
 import java.util
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
 import li.cil.oc.util.BlockPosition
-import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.LoadingCallback
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraft.entity.Entity
 
 import scala.collection.convert.WrapAsScala._
@@ -31,7 +31,7 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
         val z = data.getInteger("z")
         OpenComputers.log.info(s"Restoring chunk loader ticket for upgrade at chunk ($x, $z) with address $address.")
 
-        ForgeChunkManager.forceChunk(ticket, new ChunkCoordIntPair(x, z))
+        ForgeChunkManager.forceChunk(ticket, new ChunkPos(x, z))
       }
     }
   }
@@ -76,12 +76,12 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {
     val blockPos = BlockPosition(loader.host)
-    val centerChunk = new ChunkCoordIntPair(blockPos.x >> 4, blockPos.z >> 4)
-    val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
+    val centerChunk = new ChunkPos(blockPos.x >> 4, blockPos.z >> 4)
+    val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkPos(centerChunk.x + x, centerChunk.z + z)).toSet
 
     loader.ticket.foreach(ticket => {
       ticket.getChunkList.collect {
-        case chunk: ChunkCoordIntPair if !robotChunks.contains(chunk) => ForgeChunkManager.unforceChunk(ticket, chunk)
+        case chunk: ChunkPos if !robotChunks.contains(chunk) => ForgeChunkManager.unforceChunk(ticket, chunk)
       }
 
       for (chunk <- robotChunks) {
@@ -89,8 +89,8 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
       }
 
       ticket.getModData.setString("address", loader.node.address)
-      ticket.getModData.setInteger("x", centerChunk.chunkXPos)
-      ticket.getModData.setInteger("z", centerChunk.chunkZPos)
+      ticket.getModData.setInteger("x", centerChunk.x)
+      ticket.getModData.setInteger("z", centerChunk.z)
     })
   }
 }

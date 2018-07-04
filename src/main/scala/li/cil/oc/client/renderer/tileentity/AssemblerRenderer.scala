@@ -3,71 +3,74 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Assembler
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object AssemblerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
 
-    val assembler = tileEntity.asInstanceOf[Assembler]
+  override def render(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
 
-    GL11.glPushMatrix()
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
-    bindTexture(TextureMap.locationBlocksTexture)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
+    val t = Tessellator.getInstance
+    val r = t.getBuffer
+
+    Textures.Block.bind()
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
     {
-      val icon = Textures.Assembler.iconTopOn
-      t.addVertexWithUV(-0.5, 0.55, 0.5, icon.getMinU, icon.getMaxV)
-      t.addVertexWithUV(0.5, 0.55, 0.5, icon.getMaxU, icon.getMaxV)
-      t.addVertexWithUV(0.5, 0.55, -0.5, icon.getMaxU, icon.getMinV)
-      t.addVertexWithUV(-0.5, 0.55, -0.5, icon.getMinU, icon.getMinV)
+      val icon = Textures.getSprite(Textures.Block.AssemblerTopOn)
+      r.pos(-0.5, 0.55, 0.5).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(0.5, 0.55, 0.5).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(0.5, 0.55, -0.5).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(-0.5, 0.55, -0.5).tex(icon.getMinU, icon.getMinV).endVertex()
     }
 
     t.draw()
 
+    // TODO Unroll loop to draw all at once?
     val indent = 6 / 16f + 0.005
     for (i <- 0 until 4) {
-      t.startDrawingQuads()
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
       if (assembler.isAssembling) {
-        val icon = Textures.Assembler.iconSideAssembling
-        t.addVertexWithUV(indent, 0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV)
-        t.addVertexWithUV(indent, 0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV)
-        t.addVertexWithUV(indent, -0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV)
-        t.addVertexWithUV(indent, -0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMinV)
+        val icon = Textures.getSprite(Textures.Block.AssemblerSideAssembling)
+        r.pos(indent, 0.5, -indent).tex(icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV).endVertex()
+        r.pos(indent, 0.5, indent).tex(icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV).endVertex()
+        r.pos(indent, -0.5, indent).tex(icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV).endVertex()
+        r.pos(indent, -0.5, -indent).tex(icon.getInterpolatedU((0.5 - indent) * 16), icon.getMinV).endVertex()
       }
 
       {
-        val icon = Textures.Assembler.iconSideOn
-        t.addVertexWithUV(0.5005, 0.5, -0.5, icon.getMinU, icon.getMaxV)
-        t.addVertexWithUV(0.5005, 0.5, 0.5, icon.getMaxU, icon.getMaxV)
-        t.addVertexWithUV(0.5005, -0.5, 0.5, icon.getMaxU, icon.getMinV)
-        t.addVertexWithUV(0.5005, -0.5, -0.5, icon.getMinU, icon.getMinV)
+        val icon = Textures.getSprite(Textures.Block.AssemblerSideOn)
+        r.pos(0.5005, 0.5, -0.5).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(0.5005, 0.5, 0.5).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(0.5005, -0.5, 0.5).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(0.5005, -0.5, -0.5).tex(icon.getMinU, icon.getMinV).endVertex()
       }
 
       t.draw()
 
-      GL11.glRotatef(90, 0, 1, 0)
+      GlStateManager.rotate(90, 0, 1, 0)
     }
 
-    RenderState.enableLighting()
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popMatrix()
+    RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }

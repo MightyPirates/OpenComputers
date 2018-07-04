@@ -2,10 +2,9 @@ package li.cil.oc.common.recipe
 
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
-import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
-import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -13,37 +12,37 @@ import net.minecraft.world.World
 /**
   * @author asie, Vexatos
   */
-class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
+class ColorizeRecipe(target: Item, source: Array[Item] = null) extends ContainerItemAwareRecipe {
   def this(target: Block, source: Array[Item]) = this(Item.getItemFromBlock(target), source)
   def this(target: Block) = this(target, null)
 
-  val targetItem = target
-  val sourceItems = if (source != null) source else Array(targetItem)
+  val targetItem: Item = target
+  val sourceItems: Array[Item] = if (source != null) source else Array(targetItem)
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
+    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => sourceItems.contains(stack.getItem) || stack.getItem == targetItem)
-    val other = stacks.filterNot(targets.contains)
+    val other = stacks.filterNot(targets.contains(_))
     targets.size == 1 && other.nonEmpty && other.forall(Color.isDye)
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
-    var targetStack: ItemStack = null
+    var targetStack: ItemStack = ItemStack.EMPTY
     val color = Array[Int](0, 0, 0)
     var colorCount = 0
     var maximum = 0
 
-    (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
+    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
       if (sourceItems.contains(stack.getItem)
         || stack.getItem == targetItem) {
         targetStack = stack.copy()
-        targetStack.stackSize = 1
+        targetStack.setCount(1)
       } else {
         val dye = Color.findDye(stack)
         if (dye.isEmpty)
-          return null
+          return ItemStack.EMPTY
 
-        val itemColor = EntitySheep.fleeceColorTable(15 - Color.dyes.indexOf(dye.get))
+        val itemColor = Color.byOreName(dye.get).getColorComponentValues
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt
@@ -55,7 +54,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
       }
     }
 
-    if (targetStack == null) return null
+    if (targetStack.isEmpty) return ItemStack.EMPTY
 
     if (targetItem == targetStack.getItem) {
       if (ItemColorizer.hasColor(targetStack)) {
@@ -70,7 +69,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
         colorCount = colorCount + 1
       }
     } else if (sourceItems.contains(targetStack.getItem)) {
-      targetStack = new ItemStack(targetItem, targetStack.stackSize, targetStack.getItemDamage)
+      targetStack = new ItemStack(targetItem, targetStack.getCount, targetStack.getItemDamage)
     }
 
     var red = color(0) / colorCount
@@ -85,7 +84,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends IRecipe {
     targetStack
   }
 
-  override def getRecipeSize = 10
+  override def getMinimumRecipeSize = 2
 
-  override def getRecipeOutput = null
+  override def getRecipeOutput = ItemStack.EMPTY
 }

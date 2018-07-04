@@ -1,47 +1,52 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
+import li.cil.oc.common.tileentity.Geolyzer
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object GeolyzerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+object GeolyzerRenderer extends TileEntitySpecialRenderer[Geolyzer] {
+  override def render(geolyzer: Geolyzer, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
+    GlStateManager.color(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    GlStateManager.pushMatrix()
 
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
-    GL11.glScaled(1.0025, -1.0025, 1.0025)
-    GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.scale(1.0025, -1.0025, 1.0025)
+    GlStateManager.translate(-0.5f, -0.5f, -0.5f)
 
-    bindTexture(TextureMap.locationBlocksTexture)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
+    val t = Tessellator.getInstance
+    val r = t.getBuffer
 
-    val topOn = Textures.Geolyzer.iconTopOn
-    t.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
-    t.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
-    t.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
-    t.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
+    Textures.Block.bind()
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+
+    val icon = Textures.getSprite(Textures.Block.GeolyzerTopOn)
+    r.pos(0, 0, 1).tex(icon.getMinU, icon.getMaxV).endVertex()
+    r.pos(1, 0, 1).tex(icon.getMaxU, icon.getMaxV).endVertex()
+    r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+    r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
 
     t.draw()
 
-    RenderState.enableLighting()
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popMatrix()
+    RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
 }

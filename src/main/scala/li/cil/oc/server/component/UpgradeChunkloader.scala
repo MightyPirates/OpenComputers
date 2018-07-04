@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
@@ -22,7 +23,7 @@ import net.minecraft.entity.Entity
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeChunkloader(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("chunkloader").
     withConnector().
@@ -65,7 +66,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     super.onConnect(node)
     if (node == this.node) {
       if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
-        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.dimensionId}.")
+        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
       }
       ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
         case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))

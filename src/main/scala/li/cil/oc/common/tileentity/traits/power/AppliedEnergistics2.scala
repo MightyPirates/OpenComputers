@@ -1,5 +1,5 @@
 package li.cil.oc.common.tileentity.traits.power
-
+/* TODO AE2
 import java.util
 
 import appeng.api.AEApi
@@ -135,3 +135,4 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def getMachineRepresentation = null
 }
+*/

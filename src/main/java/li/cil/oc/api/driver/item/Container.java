@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver.item;
 
-import li.cil.oc.api.driver.Item;
+import li.cil.oc.api.driver.DriverItem;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack;
  * These drivers will not be queried for environments. The reported tier is the
  * maximum tier supported in the dynamic slot they provide.
  */
-public interface Container extends Item {
+public interface Container extends DriverItem {
     /**
      * The type of slot provided as the dynamic slot. This will usually be
      * for other upgrades, but may be for any type of item component.

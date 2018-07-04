@@ -1,5 +1,7 @@
 package li.cil.oc.util
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.util.Random
 
 import li.cil.oc.Constants
@@ -14,8 +16,11 @@ import net.minecraft.item.ItemBucket
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
+import net.minecraft.item.crafting.Ingredient
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraftforge.oredict.ShapelessOreRecipe
 
@@ -23,7 +28,23 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemUtils {
-  def caseTier(stack: ItemStack) = {
+  def getDisplayName(nbt: NBTTagCompound): Option[String] = {
+    if (nbt.hasKey("display")) {
+      val displayNbt = nbt.getCompoundTag("display")
+      if (displayNbt.hasKey("Name"))
+        return Option(displayNbt.getString("Name"))
+    }
+    None
+  }
+
+  def setDisplayName(nbt: NBTTagCompound, name: String): Unit = {
+    if (!nbt.hasKey("display")) {
+      nbt.setTag("display", new NBTTagCompound())
+    }
+    nbt.getCompoundTag("display").setString("Name", name)
+  }
+
+  def caseTier(stack: ItemStack): Int = {
     val descriptor = api.Items.get(stack)
     if (descriptor == api.Items.get(Constants.BlockName.CaseTier1)) Tier.One
     else if (descriptor == api.Items.get(Constants.BlockName.CaseTier2)) Tier.Two
@@ -45,36 +66,54 @@ object ItemUtils {
     else Tier.None
   }
 
-  def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
+  def caseNameWithTierSuffix(name: String, tier: Int): String = name + (if (tier == Tier.Four) "creative" else (tier + 1).toString)
+
+  def loadTag(data: Array[Byte]): NBTTagCompound = {
+    val bais = new ByteArrayInputStream(data)
+    CompressedStreamTools.readCompressed(bais)
+  }
+
+  def saveStack(stack: ItemStack): Array[Byte] = {
+    val tag = new NBTTagCompound()
+    stack.writeToNBT(tag)
+    saveTag(tag)
+  }
+
+  def saveTag(tag: NBTTagCompound): Array[Byte] = {
+    val baos = new ByteArrayOutputStream()
+    CompressedStreamTools.writeCompressed(tag, baos)
+    baos.toByteArray
+  }
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Int) = (inputs.filter(input =>
-      input != null &&
-      input.getItem != null &&
-      input.stackSize / outputSize > 0 &&
-      // Strip out buckets, because those are returned when crafting, and
-      // we have no way of returning the fluid only (and I can't be arsed
-      // to make it output fluids into fluiducts or such, sorry).
-      !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
-    def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.stackSize
+      !input.isEmpty &&
+        input.getCount / outputSize > 0 &&
+        // Strip out buckets, because those are returned when crafting, and
+        // we have no way of returning the fluid only (and I can't be arsed
+        // to make it output fluids into fluiducts or such, sorry).
+        !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
+
+    def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.getCount
+
     def isInputBlacklisted(stack: ItemStack) = stack.getItem match {
-      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.blockRegistry.getNameForObject(item.field_150939_a))
-      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.itemRegistry.getNameForObject(item))
+      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.REGISTRY.getNameForObject(item.getBlock))
+      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.REGISTRY.getNameForObject(item))
       case _ => false
     }
 
-    val (ingredients, count) = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
-      filter(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack)).collect {
-        case recipe: ShapedRecipes => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
-        case recipe: ShapelessRecipes => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
-        case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-        case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-      }.collectFirst {
-        case (inputs, outputSize) if !inputs.exists(isInputBlacklisted) => (inputs, outputSize)
-      } match {
-        case Some((inputs, outputSize)) => (inputs, outputSize)
-        case _ => return Array.empty
-      }
+    val (ingredients, count) = CraftingManager.REGISTRY.
+      filter(recipe => !recipe.getRecipeOutput.isEmpty && recipe.getRecipeOutput.isItemEqual(stack)).collect {
+      case recipe: ShapedRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
+      case recipe: ShapelessRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
+      case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
+      case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
+    }.collectFirst {
+      case (inputs, outputSize) if !inputs.exists(isInputBlacklisted) => (inputs, outputSize)
+    } match {
+      case Some((inputs, outputSize)) => (inputs, outputSize)
+      case _ => return Array.empty
+    }
 
     // Avoid positive feedback loops.
     if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
@@ -84,16 +123,16 @@ object ItemUtils {
     val merged = mutable.ArrayBuffer.empty[ItemStack]
     for (ingredient <- ingredients) {
       merged.find(_.isItemEqual(ingredient)) match {
-        case Some(entry) => entry.stackSize += ingredient.stackSize
+        case Some(entry) => entry.grow(ingredient.getCount)
         case _ => merged += ingredient.copy()
       }
     }
-    merged.foreach(_.stackSize /= count)
+    merged.foreach(s => s.setCount(s.getCount / count))
     // Split items up again to 'disassemble them individually'.
     val distinct = mutable.ArrayBuffer.empty[ItemStack]
     for (ingredient <- merged) {
-      val size = ingredient.stackSize max 1
-      ingredient.stackSize = 1
+      val size = ingredient.getCount max 1
+      ingredient.setCount(1)
       for (i <- 0 until size) {
         distinct += ingredient.copy()
       }
@@ -108,9 +147,8 @@ object ItemUtils {
 
   private lazy val rng = new Random()
 
-  private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
-    case stack: ItemStack => stack
-    case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
+  private def resolveOreDictEntries[T](entries: Iterable[Ingredient]) = entries.collect {
+    case ing: Ingredient if ing.getMatchingStacks.nonEmpty => ing.getMatchingStacks()(rng.nextInt(ing.getMatchingStacks.length))
   }
 
 }

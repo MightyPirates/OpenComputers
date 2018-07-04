@@ -1,10 +1,9 @@
 package li.cil.oc.common.entity
 
+import java.lang
 import java.lang.Iterable
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
@@ -15,6 +14,7 @@ import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.MultiTank
+import li.cil.oc.api.machine
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
@@ -33,21 +33,43 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
+import net.minecraft.entity.MoverType
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.Vec3
+import net.minecraft.network.datasync.DataParameter
+import net.minecraft.network.datasync.DataSerializers
+import net.minecraft.network.datasync.EntityDataManager
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
 import scala.collection.convert.WrapAsJava._
 
+object Drone {
+  val DataRunning: DataParameter[lang.Boolean] = EntityDataManager.createKey(classOf[Drone], DataSerializers.BOOLEAN)
+  val DataTargetX: DataParameter[lang.Float] = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataTargetY: DataParameter[lang.Float] = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataTargetZ: DataParameter[lang.Float] = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataMaxAcceleration: DataParameter[lang.Float] = EntityDataManager.createKey(classOf[Drone], DataSerializers.FLOAT)
+  val DataSelectedSlot: DataParameter[Integer] = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataCurrentEnergy: DataParameter[Integer] = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataMaxEnergy: DataParameter[Integer] = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataStatusText: DataParameter[String] = EntityDataManager.createKey(classOf[Drone], DataSerializers.STRING)
+  val DataInventorySize: DataParameter[Integer] = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+  val DataLightColor: DataParameter[Integer] = EntityDataManager.createKey(classOf[Drone], DataSerializers.VARINT)
+}
+
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
+class Drone(world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
+  override def world: World = getEntityWorld
+
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -59,36 +81,36 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   isImmuneToFire = true
 
   // Rendering stuff, purely eyecandy.
-  val targetFlapAngles = Array.fill(4, 2)(0f)
-  val flapAngles = Array.fill(4, 2)(0f)
+  val targetFlapAngles: Array[Array[Float]] = Array.fill(4, 2)(0f)
+  val flapAngles: Array[Array[Float]] = Array.fill(4, 2)(0f)
   var nextFlapChange = 0
-  var bodyAngle = math.random.toFloat * 90
+  var bodyAngle: Float = math.random.toFloat * 90
   var angularVelocity = 0f
   var nextAngularVelocityChange = 0
   var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
   val info = new DroneData()
-  val machine = if (!world.isRemote) {
+  val machine: api.machine.Machine = if (!world.isRemote) {
     val m = Machine.create(this)
     m.node.asInstanceOf[Connector].setLocalBufferSize(0)
     m
   } else null
-  val control = if (!world.isRemote) new component.Drone(this) else null
+  val control: component.Drone = if (!world.isRemote) new component.Drone(this) else null
   val components = new ComponentInventory {
-    override def host = Drone.this
+    override def host: Drone = Drone.this
 
-    override def items = info.components.map(Option(_))
+    override def items: Array[ItemStack] = info.components
 
-    override def getSizeInventory = info.components.length
+    override def getSizeInventory: Int = info.components.length
 
     override def markDirty() {}
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
-    override def isUseableByPlayer(player: EntityPlayer) = true
+    override def isUsableByPlayer(player: EntityPlayer) = true
 
-    override def node = Option(machine).map(_.node).orNull
+    override def node: Node = Option(machine).map(_.node).orNull
 
     override def onConnect(node: Node) {}
 
@@ -97,7 +119,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     override def onMessage(message: Message) {}
   }
   val equipmentInventory = new Inventory {
-    val items = Array.empty[Option[ItemStack]]
+    val items = Array.empty[ItemStack]
 
     override def getSizeInventory = 0
 
@@ -107,23 +129,23 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
 
-    override def isUseableByPlayer(player: EntityPlayer) = false
+    override def isUsableByPlayer(player: EntityPlayer) = false
   }
   val mainInventory = new Inventory {
-    val items = Array.fill[Option[ItemStack]](8)(None)
+    val items: Array[ItemStack] = Array.fill[ItemStack](8)(ItemStack.EMPTY)
 
-    override def getSizeInventory = inventorySize
+    override def getSizeInventory: Int = inventorySize
 
     override def getInventoryStackLimit = 64
 
     override def markDirty() {} // TODO update client GUI?
 
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot >= 0 && slot < getSizeInventory
+    override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = slot >= 0 && slot < getSizeInventory
 
-    override def isUseableByPlayer(player: EntityPlayer) = player.getDistanceSqToEntity(Drone.this) < 64
+    override def isUsableByPlayer(player: EntityPlayer): Boolean = player.getDistanceSq(Drone.this) < 64
   }
   val tank = new MultiTank {
-    override def tankCount = components.components.count {
+    override def tankCount: Int = components.components.count {
       case Some(tank: IFluidTank) => true
       case _ => false
     }
@@ -136,7 +158,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def setSelectedTank(index: Int): Unit = selectedTank = index
 
-  override def tier = info.tier
+  override def tier: Int = info.tier
 
   override def player(): EntityPlayer = {
     agent.Player.updatePositionAndRotation(player_, facing, facing)
@@ -144,13 +166,13 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     player_
   }
 
-  override def name = info.name
+  override def name: String = info.name
 
   override def setName(name: String): Unit = info.name = name
 
-  var ownerName = Settings.get.fakePlayerName
+  var ownerName: String = Settings.get.fakePlayerName
 
-  var ownerUUID = Settings.get.fakePlayerProfile.getId
+  var ownerUUID: UUID = Settings.get.fakePlayerProfile.getId
 
   private lazy val player_ = new agent.Player(this)
 
@@ -158,33 +180,33 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // Forward context stuff to our machine. Interface needed for some components
   // to work correctly (such as the chunkloader upgrade).
 
-  override def node = machine.node
+  override def node: Node = machine.node
 
-  override def canInteract(player: String) = machine.canInteract(player)
+  override def canInteract(player: String): Boolean = machine.canInteract(player)
 
-  override def isPaused = machine.isPaused
+  override def isPaused: Boolean = machine.isPaused
 
-  override def start() = machine.start()
+  override def start(): Boolean = machine.start()
 
-  override def pause(seconds: Double) = machine.pause(seconds)
+  override def pause(seconds: Double): Boolean = machine.pause(seconds)
 
-  override def stop() = machine.stop()
+  override def stop(): Boolean = machine.stop()
 
-  override def consumeCallBudget(callCost: Double) = machine.consumeCallBudget(callCost)
+  override def consumeCallBudget(callCost: Double): Unit = machine.consumeCallBudget(callCost)
 
-  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
+  override def signal(name: String, args: AnyRef*): Boolean = machine.signal(name, args: _*)
 
   // ----------------------------------------------------------------------- //
 
-  override def getTarget = Vec3.createVectorHelper(targetX, targetY, targetZ)
+  override def getTarget = new Vec3d(targetX.floatValue(), targetY.floatValue(), targetZ.floatValue())
 
-  override def setTarget(value: Vec3): Unit = {
-    targetX = value.xCoord.toFloat
-    targetY = value.yCoord.toFloat
-    targetZ = value.zCoord.toFloat
+  override def setTarget(value: Vec3d): Unit = {
+    targetX = value.x.toFloat
+    targetY = value.y.toFloat
+    targetZ = value.z.toFloat
   }
 
-  override def getVelocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+  override def getVelocity = new Vec3d(motionX, motionY, motionZ)
 
   // ----------------------------------------------------------------------- //
 
@@ -194,37 +216,37 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def xPosition = posX
+  override def xPosition: Double = posX
 
-  override def yPosition = posY
+  override def yPosition: Double = posY
 
-  override def zPosition = posZ
+  override def zPosition: Double = posZ
 
   override def markChanged() {}
 
   // ----------------------------------------------------------------------- //
 
-  override def facing = ForgeDirection.SOUTH
+  override def facing = EnumFacing.SOUTH
 
-  override def toLocal(value: ForgeDirection) = value
+  override def toLocal(value: EnumFacing): EnumFacing = value
 
-  override def toGlobal(value: ForgeDirection) = value
+  override def toGlobal(value: EnumFacing): EnumFacing = value
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def componentSlot(address: String) = components.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String): Int = components.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def onMachineConnect(node: Node) {}
 
   override def onMachineDisconnect(node: Node) {}
 
-  def computeInventorySize() = math.min(maxInventorySize, info.components.foldLeft(0)((acc, component) => acc + (Option(component) match {
+  def computeInventorySize(): Int = math.min(maxInventorySize, info.components.foldLeft(0)((acc, component) => acc + (Option(component) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver: item.Inventory) => math.max(1, driver.inventoryCapacity(stack) / 4)
       case _ => 0
@@ -235,33 +257,25 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // ----------------------------------------------------------------------- //
 
   override def entityInit() {
-    // Running or not.
-    dataWatcher.addObject(2, Byte.box(0: Byte))
-    // Target position.
-    dataWatcher.addObject(3, Float.box(0f))
-    dataWatcher.addObject(4, Float.box(0f))
-    dataWatcher.addObject(5, Float.box(0f))
-    // Max acceleration.
-    dataWatcher.addObject(6, Float.box(0f))
-    // Selected inventory slot.
-    dataWatcher.addObject(7, Byte.box(0: Byte))
-    // Current and maximum energy.
-    dataWatcher.addObject(8, Int.box(0))
-    dataWatcher.addObject(9, Int.box(100))
-    // Status text.
-    dataWatcher.addObject(10, "")
-    // Inventory size for client.
-    dataWatcher.addObject(11, Byte.box(0: Byte))
-    // Light color.
-    dataWatcher.addObject(12, Int.box(0x66DD55))
+    getDataManager.register(Drone.DataRunning, java.lang.Boolean.FALSE)
+    getDataManager.register(Drone.DataTargetX, Float.box(0f))
+    getDataManager.register(Drone.DataTargetY, Float.box(0f))
+    getDataManager.register(Drone.DataTargetZ, Float.box(0f))
+    getDataManager.register(Drone.DataMaxAcceleration, Float.box(0f))
+    getDataManager.register(Drone.DataSelectedSlot, Int.box(0))
+    getDataManager.register(Drone.DataCurrentEnergy, Int.box(0))
+    getDataManager.register(Drone.DataMaxEnergy, Int.box(100))
+    getDataManager.register(Drone.DataStatusText, "")
+    getDataManager.register(Drone.DataInventorySize, Int.box(0))
+    getDataManager.register(Drone.DataLightColor, Int.box(0x66DD55))
   }
 
-  def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
+  def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3d) {
     info.load(stack)
     control.node.changeBuffer(info.storedEnergy - control.node.localBuffer)
     wireThingsTogether()
     inventorySize = computeInventorySize()
-    setPosition(position.xCoord, position.yCoord, position.zCoord)
+    setPosition(position.x, position.y, position.z)
   }
 
   def preparePowerUp() {
@@ -280,53 +294,52 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     components.connectComponents()
   }
 
-  def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+  def isRunning: Boolean = getDataManager.get(Drone.DataRunning)
 
-  def targetX = dataWatcher.getWatchableObjectFloat(3)
+  def targetX: lang.Float = getDataManager.get(Drone.DataTargetX)
 
-  def targetY = dataWatcher.getWatchableObjectFloat(4)
+  def targetY: lang.Float = getDataManager.get(Drone.DataTargetY)
 
-  def targetZ = dataWatcher.getWatchableObjectFloat(5)
+  def targetZ: lang.Float = getDataManager.get(Drone.DataTargetZ)
 
-  def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+  def targetAcceleration: lang.Float = getDataManager.get(Drone.DataMaxAcceleration)
 
-  def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+  def selectedSlot: Int = getDataManager.get(Drone.DataSelectedSlot) & 0xFF
 
-  def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+  def globalBuffer: Integer = getDataManager.get(Drone.DataCurrentEnergy)
 
-  def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+  def globalBufferSize: Integer = getDataManager.get(Drone.DataMaxEnergy)
 
-  def statusText = dataWatcher.getWatchableObjectString(10)
+  def statusText: String = getDataManager.get(Drone.DataStatusText)
 
-  def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+  def inventorySize: Int = getDataManager.get(Drone.DataInventorySize) & 0xFF
 
-  def lightColor = dataWatcher.getWatchableObjectInt(12)
+  def lightColor: Integer = getDataManager.get(Drone.DataLightColor)
 
-  def setRunning(value: Boolean) = dataWatcher.updateObject(2, Byte.box(if (value) 1: Byte else 0: Byte))
+  def setRunning(value: Boolean): Unit = getDataManager.set(Drone.DataRunning, Boolean.box(value))
 
   // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, Float.box(math.round(value * 4) / 4f))
+  def targetX_=(value: Float): Unit = getDataManager.set(Drone.DataTargetX, Float.box(math.round(value * 4) / 4f))
 
-  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, Float.box(math.round(value * 4) / 4f))
+  def targetY_=(value: Float): Unit = getDataManager.set(Drone.DataTargetY, Float.box(math.round(value * 4) / 4f))
 
-  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, Float.box(math.round(value * 4) / 4f))
+  def targetZ_=(value: Float): Unit = getDataManager.set(Drone.DataTargetZ, Float.box(math.round(value * 4) / 4f))
 
-  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, Float.box(math.max(0, math.min(maxAcceleration, value))))
+  def targetAcceleration_=(value: Float): Unit = getDataManager.set(Drone.DataMaxAcceleration, Float.box(math.max(0, math.min(maxAcceleration, value))))
 
-  def setSelectedSlot(value: Int) = dataWatcher.updateObject(7, Byte.box(value.toByte))
+  def setSelectedSlot(value: Int): Unit = getDataManager.set(Drone.DataSelectedSlot, Int.box(value.toByte))
 
-  def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, Int.box(value))
+  def globalBuffer_=(value: Int): Unit = getDataManager.set(Drone.DataCurrentEnergy, Int.box(value))
 
-  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, Int.box(value))
+  def globalBufferSize_=(value: Int): Unit = getDataManager.set(Drone.DataMaxEnergy, Int.box(value))
 
-  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
+  def statusText_=(value: String): Unit = getDataManager.set(Drone.DataStatusText, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
 
-  def inventorySize_=(value: Int) = dataWatcher.updateObject(11, Byte.box(value.toByte))
+  def inventorySize_=(value: Int): Unit = getDataManager.set(Drone.DataInventorySize, Int.box(value.toByte))
 
-  def lightColor_=(value: Int) = dataWatcher.updateObject(12, Int.box(value))
+  def lightColor_=(value: Int): Unit = getDataManager.set(Drone.DataLightColor, Int.box(value))
 
-  @SideOnly(Side.CLIENT)
-  override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
+  override def setPositionAndRotationDirect(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, posRotationIncrements: Int, teleport: Boolean): Unit = {
     // Only set exact position if we're too far away from the server's
     // position, otherwise keep interpolating. This removes jitter and
     // is good enough for drones.
@@ -344,7 +357,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     super.onUpdate()
 
     if (!world.isRemote) {
-      if (isInsideOfMaterial(Material.water) || isInsideOfMaterial(Material.lava)) {
+      if (isInsideOfMaterial(Material.WATER) || isInsideOfMaterial(Material.LAVA)) {
         // We're not water-proof!
         machine.stop()
       }
@@ -401,28 +414,28 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     prevPosX = posX
     prevPosY = posY
     prevPosZ = posZ
-    noClip = func_145771_j(posX, (boundingBox.minY + boundingBox.maxY) / 2, posZ)
+    noClip = pushOutOfBlocks(posX, (getEntityBoundingBox.minY + getEntityBoundingBox.maxY) / 2, posZ)
 
     if (isRunning) {
-      val toTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
+      val toTarget = new Vec3d(targetX - posX, targetY - posY, targetZ - posZ)
       val distance = toTarget.lengthVector()
-      val velocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+      val velocity = new Vec3d(motionX, motionY, motionZ)
       if (distance > 0 && (distance > 0.005f || velocity.dotProduct(velocity) > 0.005f)) {
-        val acceleration = math.min(targetAcceleration, distance) / distance
-        velocity.xCoord += toTarget.xCoord * acceleration
-        velocity.yCoord += toTarget.yCoord * acceleration
-        velocity.zCoord += toTarget.zCoord * acceleration
-        motionX = math.max(-maxVelocity, math.min(maxVelocity, velocity.xCoord))
-        motionY = math.max(-maxVelocity, math.min(maxVelocity, velocity.yCoord))
-        motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocity.zCoord))
+        val acceleration = math.min(targetAcceleration.floatValue(), distance) / distance
+        val velocityX = velocity.x + toTarget.x * acceleration
+        val velocityY = velocity.y + toTarget.y * acceleration
+        val velocityZ = velocity.z + toTarget.z * acceleration
+        motionX = math.max(-maxVelocity, math.min(maxVelocity, velocityX))
+        motionY = math.max(-maxVelocity, math.min(maxVelocity, velocityY))
+        motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocityZ))
       }
       else {
         motionX = 0
         motionY = 0
         motionZ = 0
-        posX = targetX
-        posY = targetY
-        posZ = targetZ
+        posX = targetX.floatValue()
+        posY = targetY.floatValue()
+        posZ = targetZ.floatValue()
       }
     }
     else {
@@ -430,7 +443,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionY -= gravity
     }
 
-    moveEntity(motionX, motionY, motionZ)
+    move(MoverType.SELF, motionX, motionY, motionZ)
 
     // Make sure we don't get infinitely faster.
     if (isRunning) {
@@ -439,7 +452,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionZ *= drag
     }
     else {
-      val groundDrag = worldObj.getBlock(BlockPosition(this: Entity).offset(ForgeDirection.DOWN)).slipperiness * drag
+      val groundDrag = world.getBlock(BlockPosition(this: Entity).offset(EnumFacing.DOWN)).slipperiness * drag
       motionX *= groundDrag
       motionY *= drag
       motionZ *= groundDrag
@@ -449,28 +462,28 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }
   }
 
-  override def hitByEntity(entity: Entity) = {
+  override def hitByEntity(entity: Entity): Boolean = {
     if (isRunning) {
-      val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
+      val direction = new Vec3d(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
         if (Settings.get.inputUsername)
-          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord), entity.getCommandSenderName)
+          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y), entity.getName)
         else
-          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord))
+          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y))
       }
-      motionX = (motionX - direction.xCoord) * 0.5f
-      motionY = (motionY - direction.yCoord) * 0.5f
-      motionZ = (motionZ - direction.zCoord) * 0.5f
+      motionX = (motionX - direction.x) * 0.5f
+      motionY = (motionY - direction.y) * 0.5f
+      motionZ = (motionZ - direction.z) * 0.5f
     }
     super.hitByEntity(entity)
   }
 
-  override def interactFirst(player: EntityPlayer): Boolean = {
+  override def processInitialInteract(player: EntityPlayer, hand: EnumHand): Boolean = {
     if (isDead) return false
     if (player.isSneaking) {
-      if (Wrench.isWrench(player.getHeldItem)) {
+      if (Wrench.isWrench(player.getHeldItemMainhand)) {
         if(!world.isRemote) {
-          kill()
+          outOfWorld()
         }
       }
       else if (!world.isRemote && !machine.isRunning) {
@@ -485,15 +498,15 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   // No step sounds. Except on that one day.
-  override def func_145780_a(x: Int, y: Int, z: Int, block: Block): Unit = {
-    if (EventHandler.isItTime) super.func_145780_a(x, y, z, block)
+  override def playStepSound(pos: BlockPos, block: Block): Unit = {
+    if (EventHandler.isItTime) super.playStepSound(pos, block)
   }
 
   // ----------------------------------------------------------------------- //
 
   private var isChangingDimension = false
 
-  override def travelToDimension(dimension: Int) {
+  override def changeDimension(dimension: Int): Entity = {
     // Store relative target as target, to allow adding that in our "new self"
     // (entities get re-created after changing dimension).
     targetX = (targetX - posX).toFloat
@@ -501,7 +514,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetZ = (targetZ - posZ).toFloat
     try {
       isChangingDimension = true
-      super.travelToDimension(dimension)
+      super.changeDimension(dimension)
     }
     finally {
       isChangingDimension = false
@@ -509,8 +522,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }
   }
 
-  override def copyDataFrom(entity: Entity, unused: Boolean): Unit = {
-    super.copyDataFrom(entity, unused)
+  override def copyDataFromOld(entity: Entity): Unit = {
+    super.copyDataFromOld(entity)
     // Compute relative target based on old position and update, because our
     // frame of reference most certainly changed (i.e. we'll spawn at different
     // coordinates than the ones we started traveling from, e.g. when porting
@@ -537,24 +550,24 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }
   }
 
-  override def kill(): Unit = {
+  override def outOfWorld(): Unit = {
     if (isDead) return
-    super.kill()
+    super.outOfWorld()
     if (!world.isRemote) {
       val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
       info.storedEnergy = control.node.localBuffer.toInt
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
-      entity.delayBeforeCanPickup = 15
-      world.spawnEntityInWorld(entity)
+      entity.setPickupDelay(15)
+      world.spawnEntity(entity)
       InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
     }
   }
 
-  override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")
+  override def getName: String = Localization.localizeImmediately("entity.oc.Drone.name")
 
-  override def handleWaterMovement() = {
-    inWater = worldObj.handleMaterialAcceleration(boundingBox, Material.water, this)
+  override def handleWaterMovement(): Boolean = {
+    inWater = world.handleMaterialAcceleration(getEntityBoundingBox, Material.WATER, this)
     inWater
   }
 
@@ -586,9 +599,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
-    if (worldObj.isRemote) return
+    if (world.isRemote) return
     components.saveComponents()
-    info.storedEnergy = control.node.localBuffer.toInt
+    info.storedEnergy = globalBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
       nbt.setNewCompoundTag("machine", machine.save)

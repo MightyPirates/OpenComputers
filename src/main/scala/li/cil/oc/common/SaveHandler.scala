@@ -5,8 +5,6 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import cpw.mods.fml.common.eventhandler.EventPriority
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.MachineHost
@@ -14,11 +12,13 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.ChunkDataEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.apache.commons.lang3.JavaVersion
 import org.apache.commons.lang3.SystemUtils
 
@@ -42,7 +42,7 @@ object SaveHandler {
   // which takes a lot of time and is completely unnecessary in those cases.
   var savingForClients = false
 
-  val saveData = mutable.Map.empty[Int, mutable.Map[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]]
+  val saveData = mutable.Map.empty[Int, mutable.Map[ChunkPos, mutable.Map[String, Array[Byte]]]]
 
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
 
@@ -70,14 +70,14 @@ object SaveHandler {
 
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
-    val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
+    val dimension = world.provider.getDimension
+    val chunk = new ChunkPos(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
     nbt.setInteger("dimension", dimension)
-    nbt.setInteger("chunkX", chunk.chunkXPos)
-    nbt.setInteger("chunkZ", chunk.chunkZPos)
+    nbt.setInteger("chunkX", chunk.x)
+    nbt.setInteger("chunkZ", chunk.z)
 
     scheduleSave(dimension, chunk, name, data)
   }
@@ -111,12 +111,12 @@ object SaveHandler {
     // Same goes for the chunk. This also works around issues with computers
     // being moved (e.g. Redstone in Motion).
     val dimension = nbt.getInteger("dimension")
-    val chunk = new ChunkCoordIntPair(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
+    val chunk = new ChunkPos(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
 
     load(dimension, chunk, name)
   }
 
-  def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
+  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
       // Make sure we get rid of old versions (e.g. left over by other mods
@@ -129,7 +129,7 @@ object SaveHandler {
     }
   }
 
-  def load(dimension: Int, chunk: ChunkCoordIntPair, name: String): Array[Byte] = {
+  def load(dimension: Int, chunk: ChunkPos, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     // Use data from 'cache' if possible. This avoids weird things happening
     // when writeToNBT+readFromNBT is called by other mods (i.e. this is not
@@ -146,7 +146,7 @@ object SaveHandler {
     }
     val path = statePath
     val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     val file = new io.File(chunkPath, name)
     if (!file.exists()) return Array.empty[Byte]
     try {
@@ -174,10 +174,10 @@ object SaveHandler {
   @SubscribeEvent
   def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
     val path = statePath
-    val dimension = e.world.provider.dimensionId
-    val chunk = e.getChunk.getChunkCoordIntPair
+    val dimension = e.getWorld.provider.getDimension
+    val chunk = e.getChunk.getPos
     val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
       for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
     }
@@ -205,11 +205,13 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
-    // Touch all externally saved data when loading, to avoid it getting
-    // deleted in the next save (because the now - save time will usually
-    // be larger than the time out after loading a world again).
-    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
-    else visitJava16()
+    if (!e.getWorld.isRemote) {
+      // Touch all externally saved data when loading, to avoid it getting
+      // deleted in the next save (because the now - save time will usually
+      // be larger than the time out after loading a world again).
+      if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
+      else visitJava16()
+    }
   }
 
   private def visitJava16() {
@@ -225,7 +227,7 @@ object SaveHandler {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
-      saveData.get(e.world.provider.dimensionId) match {
+      saveData.get(e.getWorld.provider.getDimension) match {
         case Some(chunks) => chunks.clear()
         case _ =>
       }

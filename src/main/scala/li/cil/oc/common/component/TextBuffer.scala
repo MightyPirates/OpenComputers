@@ -1,9 +1,6 @@
 package li.cil.oc.common.component
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -17,11 +14,13 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
+import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -32,14 +31,18 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumHand
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
+class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -503,38 +506,47 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   // ----------------------------------------------------------------------- //
 
+  private def bufferPath = node.address + "_buffer"
+  private final val IsOnTag = Settings.namespace + "isOn"
+  private final val HasPowerTag = Settings.namespace + "hasPower"
+  private final val MaxWidthTag = Settings.namespace + "maxWidth"
+  private final val MaxHeightTag = Settings.namespace + "maxHeight"
+  private final val PreciseTag = Settings.namespace + "precise"
+  private final val ViewportWidthTag = Settings.namespace + "viewportWidth"
+  private final val ViewportHeightTag = Settings.namespace + "viewportHeight"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (SideTracker.isClient) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
-      proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
+      proxy.nodeAddress = nbt.getCompoundTag(NodeData.NodeTag).getString(NodeData.AddressTag)
       TextBuffer.registerClientBuffer(this)
     }
     else {
-      if (nbt.hasKey("buffer")) {
-        data.load(nbt.getCompoundTag("buffer"))
+      if (nbt.hasKey(NodeData.BufferTag)) {
+        data.load(nbt.getCompoundTag(NodeData.BufferTag))
       }
       else if (!Strings.isNullOrEmpty(node.address)) {
-        data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+        data.load(SaveHandler.loadNBT(nbt, bufferPath))
       }
     }
 
-    if (nbt.hasKey(Settings.namespace + "isOn")) {
-      isDisplaying = nbt.getBoolean(Settings.namespace + "isOn")
+    if (nbt.hasKey(IsOnTag)) {
+      isDisplaying = nbt.getBoolean(IsOnTag)
     }
-    if (nbt.hasKey(Settings.namespace + "hasPower")) {
-      hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
+    if (nbt.hasKey(HasPowerTag)) {
+      hasPower = nbt.getBoolean(HasPowerTag)
     }
-    if (nbt.hasKey(Settings.namespace + "maxWidth") && nbt.hasKey(Settings.namespace + "maxHeight")) {
-      val maxWidth = nbt.getInteger(Settings.namespace + "maxWidth")
-      val maxHeight = nbt.getInteger(Settings.namespace + "maxHeight")
+    if (nbt.hasKey(MaxWidthTag) && nbt.hasKey(MaxHeightTag)) {
+      val maxWidth = nbt.getInteger(MaxWidthTag)
+      val maxHeight = nbt.getInteger(MaxHeightTag)
       maxResolution = (maxWidth, maxHeight)
     }
-    precisionMode = nbt.getBoolean(Settings.namespace + "precise")
+    precisionMode = nbt.getBoolean(PreciseTag)
 
-    if (nbt.hasKey(Settings.namespace + "viewportWidth")) {
-      val vpw = nbt.getInteger(Settings.namespace + "viewportWidth")
-      val vph = nbt.getInteger(Settings.namespace + "viewportHeight")
+    if (nbt.hasKey(ViewportWidthTag)) {
+      val vpw = nbt.getInteger(ViewportWidthTag)
+      val vph = nbt.getInteger(ViewportHeightTag)
       viewport = (vpw min data.width max 1, vph min data.height max 1)
     } else {
       viewport = data.size
@@ -561,14 +573,14 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       }
     }
 
-    SaveHandler.scheduleSave(host, nbt, node.address + "_buffer", data.save _)
-    nbt.setBoolean(Settings.namespace + "isOn", isDisplaying)
-    nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
-    nbt.setInteger(Settings.namespace + "maxWidth", maxResolution._1)
-    nbt.setInteger(Settings.namespace + "maxHeight", maxResolution._2)
-    nbt.setBoolean(Settings.namespace + "precise", precisionMode)
-    nbt.setInteger(Settings.namespace + "viewportWidth", viewport._1)
-    nbt.setInteger(Settings.namespace + "viewportHeight", viewport._2)
+    SaveHandler.scheduleSave(host, nbt, bufferPath, data.save _)
+    nbt.setBoolean(IsOnTag, isDisplaying)
+    nbt.setBoolean(HasPowerTag, hasPower)
+    nbt.setInteger(MaxWidthTag, maxResolution._1)
+    nbt.setInteger(MaxHeightTag, maxResolution._2)
+    nbt.setBoolean(PreciseTag, precisionMode)
+    nbt.setInteger(ViewportWidthTag, viewport._1)
+    nbt.setInteger(ViewportHeightTag, viewport._2)
   }
 }
 
@@ -580,7 +592,7 @@ object TextBuffer {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
       val blockPos = BlockPosition(t.host)
-      val keep = t.host.world != e.world || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
+      val keep = t.host.world != e.getWorld || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
         ClientComponentTracker.remove(t.host.world, t)
       }
@@ -591,7 +603,7 @@ object TextBuffer {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.host.world != e.world
+      val keep = t.host.world != e.getWorld
       if (!keep) {
         ClientComponentTracker.remove(t.host.world, t)
       }
@@ -727,7 +739,7 @@ object TextBuffer {
 
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
-      dirty = true
+      markDirty()
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
@@ -772,7 +784,7 @@ object TextBuffer {
     private lazy val Debugger = api.Items.get(Constants.ItemName.Debugger)
 
     private def debug(message: String) {
-      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
+      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.player != null && api.Items.get(Minecraft.getMinecraft.player.getHeldItemMainhand) == Debugger) {
         OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
       }
     }
@@ -879,8 +891,8 @@ object TextBuffer {
     }
 
     override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
-      val stack = player.getHeldItem
-      if (stack != null) {
+      val stack = player.getHeldItem(EnumHand.MAIN_HAND)
+      if (!stack.isEmpty) {
         if (!stack.hasTagCompound) {
           stack.setTagCompound(new NBTTagCompound())
         }
@@ -914,7 +926,7 @@ object TextBuffer {
       }
       args += Int.box(data)
       if (Settings.get.inputUsername) {
-        args += player.getCommandSenderName
+        args += player.getName
       }
 
       owner.node.sendToReachable("computer.checked_signal", args: _*)

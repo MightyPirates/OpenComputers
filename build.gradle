@@ -1,17 +1,14 @@
+// For those who want the bleeding edge
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
 
@@ -20,9 +17,11 @@ plugins {
 }
 
 apply plugin: 'scala'
-apply plugin: 'forge'
-apply plugin: 'idea'
+apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -30,21 +29,21 @@ file "build.properties" withReader {
     ext.config = new ConfigSlurper().parse prop
 }
 
-version = "${config.oc.version}"
-group = "li.cil.oc"
-archivesBaseName = "OpenComputers"
+version = config.mod.version
+group = config.mod.group
+archivesBaseName = config.mod.name
 
 def getGitRef() {
-  try {
-    def stdout = new ByteArrayOutputStream()
-    exec {
-      commandLine 'git', 'rev-parse', '--short', 'HEAD'
-      standardOutput = stdout
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    } catch (Throwable e) {
+        return "unknown"
     }
-    return stdout.toString().trim()
-  } catch (Throwable e) {
-    return "unknown"
-  }
 }
 
 if (System.getenv("PROMOTED_NUMBER") != null)
@@ -57,272 +56,116 @@ else
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
-runClient {
-    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
-}
-runServer {
-    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
-}
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+    runDir = "run"
 
-if (JavaVersion.current().isJava8Compatible()) {
-    allprojects {
-        tasks.withType(Javadoc) {
-            options.addStringOption('Xdoclint:none', '-quiet')
-        }
-    }
+    mappings = config.minecraft.mappings
+
+    replace "@VERSION@", project.simpleVersion
+    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
 }
 
 repositories {
-    maven {
-        name = "TIS-3D"
-        url = "http://maven.cil.li/"
-    }
-    maven {
-        name = "BluePower"
-        url = "http://maven.bluepowermod.com/"
-    }
-    maven {
-        name = "chickenbones"
-        url = "http://chickenbones.net/maven/"
-    }
-    maven {
-        name = "ic2, forestry"
-        url = "http://maven.ic2.player.to/"
-    }
-    maven {
-        name = "IGW"
-        url = "http://maven.k-4u.nl/"
-    }
-    maven {
-        name = "mobius"
-        url = "http://default.mobiusstrip.eu/maven"
-    }
-    maven {
-        name = "dmodoomsirius"
-        url = "http://api.dmodoomsirius.me/"
-    }
-    maven {
-        name = "ue"
-        url = "http://calclavia.com/maven/"
-    }
-    maven {
-        name "FireBall API Depot"
-        url "http://dl.tsr.me/artifactory/libs-release-local"
-    }
-    maven {
-        name 'DVS1 Maven FS'
-        url 'http://dvs1.progwml6.com/files/maven'
-    }
-    maven {
-        name 'ProjectRed'
-        url 'http://files.projectredwiki.com/maven/'
-    }
-    // ivy {
-    //     name 'ColoredLightCore'
-    //     artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
-    // }
-    ivy {
-        name "BuildCraft"
-        artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
-    }
-    ivy {
-        name 'Galacticraft'
-        artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
-    }
-    ivy {
-        name 'Mekanism'
-        artifactPattern "http://ci.cil.li/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
-    }
-    ivy {
-        name 'immibis'
-        artifactPattern "https://dl.dropboxusercontent.com/u/2944265/mods/autobuilt/files/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'CoFHLib'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cofhlib.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'CoFHCore'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cofhcore.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'MineFactoryReloaded'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'ComputerCraft'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
-    }
-    ivy {
-        name 'EnderIO'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'Railcraft'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
-    }
-    ivy {
-        name 'BloodMagic'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
-    }
-    ivy {
+    maven { url "http://dvs1.progwml6.com/files/maven/" }
+    maven { url "http://maven.amadornes.com/" }
+    maven { url "http://maven.cil.li/" }
+    maven { url "http://maven.ic2.player.to/" }
+    maven { url "http://tehnut.info/maven" }
+	maven { url "http://maven.thiakil.com" }
+    maven { url "http://cc.crzd.me/maven/" }
+	ivy {
         name 'ExtraCells'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'ThaumicEnergistics'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.thaumicenergistics.cf}/[module]-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
     }
 }
 
 configurations {
-    provided
     embedded
-    compile.extendsFrom embedded
+    compile.extendsFrom provided, embedded
 }
 
 dependencies {
-    provided "appeng:RotaryCraft:${config.rotc.version}:api"
-    provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
-        exclude module: 'buildcraft'
+    deobfCompile ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
+        exclude module: "jei_1.12"
     }
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
-    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
-    provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
-    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
-    provided "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
-    provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
-    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
-    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
-    provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
-    provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
-    provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
-    provided ("mrtjp:ProjectRed:${config.projred.version}:dev") {
-        exclude module: 'CoFHCore'
+    deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
+    deobfCompile "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
+    deobfCompile ("net.sengir.forestry:forestry_1.12:${config.forestry.version}") {
+        exclude module: "jei_1.12"
     }
-    // provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
-
-    provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
-    provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
-    provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
-    provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
-
-    provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
-    provided name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
-    provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
-    provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
-    provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
-    provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
-    provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
-	provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
-
-    compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
+    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
+    deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
+    deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
+	
+	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
+		transitive = false
+	}
+	provided name: 'ExtraCells', version: config.extracells.version, ext: 'jar'
+	
+	provided (name: 'Mekanism', version: config.mekanism.version, classifier: 'api') {
+		transitive = false
+	}
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
     testCompile "org.mockito:mockito-all:1.10.19"
-    testCompile "org.scalactic:scalactic_2.11:2.2.6"
-    testCompile "org.scalatest:scalatest_2.11:2.2.6"
-}
-
-// Add the "provided" dependencies to the compile (but NOT runtime) classpath.
-sourceSets.main.compileClasspath += [configurations.provided]
-
-idea.module.scopes.PROVIDED.plus += [configurations.provided]
-// TODO Causes errors on Gradle 2 for me (No such property: allDependencies for class: java.io.File).
-//eclipse.classpath.plusConfigurations += [configurations.provided]
-
-minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
-
-    replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {
+    inputs.property "version", project.simpleVersion
+    inputs.property "mcversion", project.minecraft.version
+    inputs.property "fversion", config.forge.version
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        include 'application.conf'
-        filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
-        }
+        expand 'version':project.simpleVersion, 'mcversion':project.minecraft.version, 'fversion':config.forge.version
     }
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
-        exclude 'application.conf'
     }
 
     // Move access transformer to META-INF
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
-def commonManifest = {
-    attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-    attributes FMLCorePluginContainsFMLMod: "true"
-    attributes FMLAT: "oc_at.cfg"
+allprojects {
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
 }
 
 jar {
-    exclude "cofh/**"
-    exclude "mods/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
-    classifier = 'universal'
-    manifest commonManifest
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+        attributes FMLAT: "oc_at.cfg"
+    }
 }
 
 javadoc {
     include 'li/cil/oc/api/**'
 }
 
-// because the normal default jar task has been modified to be obfuscated
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    exclude "cofh/**"
-    exclude "mods/**"
-    configurations.embedded.each { dep ->
-        from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
-    classifier = 'dev'
-    manifest commonManifest
-}
-
 task apiJar(type: Jar) {
+    from sourceSets.main.allSource
     from sourceSets.main.output
-    from sourceSets.main.java
     classifier = 'api'
     include 'li/cil/oc/api/**'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    from 'build/docs/javadoc'
+    from javadoc.destinationDir
     classifier 'javadoc'
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.java
-    from sourceSets.main.scala
-    classifier = 'sources'
-}
-
 artifacts {
-    archives deobfJar
     archives apiJar
     archives javadocJar
-    archives sourcesJar
 }
 
 publishing {
@@ -331,8 +174,6 @@ publishing {
             artifact jar
             artifact apiJar
             artifact javadocJar
-            artifact sourcesJar
-            artifact deobfJar { classifier 'dev' }
         }
     }
     repositories {
@@ -351,12 +192,5 @@ curseforge {
         changelog = file("changelog.md")
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
-    }
-}
-
-// this is needed for IntelliJ so we don't have to copy over the assets manually every time
-idea {
-    module {
-        outputDir = file('build/classes/main')
     }
 }

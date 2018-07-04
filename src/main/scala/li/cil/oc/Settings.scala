@@ -10,15 +10,15 @@ import java.util.UUID
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.DefaultArtifactVersion
-import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
 import org.apache.commons.codec.binary.Hex
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
+import net.minecraftforge.fml.common.versioning.VersionRange
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
@@ -256,6 +256,7 @@ class Settings(val config: Config) {
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
+  private val valuePowerAdvantage = config.getDouble("power.value.PowerAdvantage")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
   private val valueRotaryCraft = config.getDouble("power.value.RotaryCraft") / 11256.0
 
@@ -266,6 +267,7 @@ class Settings(val config: Config) {
   val ratioGalacticraft = valueGalacticraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
+  val ratioPowerAdvantage = valuePowerAdvantage / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
   val ratioRotaryCraft = valueRotaryCraft / valueInternal
 
@@ -512,6 +514,7 @@ object Settings {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val nl = sys.props("line.separator")
       val nle = StringEscapeUtils.escapeJava(nl)
+      file.getParentFile.mkdirs()
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
         // Indent two spaces instead of four.
@@ -528,23 +531,16 @@ object Settings {
     }
   }
 
-  private val configPatches = Array(
-    // Upgrading to version 1.4.7, reduce default geolyzer noise.
-    VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
-      "misc.geolyzerNoise"
-    ),
-    // Upgrading to version 1.4.8, changed power value defaults.
-    VersionRange.createFromVersionSpec("[0.0, 1.4.8)") -> Array(
-      "power.value.AppliedEnergistics2",
-      "power.value.Factorization",
-      "power.value.Galacticraft",
-      "power.value.IndustrialCraft2",
-      "power.value.Mekanism",
-      "power.value.RedstoneFlux"
-    ),
+  // Usage: VersionRange.createFromVersionSpec("[0.0,1.5)") -> Array("computer.ramSizes") will
+  // re-set the value of `computer.ramSizes` if a config saved with a version < 1.5 is loaded.
+  private val configPatches = Array[(VersionRange, Array[String])](
     // Upgrading to version 1.5.20, changed relay delay default.
     VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
       "switch.relayDelayUpgrade"
+    ),
+    // Potion whitelist was fixed in 1.6.2.
+    VersionRange.createFromVersionSpec("[0.0, 1.6.2)") -> Array(
+      "nanomachines.potionWhitelist"
     ),
     // Upgrading past version 1.7.1, changed wireless card stuff for t1 card.
     VersionRange.createFromVersionSpec("[0.0, 1.7.2)") -> Array(

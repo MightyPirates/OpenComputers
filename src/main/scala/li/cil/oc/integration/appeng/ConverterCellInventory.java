@@ -3,6 +3,7 @@ package li.cil.oc.integration.appeng;
 import appeng.api.AEApi;
 import appeng.api.storage.ICellInventory;
 import appeng.api.storage.ICellInventoryHandler;
+import appeng.api.storage.channels.IItemStorageChannel;
 import li.cil.oc.api.driver.Converter;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ public final class ConverterCellInventory implements Converter {
             output.put("remainingItemTypes", cell.getRemainingItemTypes());
 
             output.put("getTotalItemTypes", cell.getTotalItemTypes());
-            output.put("getAvailableItems", cell.getAvailableItems(AEApi.instance().storage().createItemList()));
+            output.put("getAvailableItems", cell.getAvailableItems(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class).createList()));
 
             output.put("totalBytes", cell.getTotalBytes());
             output.put("freeBytes", cell.getFreeBytes());

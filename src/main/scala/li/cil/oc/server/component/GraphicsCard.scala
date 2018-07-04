@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
@@ -33,7 +34,7 @@ import scala.util.matching.Regex
 // saved, but before the computer was saved, leading to mismatching states in
 // the save file - a Bad Thing (TM).
 
-class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
+class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
@@ -399,11 +400,13 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   // ----------------------------------------------------------------------- //
 
+  private final val ScreenTag = "screen"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    if (nbt.hasKey("screen")) {
-      nbt.getString("screen") match {
+    if (nbt.hasKey(ScreenTag)) {
+      nbt.getString(ScreenTag) match {
         case screen: String if !screen.isEmpty => screenAddress = Some(screen)
         case _ => screenAddress = None
       }
@@ -415,7 +418,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     super.save(nbt)
 
     if (screenAddress.isDefined) {
-      nbt.setString("screen", screenAddress.get)
+      nbt.setString(ScreenTag, screenAddress.get)
     }
   }
 }

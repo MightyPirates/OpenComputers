@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "pitch=north,yaw=north": { "model": "opencomputers:screen" },
+        "pitch=north,yaw=south": { "model": "opencomputers:screen", "y": 180 },
+        "pitch=north,yaw=east":  { "model": "opencomputers:screen", "y": 270 },
+        "pitch=north,yaw=west":  { "model": "opencomputers:screen", "y": 90 },
+        "pitch=up,yaw=north": { "model": "opencomputers:screen", "x": 90 },
+        "pitch=up,yaw=south": { "model": "opencomputers:screen", "x": 90, "y": 180 },
+        "pitch=up,yaw=east":  { "model": "opencomputers:screen", "x": 90, "y": 270 },
+        "pitch=up,yaw=west":  { "model": "opencomputers:screen", "x": 90, "y": 90 },
+        "pitch=down,yaw=north": { "model": "opencomputers:screen", "x": -90 },
+        "pitch=down,yaw=south": { "model": "opencomputers:screen", "x": -90, "y": 180 },
+        "pitch=down,yaw=east":  { "model": "opencomputers:screen", "x": -90, "y": 270 },
+        "pitch=down,yaw=west":  { "model": "opencomputers:screen", "x": -90, "y": 90 }
+    }
+}

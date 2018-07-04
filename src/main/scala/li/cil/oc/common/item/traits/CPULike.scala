@@ -9,7 +9,10 @@ import li.cil.oc.integration.opencomputers.DriverCPU
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.ChatComponentTranslation
+import net.minecraft.util.ActionResult
+import net.minecraft.util.EnumActionResult
+import net.minecraft.util.EnumHand
+import net.minecraft.util.text.TextComponentTranslation
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsScala._
@@ -21,10 +24,10 @@ trait CPULike extends Delegate {
   override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTier))
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
-    tooltip.addAll(Tooltip.get("CPU.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack))))
+    tooltip.addAll(Tooltip.get("cpu.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack))))
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (player.isSneaking) {
       if (!world.isRemote) {
         api.Driver.driverFor(stack) match {
@@ -36,13 +39,13 @@ trait CPULike extends Delegate {
               val archClass = architectures(newIndex)
               val archName = api.Machine.getArchitectureName(archClass)
               driver.setArchitecture(stack, archClass)
-              player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "tooltip.CPU.Architecture", archName))
+              player.sendMessage(new TextComponentTranslation(Settings.namespace + "tooltip.cpu.Architecture", archName))
             }
-            player.swingItem()
+            player.swingArm(EnumHand.MAIN_HAND)
           case _ => // No known driver for this processor.
         }
       }
     }
-    stack
+    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
   }
 }

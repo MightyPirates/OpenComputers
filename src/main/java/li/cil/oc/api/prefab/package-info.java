@@ -7,9 +7,9 @@
  * while leaving them in the same package with the same name and then ship them
  * with your mod!
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
-        provides = "OpenComputersAPI|Prefab",
+        provides = "opencomputersapi|prefab",
         apiVersion = API.VERSION)
 package li.cil.oc.api.prefab;
 

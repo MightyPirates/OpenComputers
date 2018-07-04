@@ -1,25 +1,27 @@
 package li.cil.oc.api.prefab;
 
+import li.cil.oc.api.driver.DriverBlock;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 /**
- * To limit sidedness, I recommend overriding {@link #worksWith(World, int, int, int, ForgeDirection)}
+ * To limit sidedness, I recommend overriding {@link #worksWith(World, BlockPos, EnumFacing)}
  * and calling <code>super.worksWith</code> in addition to the side check.
  */
-public abstract class DriverSidedTileEntity implements li.cil.oc.api.driver.SidedBlock {
+public abstract class DriverSidedTileEntity implements DriverBlock {
     public abstract Class<?> getTileEntityClass();
 
     @Override
-    public boolean worksWith(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
         final Class<?> filter = getTileEntityClass();
         if (filter == null) {
             // This can happen if filter classes are deduced by reflection and
             // the class in question is not present.
             return false;
         }
-        final TileEntity tileEntity = world.getTileEntity(x, y, z);
+        final TileEntity tileEntity = world.getTileEntity(pos);
         return tileEntity != null && filter.isAssignableFrom(tileEntity.getClass());
     }
 }

@@ -1,27 +1,28 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 /**
   * @author Vexatos
   */
 trait OpenSides extends TileEntity {
-  protected def SideCount = ForgeDirection.VALID_DIRECTIONS.length
+  protected def SideCount = EnumFacing.VALUES.length
 
   protected def defaultState: Boolean = false
 
   var openSides = Array.fill(SideCount)(defaultState)
 
-  def compressSides = (ForgeDirection.VALID_DIRECTIONS, openSides).zipped.foldLeft(0)((acc, entry) => acc | (if (entry._2) entry._1.flag else 0)).toByte
+  def compressSides = (EnumFacing.values(), openSides).zipped.foldLeft(0)((acc, entry) => acc | (if (entry._2) 1 << entry._1.ordinal() else 0)).toByte
 
-  def uncompressSides(byte: Byte) = ForgeDirection.VALID_DIRECTIONS.map(d => (d.flag & byte) != 0)
+  def uncompressSides(byte: Byte) = EnumFacing.values().map(d => ((1 << d.ordinal()) & byte) != 0)
 
-  def isSideOpen(side: ForgeDirection) = side != ForgeDirection.UNKNOWN && openSides(side.ordinal())
+  def isSideOpen(side: EnumFacing) = side != null && openSides(side.ordinal())
 
-  def setSideOpen(side: ForgeDirection, value: Boolean): Unit = if (side != ForgeDirection.UNKNOWN && openSides(side.ordinal()) != value) {
+  def setSideOpen(side: EnumFacing, value: Boolean): Unit = if (side != null && openSides(side.ordinal()) != value) {
     openSides(side.ordinal()) = value
   }
 

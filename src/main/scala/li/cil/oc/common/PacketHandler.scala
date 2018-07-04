@@ -10,19 +10,41 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.network.INetHandler
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.reflect.ClassTag
 import scala.reflect.classTag
 
 abstract class PacketHandler {
   /** Top level dispatcher based on packet type. */
-  protected def onPacketData(data: ByteBuf, player: EntityPlayer) {
+  protected def onPacketData(handler: INetHandler, data: ByteBuf, player: EntityPlayer) {
+    val thread = FMLCommonHandler.instance.getWorldThread(handler)
+    if (thread.isCallingFromMinecraftThread) {
+      process(data, player)
+    }
+    else {
+      data.retain()
+      thread.addScheduledTask(new Runnable {
+        override def run(): Unit = {
+          process(data, player)
+          data.release()
+        }
+      })
+    }
+  }
+
+  private def process(data: ByteBuf, player: EntityPlayer): Unit = {
     // Don't crash on badly formatted packets (may have been altered by a
     // malicious client, in which case we don't want to allow it to kill the
     // server like this). Just spam the log a bit... ;)
@@ -38,7 +60,7 @@ abstract class PacketHandler {
     // Avoid AFK kicks by marking players as non-idle when they send packets.
     // This will usually be stuff like typing while in screen GUIs.
     player match {
-      case mp: EntityPlayerMP => mp.func_143004_u()
+      case mp: EntityPlayerMP => mp.markPlayerActive()
       case _ => // Uh... OK?
     }
   }
@@ -59,8 +81,8 @@ abstract class PacketHandler {
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
-        case Some(world) if world.blockExists(x, y, z) =>
-          val t = world.getTileEntity(x, y, z)
+        case Some(world) if world.blockExists(BlockPosition(x, y, z)) =>
+          val t = world.getTileEntity(BlockPosition(x, y, z))
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
             return Some(t.asInstanceOf[T])
           }
@@ -68,7 +90,7 @@ abstract class PacketHandler {
           // mostly used when the robot *starts* moving while the client sends
           // a request to the server.
           api.Items.get(Constants.BlockName.RobotAfterimage).block match {
-            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, x, y, z) match {
+            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, new BlockPos(x, y, z)) match {
               case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
                 return Some(robot.proxy.asInstanceOf[T])
               case _ =>
@@ -106,20 +128,20 @@ abstract class PacketHandler {
       getEntity[T](dimension, id)
     }
 
-    def readDirection() = readByte() match {
+    def readDirection(): Option[EnumFacing] = readByte() match {
       case id if id < 0 => None
-      case id => Option(ForgeDirection.getOrientation(id))
+      case id => Option(EnumFacing.getFront(id))
     }
 
-    def readItemStack() = {
+    def readItemStack(): ItemStack = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemStack.loadItemStackFromNBT(readNBT())
+        new ItemStack(readNBT())
       }
-      else null
+      else ItemStack.EMPTY
     }
 
-    def readNBT() = {
+    def readNBT(): NBTTagCompound = {
       val haveNbt = readBoolean()
       if (haveNbt) {
         CompressedStreamTools.read(this)

@@ -1,6 +1,6 @@
 package li.cil.oc.api.network;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 
 /**
  * This is an extended version of {@link li.cil.oc.api.network.SimpleComponent}
@@ -22,5 +22,5 @@ public interface SidedComponent {
      * @param side the side to check for.
      * @return whether the component may be connected to from the specified side.
      */
-    boolean canConnectNode(ForgeDirection side);
+    boolean canConnectNode(EnumFacing side);
 }

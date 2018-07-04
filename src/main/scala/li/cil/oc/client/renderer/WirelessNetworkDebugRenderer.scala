@@ -1,13 +1,14 @@
 package li.cil.oc.client.renderer
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.world.World
 import net.minecraftforge.client.event.RenderWorldLastEvent
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
 object WirelessNetworkDebugRenderer {
@@ -18,17 +19,17 @@ object WirelessNetworkDebugRenderer {
     if (Settings.rTreeDebugRenderer) {
       RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
-      val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.context, "theWorld", "field_72769_h", "r").asInstanceOf[World]
-      WirelessNetwork.dimensions.get(world.provider.dimensionId) match {
+      val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.getContext, "theWorld", "field_72769_h", "r").asInstanceOf[World]
+      WirelessNetwork.dimensions.get(world.provider.getDimension) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft
-          val player = mc.thePlayer
-          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks
-          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks
-          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks
+          val player = mc.player
+          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
+          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
+          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks
 
-          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-          GL11.glPushMatrix()
+          RenderState.pushAttrib()
+          GlStateManager.pushMatrix()
           GL11.glTranslated(-px, -py, -pz)
           RenderState.makeItBlend()
           GL11.glDisable(GL11.GL_LIGHTING)
@@ -90,8 +91,8 @@ object WirelessNetworkDebugRenderer {
           }
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
 
-          GL11.glPopMatrix()
-          GL11.glPopAttrib()
+          RenderState.popAttrib()
+          GlStateManager.popMatrix()
         case _ =>
       }
 

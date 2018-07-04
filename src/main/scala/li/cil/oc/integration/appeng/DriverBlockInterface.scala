@@ -1,6 +1,9 @@
 package li.cil.oc.integration.appeng
 
-import appeng.tile.misc.TileInterface
+import appeng.api.implementations.tiles.ISegmentedInventory
+import appeng.api.networking.IGridHost
+import appeng.api.networking.security.IActionHost
+import appeng.api.util.AEPartLocation
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.internal.Database
@@ -14,17 +17,20 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 object DriverBlockInterface extends DriverSidedTileEntity {
-  def getTileEntityClass: Class[_] = classOf[TileInterface]
+  def getTileEntityClass: Class[_] = AEUtil.interfaceClass
 
-  def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
+  def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
+    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntity with ISegmentedInventory with IActionHost with IGridHost])
 
-  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {
+  final class Environment(val tile: TileEntity with ISegmentedInventory with IActionHost with IGridHost) extends ManagedTileEntityEnvironment[TileEntity with ISegmentedInventory with IActionHost](tile, "me_interface") with NamedBlock with NetworkControl[TileEntity with ISegmentedInventory with IActionHost with IGridHost] {
     override def preferredName = "me_interface"
+    override def pos: AEPartLocation = AEPartLocation.INTERNAL
 
     override def priority = 5
 
@@ -49,9 +55,9 @@ object DriverBlockInterface extends DriverSidedTileEntity {
           case component: Component => component.host match {
             case database: Database =>
               val dbStack = database.getStackInSlot(entry - 1)
-              if (dbStack == null || size < 1) null
+              if (dbStack == null || size < 1 || dbStack.isEmpty) ItemStack.EMPTY
               else {
-                dbStack.stackSize = math.min(size, dbStack.getMaxStackSize)
+                dbStack.setCount(math.min(size, dbStack.getMaxStackSize))
                 dbStack
               }
             case _ => throw new IllegalArgumentException("not a database")
@@ -59,8 +65,9 @@ object DriverBlockInterface extends DriverSidedTileEntity {
           case _ => throw new IllegalArgumentException("no such component")
         }
       }
-      else null
-      config.setInventorySlotContents(slot, stack)
+      else ItemStack.EMPTY
+      config.extractItem(slot, config.getStackInSlot(slot).getCount, false)
+      config.insertItem(slot, stack, false)
       context.pause(0.5)
       result(true)
     }

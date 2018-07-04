@@ -7,6 +7,7 @@ import forestry.api.genetics.IAllele;
 import forestry.api.genetics.IAlleleSpecies;
 import forestry.api.genetics.IMutation;
 import forestry.api.genetics.ISpeciesRoot;
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -14,8 +15,9 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +30,23 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
-        return new Environment((IBeeHousing) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(World world, BlockPos pos, EnumFacing side) {
+        return new Environment((IBeeHousing) world.getTileEntity(pos));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> {
+    public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> implements NamedBlock {
         public Environment(final IBeeHousing tileEntity) {
             super(tileEntity, "bee_housing");
+        }
+
+        @Override
+        public String preferredName() {
+            return "bee_housing";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():boolean -- Can the bees breed?")
@@ -73,12 +85,12 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAllele allele1 = mutation.getAllele0();
                 if (allele1 != null) {
-                    mutationMap.put("allele1", allele1.getName());
+                    mutationMap.put("allele1", allele1.getAlleleName());
                 }
 
                 final IAllele allele2 = mutation.getAllele1();
                 if (allele2 != null) {
-                    mutationMap.put("allele2", allele2.getName());
+                    mutationMap.put("allele2", allele2.getAlleleName());
                 }
 
                 mutationMap.put("chance", mutation.getBaseChance());
@@ -87,7 +99,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAllele[] template = mutation.getTemplate();
                 if (template != null && template.length > 0) {
-                    mutationMap.put("result", template[0].getName());
+                    mutationMap.put("result", template[0].getAlleleName());
                 }
                 result.add(mutationMap);
             }
@@ -140,7 +152,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 final IAlleleSpecies species = (IAlleleSpecies) allele;
                 final String uid = species.getUID().toLowerCase();
-                final String localizedName = species.getName().toLowerCase();
+                final String localizedName = species.getAlleleName().toLowerCase();
                 if (localizedName.equals(childType) || uid.equals(childType)) {
                     result.add(mutation);
                 }

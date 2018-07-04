@@ -46,13 +46,17 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  private final val OutputTag = "output"
+  private final val HandleTag = "handle"
+  private final val PathTag = "path"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    val handlesNbt = nbt.getTagList("output", NBT.TAG_COMPOUND)
+    val handlesNbt = nbt.getTagList(OutputTag, NBT.TAG_COMPOUND)
     (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
-      val handle = handleNbt.getInteger("handle")
-      val path = handleNbt.getString("path")
+      val handle = handleNbt.getInteger(HandleTag)
+      val path = handleNbt.getString(PathTag)
       openOutputHandle(handle, path, Mode.Append) match {
         case Some(fileHandle) => handles += handle -> fileHandle
         case _ => // The source file seems to have changed since last time.
@@ -67,11 +71,11 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     for (file <- handles.values) {
       assert(!file.isClosed)
       val handleNbt = new NBTTagCompound()
-      handleNbt.setInteger("handle", file.handle)
-      handleNbt.setString("path", file.path)
+      handleNbt.setInteger(HandleTag, file.handle)
+      handleNbt.setString(PathTag, file.path)
       handlesNbt.appendTag(handleNbt)
     }
-    nbt.setTag("output", handlesNbt)
+    nbt.setTag(OutputTag, handlesNbt)
   }
 
   // ----------------------------------------------------------------------- //

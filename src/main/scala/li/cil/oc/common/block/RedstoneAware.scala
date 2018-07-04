@@ -1,88 +1,37 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
-import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
-import powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode
-import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
 
-@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode", modid = Mods.IDs.MineFactoryReloaded)
-abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
-  override def hasTileEntity(metadata: Int) = true
+abstract class RedstoneAware extends SimpleBlock {
+  override def canProvidePower(state: IBlockState): Boolean = true
 
-  // ----------------------------------------------------------------------- //
-
-  override def canProvidePower = true
-
-  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
+  override def canConnectRedstone(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean =
+    world.getTileEntity(pos) match {
       case redstone: tileentity.traits.RedstoneAware => redstone.isOutputEnabled
       case _ => false
     }
 
-  override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
-      case redstone: tileentity.traits.RedstoneAware => math.min(math.max(redstone.output(side), 0), 15)
-      case _ => super.isProvidingWeakPower(world, x, y, z, side)
+  override def getStrongPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+    getWeakPower(state, world, pos, side)
+
+  override def getWeakPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+    world.getTileEntity(pos) match {
+      case redstone: tileentity.traits.RedstoneAware if side != null => math.min(math.max(redstone.output(side.getOpposite), 0), 15)
+      case _ => super.getWeakPower(state, world, pos, side)
     }
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
-    if (Mods.MineFactoryReloaded.isAvailable) {
-      val position = BlockPosition(x, y, z)
-      world.getTileEntity(position) match {
-        case t: tileentity.traits.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          world.getBlock(position.offset(side)) match {
-            case block: IRedNetNetworkContainer =>
-            case _ => for (color <- 0 until 16) {
-              t.rednetInput(side, color, 0)
-            }
-          }
-        }
-        case _ =>
-      }
-    }
-    world.getTileEntity(x, y, z) match {
-      case redstone: tileentity.traits.RedstoneAware =>
-        if (redstone.canUpdate)
-          redstone.checkRedstoneInputChanged()
-        else
-          ForgeDirection.VALID_DIRECTIONS.foreach(redstone.updateRedstoneInput)
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit = {
+    world.getTileEntity(pos) match {
+      case redstone: tileentity.traits.RedstoneAware => redstone.checkRedstoneInputChanged()
       case _ => // Ignore.
     }
   }
-
-  // ----------------------------------------------------------------------- //
-
-  override def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
-
-  override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
-    world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side, color)
-      case _ => 0
-    }
-
-  override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side)
-      case _ => Array.fill(16)(0)
-    }
-
-  override def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
-
-  override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
-    world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => for (color <- 0 until 16) {
-        t.rednetInput(side, color, inputValues(color))
-      }
-      case _ =>
-    }
 }

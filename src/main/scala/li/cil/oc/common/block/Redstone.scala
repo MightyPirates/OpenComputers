@@ -5,36 +5,21 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class Redstone extends RedstoneAware {
-  override protected def customTextures = Array(
-    Some("RedstoneTop"),
-    Some("RedstoneTop"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide")
-  )
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipTail(metadata, stack, player, tooltip, advanced)
-    if (Mods.ProjectRedTransmission.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.ProjectRed"))
-    }
-    if (Mods.RedLogic.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.RedLogic"))
-    }
-    if (Mods.MineFactoryReloaded.isAvailable) {
-      tooltip.addAll(Tooltip.get("RedstoneCard.RedNet"))
-    }
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) {
+    super.tooltipTail(metadata, stack, world, tooltip, advanced)
+    // todo more generic way for redstone mods to provide lines
+//    if (Mods.ProjectRedTransmission.isAvailable) {
+//      tooltip.addAll(Tooltip.get("RedstoneCard.ProjectRed"))
+//    }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
 }

@@ -1,7 +1,6 @@
 package li.cil.oc.client
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.detail.ManualAPI
 import li.cil.oc.api.manual.ContentProvider
@@ -13,7 +12,9 @@ import li.cil.oc.common.GuiType
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.annotation.tailrec
 import scala.collection.convert.WrapAsJava._
@@ -72,9 +73,9 @@ object Manual extends ManualAPI {
     null
   }
 
-  override def pathFor(world: World, x: Int, y: Int, z: Int): String = {
+  override def pathFor(world: World, pos: BlockPos): String = {
     for (provider <- pathProviders) {
-      val path = try provider.pathFor(world, x, y, z) catch {
+      val path = try provider.pathFor(world, pos) catch {
         case t: Throwable =>
           OpenComputers.log.warn("A path provider threw an error when queried with a block.", t)
           null

@@ -3,7 +3,6 @@ package li.cil.oc.common
 object PacketType extends Enumeration {
   val
   // Server -> Client
-  AbstractBusState,
   AdapterState,
   Analyze,
   ChargerState,
@@ -65,6 +64,7 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
   ScreenTouchMode,
+  SoundEffect,
   Sound,
   SoundPattern,
   TransposerActivity,

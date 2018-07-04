@@ -1,18 +1,15 @@
 package li.cil.oc.client.renderer.entity
 
-import li.cil.oc.Settings
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 import org.lwjgl.opengl.GL11
 
 final class ModelQuadcopter extends ModelBase {
-  val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
-
   val body = new ModelRenderer(this, "body")
   val wing0 = new ModelRenderer(this, "wing0")
   val wing1 = new ModelRenderer(this, "wing1")
@@ -61,24 +58,24 @@ final class ModelQuadcopter extends ModelBase {
   light3.addBox("flap3", -7, 0, -7, 6, 1, 6)
 
   private val scale = 1 / 16f
-  private val up = Vec3.createVectorHelper(0, 1, 0)
+  private val up = new Vec3d(0, 1, 0)
 
   private def doRender(drone: Drone, dt: Float) {
     if (drone.isRunning) {
       val timeJitter = drone.hashCode() ^ 0xFF
-      GL11.glTranslatef(0, (math.sin(timeJitter + (drone.worldObj.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
+      GlStateManager.translate(0, (math.sin(timeJitter + (drone.getEntityWorld.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
     }
 
-    val velocity = Vec3.createVectorHelper(drone.motionX, drone.motionY, drone.motionZ)
+    val velocity = new Vec3d(drone.motionX, drone.motionY, drone.motionZ)
     val direction = velocity.normalize()
     if (direction.dotProduct(up) < 0.99) {
       // Flying sideways.
       val rotationAxis = direction.crossProduct(up)
-      val relativeSpeed = velocity.lengthVector() / drone.maxVelocity
-      GL11.glRotated(relativeSpeed * -20, rotationAxis.xCoord, rotationAxis.yCoord, rotationAxis.zCoord)
+      val relativeSpeed = velocity.lengthVector().toFloat / drone.maxVelocity
+      GlStateManager.rotate(relativeSpeed * -20, rotationAxis.x.toFloat, rotationAxis.y.toFloat, rotationAxis.z.toFloat)
     }
 
-    GL11.glRotatef(drone.bodyAngle, 0, 1, 0)
+    GlStateManager.rotate(drone.bodyAngle, 0, 1, 0)
 
     body.render(scale)
 
@@ -97,8 +94,8 @@ final class ModelQuadcopter extends ModelBase {
     wing3.render(scale)
 
     if (drone.isRunning) {
-      RenderState.disableLighting()
-      GL11.glDepthFunc(GL11.GL_LEQUAL)
+      RenderState.disableEntityLighting()
+      GlStateManager.depthFunc(GL11.GL_LEQUAL)
 
       light0.rotateAngleX = drone.flapAngles(0)(0)
       light0.rotateAngleZ = drone.flapAngles(0)(1)
@@ -110,18 +107,23 @@ final class ModelQuadcopter extends ModelBase {
       light3.rotateAngleZ = drone.flapAngles(3)(1)
 
       // Additive blending for the lights.
-      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      // Light color.
+      RenderState.makeItBlend()
+      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+
       val lightColor = drone.lightColor
-      val r = ((lightColor >>> 16) & 0xFF).toByte
-      val g = ((lightColor >>> 8) & 0xFF).toByte
-      val b = ((lightColor >>> 0) & 0xFF).toByte
-      GL11.glColor3ub(r, g, b)
+      val r = (lightColor >>> 16) & 0xFF
+      val g = (lightColor >>> 8) & 0xFF
+      val b = (lightColor >>> 0) & 0xFF
+      GlStateManager.color(r / 255f, g / 255f, b / 255f)
 
       light0.render(scale)
       light1.render(scale)
       light2.render(scale)
       light3.render(scale)
+
+      RenderState.disableBlend()
+      RenderState.enableEntityLighting()
+      GlStateManager.color(1, 1, 1, 1)
     }
   }
 
@@ -144,8 +146,8 @@ final class ModelQuadcopter extends ModelBase {
     wing2.render(scale)
     wing3.render(scale)
 
-    RenderState.disableLighting()
-    GL11.glDepthFunc(GL11.GL_LEQUAL)
+    RenderState.disableEntityLighting()
+    GlStateManager.depthFunc(GL11.GL_LEQUAL)
 
     light0.rotateAngleX = tilt
     light0.rotateAngleZ = tilt
@@ -156,13 +158,19 @@ final class ModelQuadcopter extends ModelBase {
     light3.rotateAngleX = tilt
     light3.rotateAngleZ = -tilt
 
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-    GL11.glColor3ub(0x66.toByte, 0xDD.toByte, 0x55.toByte)
+
+    RenderState.makeItBlend()
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GlStateManager.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
 
     light0.render(scale)
     light1.render(scale)
     light2.render(scale)
     light3.render(scale)
+
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
+    GlStateManager.color(1, 1, 1, 1)
   }
 
   override def render(entity: Entity, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float, f6: Float): Unit = {

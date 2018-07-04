@@ -8,13 +8,14 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.passive.{EntityOcelot, EntitySheep}
-import net.minecraft.util.{AxisAlignedBB, DamageSource}
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.DamageSource
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.tileentity.traits.Tickable
 
-class CarpetedCapacitor extends Capacitor {
+class CarpetedCapacitor extends Capacitor with Tickable {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Battery",
@@ -25,8 +26,7 @@ class CarpetedCapacitor extends Capacitor {
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  override def canUpdate = true
-
+  private def _world: net.minecraft.world.World = getWorld
   private val rng = scala.util.Random
   private val chance: Double = Settings.get.carpetDamageChance
   private var nextChanceTime: Long = 0
@@ -36,25 +36,24 @@ class CarpetedCapacitor extends Capacitor {
     def tryDamageOne(): Unit = {
       for (ent <- entities) {
         if (rng.nextDouble() < chance) {
-          ent.attackEntityFrom(DamageSource.generic, 1)
+          ent.attackEntityFrom(DamageSource.GENERIC, 1)
           ent.setRevengeTarget(ent) // panic
           ent.knockBack(ent, 0, .25, 0)
           // wait a minute before the next possible shock
-          nextChanceTime = world.getTotalWorldTime + (20 * 60)
+          nextChanceTime = _world.getTotalWorldTime + (20 * 60)
           return
         }
       }
     }
-    if (chance > 0 && nextChanceTime < world.getTotalWorldTime) {
+    if (chance > 0 && nextChanceTime < _world.getTotalWorldTime) {
       tryDamageOne()
     }
     power
   }
 
   override def updateEntity() {
-    if (node != null && (world.getTotalWorldTime + hashCode) % 20 == 0) {
-      val entities = world.getEntitiesWithinAABB(classOf[EntityLivingBase], capacitorPowerBounds)
-        .map(_.asInstanceOf[EntityLivingBase])
+    if (node != null && (_world.getTotalWorldTime + hashCode) % 20 == 0) {
+      val entities = _world.getEntitiesWithinAABB(classOf[EntityLivingBase], capacitorPowerBounds)
         .filter(entity => entity.isEntityAlive)
         .toSet
       val sheepPower = energyFromGroup(entities.filter(_.isInstanceOf[EntitySheep]), Settings.get.sheepPower)
@@ -66,5 +65,5 @@ class CarpetedCapacitor extends Capacitor {
     }
   }
 
-  private def capacitorPowerBounds = position.offset(ForgeDirection.UP).bounds
+  private def capacitorPowerBounds = position.offset(EnumFacing.UP).bounds
 }

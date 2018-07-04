@@ -3,25 +3,29 @@ package li.cil.oc.server.component
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
+import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
+import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.init.SoundEvents
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.SoundCategory
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 
-class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent with DeviceInfo {
+class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Agent with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
     withConnector(Settings.get.bufferDrone).
@@ -40,11 +44,11 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSideAny(n)
 
-  override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(position) ++ super.suckableItems(side)
+  override protected def suckableItems(side: EnumFacing) = entitiesInBlock(classOf[EntityItem], position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
-    if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {
-      world.playSoundAtEntity(agent, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
+    if (InventoryUtils.insertIntoInventory(entity.getItem, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))) {
+      world.playSound(agent.player, agent.posX, agent.posY, agent.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
     }
   }
 
@@ -89,7 +93,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
 
   @Callback(doc = "function():number -- Get the current distance to the target position.")
   def getOffset(context: Context, args: Arguments): Array[AnyRef] =
-    result(agent.getDistance(agent.targetX, agent.targetY, agent.targetZ))
+    result(agent.getDistance(agent.targetX.floatValue(), agent.targetY.floatValue(), agent.targetZ.floatValue()))
 
   @Callback(doc = "function():number -- Get the current velocity in m/s.")
   def getVelocity(context: Context, args: Arguments): Array[AnyRef] =

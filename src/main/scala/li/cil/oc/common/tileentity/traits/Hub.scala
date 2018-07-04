@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
@@ -9,12 +7,14 @@ import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.MovingAverage
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-trait Hub extends traits.Environment with SidedEnvironment {
+trait Hub extends traits.Environment with SidedEnvironment with Tickable {
   override def node: Node = null
 
   override protected def isConnected = plugs.exists(plug =>
@@ -23,9 +23,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
     plug.node.address != null &&
     plug.node.network != null)
 
-  protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => createPlug(side))
+  protected val plugs = EnumFacing.values.map(side => createPlug(side))
 
-  val queue = mutable.Queue.empty[(Option[ForgeDirection], Packet)]
+  val queue = mutable.Queue.empty[(Option[EnumFacing], Packet)]
 
   var maxQueueSize = queueBaseSize
 
@@ -55,9 +55,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UNKNOWN
+  override def canConnect(side: EnumFacing) = side != null
 
-  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
+  override def sidedNode(side: EnumFacing) = if (side != null) plugs(side.ordinal).node else null
 
   // ----------------------------------------------------------------------- //
 
@@ -78,13 +78,13 @@ trait Hub extends traits.Environment with SidedEnvironment {
           relayCooldown = relayDelay - 1
         }
       }
-      else if (world.getTotalWorldTime % relayDelay == 0) {
+      else if (getWorld.getTotalWorldTime % relayDelay == 0) {
         packetsPerCycleAvg += 0
       }
     }
   }
 
-  def tryEnqueuePacket(sourceSide: Option[ForgeDirection], packet: Packet) = queue.synchronized {
+  def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown < 0) {
@@ -95,26 +95,33 @@ trait Hub extends traits.Environment with SidedEnvironment {
     else false
   }
 
-  protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
-    for (side <- ForgeDirection.VALID_DIRECTIONS if Option(side) != sourceSide && sidedNode(side) != null) {
+  protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
+    for (side <- EnumFacing.values if Option(side) != sourceSide && sidedNode(side) != null) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val PlugsTag = Settings.namespace + "plugs"
+  private final val QueueTag = Settings.namespace + "queue"
+  private final val SideTag = "side"
+  private final val RelayCooldownTag = Settings.namespace + "relayCooldown"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    nbt.getTagList(PlugsTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => plugs(index).node.load(tag)
     }
-    nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach(
+    nbt.getTagList(QueueTag, NBT.TAG_COMPOUND).foreach(
       (tag: NBTTagCompound) => {
-        val side = tag.getDirection("side")
+        val side = tag.getDirection(SideTag)
         val packet = api.Network.newPacket(tag)
         queue += side -> packet
       })
-    if (nbt.hasKey(Settings.namespace + "relayCooldown")) {
-      relayCooldown = nbt.getInteger(Settings.namespace + "relayCooldown")
+    if (nbt.hasKey(RelayCooldownTag)) {
+      relayCooldown = nbt.getInteger(RelayCooldownTag)
     }
   }
 
@@ -122,30 +129,30 @@ trait Hub extends traits.Environment with SidedEnvironment {
     super.writeToNBTForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
-      nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
+      nbt.setNewTagList(PlugsTag, plugs.map(plug => {
         val plugNbt = new NBTTagCompound()
         if (plug.node != null)
           plug.node.save(plugNbt)
         plugNbt
       }))
-      nbt.setNewTagList(Settings.namespace + "queue", queue.map {
+      nbt.setNewTagList(QueueTag, queue.map {
         case (sourceSide, packet) =>
           val tag = new NBTTagCompound()
-          tag.setDirection("side", sourceSide)
+          tag.setDirection(SideTag, sourceSide)
           packet.save(tag)
           tag
       })
       if (relayCooldown > 0) {
-        nbt.setInteger(Settings.namespace + "relayCooldown", relayCooldown)
+        nbt.setInteger(RelayCooldownTag, relayCooldown)
       }
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  protected def createPlug(side: ForgeDirection) = new Plug(side)
+  protected def createPlug(side: EnumFacing) = new Plug(side)
 
-  protected class Plug(val side: ForgeDirection) extends api.network.Environment {
+  protected class Plug(val side: EnumFacing) extends api.network.Environment {
     val node = createNode(this)
 
     override def onMessage(message: Message) {

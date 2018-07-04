@@ -1,0 +1,7 @@
+{
+    "parent": "block/cube_column",
+    "textures": {
+        "end": "opencomputers:blocks/generic_top",
+        "side": "opencomputers:blocks/powerconverter_side"
+    }
+}

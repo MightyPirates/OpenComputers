@@ -1,12 +1,15 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.network.WirelessEndpoint
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedBlock._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RTree
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -16,22 +19,22 @@ object WirelessNetwork {
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+    if (!e.getWorld.isRemote) {
+      dimensions.remove(e.getWorld.provider.getDimension)
     }
   }
 
   @SubscribeEvent
   def onWorldLoad(e: WorldEvent.Load) {
-    if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+    if (!e.getWorld.isRemote) {
+      dimensions.remove(e.getWorld.provider.getDimension)
     }
   }
 
   // Safety clean up, in case some tile entities didn't properly leave the net.
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload) {
-    e.getChunk.chunkTileEntityMap.values.foreach {
+    e.getChunk.getTileEntityMap.values.foreach {
       case endpoint: WirelessEndpoint => remove(endpoint)
       case _ =>
     }
@@ -83,12 +86,12 @@ object WirelessNetwork {
           filter(_._2 <= range * range).
           map {
           case (c, distance) => (c, Math.sqrt(distance))
-        } filter isUnobstructed(endpoint, strength) map(_._1)
+        } filter isUnobstructed(endpoint, strength) map (_._1)
       case _ => Iterable.empty[WirelessEndpoint]
     }
   }
 
-  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.dimensionId
+  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.getDimension
 
   private def offset(endpoint: WirelessEndpoint, value: Double) =
     (endpoint.x + 0.5 + value, endpoint.y + 0.5 + value, endpoint.z + 0.5 + value)
@@ -114,20 +117,20 @@ object WirelessNetwork {
       // the message.
       val world = endpoint.world
 
-      val origin = Vec3.createVectorHelper(reference.x, reference.y, reference.z)
-      val target = Vec3.createVectorHelper(endpoint.x, endpoint.y, endpoint.z)
+      val origin = new Vec3d(reference.x, reference.y, reference.z)
+      val target = new Vec3d(endpoint.x, endpoint.y, endpoint.z)
 
       // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)
       val v = delta.normalize()
 
       // Get the vectors that are orthogonal to the direction vector.
-      val up = if (v.xCoord == 0 && v.zCoord == 0) {
-        assert(v.yCoord != 0)
-        Vec3.createVectorHelper(1, 0, 0)
+      val up = if (v.x == 0 && v.z == 0) {
+        assert(v.y != 0)
+        new Vec3d(1, 0, 0)
       }
       else {
-        Vec3.createVectorHelper(0, 1, 0)
+        new Vec3d(0, 1, 0)
       }
       val side = crossProduct(v, up)
       val top = crossProduct(v, side)
@@ -142,11 +145,12 @@ object WirelessNetwork {
         // two endpoints when they are diagonal to each other for example.
         val rSide = world.rand.nextInt(3) - 1
         val rTop = world.rand.nextInt(3) - 1
-        val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
-        val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
-        val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
-        if (world.blockExists(x, y, z)) Option(world.getBlock(x, y, z)) match {
-          case Some(block) => hardness += block.getBlockHardness(world, x, y, z)
+        val x = (origin.x + v.x * rGap + side.x * rSide + top.x * rTop).toInt
+        val y = (origin.y + v.y * rGap + side.y * rSide + top.y * rTop).toInt
+        val z = (origin.z + v.z * rGap + side.z * rSide + top.z * rTop).toInt
+        val blockPos = BlockPosition(x, y, z, world)
+        if (world.isBlockLoaded(blockPos)) Option(world.getBlock(blockPos)) match {
+          case Some(block) => hardness += block.getBlockHardness(blockPos)
           case _ =>
         }
       }
@@ -160,7 +164,7 @@ object WirelessNetwork {
     else true
   }
 
-  private def subtract(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
+  private def subtract(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
 
-  private def crossProduct(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
+  private def crossProduct(v1: Vec3d, v2: Vec3d) = new Vec3d(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x)
 }

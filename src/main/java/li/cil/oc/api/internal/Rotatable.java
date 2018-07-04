@@ -1,12 +1,13 @@
 package li.cil.oc.api.internal;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import li.cil.oc.api.driver.DriverItem;
+import net.minecraft.util.EnumFacing;
 
 /**
  * This interface is implemented by the computer case and robot tile entities
  * to allow item components to query the orientation of their host, i.e. to
  * allow getting the facing of the tile entity passed to their drivers'
- * {@link li.cil.oc.api.driver.Item#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.network.EnvironmentHost)}
+ * {@link DriverItem#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.network.EnvironmentHost)}
  * method.
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
@@ -31,7 +32,7 @@ public interface Rotatable {
      *
      * @return the current facing.
      */
-    ForgeDirection facing();
+    EnumFacing facing();
 
     /**
      * Converts a facing relative to the block's <em>local</em> coordinate
@@ -44,7 +45,7 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    ForgeDirection toGlobal(ForgeDirection value);
+    EnumFacing toGlobal(EnumFacing value);
 
     /**
      * Converts a <tt>global</tt> orientation to a facing relative to the
@@ -57,5 +58,5 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    ForgeDirection toLocal(ForgeDirection value);
+    EnumFacing toLocal(EnumFacing value);
 }

@@ -1,48 +1,48 @@
 package li.cil.oc.common.recipe
 
 import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
 import net.minecraft.init.Items
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.item.crafting.IRecipe
 import net.minecraft.world.World
 
 /**
   * @author Vexatos
   */
-class DecolorizeRecipe(target: Item) extends IRecipe {
+class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
   def this(target: Block) = this(Item.getItemFromBlock(target))
 
-  val targetItem = target
+  val targetItem: Item = target
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i)))
+    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
     val targets = stacks.filter(stack => stack.getItem == targetItem)
     val other = stacks.filterNot(targets.contains)
-    targets.size == 1 && other.size == 1 && other.forall(_.getItem == Items.water_bucket)
+    targets.size == 1 && other.size == 1 && other.forall(_.getItem == Items.WATER_BUCKET)
   }
 
   override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
-    var targetStack: ItemStack = null
+    var targetStack: ItemStack = ItemStack.EMPTY
 
-    (0 until crafting.getSizeInventory).flatMap(i => Option(crafting.getStackInSlot(i))).foreach { stack =>
+    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
       if (stack.getItem == targetItem) {
         targetStack = stack.copy()
-        targetStack.stackSize = 1
-      } else if (stack.getItem != Items.water_bucket) {
-        return null
+        targetStack.setCount(1)
+      } else if (stack.getItem != Items.WATER_BUCKET) {
+        return ItemStack.EMPTY
       }
     }
 
-    if (targetStack == null) return null
+    if (targetStack.isEmpty) return ItemStack.EMPTY
 
     ItemColorizer.removeColor(targetStack)
     targetStack
   }
 
-  override def getRecipeSize = 10
+  override def getMinimumRecipeSize = 2
 
-  override def getRecipeOutput = null
+  override def getRecipeOutput = ItemStack.EMPTY
 }

@@ -8,8 +8,8 @@ import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.{Constants, Settings, api}
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.common.util.ForgeDirection
 
 /**
   * @author Vexatos
@@ -31,7 +31,7 @@ object DriverUpgradeMF extends Item with HostAware {
         stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {
           case Array(x, y, z, dim, side) =>
             Option(DimensionManager.getWorld(dim)) match {
-              case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z, world), ForgeDirection.getOrientation(side))
+              case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z, world), EnumFacing.getFront(side))
               case _ => // Invalid dimension ID
             }
           case _ => // Invalid tag

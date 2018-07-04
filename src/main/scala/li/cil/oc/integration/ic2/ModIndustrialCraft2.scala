@@ -1,6 +1,6 @@
 package li.cil.oc.integration.ic2
 
-import cpw.mods.fml.common.Loader
+import net.minecraftforge.fml.common.Loader
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
@@ -27,11 +27,8 @@ object ModIndustrialCraft2 extends ModProxy {
     }
 
     Driver.add(new DriverEnergyConductor)
-    Driver.add(new DriverEnergySink)
-    Driver.add(new DriverEnergySource)
-    Driver.add(new DriverEnergyStorage)
+    Driver.add(new DriverEnergy)
     Driver.add(new DriverReactor)
-    Driver.add(new DriverReactorChamber)
 
     Driver.add(new ConverterElectricItem)
   }

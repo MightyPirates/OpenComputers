@@ -18,6 +18,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.tileentity.{Robot => EntityRobot, Microcontroller}
 import li.cil.oc.common.entity.{Drone => EntityDrone}
 import li.cil.oc.common.item.TabletWrapper
@@ -29,15 +30,14 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.biome.BiomeGenDesert
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.language.existentials
 
-class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldControl with DeviceInfo {
+class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldControl with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().
@@ -55,7 +55,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  override protected def checkSideForAction(args: Arguments, n: Int): ForgeDirection = {
+  override protected def checkSideForAction(args: Arguments, n: Int): EnumFacing = {
     val side = args.checkSideAny(n)
     val is_uc = host.isInstanceOf[Microcontroller]
     host match {
@@ -69,15 +69,15 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   override def position: BlockPosition = host match {
     case robot: EntityRobot => robot.proxy.position
-    case drone: EntityDrone => BlockPosition(drone.posX, drone.posY, drone.posZ, drone.world)
+    case drone: EntityDrone => BlockPosition(drone.getPosition, drone.getEntityWorld)
     case uc: Microcontroller => uc.position
     case tablet: TabletWrapper => BlockPosition(tablet.xPosition, tablet.yPosition, tablet.zPosition, tablet.world)
     case _ => BlockPosition(host)
   }
 
   private def canSeeSky: Boolean = {
-    val blockPos = position.offset(ForgeDirection.UP)
-    !host.world.provider.hasNoSky && host.world.canBlockSeeTheSky(blockPos.x, blockPos.y, blockPos.z)
+    val blockPos = position.offset(EnumFacing.UP)
+    !host.world.provider.isNether && host.world.canBlockSeeSky(blockPos.toBlockPos)
   }
 
   @Callback(doc = """function():boolean -- Returns whether there is a clear line of sight to the sky directly above.""")
@@ -87,11 +87,11 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   @Callback(doc = """function():boolean -- Return whether the sun is currently visible directly above.""")
   def isSunVisible(computer: Context, args: Arguments): Array[AnyRef] = {
-    val blockPos = BlockPosition(host).offset(ForgeDirection.UP)
+    val blockPos = BlockPosition(host).offset(EnumFacing.UP)
     result(
       host.world.isDaytime &&
       canSeeSky &&
-      (host.world.getWorldChunkManager.getBiomeGenAt(blockPos.x, blockPos.z).isInstanceOf[BiomeGenDesert] || (!host.world.isRaining && !host.world.isThundering)))
+      !host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
   }
 
   @Callback(doc = """function(x:number, z:number[, y:number, w:number, d:number, h:number][, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
@@ -149,7 +149,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
       return result(Unit, "not enough energy")
 
     val globalPos = BlockPosition(host).offset(globalSide)
-    val event = new Analyze(host, options, globalPos.x, globalPos.y, globalPos.z)
+    val event = new Analyze(host, options, globalPos.toBlockPos)
     MinecraftForge.EVENT_BUS.post(event)
     if (event.isCanceled) result(Unit, "scan was canceled")
     else result(event.data)
@@ -177,7 +177,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
       val stack = new ItemStack(item, 1, damage)
       DatabaseAccess.withDatabase(node, args.checkString(1), database => {
         val toSlot = args.checkSlot(database.data, 2)
-        val nonEmpty = database.getStackInSlot(toSlot) != null
+        val nonEmpty = database.getStackInSlot(toSlot) != ItemStack.EMPTY // not the same as isEmpty! zero size stacks!
         database.setStackInSlot(toSlot, stack)
         result(nonEmpty)
       })
@@ -188,9 +188,9 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           if (node.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
-            val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.x, blockPos.y, blockPos.z)
+            val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.toBlockPos)
             MinecraftForge.EVENT_BUS.post(event)
             if (!event.isCanceled) {
               for ((key, value) <- event.data) value match {

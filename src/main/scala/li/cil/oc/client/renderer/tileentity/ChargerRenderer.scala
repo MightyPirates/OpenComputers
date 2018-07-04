@@ -3,77 +3,82 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object ChargerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
+  override def render(charger: Charger, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    val charger = tileEntity.asInstanceOf[Charger]
     if (charger.chargeSpeed > 0) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      RenderState.pushAttrib()
 
-      RenderState.disableLighting()
+      RenderState.disableEntityLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(1)
+      GlStateManager.color(1, 1, 1, 1)
 
-      GL11.glPushMatrix()
+      GlStateManager.pushMatrix()
 
-      GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+      GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
       charger.yaw match {
-        case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-        case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-        case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+        case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
+        case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
+        case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
         case _ => // No yaw.
       }
 
-      GL11.glTranslatef(-0.5f, 0.5f, 0.5f)
-      GL11.glScalef(1, -1, 1)
+      GlStateManager.translate(-0.5f, 0.5f, 0.5f)
+      GlStateManager.scale(1, -1, 1)
 
-      val t = Tessellator.instance
+      val t = Tessellator.getInstance
+      val r = t.getBuffer
 
-      val frontIcon = Textures.Charger.iconFrontCharging
-      bindTexture(TextureMap.locationBlocksTexture)
-      t.startDrawingQuads()
+      Textures.Block.bind()
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
-      val inverse = 1 - charger.chargeSpeed
-      t.addVertexWithUV(0, 1, 0.005, frontIcon.getMinU, frontIcon.getMaxV)
-      t.addVertexWithUV(1, 1, 0.005, frontIcon.getMaxU, frontIcon.getMaxV)
-      t.addVertexWithUV(1, inverse, 0.005, frontIcon.getMaxU, frontIcon.getInterpolatedV(inverse * 16))
-      t.addVertexWithUV(0, inverse, 0.005, frontIcon.getMinU, frontIcon.getInterpolatedV(inverse * 16))
+      {
+        val inverse = 1 - charger.chargeSpeed
+        val icon = Textures.getSprite(Textures.Block.ChargerFrontOn)
+        r.pos(0, 1, 0.005).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1, 1, 0.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1, inverse, 0.005).tex(icon.getMaxU, icon.getInterpolatedV(inverse * 16)).endVertex()
+        r.pos(0, inverse, 0.005).tex(icon.getMinU, icon.getInterpolatedV(inverse * 16)).endVertex()
+      }
 
       if (charger.hasPower) {
-        val sideIcon = Textures.Charger.iconSideCharging
-        t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
-        t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
-        t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)
-        t.addVertexWithUV(-0.005, 0, -1, sideIcon.getMinU, sideIcon.getMinV)
+        val icon = Textures.getSprite(Textures.Block.ChargerSideOn)
 
-        t.addVertexWithUV(1, 1, -1.005, sideIcon.getMinU, sideIcon.getMaxV)
-        t.addVertexWithUV(0, 1, -1.005, sideIcon.getMaxU, sideIcon.getMaxV)
-        t.addVertexWithUV(0, 0, -1.005, sideIcon.getMaxU, sideIcon.getMinV)
-        t.addVertexWithUV(1, 0, -1.005, sideIcon.getMinU, sideIcon.getMinV)
+        r.pos(-0.005, 1, -1).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(-0.005, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(-0.005, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(-0.005, 0, -1).tex(icon.getMinU, icon.getMinV).endVertex()
 
-        t.addVertexWithUV(1.005, 1, 0, sideIcon.getMinU, sideIcon.getMaxV)
-        t.addVertexWithUV(1.005, 1, -1, sideIcon.getMaxU, sideIcon.getMaxV)
-        t.addVertexWithUV(1.005, 0, -1, sideIcon.getMaxU, sideIcon.getMinV)
-        t.addVertexWithUV(1.005, 0, 0, sideIcon.getMinU, sideIcon.getMinV)
+        r.pos(1, 1, -1.005).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(0, 1, -1.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(0, 0, -1.005).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(1, 0, -1.005).tex(icon.getMinU, icon.getMinV).endVertex()
+
+        r.pos(1.005, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1.005, 1, -1).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1.005, 0, -1).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(1.005, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
       }
 
       t.draw()
 
-      RenderState.enableLighting()
+      RenderState.disableBlend()
+      RenderState.enableEntityLighting()
 
-      GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popMatrix()
+      RenderState.popAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 }
