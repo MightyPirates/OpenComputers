@@ -621,8 +621,26 @@ local function onClick(x, y)
 end
 
 local function onScroll(direction)
-  local cbx, cby = getCursor()
-  setCursor(cbx, cby - direction * 12)
+  local x, y, w, h = getArea()
+  local sy = math.max(0, math.min(scrollY - direction, #buffer - h))
+
+  if sy ~= scrollY then
+    local cx, cy = getCursor()
+    local dy = sy - scrollY
+    scrollY = sy
+
+    term.setCursorBlink(false)
+    if math.abs(dy) < h then gpu.copy(x, math.max(y, y + dy), w, h - math.abs(dy), 0, -dy) end
+    for py = 1, math.min(-dy, h) do
+      gpu.set(x, y + py - 1, unicode.wtrunc(text.padRight(removePrefix(buffer[py + sy] or "", scrollX), w), w))
+    end
+    for py = math.max(h - dy + 1, 1), h do
+      gpu.set(x, y + py - 1, unicode.wtrunc(text.padRight(removePrefix(buffer[py + sy] or "", scrollX), w), w))
+    end
+
+    cy = math.max(math.min(cy, sy + h), sy + 1)
+    setCursor(math.min(cx, unicode.wlen(buffer[cy] or "") + 1), cy)
+  end
 end
 
 -------------------------------------------------------------------------------
