@@ -1,8 +1,8 @@
 package li.cil.oc.integration.jei
 
 import java.util
-import javax.annotation.Nonnull
 
+import javax.annotation.Nonnull
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -12,10 +12,7 @@ import mezz.jei.api.IModRegistry
 import mezz.jei.api.gui.IDrawable
 import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.ingredients.IIngredients
-import mezz.jei.api.recipe.BlankRecipeCategory
-import mezz.jei.api.recipe.BlankRecipeWrapper
-import mezz.jei.api.recipe.IRecipeCategory
-import mezz.jei.api.recipe.IRecipeHandler
+import mezz.jei.api.recipe._
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
@@ -33,14 +30,8 @@ object ManualUsageHandler {
     }
   }.flatten.toList
 
-  object ManualUsageRecipeHandler extends IRecipeHandler[ManualUsageRecipe] {
+  object ManualUsageRecipeHandler extends IRecipeWrapperFactory[ManualUsageRecipe] {
     override def getRecipeWrapper(recipe: ManualUsageRecipe): ManualUsageRecipe = recipe
-
-    override def getRecipeCategoryUid(recipe: ManualUsageRecipe): String = ManualUsageRecipeCategory.getUid
-
-    override def isRecipeValid(recipe: ManualUsageRecipe) = true
-
-    override def getRecipeClass: Class[ManualUsageRecipe] = classOf[ManualUsageRecipe]
   }
 
   class ManualUsageRecipe(val stack: ItemStack, val path: String) extends BlankRecipeWrapper {
