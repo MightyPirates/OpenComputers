@@ -1,8 +1,8 @@
 package li.cil.oc.integration.jei
 
 import java.util
-import javax.annotation.Nonnull
 
+import javax.annotation.Nonnull
 import com.google.common.base.Strings
 import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.OpenComputers
@@ -14,10 +14,7 @@ import mezz.jei.api.IModRegistry
 import mezz.jei.api.gui.IDrawable
 import mezz.jei.api.gui.IRecipeLayout
 import mezz.jei.api.ingredients.IIngredients
-import mezz.jei.api.recipe.BlankRecipeCategory
-import mezz.jei.api.recipe.BlankRecipeWrapper
-import mezz.jei.api.recipe.IRecipeCategory
-import mezz.jei.api.recipe.IRecipeHandler
+import mezz.jei.api.recipe._
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
@@ -78,14 +75,8 @@ object CallbackDocHandler {
 
   protected def wrap(line: String, width: Int): util.List[String] = Minecraft.getMinecraft.fontRenderer.listFormattedStringToWidth(line, width)
 
-  object CallbackDocRecipeHandler extends IRecipeHandler[CallbackDocRecipe] {
+  object CallbackDocRecipeHandler extends IRecipeWrapperFactory[CallbackDocRecipe] {
     override def getRecipeWrapper(recipe: CallbackDocRecipe): CallbackDocRecipe = recipe
-
-    override def getRecipeCategoryUid(recipe: CallbackDocRecipe): String = CallbackDocRecipeCategory.getUid
-
-    override def isRecipeValid(recipe: CallbackDocRecipe) = true
-
-    override def getRecipeClass: Class[CallbackDocRecipe] = classOf[CallbackDocRecipe]
   }
 
   class CallbackDocRecipe(val stack: ItemStack, val page: String) extends BlankRecipeWrapper {

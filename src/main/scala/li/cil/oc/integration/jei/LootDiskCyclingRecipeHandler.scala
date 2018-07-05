@@ -7,24 +7,13 @@ import li.cil.oc.api
 import li.cil.oc.common.Loot
 import li.cil.oc.common.recipe.LootDiskCyclingRecipe
 import mezz.jei.api.ingredients.IIngredients
-import mezz.jei.api.recipe.BlankRecipeWrapper
-import mezz.jei.api.recipe.IRecipeHandler
-import mezz.jei.api.recipe.IRecipeWrapper
-import mezz.jei.api.recipe.VanillaRecipeCategoryUid
+import mezz.jei.api.recipe._
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsJava._
 
-object LootDiskCyclingRecipeHandler extends IRecipeHandler[LootDiskCyclingRecipe] {
-  override def getRecipeClass: Class[LootDiskCyclingRecipe] = classOf[LootDiskCyclingRecipe]
-
-  def getRecipeCategoryUid: String = VanillaRecipeCategoryUid.CRAFTING
-
-  override def getRecipeCategoryUid(recipe: LootDiskCyclingRecipe): String = getRecipeCategoryUid
-
+object LootDiskCyclingRecipeHandler extends IRecipeWrapperFactory[LootDiskCyclingRecipe] {
   override def getRecipeWrapper(recipe: LootDiskCyclingRecipe): IRecipeWrapper = new LootDiskCyclingRecipeWrapper(recipe)
-
-  override def isRecipeValid(recipe: LootDiskCyclingRecipe): Boolean = true
 
   class LootDiskCyclingRecipeWrapper(val recipe: LootDiskCyclingRecipe) extends BlankRecipeWrapper {
 
