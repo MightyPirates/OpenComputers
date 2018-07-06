@@ -1,1 +1,0 @@
-#REDIRECT case1.md
