@@ -4,7 +4,7 @@ import java.util.UUID
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedLuaState._
-import li.cil.repack.com.naef.jnlua.LuaState
+import org.terasology.jnlua.LuaState
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.mutable
@@ -85,8 +85,8 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       lua.getGlobal("_G") /* ... perms uperms k v */
 
       flattenAndStore() /* ... perms uperms */
-      lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
-      lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
+      lua.setField(lua.REGISTRYINDEX, "uperms") /* ... perms */
+      lua.setField(lua.REGISTRYINDEX, "perms") /* ... */
     }
   }
 
@@ -126,7 +126,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "persist") // ... eris persist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
+          lua.getField(lua.REGISTRYINDEX, "perms") // ... eris persist perms
           lua.pushValue(index) // ... eris persist perms obj
           try {
             lua.call(2, 1) // ... eris str?
@@ -159,7 +159,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "unpersist") // ... eris unpersist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
+          lua.getField(lua.REGISTRYINDEX, "uperms") // ... eris persist uperms
           lua.pushByteArray(value) // ... eris unpersist uperms str
           lua.call(2, 1) // ... eris obj
           lua.insert(-2) // ... obj eris
