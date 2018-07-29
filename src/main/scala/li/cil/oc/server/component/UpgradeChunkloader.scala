@@ -16,11 +16,14 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
-import net.minecraftforge.common.ForgeChunkManager
-import net.minecraftforge.common.ForgeChunkManager.Ticket
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ChunkloaderTicket
 import net.minecraft.entity.Entity
+import net.minecraft.server.MinecraftServer
+import net.minecraft.world.ChunkCoordIntPair
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 
 class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -37,7 +40,9 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  var ticket: Option[Ticket] = None
+  var ticket: Option[ChunkloaderTicket] = None
+  var isSuspend: Boolean = false
+  private var ownerContext: Option[Context] = None
 
   override val canUpdate = true
 
@@ -45,67 +50,199 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     super.update()
     if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
       if (!node.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
-        ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
-          case _: Throwable => // Ignored.
-        })
+        ticket.foreach(ticket => ticket.release())
         ticket = None
       }
       else if (host.isInstanceOf[Entity]) // Robot move events are not fired for entities (drones)
-        ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+        updateLoadedChunk()
     }
   }
 
   @Callback(doc = """function():boolean -- Gets whether the chunkloader is currently active.""")
-  def isActive(context: Context, args: Arguments): Array[AnyRef] = result(ticket.isDefined)
+  def isActive(context: Context, args: Arguments): Array[AnyRef] = {
+    checkOwnerContext(context)
+    result(ticket.isDefined)
+  }
 
   @Callback(doc = """function(enabled:boolean):boolean -- Enables or disables the chunkloader.""")
-  def setActive(context: Context, args: Arguments): Array[AnyRef] = result(setActive(args.checkBoolean(0)))
+  def setActive(context: Context, args: Arguments): Array[AnyRef] = {
+    checkOwnerContext(context)
+    result(setActive(args.checkBoolean(0)))
+  }
+
+  private def checkOwnerContext(context: Context) {
+    if (ownerContext.isEmpty || context.node != ownerContext.get.node) {
+      throw new IllegalArgumentException("can only be used by the owning computer")
+    }
+  }
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (node == this.node) {
-      if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
-        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.dimensionId}.")
-      }
-      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
-        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
-        case _ => None
-      })
-      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+    if (ownerContext.isEmpty && node.host.isInstanceOf[Context] && node.canBeReachedFrom(this.node)) {
+      if (Settings.get.chunkloaderLogLevel > 1)
+        OpenComputers.log.info(s"[chunkloader] Connected: $this")
+      ownerContext = Some(node.host.asInstanceOf[Context])
+      ChunkloaderUpgradeHandler.chunkloaders += this
+      restoreTicket()
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
-      ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
-        case _: Throwable => // Ignored.
-      })
-      ticket = None
+    if (ownerContext.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == ownerContext.get))) {
+      if (Settings.get.chunkloaderLogLevel > 1)
+        OpenComputers.log.info(s"[chunkloader] Disconnected: $this")
+      ownerContext = None
+      ChunkloaderUpgradeHandler.chunkloaders -= this
+      if (host.isInstanceOf[Entity] && ticket.isDefined) { // request new ticket when drone travel to dimension
+        releaseTicket()
+        ChunkloaderUpgradeHandler.chunkloaders.find(
+          loader => {
+            loader.node.address == this.node.address && loader.getOwnerName == getOwnerName && loader.ticket.isEmpty
+          }
+        ).foreach(loader => loader.requestTicket())
+      } else {
+        releaseTicket()
+      }
     }
   }
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "computer.stopped") {
-      setActive(enabled = false)
-    }
-    else if (message.name == "computer.started") {
-      setActive(enabled = true)
+    if (ownerContext.isDefined && message.source.address == ownerContext.get.node.address) {
+      if (message.name == "computer.stopped") {
+        setActive(enabled = false)
+      }
+      else if (message.name == "computer.started") {
+        setActive(enabled = true)
+      }
     }
   }
 
   private def setActive(enabled: Boolean) = {
     if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
-      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+      requestTicket()
     }
     else if (!enabled && ticket.isDefined) {
-      ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
-        case _: Throwable => // Ignored.
-      })
-      ticket = None
+      releaseTicket()
     }
     ticket.isDefined
   }
+
+  private def hostChunkCoord = {
+    val blockPos = BlockPosition(host)
+    new ChunkCoordIntPair(blockPos.x >> 4, blockPos.z >> 4)
+  }
+
+  private def hostCoord = {
+    BlockPosition(host).toChunkCoordinates
+  }
+
+  def getOwnerName = {
+    host match {
+      case agent: li.cil.oc.api.internal.Agent =>
+        Option(agent.ownerName)
+      case _ => None
+    }
+  }
+
+  def updateLoadedChunk() {
+    ticket.foreach(ticket => {
+      ticket.blockCoord = hostCoord
+      if (isSuspend) {
+        ticket.chunkList.foreach(chunkCoord => ticket.unforceChunk(chunkCoord))
+      } else {
+        val chunkloaderChunks = UpgradeChunkloader.chunks(hostChunkCoord)
+        ticket.chunkList.foreach(chunkCoord => if (!chunkloaderChunks.contains(chunkCoord)) {
+          ticket.unforceChunk(chunkCoord)
+        })
+        chunkloaderChunks.foreach(chunkCoord => if (!ticket.chunkList.contains(chunkCoord)) {
+          ticket.forceChunk(chunkCoord)
+        })
+      }
+    })
+  }
+
+  private def loaderInit() {
+    ticket.foreach(ticket => {
+      isSuspend = !UpgradeChunkloader.canBeAwakened(ticket)
+      // duplicated chunkloaders will not work
+      ChunkloaderUpgradeHandler.chunkloaders.foreach(
+        loader => if (loader.node.address == node.address && loader != this) {
+          loader.releaseTicket()
+        }
+      )
+      if (Settings.get.chunkloaderLogLevel > 0)
+        OpenComputers.log.info(s"[chunkloader] Activated: $this")
+      updateLoadedChunk()
+    })
+  }
+
+  private def restoreTicket() {
+    if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
+      OpenComputers.log.info(s"[chunkloader] Reclaiming chunk loader ticket for upgrade: $this")
+      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address)
+      ticket.foreach(ticket => {
+        ticket.unchecked = false
+      })
+      loaderInit()
+    }
+  }
+
+  private def requestTicket() {
+    val dim = host.world().provider.dimensionId
+    ticket = {
+      if (!UpgradeChunkloader.allowedDim(dim) || node.globalBuffer() < Settings.get.chunkloaderCost) {
+        None
+      } else if (!UpgradeChunkloader.playerTickets) {
+        ChunkloaderTicket.requestTicket(host.world, node.address)
+      } else {
+        getOwnerName match {
+          case Some(ownerName) =>
+            if (ownerName != Settings.get.fakePlayerName)
+              ChunkloaderTicket.requestPlayerTicket(host.world, node.address, ownerName)
+            else
+              None
+          case None =>
+            None
+        }
+      }
+    }
+    loaderInit()
+  }
+
+  private def releaseTicket() {
+    ticket.foreach(ticket => {
+      ticket.release()
+      this.ticket = None
+      if (Settings.get.chunkloaderLogLevel > 0)
+        OpenComputers.log.info(s"[chunkloader] Deactivated: $this")
+    })
+  }
+
+  override def toString = {
+    val sAddress = s"${node.address}"
+    val sActive = if (ticket.isDefined) ", active" else ", inactive"
+    val sSuspend = if (ticket.isDefined && isSuspend) "/suspend" else ""
+    val sOwner =  if (getOwnerName.isDefined) s", owned by ${getOwnerName.get}" else ""
+    val sCoord = s", $hostCoord$hostChunkCoord/${host.world.provider.dimensionId}"
+    s"chunkloader{$sAddress$sActive$sSuspend$sCoord$sOwner}"
+  }
+}
+
+object UpgradeChunkloader {
+  def allowedDim(dim: Int) = !(
+    Settings.get.chunkloaderDimBlacklist.contains(dim) ||
+      (Settings.get.chunkloaderDimWhitelist.size != 0 && !Settings.get.chunkloaderDimWhitelist.contains(dim))
+    )
+
+  def canBeAwakened(ticket: ChunkloaderTicket) =
+    !Settings.get.chunkloaderRequireOnline || MinecraftServer.getServer.getAllUsernames.contains(ticket.ownerName.orNull)
+
+  def chunks(centerChunkCoord: ChunkCoordIntPair) =
+    (for (x <- -1 to 1; z <- -1 to 1) yield
+      new ChunkCoordIntPair(centerChunkCoord.chunkXPos + x, centerChunkCoord.chunkZPos + z)).toSet
+
+  def playerTickets =
+    Settings.get.chunkloaderRequireOnline || Settings.get.chunkloaderPlayerTickets
 }

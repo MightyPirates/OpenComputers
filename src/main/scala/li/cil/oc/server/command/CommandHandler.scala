@@ -12,5 +12,6 @@ object CommandHandler {
     e.registerServerCommand(SpawnComputerCommand)
     e.registerServerCommand(DebugWhitelistCommand)
     e.registerServerCommand(SendDebugMessageCommand)
+    e.registerServerCommand(ChunkloaderListCommand)
   }
 }

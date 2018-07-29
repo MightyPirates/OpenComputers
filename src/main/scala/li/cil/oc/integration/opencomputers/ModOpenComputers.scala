@@ -95,11 +95,17 @@ object ModOpenComputers extends ModProxy {
     FMLCommonHandler.instance.bus.register(NanomachinesHandler.Common)
     FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
     FMLCommonHandler.instance.bus.register(Tablet)
+    if (Settings.get.chunkloaderRequireOnline) {
+      FMLCommonHandler.instance.bus.register(ChunkloaderUpgradeHandler.PersonalHandler)
+    }
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(BlockChangeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
+    if (Settings.get.chunkloaderRequireOnline) {
+      MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler.PersonalHandler)
+    }
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(FileSystemAccessHandler)
@@ -215,7 +221,6 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.BatteryUpgradeTier1,
       Constants.ItemName.BatteryUpgradeTier2,
       Constants.ItemName.BatteryUpgradeTier3,
-      Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
@@ -255,7 +260,6 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
       Constants.ItemName.AngelUpgrade,
-      Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.DatabaseUpgradeTier1,
       Constants.ItemName.DatabaseUpgradeTier2,

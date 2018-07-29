@@ -410,6 +410,13 @@ class Settings(val config: Config) {
   val printsHaveOpacity = config.getBoolean("printer.printsHaveOpacity")
   val noclipMultiplier = config.getDouble("printer.noclipMultiplier") max 0
 
+  // chunkloader
+  val chunkloaderRequireOnline = config.getBoolean("chunkloader.requireOnline")
+  val chunkloaderPlayerTickets = config.getBoolean("chunkloader.playerTickets")
+  val chunkloaderDimBlacklist = config.getIntList("chunkloader.dimBlacklist")
+  val chunkloaderDimWhitelist = config.getIntList("chunkloader.dimWhitelist")
+  val chunkloaderLogLevel = config.getInt("chunkloader.logLevel") max 0
+
   // ----------------------------------------------------------------------- //
   // integration
   val modBlacklist = config.getStringList("integration.modBlacklist")
