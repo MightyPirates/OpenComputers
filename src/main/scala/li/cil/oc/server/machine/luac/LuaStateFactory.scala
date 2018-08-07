@@ -121,6 +121,9 @@ abstract class LuaStateFactory {
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X64) "native.64.so"
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X86) "native.32.so"
 
+    else if (OS.IS_OS_SOLARIS && Architecture.IS_OS_X86) "native.solaris-i386.so"
+    else if (OS.IS_OS_SOLARIS && Architecture.IS_OS_X64) "native.solaris-amd64.so"
+
     else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X64) "native.64.dylib"
     else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X86) "native.32.dylib"
 
@@ -418,4 +421,15 @@ abstract class LuaStateFactory {
     private def isOSArchMatch(archPrefix: String): Boolean = OS_ARCH != null && OS_ARCH.startsWith(archPrefix)
   }
 
+  // org.apache.commons.lang3.SystemUtils cannot correctly detect Solaris
+  object OS {
+    val name = try System.getProperty("os.name") catch {
+      case e: SecurityException => null
+    }
+    val version = try System.getProperty("os.version") catch {
+      case e: SecurityException => null
+    }
+
+    val IS_OS_SOLARIS = name.equals("SunOS") && version.startsWith("5.")
+  }
 }
