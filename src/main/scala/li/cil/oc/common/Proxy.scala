@@ -33,12 +33,12 @@ class Proxy {
 
     Settings.load(e.getSuggestedConfigurationFile)
 
-    OpenComputers.log.info("Initializing blocks and items.")
+    OpenComputers.log.debug("Initializing blocks and items.")
 
     Blocks.init()
     Items.init()
 
-    OpenComputers.log.info("Initializing additional OreDict entries.")
+    OpenComputers.log.debug("Initializing additional OreDict entries.")
 
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
@@ -94,10 +94,10 @@ class Proxy {
 
     EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
-    OpenComputers.log.info("Initializing mod integration.")
+    OpenComputers.log.debug("Initializing mod integration.")
     Mods.init()
 
-    OpenComputers.log.info("Initializing recipes.")
+    OpenComputers.log.debug("Initializing recipes.")
     Recipes.init()
 
     api.API.isPowerEnabled = !Settings.get.ignorePower

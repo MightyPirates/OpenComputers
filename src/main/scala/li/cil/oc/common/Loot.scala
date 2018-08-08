@@ -61,7 +61,7 @@ object Loot {
   def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
     val mod = Loader.instance.activeModContainer.getModId
 
-    OpenComputers.log.info(s"Registering loot disk '$name' from mod $mod.")
+    OpenComputers.log.debug(s"Registering loot disk '$name' from mod $mod.")
 
     val modSpecificName = mod + ":" + name
 
