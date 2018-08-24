@@ -1,32 +1,48 @@
 local unicode = require("unicode")
 local kb = require("keyboard")
+local tty = require("tty")
+local text = require("text")
+local computer = require("computer")
 local keys = kb.keys
 
 local core_cursor = {}
 
-local super = {}
-function super:move(n)
-  local s =
-    n < 0 and self.index > 0 and -1 or
-    n > 0 and self.index < self.len and 1 or
-    0
-  if s == 0 then return end
-  local echo_cmd = (s > 0 and keys.right or keys.left)
-  self.index = self.index + s
-  self:echo(echo_cmd)
-  return self:move(n - s)
+core_cursor.vertical = {}
+
+function core_cursor.vertical:move(n)
+  local s = math.max(math.min(self.index + n, self.len), 0)
+  if s == self.index then return end
+  local echo_cmd = keys.left
+  local from = s + 1
+  local to = self.index
+  if s > self.index then
+    echo_cmd, from, to = keys.right, to + 1, s
+  end
+  self.index = s
+  local step = unicode.wlen(unicode.sub(self.data, from, to))
+  self:echo(echo_cmd, step)
 end
 
 -- back is used when arg comes after the cursor
-function super:update(arg, back)
+function core_cursor.vertical:update(arg, back)
+  if not arg then
+    self.tails  = {}
+    self.data   = ""
+    self.index  = 0
+    self.sy     = 0
+    self.hindex = 0
+  end
   local s1 = unicode.sub(self.data, 1, self.index)
   local s2 = unicode.sub(self.data, self.index + 1)
   if type(arg) == "string" then
+    if back == false then
+      arg, s2 = arg .. s2, ""
+    else
+      self.index = self.index + unicode.len(arg)
+      self:echo(arg)
+    end
     self.data = s1 .. arg
-    self.index = self.index + unicode.len(arg)
-    self:echo(arg)
-    self:move(back or 0)
-  else -- number
+  elseif arg then -- number
     local has_tail = arg < 0 or #s2 > 0
     if arg < 0 then
       -- backspace? ignore if at start
@@ -44,136 +60,190 @@ function super:update(arg, back)
     end
   end
   self.len = unicode.len(self.data) -- recompute len
+  self:move(back or 0)
   if #s2 > 0 then
     self:update(s2, -unicode.len(s2))
   end
 end
 
-function super:echo(arg)
+function core_cursor.vertical:echo(arg, num)
+  local win = tty.window
+  win.nowrap = self.nowrap
   if arg == "" then -- special scroll request
-    local gpu, width, x, y =
-      self.window.gpu,
-      self.window.width,
-      self.window.x,
-      self.window.y
+    local gpu, width, x, y = win.gpu, win.width, win.x, win.y
     if x > width then
-      self.window.x = ((x - 1) % width) + 1
-      self.window.y = y + math.floor(x / width)
-      self.output:write("")
-      x, y = self.window.x, self.window.y
+      win.x = ((x - 1) % width) + 1
+      win.y = y + math.floor(x / width)
+      io.write("") -- tty.stream:write knows how to scroll vertically
+      x, y = win.x, win.y
     end
-    return x > 0 and y > 0 and y <= self.window.height and gpu and
-      select(2, pcall(gpu.get, x + self.window.dx, y + self.window.dy))
-  elseif arg == keys.enter then
-    arg = "\n"
+    if x <= 0 or y <= 0 or y > win.height or not gpu then return end
+    return table.pack(select(2, pcall(gpu.get, x + win.dx, y + win.dy)))
   elseif arg == keys.left then
-    local x = self.window.x - unicode.wlen(unicode.sub(self.data, self.index + 1, self.index + 1))
-    local y = self.window.y
-    if x < 1 then
-      x = x + self.window.width - #(self.tails[self.window.dy + y - self.sy - 1] or "")
+    local x = win.x - num
+    local y = win.y
+    while x < 1 do
+      x = x + win.width - #(self.tails[win.dy + y - self.sy - 1] or "")
       y = y - 1
     end
-    self.window.x, self.window.y = x, y
+    win.x, win.y = x, y
     arg = ""
   elseif arg == keys.right then
-    local x = self.window.x + unicode.wlen(unicode.sub(self.data, self.index, self.index))
-    local y = self.window.y
-    local width = self.window.width - #(self.tails[self.window.dy + y - self.sy] or "")
-    if x > width then
+    local x = win.x + num
+    local y = win.y
+    while true do
+      local width = win.width - #(self.tails[win.dy + y - self.sy] or "")
+      if x <= width then break end
       x = x - width
       y = y + 1
     end
-    self.window.x, self.window.y = x, y
+    win.x, win.y = x, y
     arg = ""
-  elseif type(arg) == "boolean" or arg == nil then -- blink
+  elseif not arg or arg == true then -- blink
+    local gpu = win.gpu
     local char = self.char_at_cursor
     if (arg == nil and not char) or (arg and not self.blinked) then
       char = char or self:echo("") --scroll and get char
-      if not char then return false end
+      if not char[1] then return false end
       self.blinked = true
-      arg = "\0277\27[7m" .. char .. "\0278"
+      if not arg then
+        io.write("\0277")
+        char.saved = win.saved
+        gpu.setForeground(char[4] or char[2], not not char[4])
+        gpu.setBackground(char[5] or char[3], not not char[5])
+      end
+      io.write("\0277", "\27[7m", char[1], "\0278")
     elseif (arg and self.blinked) or arg == false then
       self.blinked = false
-      arg, char = "\0277" .. char .. "\0278", arg and char
+      gpu.set(win.x + win.dx, win.y + win.dy, char[1])
+      if not arg then
+        win.saved = char.saved
+        io.write("\0278")
+        char = nil
+      end
     end
     self.char_at_cursor = char
+    return true
   end
-  return not arg or self.output:write(arg)
+  return io.write(arg)
 end
 
-function super:handle(name, char, code)
+function core_cursor.vertical:handle(name, char, code)
   if name == "clipboard" then
-    return core_cursor.clipboard(self, char, code)
+    self.cache = nil -- this stops tab completion
+    local newline = char:find("\10") or #char
+    local printable_prefix, remainder = char:sub(1, newline), char:sub(newline + 1)
+    self:update(printable_prefix)
+    self:update(remainder, false)
   elseif name == "touch" or name == "drag" then
-    return core_cursor.touch(self, char, code)
+    core_cursor.touch(self, char, code)
   elseif name == "interrupted" then
     self:echo("^C\n")
     return false, name
-  elseif name ~= "key_down" then
-    return true -- handled
-  end
-
-  local data = self.data
-  local value = false
-  local backup_cache = self.cache
-  self.cache = nil
-  local ctrl = kb.isControlDown()
-  if ctrl and code == keys.d then
-    return --nil:close
-  elseif code == keys.tab then
-    self.cache = backup_cache
-    core_cursor.tab(self)
-  elseif code == keys.enter or code == keys.numpadenter then
-    self:move(self.len)
-    self:echo(keys.enter)
-    if data:find("%S") and data ~= self[1] then
-      table.insert(self, 1, data)
-      self[(tonumber(os.getenv("HISTSIZE")) or 10)+1] = nil
-    end
-    self[0] = nil
-    return data .. "\n"
-  elseif code == keys.up or code == keys.down then
-    local ni = self.hindex + (code == keys.up and 1 or -1)
-    if ni >= 0 and ni <= #self then
-      self[self.hindex] = data
-      self.hindex = ni
+  elseif name == "key_down" then
+    local data = self.data
+    local backup_cache = self.cache
+    self.cache = nil
+    local ctrl = kb.isControlDown()
+    if ctrl and code == keys.d then
+      return --nil:close
+    elseif code == keys.tab then
+      self.cache = backup_cache
+      core_cursor.tab(self)
+    elseif code == keys.enter or code == keys.numpadenter then
       self:move(self.len)
-      self:update(-self.len)
-      self:update(self[ni])
+      self:update("\n")
+    elseif code == keys.up or code == keys.down then
+      local ni = self.hindex + (code == keys.up and 1 or -1)
+      if ni >= 0 and ni <= #self then
+        self[self.hindex] = data
+        self.hindex = ni
+        self:move(self.len)
+        self:update(-self.len)
+        self:update(self[ni])
+      end
+    elseif code == keys.left or code == keys.back or code == keys.w and ctrl then
+      local value = ctrl and ((unicode.sub(data, 1, self.index):find("%s[^%s]+%s*$") or 0) - self.index) or -1
+      if code == keys.left then
+        self:move(value)
+      else
+        self:update(value)
+      end
+    elseif code == keys.right  then
+      self:move(ctrl and ((data:find("%s[^%s]", self.index + 1) or self.len) - self.index) or 1)
+    elseif code == keys.home   then self:move(-self.len)
+    elseif code == keys["end"] then self:move( self.len)
+    elseif code == keys.delete then self:update(1)
+    elseif char >= 32          then self:update(unicode.char(char))
+    else                            self.cache = backup_cache -- ignored chars shouldn't clear hint cache
     end
-  elseif code == keys.left or code == keys.back or code == keys.w and ctrl then
-    value = ctrl and ((unicode.sub(data, 1, self.index):find("%s[^%s]+%s*$") or 0) - self.index) or -1
-    if code == keys.left then
-      self:move(value)
-      value = false -- don't also update (cut)
-    end
-  elseif code == keys.right  then
-    self:move(ctrl and ((data:find("%s[^%s]", self.index + 1) or self.len) - self.index) or 1)
-  elseif code == keys.home   then self:move(-self.len)
-  elseif code == keys["end"] then self:move( self.len)
-  elseif code == keys.delete then value =  1
-  elseif char >= 32          then value = unicode.char(char)
-  else                            self.cache = backup_cache -- ignored chars shouldn't clear hint cache
-  end
-  if value then
-    self:update(value)
   end
   return true
 end
 
-function core_cursor.new(base, window, output)
-  local result = base or {}
-  result.tails = {}
-  result.data   = ""
-  result.index  = 0
-  result.len    = 0
-  result.sy     = 0
-  result.hindex = 0
-  result.window = window
-  result.output = output
-  result.clear  = "\27[J" -- echo'd to clear the input text in the tty
-  result.super  = super
-  return setmetatable(result, { __index = super })
+-- echo'd to clear the input text in the tty
+core_cursor.vertical.clear = "\27[J"
+
+function core_cursor.new(base, index)
+  -- if base has defined any methods, those are called first
+  -- any new methods here are "super" methods to base
+  base = base or {}
+  base.super = base.super or index or core_cursor.vertical
+  setmetatable(base, getmetatable(base) or { __index = base.super })
+  if not base.data then
+    base:update()
+  end
+  return base
+end
+
+function core_cursor.read(cursor)
+  local last = cursor.next or ""
+  cursor.next = nil
+  if #last > 0 then
+    cursor:handle("clipboard", last)
+  end
+  
+  -- address checks
+  local address_check =
+  {
+    key_down = tty.keyboard,
+    clipboard = tty.keyboard,
+    touch = tty.screen,
+    drag = tty.screen,
+    drop = tty.screen
+  }
+
+  while true do
+    local next_line = cursor.data:find("\10")
+    if next_line then
+      local result = cursor.data:sub(1, next_line)
+      local overflow = cursor.data:sub(next_line + 1)
+      local history = text.trim(result)
+      if history ~= "" and history ~= cursor[1] then
+        table.insert(cursor, 1, history)
+        cursor[(tonumber(os.getenv("HISTSIZE")) or 10) + 1] = nil
+      end
+      cursor[0] = nil
+      cursor:update()
+      cursor.next = overflow
+      return result
+    end
+
+    cursor:echo()
+    local pack = table.pack(computer.pullSignal(tty.window.blink and .5 or math.huge))
+    local name = pack[1]
+    cursor:echo(not name)
+
+    if name then
+      local filter_address = address_check[name]
+      if not filter_address or filter_address() == pack[2] then
+        local ret, why = cursor:handle(name, table.unpack(pack, 3, pack.n))
+        if not ret then
+          return ret, why
+        end
+      end
+    end
+  end
 end
 
 require("package").delay(core_cursor, "/lib/core/full_cursor.lua")

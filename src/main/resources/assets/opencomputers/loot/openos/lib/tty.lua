@@ -27,7 +27,7 @@ event.listen("screen_resized", screen_reset)
 function tty.getViewport()
   local window = tty.window
   local screen = tty.screen()
-  if window.fullscreen and screen and not screen_cache[screen]then
+  if window.fullscreen and screen and not screen_cache[screen] then
     screen_cache[screen] = true
     window.width, window.height = window.gpu.getViewport()
   end
@@ -55,50 +55,21 @@ function tty.isAvailable()
   return not not (gpu and gpu.getScreen())
 end
 
-function tty.read(cursor)
-  tty.window.cursor = cursor
-
-  local stdin = io.stdin
-  local result = table.pack(pcall(stdin.readLine, stdin, false))
-  tty.window.cursor = nil
-  return select(2, assert(table.unpack(result)))
-end
-
 -- PLEASE do not use this method directly, use io.read or term.read
 function tty.stream.read()
-  local cursor = require("core/cursor").new(tty.window.cursor, tty.window, tty.stream)
-  tty.window.cursor = cursor -- used by output to update the sy offset
-  local ret, why
+  local core = require("core/cursor")
+  local cursor = core.new(tty.window.cursor)
+  -- the window is given the cursor to allow sy updates [needed for wide char wrapping]
+  -- even if the user didn't set a cursor, we need one to read
+  tty.window.cursor = cursor
 
-  -- address checks
-  local address_check =
-  {
-    key_down = tty.keyboard,
-    clipboard = tty.keyboard,
-    touch = tty.screen,
-    drag = tty.screen
-  }
+  local ok, result, reason = xpcall(core.read, debug.traceback, cursor)
 
-  while cursor:echo() do
-    local name, address, char, code = event.pull(tty.window.blink and .5 or math.huge)
-    
-    -- we may have lost the cursor during pull
-    if not cursor:echo(not name) then
-      ret, why = nil, nil
-      break
-    elseif name then
-      local filter_address = address_check[name]
-      if not filter_address or filter_address() == address then
-        ret, why = cursor:handle(name, char, code)
-        if ret ~= true then
-          break
-        end
-      end
-    end
+  if not ok or not result then
+    pcall(cursor.update, cursor)
   end
 
-  tty.window.cursor = nil
-  return ret, why
+  return select(2, assert(ok, result, reason))
 end
 
 -- PLEASE do not use this method directly, use io.write or term.write
@@ -108,13 +79,13 @@ function tty.stream:write(value)
     return
   end
   local window = tty.window
-  local cursor = window.cursor or {sy=0, tails={}}
+  local cursor = window.cursor or {sy = 0, tails = {}}
   local beeped
   local uptime = computer.uptime
   local last_sleep = uptime()
   window.output_buffer = window.output_buffer .. value
   while true do
-    if uptime() - last_sleep > 1 then
+    if uptime() - last_sleep > 3 then
       os.sleep(0)
       last_sleep = uptime()
     end
@@ -142,8 +113,8 @@ function tty.stream:write(value)
       local wlen_remaining = window.width - x + 1
       if wlen_remaining < wlen_needed then
         segment = unicode.wtrunc(segment, wlen_remaining + 1)
-        local wlen_used = unicode.wlen(segment)
-        tail = wlen_used < wlen_remaining and " " or ""
+        wlen_needed = unicode.wlen(segment)
+        tail = wlen_needed < wlen_remaining and " " or ""
         cursor.tails[gpu_y - cursor.sy] = tail
         if not window.nowrap then
           -- we have to reparse the delimeter
@@ -151,13 +122,13 @@ function tty.stream:write(value)
           -- fake a newline
           delim = "\n"
         end
-        wlen_needed = wlen_used
       end
       gpu.set(gpu_x, gpu_y, segment..tail)
       x = x + wlen_needed
     end
 
-    window.output_buffer = ei and window.output_buffer:sub(ei + 1) or ""
+    window.output_buffer = ei and window.output_buffer:sub(ei + 1) or
+      unicode.sub(window.output_buffer, window.width + 1)
 
     if delim == "\t" then
       x = ((x-1) - ((x-1) % 8)) + 9
@@ -183,6 +154,8 @@ function tty.getCursor()
 end
 
 function tty.setCursor(x, y)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
   local window = tty.window
   window.x, window.y = x, y
 end

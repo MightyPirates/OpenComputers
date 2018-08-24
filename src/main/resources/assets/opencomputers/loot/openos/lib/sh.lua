@@ -73,11 +73,11 @@ function sh.internal.resolveActions(input, resolver, resolved)
           resolved[key] = resolver(key)
           local value = resolved[key]
           if value and key ~= value then
-            local replacement_tokens, reason = sh.internal.resolveActions(value, resolver, resolved)
+            local replacement_tokens, resolve_reason = sh.internal.resolveActions(value, resolver, resolved)
             if not replacement_tokens then
-              return replacement_tokens, reason
+              return replacement_tokens, resolve_reason
             end
-            simple = simple and reason
+            simple = simple and resolve_reason
             words = tx.concat(replacement_tokens, words)
             next = table.remove(words,1)
           end

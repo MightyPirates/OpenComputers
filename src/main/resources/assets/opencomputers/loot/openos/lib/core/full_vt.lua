@@ -1,5 +1,4 @@
 local vt100 = require("vt100")
-local unicode = require("unicode")
 
 local rules = vt100.rules
 
@@ -60,7 +59,7 @@ rules[{"%[", "[012]?", "J"}] = function(window, _, n)
   clear_line(window, _, n)
   n = tonumber(n) or 0
   local y = n == 0 and (window.y + 1) or 1
-  local rep = n == 1 and (window.y - 1) or (window.height - 1)
+  local rep = n == 1 and (window.y - 1) or (window.height)
   window.gpu.fill(1 + window.dx, y + window.dy, window.width, rep, " ")
 end
 
