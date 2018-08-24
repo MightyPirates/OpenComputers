@@ -20,9 +20,6 @@ apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
 file "build.properties" withReader {
     def prop = new Properties()
     prop.load(it)
@@ -69,19 +66,13 @@ minecraft {
 repositories {
     maven { url "http://dvs1.progwml6.com/files/maven/" }
     maven { url "http://maven.amadornes.com/" }
+    maven { url "http://mod-buildcraft.com/maven/" }
     maven { url "http://maven.cil.li/" }
     maven { url "http://maven.ic2.player.to/" }
     maven { url "http://tehnut.info/maven" }
 	  maven { url "http://maven.thiakil.com" }
     maven { url "http://cc.crzd.me/maven/" }
-    maven {
-        name = "chickenbones"
-        url = "http://chickenbones.net/maven/"
-    }
-	  ivy {
-        name 'ExtraCells'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.extracells.cf}/[module]-[revision].[ext]"
-    }
+	maven { url "https://minecraft.curseforge.com/api/maven/" }
 }
 
 configurations {
@@ -93,9 +84,10 @@ dependencies {
     deobfCompile ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
         exclude module: "jei_1.12"
     }
+    deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
     deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
     deobfCompile "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    deobfCompile ("net.sengir.forestry:forestry_1.12:${config.forestry.version}") {
+    deobfCompile ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
         exclude module: "jei_1.12"
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
@@ -105,9 +97,9 @@ dependencies {
 	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
 		transitive = false
 	}
-	provided name: 'ExtraCells', version: config.extracells.version, ext: 'jar'
-
-	provided (name: 'Mekanism', version: config.mekanism.version, classifier: 'api') {
+	provided "extracells2:ExtraCells-api:${config.extracells.version}"
+	
+	provided("mekanism:Mekanism:${config.mekanism.version}:api") {
 		transitive = false
 	}
 

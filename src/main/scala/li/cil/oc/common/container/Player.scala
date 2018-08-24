@@ -66,13 +66,13 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
     // for ghost slots we don't care about stack size
     val fromStack = from.getStack
-    val toStack = if (to.getHasStack) to.getStack else null
+    val toStack = if (to.getHasStack) to.getStack else ItemStack.EMPTY
     val toStackSize = if (!toStack.isEmpty) toStack.getCount else 0
 
     val maxStackSize = math.min(fromStack.getMaxStackSize, to.getSlotStackLimit)
     val itemsMoved = math.min(maxStackSize - toStackSize, fromStack.getCount)
 
-    if (toStack != null) {
+    if (!toStack.isEmpty) {
       if (toStackSize < maxStackSize &&
           fromStack.isItemEqual(toStack) &&
           ItemStack.areItemStackTagsEqual(fromStack, toStack) &&

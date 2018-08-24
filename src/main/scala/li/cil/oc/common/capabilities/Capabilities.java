@@ -19,9 +19,9 @@ public final class Capabilities {
     public static Capability<SidedEnvironment> SidedEnvironmentCapability;
 
     public static void init() {
-        CapabilityManager.INSTANCE.register(Environment.class, new CapabilityEnvironment.DefaultStorage(), CapabilityEnvironment.DefaultImpl.class);
-        CapabilityManager.INSTANCE.register(SidedEnvironment.class, new CapabilitySidedEnvironment.DefaultStorage(), CapabilitySidedEnvironment.DefaultImpl.class);
-        CapabilityManager.INSTANCE.register(Colored.class, new CapabilityColored.DefaultStorage(), CapabilityColored.DefaultImpl.class);
+        CapabilityManager.INSTANCE.register(Environment.class, new CapabilityEnvironment.DefaultStorage(), CapabilityEnvironment.DefaultImpl::new);
+        CapabilityManager.INSTANCE.register(SidedEnvironment.class, new CapabilitySidedEnvironment.DefaultStorage(), CapabilitySidedEnvironment.DefaultImpl::new);
+        CapabilityManager.INSTANCE.register(Colored.class, new CapabilityColored.DefaultStorage(), CapabilityColored.DefaultImpl::new);
     }
 
     private Capabilities() {

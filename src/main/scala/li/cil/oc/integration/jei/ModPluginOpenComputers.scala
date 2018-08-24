@@ -3,6 +3,9 @@ package li.cil.oc.integration.jei
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
+import li.cil.oc.common.recipe.LootDiskCyclingRecipe
+import li.cil.oc.integration.jei.CallbackDocHandler.CallbackDocRecipe
+import li.cil.oc.integration.jei.ManualUsageHandler.ManualUsageRecipe
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.StackOption
@@ -13,6 +16,7 @@ import mezz.jei.api.ISubtypeRegistry
 import mezz.jei.api.ISubtypeRegistry.ISubtypeInterpreter
 import mezz.jei.api.JEIPlugin
 import mezz.jei.api.ingredients.IModIngredientRegistration
+import mezz.jei.api.recipe.{IRecipeCategoryRegistration, VanillaRecipeCategoryUid}
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -20,23 +24,28 @@ import net.minecraft.nbt.NBTTagCompound
 
 @JEIPlugin
 class ModPluginOpenComputers extends IModPlugin {
+  override def registerCategories(registry: IRecipeCategoryRegistration): Unit = {
+    registry.addRecipeCategories(ManualUsageHandler.ManualUsageRecipeCategory)
+    registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
+
+  }
+
   override def register(registry: IModRegistry) {
     if (Settings.get.lootRecrafting) {
-      registry.addRecipeHandlers(LootDiskCyclingRecipeHandler)
+      registry.handleRecipes(classOf[LootDiskCyclingRecipe], LootDiskCyclingRecipeHandler, VanillaRecipeCategoryUid.CRAFTING)
     }
 
-    ItemBlacklist.hiddenItems.foreach(getter => registry.getJeiHelpers.getItemBlacklist.addItemToBlacklist(getter()))
+    ItemBlacklist.hiddenItems.foreach(getter => registry.getJeiHelpers.getIngredientBlacklist.addIngredientToBlacklist(getter()))
 
     // This could go into the Description category, but Manual should always be in front of the Callback doc.
     ManualUsageHandler.ManualUsageRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
-    registry.addRecipeCategories(ManualUsageHandler.ManualUsageRecipeCategory)
-    registry.addRecipeHandlers(ManualUsageHandler.ManualUsageRecipeHandler)
-    registry.addRecipes(ManualUsageHandler.getRecipes(registry))
-
     CallbackDocHandler.CallbackDocRecipeCategory.initialize(registry.getJeiHelpers.getGuiHelper)
-    registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
-    registry.addRecipeHandlers(CallbackDocHandler.CallbackDocRecipeHandler)
-    registry.addRecipes(CallbackDocHandler.getRecipes(registry))
+
+    registry.handleRecipes(classOf[ManualUsageRecipe], ManualUsageHandler.ManualUsageRecipeHandler, ManualUsageHandler.ManualUsageRecipeCategory.getUid)
+    registry.handleRecipes(classOf[CallbackDocRecipe], CallbackDocHandler.CallbackDocRecipeHandler, CallbackDocHandler.CallbackDocRecipeCategory.getUid)
+
+    registry.addRecipes(ManualUsageHandler.getRecipes(registry), ManualUsageHandler.ManualUsageRecipeCategory.getUid)
+    registry.addRecipes(CallbackDocHandler.getRecipes(registry), CallbackDocHandler.CallbackDocRecipeCategory.getUid)
 
     registry.addAdvancedGuiHandlers(RelayGuiHandler)
 
