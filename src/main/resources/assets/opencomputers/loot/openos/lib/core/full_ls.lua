@@ -36,27 +36,6 @@ end
 local ec = 0
 local fOut = tty.isAvailable() and io.output().tty
 local function perr(msg) io.stderr:write(msg,"\n") ec = 2 end
-local function stat(names, index)
-  local name = names[index]
-  if type(name) == "table" then
-    return name
-  end
-  local info = {}
-  info.key = name
-  info.path = name:sub(1, 1) == "/" and "" or names.path
-  info.full_path = fs.concat(info.path, name)
-  info.isDir = fs.isDirectory(info.full_path)
-  info.name = name:gsub("/+$", "") .. (ops.p and info.isDir and "/" or "")
-  info.sort_name = info.name:gsub("^%.","")
-  info.isLink, info.link = fs.isLink(info.full_path)
-  info.size = info.isLink and 0 or fs.size(info.full_path)
-  info.time = fs.lastModified(info.full_path)
-  info.fs = fs.get(info.full_path)
-  info.ext = info.name:match("(%.[^.]+)$") or ""
-  names[index] = info
-  return info
-end
-local function toArray(i) local r={} for n in i do r[#r+1]=n end return r end
 local set_color = function() end
 local function colorize() return end
 if fOut and not ops["no-color"] then
@@ -89,7 +68,7 @@ function msft.tail(names)
   end
   local totalSize, totalFiles, totalDirs = 0, 0, 0
   for i=1,#names do
-    local info = stat(names, i)
+    local info = names[i]
     if info.isDir then
       totalDirs = totalDirs + 1
     else
@@ -168,15 +147,10 @@ local function filter(names)
   if ops.a then
     return names
   end
-  local set = {}
-  for key, value in pairs(names) do
-    if type(key) == "number" then
-      local info = stat(names, key)
-      if fs.name(info.name):sub(1, 1) ~= "." then
-        table.insert(set, names[key])
-      end
-    else
-      set[key] = value
+  local set = { path = names.path }
+  for _, info in ipairs(names) do
+    if fs.name(info.name):sub(1, 1) ~= "." then
+      set[#set + 1] = info
     end
   end
   return set
@@ -185,10 +159,9 @@ end
 local function sort(names)
   local once = false
   local function ni(v)
-    local vname = type(v) == "string" and v or v.key
     for i=1,#names do
-      local info = stat(names, i)
-      if info.key == vname then
+      local info = names[i]
+      if info.key == v.key then
         return i
       end
     end
@@ -196,8 +169,8 @@ local function sort(names)
   local function sorter(key)
     once = true
     table.sort(names, function(a, b)
-      local ast = stat(names, ni(a))
-      local bst = stat(names, ni(b))
+      local ast = names[ni(a)]
+      local bst = names[ni(b)]
       return ast[key] > bst[key]
     end)
   end
@@ -218,7 +191,7 @@ local function dig(names, dirs, dir)
   if ops.R then
     local di = 1
     for i=1,#names do
-      local info = stat(names, i)
+      local info = names[i]
       if info.isDir then
         local path = dir..(dir:sub(-1) == "/" and "" or "/")
         table.insert(dirs, di, path..info.name)
@@ -238,12 +211,12 @@ local function display(names)
     local max_size_width = 1
     local max_date_width = 0
     for i=1,lines.n do
-      local info = stat(names, i)
+      local info = names[i]
       max_size_width = math.max(max_size_width, formatSize(info.size):len())
       max_date_width = math.max(max_date_width, formatDate(info.time):len())
     end
     mt.__index = function(_, index)
-      local info = stat(names, index)
+      local info = names[index]
       local file_type = info.isLink and 'l' or info.isDir and 'd' or 'f'
       local link_target = info.isLink and string.format(" -> %s", info.link:gsub("/+$", "") .. (info.isDir and "/" or "")) or ""
       local write_mode = info.fs.isReadOnly() and '-' or 'w'
@@ -257,7 +230,7 @@ local function display(names)
   elseif ops["1"] or not fOut then
     lines.n = #names
     mt.__index = function(_, index)
-      local info = stat(names, index)
+      local info = names[index]
       return {{color = colorize(info), name = info.name}}
     end
   else -- columns
@@ -271,7 +244,7 @@ local function display(names)
       for r=1,items_per_column do
         local ri = real(column_index, r)
         if not ri then break end
-        local info = stat(names, ri)
+        local info = names[ri]
         max = math.max(max, unicode.wlen(info.name))
       end
       return max
@@ -297,7 +270,7 @@ local function display(names)
         __index=function(_, column_index)
           local ri = real(column_index, line_index)
           if not ri then return end
-          local info = stat(names, ri)
+          local info = names[ri]
           local name = info.name
           return {color = colorize(info), name = name .. string.rep(' ', max_name(column_index) - unicode.wlen(name) + (column_index < num_columns and 2 or 0))}
         end,
@@ -313,6 +286,7 @@ local function display(names)
       set_color(e.color)
       io.write(e.name)
     end
+    set_color()
     print()
   end
   msft.tail(names)
@@ -325,6 +299,23 @@ if #dirsArg > 1 or ops.R then
     io.write(path,":\n")
   end
 end
+
+local function stat(path, name)
+  local info = {}
+  info.key = name
+  info.path = name:sub(1, 1) == "/" and "" or path
+  info.full_path = fs.concat(info.path, name)
+  info.isDir = fs.isDirectory(info.full_path)
+  info.name = name:gsub("/+$", "") .. (ops.p and info.isDir and "/" or "")
+  info.sort_name = info.name:gsub("^%.","")
+  info.isLink, info.link = fs.isLink(info.full_path)
+  info.size = info.isLink and 0 or fs.size(info.full_path)
+  info.time = fs.lastModified(info.full_path)
+  info.fs = fs.get(info.full_path)
+  info.ext = info.name:match("(%.[^.]+)$") or ""
+  return info
+end
+
 local function displayDirList(dirs)
   while #dirs > 0 do
     local dir = table.remove(dirs, 1)
@@ -334,8 +325,10 @@ local function displayDirList(dirs)
     if not list then
       perr(reason)
     else
-      local names = toArray(list)
-      names.path = path
+      local names = { path = path }
+      for name in list do
+        names[#names + 1] = stat(path, name)
+      end
       display(dig(sort(filter(names)), dirs, dir))
     end
   end
@@ -352,7 +345,7 @@ for _,dir in ipairs(dirsArg) do
   elseif fs.isDirectory(path) then
     table.insert(dir_set, dir)
   else -- file or link
-    table.insert(file_set, dir)
+    table.insert(file_set, stat(dir, dir))
   end
 end
 
@@ -366,7 +359,6 @@ end)
 
 io.output():flush()
 io.output():setvbuf("no")
-set_color()
 
 assert(ok, msg)
 

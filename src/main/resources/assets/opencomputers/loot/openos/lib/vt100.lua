@@ -21,14 +21,14 @@ rules[{"%[", "[%d;]*", "m"}] = function(window, _, number_text)
   for _,part in ipairs(parts) do
     local num = tonumber(part[1].txt)
     last_was_break, num = not num, num or last_was_break and 0
-    
-    if num == 7 then
+
+    local flip = num == 7
+    if flip then
       if not window.flip then
         local rgb, pal = bg(window.gpu.getForeground())
         fg(pal or rgb, not not pal)
         fg, bg = bg, fg
       end
-      window.flip = true
     elseif num == 5 then
       window.blink = true
     elseif num == 0 then
@@ -46,6 +46,7 @@ rules[{"%[", "[%d;]*", "m"}] = function(window, _, number_text)
         set(color)
       end
     end
+    window.flip = flip
   end
 end
 

@@ -1,46 +1,29 @@
 local core_cursor = require("core/cursor")
 local unicode = require("unicode")
 local kb = require("keyboard")
+local tty = require("tty")
+
+core_cursor.horizontal = {}
 
 function core_cursor.touch(cursor, gx, gy)
-  if cursor.data == "" then
-    return true
-  end
-  local win = cursor.window
-  gx, gy = gx - win.dx, gy - win.dy
-  while true do
-    local x, y, d = win.x, win.y, win.width
-    local dx = ((gy*d+gx)-(y*d+x))
-    if dx == 1 then
-      dx = unicode.wlen(unicode.sub(cursor.data, cursor.index + 1, cursor.index + 1)) == 2 and 0 or dx
+  if cursor.len > 0 then
+    local win = tty.window
+    gx, gy = gx - win.dx, gy - win.dy
+    while true do
+      local x, y, d = win.x, win.y, win.width
+      local dx = ((gy*d+gx)-(y*d+x))
+      if dx == 1 then
+        dx = unicode.wlen(unicode.sub(cursor.data, cursor.index + 1, cursor.index + 1)) == 2 and 0 or dx
+      end
+      if dx == 0 then
+        break
+      end
+      cursor:move(dx > 0 and 1 or -1)
+      if x == win.x and y == win.y then
+        break
+      end
     end
-    if dx == 0 then
-      break
-    end
-    cursor:move(dx > 0 and 1 or -1)
-    if x == win.x and y == win.y then
-      break
-    end
   end
-  return true
-end
-
-function core_cursor.clipboard(cursor, char)
-  cursor.cache = nil
-  local first_line, end_index = char:find("\13?\10")
-  local after = ""
-  if first_line then
-    after = char:sub(end_index + 1)
-    char = char:sub(1, first_line - 1)
-  end
-  cursor:update(char)
-  if after ~= "" then
-    -- todo look at postponing the text on cursor
-    local keyboard = require("tty").keyboard()
-    require("computer").pushSignal("key_down", keyboard, 13, 28)
-    require("computer").pushSignal("clipboard", keyboard, after)
-  end
-  return first_line and char or true
 end
 
 function core_cursor.tab(cursor)
@@ -74,3 +57,67 @@ function core_cursor.tab(cursor)
     cursor:update(next, -tail)
   end
 end
+
+function core_cursor.horizontal:scroll(num, final_index)
+  self:move(self.vindex - self.index) -- go to left edge
+  -- shift (v)index by num
+  self.vindex = self.vindex + num
+  self.index = self.index + num
+
+  self:echo("\0277".. -- remember the location
+           unicode.sub(self.data, self.index + 1).. -- write part after
+           "\27[K\0278") -- clear tail and restore left edge
+
+  self:move(final_index - self.index) -- move to final_index location
+end
+
+function core_cursor.horizontal:echo(arg, num)
+  local w = tty.window
+  w.nowrap = self.nowrap
+  if arg == "" then -- special scroll request
+    local width = w.width
+    if w.x >= width then
+      -- the width that matters depends on the following char width
+      width = width - math.max(unicode.wlen(unicode.sub(self.data, self.index + 1, self.index + 1)) - 1, 0)
+      if w.x > width then
+        local s1 = unicode.sub(self.data, self.vindex + 1, self.index)
+        self:scroll(unicode.len(unicode.wtrunc(s1, w.x - width + 1)), self.index)
+      end
+    end
+    -- scroll is safe now, return as normal below
+  elseif arg == kb.keys.left then
+    if self.index < self.vindex then
+      local s2 = unicode.sub(self.data, self.index + 1)
+      w.x = w.x - num + unicode.wlen(unicode.sub(s2, 1, self.vindex - self.index))
+      local current_x = w.x
+      self:echo(s2)
+      w.x = current_x
+      self.vindex = self.index
+      return true
+    end
+  elseif arg == kb.keys.right then
+    w.x = w.x + num
+    return self:echo("") -- scroll
+  end
+  return core_cursor.vertical.echo(self, arg, num)
+end
+
+function core_cursor.horizontal:update(arg, back)
+  if back then
+    -- if we're just going to render arg and move back, and we're not wrapping, just render arg
+    -- back may be more or less from current x
+    self:update(arg, false)
+    local x = tty.window.x
+    self:echo(arg) -- nowrap echo
+    tty.window.x = x
+    self:move(self.len - self.index + back) -- back is negative from end
+    return true
+  elseif not arg then -- reset
+    self.nowrap = true
+    self.clear = "\27[K"
+    self.vindex = 0 -- visual/virtual index
+  end
+  return core_cursor.vertical.update(self, arg, back)
+end
+
+setmetatable(core_cursor.horizontal, { __index = core_cursor.vertical })

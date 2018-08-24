@@ -3,16 +3,11 @@ local computer = require("computer")
 local process = require("process")
 local event = require("event")
 local core_cursor = require("core/cursor")
-local unicode = require("unicode")
 
 local kb = require("keyboard")
 local keys = kb.keys
 
 local term = setmetatable({internal={}}, {__index=tty})
-
-function term.internal.window()
-  return process.info().data.window
-end
 
 local function as_window(window, func, ...)
   local data = process.info().data
@@ -45,99 +40,33 @@ function term.internal.open(...)
   })
 
   -- first time we open a pty the current tty.window must become the process window
-  if not term.internal.window() then
-    local init_index = 2
-    while process.info(init_index) do
-      init_index = init_index + 1
+  if rawget(tty, "window") then
+    for _,p in pairs(process.list) do
+      if not p.parent then
+        p.data.window = tty.window
+        break
+      end
     end
-    process.info(init_index - 1).data.window = tty.window
     tty.window = nil
     setmetatable(tty,
     {
       __index = function(_, key)
         if key == "window" then
-          return term.internal.window()
+          return process.info().data.window
         end
       end
     })
   end
 
   as_window(window, tty.setViewport, w, h, dx, dy, 1, 1)
+  as_window(window, tty.bind, tty.gpu())
   return window
 end
 
-local function horizontal_echo(self, arg)
-  if arg == "" then -- special scroll request
-    local w = self.window
-    local width = w.width
-    if w.x >= width then
-      -- render all text from 1 to width from end
-      -- the width that matters depends on the following char width
-      local next_overlap = math.max(unicode.wlen(unicode.sub(self.data, self.index + 1, self.index + 1)) - 1, 0)
-      width = width - next_overlap
-      if w.x > width then
-        local s1, s2 =
-          unicode.sub(self.data, self.vindex + 1, self.index),
-          unicode.sub(self.data, self.index + 1)
-        -- vindex is really the only way we know where input started
-        local s1wlen = unicode.wlen(s1)
-        -- adjust is how far to push the string back
-        local adjust = w.x - width
-        local wlen_available = s1wlen - adjust + 1 -- +1 because wtrunc removes the final position
-        -- now we have to resize s2 to fit in wlen_available, from the end, not the front
-        local trunc = unicode.wtrunc(unicode.reverse(s1), wlen_available)
-        -- is it faster to reverse again, or take wlen and sub, probably just reverse
-        trunc = unicode.reverse(trunc)
-        -- a double wide may have just been cut
-        local cutwlen = s1wlen - unicode.wlen(trunc)
-        -- we have to move to position 1, which should be at vindex, or s2wlen back from x
-        w.x = w.x - s1wlen
-        self.output:write(trunc .. s2 .. (" "):rep(cutwlen))
-        self.vindex = self.index - unicode.len(trunc)
-        w.x = width - cutwlen + 1
-      end
-    elseif w.x < 1 then
-      -- render all text from 1 to width from end
-      local s2 = unicode.sub(self.data, self.index + 1)
-      w.x = 1
-      self.output:write(s2)
-      w.x = 1
-      self.vindex = self.index
-    end
-    -- scroll is safe now, return as normal below
-  elseif arg == keys.left then
-    if self.index < self.vindex then
-      self.window.x = 0
-      return self:echo("")
-    end
-  elseif arg == keys.right then
-    self.window.x = self.window.x + unicode.wlen(unicode.sub(self.data, self.index, self.index))
-    return self:echo("")
-  end
-  return self.super.echo(self, arg)
-end
+local function create_cursor(history, ops)
+  local cursor = history or {}
+  cursor.hint = ops.hint or cursor.hint
 
-local function horizontal_update(self, arg, back)
-  if back then
-    -- if we're just going to render arg and move back, and we're not wrapping, just render arg
-    -- back may be more or less from current x
-    local arg_len = unicode.len(arg)
-    local x = self.window.x
-    self.output:write(arg)
-    self.window.x = x
-    self.data = self.data .. arg
-    self.len = self.len + arg_len -- recompute len
-    self:move(self.len - self.index + back) -- back is negative from end
-    return true
-  end
-  return self.super.update(self, arg, back)
-end
-
-local function add_cursor_handlers(cursor, ops)
-  -- cursor inheritance gives super: to access base methods
-  -- function cursor:method(...)
-  --   return self.super.method(self, ...)
-  -- end
   local filter = ops.filter or cursor.filter
   if filter then
     if type(filter) == "string" then
@@ -160,32 +89,29 @@ local function add_cursor_handlers(cursor, ops)
 
   local pwchar = ops.pwchar or cursor.pwchar
   local nobreak = ops.dobreak == false or cursor.dobreak == false
-  if pwchar or nobreak or cursor.nowrap then
+  if pwchar or nobreak then
     if type(pwchar) == "string" then
       local pwchar_text = pwchar
       pwchar = function(text)
         return text:gsub(".", pwchar_text)
       end
     end  
-    function cursor:echo(arg)
-      if pwchar and type(arg) == "string" and #arg > 0 then -- "" is used for scrolling
+    function cursor:echo(arg, ...)
+      if pwchar and type(arg) == "string" and #arg > 0 and not arg:match("^\27") then -- "" is used for scrolling
         arg = pwchar(arg)
-      elseif nobreak and arg == keys.enter then
+      elseif nobreak and arg == "\n" then
         arg = ""
       end
-      local echo = cursor.nowrap and horizontal_echo or self.super.echo
-      return echo(self, arg)
+      return self.super.echo(self, arg, ...)
     end
   end
-  if cursor.nowrap then
-    cursor.update = horizontal_update
-    tty.window.nowrap = true
-    cursor.vindex = 0 -- visual/virtual index
-  end
+
+  return core_cursor.new(cursor, cursor.nowrap and core_cursor.horizontal)
 end
 
 -- cannot use term.write = io.write because io.write invokes metatable
 function term.write(value, wrap)
+  io.stdout:flush()
   local previous_nowrap = tty.window.nowrap
   tty.window.nowrap = wrap == false
   io.write(value)
@@ -194,16 +120,13 @@ function term.write(value, wrap)
 end
 
 function term.read(history, dobreak, hint, pwchar, filter)
-  local cursor = history or {}
-  cursor.hint = cursor.hint or hint
-
-  add_cursor_handlers(cursor, {
+  tty.window.cursor = create_cursor(history, {
     dobreak = dobreak,
     pwchar = pwchar,
     filter = filter,
+    hint = hint
   })
-
-  return tty.read(cursor)
+  return io.stdin:readLine(false)
 end
 
 function term.getGlobalArea()
@@ -230,7 +153,7 @@ function term.pull(...)
     timeout = computer.uptime() + table.remove(args, 1)
     args.n = args.n - 1
   end
-  local cursor = core_cursor.new(nil, tty.window, tty.stream) -- cursors can blink (base arg is optional)
+  local cursor = core_cursor.new()
   while timeout >= computer.uptime() and cursor:echo() do
     local s = table.pack(event.pull(.5, table.unpack(args, 1, args.n)))
     cursor:echo(not s[1])
