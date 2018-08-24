@@ -73,6 +73,10 @@ repositories {
 	  maven { url "http://maven.thiakil.com" }
     maven { url "http://cc.crzd.me/maven/" }
 	maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
 }
 
 configurations {
@@ -103,10 +107,10 @@ dependencies {
 		transitive = false
 	}
 
-  provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
+   provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
         exclude module: 'NotEnoughItems'
         exclude module: "CodeChickenLib"
-  }
+    }
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
