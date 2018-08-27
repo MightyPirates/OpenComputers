@@ -307,7 +307,7 @@ publishing {
     }
     repositories {
         maven {
-            url "${config.maven.url}"
+            url System.getenv("MAVEN_PATH")
         }
     }
 }
