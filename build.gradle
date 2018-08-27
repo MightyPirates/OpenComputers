@@ -64,14 +64,7 @@ minecraft {
 }
 
 repositories {
-    maven { url "http://dvs1.progwml6.com/files/maven/" }
-    maven { url "http://maven.amadornes.com/" }
-    maven { url "http://mod-buildcraft.com/maven/" }
-    maven { url "http://maven.cil.li/" }
-    maven { url "http://maven.ic2.player.to/" }
-    maven { url "http://tehnut.info/maven" }
-	maven { url "http://maven.thiakil.com" }
-    maven { url "http://cc.crzd.me/maven/" }
+	maven { url "http://maven.cil.li/" }
 	maven { url "https://minecraft.curseforge.com/api/maven/" }
 }
 
@@ -174,7 +167,7 @@ publishing {
     }
     repositories {
         maven {
-            url "${config.maven.url}"
+            url System.getenv("MAVEN_PATH")
         }
     }
 }
