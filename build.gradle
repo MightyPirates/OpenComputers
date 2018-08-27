@@ -67,10 +67,7 @@ minecraft {
 }
 
 repositories {
-    maven { url "http://dvs1.progwml6.com/files/maven/" }
-    maven { url "http://maven.amadornes.com/" }
     maven { url "http://maven.cil.li/" }
-    maven { url "http://maven.ic2.player.to/" }
 }
 
 configurations {
