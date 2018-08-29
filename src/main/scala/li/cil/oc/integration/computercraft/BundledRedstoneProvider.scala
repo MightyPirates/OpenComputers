@@ -7,7 +7,8 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
 import li.cil.oc.util.BlockPosition
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 
 object BundledRedstoneProvider extends IBundledRedstoneProvider with RedstoneProvider {
   def init() {
@@ -15,11 +16,11 @@ object BundledRedstoneProvider extends IBundledRedstoneProvider with RedstonePro
     BundledRedstone.addProvider(this)
   }
 
-  override def getBundledRedstoneOutput(world: World, x: Int, y: Int, z: Int, side: Int): Int =
-    world.getTileEntity(x, y, z) match {
+  override def getBundledRedstoneOutput(world: World, blockPos: BlockPos, enumFacing: EnumFacing): Int =
+    world.getTileEntity(blockPos) match {
       case tile: BundledRedstoneAware =>
         var result = 0
-        val colours = tile.bundledOutput(ForgeDirection.VALID_DIRECTIONS(side))
+        val colours = tile.bundledOutput(enumFacing)
         for (colour <- 0 to 15) {
           if (colours(colour) > 0) result |= 1 << colour
         }
@@ -27,11 +28,11 @@ object BundledRedstoneProvider extends IBundledRedstoneProvider with RedstonePro
       case _ => -1
     }
 
-  override def computeInput(pos: BlockPosition, side: ForgeDirection): Int = 0
+  override def computeInput(pos: BlockPosition, side: EnumFacing): Int = 0
 
-  override def computeBundledInput(pos: BlockPosition, side: ForgeDirection): Array[Int] = {
+  override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = {
     val offset = pos.offset(side)
-    val strength = ComputerCraftAPI.getBundledRedstoneOutput(pos.world.get, offset.x, offset.y, offset.z, side.getOpposite.ordinal())
+    val strength = ComputerCraftAPI.getBundledRedstoneOutput(pos.world.get, offset.toBlockPos, side.getOpposite)
     if (strength >= 0) {
       val strengths = new Array[Int](16)
       for (colour <- 0 to 15) {
