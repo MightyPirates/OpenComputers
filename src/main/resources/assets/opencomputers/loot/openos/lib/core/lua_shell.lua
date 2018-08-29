@@ -1,5 +1,5 @@
 local package = require("package")
-local tty = require("tty")
+local term = require("term")
 
 local function optrequire(...)
   local success, module = pcall(require, ...)
@@ -91,9 +91,9 @@ io.write("\27[33mEnter a statement and hit enter to evaluate it.\n")
 io.write("Prefix an expression with '=' to show its value.\n")
 io.write("Press Ctrl+D to exit the interpreter.\n\27[37m")
 
-while tty.isAvailable() do
+while term.isAvailable() do
   io.write(env._PROMPT)
-  local command = tty.read(read_handler)
+  local command = term.read(read_handler)
   if not command then -- eof
     return
   end
@@ -122,7 +122,7 @@ while tty.isAvailable() do
       if not ok then
         io.stderr:write("crashed serializing result: ", tostring(why))
       end
-      if tty.getCursor() > 1 then
+      if term.getCursor() > 1 then
         io.write("\n")
       end
     end

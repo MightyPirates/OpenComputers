@@ -23,6 +23,7 @@ options =
 {
   cmd = "cp",
   i = options.i,
+  f = options.f,
   n = options.n,
   r = options.r,
   u = options.u,
