@@ -23,7 +23,8 @@ if #args == 0 then
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
     end
-    local command = tty.read(input_handler)
+    tty.window.cursor = input_handler
+    local command = io.stdin:readLine(false)
     if command then
       command = text.trim(command)
       if command == "exit" then

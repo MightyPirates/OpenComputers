@@ -1,6 +1,7 @@
 local text = require("text")
 local tx = require("transforms")
 local unicode = require("unicode")
+local process = require("process")
 
 -- separate string value into an array of words delimited by whitespace
 -- groups by quotes
@@ -91,7 +92,7 @@ function text.internal.splitWords(words, delimiters)
         add_part(part)
       else
         local part_text_splits = text.split(part.txt, delimiters)
-        tx.foreach(part_text_splits, function(sub_txt, spi)
+        tx.foreach(part_text_splits, function(sub_txt)
           local delim = #text.split(sub_txt, delimiters, true) == 0
           next_word = next_word or delim
           add_part({txt=sub_txt,qr=qr})
@@ -177,7 +178,8 @@ function text.internal.reader(txt, mode)
       _.txt = nil
       return true
     end,
-  }, {__index=text.internal.stream_base(mode:match("b"))})
+  }, {__index=text.internal.stream_base((mode or ""):match("b"))})
+  process.closeOnExit(reader)
 
   return require("buffer").new("r", reader)
 end
@@ -201,7 +203,7 @@ function text.internal.writer(ostream, mode, append_txt)
       local pre = _.psub(_.txt, 1, _.index)
       local vs = {}
       local pos = _.psub(_.txt, _.index + 1)
-      for i,v in ipairs({...}) do
+      for _,v in ipairs({...}) do
         table.insert(vs, v)
       end
       vs = table.concat(vs)
@@ -218,7 +220,8 @@ function text.internal.writer(ostream, mode, append_txt)
       _.txt = nil
       return true
     end,
-  }, {__index=text.internal.stream_base(mode:match("b"))})
+  }, {__index=text.internal.stream_base((mode or ""):match("b"))})
+  process.closeOnExit(writer)
 
   return require("buffer").new("w", writer)
 end

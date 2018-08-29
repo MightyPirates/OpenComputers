@@ -73,11 +73,15 @@ function process.load(path, env, init, name)
           return 128 -- syserr
         end, ...)
     }
-    process.internal.close(thread, result)
+
     --result[1] is false if the exception handler also crashed
     if not result[1] and type(result[2]) ~= "number" then
-      require("event").onError(string.format("process library exception handler crashed: %s", tostring(result[2])))
+      pcall(require("event").onError, string.format("process library exception handler crashed: %s", tostring(result[2])))
     end
+
+    -- onError opens a file, you can't open a file without a process, we close the process last
+    process.internal.close(thread, result)
+
     return select(2, table.unpack(result))
   end, true)
   local new_proc =

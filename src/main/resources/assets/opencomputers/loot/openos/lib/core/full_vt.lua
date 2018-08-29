@@ -45,9 +45,9 @@ end
 -- [2K            clear entire line
 local function clear_line(window, _, n)
   n = tonumber(n) or 0
-  local x = n == 0 and window.x or 1
-  local rep = n == 1 and window.x or window.width
-  window.gpu.fill(x, window.y, rep, 1, " ")
+  local x = (n == 0 and window.x or 1)
+  local rep = n == 1 and window.x or (window.width - x + 1)
+  window.gpu.fill(x + window.dx, window.y + window.dy, rep, 1, " ")
 end
 rules[{"%[", "[012]?", "K"}] = clear_line
 
@@ -59,8 +59,8 @@ rules[{"%[", "[012]?", "J"}] = function(window, _, n)
   clear_line(window, _, n)
   n = tonumber(n) or 0
   local y = n == 0 and (window.y + 1) or 1
-  local rep = n == 1 and (window.y - 1) or window.height
-  window.gpu.fill(1, y, window.width, rep, " ")
+  local rep = n == 1 and (window.y - 1) or (window.height)
+  window.gpu.fill(1 + window.dx, y + window.dy, window.width, rep, " ")
 end
 
 -- [H             move cursor to upper left corner
@@ -81,7 +81,7 @@ end
 -- D               scroll up one line -- moves cursor down
 -- E               move to next line (acts the same ^, but x=1)
 -- M               scroll down one line -- moves cursor up
-rules[{"%[", "[DEM]"}] = function(window, _, dir)
+rules[{"[DEM]"}] = function(window, _, dir)
   if dir == "D" then
     window.y = window.y + 1
   elseif dir == "E" then
