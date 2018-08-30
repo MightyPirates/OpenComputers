@@ -68,8 +68,7 @@ local cols =
   end},
   {"HANDLES", function(_, p)
     local count = 0
-    for stream,closure in pairs(p.data.handles) do
-      cprint(string.format("%s %s", stream, closure))
+    for _,closure in pairs(p.data.handles) do
       if closure then
         count = count + 1
       end

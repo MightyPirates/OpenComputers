@@ -8,10 +8,11 @@ local computer = computer
 local unicode = unicode
 
 -- Runlevel information.
-local runlevel, shutdown = "S", computer.shutdown
-computer.runlevel = function() return runlevel end
+_G.runlevel = "S"
+local shutdown = computer.shutdown
+computer.runlevel = function() return _G.runlevel end
 computer.shutdown = function(reboot)
-  runlevel = reboot and 6 or 0
+  _G.runlevel = reboot and 6 or 0
   if os.sleep then
     computer.pushSignal("shutdown")
     os.sleep(0.1) -- Allow shutdown processing.

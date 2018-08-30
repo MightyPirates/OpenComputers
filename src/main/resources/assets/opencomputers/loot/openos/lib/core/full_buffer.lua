@@ -142,7 +142,7 @@ function buffer:readBytesOrChars(readChunk, n)
     sub = unicode.sub
   end
   local data = ""
-  repeat
+  while len(data) ~= n do
     if len(self.bufferRead) == 0 then
       local result, reason = readChunk(self)
       if not result then
@@ -156,7 +156,7 @@ function buffer:readBytesOrChars(readChunk, n)
     local left = n - len(data)
     data = data .. sub(self.bufferRead, 1, left)
     self.bufferRead = sub(self.bufferRead, left + 1)
-  until len(data) == n
+  end
   return data
 end
 

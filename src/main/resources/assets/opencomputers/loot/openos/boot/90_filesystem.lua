@@ -17,7 +17,7 @@ local function onComponentAdded(_, address, componentType)
       end
       name = fs.concat("/mnt", name)
       fs.mount(proxy, name)
-      if fs.isAutorunEnabled() then
+      if not fs.exists("/etc/filesystem.cfg") or fs.isAutorunEnabled() then
         local file = shell.resolve(fs.concat(name, "autorun"), "lua") or
                       shell.resolve(fs.concat(name, ".autorun"), "lua")
         if file then

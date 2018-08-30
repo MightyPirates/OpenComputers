@@ -231,7 +231,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
     Delegator.subItem(stack) match {
       case Some(subItem: Chargeable) => subItem.charge(stack, amount, simulate)
-      case _ => 0.0
+      case _ => amount
     }
 
   // ----------------------------------------------------------------------- //

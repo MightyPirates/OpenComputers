@@ -38,9 +38,11 @@ local function load(name, args)
     if result then
       rc.loaded[name] = env
       return env
+    else
+      return nil, string.format("%s failed to start: %s", fileName, reason)
     end
   end
-  return nil, reason
+  return nil, string.format("%s failed to load: %s", fileName, reason)
 end
 
 function rc.unload(name)
@@ -116,24 +118,33 @@ local function allRunCommand(cmd, ...)
   return results
 end
 
-if select("#", ...) == 0 then  
-  local results,reason = allRunCommand("start")
+local stream = io.stderr
+local write = stream.write
+
+if select("#", ...) == 0 then
+  -- if called during boot, pipe errors to onError handler
+  if _G.runlevel == "S" then
+    write = function(_, msg)
+      require("event").onError(msg)
+    end
+  end
+
+  local results, reason = allRunCommand("start")
   if not results then
     local msg = "rc failed to start:"..tostring(reason)
-    io.stderr:write(msg)
-    require("event").onError(msg)
+    write(stream, msg, "\n")
     return
   end
   for _, result in pairs(results) do
     local ok, reason = table.unpack(result)
     if not ok then
-      io.stderr:write(reason, "\n")
+      write(stream, reason, "\n")
     end
   end
 else
   local result, reason = runCommand(...)
   if not result then
-    io.stderr:write(reason, "\n")
+    write(stream, reason, "\n")
     return 1
   end
 end
