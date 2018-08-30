@@ -20,8 +20,6 @@ apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-compileScala.targetCompatibility = "1.7"
-
 file "build.properties" withReader {
     def prop = new Properties()
     prop.load(it)
