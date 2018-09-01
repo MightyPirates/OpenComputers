@@ -2,7 +2,7 @@ package li.cil.oc.server.machine.luac
 
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.GameTimeFormatter
-import org.terasology.jnlua.LuaType
+import li.cil.repack.com.naef.jnlua.LuaType
 
 class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -79,8 +79,8 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
           lua.pop(1)
           if (res == null)
             if (d < 0) throw new Exception("field '" + key + "' missing in date table")
-            else d.toInt
-          else res.toInt
+            else d
+          else res: Int
         }
 
         lua.checkType(1, LuaType.TABLE)

@@ -45,7 +45,7 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         })
         else string.length
       if (end <= start) lua.pushString("")
-      else lua.pushString(string.substring(start.toInt, end.toInt))
+      else lua.pushString(string.substring(start, end))
       1
     })
     lua.setField(-2, "sub")
