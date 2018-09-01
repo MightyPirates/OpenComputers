@@ -6,6 +6,9 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
 import net.minecraft.block.BlockCrops
+import net.minecraft.block.BlockStem
+import net.minecraft.block.properties.PropertyInteger
+import net.minecraft.block.state.IBlockState
 import net.minecraft.init.Blocks
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -36,10 +39,11 @@ object EventHandlerVanilla {
       val z = blockPos.z + rz
       val index = (rx - e.minX) + ((rz - e.minZ) + (ry - e.minY) * d) * w
       if (world.isBlockLoaded(pos) && !world.isAirBlock(pos)) {
-        val block = world.getBlockState(pos).getBlock
+        val blockState = world.getBlockState(pos)
+        val block = blockState.getBlock
         if (block != Blocks.AIR && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.toBlockPos))) {
           val distance = math.sqrt(rx * rx + ry * ry + rz * rz).toFloat
-          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + block.getBlockHardness(world.getBlockState(pos), world, pos)
+          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + blockState.getBlockHardness(world, pos)
         }
         else e.data(index) = 0
       }
@@ -49,33 +53,59 @@ object EventHandlerVanilla {
 
   private def isFluid(block: Block) = FluidRegistry.lookupFluidForBlock(block) != null
 
+  private def getGrowth(blockState: IBlockState) = {
+    blockState.getPropertyNames().find(prop => {prop.isInstanceOf[PropertyInteger] && prop.getName() == "age"}) match {
+      case Some(prop) => {
+        val propAge = prop.asInstanceOf[PropertyInteger]
+        Some((blockState.getValue(propAge).toFloat / propAge.getAllowedValues().max) max 0 min 1)
+      }
+      case None => None
+    }
+  }
+
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
     val world = e.host.world
-    val blockState = world.getBlockState(e.pos)
+    val blockState = world.getBlockState(e.pos).getActualState(world, e.pos)
     val block = blockState.getBlock
 
     e.data += "name" -> Block.REGISTRY.getNameForObject(block)
-    e.data += "hardness" -> Float.box(block.getBlockHardness(world.getBlockState(e.pos), world, e.pos))
+    e.data += "hardness" -> Float.box(blockState.getBlockHardness(world, e.pos))
     e.data += "harvestLevel" -> Int.box(block.getHarvestLevel(blockState))
     e.data += "harvestTool" -> block.getHarvestTool(blockState)
     e.data += "color" -> Int.box(block.getMapColor(blockState).colorValue)
+
+    // backward compatibility
+    e.data += "metadata" -> Int.box({
+      try {
+        block.getMetaFromState(blockState)
+      } catch {
+          case _ :IllegalArgumentException => 0
+      }
+    })
+
+    e.data += "properties" -> {
+      var props:Map[String, Any] = Map();
+      for (prop <- blockState.getProperties().keySet()) {
+        props += prop.getName() -> blockState.getValue(prop)
+      }
+      props
+    }
 
     if (Settings.get.insertIdsInConverters) {
       e.data += "id" -> Int.box(Block.getIdFromBlock(block))
     }
 
-    if (block.isInstanceOf[BlockCrops] || block == Blocks.MELON_STEM || block == Blocks.PUMPKIN_STEM || block == Blocks.CARROTS || block == Blocks.POTATOES) {
-      e.data += "growth" -> Float.box((block.getMetaFromState(blockState) / 7f) max 0 min 1)
-    }
-    if (block == Blocks.COCOA) {
-      e.data += "growth" -> Float.box(((block.getMetaFromState(blockState) >> 2) / 2f) max 0 min 1)
-    }
-    if (block == Blocks.NETHER_WART) {
-      e.data += "growth" -> Float.box((block.getMetaFromState(blockState) / 3f) max 0 min 1)
-    }
-    if (block == Blocks.MELON_BLOCK || block == Blocks.PUMPKIN || block == Blocks.CACTUS || block == Blocks.REEDS) {
-      e.data += "growth" -> Float.box(1f)
+    {
+      if (block.isInstanceOf[BlockCrops] || block.isInstanceOf[BlockStem] || block == Blocks.COCOA || block == Blocks.NETHER_WART || block == Blocks.CHORUS_FLOWER) {
+        getGrowth(blockState)
+      } else if (block == Blocks.MELON_BLOCK || block == Blocks.PUMPKIN || block == Blocks.CACTUS || block == Blocks.REEDS || block == Blocks.CHORUS_PLANT) {
+        Some(1f)
+      } else {
+        None
+      }
+    } foreach { growth =>
+      e.data += "growth" -> Float.box(growth)
     }
   }
 }
