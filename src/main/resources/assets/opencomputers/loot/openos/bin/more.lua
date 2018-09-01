@@ -1,4 +1,3 @@
-local buffer = require("buffer")
 local keyboard = require("keyboard")
 local shell = require("shell")
 local term = require("term")
