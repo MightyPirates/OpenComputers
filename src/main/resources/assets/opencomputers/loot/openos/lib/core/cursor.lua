@@ -68,9 +68,11 @@ end
 
 function core_cursor.vertical:echo(arg, num)
   local win = tty.window
+  local gpu = win.gpu
+  if not gpu then return end
   win.nowrap = self.nowrap
   if arg == "" then -- special scroll request
-    local gpu, width, x, y = win.gpu, win.width, win.x, win.y
+    local width, x, y = win.width, win.x, win.y
     if x > width then
       win.x = ((x - 1) % width) + 1
       win.y = y + math.floor(x / width)
@@ -100,7 +102,6 @@ function core_cursor.vertical:echo(arg, num)
     win.x, win.y = x, y
     arg = ""
   elseif not arg or arg == true then -- blink
-    local gpu = win.gpu
     local char = self.char_at_cursor
     if (arg == nil and not char) or (arg and not self.blinked) then
       char = char or self:echo("") --scroll and get char
@@ -113,7 +114,7 @@ function core_cursor.vertical:echo(arg, num)
         gpu.setBackground(char[5] or char[3], not not char[5])
       end
       io.write("\0277", "\27[7m", char[1], "\0278")
-    elseif (arg and self.blinked) or arg == false then
+    elseif (arg and self.blinked) or (arg == false and char) then
       self.blinked = false
       gpu.set(win.x + win.dx, win.y + win.dy, char[1])
       if not arg then
