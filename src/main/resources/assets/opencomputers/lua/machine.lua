@@ -744,7 +744,6 @@ sandbox = {
     return table.unpack(result, 1, result.n)
   end,
   print = nil, -- in boot/*_base.lua
-  log = print,
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,
