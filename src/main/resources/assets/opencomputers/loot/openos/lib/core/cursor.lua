@@ -69,6 +69,14 @@ end
 function core_cursor.vertical:echo(arg, num)
   local win = tty.window
   local gpu = win.gpu
+
+  -- we should not use io.write
+  -- the cursor should echo to the stream it is reading from
+  -- this makes sense because a process may redirect its io
+  -- but a cursor reading from a given stdin tty should also
+  -- echo to that same stream
+  local out = io.stdin.stream
+  
   if not gpu then return end
   win.nowrap = self.nowrap
   if arg == "" then -- special scroll request
@@ -76,7 +84,7 @@ function core_cursor.vertical:echo(arg, num)
     if x > width then
       win.x = ((x - 1) % width) + 1
       win.y = y + math.floor(x / width)
-      io.write("") -- tty.stream:write knows how to scroll vertically
+      out:write("") -- tty.stream:write knows how to scroll vertically
       x, y = win.x, win.y
     end
     if x <= 0 or y <= 0 or y > win.height or not gpu then return end
@@ -108,25 +116,25 @@ function core_cursor.vertical:echo(arg, num)
       if not char[1] then return false end
       self.blinked = true
       if not arg then
-        io.write("\0277")
+        out:write("\0277")
         char.saved = win.saved
         gpu.setForeground(char[4] or char[2], not not char[4])
         gpu.setBackground(char[5] or char[3], not not char[5])
       end
-      io.write("\0277", "\27[7m", char[1], "\0278")
+      out:write("\0277\27[7m"..char[1].."\0278")
     elseif (arg and self.blinked) or (arg == false and char) then
       self.blinked = false
       gpu.set(win.x + win.dx, win.y + win.dy, char[1])
       if not arg then
         win.saved = char.saved
-        io.write("\0278")
+        out:write("\0278")
         char = nil
       end
     end
     self.char_at_cursor = char
     return true
   end
-  return io.write(arg)
+  return out:write(arg)
 end
 
 function core_cursor.vertical:handle(name, char, code)
