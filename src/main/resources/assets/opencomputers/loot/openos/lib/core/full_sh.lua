@@ -85,7 +85,7 @@ function sh.internal.openCommandRedirects(redirects)
 
     if type(to_io) == "number" then -- io to io
       -- from_io and to_io should be numbers
-      ios[from_io] = ios[to_io]
+      ios[from_io] = io.dup(ios[to_io])
     else
       -- to_io should be a string
       local file, reason = io.open(shell.resolve(to_io), mode)
