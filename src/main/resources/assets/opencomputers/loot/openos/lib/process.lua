@@ -97,7 +97,9 @@ function process.load(path, env, init, name)
     parent = p,
     instances = setmetatable({}, {__mode="v"}),
   }
-  setmetatable(new_proc.data.io, {__index=p.data.io})
+  for i,fd in pairs(p.data.io) do
+    new_proc.data.io[i] = io.dup(fd)
+  end
   setmetatable(new_proc.data, {__index=p.data})
   process.list[thread] = new_proc
 
