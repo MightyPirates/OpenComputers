@@ -108,17 +108,17 @@ function io.write(...)
   return io.output():write(...)
 end
 
+local dup_mt =   {__index = function(dfd, key)
+  if key == "close" or dfd._closed then dfd._closed = true return end
+  local fd_value = dfd.fd[key]
+  if type(fd_value) ~= "function" then return fd_value end
+  return function(_, ...)
+    return fd_value(dfd.fd, ...)
+  end
+end}
+
 function io.dup(fd)
-  return setmetatable({
-    close = function(self) self._closed = true end,
-  }, {__index = function(_, key)
-    local fd_value = fd[key]
-    if type(fd_value) ~= "function" then return fd_value end
-    return function(self, ...)
-      if self._closed then return nil, "closed stream" end
-      return fd_value(fd, ...)
-    end
-  end})
+  return setmetatable({fd=fd,_closed=false}, dup_mt)
 end
 
 -------------------------------------------------------------------------------
