@@ -187,22 +187,21 @@ function sh.internal.glob(eword)
 end 
 
 function sh.getMatchingPrograms(baseName)
+  if not baseName or baseName == "" then return {} end
   local result = {}
   local result_keys = {} -- cache for fast value lookup
-  -- TODO only matching files with .lua extension for now, might want to
-  --      extend this to other extensions at some point? env var? file attrs?
-  if not baseName or #baseName == 0 then
-    baseName = "^(.*)%.lua$"
-  else
-    baseName = "^(" .. text.escapeMagic(baseName) .. ".*)%.lua$"
+  local function check(key)
+    if key:find(baseName, 1, true) == 1 and not result_keys[key] then
+      table.insert(result, key)
+      result_keys[key] = true
+    end
+  end
+  for alias in shell.aliases() do
+    check(alias)
   end
   for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
     for file in fs.list(shell.resolve(basePath)) do
-      local match = file:match(baseName)
-      if match and not result_keys[match] then
-        table.insert(result, match)
-        result_keys[match] = true
-      end
+      check(file:gsub("%.lua$", ""))
     end
   end
   return result
