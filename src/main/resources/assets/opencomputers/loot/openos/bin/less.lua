@@ -1,10 +1,11 @@
-local keyboard = require("keyboard")
+local keys = require("keyboard").keys
 local shell = require("shell")
+local unicode = require("unicode")
 local term = require("term") -- using term for negative scroll feature
 
-local args = shell.parse(...)
+local args, ops = shell.parse(...)
 if #args > 1 then
-  io.write("Usage: less <filename>\n")
+  io.write("Usage: ", os.getenv("_"):match("/([^/]+)%.lua$"), " <filename>\n")
   io.write("- or no args reads stdin\n")
   return 1
 end
@@ -14,86 +15,127 @@ if not io.output().tty then
   return os.execute(cat_cmd)
 end
 
-term.clear()
-
 local preader = io.popen(cat_cmd)
-local buffer = setmetatable({}, {__index = function(tbl, index)
-  if type(index) ~= "number" or index < 1 then return end
-  while #tbl < index do
-    local line = preader:read()
-    if not line then return end
-    table.insert(tbl, line)
-  end
-  return tbl[index]
-end})
+local scrollback = not ops.noback and {}
+local bottom = 0
 
-local index = 1
+local width, height = term.getViewport()
 
-local _, height = term.getViewport()
-local status = ":"
-
-local function goback(n)
-  n = math.min(index - height, n)
-  if n <= 0 then return end -- make no back scroll, we're at the top
-  term.scroll(-n)
-  index = index - n
-  for y = 1, math.min(height - 1, n) do
-    term.setCursor(1, y)
-    print(buffer[index - height + y])
-  end
-  term.setCursor(1, height)
-end
-
-local function goforward(n)
-  if not buffer[index] then return end -- nothing to do
-  for test_index = index, index + n do
-    if not buffer[test_index] then
-      n = math.min(n, test_index - index)
+local function split(full_line)
+  local index = 1
+  local parts = {}
+  while true do
+    local sub = full_line:sub(index)
+    -- checking #sub < width first is faster, save a unicode call
+    if #sub < width or unicode.wlen(sub) <= width then
+      parts[#parts + 1] = sub
+      break
+    end
+    parts[#parts + 1] = unicode.wtrunc(sub, width + 1)
+    index = index + #parts[#parts]
+    if index > #full_line then
       break
     end
   end
-
-  term.clearLine()
-  term.scroll(n)
-  if n >= height then
-    index = index + (n - height) + 1
-    n = height - 1
-  end
-  term.setCursor(1, height - n)
-
-  return true
+  return parts
 end
 
-while true do
-  local _, y = term.getCursor()
-  local print_next_line = true
-  if y == height then
-    print_next_line = false
-    term.clearLine()
-    io.write(status)
-    local _, _, _, code = term.pull("key_down")
-    if code == keyboard.keys.q then
-      term.clearLine()
-      os.exit(1) -- abort
-    elseif code == keyboard.keys["end"] then
-      print_next_line = goforward(math.huge)
-    elseif code == keyboard.keys.space or code == keyboard.keys.pageDown then
-      print_next_line = goforward(height - 1)
-    elseif code == keyboard.keys.enter or code == keyboard.keys.down then
-      print_next_line = goforward(1)
-    elseif code == keyboard.keys.up then
-      goback(1)
-    elseif code == keyboard.keys.pageUp then
-      goback(height - 1)
+local function scan(num)
+  local result = {}
+  local line_count = 0
+  for i=1, num do
+    local lines = {}
+    if scrollback and (bottom + i) <= #scrollback then
+      lines = {scrollback[bottom + i]}
+    else
+      local full_line = preader:read()
+      if not full_line then preader:close() break end
+      -- with buffering, we can buffer ahead too, and read more smoothly
+      local buffering = false
+      for _,line in ipairs(split(full_line)) do
+        if not buffering then
+          lines[#lines + 1] = line
+        end
+        if scrollback then
+          buffering = true
+          scrollback[#scrollback + 1] = line
+        end
+      end
+    end
+
+    for _,line in ipairs(lines) do
+      result[#result + 1] = line
+      line_count = line_count + 1
+      if #result > height then
+        table.remove(result, 1)
+      end
+    end
+
+    if line_count >= num then
+      break
     end
   end
-  if print_next_line then
-    local line = buffer[index]
-    if line then
-      print(line)
-      index = index + 1
-    else
-      term.setCursor(1, height)
+  return result, line_count
+end
+
+local function status()
+  io.write(":")
+end
+
+local function goback(n)
+  if not scrollback then return end
+  local current_top = bottom - height + 1
+  n = math.min(current_top, n)
+  if n < 1 then return end
+  local top = current_top - n + 1
+  term.scroll(-n)
+  term.setCursor(1, 1)
+  for i=1, n do
+    if i >= height then
+      break
+    end
+    print(scrollback[top + i - 1])
+  end
+  term.setCursor(1, height)
+  bottom = bottom - n
+end
+
+local function goforward(n)
+  term.clearLine()
+  local update, line_count = scan(n)
+  for _,line in ipairs(update) do
+    print(line)
+  end
+  if ops.noback and line_count < n then
+    os.exit()
+  end
+  bottom = bottom + line_count
+end
+
+goforward(height - 1)
+
+while true do
+  term.clearLine()
+  status()
+  local e, _, _, code = term.pull()
+  if e == "interrupted" then
+    break
+  elseif e == "key_down" then
+    if code == keys.q then
+      term.clearLine()
+      os.exit() -- abort
+    elseif code == keys["end"] then
+      goforward(math.huge)
+    elseif code == keys.space or code == keys.pageDown then
+      goforward(height - 1)
+    elseif code == keys.enter or code == keys.down then
+      goforward(1)
+    elseif code == keys.up then
+      goback(1)
+    elseif code == keys.pageUp then
+      goback(height - 1)
+    elseif code == keys.home then
+      goback(math.huge)
     end
   end
 end
