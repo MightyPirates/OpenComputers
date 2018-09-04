@@ -25,7 +25,7 @@ local function split(full_line)
   local index = 1
   local parts = {}
   while true do
-    local sub = full_line:sub(index)
+    local sub = full_line:sub(index, index + width*3)
     -- checking #sub < width first is faster, save a unicode call
     if #sub < width or unicode.wlen(sub) <= width then
       parts[#parts + 1] = sub
