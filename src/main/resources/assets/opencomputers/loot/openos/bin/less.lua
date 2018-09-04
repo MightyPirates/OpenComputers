@@ -18,6 +18,7 @@ end
 local preader = io.popen(cat_cmd)
 local scrollback = not ops.noback and {}
 local bottom = 0
+local end_of_buffer = false
 
 local width, height = term.getViewport()
 
@@ -79,6 +80,12 @@ local function scan(num)
 end
 
 local function status()
+  if end_of_buffer then
+    if ops.noback then
+      os.exit()
+    end
+    io.write("(END)")
+  end
   io.write(":")
 end
 
@@ -98,6 +105,7 @@ local function goback(n)
   end
   term.setCursor(1, height)
   bottom = bottom - n
+  end_of_buffer = false
 end
 
 local function goforward(n)
@@ -106,8 +114,8 @@ local function goforward(n)
   for _,line in ipairs(update) do
     print(line)
   end
-  if ops.noback and line_count < n then
-    os.exit()
+  if line_count < n then
+    end_of_buffer = true
   end
   bottom = bottom + line_count
 end
