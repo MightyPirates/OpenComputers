@@ -25,12 +25,12 @@ if #args == 0 then
     end
     tty.window.cursor = input_handler
     local command = io.stdin:readLine(false)
+    tty.window.cursor = nil
     if command then
       command = text.trim(command)
       if command == "exit" then
         return
       elseif command ~= "" then
-        tty.window.cursor = nil -- the spawned process should use its own cursor
         local result, reason = sh.execute(_ENV, command)
         if not result then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
