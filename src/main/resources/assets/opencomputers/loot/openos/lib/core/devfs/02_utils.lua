@@ -42,9 +42,6 @@ return
           return table.concat(chars)
         end
       }
-    end,
-    size = function()
-      return math.huge
     end
   },
   zero =
@@ -55,9 +52,6 @@ return
         read = function(_, n) return ("\0"):rep(n) end,
         write = function() end
       }
-    end,
-    size = function()
-      return math.huge
     end
   },
 }

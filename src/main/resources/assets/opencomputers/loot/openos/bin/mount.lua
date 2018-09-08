@@ -3,7 +3,7 @@ local shell = require("shell")
 
 local function usage()
   io.stderr:write([==[
-Usage: mount [OPTIONS] [device path]")
+Usage: mount [OPTIONS] [device] [path]")
   If no args are given, all current mount points are printed.
   <Options> Note that multiple options can be used together
   -r, --ro    Mount the filesystem read only
