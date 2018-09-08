@@ -15,7 +15,7 @@ if #args == 0 then
   while true do
     if has_prompt then
       while not tty.isAvailable() do
-        event.pull("term_available")
+        event.pull("term_available", .5)
       end
       if needs_profile then -- first time run AND interactive
         needs_profile = nil
