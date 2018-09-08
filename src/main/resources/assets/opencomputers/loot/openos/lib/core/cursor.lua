@@ -75,6 +75,10 @@ function core_cursor.vertical:echo(arg, num)
   -- this makes sense because a process may redirect its io
   -- but a cursor reading from a given stdin tty should also
   -- echo to that same stream
+  -- but, if stdin has been piped - we do not echo the cursor
+  if not io.stdin.tty then
+    return
+  end
   local out = io.stdin.stream
   
   if not gpu then return end

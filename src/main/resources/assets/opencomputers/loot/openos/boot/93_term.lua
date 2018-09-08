@@ -1,15 +1,7 @@
-local component = require("component")
-local computer = require("computer")
 local event = require("event")
-local tty = require("tty")
-
-event.listen("gpu_bound", function(_, gpu)
-  gpu = component.proxy(gpu)
-  tty.bind(gpu)
-  computer.pushSignal("term_available")
-end)
 
 local function components_changed(ename, address, type)
+  local tty = require("tty")
   local window = tty.window
   if not window then
     return
@@ -32,7 +24,7 @@ local function components_changed(ename, address, type)
       window.keyboard = nil
     end
     if (type == "screen" or type == "gpu") and not tty.isAvailable() then
-      computer.pushSignal("term_unavailable")
+      event.push("term_unavailable")
     end
   elseif (ename == "component_added" or ename == "component_available") and type == "keyboard" then
   -- we need to clear the current terminals cached keyboard (if any) when

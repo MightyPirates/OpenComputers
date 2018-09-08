@@ -154,7 +154,8 @@ function term.pull(...)
     args.n = args.n - 1
   end
   local cursor = core_cursor.new()
-  while timeout >= computer.uptime() and cursor:echo() do
+  while timeout >= computer.uptime() do
+    cursor:echo()
     local s = table.pack(event.pull(.5, table.unpack(args, 1, args.n)))
     cursor:echo(not s[1])
     if s.n > 1 then return table.unpack(s, 1, s.n) end
