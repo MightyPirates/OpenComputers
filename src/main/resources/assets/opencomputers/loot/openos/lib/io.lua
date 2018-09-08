@@ -109,11 +109,11 @@ function io.write(...)
 end
 
 local dup_mt =   {__index = function(dfd, key)
-  if key == "close" or dfd._closed then dfd._closed = true return end
   local fd_value = dfd.fd[key]
-  if type(fd_value) ~= "function" then return fd_value end
-  return function(_, ...)
-    return fd_value(dfd.fd, ...)
+  if key ~= "close" and type(fd_value) ~= "function" then return fd_value end
+  return function(self, ...)
+    if key == "close" or self._closed then self._closed = true return end
+    return fd_value(self.fd, ...)
   end
 end}
 
