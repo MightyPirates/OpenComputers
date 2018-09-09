@@ -65,7 +65,8 @@ process.list[init_thread] = {
     vars={},
     handles={},
     io={}, --init will populate this
-    coroutine_handler = _coroutine
+    coroutine_handler = _coroutine,
+    signal = error
   },
   instances = setmetatable({}, {__mode="v"})
 }
