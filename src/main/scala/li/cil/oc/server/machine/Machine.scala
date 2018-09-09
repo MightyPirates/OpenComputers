@@ -418,16 +418,20 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
-  @Callback(doc = """function([frequency:number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
+  @Callback(doc = """function([frequency:string or number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
   def beep(context: Context, args: Arguments): Array[AnyRef] = {
-    val frequency = args.optInteger(0, 440)
-    if (frequency < 20 || frequency > 2000) {
-      throw new IllegalArgumentException("invalid frequency, must be in [20, 2000]")
+    if (args.count == 1 && args.isString(0)) {
+      beep(args.checkString(0))
+    } else {
+      val frequency = args.optInteger(0, 440)
+      if (frequency < 20 || frequency > 2000) {
+        throw new IllegalArgumentException("invalid frequency, must be in [20, 2000]")
+      }
+      val duration = args.optDouble(1, 0.1)
+      val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
+      context.pause(durationInMilliseconds / 1000.0)
+      beep(frequency.toShort, durationInMilliseconds.toShort)
     }
-    val duration = args.optDouble(1, 0.1)
-    val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
-    context.pause(durationInMilliseconds / 1000.0)
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
     null
   }
 
