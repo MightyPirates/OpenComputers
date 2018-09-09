@@ -97,7 +97,14 @@ processResources {
         expand 'version':project.simpleVersion, 'mcversion':project.minecraft.version, 'fversion':config.forge.version
     }
     from(sourceSets.main.resources.srcDirs) {
+        include 'application.conf'
+        filter { line ->
+            line.replaceAll("@VERSION@", project.simpleVersion)
+        }
+    }
+    from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+        exclude 'application.conf'
     }
 
     // Move access transformer to META-INF
