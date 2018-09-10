@@ -36,7 +36,8 @@ computer.pullSignal = function(...) -- dispatch
   if interrupting then
     lastInterrupt = current_time
     if keyboard.isAltDown() then
-      error("interrupted", 0)
+      require("process").info().data.signal("interrupted", 0)
+      return
     end
     event.push("interrupted", current_time)
   end
