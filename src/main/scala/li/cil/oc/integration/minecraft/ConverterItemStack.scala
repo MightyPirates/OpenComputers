@@ -11,6 +11,8 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.item
 import net.minecraft.item.Item
 import net.minecraft.nbt.NBTTagString
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.oredict.OreDictionary
 
@@ -30,8 +32,35 @@ object ConverterItemStack extends api.driver.Converter {
         output += "size" -> Int.box(stack.getCount)
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTagCompound)
-        output += "name" -> Item.REGISTRY.getNameForObject(stack.getItem)
+	val name = Item.REGISTRY.getNameForObject(stack.getItem)
+        output += "name" -> name
         output += "label" -> stack.getDisplayName
+	val nameString = name.toString()
+
+	// Handle essentia/vis contents for Thaumcraft jars, phials, and crystals
+	if ((nameString == "thaumcraft:jar_normal") ||
+	    (nameString == "thaumcraft:jar_void") ||
+	    (nameString == "thaumcraft:phial") ||
+	    (nameString == "thaumcraft:crystal_essence")) {
+	    if (stack.hasTagCompound &&
+	      stack.getTagCompound.hasKey("Aspects", NBT.TAG_LIST)) {
+	      val aspects = mutable.ArrayBuffer.empty[mutable.Map[String, Any]]
+              val nbtAspects = stack.getTagCompound.getTagList("Aspects", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) => tag)
+	      for (nbtAspect <- nbtAspects) {
+	        val key = nbtAspect.getString("key")
+	        val amount = nbtAspect.getInteger("amount")
+                val aspect = mutable.Map[String, Any](
+		        "aspect" -> key,
+		        "amount" -> amount
+	        )
+	        aspects += aspect
+	      }
+	      output += "aspects" -> aspects
+	    }
+	    if (stack.hasTagCompound && stack.getTagCompound.hasKey("AspectFilter", NBT.TAG_STRING)) {
+	      output += "aspectFilter" -> stack.getTagCompound.getString("AspectFilter")
+	    }
+	}
         if (stack.hasTagCompound &&
           stack.getTagCompound.hasKey("display", NBT.TAG_COMPOUND) &&
           stack.getTagCompound.getCompoundTag("display").hasKey("Lore", NBT.TAG_LIST)) {
