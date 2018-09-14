@@ -22,8 +22,8 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
 
   override def node = keyboard.node
 
-  def hasNodeOnSide(side: ForgeDirection) =
-    side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)
+  def hasNodeOnSide(side: ForgeDirection) : Boolean =
+    side != facing && (isOnWall || side != forward.getOpposite) && (node == null || !node.neighbors.iterator().hasNext)
 
   // ----------------------------------------------------------------------- //
 
