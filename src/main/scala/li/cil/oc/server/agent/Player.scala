@@ -189,6 +189,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     for (drop <- itemsDropped) {
       drop.delayBeforeCanPickup = 0
       drop.onCollideWithPlayer(this)
+      drop.setDead()
     }
   }
 
