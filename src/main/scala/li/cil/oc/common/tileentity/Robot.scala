@@ -250,7 +250,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       else {
         world.setBlockToAir(newPosition)
       }
-      created
+      created && BlockPosition(this) == newPosition
     }
     finally {
       blockRobotProxy.moving.set(None)
