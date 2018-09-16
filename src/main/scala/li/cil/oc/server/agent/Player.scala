@@ -144,6 +144,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, inventory, "inventory", "field_71071_by", "bm")
     }
     else this.inventory = inventory
+    this.inventory.player = this
 
     // because the inventory was just overwritten, the container is now detached
     this.inventoryContainer = new ContainerPlayer(this.inventory, !world.isRemote, this)
@@ -187,6 +188,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val itemsAfter = adjacentItems
     val itemsDropped = itemsAfter -- itemsBefore
     for (drop <- itemsDropped) {
+      
       drop.delayBeforeCanPickup = 0
       drop.onCollideWithPlayer(this)
       drop.setDead()
