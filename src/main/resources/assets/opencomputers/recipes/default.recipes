@@ -220,7 +220,7 @@ abstractbuscard {
           ["", "oc:materialCard", ""]]
 }
 worldsensorcard {
-  input: [[{item="GalacticraftCore:item.sensorLens"}, "oc:circuitChip2", ""]
+  input: [[{item="galacticraftcore:sensor_lens"}, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
 }
 

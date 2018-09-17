@@ -347,7 +347,7 @@ object ModOpenComputers extends ModProxy {
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     stack.getItem match {
       case chargeable: Chargeable => chargeable.charge(stack, amount, simulate)
-      case _ => 0.0
+      case _ => amount
     }
   }
 

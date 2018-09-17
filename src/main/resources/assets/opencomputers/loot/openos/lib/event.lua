@@ -36,7 +36,8 @@ computer.pullSignal = function(...) -- dispatch
   if interrupting then
     lastInterrupt = current_time
     if keyboard.isAltDown() then
-      error("interrupted", 0)
+      require("process").info().data.signal("interrupted", 0)
+      return
     end
     event.push("interrupted", current_time)
   end
@@ -102,14 +103,6 @@ function event.listen(name, callback)
   return event.register(name, callback, math.huge, math.huge)
 end
 
-function event.onError(message)
-  local log = io.open("/tmp/event.log", "a")
-  if log then
-    pcall(log.write, log, tostring(message), "\n")
-    log:close()
-  end
-end
-
 function event.pull(...)
   local args = table.pack(...)
   if type(args[1]) == "string" then
@@ -147,13 +140,6 @@ function event.pullFiltered(...)
       end
     end
   until computer.uptime() >= deadline
-end
-
-function event.timer(interval, callback, times)
-  checkArg(1, interval, "number")
-  checkArg(2, callback, "function")
-  checkArg(3, times, "number", "nil")
-  return event.register(false, callback, interval, times)
 end
 
 -- users may expect to find event.push to exist

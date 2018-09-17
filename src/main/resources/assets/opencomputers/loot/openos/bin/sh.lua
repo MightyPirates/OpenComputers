@@ -15,7 +15,7 @@ if #args == 0 then
   while true do
     if has_prompt then
       while not tty.isAvailable() do
-        event.pull("term_available")
+        event.pull("term_available", .5)
       end
       if needs_profile then -- first time run AND interactive
         needs_profile = nil
@@ -23,7 +23,9 @@ if #args == 0 then
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
     end
-    local command = tty.read(input_handler)
+    tty.window.cursor = input_handler
+    local command = io.stdin:readLine(false)
+    tty.window.cursor = nil
     if command then
       command = text.trim(command)
       if command == "exit" then

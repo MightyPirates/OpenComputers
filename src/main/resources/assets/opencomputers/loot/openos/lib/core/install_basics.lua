@@ -111,7 +111,7 @@ for dev, path in pairs(devices) do
       address ~= tmpAddress and
       not (address == rootfs.address and not rootfs.isReadOnly())) then
     local prop = {}
-    local prop_path = path .. "/.prop"
+    local prop_path = install_path .. "/.prop"
     local prop_file = fs.open(prop_path)
     if prop_file then
       local prop_data = prop_file:read(math.huge)

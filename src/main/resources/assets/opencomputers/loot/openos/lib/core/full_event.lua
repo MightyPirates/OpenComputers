@@ -59,3 +59,17 @@ function event.ignore(name, callback)
   return false
 end
 
+function event.onError(message)
+  local log = io.open("/tmp/event.log", "a")
+  if log then
+    pcall(log.write, log, tostring(message), "\n")
+    log:close()
+  end
+end
+
+function event.timer(interval, callback, times)
+  checkArg(1, interval, "number")
+  checkArg(2, callback, "function")
+  checkArg(3, times, "number", "nil")
+  return event.register(false, callback, interval, times)
+end

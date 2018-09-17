@@ -18,7 +18,7 @@ return
   },
   null =
   {
-    open = function(mode)
+    open = function()
       return
       {
         read = function() end,
@@ -34,17 +34,24 @@ return
       end
       return
       {
-        read = function(self, n)
+        read = function(_, n)
           local chars = {}
-          for i=1,n do
+          for _=1,n do
             table.insert(chars,string.char(math.random(0,255)))
           end
           return table.concat(chars)
         end
       }
-    end,
-    size = function()
-      return math.huge
+    end
+  },
+  zero =
+  {
+    open = function()
+      return
+      {
+        read = function(_, n) return ("\0"):rep(n) end,
+        write = function() end
+      }
     end
   },
 }

@@ -41,12 +41,12 @@ class Proxy {
 
     MinecraftForge.EVENT_BUS.register(this)
 
-    OpenComputers.log.info("Initializing blocks and items.")
+    OpenComputers.log.debug("Initializing blocks and items.")
 
     Blocks.init()
     Items.init()
 
-    OpenComputers.log.info("Initializing additional OreDict entries.")
+    OpenComputers.log.debug("Initializing additional OreDict entries.")
 
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.PISTON)
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.STICKY_PISTON)
@@ -98,10 +98,10 @@ class Proxy {
 
     EntityRegistry.registerModEntity(new ResourceLocation(Settings.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
-    OpenComputers.log.info("Initializing mod integration.")
+    OpenComputers.log.debug("Initializing mod integration.")
     Mods.init()
 
-    OpenComputers.log.info("Initializing recipes.")
+    OpenComputers.log.debug("Initializing recipes.")
     Recipes.init()
 
     OpenComputers.log.info("Initializing capabilities.")

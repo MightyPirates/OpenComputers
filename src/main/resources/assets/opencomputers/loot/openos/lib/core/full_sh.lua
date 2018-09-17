@@ -20,7 +20,7 @@ end
 -- returns a redirection table that is used during process load
 -- returns false if no redirections are defined
 -- to open the redirect handles, see openCommandRedirects
-function sh.internal.buildCommandRedirects(ewords)
+function sh.internal.buildCommandRedirects(words)
   local redirects = {}
   local index = 1 -- we move index manually to allow removals from ewords
   local from_io, to_io, mode
@@ -31,14 +31,14 @@ function sh.internal.buildCommandRedirects(ewords)
   -- we must validate the input here
 
   while true do
-    local eword = ewords[index]
-    if not eword then break end
+    local word = words[index]
+    if not word then break end
 
     -- redirections are
     -- 1. single part
     -- 2. not quoted
-    local part = eword[1]
-    local token = not eword[2] and not part.qr and eword.txt or ""
+    local part = word[1]
+    local token = not word[2] and not part.qr and part.txt or ""
     local _, _, from_io_txt, mode_txt, to_io_txt = token:find("(%d*)([<>]>?)%&?(.*)")
     if mode_txt then
       if mode then
@@ -48,9 +48,9 @@ function sh.internal.buildCommandRedirects(ewords)
       from_io = from_io_txt ~= "" and tonumber(from_io_txt) or mode == "r" and 0 or 1
       to_io = to_io_txt ~= "" and tonumber(to_io_txt)
     elseif mode then
-      token = sh.internal.glob(eword)
+      token = sh.internal.evaluate({word})
       if #token > 1 then
-        return nil, string.format("%s: ambiguous redirect", eword.txt)
+        return nil, string.format("%s: ambiguous redirect", part.txt)
       end
       to_io = token[1]
     else
@@ -58,7 +58,7 @@ function sh.internal.buildCommandRedirects(ewords)
     end
 
     if mode then
-      table.remove(ewords, index)
+      table.remove(words, index)
     end
 
     if to_io then
@@ -85,7 +85,7 @@ function sh.internal.openCommandRedirects(redirects)
 
     if type(to_io) == "number" then -- io to io
       -- from_io and to_io should be numbers
-      ios[from_io] = ios[to_io]
+      ios[from_io] = io.dup(ios[to_io])
     else
       -- to_io should be a string
       local file, reason = io.open(shell.resolve(to_io), mode)
@@ -187,22 +187,21 @@ function sh.internal.glob(eword)
 end 
 
 function sh.getMatchingPrograms(baseName)
+  if not baseName or baseName == "" then return {} end
   local result = {}
   local result_keys = {} -- cache for fast value lookup
-  -- TODO only matching files with .lua extension for now, might want to
-  --      extend this to other extensions at some point? env var? file attrs?
-  if not baseName or #baseName == 0 then
-    baseName = "^(.*)%.lua$"
-  else
-    baseName = "^(" .. text.escapeMagic(baseName) .. ".*)%.lua$"
+  local function check(key)
+    if key:find(baseName, 1, true) == 1 and not result_keys[key] then
+      table.insert(result, key)
+      result_keys[key] = true
+    end
+  end
+  for alias in shell.aliases() do
+    check(alias)
   end
   for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
     for file in fs.list(shell.resolve(basePath)) do
-      local match = file:match(baseName)
-      if match and not result_keys[match] then
-        table.insert(result, match)
-        result_keys[match] = true
-      end
+      check(file:gsub("%.lua$", ""))
     end
   end
   return result
@@ -248,7 +247,7 @@ function sh.internal.hintHandlerSplit(line)
   -- input. But, there are also no hints for it
   if line:match("\\$") then return nil end
 
-  local splits, simple = text.internal.tokenize(line,{show_escapes=true})
+  local splits = text.internal.tokenize(line,{show_escapes=true})
   if not splits then -- parse error, e.g. unclosed quotes
     return nil -- no split, no hints
   end
@@ -461,7 +460,7 @@ function sh.internal.splitStatements(words, semicolon)
   checkArg(2, semicolon, "string", "nil")
   semicolon = semicolon or ";"
   
-  return tx.partition(words, function(g, i, t)
+  return tx.partition(words, function(g, i)
     if isWordOf(g, {semicolon}) then
       return i, i
     end
@@ -488,12 +487,19 @@ end
 function sh.internal.remove_negation(chain)
   if isWordOf(chain[1], {"!"}) then
     table.remove(chain, 1)
-    return true and not sh.internal.remove_negation(chain)
+    return not sh.internal.remove_negation(chain)
   end
   return false
-end 
+end
 
-function sh.internal.execute_complex(statements, eargs, env)
+function sh.internal.execute_complex(words, eargs, env)
+  -- we shall validate pipes before any statement execution
+  local statements = sh.internal.splitStatements(words)
+  for i=1,#statements do
+    local ok, why = sh.internal.hasValidPiping(statements[i])
+    if not ok then return nil,why end
+  end
+
   for si=1,#statements do local s = statements[si]
     local chains = sh.internal.groupChains(s)
     local last_code, reason = sh.internal.boolean_executor(chains, function(chain, chain_index)
@@ -506,23 +512,85 @@ function sh.internal.execute_complex(statements, eargs, env)
   return true
 end
 
-function sh.internal.parse_sub(input)
+-- params: words[tokenized word list]
+-- return: command args, redirects
+function sh.internal.evaluate(words)
+  local redirects, why = sh.internal.buildCommandRedirects(words)
+  if not redirects then
+    return nil, why
+  end
+
+  do
+    local normalized = text.internal.normalize(words)
+    local command_text = table.concat(normalized, " ")
+    local subbed = sh.internal.parse_sub(command_text)
+    if subbed ~= command_text then
+      words = text.internal.tokenize(subbed)
+    end
+  end
+
+  local repack = false
+  for _, word in ipairs(words) do
+    for _, part in pairs(word) do
+      if not (part.qr or {})[3] then
+        local expanded = sh.expand(part.txt)
+        if expanded ~= part.txt then
+          part.txt = expanded
+          repack = true
+        end
+      end
+    end
+  end
+
+  if repack then
+    local normalized = text.internal.normalize(words)
+    local command_text = table.concat(normalized, " ")
+    words = text.internal.tokenize(command_text)
+  end
+
+  local args = {}
+  for _, word in ipairs(words) do
+    local eword = { txt = "" }
+    for _, part in ipairs(word) do
+      eword.txt = eword.txt .. part.txt
+      eword[#eword + 1] = { qr = part.qr, txt = part.txt }
+    end
+    for _, arg in ipairs(sh.internal.glob(eword)) do
+      args[#args + 1] = arg
+    end
+  end
+
+  return args, redirects
+end
+
+function sh.internal.parse_sub(input, quotes)
+  -- unquoted command substituted text is parsed as individual parameters
+  -- there is not a concept of "keeping whitespace" as previously thought
+  -- we see removal of whitespace only because they are separate arguments
+  -- e.g. /echo `echo a    b`/ becomes /echo a b/ quite literally, and the a and b are separate inputs
+  -- e.g. /echo a"`echo b c`"d/ becomes /echo a"b c"d/ which is a single input
+
+  if quotes and quotes[1] == '`' then
+    input = string.format("`%s`", input)
+    quotes[1], quotes[2] = "", "" -- substitution removes the quotes
+  end
+
   -- cannot use gsub here becuase it is a [C] call, and io.popen needs to yield at times
   local packed = {}
   -- not using for i... because i can skip ahead
   local i, len = 1, #input
 
-  while i < len do
-
+  while i <= len do
     local fi, si, capture = input:find("`([^`]*)`", i)
 
     if not fi then
       table.insert(packed, input:sub(i))
       break
     end
+    table.insert(packed, input:sub(i, fi - 1))
 
     local sub = io.popen(capture)
-    local result = input:sub(i, fi - 1) .. sub:read("*a")
+    local result = sub:read("*a")
     sub:close()
 
     -- command substitution cuts trailing newlines

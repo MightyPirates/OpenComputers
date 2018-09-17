@@ -41,16 +41,12 @@ function sh.internal.command_result_as_code(ec, reason)
   return code
 end
 
-function sh.internal.resolveActions(input, resolver, resolved)
-  checkArg(1, input, "string")
-  checkArg(2, resolver, "function", "nil")
-  checkArg(3, resolved, "table", "nil")
-  resolver = resolver or shell.getAlias
+function sh.internal.resolveActions(input, resolved)
   resolved = resolved or {}
 
   local processed = {}
 
-  local prev_was_delim, simple = true, true
+  local prev_was_delim = true
   local words, reason = text.internal.tokenize(input)
 
   if not words then
@@ -60,7 +56,7 @@ function sh.internal.resolveActions(input, resolver, resolved)
   while #words > 0 do
     local next = table.remove(words,1)
     if isWordOf(next, {";","&&","||","|"}) then
-      prev_was_delim,simple = true,false
+      prev_was_delim = true
       resolved = {}
     elseif prev_was_delim then
       prev_was_delim = false
@@ -68,16 +64,15 @@ function sh.internal.resolveActions(input, resolver, resolved)
       if next and #next == 1 and not next[1].qr then
         local key = next[1].txt
         if key == "!" then
-          prev_was_delim,simple = true,false -- special redo
+          prev_was_delim = true -- special redo
         elseif not resolved[key] then
-          resolved[key] = resolver(key)
+          resolved[key] = shell.getAlias(key)
           local value = resolved[key]
           if value and key ~= value then
-            local replacement_tokens, reason = sh.internal.resolveActions(value, resolver, resolved)
+            local replacement_tokens, resolve_reason = sh.internal.resolveActions(value, resolved)
             if not replacement_tokens then
-              return replacement_tokens, reason
+              return replacement_tokens, resolve_reason
             end
-            simple = simple and reason
             words = tx.concat(replacement_tokens, words)
             next = table.remove(words,1)
           end
@@ -88,28 +83,7 @@ function sh.internal.resolveActions(input, resolver, resolved)
     table.insert(processed, next)
   end
 
-  return processed, simple
-end
-
-function sh.internal.statements(input)
-  checkArg(1, input, "string")
-
-  local words, reason = sh.internal.resolveActions(input)
-  if type(words) ~= "table" then
-    return words, reason
-  elseif #words == 0 then
-    return true
-  elseif reason and not input:find("[<>]") then
-    return {words}, reason
-  end
-
-  -- we shall validate pipes before any statement execution
-  local statements = sh.internal.splitStatements(words)
-  for i=1,#statements do
-    local ok, why = sh.internal.hasValidPiping(statements[i])
-    if not ok then return nil,why end
-  end
-  return statements
+  return processed
 end
 
 -- returns true if key is a string that represents a valid command line identifier
@@ -122,7 +96,7 @@ function sh.internal.isIdentifier(key)
 end
 
 -- expand (interpret) a single quoted area
--- examples: $foo, "$foo", or `cmd` in back ticks
+-- examples: $foo or "$foo"
 function sh.expand(value)
   local expanded = value
   :gsub("%$([_%w%?]+)", function(key)
@@ -189,55 +163,25 @@ end
 function sh.internal.executePipes(pipe_parts, eargs, env)
   local commands = {}
   for _,words in ipairs(pipe_parts) do
-    -- evaluated words
-    local ewords = {}
-    local has_globits
-    local has_redirects
-    for _,word in ipairs(words) do
-      local eword = {txt=""}
-      for _,part in ipairs(word) do
-        -- expand all parts if interpreted (not literal)
-        -- i.e '' is literal, "" and `` are interpreted
-        local next = part.txt
-        local quoted = part.qr
-        local literal, keep_whitespace, sub
-        if quoted then
-          literal = quoted[3]
-          keep_whitespace = quoted[1] == '"'
-          sub = quoted[1]:match('`') or next:find('`') and ''
-        else
-          if next:match("[%*%?]") then has_globits = true end
-          if next:match("[<>]") then has_redirects = true end
-        end
-        if not literal then
-          next = sh.expand(next)
-          if sub then
-            next = sh.internal.parse_sub(sub .. next .. sub)
-          end
-          if not keep_whitespace then
-            next = text.trim((next:gsub("%s+", " ")))
-          end
-        end
-        eword[#eword + 1] = { txt = next, qr = quoted }
-        eword.txt = eword.txt .. next
-      end
-      ewords[#ewords + 1] = eword
-    end
-    local redirects, reason
-    if has_redirects then
-      redirects, reason = sh.internal.buildCommandRedirects(ewords)
-      if reason then return false, reason end
-    end
     local args = {}
-    for _,eword in ipairs(ewords) do
-      if has_globits then
-        for _,arg in ipairs(sh.internal.glob(eword)) do
-          args[#args + 1] = arg
-        end
-      else
-        args[#args + 1] = eword.txt
+    local reparse
+    for _,word in ipairs(words) do
+      local value = ""
+      for _,part in ipairs(word) do
+        reparse = reparse or part.qr or part.txt:find("[%$%*%?<>]")
+        value = value .. part.txt
+      end
+      args[#args + 1] = value
+    end
+
+    local redirects
+    if reparse then
+      args, redirects = sh.internal.evaluate(words)
+      if not args then
+        return false, redirects -- in this failure case, redirects has the error message
       end
     end
+
     commands[#commands + 1] = table.pack(table.remove(args, 1), args, redirects)
   end
 
@@ -249,10 +193,11 @@ end
 function sh.execute(env, command, ...)
   checkArg(2, command, "string")
   if command:find("^%s*#") then return true, 0 end
-  local statements, reason = sh.internal.statements(command)
-  if not statements or statements == true then
-    return statements, reason
-  elseif #statements == 0 then
+
+  local words, reason = sh.internal.resolveActions(command)
+  if type(words) ~= "table" then
+    return words, reason
+  elseif #words == 0 then
     return true, 0
   end
 
@@ -260,12 +205,12 @@ function sh.execute(env, command, ...)
   local eargs = table.pack(...)
 
   -- simple
-  if reason then
-    sh.internal.ec.last = sh.internal.command_result_as_code(sh.internal.executePipes(statements, eargs, env))
+  if not command:find("[;%$&|!<>]") then
+    sh.internal.ec.last = sh.internal.command_result_as_code(sh.internal.executePipes({words}, eargs, env))
     return true
   end
 
-  return sh.internal.execute_complex(statements, eargs, env)
+  return sh.internal.execute_complex(words, eargs, env)
 end
 
 function sh.hintHandler(full_line, cursor)

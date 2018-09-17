@@ -95,7 +95,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
         canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
         if (canCharge) {
-          connectors.foreach(connector => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge))))
+          connectors.foreach(connector => {
+            val missing = node.changeBuffer(-charge)
+            val surplus = connector.changeBuffer(charge + missing) // missing is negative
+            node.changeBuffer(surplus)
+          })
         }
       }
 
@@ -105,8 +109,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
         if (canCharge) {
           (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (!stack.isEmpty) {
-            val offered = charge + node.changeBuffer(-charge)
-            val surplus = ItemCharge.charge(stack, offered)
+            val missing = node.changeBuffer(-charge)
+            val surplus = ItemCharge.charge(stack, charge + missing) // missing is negative
             node.changeBuffer(surplus)
           })
         }

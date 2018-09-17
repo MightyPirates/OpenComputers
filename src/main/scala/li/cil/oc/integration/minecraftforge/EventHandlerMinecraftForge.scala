@@ -33,9 +33,9 @@ object EventHandlerMinecraftForge {
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
     if (stack.hasCapability(CapabilityEnergy.ENERGY, null)) stack.getCapability(CapabilityEnergy.ENERGY, null) match {
-      case storage: IEnergyStorage => Power.fromRF(storage.receiveEnergy(Power.toRF(amount), simulate))
-      case _ => 0.0
-    } else 0.0
+      case storage: IEnergyStorage => amount - Power.fromRF(storage.receiveEnergy(Power.toRF(amount), simulate))
+      case _ => amount
+    } else amount
 
   val ProviderEnergy: ResourceLocation = new ResourceLocation(OpenComputers.ID, "forgeenergy")
 

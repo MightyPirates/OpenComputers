@@ -9,7 +9,7 @@ _G.coroutine = setmetatable(
     resume = function(co, ...)
       local proc = process.info(co)
       -- proc is nil if the process closed, natural resume will likely complain the coroutine is dead
-      -- but if proc is dead and an aborted coroutine is alive, it doesn't have any proc data like stack info
+      -- but if proc is dead and an orphan coroutine is alive, it doesn't have any proc data like stack info
       -- if the user really wants to resume it, let them
       return (proc and proc.data.coroutine_handler.resume or _coroutine.resume)(co, ...)
     end
@@ -65,7 +65,8 @@ process.list[init_thread] = {
     vars={},
     handles={},
     io={}, --init will populate this
-    coroutine_handler = _coroutine
+    coroutine_handler = _coroutine,
+    signal = error
   },
   instances = setmetatable({}, {__mode="v"})
 }

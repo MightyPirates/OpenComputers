@@ -81,21 +81,18 @@ local pipe_stream =
     if coroutine.status(self.next) == "suspended" then
       self:continue()
     end
-    self.redirect = {}
   end,
   seek = function()
     return nil, "bad file descriptor"
   end,
   write = function(self, value)
-    if not self.redirect[1] and self.closed then
+    if self.closed then
       -- if next is dead, ignore all writes
       if coroutine.status(self.next) ~= "dead" then
         io.stderr:write("attempt to use a closed stream\n")
         os.exit(1)
       end
-    elseif self.redirect[1] then
-      return self.redirect[1]:write(value)
-    elseif not self.closed then
+    else
       self.buffer = self.buffer .. value
       return self:continue(true)
     end
@@ -105,11 +102,7 @@ local pipe_stream =
     if self.closed then
       return nil -- eof
     end
-    if self.redirect[0] then
-      -- popen could be using this code path
-      -- if that is the case, it is important to leave stream.buffer alone
-      return self.redirect[0]:read(n)
-    elseif self.buffer == "" then
+    if self.buffer == "" then
       -- the pipe_stream write resume is waiting on this process B (A|B) to yield
       -- yield here requests A to output again. However, B may elsewhere want a
       -- natural yield (i.e. for events). To differentiate this yield from natural
@@ -139,7 +132,7 @@ function pipe.buildPipeChain(progs)
 
     local piped_stream
     if i < #progs then
-      local handle = setmetatable({redirect = {rawget(pio, 1)},buffer = ""}, {__index = pipe_stream})
+      local handle = setmetatable({buffer = ""}, {__index = pipe_stream})
       process.closeOnExit(handle, proc)
       piped_stream = buffer.new("rw", handle)
       piped_stream:setvbuf("no", 1024)
@@ -147,7 +140,6 @@ function pipe.buildPipeChain(progs)
     end
 
     if prev_piped_stream then
-      prev_piped_stream.stream.redirect[0] = rawget(pio, 0)
       prev_piped_stream.stream.next = thread
       pio[0] = prev_piped_stream
     end
