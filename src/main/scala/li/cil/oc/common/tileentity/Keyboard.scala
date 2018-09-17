@@ -22,8 +22,8 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
 
   override def node = keyboard.node
 
-  def hasNodeOnSide(side: EnumFacing) =
-    side.getOpposite == facing || side == forward || (isOnWall && side.getOpposite == forward)
+  def hasNodeOnSide(side: EnumFacing) : Boolean =
+    side != facing && (isOnWall || side.getOpposite != forward)
 
   // ----------------------------------------------------------------------- //
 

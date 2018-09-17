@@ -30,7 +30,7 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
 
   override def getWeakPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
     world.getTileEntity(pos) match {
-      case redstone: tileentity.traits.RedstoneAware if side != null => math.min(math.max(redstone.output(side.getOpposite), 0), 15)
+      case redstone: tileentity.traits.RedstoneAware if side != null => redstone.output(side.getOpposite) max 0
       case _ => super.getWeakPower(state, world, pos, side)
     }
 
