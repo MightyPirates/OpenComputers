@@ -1,6 +1,5 @@
 package li.cil.oc.common.nanomachines
 
-import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -13,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.text.TextComponentString
+import net.minecraft.util.text.TextFormatting
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsScala._
@@ -126,10 +126,10 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
   def print(player: EntityPlayer): Unit = {
     val sb = StringBuilder.newBuilder
     def colored(value: Any, enabled: Boolean) = {
-      if (enabled) sb.append(ChatFormatting.GREEN)
-      else sb.append(ChatFormatting.RED)
+      if (enabled) sb.append(TextFormatting.GREEN)
+      else sb.append(TextFormatting.RED)
       sb.append(value)
-      sb.append(ChatFormatting.RESET)
+      sb.append(TextFormatting.RESET)
     }
     for (behavior <- behaviors) {
       val name = Option(behavior.behavior.getNameHint).getOrElse(behavior.behavior.getClass.getSimpleName)

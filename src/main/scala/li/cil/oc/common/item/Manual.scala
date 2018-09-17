@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.BlockPosition
@@ -12,6 +11,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.EnumActionResult
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.text.TextFormatting
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 class Manual(val parent: Delegator) extends traits.Delegate {
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag): Unit = {
-    tooltip.add(ChatFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)
+    tooltip.add(TextFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)
     super.tooltipLines(stack, world, tooltip, flag)
   }
 

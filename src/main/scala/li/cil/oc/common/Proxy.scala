@@ -86,7 +86,10 @@ class Proxy {
     if (api.Machine.architectures.size == 0) {
       api.Machine.add(classOf[LuaJLuaArchitecture])
     }
-    api.Machine.LuaArchitecture = api.Machine.architectures.head
+    
+    api.Machine.LuaArchitecture =
+      if (Settings.get.forceLuaJ) classOf[LuaJLuaArchitecture]
+      else api.Machine.architectures.head
   }
 
   def init(e: FMLInitializationEvent) {
