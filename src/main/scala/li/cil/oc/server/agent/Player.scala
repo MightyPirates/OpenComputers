@@ -145,6 +145,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   {
     this.inventory = new Inventory(this, agent)
+    this.inventory.player = this
     // because the inventory was just overwritten, the container is now detached
     this.inventoryContainer = new ContainerPlayer(this.inventory, !world.isRemote, this)
     this.openContainer = this.inventoryContainer
@@ -185,6 +186,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     for (drop <- itemsDropped) {
       drop.setNoPickupDelay()
       drop.onCollideWithPlayer(this)
+      drop.setDead()
     }
   }
 

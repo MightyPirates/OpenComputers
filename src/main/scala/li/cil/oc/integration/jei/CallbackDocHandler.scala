@@ -4,7 +4,6 @@ import java.util
 import javax.annotation.Nonnull
 
 import com.google.common.base.Strings
-import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.server.machine.Callbacks
@@ -19,6 +18,7 @@ import mezz.jei.api.recipe.IRecipeHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.text.TextFormatting
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -66,8 +66,8 @@ object CallbackDocHandler {
             case VexPattern(head, tail) => (name + head, tail)
             case _ => (name, doc)
           }
-          wrap(signature, 160).map(ChatFormatting.BLACK.toString + _).mkString("\n") +
-            ChatFormatting.RESET + "\n" +
+          wrap(signature, 160).map(TextFormatting.BLACK.toString + _).mkString("\n") +
+            TextFormatting.RESET + "\n" +
             wrap(documentation, 152).map("  " + _).mkString("\n")
         }
     }

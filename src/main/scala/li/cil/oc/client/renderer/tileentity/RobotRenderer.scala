@@ -1,7 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
-import com.mojang.realmsclient.gui.ChatFormatting
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.UpgradeRenderer
@@ -26,6 +25,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.text.TextFormatting
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GL11
@@ -489,7 +489,7 @@ object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
       t.draw()
 
       GlStateManager.enableTexture2D() // For the font.
-      f.drawString((if (EventHandler.isItTime) ChatFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)
+      f.drawString((if (EventHandler.isItTime) TextFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)
 
       GlStateManager.depthMask(true)
       GlStateManager.enableLighting()
