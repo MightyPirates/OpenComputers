@@ -67,8 +67,20 @@ minecraft {
 }
 
 repositories {
+    maven { url "http://dvs1.progwml6.com/files/maven/" }
+    maven { url "http://maven.amadornes.com/" }
+    maven { url "http://mod-buildcraft.com/maven/" }
+    maven { url "http://maven.cil.li/" }
+    maven { url "http://maven.ic2.player.to/" }
+    maven { url "http://tehnut.info/maven" }
+	  maven { url "http://maven.thiakil.com" }
+    maven { url "http://cc.crzd.me/maven/" }
 	maven { url "http://maven.cil.li/" }
 	maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
 }
 
 configurations {
@@ -89,7 +101,7 @@ dependencies {
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
     deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
-	
+
 	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
 		transitive = false
 	}
@@ -98,6 +110,11 @@ dependencies {
 	provided("mekanism:Mekanism:${config.mekanism.version}:api") {
 		transitive = false
 	}
+
+   provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
+        exclude module: 'NotEnoughItems'
+        exclude module: "CodeChickenLib"
+    }
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 

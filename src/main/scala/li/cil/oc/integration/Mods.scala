@@ -31,6 +31,8 @@ object Mods {
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
   val Waila = new SimpleMod(IDs.Waila)
+  val ProjectRedBase = new SimpleMod((IDs.ProjectRedCore))
+  val ProjectRedTransmission = new SimpleMod((IDs.ProjectRedTransmission))
 
   // ----------------------------------------------------------------------- //
 
@@ -45,7 +47,7 @@ object Mods {
     integration.mekanism.gas.ModMekanismGas,
     integration.minecraft.ModMinecraft,
     integration.waila.ModWaila,
-
+    integration.projectred.ModProjectRed,
     integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
@@ -88,6 +90,8 @@ object Mods {
     final val OpenComputers = "opencomputers"
     final val TIS3D = "tis3d"
     final val Waila = "waila"
+    final val ProjectRedCore = "projectred-core"
+    final val ProjectRedTransmission = "projectred-transmission"
   }
 
   // ----------------------------------------------------------------------- //
