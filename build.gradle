@@ -67,8 +67,8 @@ minecraft {
 }
 
 repositories {
-	maven { url "http://maven.cil.li/" }
-	maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven { url "http://maven.cil.li/" }
+    maven { url "https://minecraft.curseforge.com/api/maven/" }
 }
 
 configurations {
@@ -82,27 +82,45 @@ dependencies {
     }
     deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
     deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
-    deobfCompile "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    deobfCompile ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
+    provided ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
         exclude module: "jei_1.12"
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
     deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
-	
-	provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
-		transitive = false
-	}
-	provided "extracells2:ExtraCells-api:${config.extracells.version}"
-	
-	provided("mekanism:Mekanism:${config.mekanism.version}:api") {
-		transitive = false
-	}
+    
+    provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
+        transitive = false
+    }
+    provided "extracells2:ExtraCells-api:${config.extracells.version}"
+    
+    provided("mekanism:Mekanism:${config.mekanism.version}:api") {
+        transitive = false
+    }
 
-  provided ("mrtjp:ProjectRed:${config.projred.version}:all") {
-        exclude module: 'NotEnoughItems'
+    provided ("codechicken:ForgeMultipart:${config.minecraft.version}-${config.forgemultipart.version}:universal") {
+        exclude module: "jei_1.12"
         exclude module: "CodeChickenLib"
-  }
+    }
+
+    provided ("codechicken:ChickenASM:${config.casm.version}")
+
+    provided "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
+
+    provided ("mrtjp:ProjectRed:${config.projred.version}:Base") {
+        exclude module: "NotEnoughItems"
+        exclude module: "CodeChickenLib"
+        exclude module: "jei_1.12"
+        exclude module: "ForgeMultipart"
+    }
+
+    provided ("mrtjp:ProjectRed:${config.projred.version}:integration") {
+        exclude module: "NotEnoughItems"
+        exclude module: "CodeChickenLib"
+        exclude module: "jei_1.12"
+        exclude module: "ForgeMultipart"
+    }
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
