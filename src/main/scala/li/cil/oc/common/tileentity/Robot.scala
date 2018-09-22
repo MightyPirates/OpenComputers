@@ -259,7 +259,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       else {
         world.setBlockToAir(newPosition)
       }
-      created && BlockPosition(this) == newPosition
+      created && this.position == newPosition
     }
     finally {
       blockRobotProxy.moving.set(None)
