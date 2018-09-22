@@ -29,6 +29,7 @@ object ModIndustrialCraft2 extends ModProxy {
     Driver.add(new DriverEnergyConductor)
     Driver.add(new DriverEnergy)
     Driver.add(new DriverReactor)
+    Driver.add(new DriverReactorChamber)
 
     Driver.add(new ConverterElectricItem)
   }

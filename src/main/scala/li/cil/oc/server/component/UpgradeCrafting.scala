@@ -13,7 +13,6 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
@@ -21,8 +20,7 @@ import net.minecraft.inventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.collection.convert.WrapAsJava._
@@ -55,7 +53,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
     var amountPossible = 0
 
     def craft(wantedCount: Int): Seq[_] = {
-      var player = host.player
+      val player = host.player
       load(player.inventory)
       val cm = CraftingManager.getInstance
       var countCrafted = 0
@@ -66,32 +64,50 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
       breakable {
         while (countCrafted < wantedCount) {
           val result = cm.findMatchingRecipe(CraftingInventory, host.world)
-          if (result == null || result.getCount < 1) break()
+          if (result == null || result.isEmpty) break()
           if (!originalCraft.isItemEqual(result)) {
             break()
           }
           countCrafted += result.getCount
+
+          result.onCrafting(host.world, player, result.getCount)
           FMLCommonHandler.instance.firePlayerCraftingEvent(player, result, this)
+          ForgeHooks.setCraftingPlayer(player)
+          val nonNullRefs = cm.getRemainingItems(this, host.world)
+          ForgeHooks.setCraftingPlayer(null)
+
           val surplus = mutable.ArrayBuffer.empty[ItemStack]
-          for (slot <- 0 until getSizeInventory) {
-            val stack = getStackInSlot(slot)
-            if (!stack.isEmpty) {
+          for (slot <- 0 until nonNullRefs.size) {
+            var clean = getStackInSlot(slot)
+
+            // use 1 of this item
+            if (!clean.isEmpty) {
               decrStackSize(slot, 1)
-              val item = stack.getItem
-              if (item.hasContainerItem(stack)) {
-                val container = item.getContainerItem(stack)
-                if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container, null))
+              clean = getStackInSlot(slot)
+            }
+
+            nonNullRefs.get(slot) match {
+              // the item remains
+              case used: ItemStack if !used.isEmpty => {
+                // but we thought we used it up
+                if (clean.isEmpty) {
+                  // put it back
+                  setInventorySlotContents(slot, used)
                 }
-                else if (!getStackInSlot(slot).isEmpty) {
-                  surplus += container
+                else if (ItemStack.areItemsEqual(clean, used) && ItemStack.areItemStackTagsEqual(clean, used)) {
+                  // the recipe doesn't actually consume this item
+                  used.grow(clean.getCount)
+                  setInventorySlotContents(slot, used)
                 }
                 else {
-                  setInventorySlotContents(slot, container)
+                  // the used item doesn't stack with the clean (could be a container, could be a damaged tool)
+                  surplus += used
                 }
               }
+              case _ =>
             }
           }
+
           save(player.inventory)
           InventoryUtils.addToPlayerInventory(result, player)
           for (stack <- surplus) {
