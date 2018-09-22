@@ -47,8 +47,11 @@ object FluidUtils {
    * <p/>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: EnumFacing, sink: IFluidHandler, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) = {
+  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: EnumFacing, sink: IFluidHandler, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME) : Int = {
     val drained = source.drain(sourceSide, limit, false)
+    if (drained == null) {
+      return 0
+    }
     val filled = sink.fill(sinkSide, drained, false)
     sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
   }
