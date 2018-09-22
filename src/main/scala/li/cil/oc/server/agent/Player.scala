@@ -460,7 +460,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       val te = world.getTileEntity(pos)
       val canHarvest = block.canHarvestBlock(world, pos, this)
-      block.onBlockHarvested(world, pos, state, this)
       if (block.removedByPlayer(state, world, pos, this, block.canHarvestBlock(world, pos, this))) {
         block.onBlockDestroyedByPlayer(world, pos, state)
         if (canHarvest) {
