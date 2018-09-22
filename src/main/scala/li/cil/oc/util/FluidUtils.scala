@@ -57,6 +57,9 @@ object FluidUtils {
    */
   def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME): Int = {
     val drained = source.drain(limit, false)
+    if (drained == null) {
+      return 0
+    }
     val filled = sink.fill(drained, false)
     sink.fill(source.drain(filled, true), true)
   }
