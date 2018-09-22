@@ -21,8 +21,6 @@ import net.minecraft.inventory.{IInventory, InventoryCraftResult, SlotCrafting}
 import net.minecraft.item.crafting.CraftingManager
 
 import scala.collection.convert.WrapAsJava._
-import scala.util.control.Breaks._
-import net.minecraft.item.ItemStack
 
 class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -68,8 +66,8 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends Abs
 
           val stack = craftingSlot.decrStackSize(1)
           countCrafted += stack.getCount max 1
-          copyItemsToHost(player.inventory)
           val taken = craftingSlot.onTake(player, stack)
+          copyItemsToHost(player.inventory)
           if (taken.getCount > 0) {
             InventoryUtils.addToPlayerInventory(taken, player)
           }
