@@ -225,19 +225,20 @@ object InventoryUtils {
    * <p/>
    * This will try to remove items of the same type as the specified item stack
    * up to the number of the stack's size for all slots in the specified inventory.
+   * If exact is true, the items colated will also match meta data
    * <p/>
    * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
    * handles special cases such as sided inventories and stack size limits.
    */
-  def extractFromInventory(stack: ItemStack, inventory: IItemHandler, simulate: Boolean = false): ItemStack = {
+  def extractFromInventory(stack: ItemStack, inventory: IItemHandler, simulate: Boolean = false, exact: Boolean = true): ItemStack = {
     val remaining = stack.copy()
     for (slot <- 0 until inventory.getSlots if remaining.getCount > 0) {
-      extractFromInventorySlot(stack => {
-        if (haveSameItemType(remaining, stack, checkNBT = true)) {
-          val transferred = stack.getCount min remaining.getCount
+      extractFromInventorySlot(stackInInv => {
+        if (stackInInv != null && remaining.getItem == stackInInv.getItem && (!exact || haveSameItemType(remaining, stackInInv, checkNBT = true))) {
+          val transferred = stackInInv.getCount min remaining.getCount
           remaining.shrink(transferred)
           if (!simulate) {
-            stack.shrink(transferred)
+            stackInInv.shrink(transferred)
           }
         }
       }, inventory, slot, limit = remaining.getCount)
@@ -245,8 +246,8 @@ object InventoryUtils {
     remaining
   }
 
-  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: EnumFacing, simulate: Boolean): ItemStack =
-    extractFromInventory(stack, asItemHandler(inventory, side), simulate)
+  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: EnumFacing, simulate: Boolean, exact: Boolean): ItemStack =
+    extractFromInventory(stack, asItemHandler(inventory, side), simulate, exact)
 
     /**
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
