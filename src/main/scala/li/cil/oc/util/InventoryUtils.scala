@@ -231,23 +231,24 @@ object InventoryUtils {
     * <p/>
     * This will try to remove items of the same type as the specified item stack
     * up to the number of the stack's size for all slots in the specified inventory.
+    * If exact is true, the items colated will also match meta data
     * <p/>
     * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
     * handles special cases such as sided inventories and stack size limits.
     */
-  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, simulate: Boolean = false) = {
+  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, simulate: Boolean = false, exact: Boolean = true) : ItemStack = {
     val range = inventory match {
       case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
       case _ => 0 until inventory.getSizeInventory
     }
     val remaining = stack.copy()
     for (slot <- range if remaining.stackSize > 0) {
-      extractFromInventorySlot(stack => {
-        if (haveSameItemType(remaining, stack, checkNBT = true)) {
-          val transferred = stack.stackSize min remaining.stackSize
+      extractFromInventorySlot(stackInInv => {
+        if (stackInInv != null && remaining.getItem == stackInInv.getItem && (!exact || haveSameItemType(remaining, stackInInv, checkNBT = true))) {
+          val transferred = stackInInv.stackSize min remaining.stackSize
           remaining.stackSize -= transferred
           if (!simulate) {
-            stack.stackSize -= transferred
+            stackInInv.stackSize -= transferred
           }
         }
       }, inventory, side, slot, remaining.stackSize)

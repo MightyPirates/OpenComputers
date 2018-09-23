@@ -75,7 +75,7 @@ class Trade(val info: TradeInfo) extends AbstractValue {
                     val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
 
                     def containsAccumulativeItemStack(stack: ItemStack) =
-                      InventoryUtils.extractFromInventory(stack, inventory, ForgeDirection.UNKNOWN, simulate = true).stackSize == 0
+                      InventoryUtils.extractFromInventory(stack, inventory, ForgeDirection.UNKNOWN, simulate = true, exact = false).stackSize == 0
                     def hasRoomForItemStack(stack: ItemStack) = {
                       val remainder = stack.copy()
                       InventoryUtils.insertIntoInventory(remainder, inventory, None, remainder.stackSize, simulate = true)
@@ -88,8 +88,8 @@ class Trade(val info: TradeInfo) extends AbstractValue {
                       val outputStack = recipe.getItemToSell.copy()
                       if (hasRoomForItemStack(outputStack)) {
                         // We established that out inventory allows to perform the trade, now actually do the trade.
-                        InventoryUtils.extractFromInventory(firstInputStack, inventory, ForgeDirection.UNKNOWN)
-                        secondInputStack.map(InventoryUtils.extractFromInventory(_, inventory, ForgeDirection.UNKNOWN))
+                        InventoryUtils.extractFromInventory(firstInputStack, inventory, ForgeDirection.UNKNOWN, exact = false)
+                        secondInputStack.map(InventoryUtils.extractFromInventory(_, inventory, ForgeDirection.UNKNOWN, exact = false))
                         InventoryUtils.insertIntoInventory(outputStack, inventory, None, outputStack.stackSize)
 
                         // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
