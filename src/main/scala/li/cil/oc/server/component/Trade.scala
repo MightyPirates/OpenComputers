@@ -10,10 +10,12 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.IMerchant
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.math.BlockPos
+import net.minecraft.village.MerchantRecipe
 import net.minecraftforge.common.DimensionManager
 
 import scala.collection.convert.WrapAsScala._
@@ -69,37 +71,14 @@ class Trade(val info: TradeInfo) extends AbstractValue {
                   if (recipe.isRecipeDisabled) {
                     result(false, "trade is disabled")
                   } else {
-                    // Now we'll check if we have enough items to perform the trade, caching first
-                    val firstInputStack = recipe.getItemToBuy
-                    val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
-
-                    def containsAccumulativeItemStack(stack: ItemStack) =
-                      InventoryUtils.extractFromInventory(stack, inventory, null, simulate = true, exact = false).stackSize == 0
-                    def hasRoomForItemStack(stack: ItemStack) = {
-                      val remainder = stack.copy()
-                      InventoryUtils.insertIntoInventory(remainder, InventoryUtils.asItemHandler(inventory), remainder.stackSize, simulate = true)
-                      remainder.stackSize == 0
-                    }
-
-                    // Check if we have enough to perform the trade.
-                    if (containsAccumulativeItemStack(firstInputStack) && secondInputStack.forall(containsAccumulativeItemStack)) {
-                      // Now we need to check if we have enough inventory space to accept the item we get for the trade.
-                      val outputStack = recipe.getItemToSell.copy()
-                      if (hasRoomForItemStack(outputStack)) {
-                        // We established that out inventory allows to perform the trade, now actually do the trade.
-                        InventoryUtils.extractFromInventory(firstInputStack, InventoryUtils.asItemHandler(inventory), exact = false)
-                        secondInputStack.map(InventoryUtils.extractFromInventory(_, InventoryUtils.asItemHandler(inventory), exact = false))
-                        InventoryUtils.insertIntoInventory(outputStack, InventoryUtils.asItemHandler(inventory), outputStack.stackSize)
-
-                        // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
-                        info.merchant.get.orNull.useRecipe(recipe)
-
+                    if (!hasRoomForRecipe(inventory, recipe)) {
+                      result(false, "not enough inventory space to trade")
+                    } else {
+                      if (completeTrade(inventory, recipe, exact = true) || completeTrade(inventory, recipe, exact = false)) {
                         result(true)
                       } else {
-                        result(false, "not enough inventory space to trade")
+                        result(false, "not enough items to trade")
                       }
-                    } else {
-                      result(false, "not enough items to trade")
                     }
                   }
                 case _ => result(false, "trade has become invalid")
@@ -109,6 +88,37 @@ class Trade(val info: TradeInfo) extends AbstractValue {
         }
       case _ => result(false, "trading requires an inventory upgrade to be installed")
     }
+  }
+
+  def hasRoomForRecipe(inventory: IInventory, recipe: MerchantRecipe) : Boolean = {
+    val remainder = recipe.getItemToSell.copy()
+    InventoryUtils.insertIntoInventory(remainder, InventoryUtils.asItemHandler(inventory), remainder.stackSize, simulate = true)
+    remainder.stackSize == 0
+  }
+
+  def completeTrade(inventory: IInventory, recipe: MerchantRecipe, exact: Boolean) : Boolean = {
+    // Now we'll check if we have enough items to perform the trade, caching first
+    val firstInputStack = recipe.getItemToBuy
+    val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
+
+    def containsAccumulativeItemStack(stack: ItemStack) =
+      InventoryUtils.extractFromInventory(stack, inventory, null, simulate = true, exact = exact).stackSize == 0
+
+    // Check if we have enough to perform the trade.
+    if (!containsAccumulativeItemStack(firstInputStack) || !secondInputStack.forall(containsAccumulativeItemStack))
+      return false
+
+    // Now we need to check if we have enough inventory space to accept the item we get for the trade.
+    val outputStack = recipe.getItemToSell.copy()
+
+    // We established that out inventory allows to perform the trade, now actually do the trade.
+    InventoryUtils.extractFromInventory(firstInputStack, InventoryUtils.asItemHandler(inventory), exact = exact)
+    secondInputStack.map(InventoryUtils.extractFromInventory(_, InventoryUtils.asItemHandler(inventory), exact = exact))
+    InventoryUtils.insertIntoInventory(outputStack, InventoryUtils.asItemHandler(inventory), outputStack.stackSize)
+
+    // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
+    info.merchant.get.orNull.useRecipe(recipe)
+    true
   }
 }
 
