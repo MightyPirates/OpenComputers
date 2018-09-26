@@ -4,17 +4,12 @@ import com.google.common.base.Strings
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.component
-import li.cil.oc.common.entity
-import li.cil.oc.common.inventory.DatabaseInventory
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.item
+import li.cil.oc.common.{GuiType, component, entity, item, tileentity, GuiHandler => CommonGuiHandler}
+import li.cil.oc.common.inventory.{DatabaseInventory, DiskDriveMountableInventory, ServerInventory}
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.tileentity
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
@@ -54,6 +49,13 @@ object GuiHandler extends CommonGuiHandler {
 
               override def isUseableByPlayer(player: EntityPlayer) = t.isUseableByPlayer(player)
             }, Option(t), slot)
+          case t: tileentity.Rack if id == GuiType.DiskDriveMountableInRack.id =>
+            val slot = GuiType.extractSlot(y)
+            new gui.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+              override def container: ItemStack = t.getStackInSlot(slot)
+
+              override def isUseableByPlayer(player: EntityPlayer): Boolean = t.isUseableByPlayer(player)
+            })
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
           case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
@@ -99,6 +101,11 @@ object GuiHandler extends CommonGuiHandler {
               new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
             }
             else null
+          case Some(_: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
+            new gui.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+              override def container = player.getHeldItem
+              override def isUseableByPlayer(activePlayer : EntityPlayer): Boolean = activePlayer == player
+            })
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
             val stack = player.getHeldItem
             if (stack.hasTagCompound) {

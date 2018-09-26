@@ -1,11 +1,11 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
-import li.cil.oc.common.inventory.DatabaseInventory
-import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.inventory.{DatabaseInventory, DiskDriveMountableInventory, ServerInventory}
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.server.component.Server
+import li.cil.oc.server.component.{DiskDriveMountable, Server}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 abstract class GuiHandler extends IGuiHandler {
@@ -39,6 +39,10 @@ abstract class GuiHandler extends IGuiHandler {
             val slot = GuiType.extractSlot(y)
             val server = t.getMountable(slot).asInstanceOf[Server]
             new container.Server(player.inventory, server, Option(server))
+          case t: tileentity.Rack if id == GuiType.DiskDriveMountableInRack.id =>
+            val slot = GuiType.extractSlot(y)
+            val drive = t.getMountable(slot).asInstanceOf[DiskDriveMountable]
+            new container.DiskDrive(player.inventory, drive)
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new container.Switch(player.inventory, t)
           case _ => null
@@ -69,6 +73,12 @@ abstract class GuiHandler extends IGuiHandler {
               new container.Tablet(player.inventory, item.Tablet.get(stack, player))
             else
               null
+          case Some(drive: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
+            new container.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+              override def container: ItemStack = player.getHeldItem
+
+              override def isUseableByPlayer(player: EntityPlayer) = player == player
+            })
           case _ => null
         }
       case _ => null
