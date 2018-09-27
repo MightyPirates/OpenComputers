@@ -7,8 +7,7 @@ import li.cil.oc.api
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.component
 import li.cil.oc.common.entity
-import li.cil.oc.common.inventory.DatabaseInventory
-import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.inventory.{DatabaseInventory, DiskDriveMountableInventory, ServerInventory}
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
@@ -57,6 +56,13 @@ object GuiHandler extends CommonGuiHandler {
 
               override def isUsableByPlayer(player: EntityPlayer) = t.isUsableByPlayer(player)
             }, Option(t), slot)
+          case t: tileentity.Rack if id == GuiType.DiskDriveMountableInRack.id =>
+            val slot = GuiType.extractSlot(y)
+            new gui.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+              override def container: ItemStack = t.getStackInSlot(slot)
+
+              override def isUsableByPlayer(player: EntityPlayer): Boolean = t.isUsableByPlayer(player)
+            })
           case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
             new gui.Waypoint(t)
           case _ => null
@@ -101,6 +107,11 @@ object GuiHandler extends CommonGuiHandler {
               new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
             }
             else null
+          case Some(_: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
+            new gui.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+              override def container = itemStackInUse
+              override def isUsableByPlayer(activePlayer : EntityPlayer): Boolean = activePlayer == player
+            })
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
             val stack = itemStackInUse
             if (stack.hasTagCompound) {

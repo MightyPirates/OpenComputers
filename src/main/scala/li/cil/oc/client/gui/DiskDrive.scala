@@ -2,10 +2,10 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.Localization
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.inventory.IInventory
 
-class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDrive) extends DynamicGuiContainer(new container.DiskDrive(playerInventory, drive)) {
+class DiskDrive(playerInventory: InventoryPlayer, val drive: IInventory) extends DynamicGuiContainer(new container.DiskDrive(playerInventory, drive)) {
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(

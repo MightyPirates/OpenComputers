@@ -20,6 +20,8 @@ object GuiType extends ScalaEnum {
   val Database = new EnumVal { def name = "Database"; def subType = GuiType.Category.Item }
   val Disassembler = new EnumVal { def name = "Disassembler"; def subType = GuiType.Category.Block }
   val DiskDrive = new EnumVal { def name = "DiskDrive"; def subType = GuiType.Category.Block }
+  val DiskDriveMountable = new EnumVal { def name = "DiskDriveMountable"; def subType = GuiType.Category.Item }
+  val DiskDriveMountableInRack = new EnumVal { def name = "DiskDriveMountableInRack"; def subType = GuiType.Category.Block }
   val Drive = new EnumVal { def name = "Drive"; def subType = GuiType.Category.Item }
   val Drone = new EnumVal { def name = "Drone"; def subType = GuiType.Category.Entity }
   val Manual = new EnumVal { def name = "Manual"; def subType = GuiType.Category.None }
