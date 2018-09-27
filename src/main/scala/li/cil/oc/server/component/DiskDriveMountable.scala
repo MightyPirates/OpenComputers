@@ -2,10 +2,9 @@ package li.cil.oc.server.component
 
 import java.util
 
-import li.cil.oc.Constants
+import li.cil.oc.{Constants, OpenComputers, api}
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
-import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.component.RackMountable
@@ -20,8 +19,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.common.Slot
-import li.cil.oc.common.Sound
+import li.cil.oc.common.{GuiType, Slot, Sound}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ItemStackInventory
 import li.cil.oc.util.BlockPosition
@@ -182,7 +180,11 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
       }
       isDiskInDrive || isHoldingDisk
     }
-    else false
+    else {
+      val position = BlockPosition(rack)
+      player.openGui(OpenComputers, GuiType.DiskDriveMountableInRack.id, rack.world, position.x, GuiType.embedSlot(position.y, slot), position.z)
+      true
+    }
   }
 
   // ----------------------------------------------------------------------- //

@@ -48,7 +48,7 @@ object InventoryUtils {
   def inventoryAt(position: BlockPosition, side: EnumFacing): Option[IItemHandler] = position.world match {
     case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
       case tile: TileEntity if tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side) => Option(tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
-      case tile: IInventory => Option(asItemHandler(tile))
+      case tile: IInventory => Option(asItemHandler(tile, side))
       case _ => world.getEntitiesWithinAABB(classOf[Entity], position.bounds)
         .filter(e => !e.isDead && e.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
         .map(_.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
