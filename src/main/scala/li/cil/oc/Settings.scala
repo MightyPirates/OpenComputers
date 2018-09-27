@@ -12,7 +12,6 @@ import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
 import org.apache.commons.codec.binary.Hex
