@@ -68,6 +68,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               val transferred = handler.fill(drained, true)
               if (transferred > 0) {
                 from.drain(transferred, true)
+                inventory.setInventorySlotContents(selectedSlot, handler.getContainer)
                 result(true, transferred)
               }
               else result(Unit, "incompatible or no fluid")
