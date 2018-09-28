@@ -1,1 +1,1 @@
-{fromDir="/data/"}
+{label="Network", reboot=true, fromDir="/data/"}
