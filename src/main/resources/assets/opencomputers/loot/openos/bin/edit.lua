@@ -178,8 +178,8 @@ local function getCursor()
 end
 
 local function line()
-  local cbx, cby = getCursor()
-  return buffer[cby]
+  local _, cby = getCursor()
+  return buffer[cby] or ""
 end
 
 local function getNormalizedCursor()
@@ -269,12 +269,12 @@ local function highlight(bx, by, length, enabled)
 end
 
 local function home()
-  local cbx, cby = getCursor()
+  local _, cby = getCursor()
   setCursor(1, cby)
 end
 
 local function ende()
-  local cbx, cby = getCursor()
+  local _, cby = getCursor()
   setCursor(unicode.wlen(line()) + 1, cby)
 end
 
@@ -299,8 +299,8 @@ local function right(n)
   n = n or 1
   local cbx, cby = getNormalizedCursor()
   local be = unicode.wlen(line()) + 1
-  local wide, right = isWideAtPosition(line(), cbx + n)
-  if wide and right then
+  local wide, isRight = isWideAtPosition(line(), cbx + n)
+  if wide and isRight then
     n = n + 1
   end
   if cbx + n <= be then
@@ -327,7 +327,7 @@ local function down(n)
 end
 
 local function delete(fullRow)
-  local cx, cy = term.getCursor()
+  local _, cy = term.getCursor()
   local cbx, cby = getCursor()
   local x, y, w, h = getArea()
   local function deleteRow(row)
@@ -370,7 +370,6 @@ local function insert(value)
     return
   end
   term.setCursorBlink(false)
-  local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local x, y, w, h = getArea()
   local index = lengthToChars(line(), cbx)
@@ -384,7 +383,7 @@ end
 
 local function enter()
   term.setCursorBlink(false)
-  local cx, cy = term.getCursor()
+  local _, cy = term.getCursor()
   local cbx, cby = getCursor()
   local x, y, w, h = getArea()
   local index = lengthToChars(line(), cbx)
@@ -404,8 +403,7 @@ end
 local findText = ""
 
 local function find()
-  local x, y, w, h = getArea()
-  local cx, cy = term.getCursor()
+  local _, _, _, h = getArea()
   local cbx, cby = getCursor()
   local ibx, iby = cbx, cby
   while running do
@@ -464,11 +462,11 @@ local keyBindHandlers = {
   home = home,
   eol = ende,
   pageUp = function()
-    local x, y, w, h = getArea()
+    local _, _, _, h = getArea()
     up(h - 1)
   end,
   pageDown = function()
-    local x, y, w, h = getArea()
+    local _, _, _, h = getArea()
     down(h - 1)
   end,
 
@@ -513,13 +511,13 @@ local keyBindHandlers = {
     local f, reason = io.open(filename, "w")
     if f then
       local chars, firstLine = 0, true
-      for _, line in ipairs(buffer) do
+      for _, bline in ipairs(buffer) do
         if not firstLine then
-          line = "\n" .. line
+          bline = "\n" .. bline
         end
         firstLine = false
-        f:write(line)
-        chars = chars + unicode.len(line)
+        f:write(bline)
+        chars = chars + unicode.len(bline)
       end
       f:close()
       local format
@@ -600,14 +598,13 @@ end
 
 local function onClipboard(value)
   value = value:gsub("\r\n", "\n")
-  local cbx, cby = getCursor()
   local start = 1
   local l = value:find("\n", 1, true)
   if l then
     repeat
-      local line = string.sub(value, start, l - 1)
-      line = text.detab(line, 2)
-      insert(line)
+      local next_line = string.sub(value, start, l - 1)
+      next_line = text.detab(next_line, 2)
+      insert(next_line)
       enter()
       start = l + 1
       l = value:find("\n", start, true)
@@ -632,9 +629,9 @@ do
   if f then
     local x, y, w, h = getArea()
     local chars = 0
-    for line in f:lines() do
-      table.insert(buffer, line)
-      chars = chars + unicode.len(line)
+    for fline in f:lines() do
+      table.insert(buffer, fline)
+      chars = chars + unicode.len(fline)
       if #buffer <= h then
         drawLine(x, y, w, h, #buffer)
       end
