@@ -164,7 +164,13 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def isPaused = machine.isPaused
 
-  override def start() = machine.start()
+  override def start(): Boolean = {
+    if (world.isRemote || machine.isRunning) {
+      return false
+    }
+    preparePowerUp()
+    machine.start()
+  }
 
   override def pause(seconds: Double) = machine.pause(seconds)
 
@@ -474,7 +480,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
         }
       }
       else if (!world.isRemote && !machine.isRunning) {
-        preparePowerUp()
         start()
       }
     }
