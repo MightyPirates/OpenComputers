@@ -176,16 +176,18 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
       }
       // Accept wake-up messages regardless of port because we close all ports
       // when our computer shuts down.
-      packet.data match {
-        case Array(message: Array[Byte]) if wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
-          node.sendToNeighbors("computer.start")
-        case Array(message: String) if wakeMessage.contains(message) =>
-          node.sendToNeighbors("computer.start")
-        case Array(message: Array[Byte], _*) if wakeMessageFuzzy && wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
-          node.sendToNeighbors("computer.start")
-        case Array(message: String, _*) if wakeMessageFuzzy && wakeMessage.contains(message) =>
-          node.sendToNeighbors("computer.start")
-        case _ =>
+      val wakeup: Boolean = packet.data match {
+        case Array(message: Array[Byte]) if wakeMessage.contains(new String(message, Charsets.UTF_8)) => true
+        case Array(message: String) if wakeMessage.contains(message) => true
+        case Array(message: Array[Byte], _*) if wakeMessageFuzzy && wakeMessage.contains(new String(message, Charsets.UTF_8)) => true
+        case Array(message: String, _*) if wakeMessageFuzzy && wakeMessage.contains(message) => true
+        case _ => false
+      }
+      if (wakeup) {
+        host match {
+          case ctx: Context => ctx.start()
+          case _ => node.sendToNeighbors("computer.start")
+        }
       }
     }
   }
