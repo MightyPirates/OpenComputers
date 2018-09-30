@@ -135,7 +135,8 @@ object InventoryUtils {
     (!stack.isEmpty && limit > 0 && stack.getCount > 0) && {
       var amount = stack.getMaxStackSize min stack.getCount min limit
       inventory.extractItem(slot, amount, true) match {
-        case extracted: ItemStack =>
+        case simExtracted: ItemStack =>
+          val extracted = simExtracted.copy
           amount = extracted.getCount
           consumer(extracted)
           if(extracted.getCount >= amount) return false
