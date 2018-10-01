@@ -22,6 +22,7 @@ import net.minecraft.util.Vec3
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.WorldAware with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -48,19 +49,15 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
     val merchants = entitiesInBounds[Entity](position.bounds.expand(maxRange, maxRange, maxRange)).
       filter(isInRange).
       collect { case merchant: IMerchant => merchant }
-    val ids = merchants.collect { case merchant: IMerchant => merchant.getPersistentID }.sorted.reverse
-    def indexOfMerchant(id: UUID): Int = {
-      for (i <- ids.indices) {
-        if (ids(i) == id) {
-          return i
-        }
-      }
-      -1
+    var nextId = 1
+    val idMap = mutable.Map[UUID, Int]()
+    for (id: UUID <- merchants.collect { case merchant: IMerchant => merchant.getPersistentID }.sorted) {
+      idMap.put(id, nextId)
+      nextId += 1
     }
-    // sorting the result is not necessary, but will help the trade sort index line up nicely
-    result(merchants.sortBy(m => m.getPersistentID).reverse.flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
-      val idx = indexOfMerchant(merchant.getPersistentID)
-      new Trade(this, merchant, index, idx)
+    // sorting the result is not necessary, but will help the merchant trades line up nicely by merchant
+    result(merchants.sortBy(m => m.getPersistentID).flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
+      new Trade(this, merchant, index, idMap(merchant.getPersistentID))
     })))
   }
 }
