@@ -76,29 +76,42 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     else result(false)
   }
 
+  /**
+    * @param facing items to suck from
+    * @return the number of items sucked
+    */
+  def suckFromItems(facing: ForgeDirection): Int = {
+    for (entity <- suckableItems(facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+      val stack = entity.getEntityItem
+      val size = stack.stackSize
+      onSuckCollect(entity)
+      if (stack.stackSize < size)
+        return size - stack.stackSize
+      else if (entity.isDead)
+        return size
+    }
+    0
+  }
+
   @Callback(doc = "function(side:number[, count:number=64]):boolean -- Suck up items from the specified side.")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optItemCount(1)
 
     val blockPos = position.offset(facing)
-    if (InventoryUtils.inventoryAt(blockPos).exists(inventory => {
-      inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
-    })) {
-      context.pause(Settings.get.suckDelay)
-      result(true)
+    var extracted: Int = InventoryUtils.inventoryAt(blockPos) match {
+      case Some(inventory) => inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite)
+        InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
+      case _ => 0
     }
-    else {
-      for (entity <- suckableItems(facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-        val stack = entity.getEntityItem
-        val size = stack.stackSize
-        onSuckCollect(entity)
-        if (stack.stackSize < size || entity.isDead) {
-          context.pause(Settings.get.suckDelay)
-          return result(true)
-        }
-      }
+    if (extracted <= 0) {
+      extracted = suckFromItems(facing)
+    }
+    if (extracted <= 0) {
       result(false)
+    } else {
+      context.pause(Settings.get.suckDelay)
+      result(extracted)
     }
   }
 

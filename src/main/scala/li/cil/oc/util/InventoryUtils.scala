@@ -110,9 +110,8 @@ object InventoryUtils {
    * is called with a separate stack instance, so it does not have to be copied
    * again.
    * <p/>
-   * This will return <tt>true</tt> if <em>at least</em> one item could be
-   * extracted from the slot. It will return <tt>false</tt> if the stack in
-   * the slot did not change.
+   * This will return the <tt>number</tt> of items extracted. It will return
+   * <tt>zero</tt> if the stack in the slot did not change.
    * <p/>
    * This takes care of handling special cases such as sided inventories and
    * maximum stack sizes.
@@ -122,29 +121,32 @@ object InventoryUtils {
    * also be achieved by a check in the consumer, but it saves some unnecessary
    * code repetition this way.
    */
-  def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64) = {
+  def extractFromInventorySlot(consumer: ItemStack => Unit, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64): Int = {
     val stack = inventory.getStackInSlot(slot)
-    (stack != null && limit > 0) && {
-      val isSideValidForSlot = inventory match {
-        case inventory: ISidedInventory => inventory.canExtractItem(slot, stack, side.ordinal)
-        case _ => true
-      }
-      (stack.stackSize > 0 && isSideValidForSlot) && {
-        val maxStackSize = math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize)
-        val amount = math.min(maxStackSize, math.min(stack.stackSize, limit))
-        val extracted = stack.splitStack(amount)
-        consumer(extracted)
-        val success = extracted.stackSize < amount
-        stack.stackSize += extracted.stackSize
-        if (stack.stackSize == 0) {
-          inventory.setInventorySlotContents(slot, null)
-        }
-        else if (success) {
-          inventory.markDirty()
-        }
-        success
-      }
+
+    if (stack == null || limit <= 0)
+      return 0
+
+    inventory match {
+      case inventory: ISidedInventory =>
+        if (!inventory.canExtractItem(slot, stack, side.ordinal))
+          return 0
+      case _ =>
     }
+
+    val maxStackSize = math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize)
+    val amount = stack.stackSize min limit min maxStackSize
+    val extracted = stack.splitStack(amount)
+    consumer(extracted)
+    val count = (amount - extracted.stackSize) max 0
+    stack.stackSize += extracted.stackSize
+    if (stack.stackSize == 0) {
+      inventory.setInventorySlotContents(slot, null)
+    }
+    else if (count > 0) {
+      inventory.markDirty()
+    }
+    count
   }
 
   /**
@@ -218,12 +220,17 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractAnyFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) = {
+  def extractAnyFromInventory(consumer: ItemStack => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64): Int = {
     val range = inventory match {
       case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
       case _ => 0 until inventory.getSizeInventory
     }
-    range.exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+    for (slot <- range) {
+      val extracted = extractFromInventorySlot(consumer, inventory, side, slot, limit)
+      if (extracted > 0)
+        return extracted
+    }
+    0
   }
 
   /**
@@ -263,12 +270,18 @@ object InventoryUtils {
   def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: Option[ForgeDirection] = None, limit: Int = 64, simulate: Boolean = false): Boolean =
     inventoryAt(position).exists(insertIntoInventory(stack, _, side, limit, simulate))
 
+  type Extractor = () => Int
+
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
    * in the world.
    */
-  def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64) =
-    inventoryAt(position).exists(extractAnyFromInventory(consumer, _, side, limit))
+  def getExtractorFromInventoryAt(consumer: ItemStack => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64): Extractor =
+    inventoryAt(position) match {
+      case Some(inventory) => () => extractAnyFromInventory(consumer, inventory, side, limit)
+      case _ => null
+    }
+
 
   /**
    * Transfers some items between two inventories.
@@ -304,19 +317,29 @@ object InventoryUtils {
    * Utility method for calling <tt>transferBetweenInventories</tt> on inventories
    * in the world.
    */
-  def transferBetweenInventoriesAt(source: BlockPosition, sourceSide: ForgeDirection, sink: BlockPosition, sinkSide: Option[ForgeDirection], limit: Int = 64) =
-    inventoryAt(source).exists(sourceInventory =>
-      inventoryAt(sink).exists(sinkInventory =>
-        transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)))
+  def getTransferBetweenInventoriesAt(source: BlockPosition, sourceSide: ForgeDirection, sink: BlockPosition, sinkSide: Option[ForgeDirection], limit: Int = 64): Extractor =
+    inventoryAt(source) match {
+      case Some(sourceInventory) =>
+        inventoryAt(sink) match {
+          case Some(sinkInventory) => () => transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)
+          case _ => null
+        }
+      case _ => null
+    }
 
   /**
    * Utility method for calling <tt>transferBetweenInventoriesSlots</tt> on inventories
    * in the world.
    */
-  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[ForgeDirection], sinkSlot: Option[Int], limit: Int = 64) =
-    inventoryAt(sourcePos).exists(sourceInventory =>
-      inventoryAt(sinkPos).exists(sinkInventory =>
-        transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)))
+  def getTransferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[ForgeDirection], sinkSlot: Option[Int], limit: Int = 64): Extractor =
+    inventoryAt(sourcePos) match {
+      case Some(sourceInventory) =>
+        inventoryAt(sinkPos) match {
+          case Some(sinkInventory) => () => transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)
+          case _ => null
+        }
+      case _ => null
+    }
 
   /**
    * Utility method for dropping contents from a single inventory slot into

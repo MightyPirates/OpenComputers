@@ -24,13 +24,19 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
       case Some(reason) =>
         result(Unit, reason)
       case _ =>
-        if (args.count > 3) {
+        val extractor = if (args.count > 3) {
           val sourceSlot = args.checkSlot(InventoryUtils.inventoryAt(sourcePos).getOrElse(throw new IllegalArgumentException("no inventory")), 3)
           val sinkSlot = args.optSlot(InventoryUtils.inventoryAt(sinkPos).getOrElse(throw new IllegalArgumentException("no inventory")), 4, -1)
 
-          result(InventoryUtils.transferBetweenInventoriesSlotsAt(sourcePos, sourceSide.getOpposite, sourceSlot, sinkPos, Option(sinkSide.getOpposite), if (sinkSlot < 0) None else Option(sinkSlot), count))
+          InventoryUtils.getTransferBetweenInventoriesSlotsAt(sourcePos, sourceSide.getOpposite, sourceSlot, sinkPos, Option(sinkSide.getOpposite), if (sinkSlot < 0) None else Option(sinkSlot), count)
         }
-        else result(InventoryUtils.transferBetweenInventoriesAt(sourcePos, sourceSide.getOpposite, sinkPos, Option(sinkSide.getOpposite), count))
+        else
+          InventoryUtils.getTransferBetweenInventoriesAt(sourcePos, sourceSide.getOpposite, sinkPos, Option(sinkSide.getOpposite), count)
+
+        Option(extractor) match {
+          case Some(ex) => result(ex())
+          case _ => result(Unit, "no inventory")
+        }
     }
   }
 
