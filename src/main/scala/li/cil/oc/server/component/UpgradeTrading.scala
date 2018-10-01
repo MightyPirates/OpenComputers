@@ -48,11 +48,7 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
     val merchants = entitiesInBounds[Entity](position.bounds.expand(maxRange, maxRange, maxRange)).
       filter(isInRange).
       collect { case merchant: IMerchant => merchant }
-    var ids: List[UUID] = List[UUID]()
-    for ( (id, _) <- merchants.groupBy { merchant => merchant.getPersistentID } ) {
-      ids :+= id
-    }
-    ids = ids.sorted.reverse
+    val ids = merchants.collect { case merchant: IMerchant => merchant.getPersistentID }.sorted.reverse
     def indexOfMerchant(id: UUID): Int = {
       for (i <- ids.indices) {
         if (ids(i) == id) {
@@ -61,7 +57,8 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
       }
       -1
     }
-    result(merchants.flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
+    // sorting the result is not necessary, but will help the trade sort index line up nicely
+    result(merchants.sortBy(m => m.getPersistentID).reverse.flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
       val idx = indexOfMerchant(merchant.getPersistentID)
       new Trade(this, merchant, index, idx)
     })))
