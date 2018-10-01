@@ -206,7 +206,7 @@ object ExtendedRecipe {
           // Insert new EEPROM.
           for (stack <- getItems(inventory)) {
             if (api.Items.get(stack) == eeprom) {
-              data.components :+= stack
+              data.components :+= stack.copy.splitStack(1)
             }
           }
 
