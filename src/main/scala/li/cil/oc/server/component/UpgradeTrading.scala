@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import java.util
+import java.util.UUID
 
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
@@ -44,9 +45,25 @@ class UpgradeTrading(val host: EnvironmentHost) extends prefab.ManagedEnvironmen
 
   @Callback(doc = "function():table -- Returns a table of trades in range as userdata objects.")
   def getTrades(context: Context, args: Arguments): Array[AnyRef] = {
-    result(entitiesInBounds[Entity](position.bounds.expand(maxRange, maxRange, maxRange)).
+    val merchants = entitiesInBounds[Entity](position.bounds.expand(maxRange, maxRange, maxRange)).
       filter(isInRange).
-      collect { case merchant: IMerchant => merchant }.
-      flatMap(merchant => merchant.getRecipes(null).indices.map(new Trade(this, merchant, _))))
+      collect { case merchant: IMerchant => merchant }
+    var ids: List[UUID] = List[UUID]()
+    for ( (id, _) <- merchants.groupBy { merchant => merchant.getPersistentID } ) {
+      ids :+= id
+    }
+    ids = ids.sorted.reverse
+    def indexOfMerchant(id: UUID): Int = {
+      for (i <- ids.indices) {
+        if (ids(i) == id) {
+          return i
+        }
+      }
+      -1
+    }
+    result(merchants.flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
+      val idx = indexOfMerchant(merchant.getPersistentID)
+      new Trade(this, merchant, index, idx)
+    })))
   }
 }
