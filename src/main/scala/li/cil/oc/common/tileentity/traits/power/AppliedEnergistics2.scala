@@ -1,5 +1,4 @@
 package li.cil.oc.common.tileentity.traits.power
-/* TODO AE2
 import java.util
 
 import appeng.api.AEApi
@@ -7,38 +6,36 @@ import appeng.api.config.Actionable
 import appeng.api.config.PowerMultiplier
 import appeng.api.networking._
 import appeng.api.networking.energy.IEnergyGrid
-import appeng.api.util.AECableType
-import appeng.api.util.AEColor
-import appeng.api.util.DimensionalCoord
-import cpw.mods.fml.common.Optional
+import appeng.api.util.{AECableType, AEColor, AEPartLocation, DimensionalCoord}
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Power
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common._
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConversions
 
-@Injectable.Interface(value = "appeng.api.networking.IGridHost", modid = Mods.IDs.AppliedEnergistics2)
-trait AppliedEnergistics2 extends Common {
-  private lazy val useAppliedEnergistics2Power = isServer && Mods.AppliedEnergistics2.isAvailable
+trait AppliedEnergistics2 extends Common with IGridHost {
+  private lazy val useAppliedEnergistics2Power = isServer && Mods.AppliedEnergistics2.isModAvailable
 
   // 'Manual' lazy val, because lazy vals mess up the class loader, leading to class not found exceptions.
   private var node: Option[AnyRef] = None
 
   override def updateEntity() {
     super.updateEntity()
-    if (useAppliedEnergistics2Power && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (useAppliedEnergistics2Power && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       updateEnergy()
     }
   }
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def updateEnergy() {
-    tryAllSides((demand, side) => {
-      val grid = getGridNode(side).getGrid
+    tryAllSides((demand, _) => {
+      val grid = getGridNode(AEPartLocation.INTERNAL).getGrid
       if (grid != null) {
         val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
         if (cache != null) {
@@ -74,7 +71,7 @@ trait AppliedEnergistics2 extends Common {
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def loadNode(nbt: NBTTagCompound): Unit = {
-    getGridNode(ForgeDirection.UNKNOWN).loadFromNBT(Settings.namespace + "ae2power", nbt)
+    getGridNode(AEPartLocation.INTERNAL).loadFromNBT(Settings.namespace + "ae2power", nbt)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
@@ -84,55 +81,51 @@ trait AppliedEnergistics2 extends Common {
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def saveNode(nbt: NBTTagCompound): Unit = {
-    getGridNode(ForgeDirection.UNKNOWN).saveToNBT(Settings.namespace + "ae2power", nbt)
+    getGridNode(AEPartLocation.INTERNAL).saveToNBT(Settings.namespace + "ae2power", nbt)
   }
 
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  def getGridNode(side: ForgeDirection) = node match {
+  def getGridNode(side: AEPartLocation): IGridNode = node match {
     case Some(gridNode: IGridNode) => gridNode
     case _ if isServer =>
-      val gridNode = AEApi.instance.createGridNode(new AppliedEnergistics2GridBlock(this))
+      val gridNode = AEApi.instance.grid.createGridNode(new AppliedEnergistics2GridBlock(this))
       node = Option(gridNode)
+      gridNode.updateState()
       gridNode
     case _ => null
   }
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  def getCableConnectionType(side: ForgeDirection) = AECableType.SMART
+  def getCableConnectionType(side: AEPartLocation): AECableType = AECableType.SMART
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def securityBreak() {
-    getGridNode(ForgeDirection.UNKNOWN).destroy()
+    getGridNode(AEPartLocation.INTERNAL).destroy()
   }
 }
 
 class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends IGridBlock {
-  override def getIdlePowerUsage = 0.0
+  override def getIdlePowerUsage: Double = 0.0
 
-  override def getFlags = util.EnumSet.noneOf(classOf[GridFlags])
+  override def getFlags: util.EnumSet[GridFlags] = util.EnumSet.noneOf(classOf[GridFlags])
 
-  // rv1
-  def isWorldAccessable = true
+  def isWorldAccessible: Boolean = true
 
-  // rv2
-  def isWorldAccessible = true
+  override def getLocation: DimensionalCoord = new DimensionalCoord(tileEntity)
 
-  override def getLocation = new DimensionalCoord(tileEntity)
+  override def getGridColor: AEColor = AEColor.TRANSPARENT
 
-  override def getGridColor = AEColor.Transparent
+  override def onGridNotification(p1: GridNotification): Unit = {}
 
-  override def onGridNotification(p1: GridNotification) {}
+  override def setNetworkStatus(p1: IGrid, p2: Int): Unit = {}
 
-  override def setNetworkStatus(p1: IGrid, p2: Int) {}
+  override def getConnectableSides: util.EnumSet[EnumFacing] = util.EnumSet.copyOf(JavaConversions.asJavaCollection(EnumFacing.values.filter(tileEntity.canConnectPower)))
 
-  override def getConnectableSides = util.EnumSet.copyOf(ForgeDirection.VALID_DIRECTIONS.filter(tileEntity.canConnectPower).toList)
+  override def getMachine: IGridHost = tileEntity.asInstanceOf[IGridHost]
 
-  override def getMachine = tileEntity.asInstanceOf[IGridHost]
+  override def gridChanged(): Unit = {}
 
-  override def gridChanged() {}
-
-  override def getMachineRepresentation = null
+  override def getMachineRepresentation: ItemStack = null
 }
-*/

@@ -2,6 +2,9 @@ package li.cil.oc.common
 
 import java.util.Calendar
 
+import appeng.api.AEApi
+import appeng.api.networking.IGridBlock
+import appeng.api.util.AEPartLocation
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
@@ -39,7 +42,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.SoundCategory
+import net.minecraft.util.{EnumFacing, SoundCategory}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.AttachCapabilitiesEvent
@@ -117,6 +120,19 @@ object EventHandler {
           pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
             MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tile))
             tileEntity.addedToIC2PowerGrid = true
+          })
+        case _ =>
+      }
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
+  def scheduleAE2Add(tileEntity: power.AppliedEnergistics2): Unit = {
+    if (SideTracker.isServer) pendingServer.synchronized {
+      tileEntity match {
+        case tile: IGridBlock =>
+          pendingServer += (() => if (!tileEntity.isInvalid) {
+            tileEntity.getGridNode(AEPartLocation.INTERNAL).updateState()
           })
         case _ =>
       }
@@ -349,7 +365,7 @@ object EventHandler {
 
   @SubscribeEvent
   def onPickup(e: ItemPickupEvent): Unit = {
-    val entity = e.pickedUp
+    val entity = e.getOriginalEntity
     Option(entity).flatMap(e => Option(e.getItem)) match {
       case Some(stack) =>
         Achievement.onAssemble(stack, e.player)
