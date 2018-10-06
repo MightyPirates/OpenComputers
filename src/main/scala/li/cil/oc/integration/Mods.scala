@@ -18,7 +18,7 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
+  val AppliedEnergistics2 = new ClassBasedMod(IDs.AppliedEnergistics2, "appeng.api.storage.channels.IItemStorageChannel")
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.5.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
@@ -120,7 +120,7 @@ object Mods {
   }
 
   class ClassBasedMod(val id: String, val classNames: String*) extends ModBase {
-    private lazy val isModAvailable_ = classNames.forall(className => try Class.forName(className) != null catch {
+    private lazy val isModAvailable_ = Loader.isModLoaded(id) && classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })
 
