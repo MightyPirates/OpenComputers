@@ -16,7 +16,7 @@ Most blocks act as 'cables' - use relays and power distributors to create separa
 Welcome to the dark side - here, have some cookies.
 Screens can display Unicode - paste the special chars or use unicode.char.
 Run `help` or `man programname` for ingame help on programs shipped with OpenOS - start with `man man`.
-For more help, there's a wiki at http://ocdoc.cil.li/ - or find the IRC loot disk and join #oc.
+For more help, there's a wiki at https://ocdoc.cil.li/ - or find the IRC loot disk and join #oc.
 Computers have a very basic, built-in speaker - control it using computer.beep().
 Many component methods have a short documentation - use `=component.componentName.methodName` in the Lua interpreter to see it.
 You can get a list of all attached components using the `components` program.

@@ -8,7 +8,7 @@
 
 由loveyanbei(https://github.com/loveyanbei) 汉化
 
-如果有问题可以访问 http://ocdoc.cil.li 查看wiki
+如果有问题可以访问 https://ocdoc.cil.li 查看wiki
 
 对翻译有疑问可以自行pull request
 
