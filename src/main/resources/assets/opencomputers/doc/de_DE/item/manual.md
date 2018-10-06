@@ -10,6 +10,6 @@ Das Handbuch funktioniert ähnlich wie ein Wiki: Auf Links zu klicken öffnet di
 
 Das Handbuch erinnert sich an die Seite die zuletzt geöffnet war, wenn es geöffnet wird. Wenn das Buch im Schleichen geöffnet wird, öffnet sich das Inhaltsverzeichnis. Wenn Informationen über einen Block in der Welt benötigt werden, genügt es diesen Block rechts mit der Umschalttaste anzuklicken, während das Handbuch in der Hand ist.
 
-Sollten nach Lesen des Handbuchs Fragen übrig bleiben, gibt es andere Informationsquellen, wie das [Wiki](http://ocdoc.ci.li), der [IRC-Channel](http://webchat.esper.net/?channels=#oc) (#oc auf esper.net) sowie das [Forum](http://oc.cil.li).
+Sollten nach Lesen des Handbuchs Fragen übrig bleiben, gibt es andere Informationsquellen, wie das [Wiki](https://ocdoc.ci.li), der [IRC-Channel](http://webchat.esper.net/?channels=#oc) (#oc auf esper.net) sowie das [Forum](https://oc.cil.li).
 
 Sollten im Handbuch inhaltliche, grammatische oder andere Fehler oder Bugs in der Modifikation auftauchen, melde dies bitte über den [Issue Tracker](https://github.com/MightyPirates/OpenComputers/issues). Wenn du zum Handbuch beitragen möchtest, indem du es mit Inhalt bereicherst, bitte melde dich im IRC oder erstelle ein Ticket im Issue Tracker.

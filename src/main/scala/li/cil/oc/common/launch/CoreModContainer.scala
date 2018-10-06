@@ -11,7 +11,7 @@ class CoreModContainer extends DummyModContainer({
   md.modId = "OpenComputers|Core"
   md.version = "@VERSION@"
   md.name = "OpenComputers (Core)"
-  md.url = "http://oc.cil.li/"
+  md.url = "https://oc.cil.li/"
   md.description = "OC core mod used for class transformer and as API owner to avoid cyclic dependencies."
   md
 }) {

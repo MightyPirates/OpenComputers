@@ -93,9 +93,9 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 
 
 [api]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/java/li/cil/oc/api
-[code conventions]: http://ocdoc.cil.li/lua_conventions
-[dev-jar]: http://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-dev-MC1.7.10&type=dev
-[forums]: http://oc.cil.li/
+[code conventions]: https://ocdoc.cil.li/lua_conventions
+[dev-jar]: https://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-dev-MC1.7.10&type=dev
+[forums]: https://oc.cil.li/
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open
 [jenkins]: http://ci.cil.li/
@@ -107,7 +107,7 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 [pack.mcmeta]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/pack.mcmeta
 [releases]: https://github.com/MightyPirates/OpenComputers/releases
 [robot names]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/assets/opencomputers/robot.names
-[wiki]: http://ocdoc.cil.li/
+[wiki]: https://ocdoc.cil.li/
 [integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration
 [ingame manual]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/doc
-[idea_1.7.10]: http://ocdoc.cil.li/tutorial:debug_1.7.10
+[idea_1.7.10]: https://ocdoc.cil.li/tutorial:debug_1.7.10
