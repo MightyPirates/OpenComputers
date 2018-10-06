@@ -24,8 +24,8 @@ import scala.ref.WeakReference
 class Trade(val info: TradeInfo) extends AbstractValue {
   def this() = this(new TradeInfo())
 
-  def this(upgrade: UpgradeTrading, merchant: IMerchant, recipeID: Int) =
-    this(new TradeInfo(upgrade.host, merchant, recipeID))
+  def this(upgrade: UpgradeTrading, merchant: IMerchant, recipeID: Int, merchantID: Int) =
+    this(new TradeInfo(upgrade.host, merchant, recipeID, merchantID))
 
   def maxRange = Settings.get.tradingRange
 
@@ -39,6 +39,10 @@ class Trade(val info: TradeInfo) extends AbstractValue {
   override def load(nbt: NBTTagCompound) = EventHandler.scheduleServer(() => info.load(nbt))
 
   override def save(nbt: NBTTagCompound) = info.save(nbt)
+
+  @Callback(doc = "function():number -- Returns a sort index of the merchant that provides this trade")
+  def getMerchantId(context: Context, arguments: Arguments): Array[AnyRef] =
+    result(info.merchantID)
 
   @Callback(doc = "function():table, table -- Returns the items the merchant wants for this trade.")
   def getInput(context: Context, arguments: Arguments): Array[AnyRef] =
@@ -122,11 +126,11 @@ class Trade(val info: TradeInfo) extends AbstractValue {
   }
 }
 
-class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[IMerchant], var recipeID: Int) {
-  def this() = this(None, new WeakReference[IMerchant](null), -1)
+class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[IMerchant], var recipeID: Int, var merchantID: Int) {
+  def this() = this(None, new WeakReference[IMerchant](null), -1, -1)
 
-  def this(host: EnvironmentHost, merchant: IMerchant, recipeID: Int) =
-    this(Option(host), new WeakReference[IMerchant](merchant), recipeID)
+  def this(host: EnvironmentHost, merchant: IMerchant, recipeID: Int, merchantID: Int) =
+    this(Option(host), new WeakReference[IMerchant](merchant), recipeID, merchantID)
 
   def recipe = merchant.get.map(_.getRecipes(null).get(recipeID))
 
@@ -145,6 +149,7 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
   private final val HostYTag = "hostY"
   private final val HostZTag = "hostZ"
   private final val RecipeID = "recipeID"
+  private final val MerchantID = "merchantID"
 
   def load(nbt: NBTTagCompound): Unit = {
     val isEntity = nbt.getBoolean(HostIsEntityTag)
@@ -155,6 +160,7 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
       case _ => null
     })
     recipeID = nbt.getInteger(RecipeID)
+    merchantID = if (nbt.hasKey(MerchantID)) nbt.getInteger(MerchantID) else -1
   }
 
   def save(nbt: NBTTagCompound): Unit = {
@@ -179,6 +185,7 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
       case _ =>
     }
     nbt.setInteger(RecipeID, recipeID)
+    nbt.setInteger(MerchantID, merchantID)
   }
 
   private def loadEntity(nbt: NBTTagCompound, uuid: UUID): Option[Entity] = {

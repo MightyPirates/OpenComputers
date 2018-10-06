@@ -1,6 +1,6 @@
 # Lua
 
-Le [manuel de référence](http://www.lua.org/manual/5.2/manual.html) en Lua et le livre [Programming Lua](http://www.lua.org/pil/) (la première édition est disponible gratuitement en ligne) sont un bon endroit pour démarrer avec les bases de Lua et se familiariser avec la syntaxe de base et les bibliothèques standard. [OpenOS](openOS.md) s'efforce d'émuler les bibliothèques standard au plus près, avec quelques écarts, comme la bibliothèque de débogage qui est principalement absente (pour des raisons de sécurité liées au mode "bac à sable"). Ces différences sont [documentées sur le wiki](http://ocdoc.cil.li/api:non-standard-lua-libs).
+Le [manuel de référence](http://www.lua.org/manual/5.2/manual.html) en Lua et le livre [Programming Lua](http://www.lua.org/pil/) (la première édition est disponible gratuitement en ligne) sont un bon endroit pour démarrer avec les bases de Lua et se familiariser avec la syntaxe de base et les bibliothèques standard. [OpenOS](openOS.md) s'efforce d'émuler les bibliothèques standard au plus près, avec quelques écarts, comme la bibliothèque de débogage qui est principalement absente (pour des raisons de sécurité liées au mode "bac à sable"). Ces différences sont [documentées sur le wiki](https://ocdoc.cil.li/api:non-standard-lua-libs).
 
 Les bibliothèques non-standard devront être importées avec `require` pour les utiliser dans un script. Par exemple :
 

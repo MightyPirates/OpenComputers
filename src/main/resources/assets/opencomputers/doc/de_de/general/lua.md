@@ -1,6 +1,6 @@
 # Lua 
 
-Die Lua-[Dokumentation (englisch)](http://www.lua.org/manual/5.2/manual.html) und die [Programming in Lua](http://www.lua.org/pil/)-Bücher (englisch) (die erste Ausgabe ist online kostenlos verfügbar) sind eine gute Anlaufstelle für die Grundlagen von Lua und zum Verständnis der Syntax und Standardbibliotheken der Sprache. [OpenOS](openOS.md) versucht die Standardbibliotheken so gut wie möglich mit ein paar Unterschieden (wie zum Beispiel die großteils fehlende Debugging-Bibliothek) zu emulieren. Diese Unterschiede sind [im Wiki dokumentiert (englisch)](http://ocdoc.cil.li/api:non-standard-lua-libs).
+Die Lua-[Dokumentation (englisch)](http://www.lua.org/manual/5.2/manual.html) und die [Programming in Lua](http://www.lua.org/pil/)-Bücher (englisch) (die erste Ausgabe ist online kostenlos verfügbar) sind eine gute Anlaufstelle für die Grundlagen von Lua und zum Verständnis der Syntax und Standardbibliotheken der Sprache. [OpenOS](openOS.md) versucht die Standardbibliotheken so gut wie möglich mit ein paar Unterschieden (wie zum Beispiel die großteils fehlende Debugging-Bibliothek) zu emulieren. Diese Unterschiede sind [im Wiki dokumentiert (englisch)](https://ocdoc.cil.li/api:non-standard-lua-libs).
 
 Nicht standardisierte Bibliotheken müssen `require`-d werden, um sie in einem Script zu verwenden. Zum Beispiel:
 
