@@ -1,6 +1,6 @@
 # Lua 
 
-The Lua [reference manual](http://www.lua.org/manual/5.2/manual.html) and the [Programming in Lua](http://www.lua.org/pil/) books (first edition is available for free online) are a good place to get started with the basics of Lua and becoming familiar with the basic syntax and standard libraries. [OpenOS](openOS.md) strives to emulate the standard libraries very closely, with a few deviations, such as the mostly missing debug library (for sandboxing reasons). These differences are [documented on the wiki](http://ocdoc.cil.li/api:non-standard-lua-libs).
+The Lua [reference manual](http://www.lua.org/manual/5.2/manual.html) and the [Programming in Lua](http://www.lua.org/pil/) books (first edition is available for free online) are a good place to get started with the basics of Lua and becoming familiar with the basic syntax and standard libraries. [OpenOS](openOS.md) strives to emulate the standard libraries very closely, with a few deviations, such as the mostly missing debug library (for sandboxing reasons). These differences are [documented on the wiki](https://ocdoc.cil.li/api:non-standard-lua-libs).
 
 Non-standard libraries will need to be
 `require`d in order to use them in a script. For example:

@@ -1,6 +1,6 @@
 # Lua 
 
-[LUA编程手册](http://www.lua.org/manual/5.2/manual.html) 和 [LUA编程第一版](http://www.lua.org/pil/) 是学习基本功能并熟悉lua标准库的好帮手. [OpenOS](openOS.md) 尽可能准确的模拟标准库,当然有些许变化，比如某些高权限的debug库去掉了. 这些不同点写在了[这里](http://ocdoc.cil.li/api:non-standard-lua-libs).
+[LUA编程手册](http://www.lua.org/manual/5.2/manual.html) 和 [LUA编程第一版](http://www.lua.org/pil/) 是学习基本功能并熟悉lua标准库的好帮手. [OpenOS](openOS.md) 尽可能准确的模拟标准库,当然有些许变化，比如某些高权限的debug库去掉了. 这些不同点写在了[这里](https://ocdoc.cil.li/api:non-standard-lua-libs).
 
 require命令用来在脚本里引用模块
 比如
