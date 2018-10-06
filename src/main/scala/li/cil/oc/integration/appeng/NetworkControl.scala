@@ -63,10 +63,11 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
 
   private def convert(aeItem: IAEItemStack): java.util.Map[AnyRef, AnyRef] = {
+    case class AnyRefAnyRefMap (value: java.util.HashMap[AnyRef, AnyRef])
     // I would prefer to move the convert code to the registry for IAEItemStack
     // but craftables need the device that crafts them
     Registry.convert(Array(aePotentialItem(aeItem).createItemStack()))(0) match {
-      case jmap: java.util.Map[AnyRef, AnyRef] => {
+      case AnyRefAnyRefMap(jmap) => {
         jmap.update("isCraftable", Boolean.box(aeItem.isCraftable))
         jmap.update("size", Int.box(aeItem.getStackSize.toInt))
         jmap
