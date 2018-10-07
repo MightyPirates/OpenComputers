@@ -33,6 +33,7 @@ object Mods {
   val Waila = new SimpleMod(IDs.Waila)
   val ProjectRedBase = new SimpleMod((IDs.ProjectRedCore))
   val ProjectRedTransmission = new SimpleMod((IDs.ProjectRedTransmission))
+  val DraconicEvolution = new SimpleMod(IDs.DraconicEvolution)
 
   // ----------------------------------------------------------------------- //
 
@@ -92,6 +93,7 @@ object Mods {
     final val Waila = "waila"
     final val ProjectRedCore = "projectred-core"
     final val ProjectRedTransmission = "projectred-transmission"
+    final val DraconicEvolution = "draconicevolution"
   }
 
   // ----------------------------------------------------------------------- //
