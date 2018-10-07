@@ -23,11 +23,14 @@ import li.cil.oc.server.network.DebugNetwork.DebugNode
 import li.cil.oc.server.component.DebugCard.{AccessContext, CommandSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.command.CommandResultStats.Type
+import net.minecraft.entity.item.EntityMinecart
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -41,12 +44,11 @@ import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.text.ITextComponent
-import net.minecraft.world.GameType
-import net.minecraft.world.World
-import net.minecraft.world.WorldServer
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.world.{GameType, World, WorldServer, WorldSettings}
+import net.minecraftforge.common.{DimensionManager, MinecraftForge}
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler
@@ -139,6 +141,50 @@ class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with D
   def getScoreboard(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     result(new DebugCard.ScoreboardValue(Option(host.world)))
+  }
+
+
+  @Callback(doc = "function(x: number, y: number, z: number[, worldId: number]):boolean, string, table -- returns contents at the location in world by id (default host world)")
+  def scanContentsAt(context: Context, args: Arguments): Array[AnyRef] = {
+    checkAccess()
+    val x = args.checkInteger(0)
+    val y = args.checkInteger(1)
+    val z = args.checkInteger(2)
+    val worldServer = if (args.count() > 3) DimensionManager.getWorld(args.checkInteger(3)) else host.world
+    val world = worldServer.world
+
+    val position: BlockPosition = new BlockPosition(x, y, z, Option(world))
+    val fakePlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    fakePlayer.posX = position.x + 0.5
+    fakePlayer.posY = position.y + 0.5
+    fakePlayer.posZ = position.z + 0.5
+
+    Option(world.findNearestEntityWithinAABB(classOf[Entity], position.bounds, fakePlayer)) match {
+      case Some(living: EntityLivingBase) => result(true, "EntityLivingBase", living)
+      case Some(minecart: EntityMinecart) => result(true, "EntityMinecart", minecart)
+      case _ =>
+        val block = world.getBlock(position)
+        val metadata = world.getBlockMetadata(position)
+        if (block.isAir(position)) {
+          result(false, "air", block)
+        }
+        else if (FluidRegistry.lookupFluidForBlock(block) != null) {
+          val event = new BlockEvent.BreakEvent(world, position.toBlockPos, metadata, fakePlayer)
+          MinecraftForge.EVENT_BUS.post(event)
+          result(event.isCanceled, "liquid", block)
+        }
+        else if (block.isReplaceable(position)) {
+          val event = new BlockEvent.BreakEvent(world, position.toBlockPos, metadata, fakePlayer)
+          MinecraftForge.EVENT_BUS.post(event)
+          result(event.isCanceled, "replaceable", block)
+        }
+        else if (block.getCollisionBoundingBoxFromPool(position) == null) {
+          result(true, "passable", block)
+        }
+        else {
+          result(true, "solid", block)
+        }
+    }
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
