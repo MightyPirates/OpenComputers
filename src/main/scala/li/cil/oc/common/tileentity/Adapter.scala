@@ -81,7 +81,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
     if (node != null && node.network != null) {
       val blockPos = getPos.offset(d)
       world.getTileEntity(blockPos) match {
-        case env: traits.Environment =>
+        case _: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
         // due to having a power interface. Might revisit this at some point,

@@ -67,7 +67,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   override def receivePacket(packet: Packet, sender: WirelessEndpoint): Unit = {
     if (getLocalBuffer > 0 && commandDelay < 1 && !player.isDead) {
       val (dx, dy, dz) = ((sender.x + 0.5) - player.posX, (sender.y + 0.5) - player.posY, (sender.z + 0.5) - player.posZ)
-      val dSquared = dx * dx + dy * dy + dz * dz
+      val dSquared = Math.sqrt(dx * dx + dy * dy + dz * dz)
       if (dSquared <= CommandRange) packet.data.headOption match {
         case Some(header: Array[Byte]) if new String(header, Charsets.UTF_8) == "nanomachines" =>
           val command = packet.data.drop(1).map {
