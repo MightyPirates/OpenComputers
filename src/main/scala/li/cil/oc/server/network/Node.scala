@@ -37,10 +37,10 @@ trait Node extends ImmutableNode {
     if (network == null) Iterable.empty[ImmutableNode].toSeq
     else network.neighbors(this)
 
-  // a node should be added to a network before it can connect to a node
+  // A node should be added to a network before it can connect to a node
   // but, sometimes other mods try to create nodes and connect them before
-  // the network is ready. we dont those things to crash here
-  // with typical nodes we are talking about components here
+  // the network is ready. We don't desire those things to crash here.
+  // With typical nodes we are talking about components here
   // which will be connected anyways when the network is created
   def connect(node: ImmutableNode): Unit = if (network != null) network.connect(this, node)
 
