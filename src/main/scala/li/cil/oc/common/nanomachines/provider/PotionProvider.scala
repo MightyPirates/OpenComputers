@@ -57,7 +57,7 @@ object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784
     }
 
     override def update(): Unit = {
-      player.addPotionEffect(new PotionEffect(potion.id, Duration, amplifier(player)))
+      player.addPotionEffect(new PotionEffect(potion.id, Duration, if (Settings.get.enableNanomachinePfx) amplifier(player) else -1))
     }
   }
 
