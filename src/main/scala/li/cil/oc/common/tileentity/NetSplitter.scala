@@ -31,7 +31,7 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
   _isOutputEnabled = true
 
   val node: Node = api.Network.newNode(this, Visibility.Network).
-    withComponent("network_splitter", Visibility.Network).
+    withComponent("net_splitter", Visibility.Network).
     create()
 
   var isInverted = false
