@@ -20,7 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNode with DeviceInfo {
+class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNode with DeviceInfo with traits.WakeMessageAware {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tunnel", Visibility.Neighbors).
     withConnector().
@@ -60,10 +60,7 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
   @Callback(direct = true, doc = "function():number -- Gets the maximum packet size (config setting).")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
-  def receivePacket(packet: Packet) {
-    val distance = 0
-    node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
-  }
+  def receivePacket(packet: Packet): Unit = receivePacket(packet, 0, null)
 
   @Callback(direct = true, doc = "function():string -- Gets this link card's shared channel address")
   def getChannel(context: Context, args: Arguments): Array[AnyRef] = {
@@ -93,10 +90,12 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
     if (nbt.hasKey(Settings.namespace + "tunnel")) {
       tunnel = nbt.getString(Settings.namespace + "tunnel")
     }
+    loadWakeMessage(nbt)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setString(Settings.namespace + "tunnel", tunnel)
+    saveWakeMessage(nbt)
   }
 }

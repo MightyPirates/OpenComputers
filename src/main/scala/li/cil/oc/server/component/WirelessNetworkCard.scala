@@ -46,7 +46,7 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
   def receivePacket(packet: Packet, source: WirelessEndpoint) {
     val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
     val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
-    receivePacket(packet, distance)
+    receivePacket(packet, distance, host)
   }
 
   // ----------------------------------------------------------------------- //
