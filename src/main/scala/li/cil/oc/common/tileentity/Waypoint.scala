@@ -11,6 +11,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
 import li.cil.oc.server.network.Waypoints
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.ForgeDirection
 
 class Waypoint extends traits.Environment with traits.Rotatable with traits.RedstoneAware {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -18,6 +19,8 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
     create()
 
   var label = ""
+
+  override def validFacings: Array[ForgeDirection] = ForgeDirection.VALID_DIRECTIONS
 
   // ----------------------------------------------------------------------- //
 
