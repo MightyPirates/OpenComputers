@@ -26,7 +26,7 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
     withConnector().
     create()
 
-  var tunnel = "creative"
+  var tunnel: String = "creative"
 
   // ----------------------------------------------------------------------- //
 
@@ -57,12 +57,17 @@ class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNo
     else result(Unit, "not enough energy")
   }
 
-  @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
+  @Callback(direct = true, doc = "function():number -- Gets the maximum packet size (config setting).")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   def receivePacket(packet: Packet) {
     val distance = 0
     node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+  }
+
+  @Callback(direct = true, doc = "function():string -- Gets this link card's shared channel address")
+  def getChannel(context: Context, args: Arguments): Array[AnyRef] = {
+    result(this.tunnel)
   }
 
   // ----------------------------------------------------------------------- //

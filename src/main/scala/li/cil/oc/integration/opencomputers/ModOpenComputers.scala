@@ -117,6 +117,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(li.cil.oc.server.ComponentTracker)
 
     api.Driver.add(ConverterNanomachines)
+    api.Driver.add(ConverterLinkedCard)
 
     api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)

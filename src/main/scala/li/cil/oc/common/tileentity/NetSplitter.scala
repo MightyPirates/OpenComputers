@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
 
 class NetSplitter extends traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment with DeviceInfo {
   private lazy val deviceInfo: util.Map[String, String] = Map(
@@ -112,12 +113,12 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
   }
 
   // component api
-  def currentStatus(): Array[Boolean] = {
-    val openSidesCopy = Array.fill(ForgeDirection.VALID_DIRECTIONS.length)(false)
+  def currentStatus(): mutable.Map[Int, Boolean] = {
+    val openSides = mutable.Map[Int, Boolean]()
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      openSidesCopy(side.ordinal()) = isSideOpen(side)
+      openSides += side.ordinal() -> isSideOpen(side)
     }
-    openSidesCopy
+    openSides
   }
 
   def setSide(side: ForgeDirection, state: Boolean): Boolean = {
