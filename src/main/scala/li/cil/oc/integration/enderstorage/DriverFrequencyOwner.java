@@ -66,12 +66,7 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
                     throw new IllegalArgumentException("invalid frequency");
                 }
             }
-            final String owner = tileEntity.frequency.owner;
-            if (owner == null || owner.isEmpty() || "global".equals(owner)) {
-                tileEntity.setFreq(new Frequency(left,middle,right));
-            } else {
-                return new Object[]{null, "cannot change frequency of owned storage"};
-            }
+            tileEntity.setFreq(new Frequency(left,middle,right));
             return null;
         }
 
