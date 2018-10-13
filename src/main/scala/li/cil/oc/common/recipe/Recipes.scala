@@ -222,6 +222,7 @@ object Recipes {
       val relay = api.Items.get(Constants.BlockName.Relay)
       val robot = api.Items.get(Constants.BlockName.Robot)
       val tablet = api.Items.get(Constants.ItemName.Tablet)
+      val linkedCard = api.Items.get(Constants.ItemName.LinkedCard)
 
       // Navigation upgrade recrafting.
       Recipes.addRecipe(new ExtendedShapelessOreRecipe(
@@ -349,6 +350,12 @@ object Recipes {
       if (Settings.get.lootRecrafting) {
         Recipes.addRecipe(new LootDiskCyclingRecipe(), "lootCycling")
       }
+
+      // link card copying via crafting.
+      Recipes.addRecipe(new ExtendedShapelessOreRecipe(
+        linkedCard.createItemStack(2),
+        linkedCard.createItemStack(1), linkedCard.createItemStack(1)))
+
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

@@ -27,7 +27,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo {
+class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo with traits.WakeMessageAware {
   protected val visibility: Visibility = host match {
     case _: Rack => Visibility.Neighbors
     case _ => Visibility.Network
@@ -41,10 +41,6 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
   
   // wired network card is the 1st in the max ports list (before both wireless cards)
   protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.One)
-
-  protected var wakeMessage: Option[String] = None
-
-  protected var wakeMessageFuzzy = false
 
   // ----------------------------------------------------------------------- //
 
@@ -117,23 +113,6 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
     result(true)
   }
 
-  @Callback(direct = true, doc = """function():string, boolean -- Get the current wake-up message.""")
-  def getWakeMessage(context: Context, args: Arguments): Array[AnyRef] = result(wakeMessage.orNull, wakeMessageFuzzy)
-
-  @Callback(doc = """function(message:string[, fuzzy:boolean]):string -- Set the wake-up message and whether to ignore additional data/parameters.""")
-  def setWakeMessage(context: Context, args: Arguments): Array[AnyRef] = {
-    val oldMessage = wakeMessage
-    val oldFuzzy = wakeMessageFuzzy
-
-    if (args.optAny(0, null) == null)
-      wakeMessage = None
-    else
-      wakeMessage = Option(args.checkString(0))
-    wakeMessageFuzzy = args.optBoolean(1, wakeMessageFuzzy)
-
-    result(oldMessage.orNull, oldFuzzy)
-  }
-
   protected def doSend(packet: Packet): Unit = visibility match {
     case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
     case Visibility.Network => node.sendToReachable("network.message", packet)
@@ -160,62 +139,39 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()
     if (message.name == "network.message") message.data match {
-      case Array(packet: Packet) => receivePacket(packet, 0)
+      case Array(packet: Packet) => receivePacket(packet)
       case _ =>
     }
   }
 
-  protected def receivePacket(packet: Packet, distance: Double) {
-    if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
+  override protected def isPacketAccepted(packet: Packet, distance: Double): Boolean = {
+    if (super.isPacketAccepted(packet, distance)) {
       if (openPorts.contains(packet.port)) {
-        node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
         networkActivity()
-      }
-      // Accept wake-up messages regardless of port because we close all ports
-      // when our computer shuts down.
-      val wakeup: Boolean = packet.data match {
-        case Array(message: Array[Byte]) if wakeMessage.contains(new String(message, Charsets.UTF_8)) => true
-        case Array(message: String) if wakeMessage.contains(message) => true
-        case Array(message: Array[Byte], _*) if wakeMessageFuzzy && wakeMessage.contains(new String(message, Charsets.UTF_8)) => true
-        case Array(message: String, _*) if wakeMessageFuzzy && wakeMessage.contains(message) => true
-        case _ => false
-      }
-      if (wakeup) {
-        host match {
-          case ctx: Context => ctx.start()
-          case _ => node.sendToNeighbors("computer.start")
-        }
+        return true
       }
     }
+    false
   }
 
-  override def receivePacket(packet: Packet): Unit = {
-    receivePacket(packet, 0)
-  }
+  override def receivePacket(packet: Packet): Unit = receivePacket(packet, 0, host)
 
   // ----------------------------------------------------------------------- //
 
   private final val OpenPortsTag = "openPorts"
-  private final val WakeMessageTag = "wakeMessage"
-  private final val WakeMessageFuzzyTag = "wakeMessageFuzzy"
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-
     assert(openPorts.isEmpty)
     openPorts ++= nbt.getIntArray(OpenPortsTag)
-    if (nbt.hasKey(WakeMessageTag)) {
-      wakeMessage = Option(nbt.getString(WakeMessageTag))
-    }
-    wakeMessageFuzzy = nbt.getBoolean(WakeMessageFuzzyTag)
+    loadWakeMessage(nbt)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
     nbt.setIntArray(OpenPortsTag, openPorts.toArray)
-    wakeMessage.foreach(nbt.setString(WakeMessageTag, _))
-    nbt.setBoolean(WakeMessageFuzzyTag, wakeMessageFuzzy)
+    saveWakeMessage(nbt)
   }
 
   // ----------------------------------------------------------------------- //

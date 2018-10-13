@@ -125,6 +125,8 @@ dependencies {
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
     testCompile "org.mockito:mockito-all:1.10.19"
+
+    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal"
 }
 
 processResources {

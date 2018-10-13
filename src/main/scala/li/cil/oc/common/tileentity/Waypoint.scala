@@ -9,7 +9,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.EventHandler
 import li.cil.oc.server.network.Waypoints
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.{EnumFacing, EnumParticleTypes}
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -19,6 +19,8 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
     create()
 
   var label = ""
+
+  override def validFacings: Array[EnumFacing]  = EnumFacing.values
 
   // ----------------------------------------------------------------------- //
 
