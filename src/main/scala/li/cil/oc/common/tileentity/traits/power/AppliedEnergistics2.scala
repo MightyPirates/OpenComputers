@@ -9,12 +9,12 @@ import appeng.api.networking.energy.IEnergyGrid
 import appeng.api.util.{AECableType, AEColor, AEPartLocation, DimensionalCoord}
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.World
 import net.minecraftforge.fml.common._
 
 import scala.collection.JavaConversions
@@ -74,6 +74,16 @@ trait AppliedEnergistics2 extends Common with IGridHost {
     getGridNode(AEPartLocation.INTERNAL).loadFromNBT(Settings.namespace + "ae2power", nbt)
   }
 
+  override def setWorld(worldIn: World): Unit = {
+    super.setWorld(worldIn)
+    if (worldIn != null && isServer) {
+      val gridNode = getGridNode(AEPartLocation.INTERNAL)
+      if (gridNode != null) {
+        gridNode.updateState()
+      }
+    }
+  }
+
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
     if (useAppliedEnergistics2Power) saveNode(nbt)
@@ -92,7 +102,6 @@ trait AppliedEnergistics2 extends Common with IGridHost {
     case _ if isServer =>
       val gridNode = AEApi.instance.grid.createGridNode(new AppliedEnergistics2GridBlock(this))
       node = Option(gridNode)
-      gridNode.updateState()
       gridNode
     case _ => null
   }
