@@ -255,6 +255,11 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
           connects += ((addedNode, Iterable(addedNode) ++ nodes.filter(_ != addedNode)))
           reachingNodes(addedNode).foreach(node => connects += ((node, Iterable(addedNode))))
       }
+
+      // added node may load more internal nodes
+      addedNode.onConnect(addedNode)
+      val visibleNodes = nodes.filter(_.reachability == Visibility.Network)
+      visibleNodes.foreach(node => connects += ((node, nodes)))
     }
     else {
       val otherNetwork = addedNode.network.asInstanceOf[Network.Wrapper].network
