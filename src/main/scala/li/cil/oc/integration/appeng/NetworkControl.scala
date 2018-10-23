@@ -63,16 +63,18 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
 
   private def convert(aeItem: IAEItemStack): java.util.Map[AnyRef, AnyRef] = {
-    case class AnyRefAnyRefMap (value: java.util.HashMap[AnyRef, AnyRef])
     // I would prefer to move the convert code to the registry for IAEItemStack
     // but craftables need the device that crafts them
-    Registry.convert(Array(aePotentialItem(aeItem).createItemStack()))(0) match {
-      case AnyRefAnyRefMap(jmap) => {
-        jmap.update("isCraftable", Boolean.box(aeItem.isCraftable))
-        jmap.update("size", Int.box(aeItem.getStackSize.toInt))
-        jmap
-      }
+    val hash = new java.util.HashMap[AnyRef, AnyRef]()
+    Registry.convert(Array[AnyRef](aePotentialItem(aeItem).createItemStack()))
+      .head
+      .asInstanceOf[java.util.Map[Object, Object]]
+      .collect {
+      case (key, value) => hash += key -> value
     }
+    hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
+    hash.update("size", Int.box(aeItem.getStackSize.toInt))
+    hash
   }
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
@@ -155,16 +157,21 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   private def matches(stack: java.util.Map[AnyRef, AnyRef], filter: scala.collection.mutable.Map[AnyRef, AnyRef]): Boolean = {
     if (stack == null) return false
     filter.forall {
-      case (key: AnyRef, value: AnyRef) => {
-        val stack_value = stack.get(key)
-        value match {
-          case number: Number => stack_value match {
-            case stack_number: Number => number.intValue == stack_number.intValue
-            case any => number.toString.equals(any.toString)
+      case (key: AnyRef, value: AnyRef) if stack.containsKey(key) => {
+        Option(stack.get(key)) match {
+          case Some(stack_value) => {
+            value match {
+              case number: Number => stack_value match {
+                case stack_number: Number => number.intValue == stack_number.intValue
+                case any => number.toString.equals(any.toString)
+              }
+              case any => any.toString.equals(stack_value.toString)
+            }
           }
-          case any => any.toString.equals(stack_value.toString)
+          case _ => false
         }
       }
+      case _ => false
     }
   }
 }
