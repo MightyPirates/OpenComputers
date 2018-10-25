@@ -1,5 +1,7 @@
 package li.cil.oc.integration.appeng
 
+import java.util
+
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.IGridHost
@@ -56,8 +58,59 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
       aeCraftItem(aeItem)
   }
 
-  private def getFilter(args: Arguments, index: Int): java.util.Map[AnyRef, AnyRef] =
-    args.optTable(index, Map.empty[AnyRef, AnyRef]).collect { case (key: AnyRef, value: AnyRef) => (key, value) }
+  private def isSequentialTable(map: scala.collection.mutable.HashMap[_, _]): Boolean = {
+    // if this element has n=number, it is the table wrapping showing how large the array is
+    map.forall {
+      case (key: String, _: Number) => key == "n"
+      case (key: Number, _: AnyRef) => key.intValue >= 1
+      case _ => false
+    }
+  }
+
+  private def reduceSequentialTable(map: scala.collection.mutable.HashMap[_, _]): AnyRef = {
+    // in place of a table pack, we want a hash map of tuples
+    val tuples = new util.LinkedList[AnyRef]()
+    map.collect {
+      case (key: AnyRef, value: AnyRef) =>
+        if (!key.isInstanceOf[String] || key.asInstanceOf[String] != "n") {
+          tuples.add(reduceLuaValue(value))
+        }
+    }
+    tuples.toArray
+  }
+
+  private def reduceHashTable(map: scala.collection.mutable.HashMap[_, _]): AnyRef = {
+    val hash = new java.util.HashMap[AnyRef, AnyRef]()
+    map.foreach {
+      case (key: AnyRef, value: AnyRef) => {
+        hash += key -> value
+      }
+    }
+    hash
+  }
+
+  private def reduceLuaValue(any: AnyRef): AnyRef = {
+    any match {
+      case m: scala.collection.mutable.HashMap[_, _] =>
+        if (isSequentialTable(m))
+          reduceSequentialTable(m)
+        else
+          reduceHashTable(m)
+      case _ => any
+    }
+  }
+
+  private def getFilter(args: Arguments, index: Int): java.util.Map[AnyRef, AnyRef] = {
+    val hash = new java.util.HashMap[AnyRef, AnyRef]()
+    Registry.convert(Array[AnyRef](args.optTable (index, Map.empty[AnyRef, AnyRef] )))
+      .head match {
+        case map: mutable.Map[_, _] => map.collect {
+          case (key: AnyRef, value: AnyRef) => hash += reduceLuaValue(key) -> reduceLuaValue(value)
+        }
+        case _ =>
+      }
+    hash
+  }
 
   private def allItems: Iterable[IAEItemStack] = AEUtil.getGridStorage(tile.getGridNode(pos).getGrid).getInventory(AEUtil.itemStorageChannel).getStorageList
   private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
@@ -157,17 +210,27 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   private def matches(stack: java.util.Map[AnyRef, AnyRef], filter: scala.collection.mutable.Map[AnyRef, AnyRef]): Boolean = {
     if (stack == null) return false
     filter.forall {
-      case (key: AnyRef, value: AnyRef) if stack.containsKey(key) => {
-        Option(stack.get(key)) match {
-          case Some(stack_value) => {
-            value match {
-              case number: Number => stack_value match {
-                case stack_number: Number => number.intValue == stack_number.intValue
-                case any => number.toString.equals(any.toString)
-              }
-              case any => any.toString.equals(stack_value.toString)
-            }
-          }
+      case (key: AnyRef, value: AnyRef) => contains(stack, key, value)
+      case _ => false
+    }
+  }
+
+  private def contains(stack: java.util.Map[AnyRef, AnyRef], key: AnyRef, value: AnyRef): Boolean = {
+    stack.containsKey(key) && valueMatch(value, stack.get(key))
+  }
+
+  private def valueMatch(a: AnyRef, b: AnyRef): Boolean = {
+    if ((a == null) != (b == null)) return false
+    if (a == b) return true
+    (a, b) match {
+      case (a_number: Number, b_number: Number) => a_number.intValue == b_number.intValue
+      case (a_vec: Array[_], b_vec: Array[_]) => a_vec.forall {
+        case a_map: util.HashMap[_, _] => a_map.forall {
+          case (a_key: AnyRef, a_value: AnyRef) => b_vec.collectFirst[Boolean] {
+            case b_map: scala.collection.mutable.HashMap[_, _] => b_map.collectFirst[Boolean] {
+              case (b_key: AnyRef, b_value: AnyRef) => valueMatch(a_key, b_key) && valueMatch(a_value, b_value)
+            }.isDefined
+          }.isDefined
           case _ => false
         }
       }
