@@ -259,6 +259,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.TankControllerUpgrade),
       safeGetStack(Constants.ItemName.CraftingUpgrade),
       safeGetStack(Constants.ItemName.HoverUpgradeTier2),
+      safeGetStack(Constants.ItemName.AngelUpgrade),
 
       safeGetStack(Constants.ItemName.GraphicsCardTier3),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),

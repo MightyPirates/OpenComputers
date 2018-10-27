@@ -10,10 +10,8 @@ import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.block.Block
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -39,15 +37,10 @@ import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.IInteractionObject
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
-import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
-import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsScala._
@@ -174,7 +167,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     world.getEntitiesWithinAABB(clazz, blockPos.bounds)
   }
 
-  private def adjacentItems = {
+  private def adjacentItems: util.List[EntityItem] = {
     world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.grow(2, 2, 2))
   }
 
@@ -292,9 +285,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   def fireLeftClickBlock(pos: BlockPos, side: EnumFacing): PlayerInteractEvent.LeftClickBlock = {
     val hitVec = new Vec3d(0.5 + side.getDirectionVec.getX * 0.5, 0.5 + side.getDirectionVec.getY * 0.5, 0.5 + side.getDirectionVec.getZ * 0.5)
-    val event = new PlayerInteractEvent.LeftClickBlock(this, pos, side, hitVec)
-    MinecraftForge.EVENT_BUS.post(event)
-    event
+    net.minecraftforge.common.ForgeHooks.onLeftClickBlock(this, pos, side, hitVec)
   }
 
   def fireRightClickAir(): PlayerInteractEvent.RightClickItem = {
@@ -358,113 +349,31 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }, repair = false)
   }
 
-  def clickBlock(pos: BlockPos, side: EnumFacing, immediate: Boolean = false): Double = {
-    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
-      if (shouldCancel(() => fireLeftClickBlock(pos, side))) {
-        return 0
-      }
+  def clickBlock(pos: BlockPos, side: EnumFacing): Double = callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
+    val state = world.getBlockState(pos)
+    val block = state.getBlock
 
-      if (FMLCommonHandler.instance.getMinecraftServerInstance.isBlockProtected(world, pos, this)) {
-        return 0
-      }
+    val hardness = block.getBlockHardness(state, world, pos)
+    val cobwebOverride = block == Blocks.WEB && Settings.get.screwCobwebs
 
-      val state = world.getBlockState(pos)
-      val block = state.getBlock
-      val metadata = block.getMetaFromState(state)
-      val mayClickBlock = block != null
-      val canClickBlock = mayClickBlock &&
-        !block.isAir(state, world, pos) &&
-        FluidRegistry.lookupFluidForBlock(block) == null
-      if (!canClickBlock) {
-        return 0
-      }
+    val strength = getDigSpeed(state, pos)
+    val breakTime =
+      if (cobwebOverride) Settings.get.swingDelay
+      else hardness * 1.5 / strength
 
-      val breakEvent = new BlockEvent.BreakEvent(world, pos, state, this)
-      MinecraftForge.EVENT_BUS.post(breakEvent)
-      if (breakEvent.isCanceled) {
-        return 0
-      }
+    if (breakTime.isInfinity) return 0
 
-      block.onBlockClicked(world, pos, this)
-      world.extinguishFire(this, pos, side)
+    val preEvent = new RobotBreakBlockEvent.Pre(agent, world, pos, breakTime * Settings.get.harvestRatio)
+    MinecraftForge.EVENT_BUS.post(preEvent)
+    if (preEvent.isCanceled) return 0
+    val adjustedBreakTime = Math.max(0.05, preEvent.getBreakTime)
 
-      val hardness = block.getBlockHardness(state, world, pos)
-      val isBlockUnbreakable = hardness < 0
-      val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(state, world, pos, this)
-      if (!canDestroyBlock) {
-        return 0
-      }
+    this.interactionManager.onBlockClicked(pos, side)
 
-      if (world.getWorldInfo.getGameType.hasLimitedInteractions && !canPlayerEdit(pos, side, stack)) {
-        return 0
-      }
+    EventHandler.scheduleServer(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
 
-      val cobwebOverride = block == Blocks.WEB && Settings.get.screwCobwebs
-
-      if (!ForgeHooks.canHarvestBlock(block, this, world, pos) && !cobwebOverride) {
-        return 0
-      }
-
-      val strength = getDigSpeed(state, pos)
-      val breakTime =
-        if (cobwebOverride) Settings.get.swingDelay
-        else hardness * 1.5 / strength
-
-      if (breakTime.isInfinity) return 0
-
-      val preEvent = new RobotBreakBlockEvent.Pre(agent, world, pos, breakTime * Settings.get.harvestRatio)
-      MinecraftForge.EVENT_BUS.post(preEvent)
-      if (preEvent.isCanceled) return 0
-      val adjustedBreakTime = Math.max(0.05, preEvent.getBreakTime)
-
-      // Special handling for Tinkers Construct - tools like the hammers do
-      // their break logic in onBlockStartBreak but return true to cancel
-      // further processing. We also need to adjust our offset for their ray-
-      // tracing implementation.
-      val needsSpecialPlacement = false // ModTinkersConstruct.isInfiTool(stack) || ModMagnanimousTools.isMagTool(stack) // TODO TCon / MagTools
-      if (needsSpecialPlacement) {
-        posY -= 1.62
-        prevPosY = posY
-      }
-      val cancel = !stack.isEmpty && stack.getItem.onBlockStartBreak(stack, pos, this)
-      if (cancel && needsSpecialPlacement) {
-        posY += 1.62
-        prevPosY = posY
-        return adjustedBreakTime
-      }
-      if (cancel) {
-        return 0
-      }
-
-      if (!immediate) {
-        EventHandler.scheduleServer(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
-        return adjustedBreakTime
-      }
-
-      world.sendBlockBreakProgress(-1, pos, -1)
-
-      world.playEvent(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
-
-      if (!stack.isEmpty) {
-        stack.onBlockDestroyed(world, state, pos, this)
-      }
-
-      val te = world.getTileEntity(pos)
-      val canHarvest = block.canHarvestBlock(world, pos, this)
-      if (block.removedByPlayer(state, world, pos, this, block.canHarvestBlock(world, pos, this))) {
-        block.onBlockDestroyedByPlayer(world, pos, state)
-        if (canHarvest) {
-          block.harvestBlock(world, this, pos, state, te, stack)
-          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, breakEvent.getExpToDrop))
-        }
-        else if (!stack.isEmpty) {
-          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, 0))
-        }
-        return adjustedBreakTime
-      }
-      0
-    })
-  }
+    adjustedBreakTime
+  })
 
   private def isItemUseAllowed(stack: ItemStack) = stack.isEmpty || {
     (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) && !stack.isItemEqual(new ItemStack(Items.LEAD))
@@ -491,7 +400,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
   }
 
-  private def callUsingItemInSlot[T](inventory: IInventory, slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
+  private def callUsingItemInSlot[T](inventory: IInventory, slot: Int, f: ItemStack => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
     val oldStack = stack.copy()
@@ -654,23 +563,29 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     def tick(): Unit = {
       // Cancel if the agent stopped or our action is invalidated some other way.
       if (world != player.world || !world.isBlockLoaded(pos) || world.isAirBlock(pos) || !player.agent.machine.isRunning) {
-        world.sendBlockBreakProgress(-1, pos, -1)
+        player.interactionManager.cancelDestroyingBlock()
         return
       }
 
       val damage = 10 * ticks / Math.max(ticksTotal, 1)
-      if (damage >= 10) {
-        player.clickBlock(pos, side, immediate = true)
-      }
-      else {
+      if (damage < 10) {
         ticks += 1
         if (damage != lastDamageSent) {
           lastDamageSent = damage
-          world.sendBlockBreakProgress(-1, pos, damage)
+          player.interactionManager.updateBlockRemoving()
         }
         EventHandler.scheduleServer(() => tick())
       }
+      else {
+        val itemsBefore = adjacentItems
+        this.player.posX -= side.getFrontOffsetX / 2.0
+        this.player.posZ -= side.getFrontOffsetZ / 2.0
+        player.interactionManager.blockRemoving(pos)
+        this.player.posX += side.getFrontOffsetX / 2.0
+        this.player.posZ += side.getFrontOffsetZ / 2.0
+        MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, 0))
+        collectDroppedItems(itemsBefore)
+      }
     }
   }
-
 }
