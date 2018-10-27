@@ -111,3 +111,4 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 [integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration
 [ingame manual]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/doc
 [idea_1.7.10]: https://ocdoc.cil.li/tutorial:debug_1.7.10
+This gives brief idea on computer programming
