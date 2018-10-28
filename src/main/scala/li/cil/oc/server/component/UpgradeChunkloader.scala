@@ -55,23 +55,31 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     }
   }
 
-  @Callback(doc = """function():boolean -- Gets whether the chunkloader is currently active.""")
+  @Callback(doc = "function():boolean -- Gets whether the chunkloader is currently active.")
   def isActive(context: Context, args: Arguments): Array[AnyRef] = result(ticket.isDefined)
 
-  @Callback(doc = """function(enabled:boolean):boolean -- Enables or disables the chunkloader.""")
-  def setActive(context: Context, args: Arguments): Array[AnyRef] = result(setActive(args.checkBoolean(0)))
+  @Callback(doc = "function(enabled:boolean):boolean -- Enables or disables the chunkloader, returns true if active changed")
+  def setActive(context: Context, args: Arguments): Array[AnyRef] = result(setActive(args.checkBoolean(0), throwIfBlocked = true))
 
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
-        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
-      }
-      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
-        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
+      val restoredTicket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address)
+      ticket = if (restoredTicket.isDefined) {
+        if (!isDimensionAllowed) {
+          try ForgeChunkManager.releaseTicket(restoredTicket.get) catch {
+            case _: Throwable => // Ignored.
+          }
+          OpenComputers.log.info(s"Releasing chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in blacklisted dimension ${host.world().provider.getDimension}.")
+          None
+        } else {
+          OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
+          restoredTicket
+        }
+      } else host match {
+        case context: Context if context.isRunning => requestTicket()
         case _ => None
-      })
-      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+      }
     }
   }
 
@@ -95,17 +103,48 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     }
   }
 
-  private def setActive(enabled: Boolean) = {
+  private def setActive(enabled: Boolean, throwIfBlocked: Boolean = false) = {
     if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
-      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+      ticket = requestTicket(throwIfBlocked)
+      ticket.isDefined
     }
     else if (!enabled && ticket.isDefined) {
       ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
         case _: Throwable => // Ignored.
       })
       ticket = None
+      true
+    } else {
+      false
     }
-    ticket.isDefined
+  }
+
+  private def isDimensionAllowed: Boolean = {
+    val id: Int = host.world().provider.getDimension
+    val whitelist = Settings.get.chunkloadDimensionWhitelist
+    val blacklist = Settings.get.chunkloadDimensionBlacklist
+    if (!whitelist.isEmpty) {
+      if (!whitelist.contains(id))
+        return false
+    }
+    if (!blacklist.isEmpty) {
+      if (blacklist.contains(id)) {
+        return false
+      }
+    }
+    true
+  }
+
+  private def requestTicket(throwIfBlocked: Boolean = false): Option[Ticket] = {
+    if (!isDimensionAllowed) {
+      if (throwIfBlocked) {
+        throw new Exception("this dimension is blacklisted")
+      }
+      None
+    } else {
+      val result = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
+      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+      result
+    }
   }
 }
