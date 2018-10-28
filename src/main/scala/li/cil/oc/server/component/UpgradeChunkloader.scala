@@ -65,20 +65,20 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     super.onConnect(node)
     if (node == this.node) {
       val restoredTicket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address)
-      ticket = if (restoredTicket.isDefined) {
+      if (restoredTicket.isDefined) {
         if (!isDimensionAllowed) {
           try ForgeChunkManager.releaseTicket(restoredTicket.get) catch {
             case _: Throwable => // Ignored.
           }
           OpenComputers.log.info(s"Releasing chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in blacklisted dimension ${host.world().provider.getDimension}.")
-          None
         } else {
           OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.getDimension}.")
-          restoredTicket
+          ticket = restoredTicket
+          ChunkloaderUpgradeHandler.updateLoadedChunk(this)
         }
       } else host match {
         case context: Context if context.isRunning => requestTicket()
-        case _ => None
+        case _ =>
       }
     }
   }
@@ -105,7 +105,7 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
 
   private def setActive(enabled: Boolean, throwIfBlocked: Boolean = false) = {
     if (enabled && ticket.isEmpty) {
-      ticket = requestTicket(throwIfBlocked)
+      requestTicket(throwIfBlocked)
       ticket.isDefined
     }
     else if (!enabled && ticket.isDefined) {
@@ -135,16 +135,14 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     true
   }
 
-  private def requestTicket(throwIfBlocked: Boolean = false): Option[Ticket] = {
+  private def requestTicket(throwIfBlocked: Boolean = false): Unit = {
     if (!isDimensionAllowed) {
       if (throwIfBlocked) {
         throw new Exception("this dimension is blacklisted")
       }
-      None
     } else {
-      val result = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
+      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
-      result
     }
   }
 }
