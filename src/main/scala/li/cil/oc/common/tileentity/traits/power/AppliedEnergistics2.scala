@@ -76,7 +76,7 @@ trait AppliedEnergistics2 extends Common with IGridHost {
 
   override def setWorld(worldIn: World): Unit = {
     super.setWorld(worldIn)
-    if (worldIn != null && isServer) {
+    if (worldIn != null && isServer && useAppliedEnergistics2Power) {
       val gridNode = getGridNode(AEPartLocation.INTERNAL)
       if (gridNode != null) {
         gridNode.updateState()
