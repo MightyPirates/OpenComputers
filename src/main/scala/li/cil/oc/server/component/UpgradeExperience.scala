@@ -18,6 +18,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
+import net.minecraft.entity.item.EntityXPOrb
 import net.minecraft.init.Items
 import net.minecraft.nbt.NBTTagCompound
 
@@ -58,6 +59,11 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
       if (experience >= xpForNextLevel) {
         updateXpInfo()
       }
+      val world = this.host.world
+      val pos = this.host.player.getPosition
+      val orb = new EntityXPOrb(world, pos.getX.toDouble + 0.5D, pos.getY.toDouble + 0.5D, pos.getZ.toDouble + 0.5D, value.toInt)
+      this.host.player.xpCooldown = 0
+      orb.onCollideWithPlayer(this.host.player)
     }
   }
 

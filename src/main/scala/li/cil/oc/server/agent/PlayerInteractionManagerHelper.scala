@@ -5,7 +5,6 @@ import net.minecraft.util.math.BlockPos
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Node
-import li.cil.oc.common.item.UpgradeExperience
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.event.world.BlockEvent
@@ -52,7 +51,8 @@ object PlayerInteractionManagerHelper {
         val machineNode = player.agent.machine.node
         machineNode.reachableNodes.exists {
           case node: Node if node.canBeReachedFrom(machineNode) =>
-            node.host.isInstanceOf[UpgradeExperience]
+            node.host.isInstanceOf[li.cil.oc.common.item.UpgradeExperience] ||
+            node.host.isInstanceOf[li.cil.oc.server.component.UpgradeExperience]
           case _ => false
         }
       }
