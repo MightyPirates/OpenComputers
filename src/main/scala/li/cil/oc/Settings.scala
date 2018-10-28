@@ -461,6 +461,11 @@ class Settings(val config: Config) {
 
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
   val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
+
+  val chunkloadDimensionBlacklist = if (config.hasPath("misc.chunkloaderDimensionBlacklist")) config.getIntList("misc.chunkloaderDimensionBlacklist")
+    else new java.util.LinkedList[Integer]()
+  val chunkloadDimensionWhitelist = if (config.hasPath("misc.chunkloaderDimensionWhitelist")) config.getIntList("misc.chunkloaderDimensionWhitelist")
+    else new java.util.LinkedList[Integer]()
 }
 
 object Settings {
