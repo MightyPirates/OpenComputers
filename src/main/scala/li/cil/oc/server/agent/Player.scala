@@ -40,8 +40,11 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
-import net.minecraftforge.fml.common.eventhandler.Event
+import net.minecraftforge.fml.common.eventhandler.{Event, EventPriority, SubscribeEvent}
+import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.wrapper._
 
 import scala.collection.convert.WrapAsScala._
 
@@ -140,6 +143,17 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     // because the inventory was just overwritten, the container is now detached
     this.inventoryContainer = new ContainerPlayer(this.inventory, !world.isRemote, this)
     this.openContainer = this.inventoryContainer
+
+    def setItemHandler(fieldName: String, handler: IItemHandler): Unit = {
+      val entityPlayer: EntityPlayer = this.asInstanceOf[EntityPlayer]
+      val f = classOf[EntityPlayer].getDeclaredField(fieldName) //NoSuchFieldException
+      f.setAccessible(true)
+      f.set(entityPlayer, handler)
+    }
+
+    setItemHandler("playerMainHandler", new PlayerMainInvWrapper(inventory))
+    setItemHandler("playerEquipmentHandler", new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)))
+    setItemHandler("playerJoinedHandler",  new PlayerInvWrapper(inventory))
   }
 
   var facing, side = EnumFacing.SOUTH
@@ -236,9 +250,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       val result =
         if (shouldActivate && block.onBlockActivated(world, pos, state, this, EnumHand.MAIN_HAND, side, hitX, hitY, hitZ))
           ActivationType.BlockActivated
-        else if (isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
+        else if (duration <= Double.MinPositiveValue && isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
-        else if (tryUseItem(stack, duration))
+        else if (useEquippedItem(duration))
           ActivationType.ItemUsed
         else
           ActivationType.None
@@ -294,49 +308,76 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     event
   }
 
-  def useEquippedItem(duration: Double): Boolean = {
-    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
-      if (!shouldCancel(() => fireRightClickAir())) {
-        tryUseItem(stack, duration)
+  private def trySetActiveHand(hand: EnumHand, duration: Double): Boolean = {
+    stopActiveHand()
+    val entity = this
+    val durationHandler = new {
+      @SubscribeEvent(priority = EventPriority.LOWEST)
+      def onItemUseStart(startUse: LivingEntityUseItemEvent.Start): Unit = {
+        if (startUse.getEntityLiving == entity && !startUse.isCanceled) {
+          startUse.setDuration(duration.toInt)
+        }
       }
-      else false
-    })
+    }
+    MinecraftForge.EVENT_BUS.register(durationHandler)
+    try {
+      setActiveHand(hand)
+      isHandActive
+    } catch {
+        case _: Exception => false
+    } finally {
+      MinecraftForge.EVENT_BUS.unregister(durationHandler)
+    }
   }
 
-  private def tryUseItem(stack: ItemStack, duration: Double) = {
-    stopActiveHand()
-    !stack.isEmpty && stack.getCount > 0 && isItemUseAllowed(stack) && {
-      val oldSize = stack.getCount
-      val oldDamage = if (!stack.isEmpty) stack.getItemDamage else 0
-      val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
-      val heldTicks = Math.max(0, Math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
+  def useEquippedItem(duration: Double): Boolean = {
+    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
+      if (shouldCancel(() => fireRightClickAir())) {
+        return false
+      }
+
+      // setting the active hand will also set its initial duration
+      var hand: EnumHand = EnumHand.MAIN_HAND
+      if (!trySetActiveHand(hand, duration)) {
+        hand = EnumHand.OFF_HAND
+        if (!trySetActiveHand(hand, duration)) {
+          return false
+        }
+      }
+
       // Change the offset at which items are used, to avoid hitting
       // the robot itself (e.g. with bows, potions, mining laser, ...).
-      val offset = facing
-      posX += offset.getFrontOffsetX * 0.6
-      posY += offset.getFrontOffsetY * 0.6
-      posZ += offset.getFrontOffsetZ * 0.6
-      val newStack = stack.useItemRightClick(world, this, EnumHand.MAIN_HAND).getResult
-      if (isHandActive) {
-        getActiveItemStack
-        val remaining = getActiveItemStack.getMaxItemUseDuration - heldTicks
-        getActiveItemStack.onPlayerStoppedUsing(world, this, remaining)
+      posX += facing.getFrontOffsetX / 2.0
+      posZ += facing.getFrontOffsetZ / 2.0
+
+      try {
+        val stack = getActiveItemStack
+        val oldStack = stack.copy
+        var newStack = stack.copy
+        if (isItemUseAllowed(stack)) {
+
+          val maxDuration = stack.getMaxItemUseDuration
+          val heldTicks = Math.max(0, Math.min(maxDuration, (duration * 20).toInt))
+          agent.machine.pause(heldTicks / 20.0)
+
+          newStack = stack.useItemRightClick(world, this, hand).getResult
+        }
         stopActiveHand()
+
+        val stackChanged: Boolean =
+          !ItemStack.areItemStacksEqual(oldStack, newStack) ||
+          !ItemStack.areItemStacksEqual(oldStack, stack)
+
+        if (stackChanged) {
+          agent.equipmentInventory.setInventorySlotContents(0, newStack)
+        }
+        stackChanged
       }
-      posX -= offset.getFrontOffsetX * 0.6
-      posY -= offset.getFrontOffsetY * 0.6
-      posZ -= offset.getFrontOffsetZ * 0.6
-      agent.machine.pause(heldTicks / 20.0)
-      // These are functions to avoid null pointers if newStack is null.
-      def sizeOrDamageChanged = newStack.getCount != oldSize || newStack.getItemDamage != oldDamage
-      def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
-        (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      val stackChanged = newStack != stack || (!newStack.isEmpty && (sizeOrDamageChanged || tagChanged))
-      if (stackChanged) {
-        agent.equipmentInventory.setInventorySlotContents(0, newStack)
+      finally {
+        posX -= facing.getFrontOffsetX / 2.0
+        posZ -= facing.getFrontOffsetZ / 2.0
       }
-      stackChanged
-    }
+    })
   }
 
   def placeBlock(slot: Int, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
@@ -389,6 +430,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       event.isCanceled || (event match {
         case rightClick: PlayerInteractEvent.RightClickBlock => rightClick.getUseBlock == Event.Result.DENY || rightClick.getUseItem == Event.Result.DENY
         case leftClick: PlayerInteractEvent.LeftClickBlock => leftClick.getUseBlock == Event.Result.DENY || leftClick.getUseItem == Event.Result.DENY
+        case rightClick: PlayerInteractEvent.RightClickItem => rightClick.getResult == Event.Result.DENY
         case _ => false
       })
     }
