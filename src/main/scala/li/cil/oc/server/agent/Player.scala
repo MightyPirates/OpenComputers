@@ -368,7 +368,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     if (preEvent.isCanceled) return 0
     val adjustedBreakTime = Math.max(0.05, preEvent.getBreakTime)
 
-    this.interactionManager.onBlockClicked(pos, side)
+    if (!PlayerInteractionManagerHelper.onBlockClicked(this, pos, side))
+      return 0
 
     EventHandler.scheduleServer(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
 
@@ -522,13 +523,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def onItemPickup(entity: Entity, count: Int) {}
 
-//  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack): Unit = {
-//    if (slot == 0 && agent.equipmentInventory.getSizeInventory > 0) {
-//      agent.equipmentInventory.setInventorySlotContents(slot, stack)
-//    }
-//    // else: armor slots, which are unsupported in agents.
-//  }
-
   override def setRevengeTarget(entity: EntityLivingBase) {}
 
   override def setLastAttackedEntity(entity: Entity) {}
@@ -572,7 +566,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         ticks += 1
         if (damage != lastDamageSent) {
           lastDamageSent = damage
-          player.interactionManager.updateBlockRemoving()
+          if (!PlayerInteractionManagerHelper.updateBlockRemoving(player))
+            return
         }
         EventHandler.scheduleServer(() => tick())
       }
@@ -580,11 +575,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         val itemsBefore = adjacentItems
         this.player.posX -= side.getFrontOffsetX / 2.0
         this.player.posZ -= side.getFrontOffsetZ / 2.0
-        player.interactionManager.blockRemoving(pos)
+        val expGained: Int = PlayerInteractionManagerHelper.blockRemoving(player, pos)
         this.player.posX += side.getFrontOffsetX / 2.0
         this.player.posZ += side.getFrontOffsetZ / 2.0
-        MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, 0))
-        collectDroppedItems(itemsBefore)
+        if (expGained >= 0) {
+          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, expGained))
+          collectDroppedItems(itemsBefore)
+        }
       }
     }
   }
