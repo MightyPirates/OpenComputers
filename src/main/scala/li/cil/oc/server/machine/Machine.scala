@@ -785,6 +785,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     }
     else {
       // Clean up in case we got a weird state stack.
+      onHostChanged()
       close()
     }
   })
