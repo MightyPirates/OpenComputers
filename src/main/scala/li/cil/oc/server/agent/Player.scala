@@ -145,7 +145,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     this.inventory = new Inventory(this, agent)
     this.inventory.player = this
     // because the inventory was just overwritten, the container is now detached
-    this.inventoryContainer = new ContainerPlayer(this.inventory, !world.isRemote, this)
+    this.inventoryContainer = new AgentContainer(this)
     this.openContainer = this.inventoryContainer
 
     def setItemHandler(fieldName: String, handler: IItemHandler): Unit = {
@@ -158,29 +158,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     setItemHandler("playerMainHandler", new PlayerMainInvWrapper(inventory))
     setItemHandler("playerEquipmentHandler", new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)))
     setItemHandler("playerJoinedHandler",  new PlayerInvWrapper(inventory))
-
-    this.inventoryContainer.addListener(new IContainerListener{
-      override def sendAllContents(containerToSend: Container, itemsList: NonNullList[ItemStack]): Unit = {}
-      override def sendWindowProperty(containerIn: Container, varToUpdate: Int, newValue: Int): Unit = {}
-      override def sendAllWindowProperties(containerIn: Container, inventory: IInventory): Unit = {}
-      override def sendSlotContents(containerToSend: Container, index: Int, stack: ItemStack): Unit = {
-        // an action has updated the agent.inventory via slots
-        // thus the player.inventory is outdated in this regard
-        var relativeIndex: Int = containerToSend.inventorySlots.get(index).getSlotIndex
-        def tryInv(inv: NonNullList[ItemStack]): Boolean = {
-          if (relativeIndex >= 0 && relativeIndex < inv.size) {
-            inv.set(relativeIndex, stack)
-            true
-          } else {
-            relativeIndex -= inv.size
-            false
-          }
-        }
-        if (!tryInv(Player.this.inventory.mainInventory))
-          if (!tryInv(Player.this.inventory.armorInventory))
-            tryInv(Player.this.inventory.offHandInventory)
-      }
-    })
   }
 
   var facing, side = EnumFacing.SOUTH
@@ -279,7 +256,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           ActivationType.BlockActivated
         else if (duration <= Double.MinPositiveValue && isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
-        else if (useEquippedItem(duration))
+        else if (useEquippedItem(duration, Option(stack)))
           ActivationType.ItemUsed
         else
           ActivationType.None
@@ -355,54 +332,59 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
   }
 
-  def useEquippedItem(duration: Double): Boolean = {
-    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
-      if (shouldCancel(() => fireRightClickAir())) {
+  def useEquippedItem(duration: Double, stackOption: Option[ItemStack] = None): Boolean = {
+    if (stackOption.isEmpty) {
+      return callUsingItemInSlot(agent.equipmentInventory, 0, {
+        case item: ItemStack if item != null => useEquippedItem(duration, Option(item))
+        case _ => false
+      })
+    }
+
+    if (shouldCancel(() => fireRightClickAir())) {
+      return false
+    }
+
+    // setting the active hand will also set its initial duration
+    var hand: EnumHand = EnumHand.MAIN_HAND
+    if (!trySetActiveHand(hand, duration)) {
+      hand = EnumHand.OFF_HAND
+      if (!trySetActiveHand(hand, duration)) {
         return false
       }
+    }
 
-      // setting the active hand will also set its initial duration
-      var hand: EnumHand = EnumHand.MAIN_HAND
-      if (!trySetActiveHand(hand, duration)) {
-        hand = EnumHand.OFF_HAND
-        if (!trySetActiveHand(hand, duration)) {
-          return false
-        }
+    // Change the offset at which items are used, to avoid hitting
+    // the robot itself (e.g. with bows, potions, mining laser, ...).
+    posX += facing.getFrontOffsetX / 2.0
+    posZ += facing.getFrontOffsetZ / 2.0
+
+    try {
+      val stack = getActiveItemStack
+      val oldStack = stack.copy
+      var newStack = stack.copy
+      if (isItemUseAllowed(stack)) {
+
+        val maxDuration = stack.getMaxItemUseDuration
+        val heldTicks = Math.max(0, Math.min(maxDuration, (duration * 20).toInt))
+        agent.machine.pause(heldTicks / 20.0)
+
+        newStack = stack.useItemRightClick(world, this, hand).getResult
       }
+      stopActiveHand()
 
-      // Change the offset at which items are used, to avoid hitting
-      // the robot itself (e.g. with bows, potions, mining laser, ...).
-      posX += facing.getFrontOffsetX / 2.0
-      posZ += facing.getFrontOffsetZ / 2.0
+      val stackChanged: Boolean =
+        !ItemStack.areItemStacksEqual(oldStack, newStack) ||
+        !ItemStack.areItemStacksEqual(oldStack, stack)
 
-      try {
-        val stack = getActiveItemStack
-        val oldStack = stack.copy
-        var newStack = stack.copy
-        if (isItemUseAllowed(stack)) {
-
-          val maxDuration = stack.getMaxItemUseDuration
-          val heldTicks = Math.max(0, Math.min(maxDuration, (duration * 20).toInt))
-          agent.machine.pause(heldTicks / 20.0)
-
-          newStack = stack.useItemRightClick(world, this, hand).getResult
-        }
-        stopActiveHand()
-
-        val stackChanged: Boolean =
-          !ItemStack.areItemStacksEqual(oldStack, newStack) ||
-          !ItemStack.areItemStacksEqual(oldStack, stack)
-
-        if (stackChanged) {
-          agent.equipmentInventory.setInventorySlotContents(0, newStack)
-        }
-        stackChanged
+      if (stackChanged) {
+        agent.equipmentInventory.setInventorySlotContents(0, newStack)
       }
-      finally {
-        posX -= facing.getFrontOffsetX / 2.0
-        posZ -= facing.getFrontOffsetZ / 2.0
-      }
-    })
+      stackChanged
+    }
+    finally {
+      posX -= facing.getFrontOffsetX / 2.0
+      posZ -= facing.getFrontOffsetZ / 2.0
+    }
   }
 
   def placeBlock(slot: Int, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {

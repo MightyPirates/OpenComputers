@@ -43,17 +43,6 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
     }
   }
 
-//  override def consumeInventoryItem(item: Item): Boolean = {
-//    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if !stack.isEmpty && stack.getItem == item && stack.stackSize > 0) {
-//      stack.stackSize -= 1
-//      if (stack.stackSize <= 0) {
-//        setInventorySlotContents(slot, ItemStack.EMPTY)
-//      }
-//      return true
-//    }
-//    false
-//  }
-
   override def addItemStackToInventory(stack: ItemStack): Boolean = {
     val slots = this.indices.drop(agent.selectedSlot) ++ this.indices.take(agent.selectedSlot)
     InventoryUtils.insertIntoInventory(stack, InventoryUtils.asItemHandler(this), slots = Option(slots))
@@ -67,7 +56,7 @@ class Inventory(playerEntity: EntityPlayer, val agent: internal.Agent) extends I
 
   override def readFromNBT(nbt: NBTTagList) {}
 
-  override def armorItemInSlot(slot: Int) = ItemStack.EMPTY
+  override def armorItemInSlot(slot: Int): ItemStack = ItemStack.EMPTY
 
   override def damageArmor(damage: Float) {}
 
