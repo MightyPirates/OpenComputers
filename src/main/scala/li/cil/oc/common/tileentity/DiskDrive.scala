@@ -53,12 +53,12 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     withComponent("disk_drive").
     create()
 
-  @Callback(doc = """function():boolean -- Checks whether some medium is currently in the drive.""")
+  @Callback(doc = "function():boolean -- Checks whether some medium is currently in the drive.")
   def isEmpty(context: Context, args: Arguments): Array[AnyRef] = {
     result(filesystemNode.isEmpty)
   }
 
-  @Callback(doc = """function([velocity:number]):boolean -- Eject the currently present medium from the drive.""")
+  @Callback(doc = "function([velocity:number]):boolean -- Eject the currently present medium from the drive.")
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
     val ejected = decrStackSize(0, 1)
@@ -73,6 +73,14 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
       result(true)
     }
     else result(false)
+  }
+
+  @Callback(doc = "function(): string -- Return the internal floppy disk address")
+  def media(context: Context, args: Arguments): Array[AnyRef] = {
+    if (filesystemNode.isEmpty)
+      result(Unit, "drive is empty")
+    else
+      result(filesystemNode.head.address)
   }
 
   // ----------------------------------------------------------------------- //
