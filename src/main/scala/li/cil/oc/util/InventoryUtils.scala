@@ -171,30 +171,17 @@ object InventoryUtils {
   def insertIntoInventory(stack: ItemStack, inventory: IItemHandler, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None): Boolean =
     (!stack.isEmpty && limit > 0 && stack.getCount > 0) && {
       var success = false
-      var remaining = limit
+      var remaining = limit min stack.getCount
       val range = slots.getOrElse(0 until inventory.getSlots)
 
-      if (range.nonEmpty) {
-        // This is a special case for inserting with an explicit ordering,
-        // such as when inserting into robots, where the range starts at the
-        // selected slot. In that case we want to prefer inserting into that
-        // slot, if at all possible, over merging.
-        if (slots.isDefined) {
-          val getCount = stack.getCount
-          if (insertIntoInventorySlot(stack, inventory, range.head, remaining, simulate)) {
-            remaining -= getCount - stack.getCount
-            success = true
-          }
+      range.forall(slot => {
+        val previousCount = stack.getCount
+        if (remaining > 0 && insertIntoInventorySlot(stack, inventory, slot, remaining, simulate)) {
+          remaining -= previousCount - stack.getCount
+          success = true
         }
-
-        for (slot <- range) {
-          val getCount = stack.getCount
-          if (insertIntoInventorySlot(stack, inventory, slot, remaining, simulate)) {
-            remaining -= getCount - stack.getCount
-            success = true
-          }
-        }
-      }
+        remaining > 0
+      })
 
       success
     }

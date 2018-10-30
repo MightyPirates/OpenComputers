@@ -21,7 +21,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.SleepResult
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
-import net.minecraft.inventory.{ContainerPlayer, EntityEquipmentSlot, IInventory}
+import net.minecraft.inventory._
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
@@ -92,7 +92,9 @@ object Player {
       inv(slot) = if (item != null) item.copy() else ItemStack.EMPTY
     }
 
-    setCopyOrNull(player.inventory.offHandInventory, agent.equipmentInventory, 0)
+    for (i <- 0 until 4) {
+      setCopyOrNull(player.inventory.armorInventory, agent.equipmentInventory, i)
+    }
 
     // mainInventory is 36 items
     // the agent inventory is 100 items with some space for components
@@ -115,11 +117,13 @@ object Player {
         inv.setInventorySlotContents(index, result)
       }
     }
+    for (i <- 0 until 4) {
+      setCopy(agent.equipmentInventory(), i, player.inventory.armorInventory(i))
+    }
     val size = player.inventory.mainInventory.length min agent.mainInventory.getSizeInventory
     for (i <- 0 until size) {
       setCopy(agent.mainInventory, i, player.inventory.mainInventory(i))
     }
-    setCopy(agent.equipmentInventory, 0, player.inventory.offHandInventory(0))
   }
 }
 
@@ -154,6 +158,29 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     setItemHandler("playerMainHandler", new PlayerMainInvWrapper(inventory))
     setItemHandler("playerEquipmentHandler", new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)))
     setItemHandler("playerJoinedHandler",  new PlayerInvWrapper(inventory))
+
+    this.inventoryContainer.addListener(new IContainerListener{
+      override def sendAllContents(containerToSend: Container, itemsList: NonNullList[ItemStack]): Unit = {}
+      override def sendWindowProperty(containerIn: Container, varToUpdate: Int, newValue: Int): Unit = {}
+      override def sendAllWindowProperties(containerIn: Container, inventory: IInventory): Unit = {}
+      override def sendSlotContents(containerToSend: Container, index: Int, stack: ItemStack): Unit = {
+        // an action has updated the agent.inventory via slots
+        // thus the player.inventory is outdated in this regard
+        var relativeIndex: Int = containerToSend.inventorySlots.get(index).getSlotIndex
+        def tryInv(inv: NonNullList[ItemStack]): Boolean = {
+          if (relativeIndex >= 0 && relativeIndex < inv.size) {
+            inv.set(relativeIndex, stack)
+            true
+          } else {
+            relativeIndex -= inv.size
+            false
+          }
+        }
+        if (!tryInv(Player.this.inventory.mainInventory))
+          if (!tryInv(Player.this.inventory.armorInventory))
+            tryInv(Player.this.inventory.offHandInventory)
+      }
+    })
   }
 
   var facing, side = EnumFacing.SOUTH
@@ -261,8 +288,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     })
   }
 
-  private var offHand: (IInventory, Int) = _
-
   override def setItemStackToSlot(slotIn: EntityEquipmentSlot, stack: ItemStack): Unit = {
     var superCall: () => Unit = () => super.setItemStackToSlot(slotIn, stack)
     if (slotIn == EntityEquipmentSlot.MAINHAND) {
@@ -276,8 +301,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         super.setItemStackToSlot(slotIn, stack)
         inventory.currentItem = slot
       }
-    } else if(slotIn == EntityEquipmentSlot.OFFHAND && offHand != null) {
-      offHand._1.setInventorySlotContents(offHand._2, stack)
+    } else if(slotIn == EntityEquipmentSlot.OFFHAND) {
+      inventory.offHandInventory.set(0, stack)
     }
     superCall()
   }
@@ -285,8 +310,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def getItemStackFromSlot(slotIn: EntityEquipmentSlot): ItemStack = {
     if (slotIn == EntityEquipmentSlot.MAINHAND)
       agent.equipmentInventory.getStackInSlot(0)
-    else if(slotIn == EntityEquipmentSlot.OFFHAND && offHand != null)
-      offHand._1.getStackInSlot(offHand._2)
+    else if(slotIn == EntityEquipmentSlot.OFFHAND)
+      inventory.offHandInventory.get(0)
     else super.getItemStackFromSlot(slotIn)
   }
 
@@ -448,12 +473,14 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val stack = inventory.getStackInSlot(slot)
     val oldStack = stack.copy()
     this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
-    this.offHand = (inventory, slot)
+    this.inventory.offHandInventory.set(0, inventory.getStackInSlot(slot))
     try {
       f(stack)
     }
     finally {
       this.inventory.currentItem = 0
+      inventory.setInventorySlotContents(slot, this.inventory.offHandInventory.get(0))
+      this.inventory.offHandInventory.set(0, ItemStack.EMPTY)
       val newStack = inventory.getStackInSlot(slot)
       // this is only possible if f() modified the stack object in-place
       // looking at you, ic2
@@ -467,10 +494,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         }
         if (repair) {
           if (newStack.getCount > 0) tryRepair(newStack, oldStack)
-          else ForgeEventFactory.onPlayerDestroyItem(this, newStack, EnumHand.MAIN_HAND)
+          else ForgeEventFactory.onPlayerDestroyItem(this, newStack, EnumHand.OFF_HAND)
         }
       }
-      this.offHand = null
       collectDroppedItems(itemsBefore)
     }
   }
