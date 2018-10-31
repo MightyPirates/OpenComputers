@@ -413,6 +413,10 @@ class Settings(val config: Config) {
   val printsHaveOpacity = config.getBoolean("printer.printsHaveOpacity")
   val noclipMultiplier = config.getDouble("printer.noclipMultiplier") max 0
 
+  // chunkloader
+  val chunkloadDimensionBlacklist = Settings.getIntList(config, "chunkloader.dimBlacklist")
+  val chunkloadDimensionWhitelist = Settings.getIntList(config, "chunkloader.dimWhitelist")
+
   // ----------------------------------------------------------------------- //
   // integration
   val modBlacklist = config.getStringList("integration.modBlacklist")
@@ -464,11 +468,6 @@ class Settings(val config: Config) {
 
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
   val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
-
-  val chunkloadDimensionBlacklist = if (config.hasPath("misc.chunkloaderDimensionBlacklist")) config.getIntList("misc.chunkloaderDimensionBlacklist")
-    else new java.util.LinkedList[Integer]()
-  val chunkloadDimensionWhitelist = if (config.hasPath("misc.chunkloaderDimensionWhitelist")) config.getIntList("misc.chunkloaderDimensionWhitelist")
-    else new java.util.LinkedList[Integer]()
 }
 
 object Settings {
@@ -702,4 +701,12 @@ object Settings {
       }
     }
   }
+
+  def getIntList(config: Config, path: String, default: Option[java.util.List[Integer]] = None): java.util.List[Integer] = {
+    if (config.hasPath(path))
+      config.getIntList(path)
+    else
+      default.getOrElse(new java.util.LinkedList[Integer]())
+  }
 }
+
