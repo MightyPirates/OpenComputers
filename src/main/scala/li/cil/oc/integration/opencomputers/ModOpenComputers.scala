@@ -259,7 +259,6 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
       Constants.ItemName.AngelUpgrade,
-      Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.DatabaseUpgradeTier1,
       Constants.ItemName.DatabaseUpgradeTier2,
