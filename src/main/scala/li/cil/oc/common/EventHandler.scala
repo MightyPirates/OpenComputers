@@ -2,12 +2,12 @@ package li.cil.oc.common
 
 import java.util.Calendar
 
-import appeng.api.AEApi
 import appeng.api.networking.IGridBlock
 import appeng.api.util.AEPartLocation
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.common.item.traits
 import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
@@ -25,6 +25,7 @@ import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.item.traits
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
@@ -42,7 +43,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.init.SoundEvents
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{EnumFacing, SoundCategory}
+import net.minecraft.util.SoundCategory
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.AttachCapabilitiesEvent
@@ -134,6 +135,24 @@ object EventHandler {
           pendingServer += (() => if (!tileEntity.isInvalid) {
             tileEntity.getGridNode(AEPartLocation.INTERNAL).updateState()
           })
+        case _ =>
+      }
+    }
+  }
+
+  @SubscribeEvent
+  def onAttachCapabilitiesItemStack(event: AttachCapabilitiesEvent[ItemStack]): Unit = {
+    if (!event.getCapabilities.containsKey(traits.Chargeable.KEY)) {
+      event.getObject match {
+        case stack: ItemStack => stack.getItem match {
+          case chargeable: traits.Chargeable => event.addCapability(traits.Chargeable.KEY, new traits.Chargeable.Provider(stack, chargeable))
+          case _: li.cil.oc.api.driver.item.Chargeable =>
+            li.cil.oc.common.item.Delegator.subItem(stack) match {
+              case Some(subItem: traits.Chargeable) => event.addCapability(traits.Chargeable.KEY, new traits.Chargeable.Provider(stack, subItem))
+              case _ =>
+            }
+          case _ =>
+        }
         case _ =>
       }
     }

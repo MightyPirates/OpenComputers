@@ -6,10 +6,7 @@ import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-import com.google.common.cache
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.RemovalListener
-import com.google.common.cache.RemovalNotification
+import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.collect.ImmutableMap
 import li.cil.oc.Constants
 import li.cil.oc.Localization
@@ -18,10 +15,8 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
-import li.cil.oc.api.machine
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Message
@@ -63,7 +58,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel with Chargeable {
+class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel with traits.Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -133,16 +128,12 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   def canCharge(stack: ItemStack): Boolean = true
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
-    if (amount < 0) amount
-    else {
-      val data = new TabletData(stack)
-      val charge = Math.min(data.maxEnergy - data.energy, amount)
-      if (!simulate) {
-        data.energy += charge
-        data.save(stack)
-      }
-      amount - charge
-    }
+    if (amount < 0) return amount
+    val data = new TabletData(stack)
+    traits.Chargeable.applyCharge(amount, data.energy, data.maxEnergy, used => if (!simulate) {
+      data.energy += used
+      data.save(stack)
+    })
   }
 
   // ----------------------------------------------------------------------- //
@@ -226,6 +217,16 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
         }
       case _ =>
     }
+  }
+
+  override def maxCharge(stack: ItemStack): Double = new TabletData(stack).maxEnergy
+
+  override def getCharge(stack: ItemStack): Double = new TabletData(stack).energy
+
+  override def setCharge(stack: ItemStack, amount: Double): Unit = {
+    val data = new TabletData(stack)
+    data.energy = (0.0 max amount) min maxCharge(stack)
+    data.save(stack)
   }
 }
 

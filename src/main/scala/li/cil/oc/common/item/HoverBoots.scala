@@ -26,7 +26,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
 
   override def getRarity(stack: ItemStack): EnumRarity = EnumRarity.UNCOMMON
 
-  override def maxCharge(stack: ItemStack) = Settings.get.bufferHoverBoots
+  override def maxCharge(stack: ItemStack): Double = Settings.get.bufferHoverBoots
 
   override def getCharge(stack: ItemStack): Double =
     new HoverBootsData(stack).charge
@@ -41,22 +41,10 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
 
   override def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     val data = new HoverBootsData(stack)
-    if (amount < 0) {
-      val remainder = math.min(0, data.charge + amount)
-      if (!simulate) {
-        data.charge = math.max(0, data.charge + amount)
-        data.save(stack)
-      }
-      remainder
-    }
-    else {
-      val remainder = -math.min(0, Settings.get.bufferHoverBoots - (data.charge + amount))
-      if (!simulate) {
-        data.charge = math.min(Settings.get.bufferHoverBoots, data.charge + amount)
-        data.save(stack)
-      }
-      remainder
-    }
+    traits.Chargeable.applyCharge(amount, data.charge, Settings.get.bufferHoverBoots, used => if (!simulate) {
+      data.charge += used
+      data.save(stack)
+    })
   }
 
   @SideOnly(Side.CLIENT)
@@ -95,13 +83,6 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, EntityEqu
     }
     super.onEntityItemUpdate(entity)
   }
-
-//  override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
-//    if (pass == 1) {
-//      return if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
-//    }
-//    super.getColorFromItemStack(itemStack, pass)
-//  }
 
   override def showDurabilityBar(stack: ItemStack): Boolean = true
 

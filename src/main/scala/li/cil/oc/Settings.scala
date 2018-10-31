@@ -258,6 +258,7 @@ class Settings(val config: Config) {
   private val valuePowerAdvantage = config.getDouble("power.value.PowerAdvantage")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
   private val valueRotaryCraft = config.getDouble("power.value.RotaryCraft") / 11256.0
+  private val valueForgeEnergy = if (config.hasPath("power.value.ForgeEnergy")) config.getDouble("power.value.ForgeEnergy") else valueRedstoneFlux
 
   private val valueInternal = 1000
 
@@ -269,6 +270,7 @@ class Settings(val config: Config) {
   val ratioPowerAdvantage = valuePowerAdvantage / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
   val ratioRotaryCraft = valueRotaryCraft / valueInternal
+  val ratioForgeEnergy = valueForgeEnergy / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem
