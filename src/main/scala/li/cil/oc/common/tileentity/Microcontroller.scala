@@ -168,12 +168,12 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     if (node == plug.node) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(snooperNode)
+      connectComponents()
     }
     if (plug.isPrimary)
       plug.node.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
-    connectComponents()
   }
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
@@ -182,6 +182,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
       plug.node.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
+    if (node == plug.node)
+      disconnectComponents()
   }
 
   override protected def onPlugMessage(plug: Plug, message: Message): Unit = {
