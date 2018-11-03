@@ -210,7 +210,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
-    val signal = math.max(0, math.min(15, EnumFacing.values.map(input).max))
+    val signal = getInput.max min 15
 
     if (invertSignal) chargeSpeed = (15 - signal) / 15.0
     else chargeSpeed = signal / 15.0

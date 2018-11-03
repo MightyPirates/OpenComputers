@@ -36,31 +36,43 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
+  protected val SIDE_RANGE: Array[EnumFacing] = EnumFacing.values
+
   // ----------------------------------------------------------------------- //
-
-  @Callback(direct = true, doc = """function(side:number):number -- Get the redstone input on the specified side.""")
+  @Callback(direct = true, doc = "function([side:number]):number or table -- Get the redstone input (all sides, or optionally on the specified side)")
   def getInput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    result(redstone.input(side))
+    getOptionalSide(args) match {
+      case Some(side: Int) => result(redstone.getInput(side))
+      case _ => result(valuesToMap(redstone.getInput))
+    }
   }
 
-  @Callback(direct = true, doc = """function(side:number):number -- Get the redstone output on the specified side.""")
+  @Callback(direct = true, doc = "function([side:number]):number or table -- Get the redstone output (all sides, or optionally on the specified side)")
   def getOutput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    result(redstone.output(side))
+    getOptionalSide(args) match {
+      case Some(side: Int) => result(redstone.getOutput(side))
+      case _ => result(valuesToMap(redstone.getOutput))
+    }
   }
 
-  @Callback(doc = """function(side:number, value:number):number -- Set the redstone output on the specified side.""")
+  @Callback(doc = "function([side:number, ]value:number or table):number or table --  Set the redstone output (all sides, or optionally on the specified side). Returns previous values")
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    val value = args.checkInteger(1)
-    redstone.output(side, value)
-    if (Settings.get.redstoneDelay > 0)
-      context.pause(Settings.get.redstoneDelay)
-    result(redstone.output(side))
+    var ret: AnyRef = null
+    if (getAssignment(args) match {
+      case (side: EnumFacing, value: Int) =>
+        ret = new java.lang.Integer(redstone.getOutput(side))
+        redstone.setOutput(side, value)
+      case (value: util.Map[_, _], _) =>
+        ret = valuesToMap(redstone.getOutput)
+        redstone.setOutput(value)
+    }) {
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
+    }
+    result(ret)
   }
 
-  @Callback(direct = true, doc = """function(side:number):number -- Get the comparator input on the specified side.""")
+  @Callback(direct = true, doc = "function(side:number):number -- Get the comparator input on the specified side.")
   def getComparatorInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val blockPos = BlockPosition(redstone).offset(side)
@@ -87,10 +99,27 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  protected def checkSide(args: Arguments, index: Int) = {
+  private def getOptionalSide(args: Arguments): Option[Int] = {
+    if (args.count == 1)
+      Option(checkSide(args, 0).ordinal)
+    else
+      None
+  }
+
+  private def getAssignment(args: Arguments): (Any, Any) = {
+    args.count match {
+      case 2 => (checkSide(args, 0), args.checkInteger(1))
+      case 1 => (args.checkTable(0), null)
+      case _ => throw new Exception("invalid number of arguments, expected 1 or 2")
+    }
+  }
+
+  protected def checkSide(args: Arguments, index: Int): EnumFacing = {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
     redstone.toGlobal(EnumFacing.getFront(side))
   }
+
+  private def valuesToMap(ar: Array[Int]): Map[Int, Int] = SIDE_RANGE.map(_.ordinal).map{ case side if side < ar.length => side -> ar(side) }.toMap
 }
