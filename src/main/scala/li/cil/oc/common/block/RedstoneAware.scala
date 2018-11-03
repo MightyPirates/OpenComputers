@@ -22,7 +22,7 @@ abstract class RedstoneAware extends SimpleBlock {
 
   override def getWeakPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
     world.getTileEntity(pos) match {
-      case redstone: tileentity.traits.RedstoneAware if side != null => redstone.output(side.getOpposite) max 0
+      case redstone: tileentity.traits.RedstoneAware if side != null => redstone.getOutput(side.getOpposite) max 0
       case _ => super.getWeakPower(state, world, pos, side)
     }
 

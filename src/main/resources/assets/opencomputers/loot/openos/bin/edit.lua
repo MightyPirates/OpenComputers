@@ -59,7 +59,9 @@ local function loadConfig()
     save = {{"control", "s"}},
     close = {{"control", "w"}},
     find = {{"control", "f"}},
-    findnext = {{"control", "g"}, {"control", "n"}, {"f3"}}
+    findnext = {{"control", "g"}, {"control", "n"}, {"f3"}},
+    cut = {{"control", "k"}},
+    uncut = {{"control", "u"}}
   }
   -- Generate config file if it didn't exist.
   if not config then
@@ -87,6 +89,11 @@ local buffer = {}
 local scrollX, scrollY = 0, 0
 local config = loadConfig()
 
+local cutBuffer = {}
+-- cutting is true while we're in a cutting operation and set to false when cursor changes lines
+-- basically, whenever you change lines, the cutting operation ends, so the next time you cut a new buffer will be created
+local cutting = false
+
 local getKeyBindHandler -- forward declaration for refind()
 
 local function helpStatusText()
@@ -110,7 +117,9 @@ local function helpStatusText()
   end
   return prettifyKeybind("Save", "save") ..
          prettifyKeybind("Close", "close") ..
-         prettifyKeybind("Find", "find")
+         prettifyKeybind("Find", "find") ..
+         prettifyKeybind("Cut", "cut") ..
+         prettifyKeybind("Uncut", "uncut")
 end
 
 -------------------------------------------------------------------------------
@@ -240,7 +249,12 @@ local function setCursor(nbx, nby)
   term.setCursor(nbx - scrollX, nby - scrollY)
   --update with term lib
   nbx, nby = getCursor()
-  gpu.set(x + w - 10, y + h, text.padLeft(string.format("%d,%d", nby, nbx), 10))
+  local locstring = string.format("%d,%d", nby, nbx)
+  if #cutBuffer > 0 then
+    locstring = string.format("(#%d) %s", #cutBuffer, locstring)
+  end
+  locstring = text.padLeft(locstring, 10)
+  gpu.set(x + w - #locstring, y + h, locstring)
 end
 
 local function highlight(bx, by, length, enabled)
@@ -316,6 +330,7 @@ local function up(n)
   if cby > 1 then
     setCursor(cbx, cby - n)
   end
+  cutting = false
 end
 
 local function down(n)
@@ -324,6 +339,7 @@ local function down(n)
   if cby < #buffer then
     setCursor(cbx, cby + n)
   end
+  cutting = false
 end
 
 local function delete(fullRow)
@@ -398,6 +414,7 @@ local function enter()
   end
   setCursor(1, cby + 1)
   setStatus(helpStatusText())
+  cutting = false
 end
 
 local findText = ""
@@ -450,6 +467,25 @@ local function find()
   end
   setCursor(cbx, cby)
   setStatus(helpStatusText())
+end
+
+local function cut()
+  if not cutting then
+    cutBuffer = {}
+  end
+  local cbx, cby = getCursor()
+  table.insert(cutBuffer, buffer[cby])
+  delete(true)
+  cutting = true
+  home()
+end
+
+local function uncut()
+  home()
+  for _, line in ipairs(cutBuffer) do
+    insert(line)
+    enter()
+  end 
 end
 
 -------------------------------------------------------------------------------
@@ -542,7 +578,9 @@ local keyBindHandlers = {
     findText = ""
     find()
   end,
-  findnext = find
+  findnext = find,
+  cut = cut,
+  uncut = uncut
 }
 
 getKeyBindHandler = function(code)
