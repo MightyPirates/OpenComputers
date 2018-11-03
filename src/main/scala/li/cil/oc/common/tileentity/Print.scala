@@ -20,6 +20,7 @@ import net.minecraft.util.math.RayTraceResult
 import net.minecraft.util.math.Vec3d
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
+import scala.collection.convert.WrapAsJava._
 
 class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
   def this() = this(None, None, None)
@@ -113,6 +114,14 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     false
   }
 
+  private def buildValueSet(value: Int): util.Map[AnyRef, AnyRef] = {
+    val map: util.Map[AnyRef, AnyRef] = new util.HashMap[AnyRef, AnyRef]()
+    EnumFacing.values.foreach {
+      side => map.put(new java.lang.Integer(side.ordinal), new java.lang.Integer(value))
+    }
+    map
+  }
+
   def toggleState(): Unit = {
     if (canToggle.fold(true)(_.apply())) {
       state = !state
@@ -142,7 +151,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
 
   def updateRedstone(): Unit = {
     if (data.emitRedstone) {
-      EnumFacing.values().foreach(output(_, if (data.emitRedstone(state)) data.redstoneLevel else 0))
+      setOutput(buildValueSet(if (data.emitRedstone(state)) data.redstoneLevel else 0))
     }
   }
 

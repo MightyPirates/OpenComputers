@@ -20,9 +20,9 @@ object BundledRedstoneProvider extends IBundledRedstoneProvider with RedstonePro
     world.getTileEntity(blockPos) match {
       case tile: BundledRedstoneAware =>
         var result = 0
-        val colours = tile.bundledOutput(enumFacing)
-        for (colour <- 0 to 15) {
-          if (colours(colour) > 0) result |= 1 << colour
+        val colors = tile.getBundledOutput(enumFacing)
+        for (color <- 0 to 15) {
+          if (colors(color) > 0) result |= 1 << color
         }
         result
       case _ => -1

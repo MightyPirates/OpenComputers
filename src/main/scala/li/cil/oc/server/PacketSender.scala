@@ -479,7 +479,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isOutputEnabled)
     for (d <- EnumFacing.values) {
-      pb.writeByte(t.output(d))
+      pb.writeByte(t.getOutput(d))
     }
 
     pb.sendToPlayersNearTileEntity(t)

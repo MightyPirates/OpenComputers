@@ -25,9 +25,9 @@ class RedstoneDevice(val tileEntity: RedstoneAware) extends IRedstoneDevice {
 
   override def getRedstoneConnectionCache: IConnectionCache[_ <: IRedstoneDevice] = cache
 
-  override def getRedstonePower(side: ForgeDirection): Byte = tileEntity.output(side).toByte
+  override def getRedstonePower(side: ForgeDirection): Byte = tileEntity.getOutput(side).toByte
 
-  override def setRedstonePower(side: ForgeDirection, power: Byte): Unit = tileEntity.input(side, power & 0xFF)
+  override def setRedstonePower(side: ForgeDirection, power: Byte): Unit = tileEntity.setInput(side, power & 0xFF)
 
   override def onRedstoneUpdate(): Unit = tileEntity.checkRedstoneInputChanged()
 }

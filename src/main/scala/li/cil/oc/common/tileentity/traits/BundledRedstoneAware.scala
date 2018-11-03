@@ -6,6 +6,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
 import mrtjp.projectred.api.IBundledTile
 import net.minecraftforge.fml.common.Optional
+import java.util
 
 /* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
@@ -36,8 +37,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
 
   // ----------------------------------------------------------------------- //
 
-  override def isOutputEnabled_=(value: Boolean) = {
-    if (value != isOutputEnabled) {
+  override def setOutputEnabled(value: Boolean): Unit = {
+    if (value != _isOutputEnabled) {
       if (!value) {
         for (i <- _bundledOutput.indices) {
           for (j <- _bundledOutput(i).indices) {
@@ -46,40 +47,71 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
         }
       }
     }
-    super.isOutputEnabled_=(value)
+    super.setOutputEnabled(value)
   }
 
-  def bundledInput(side: EnumFacing) =
-    (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
+  def getBundledInput: Array[Array[Int]] = {
+    (0 until 6).map(side => (0 until 16).map(color => _bundledInput(side)(color) max _rednetInput(side)(color) max 0).toArray).toArray
+  }
 
-  def bundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
+  private def checkSide(side: EnumFacing): Int = {
+    val index = side.ordinal
+    if (index >= 6) throw new IndexOutOfBoundsException(s"Bad side $side")
+    index
+  }
+
+  private def checkColor(color: Int): Int = {
+    if (color < 0 || color >= 16) throw new IndexOutOfBoundsException(s"Bad color $color")
+    color
+  }
+
+  def getBundledInput(side: EnumFacing): Array[Int] = {
+    val sideIndex = checkSide(side)
+    val bundled = _bundledInput(sideIndex)
+    val rednet = _rednetInput(sideIndex)
+    (bundled, rednet).zipped.map((a, b) => a max b max 0)
+  }
+
+  def getBundledInput(side: EnumFacing, color: Int): Int = {
+    val sideIndex = checkSide(side)
+    val colorIndex = checkColor(color)
+    val bundled = _bundledInput(sideIndex)(colorIndex)
+    val rednet = _rednetInput(sideIndex)(colorIndex)
+    bundled max rednet max 0
+  }
+
+  def setBundledInput(side: EnumFacing, color: Int, newValue: Int): Unit = {
+    updateInput(_bundledInput, side, color, newValue)
+  }
+
+  def setBundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
     for (color <- 0 until 16) {
-      updateInput(_bundledInput, side, color, if (newBundledInput == null) 0 else newBundledInput(color))
+      val value = if (newBundledInput == null || color >= newBundledInput.length) 0 else newBundledInput(color)
+      setBundledInput(side, color, value)
     }
   }
 
-  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
+  def setRednetInput(side: EnumFacing, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
 
   def updateInput(inputs: Array[Array[Int]], side: EnumFacing, color: Int, newValue: Int): Unit = {
-    val oldValue = inputs(side.ordinal())(color)
+    val sideIndex = checkSide(side)
+    val colorIndex = checkColor(color)
+    val oldValue = inputs(sideIndex)(colorIndex)
     if (oldValue != newValue) {
+      inputs(sideIndex)(colorIndex) = newValue
       if (oldValue != -1) {
-        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, color))
+        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, colorIndex))
       }
-      inputs(side.ordinal())(color) = newValue
     }
   }
 
-  def bundledInput(side: EnumFacing, color: Int) =
-    math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
+  def getBundledOutput: Array[Array[Int]] = _bundledInput
 
-  def bundledOutput(side: EnumFacing) = _bundledOutput(toLocal(side).ordinal())
+  def getBundledOutput(side: EnumFacing): Array[Int] = _bundledOutput(checkSide(toLocal(side)))
 
-  def bundledOutput(side: EnumFacing, color: Int): Int = bundledOutput(side)(color)
+  def getBundledOutput(side: EnumFacing, color: Int): Int = getBundledOutput(side)(checkColor(color))
 
-  def bundledOutput(side: EnumFacing, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
-    _bundledOutput(toLocal(side).ordinal())(color) = value
-
+  def notifyChangedSide(side: EnumFacing): Unit = {
     /* TODO MFR
     if (Mods.MineFactoryReloaded.isAvailable) {
       val blockPos = BlockPosition(x, y, z).offset(side)
@@ -93,11 +125,50 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
     onRedstoneOutputChanged(side)
   }
 
+  def setBundledOutput(side: EnumFacing, color: Int, value: Int): Boolean = if (value != getBundledOutput(side, color)) {
+    _bundledOutput(checkSide(toLocal(side)))(checkColor(color)) = value
+    notifyChangedSide(side)
+    true
+  } else false
+
+  def setBundledOutput(side: EnumFacing, values: util.Map[_, _]): Boolean = {
+    val sideIndex = toLocal(side).ordinal
+    var changed: Boolean = false
+    (0 until 16).foreach(color => {
+      // due to a bug in our jnlua layer, I cannot loop the map
+      valueToInt(getObjectFuzzy(values, color)) match {
+        case Some(newValue: Int) =>
+          if (newValue != getBundledOutput(side, color)) {
+            _bundledOutput(sideIndex)(color) = newValue
+            changed = true
+          }
+        case _ =>
+      }
+    })
+    if (changed) {
+      notifyChangedSide(side)
+    }
+    changed
+  }
+
+  def setBundledOutput(values: util.Map[_, _]): Boolean = {
+    var changed: Boolean = false
+    EnumFacing.values.foreach(side => {
+      val sideIndex = toLocal(side).ordinal
+      // due to a bug in our jnlua layer, I cannot loop the map
+      getObjectFuzzy(values, sideIndex) match {
+        case Some(child: util.Map[_, _]) if setBundledOutput(side, child) => changed = true
+        case _ =>
+      }
+    })
+    changed
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
-    bundledInput(side, BundledRedstone.computeBundledInput(position, side))
+    setBundledInput(side, BundledRedstone.computeBundledInput(position, side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -162,7 +233,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
   // ----------------------------------------------------------------------- //
   /* TODO RedLogic
     @Optional.Method(modid = Mods.IDs.RedLogic)
-    def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(EnumFacing.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
+    def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = getBundledOutput(EnumFacing.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
     @Optional.Method(modid = Mods.IDs.RedLogic)
     def onBundledInputChanged() = checkRedstoneInputChanged()
@@ -170,9 +241,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile /* with IBund
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  override def canConnectBundled(side: Int): Boolean = isOutputEnabled
+  override def canConnectBundled(side: Int): Boolean = _isOutputEnabled
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  override def getBundledSignal(side: Int): Array[Byte] = bundledOutput(EnumFacing.getFront(side)).map(value => math.min(math.max(value, 0), 255).toByte)
-
+  override def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(EnumFacing.getFront(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

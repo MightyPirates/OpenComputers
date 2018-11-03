@@ -28,11 +28,11 @@ class BundledRedstoneDevice(val tileEntity: BundledRedstoneAware) extends IBundl
 
   override def getBundledColor(side: ForgeDirection): MinecraftColor = MinecraftColor.ANY
 
-  override def getBundledOutput(side: ForgeDirection): Array[Byte] = tileEntity.bundledOutput(side).map(_.toByte)
+  override def getBundledOutput(side: ForgeDirection): Array[Byte] = tileEntity.getBundledOutput(side).map(_.toByte)
 
-  override def getBundledPower(side: ForgeDirection): Array[Byte] = tileEntity.bundledInput(side).map(_.toByte)
+  override def getBundledPower(side: ForgeDirection): Array[Byte] = tileEntity.getBundledInput(side).map(_.toByte)
 
-  override def setBundledPower(side: ForgeDirection, power: Array[Byte]): Unit = tileEntity.bundledInput(side, power.map(_ & 0xFF))
+  override def setBundledPower(side: ForgeDirection, power: Array[Byte]): Unit = tileEntity.setBundledInput(side, power.map(_ & 0xFF))
 
   override def onBundledUpdate(): Unit = tileEntity.checkRedstoneInputChanged()
 }

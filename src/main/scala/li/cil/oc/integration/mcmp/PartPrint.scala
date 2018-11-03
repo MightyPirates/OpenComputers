@@ -64,7 +64,7 @@ class PartPrint extends Multipart with INormallyOccludingPart with IRedstonePart
 
   override def getStrongSignal(side: EnumFacing): Int = getWeakSignal(side)
 
-  override def getWeakSignal(side: EnumFacing): Int = wrapped.output(side)
+  override def getWeakSignal(side: EnumFacing): Int = wrapped.getOutput(side)
 
   // ----------------------------------------------------------------------- //
   // IOccludingPart

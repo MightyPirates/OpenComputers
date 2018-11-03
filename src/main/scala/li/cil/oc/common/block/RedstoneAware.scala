@@ -30,7 +30,7 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
 
   override def getWeakPower(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
     world.getTileEntity(pos) match {
-      case redstone: tileentity.traits.RedstoneAware if side != null => redstone.output(side.getOpposite) max 0
+      case redstone: tileentity.traits.RedstoneAware if side != null => redstone.getOutput(side.getOpposite) max 0
       case _ => super.getWeakPower(state, world, pos, side)
     }
 
@@ -44,9 +44,9 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
         case t: tileentity.traits.BundledRedstoneAware => for (side <- EnumFacing.values) {
           world.getBlock(position.offset(side)) match {
             case block: IRedNetNetworkContainer =>
-            case _ => for (color <- 0 until 16) {
-              t.rednetInput(side, color, 0)
-            }
+              case _ => for (color <- 0 until 16) {
+                t.setRednetInput(side, color, 0)
+              }
           }
         }
         case _ =>
@@ -66,13 +66,13 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
 
   override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: EnumFacing, color: Int) =
     world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side, color)
+      case t: tileentity.traits.BundledRedstoneAware => t.getBundledOutput(side, color)
       case _ => 0
     }
 
   override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: EnumFacing) =
     world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side)
+      case t: tileentity.traits.BundledRedstoneAware => t.getBundledOutput(side)
       case _ => Array.fill(16)(0)
     }
 
@@ -81,7 +81,7 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
   override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: EnumFacing, inputValues: Array[Int]) =
     world.getTileEntity(x, y, z) match {
       case t: tileentity.traits.BundledRedstoneAware => for (color <- 0 until 16) {
-        t.rednetInput(side, color, inputValues(color))
+        t.setRednetInput(side, color, inputValues(color))
       }
       case _ =>
     }

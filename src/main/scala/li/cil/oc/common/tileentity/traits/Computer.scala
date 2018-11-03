@@ -188,7 +188,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     super.markDirty()
     if (isServer) {
       machine.onHostChanged()
-      isOutputEnabled = hasRedstoneCard
+      setOutputEnabled(hasRedstoneCard)
     }
   }
 

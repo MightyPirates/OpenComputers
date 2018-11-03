@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
@@ -27,18 +28,18 @@ case class RedstoneChangedEventArgs (side: EnumFacing, oldValue: Int, newValue: 
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = Mods.IDs.RedLogic)
 ))
 trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmitter with IRedstoneUpdatable TODO RedLogic */ {
-  protected[tileentity] val _input = Array.fill(6)(-1)
+  protected[tileentity] val _input: Array[Int] = Array.fill(6)(-1)
 
-  protected[tileentity] val _output = Array.fill(6)(0)
+  protected[tileentity] val _output: Array[Int] = Array.fill(6)(0)
 
-  protected var _isOutputEnabled = false
+  protected var _isOutputEnabled: Boolean = false
 
-  protected var shouldUpdateInput = true
+  def isOutputEnabled: Boolean = _isOutputEnabled
 
-  def isOutputEnabled = _isOutputEnabled
+  protected var shouldUpdateInput: Boolean = true
 
-  def isOutputEnabled_=(value: Boolean) = {
-    if (value != isOutputEnabled) {
+  def setOutputEnabled(value: Boolean): Unit = {
+    if (value != _isOutputEnabled) {
       _isOutputEnabled = value
       if (!value) {
         for (i <- _output.indices) {
@@ -47,12 +48,34 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
       }
       onRedstoneOutputEnabledChanged()
     }
-    this
   }
 
-  def input(side: EnumFacing) = _input(side.ordinal()) max 0
+  protected def getObjectFuzzy(map: util.Map[_, _], key: Int): Option[AnyRef] = {
+    val refMap: util.Map[AnyRef, AnyRef] = map.asInstanceOf[util.Map[AnyRef, AnyRef]]
+    if (refMap.containsKey(key))
+      Option(refMap.get(key))
+    else if (refMap.containsKey(new Integer(key)))
+      Option(refMap.get(new Integer(key)))
+    else if (refMap.containsKey(new Integer(key) * 1.0))
+      Option(refMap.get(new Integer(key) * 1.0))
+    else if (refMap.containsKey(key * 1.0))
+      Option(refMap.get(key * 1.0))
+    else
+      None
+  }
 
-  def input(side: EnumFacing, newInput: Int): Unit = {
+  protected def valueToInt(value: AnyRef): Option[Int] = {
+    value match {
+      case Some(num: Number) => Option(num.intValue)
+      case _ => None
+    }
+  }
+
+  def getInput: Array[Int] = _input.map(math.max(_, 0))
+
+  def getInput(side: EnumFacing): Int = _input(side.ordinal) max 0
+
+  def setInput(side: EnumFacing, newInput: Int): Unit = {
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
@@ -60,14 +83,37 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     }
   }
 
-  def maxInput = EnumFacing.values.map(input).max
+  def setInput(values: Array[Int]): Unit = {
+    for (side <- EnumFacing.values) {
+      val value = if (side.ordinal <= values.length) values(side.ordinal) else 0
+      setInput(side, value)
+    }
+  }
 
-  def output(side: EnumFacing) = _output(toLocal(side).ordinal())
+  def maxInput: Int = _input.map(math.max(_, 0)).max
 
-  def output(side: EnumFacing, value: Int): Unit = if (value != output(side)) {
+  def getOutput: Array[Int] = EnumFacing.values.map{ side: EnumFacing => _output(toLocal(side).ordinal) }
+
+  def getOutput(side: EnumFacing) = _output(toLocal(side).ordinal())
+
+  def setOutput(side: EnumFacing, value: Int): Boolean = {
+    if (value == getOutput(side)) return false
     _output(toLocal(side).ordinal()) = value
-
     onRedstoneOutputChanged(side)
+    true
+  }
+
+  def setOutput(values: util.Map[_, _]): Boolean = {
+    var changed: Boolean = false
+    EnumFacing.values.foreach(side => {
+      val sideIndex = toLocal(side).ordinal
+      // due to a bug in our jnlua layer, I cannot loop the map
+      valueToInt(getObjectFuzzy(values, sideIndex)) match {
+        case Some(num: Int) if setOutput(side, num) => changed = true
+        case _ =>
+      }
+    })
+    changed
   }
 
   def checkRedstoneInputChanged() {
@@ -97,9 +143,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     }
   }
 
-  def updateRedstoneInput(side: EnumFacing) {
-    input(side, BundledRedstone.computeInput(position, side))
-  }
+  def updateRedstoneInput(side: EnumFacing): Unit = setInput(side, BundledRedstone.computeInput(position, side))
 
   // ----------------------------------------------------------------------- //
 
@@ -122,13 +166,13 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isOutputEnabled = nbt.getBoolean("isOutputEnabled")
+    _isOutputEnabled = nbt.getBoolean("isOutputEnabled")
     nbt.getIntArray("output").copyToArray(_output)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("isOutputEnabled", isOutputEnabled)
+    nbt.setBoolean("isOutputEnabled", _isOutputEnabled)
     nbt.setIntArray("output", _output)
   }
 
@@ -156,7 +200,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   // ----------------------------------------------------------------------- //
   /* TODO RedLogic
     @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
+    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = _isOutputEnabled
 
     @Optional.Method(modid = Mods.IDs.RedLogic)
     override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false

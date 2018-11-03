@@ -58,7 +58,7 @@ object ProviderEnderIO extends RedstoneProvider with ISignalProvider {
   override def getNetworkInputs(world: World, pos: BlockPos, side: EnumFacing): util.Set[Signal] = {
     world.getTileEntity(pos) match {
       case tile: BundledRedstoneAware =>
-        tile.bundledOutput(side).zipWithIndex.map {
+        tile.getBundledOutput(side).zipWithIndex.map {
           case (strength, i) => new Signal(pos, side.getOpposite, strength, DyeColor.fromIndex(15 - i))
         }.toSet[Signal]
       case _ => null

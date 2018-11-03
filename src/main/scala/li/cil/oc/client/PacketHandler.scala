@@ -499,9 +499,9 @@ object PacketHandler extends CommonPacketHandler {
   def onRedstoneState(p: PacketParser) =
     p.readTileEntity[RedstoneAware]() match {
       case Some(t) =>
-        t.isOutputEnabled = p.readBoolean()
+        t.setOutputEnabled(p.readBoolean())
         for (d <- EnumFacing.values) {
-          t.output(d, p.readByte())
+          t.setOutput(d, p.readByte())
         }
       case _ => // Invalid packet.
     }
