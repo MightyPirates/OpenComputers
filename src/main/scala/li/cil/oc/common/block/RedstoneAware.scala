@@ -29,7 +29,7 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case redstone: tileentity.traits.RedstoneAware => redstone.output(side) max 0
+      case redstone: tileentity.traits.RedstoneAware => redstone.getOutput(side) max 0
       case _ => super.isProvidingWeakPower(world, x, y, z, side)
     }
 
@@ -42,9 +42,9 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
         case t: tileentity.traits.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
           world.getBlock(position.offset(side)) match {
             case block: IRedNetNetworkContainer =>
-            case _ => for (color <- 0 until 16) {
-              t.rednetInput(side, color, 0)
-            }
+              case _ => for (color <- 0 until 16) {
+                t.setRednetInput(side, color, 0)
+              }
           }
         }
         case _ =>
@@ -66,13 +66,13 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
 
   override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
     world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side, color)
+      case t: tileentity.traits.BundledRedstoneAware => t.getBundledOutput(side, color)
       case _ => 0
     }
 
   override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case t: tileentity.traits.BundledRedstoneAware => t.bundledOutput(side)
+      case t: tileentity.traits.BundledRedstoneAware => t.getBundledOutput(side)
       case _ => Array.fill(16)(0)
     }
 
@@ -81,7 +81,7 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
   override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
     world.getTileEntity(x, y, z) match {
       case t: tileentity.traits.BundledRedstoneAware => for (color <- 0 until 16) {
-        t.rednetInput(side, color, inputValues(color))
+        t.setRednetInput(side, color, inputValues(color))
       }
       case _ =>
     }

@@ -290,7 +290,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def markChanged(slot: Int): Unit = {
     hasChanged.synchronized(hasChanged(slot) = true)
-    isOutputEnabled = hasRedstoneCard
+    setOutputEnabled(hasRedstoneCard)
     isAbstractBusAvailable = hasAbstractBusCard
   }
 
@@ -339,7 +339,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def markDirty() {
     super.markDirty()
     if (isServer) {
-      isOutputEnabled = hasRedstoneCard
+      setOutputEnabled(hasRedstoneCard)
       isAbstractBusAvailable = hasAbstractBusCard
       ServerPacketSender.sendRackInventory(this)
     }
@@ -395,7 +395,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
             ServerPacketSender.sendRackMountableData(this, slot)
             world.notifyBlocksOfNeighborChange(x, y, z, block)
             // These are working state dependent, so recompute them.
-            isOutputEnabled = hasRedstoneCard
+            setOutputEnabled(hasRedstoneCard)
             isAbstractBusAvailable = hasAbstractBusCard
           }
 

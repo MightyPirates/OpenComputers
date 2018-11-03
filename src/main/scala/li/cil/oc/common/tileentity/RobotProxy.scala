@@ -190,9 +190,9 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override protected[tileentity] val _bundledOutput = robot._bundledOutput
 
-  override def isOutputEnabled = robot.isOutputEnabled
+  override def isOutputEnabled: Boolean = robot.isOutputEnabled
 
-  override def isOutputEnabled_=(value: Boolean) = robot.isOutputEnabled_=(value)
+  override def setOutputEnabled(value: Boolean): Unit = robot.setOutputEnabled(value)
 
   override def checkRedstoneInputChanged() = robot.checkRedstoneInputChanged()
 

@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.item.data.PrintData
@@ -8,7 +10,8 @@ import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+
+import scala.collection.convert.WrapAsJava._
 
 class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rotatable {
   val data = new PrintData()
@@ -29,12 +32,20 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
     false
   }
 
+  private def buildValueSet(value: Int): util.Map[AnyRef, AnyRef] = {
+    val map: util.Map[AnyRef, AnyRef] = new util.HashMap[AnyRef, AnyRef]()
+    (0 until 6).foreach {
+      side => map.put(new java.lang.Integer(side), new java.lang.Integer(value))
+    }
+    map
+  }
+
   def toggleState(): Unit = {
     state = !state
     world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
     world.markBlockForUpdate(x, y, z)
     if (data.emitRedstoneWhenOn) {
-      ForgeDirection.VALID_DIRECTIONS.foreach(output(_, if (state) data.redstoneLevel else 0))
+      setOutput(buildValueSet(if (state) data.redstoneLevel else 0))
     }
     if (state && data.isButtonMode) {
       world.scheduleBlockUpdate(x, y, z, block, block.tickRate(world))
@@ -92,7 +103,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
     else boundsOn = boundsOn.rotateTowards(facing)
 
     if (data.emitRedstoneWhenOff) {
-      ForgeDirection.VALID_DIRECTIONS.foreach(output(_, data.redstoneLevel))
+      setOutput(buildValueSet(data.redstoneLevel))
     }
   }
 

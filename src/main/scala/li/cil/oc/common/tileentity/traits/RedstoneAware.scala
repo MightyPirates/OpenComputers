@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
@@ -24,18 +26,18 @@ case class RedstoneChangedEventArgs (side: ForgeDirection, oldValue: Int, newVal
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = Mods.IDs.RedLogic)
 ))
 trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
-  protected[tileentity] val _input = Array.fill(6)(-1)
+  protected[tileentity] val _input: Array[Int] = Array.fill(6)(-1)
 
-  protected[tileentity] val _output = Array.fill(6)(0)
+  protected[tileentity] val _output: Array[Int] = Array.fill(6)(0)
 
-  protected var _isOutputEnabled = false
+  protected var _isOutputEnabled: Boolean = false
 
-  protected var shouldUpdateInput = true
+  def isOutputEnabled: Boolean = _isOutputEnabled
 
-  def isOutputEnabled = _isOutputEnabled
+  protected var shouldUpdateInput: Boolean = true
 
-  def isOutputEnabled_=(value: Boolean) = {
-    if (value != isOutputEnabled) {
+  def setOutputEnabled(value: Boolean): Unit = {
+    if (value != _isOutputEnabled) {
       _isOutputEnabled = value
       if (!value) {
         for (i <- _output.indices) {
@@ -44,12 +46,34 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
       }
       onRedstoneOutputEnabledChanged()
     }
-    this
   }
 
-  def input(side: ForgeDirection) = _input(side.ordinal()) max 0
+  protected def getObjectFuzzy(map: util.Map[_, _], key: Int): Option[AnyRef] = {
+    val refMap: util.Map[AnyRef, AnyRef] = map.asInstanceOf[util.Map[AnyRef, AnyRef]]
+    if (refMap.containsKey(key))
+      Option(refMap.get(key))
+    else if (refMap.containsKey(new Integer(key)))
+      Option(refMap.get(new Integer(key)))
+    else if (refMap.containsKey(new Integer(key) * 1.0))
+      Option(refMap.get(new Integer(key) * 1.0))
+    else if (refMap.containsKey(key * 1.0))
+      Option(refMap.get(key * 1.0))
+    else
+      None
+  }
 
-  def input(side: ForgeDirection, newInput: Int): Unit = {
+  protected def valueToInt(value: AnyRef): Option[Int] = {
+    value match {
+      case Some(num: Number) => Option(num.intValue)
+      case _ => None
+    }
+  }
+
+  def getInput: Array[Int] = _input.map(math.max(_, 0))
+
+  def getInput(side: ForgeDirection): Int = _input(side.ordinal) max 0
+
+  def setInput(side: ForgeDirection, newInput: Int): Unit = {
     val oldInput = _input(side.ordinal())
     _input(side.ordinal()) = newInput
     if (oldInput >= 0 && newInput != oldInput) {
@@ -57,14 +81,37 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     }
   }
 
-  def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
+  def setInput(values: Array[Int]): Unit = {
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      val value = if (side.ordinal <= values.length) values(side.ordinal) else 0
+      setInput(side, value)
+    }
+  }
 
-  def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
+  def maxInput: Int = _input.map(math.max(_, 0)).max
 
-  def output(side: ForgeDirection, value: Int): Unit = if (value != output(side)) {
+  def getOutput: Array[Int] = ForgeDirection.VALID_DIRECTIONS.map{ side: ForgeDirection => _output(toLocal(side).ordinal) }
+
+  def getOutput(side: ForgeDirection) = _output(toLocal(side).ordinal())
+
+  def setOutput(side: ForgeDirection, value: Int): Boolean = {
+    if (value == getOutput(side)) return false
     _output(toLocal(side).ordinal()) = value
-
     onRedstoneOutputChanged(side)
+    true
+  }
+
+  def setOutput(values: util.Map[_, _]): Boolean = {
+    var changed: Boolean = false
+    ForgeDirection.VALID_DIRECTIONS.foreach(side => {
+      val sideIndex = toLocal(side).ordinal
+      // due to a bug in our jnlua layer, I cannot loop the map
+      valueToInt(getObjectFuzzy(values, sideIndex)) match {
+        case Some(num: Int) if setOutput(side, num) => changed = true
+        case _ =>
+      }
+    })
+    changed
   }
 
   def checkRedstoneInputChanged() {
@@ -90,9 +137,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     }
   }
 
-  def updateRedstoneInput(side: ForgeDirection) {
-    input(side, BundledRedstone.computeInput(position, side))
-  }
+  def updateRedstoneInput(side: ForgeDirection): Unit = setInput(side, BundledRedstone.computeInput(position, side))
 
   // ----------------------------------------------------------------------- //
 
@@ -115,13 +160,13 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isOutputEnabled = nbt.getBoolean("isOutputEnabled")
+    _isOutputEnabled = nbt.getBoolean("isOutputEnabled")
     nbt.getIntArray("output").copyToArray(_output)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("isOutputEnabled", isOutputEnabled)
+    nbt.setBoolean("isOutputEnabled", _isOutputEnabled)
     nbt.setIntArray("output", _output)
   }
 
@@ -147,7 +192,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
+  override def connects(wire: IWire, blockFace: Int, fromDirection: Int): Boolean = _isOutputEnabled
 
   @Optional.Method(modid = Mods.IDs.RedLogic)
   override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
@@ -156,5 +201,5 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
 
   @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def onRedstoneInputChanged() = checkRedstoneInputChanged()
+  override def onRedstoneInputChanged(): Unit = checkRedstoneInputChanged()
 }

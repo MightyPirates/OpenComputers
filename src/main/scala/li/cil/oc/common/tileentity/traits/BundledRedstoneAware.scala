@@ -1,7 +1,10 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
+import li.cil.oc.api.machine.Arguments
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.BlockPosition
@@ -31,8 +34,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   // ----------------------------------------------------------------------- //
 
-  override def isOutputEnabled_=(value: Boolean) = {
-    if (value != isOutputEnabled) {
+  override def setOutputEnabled(value: Boolean): Unit = {
+    if (value != _isOutputEnabled) {
       if (!value) {
         for (i <- _bundledOutput.indices) {
           for (j <- _bundledOutput(i).indices) {
@@ -41,40 +44,71 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         }
       }
     }
-    super.isOutputEnabled_=(value)
+    super.setOutputEnabled(value)
   }
 
-  def bundledInput(side: ForgeDirection) =
-    (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
+  def getBundledInput: Array[Array[Int]] = {
+    (0 until 6).map(side => (0 until 16).map(color => _bundledInput(side)(color) max _rednetInput(side)(color) max 0).toArray).toArray
+  }
 
-  def bundledInput(side: ForgeDirection, newBundledInput: Array[Int]): Unit = {
+  private def checkSide(side: ForgeDirection): Int = {
+    val index = side.ordinal
+    if (index >= 6) throw new IndexOutOfBoundsException(s"Bad side $side")
+    index
+  }
+
+  private def checkColor(color: Int): Int = {
+    if (color < 0 || color >= 16) throw new IndexOutOfBoundsException(s"Bad color $color")
+    color
+  }
+
+  def getBundledInput(side: ForgeDirection): Array[Int] = {
+    val sideIndex = checkSide(side)
+    val bundled = _bundledInput(sideIndex)
+    val rednet = _rednetInput(sideIndex)
+    (bundled, rednet).zipped.map((a, b) => a max b max 0)
+  }
+
+  def getBundledInput(side: ForgeDirection, color: Int): Int = {
+    val sideIndex = checkSide(side)
+    val colorIndex = checkColor(color)
+    val bundled = _bundledInput(sideIndex)(colorIndex)
+    val rednet = _rednetInput(sideIndex)(colorIndex)
+    bundled max rednet max 0
+  }
+
+  def setBundledInput(side: ForgeDirection, color: Int, newValue: Int): Unit = {
+    updateInput(_bundledInput, side, color, newValue)
+  }
+
+  def setBundledInput(side: ForgeDirection, newBundledInput: Array[Int]): Unit = {
     for (color <- 0 until 16) {
-      updateInput(_bundledInput, side, color, if (newBundledInput == null) 0 else newBundledInput(color))
+      val value = if (newBundledInput == null || color >= newBundledInput.length) 0 else newBundledInput(color)
+      setBundledInput(side, color, value)
     }
   }
 
-  def rednetInput(side: ForgeDirection, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
+  def setRednetInput(side: ForgeDirection, color: Int, value: Int): Unit = updateInput(_rednetInput, side, color, value)
 
   def updateInput(inputs: Array[Array[Int]], side: ForgeDirection, color: Int, newValue: Int): Unit = {
-    val oldValue = inputs(side.ordinal())(color)
+    val sideIndex = checkSide(side)
+    val colorIndex = checkColor(color)
+    val oldValue = inputs(sideIndex)(colorIndex)
     if (oldValue != newValue) {
+      inputs(sideIndex)(colorIndex) = newValue
       if (oldValue != -1) {
-        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, color))
+        onRedstoneInputChanged(RedstoneChangedEventArgs(side, oldValue, newValue, colorIndex))
       }
-      inputs(side.ordinal())(color) = newValue
     }
   }
 
-  def bundledInput(side: ForgeDirection, color: Int) =
-    math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
+  def getBundledOutput: Array[Array[Int]] = _bundledInput
 
-  def bundledOutput(side: ForgeDirection) = _bundledOutput(toLocal(side).ordinal())
+  def getBundledOutput(side: ForgeDirection): Array[Int] = _bundledOutput(checkSide(toLocal(side)))
 
-  def bundledOutput(side: ForgeDirection, color: Int): Int = bundledOutput(side)(color)
+  def getBundledOutput(side: ForgeDirection, color: Int): Int = getBundledOutput(side)(checkColor(color))
 
-  def bundledOutput(side: ForgeDirection, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
-    _bundledOutput(toLocal(side).ordinal())(color) = value
-
+  def notifyChangedSide(side: ForgeDirection): Unit = {
     if (Mods.MineFactoryReloaded.isAvailable) {
       val blockPos = BlockPosition(x, y, z).offset(side)
       world.getBlock(blockPos) match {
@@ -86,11 +120,50 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     onRedstoneOutputChanged(side)
   }
 
+  def setBundledOutput(side: ForgeDirection, color: Int, value: Int): Boolean = if (value != getBundledOutput(side, color)) {
+    _bundledOutput(checkSide(toLocal(side)))(checkColor(color)) = value
+    notifyChangedSide(side)
+    true
+  } else false
+
+  def setBundledOutput(side: ForgeDirection, values: util.Map[_, _]): Boolean = {
+    val sideIndex = toLocal(side).ordinal
+    var changed: Boolean = false
+    (0 until 16).foreach(color => {
+      // due to a bug in our jnlua layer, I cannot loop the map
+      valueToInt(getObjectFuzzy(values, color)) match {
+        case Some(newValue: Int) =>
+          if (newValue != getBundledOutput(side, color)) {
+            _bundledOutput(sideIndex)(color) = newValue
+            changed = true
+          }
+        case _ =>
+      }
+    })
+    if (changed) {
+      notifyChangedSide(side)
+    }
+    changed
+  }
+
+  def setBundledOutput(values: util.Map[_, _]): Boolean = {
+    var changed: Boolean = false
+    ForgeDirection.VALID_DIRECTIONS.foreach(side => {
+      val sideIndex = toLocal(side).ordinal
+      // due to a bug in our jnlua layer, I cannot loop the map
+      getObjectFuzzy(values, sideIndex) match {
+        case Some(child: util.Map[_, _]) if setBundledOutput(side, child) => changed = true
+        case _ =>
+      }
+    })
+    changed
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
-    bundledInput(side, BundledRedstone.computeBundledInput(position, side))
+    setBundledInput(side, BundledRedstone.computeBundledInput(position, side))
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
@@ -147,16 +220,16 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.RedLogic)
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(ForgeDirection.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = getBundledOutput(ForgeDirection.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
   @Optional.Method(modid = Mods.IDs.RedLogic)
-  def onBundledInputChanged() = checkRedstoneInputChanged()
+  def onBundledInputChanged(): Unit = checkRedstoneInputChanged()
 
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  def canConnectBundled(side: Int) = isOutputEnabled
+  def canConnectBundled(side: Int): Boolean = _isOutputEnabled
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  def getBundledSignal(side: Int) = bundledOutput(ForgeDirection.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
+  def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(ForgeDirection.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }
