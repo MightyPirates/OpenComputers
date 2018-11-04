@@ -62,8 +62,13 @@ class Adapter extends traits.Environment with traits.ComponentInventory with tra
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
-    case Some(((environment, _))) => environment.node
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+    (blocks collect {
+      case Some((environment, _)) => environment.node
+    }) ++
+    (components collect {
+      case Some(environment) => environment.node
+    })
   }
 
   // ----------------------------------------------------------------------- //
