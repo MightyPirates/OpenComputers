@@ -2,12 +2,13 @@ package li.cil.oc.server.agent
 
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Node
+import net.minecraft.server.management.PlayerInteractionManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.event.world.BlockEvent
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.fml.common.eventhandler.{EventPriority, SubscribeEvent}
 
 import scala.collection.convert.WrapAsScala._
@@ -15,10 +16,11 @@ import scala.collection.convert.WrapAsScala._
 object PlayerInteractionManagerHelper {
 
   private def isDestroyingBlock(player: Player): Boolean = {
-    val manager = player.interactionManager
-    val f = manager.getClass.getDeclaredField("isDestroyingBlock") //NoSuchFieldException
-    f.setAccessible(true)
-    f.get(manager).asInstanceOf[Boolean] //IllegalAccessException
+    try {
+      ObfuscationReflectionHelper.getPrivateValue(classOf[PlayerInteractionManager], player.interactionManager, "isDestroyingBlock", "field_73088_d").asInstanceOf[Boolean]
+    } catch {
+      case _: Exception => true
+    }
   }
 
   def onBlockClicked(player: Player, pos: BlockPos, side: EnumFacing): Boolean = {

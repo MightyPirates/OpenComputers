@@ -26,7 +26,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
-import net.minecraft.server.management.UserListOpsEntry
+import net.minecraft.server.management.{PlayerInteractionManager, UserListOpsEntry}
 import net.minecraft.tileentity._
 import net.minecraft.util.EnumFacing
 import net.minecraft.util._
@@ -42,6 +42,7 @@ import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.fml.common.eventhandler.{Event, EventPriority, SubscribeEvent}
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.wrapper._
@@ -148,16 +149,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     this.inventoryContainer = new AgentContainer(this)
     this.openContainer = this.inventoryContainer
 
-    def setItemHandler(fieldName: String, handler: IItemHandler): Unit = {
-      val entityPlayer: EntityPlayer = this.asInstanceOf[EntityPlayer]
-      val f = classOf[EntityPlayer].getDeclaredField(fieldName) //NoSuchFieldException
-      f.setAccessible(true)
-      f.set(entityPlayer, handler)
+    try {
+      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerMainInvWrapper(inventory), "playerMainHandler")
+      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)), "playerEquipmentHandler")
+      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerInvWrapper(inventory), "playerJoinedHandler")
+    } catch {
+      case _: Exception =>
     }
-
-    setItemHandler("playerMainHandler", new PlayerMainInvWrapper(inventory))
-    setItemHandler("playerEquipmentHandler", new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)))
-    setItemHandler("playerJoinedHandler",  new PlayerInvWrapper(inventory))
   }
 
   var facing, side = EnumFacing.SOUTH
