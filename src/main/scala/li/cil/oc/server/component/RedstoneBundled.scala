@@ -104,7 +104,7 @@ trait RedstoneBundled extends RedstoneVanilla {
     var ret: AnyRef = null
     if (getBundleAssignment(args) match {
       case (side: ForgeDirection, color: Int, value: Int) =>
-        ret = redstone.getBundledOutput(side, color)
+        ret = new java.lang.Integer(redstone.getBundledOutput(side, color))
         redstone.setBundledOutput(side, color, value)
       case (side: ForgeDirection, value: util.Map[_, _], _) =>
         ret = redstone.getBundledOutput(side)
