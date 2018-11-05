@@ -21,7 +21,7 @@ object ObfNames {
   final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving")
   final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity")
   final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx")
-  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw")
+  final val Field_leashedToEntity = Array("leashedToEntity", "leashHolder", "field_110168_bw")
   final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF")
   final val Method_recreateLeashDesc = Array("()V")
   final val Method_renderLeash = Array("renderLeash", "func_110827_b")
