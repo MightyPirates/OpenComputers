@@ -100,11 +100,13 @@ object PacketHandler extends CommonPacketHandler {
       Delegator.subItem(heldItem) match {
         case Some(drive: FileSystemLike) =>
           val data = new DriveData(heldItem)
-          data.lockInfo = player.getDisplayName match {
-            case name: String if name != null && !name.isEmpty => name
-            case _ => "notch" // meaning: "unknown"
+          if (!data.isLocked) {
+            data.lockInfo = player.getName match {
+              case name: String if name != null && !name.isEmpty => name
+              case _ => "notch" // meaning: "unknown"
+            }
+            data.save(heldItem)
           }
-          data.save(heldItem)
         case _ => // Invalid packet
       }
     case _ => // Invalid Packet
