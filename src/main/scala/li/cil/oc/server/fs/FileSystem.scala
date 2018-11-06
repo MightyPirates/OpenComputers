@@ -11,6 +11,8 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.computercraft.DriverComputerCraftMedia
 import li.cil.oc.server.component
@@ -110,6 +112,23 @@ object FileSystem extends api.detail.FileSystemAPI {
       else new ReadWriteFileSystem(path, capacity)
     }
     else null
+  }
+
+  def removeAddress(fsStack: ItemStack): Boolean = {
+    Delegator.subItem(fsStack) match {
+      case Some(drive: FileSystemLike) => {
+        val data = li.cil.oc.integration.opencomputers.Item.dataTag(fsStack)
+        if (data.hasKey("node")) {
+          val nodeData = data.getCompoundTag("node")
+          if (nodeData.hasKey("address")) {
+            nodeData.removeTag("address")
+            return true
+          }
+        }
+      }
+      case _ =>
+    }
+    false
   }
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)

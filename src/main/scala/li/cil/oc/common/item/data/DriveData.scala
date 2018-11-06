@@ -11,12 +11,24 @@ class DriveData extends ItemData(null) {
   }
 
   var isUnmanaged = false
+  var lockInfo: String = ""
+
+  def isLocked: Boolean = {
+    lockInfo != null && !lockInfo.isEmpty
+  }
+
+  private val UnmanagedKey = Settings.namespace + "unmanaged"
+  private val LockKey = Settings.namespace + "lock"
 
   override def load(nbt: NBTTagCompound) {
-    isUnmanaged = nbt.getBoolean(Settings.namespace + "unmanaged")
+    isUnmanaged = nbt.getBoolean(UnmanagedKey)
+    lockInfo = if (nbt.hasKey(LockKey)) {
+      nbt.getString(LockKey)
+    } else ""
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setBoolean(Settings.namespace + "unmanaged", isUnmanaged)
+    nbt.setBoolean(UnmanagedKey, isUnmanaged)
+    nbt.setString(LockKey, lockInfo)
   }
 }

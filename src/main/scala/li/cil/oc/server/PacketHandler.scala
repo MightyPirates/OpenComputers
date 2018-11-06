@@ -35,6 +35,7 @@ object PacketHandler extends CommonPacketHandler {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.CopyToAnalyzer => onCopyToAnalyzer(p)
+      case PacketType.DriveLock => onDriveLock(p)
       case PacketType.DriveMode => onDriveMode(p)
       case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
@@ -86,13 +87,34 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onDriveMode(p: PacketParser) = p.player match {
+  def onDriveLock(p: PacketParser) = p.player match {
     case player: EntityPlayerMP =>
       Delegator.subItem(player.getHeldItem) match {
         case Some(drive: FileSystemLike) =>
           val data = new DriveData(player.getHeldItem)
-          data.isUnmanaged = p.readBoolean()
+          data.lockInfo = player.getDisplayName match {
+            case name: String if name != null && !name.isEmpty => name
+            case _ => "notch" // meaning: "unknown"
+          }
           data.save(player.getHeldItem)
+        case _ => // Invalid packet
+      }
+    case _ => // Invalid Packet
+  }
+
+  def onDriveMode(p: PacketParser) = p.player match {
+    case player: EntityPlayerMP =>
+      val heldItem = player.getHeldItem
+      Delegator.subItem(heldItem) match {
+        case Some(drive: FileSystemLike) =>
+          val data = new DriveData(heldItem)
+          val newIsUnmanaged = p.readBoolean()
+          if (data.isUnmanaged != newIsUnmanaged) {
+            fs.FileSystem.removeAddress(heldItem)
+            data.lockInfo = ""
+          }
+          data.isUnmanaged = newIsUnmanaged
+          data.save(heldItem)
         case _ => // Invalid packet.
       }
     case _ => // Invalid packet.
