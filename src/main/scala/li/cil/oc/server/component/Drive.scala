@@ -29,7 +29,7 @@ import net.minecraftforge.common.DimensionManager
 
 import scala.collection.convert.WrapAsJava._
 
-class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends AbstractManagedEnvironment with DeviceInfo {
+class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String], val speed: Int, val isLocked: Boolean) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drive", Visibility.Neighbors).
     withConnector().
@@ -75,6 +75,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   @Callback(doc = """function(value:string):string -- Sets the label of the drive. Returns the new value, which may be truncated.""")
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    if (isLocked) throw new Exception("drive is read only")
     if (label == null) throw new Exception("drive does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
     else label.setLabel(args.checkString(0))
@@ -102,6 +103,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   @Callback(direct = true, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
   def writeSector(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    if (isLocked) throw new Exception("drive is read only")
     context.consumeCallBudget(writeSectorCosts(speed))
     val sectorData = args.checkByteArray(1)
     val sector = moveToSector(context, checkSector(args, 0))
@@ -121,6 +123,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   @Callback(direct = true, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
   def writeByte(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    if (isLocked) throw new Exception("drive is read only")
     context.consumeCallBudget(writeByteCosts(speed))
     val offset = args.checkInteger(0) - 1
     val value = args.checkInteger(1).toByte
