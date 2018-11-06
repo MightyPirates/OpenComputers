@@ -116,6 +116,10 @@ object Localization {
     def Unmanaged = localizeImmediately("gui.Drive.Unmanaged")
 
     def Warning = localizeImmediately("gui.Drive.Warning")
+
+    def ReadOnlyLock = localizeImmediately("gui.Drive.ReadOnlyLock")
+
+    def LockWarning = localizeImmediately("gui.Drive.ReadOnlyLockWarning")
   }
 
   object Raid {
@@ -158,6 +162,8 @@ object Localization {
     def DiskUsage(used: Long, capacity: Long) = localizeImmediately("tooltip.DiskUsage", used.toString, capacity.toString)
 
     def DiskMode(isUnmanaged: Boolean) = localizeImmediately(if (isUnmanaged) "tooltip.DiskModeUnmanaged" else "tooltip.DiskModeManaged")
+
+    def DiskLock(lockInfo: String): String = if (lockInfo.isEmpty) "" else localizeImmediately("tooltip.DiskLocked", lockInfo)
 
     def Materials = localizeImmediately("tooltip.Materials")
 

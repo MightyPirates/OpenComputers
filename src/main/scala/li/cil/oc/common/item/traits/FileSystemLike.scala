@@ -6,6 +6,7 @@ import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.item.data.DriveData
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
@@ -34,7 +35,9 @@ trait FileSystemLike extends Delegate {
           }
         }
       }
-      tooltip.add(Localization.Tooltip.DiskMode(nbt.getBoolean(Settings.namespace + "unmanaged")))
+      val data = new DriveData(stack)
+      tooltip.add(Localization.Tooltip.DiskMode(data.isUnmanaged))
+      tooltip.add(Localization.Tooltip.DiskLock(data.lockInfo))
     }
     super.tooltipLines(stack, player, tooltip, advanced)
   }
