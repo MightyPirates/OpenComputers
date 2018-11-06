@@ -89,14 +89,17 @@ object PacketHandler extends CommonPacketHandler {
 
   def onDriveLock(p: PacketParser) = p.player match {
     case player: EntityPlayerMP =>
-      Delegator.subItem(player.getHeldItem) match {
+      val heldItem = player.getHeldItem
+      Delegator.subItem(heldItem) match {
         case Some(drive: FileSystemLike) =>
-          val data = new DriveData(player.getHeldItem)
-          data.lockInfo = player.getDisplayName match {
-            case name: String if name != null && !name.isEmpty => name
-            case _ => "notch" // meaning: "unknown"
+          val data = new DriveData(heldItem)
+          if (!data.isLocked) {
+            data.lockInfo = player.getDisplayName match {
+              case name: String if name != null && !name.isEmpty => name
+              case _ => "notch" // meaning: "unknown"
+            }
+            data.save(heldItem)
           }
-          data.save(player.getHeldItem)
         case _ => // Invalid packet
       }
     case _ => // Invalid Packet
