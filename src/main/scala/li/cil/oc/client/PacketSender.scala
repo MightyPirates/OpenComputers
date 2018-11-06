@@ -35,6 +35,12 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendDriveLock(): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.DriveLock)
+
+    pb.sendToServer()
+  }
+
   def sendDronePower(e: Drone, power: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.DronePower)
 

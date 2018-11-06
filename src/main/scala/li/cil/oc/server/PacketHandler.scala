@@ -35,6 +35,7 @@ object PacketHandler extends CommonPacketHandler {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.CopyToAnalyzer => onCopyToAnalyzer(p)
+      case PacketType.DriveLock => onDriveLock(p)
       case PacketType.DriveMode => onDriveMode(p)
       case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
@@ -85,13 +86,37 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
+  def onDriveLock(p: PacketParser): Unit = p.player match {
+    case player: EntityPlayerMP =>
+      val heldItem = player.getHeldItem(EnumHand.MAIN_HAND)
+      Delegator.subItem(heldItem) match {
+        case Some(drive: FileSystemLike) =>
+          val data = new DriveData(heldItem)
+          if (!data.isLocked) {
+            data.lockInfo = player.getName match {
+              case name: String if name != null && !name.isEmpty => name
+              case _ => "notch" // meaning: "unknown"
+            }
+            data.save(heldItem)
+          }
+        case _ => // Invalid packet
+      }
+    case _ => // Invalid Packet
+  }
+
   def onDriveMode(p: PacketParser): Unit = p.player match {
     case player: EntityPlayerMP =>
-      Delegator.subItem(player.getHeldItem(EnumHand.MAIN_HAND)) match {
+      val heldItem = player.getHeldItem(EnumHand.MAIN_HAND)
+      Delegator.subItem(heldItem) match {
         case Some(drive: FileSystemLike) =>
-          val data = new DriveData(player.getHeldItem(EnumHand.MAIN_HAND))
-          data.isUnmanaged = p.readBoolean()
-          data.save(player.getHeldItem(EnumHand.MAIN_HAND))
+          val data = new DriveData(heldItem)
+          val newIsUnmanaged = p.readBoolean()
+          if (data.isUnmanaged != newIsUnmanaged) {
+            fs.FileSystem.removeAddress(heldItem)
+            data.lockInfo = ""
+          }
+          data.isUnmanaged = newIsUnmanaged
+          data.save(heldItem)
         case _ => // Invalid packet.
       }
     case _ => // Invalid packet.
