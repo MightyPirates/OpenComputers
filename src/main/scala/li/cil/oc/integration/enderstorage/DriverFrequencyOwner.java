@@ -74,7 +74,12 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
                     throw new IllegalArgumentException("invalid frequency");
                 }
             }
-            tileEntity.setFreq(new Frequency(EnumColour.fromWoolMeta(left), EnumColour.fromWoolMeta(middle), EnumColour.fromWoolMeta(right)));
+            tileEntity.setFreq(
+                    new Frequency(
+                        EnumColour.fromWoolMeta(left),
+                        EnumColour.fromWoolMeta(middle),
+                        EnumColour.fromWoolMeta(right),
+                        tileEntity.frequency.owner));
             return null;
         }
 
