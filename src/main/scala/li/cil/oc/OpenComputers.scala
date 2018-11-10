@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.SidedProxy
 import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 import net.minecraftforge.fml.common.event._
 import net.minecraftforge.fml.common.network.FMLEventChannel
+import li.cil.oc.util.ThreadPoolFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -51,7 +52,15 @@ object OpenComputers {
   }
 
   @EventHandler
-  def serverStart(e: FMLServerStartingEvent): Unit = CommandHandler.register(e)
+  def serverStart(e: FMLServerStartingEvent): Unit = {
+    CommandHandler.register(e)
+    ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+  }
+
+  @EventHandler
+  def serverStop(e: FMLServerStoppedEvent): Unit = {
+    ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
+  }
 
   @EventHandler
   def imc(e: IMCEvent): Unit = IMC.handleEvent(e)

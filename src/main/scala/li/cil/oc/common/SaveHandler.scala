@@ -4,18 +4,24 @@ import java.io
 import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.SafeThreadPool
+import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.world.ChunkDataEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -42,7 +48,32 @@ object SaveHandler {
   // which takes a lot of time and is completely unnecessary in those cases.
   var savingForClients = false
 
-  val saveData = mutable.Map.empty[Int, mutable.Map[ChunkPos, mutable.Map[String, Array[Byte]]]]
+  class SaveDataEntry(val data: Array[Byte], val pos: ChunkPos, val name: String, val dimension: Int) extends Runnable {
+    override def run(): Unit = {
+      val path = statePath
+      val dimPath = new io.File(path, dimension.toString)
+      val chunkPath = new io.File(dimPath, s"${this.pos.x}.${this.pos.z}")
+      chunkDirs.add(chunkPath)
+      if (!chunkPath.exists()) {
+        chunkPath.mkdirs()
+      }
+      val file = new io.File(chunkPath, this.name)
+      try {
+        // val fos = new GZIPOutputStream(new io.FileOutputStream(file))
+        val fos = new io.BufferedOutputStream(new io.FileOutputStream(file))
+        fos.write(this.data)
+        fos.close()
+      }
+      catch {
+        case e: io.IOException => OpenComputers.log.warn(s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
+      }
+    }
+  }
+
+  val stateSaveHandler: SafeThreadPool = ThreadPoolFactory.createSafePool("SaveHandler", 1)
+
+  val chunkDirs = new ConcurrentLinkedDeque[io.File]()
+  val saving = mutable.HashMap.empty[String, Future[_]]
 
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
 
@@ -113,37 +144,34 @@ object SaveHandler {
     val dimension = nbt.getInteger("dimension")
     val chunk = new ChunkPos(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
 
+    // Wait for the latest save task for the requested file to complete.
+    // This prevents the chance of loading an outdated version
+    // of this file.
+    saving.get(name).foreach(f => try {
+      f.get(120L, TimeUnit.SECONDS)
+    } catch {
+      case e: TimeoutException => OpenComputers.log.warn("Waiting for state data to save took two minutes! Aborting.")
+      case e: CancellationException => // NO-OP
+    })
+    saving.remove(name)
+
     load(dimension, chunk, name)
   }
 
-  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]) = saveData.synchronized {
+  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]): Unit = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
-      // Make sure we get rid of old versions (e.g. left over by other mods
-      // triggering a save - this is mostly used for RiM compatibility). We
-      // need to do this for *each* dimension, in case computers are teleported
-      // across dimensions.
-      for (chunks <- saveData.values) chunks.values.foreach(_ -= name)
-      val chunks = saveData.getOrElseUpdate(dimension, mutable.Map.empty)
-      chunks.getOrElseUpdate(chunk, mutable.Map.empty) += name -> data
+      // Disregarding whether or not there already was a
+      // save submitted for the requested file
+      // allows for better concurrency at the cost of
+      // doing more writing operations.
+      stateSaveHandler.withPool(_.submit(new SaveDataEntry(data, chunk, name, dimension))).foreach(saving.put(name, _))
     }
   }
 
   def load(dimension: Int, chunk: ChunkPos, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
-    // Use data from 'cache' if possible. This avoids weird things happening
-    // when writeToNBT+readFromNBT is called by other mods (i.e. this is not
-    // used to actually save the data to disk).
-    saveData.get(dimension) match {
-      case Some(chunks) => chunks.get(chunk) match {
-        case Some(map) => map.get(name) match {
-          case Some(data) => return data
-          case _ =>
-        }
-        case _ =>
-      }
-      case _ =>
-    }
+
     val path = statePath
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
@@ -171,35 +199,28 @@ object SaveHandler {
     }
   }
 
-  @SubscribeEvent
-  def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
-    val path = statePath
-    val dimension = e.getWorld.provider.getDimension
-    val chunk = e.getChunk.getPos
-    val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
-    if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
-      for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
-    }
-    saveData.get(dimension) match {
-      case Some(chunks) => chunks.get(chunk) match {
-        case Some(entries) =>
-          chunkPath.mkdirs()
-          for ((name, data) <- entries) {
-            val file = new io.File(chunkPath, name)
-            try {
-              // val fos = new GZIPOutputStream(new io.FileOutputStream(file))
-              val fos = new io.BufferedOutputStream(new io.FileOutputStream(file))
-              fos.write(data)
-              fos.close()
-            }
-            catch {
-              case e: io.IOException => OpenComputers.log.warn(s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
-            }
-          }
-        case _ => chunkPath.delete()
+  def cleanSaveData(): Unit = {
+    while (!chunkDirs.isEmpty) {
+      val chunkPath = chunkDirs.poll()
+      if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
+        for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
       }
-      case _ =>
+    }
+
+    // Delete empty folders to keep the state folder clean.
+    val emptyDirs = savePath.listFiles(new FileFilter {
+      override def accept(file: File) = file.isDirectory &&
+        // Make sure we only consider file system folders (UUID).
+        file.getName.matches(uuidRegex) &&
+        // We set the modified time in the save() method of unbuffered file
+        // systems, to avoid deleting in-use folders here.
+        System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves && {
+        val list = file.list()
+        list == null || list.isEmpty
+      }
+    })
+    if (emptyDirs != null) {
+      emptyDirs.filter(_ != null).foreach(_.delete())
     }
   }
 
@@ -226,28 +247,9 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
-    saveData.synchronized {
-      saveData.get(e.getWorld.provider.getDimension) match {
-        case Some(chunks) => chunks.clear()
-        case _ =>
-      }
-    }
-
-    // Delete empty folders to keep the state folder clean.
-    val emptyDirs = savePath.listFiles(new FileFilter {
-      override def accept(file: File) = file.isDirectory &&
-        // Make sure we only consider file system folders (UUID).
-        file.getName.matches(uuidRegex) &&
-        // We set the modified time in the save() method of unbuffered file
-        // systems, to avoid deleting in-use folders here.
-        System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves && {
-        val list = file.list()
-        list == null || list.isEmpty
-      }
-    })
-    if (emptyDirs != null) {
-      emptyDirs.filter(_ != null).foreach(_.delete())
-    }
+    stateSaveHandler.withPool(_.submit(new Runnable {
+      override def run(): Unit = cleanSaveData()
+    }))
   }
 }
 
