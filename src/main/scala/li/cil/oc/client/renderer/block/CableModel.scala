@@ -34,18 +34,20 @@ class CableModel extends SmartBlockModelBase {
   override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] =
     state match {
       case extended: IExtendedBlockState =>
-        extended.getValue(block.property.PropertyTile.Tile) match {
-          case t: tileentity.Cable =>
+        val neighbors = extended.getValue(block.Cable.NeighborsProp)
+        val color = extended.getValue(block.Cable.ColorProp)
+        val isCableSide = extended.getValue(block.Cable.IsSideCableProp)
+        (neighbors,color,isCableSide) match {
+          case (neighbourMask: Integer, color: Integer, isCableOnSideMask: Integer) =>
             val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-            val color = Some(t.getColor)
-            val mask = block.Cable.neighbors(t.world, t.getPos)
             faces ++= bakeQuads(Middle, cableTexture, color)
             for (side <- EnumFacing.values) {
-              val connected = (mask & (1 << side.getIndex)) != 0
+              val connected = (neighbourMask & (1 << side.getIndex)) != 0
+              val isCableOnSide = (isCableOnSideMask & (1 << side.getIndex)) != 0
               val (plug, shortBody, longBody) = Connected(side.getIndex)
               if (connected) {
-                if (isCable(t.position.offset(side))) {
+                if (isCableOnSide) {
                   faces ++= bakeQuads(longBody, cableTexture, color)
                 }
                 else {
@@ -53,7 +55,7 @@ class CableModel extends SmartBlockModelBase {
                   faces ++= bakeQuads(plug, cableCapTexture, None)
                 }
               }
-              else if (((1 << side.getOpposite.getIndex) & mask) == mask || mask == 0) {
+              else if (((1 << side.getOpposite.getIndex) & neighbourMask) == neighbourMask || neighbourMask == 0) {
                 faces ++= bakeQuads(Disconnected(side.getIndex), cableCapTexture, None)
               }
             }

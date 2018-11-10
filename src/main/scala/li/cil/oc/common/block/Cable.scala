@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.common.block.property.UnlistedInteger
 import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
@@ -30,12 +31,18 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def createBlockState() = new ExtendedBlockState(this, Array.empty, Array(property.PropertyTile.Tile))
+  override def createBlockState() = new ExtendedBlockState(this, Array.empty, Array(Cable.NeighborsProp,Cable.ColorProp, Cable.IsSideCableProp))
 
   override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, cable: tileentity.Cable) =>
-        extendedState.withProperty(property.PropertyTile.Tile, cable)
+        var isCableMask = 0
+        for (side <- EnumFacing.values) {
+          if (world.getTileEntity(pos.offset(side)).isInstanceOf[tileentity.Cable]){
+            isCableMask = Cable.mask(side, isCableMask)
+          }
+        }
+        extendedState.withProperty(Cable.NeighborsProp, Int.box(Cable.neighbors(world,pos))).withProperty(Cable.ColorProp, Int.box(cable.getColor)).withProperty(Cable.IsSideCableProp, Int.box(isCableMask))
       case _ => state
     }
 
@@ -133,6 +140,10 @@ object Cable {
       })
     }).toArray
   }
+
+  final val NeighborsProp = new UnlistedInteger("neighbors")
+  final val ColorProp = new UnlistedInteger("color")
+  final val IsSideCableProp = new UnlistedInteger("is_cable")
 
   def mask(side: EnumFacing, value: Int = 0) = value | (1 << side.getIndex)
 
