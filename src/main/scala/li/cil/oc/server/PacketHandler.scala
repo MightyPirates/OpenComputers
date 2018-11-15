@@ -4,11 +4,12 @@ import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.Machine
+import li.cil.oc.api.network.Connector
 import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.{Delegator, Tablet, TabletWrapper}
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
@@ -41,6 +42,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
+      case PacketType.MachineItemStateRequest => onMachineItemStateRequest(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
@@ -264,6 +266,14 @@ object PacketHandler extends CommonPacketHandler {
       case Some(proxy) => proxy.world.notifyBlockUpdate(proxy.getPos, proxy.world.getBlockState(proxy.getPos), proxy.world.getBlockState(proxy.getPos), 3)
       case _ => // Invalid packet.
     }
+
+  def onMachineItemStateRequest(p: PacketParser): Unit = p.player match {
+    case player: EntityPlayerMP => {
+      val stack = p.readItemStack()
+      PacketSender.sendMachineItemState(player, stack, Tablet.get(stack, p.player).machine.isRunning)
+    }
+    case _ => // ignore
+  }
 
   def onTextBufferInit(p: PacketParser) {
     val address = p.readUTF()

@@ -90,6 +90,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendMachineItemState(player: EntityPlayerMP, stack: ItemStack, isRunning: Boolean): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.MachineItemStateResponse)
+
+    pb.writeItemStack(stack)
+    pb.writeBoolean(isRunning)
+
+    pb.sendToPlayer(player)
+  }
+
   def sendComputerUserList(t: Computer, list: Array[String]) {
     val pb = new SimplePacketBuilder(PacketType.ComputerUserList)
 

@@ -21,6 +21,7 @@ import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.{client, server}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
@@ -28,7 +29,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.server.component
+import li.cil.oc.server.{PacketSender, component}
 import li.cil.oc.util.Audio
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -40,7 +41,7 @@ import net.minecraft.client.renderer.block.model.ModelBakery
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -91,8 +92,10 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   override def durability(stack: ItemStack): Double = {
     if (stack.hasTagCompound) {
-      val data = new TabletData()
-      data.load(stack.getTagCompound)
+      val data = Tablet.Client.getWeak(stack) match {
+        case Some(wrapper) => wrapper.data
+        case _ => new TabletData(stack)
+      }
       1 - data.energy / data.maxEnergy
     }
     else 1.0
@@ -111,10 +114,10 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   @SideOnly(Side.CLIENT)
   override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
-    if (stack.hasTagCompound)
-      modelLocationFromState(Some(new TabletData(stack).isRunning))
-    else
-      modelLocationFromState(None)
+    modelLocationFromState(Tablet.Client.getWeak(stack) match {
+      case Some(tablet: TabletWrapper) => Some(tablet.data.isRunning)
+      case _ => None
+    })
   }
 
   @SideOnly(Side.CLIENT)
@@ -242,11 +245,19 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   val tablet: component.Tablet = if (world.isRemote) null else new component.Tablet(this)
 
-  var autoSave = true
-
+  //// Client side only
   private var isInitialized = !world.isRemote
 
+  var timesChanged: Int = 0
+
+  var isDirty: Boolean = true
+  ////
+
+  // Server side only
   private var lastRunning = false
+
+  var autoSave = true
+  ////
 
   def isCreative: Boolean = data.tier == Tier.Four
 
@@ -414,6 +425,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
           buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
           buffer.setMaximumResolution(80, 25)
       }
+
+      client.PacketSender.sendMachineItemStateRequest(stack)
     }
     if (!world.isRemote) {
       if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
@@ -428,6 +441,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       if (lastRunning != machine.isRunning) {
         lastRunning = machine.isRunning
         markDirty()
+
+        player match {
+          case mp: EntityPlayerMP => server.PacketSender.sendMachineItemState(mp, stack, machine.isRunning)
+          case _ =>
+        }
 
         if (machine.isRunning) {
           components collect {
@@ -520,6 +538,23 @@ object Tablet {
       cache.synchronized {
         currentStack = stack
         currentHolder = holder
+
+        // if the item is still cached, we can detect if it is dirty (client side only)
+        if (holder.world.isRemote) {
+          Client.getWeak(stack) match {
+            case Some(weak) =>
+              val timesChanged = holder.inventory.getTimesChanged
+              if (timesChanged != weak.timesChanged) {
+                if (!weak.isDirty) {
+                  weak.isDirty = true
+                  client.PacketSender.sendMachineItemStateRequest(stack)
+                }
+                weak.timesChanged = timesChanged
+              }
+            case _ =>
+          }
+        }
+
         var wrapper = cache.get(id, this)
 
         // Force re-load on world change, in case some components store a
@@ -531,6 +566,9 @@ object Tablet {
           cache.cleanUp()
           wrapper = cache.get(id, this)
         }
+
+        currentStack = null
+        currentHolder = null
 
         wrapper.stack = stack
         wrapper.player = holder
@@ -552,6 +590,7 @@ object Tablet {
           node.remove()
         }
         if (tablet.autoSave) tablet.writeToNBT()
+        tablet.markDirty()
       }
     }
 
@@ -575,6 +614,15 @@ object Tablet {
 
   object Client extends Cache {
     override protected def timeout = 5
+
+    def getWeak(stack: ItemStack): Option[TabletWrapper] = {
+      val key = getId(stack)
+      val map = cache.asMap
+      if (map.containsKey(key))
+        Some(map.entrySet.find(entry => entry.getKey == key).get.getValue)
+      else
+        None
+    }
 
     def get(stack: ItemStack): Option[TabletWrapper] = {
       if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {

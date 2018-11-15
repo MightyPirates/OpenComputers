@@ -12,6 +12,7 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
+import li.cil.oc.common.item.{Tablet, TabletWrapper}
 import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
@@ -58,6 +59,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ClientLog => onClientLog(p)
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.ColorChange => onColorChange(p)
+      case PacketType.MachineItemStateResponse => onMachineItemStateResponse(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.ContainerUpdate => onContainerUpdate(p)
@@ -151,6 +153,15 @@ object PacketHandler extends CommonPacketHandler {
         t.getWorld.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
+
+  def onMachineItemStateResponse(p: PacketParser) : Unit = {
+    val stack = p.readItemStack()
+    val running = p.readBoolean()
+    val wrapper = Tablet.Client.get(stack, p.player)
+
+    wrapper.data.isRunning = running
+    wrapper.isDirty = false
+  }
 
   def onComputerState(p: PacketParser): Unit =
     p.readTileEntity[Computer]() match {

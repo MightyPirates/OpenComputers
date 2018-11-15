@@ -9,9 +9,13 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.SoundEvents
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.SoundCategory
+
+import scala.tools.nsc.doc.model.Entity
 
 object PacketSender {
   // Timestamp after which the next clipboard message may be sent. Used to
@@ -89,6 +93,14 @@ object PacketSender {
         }
       }
     }
+  }
+
+  def sendMachineItemStateRequest(stack: ItemStack): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.MachineItemStateRequest)
+
+    pb.writeItemStack(stack)
+
+    pb.sendToServer()
   }
 
   def sendMouseClick(address: String, x: Double, y: Double, drag: Boolean, button: Int) {

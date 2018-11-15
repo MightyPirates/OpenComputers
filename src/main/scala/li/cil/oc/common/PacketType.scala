@@ -79,6 +79,8 @@ object PacketType extends Enumeration {
   KeyDown,
   KeyUp,
   Clipboard,
+  MachineItemStateRequest,
+  MachineItemStateResponse,
   MouseClickOrDrag,
   MouseScroll,
   MouseUp,
