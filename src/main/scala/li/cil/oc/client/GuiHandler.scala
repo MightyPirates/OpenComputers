@@ -118,7 +118,7 @@ object GuiHandler extends CommonGuiHandler {
               val address = stack.getTagCompound.getString(Settings.namespace + "server")
               val key = stack.getTagCompound.getString(Settings.namespace + "key")
               if (!Strings.isNullOrEmpty(key) && !Strings.isNullOrEmpty(address)) {
-                component.TerminalServer.loaded.find(_.address == address) match {
+                component.TerminalServer.loaded.find(address) match {
                   case Some(term) => term.rack match {
                     case rack: TileEntity with api.internal.Rack =>
                       def inRange = player.isEntityAlive && !rack.isInvalid && rack.getDistanceSq(player.posX, player.posY, player.posZ) < term.range * term.range
