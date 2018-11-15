@@ -30,6 +30,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
@@ -63,7 +64,17 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   var range = Settings.get.maxWirelessRange(Tier.Two)
   val keys = mutable.ListBuffer.empty[String]
 
-  def address = rack.getMountableData(slot).getString("terminalAddress")
+  def hasAddress: Boolean = {
+    if (rack != null) {
+      val data = rack.getMountableData(slot)
+      if (data != null) {
+        return data.hasKey("terminalAddress")
+      }
+    }
+    false
+  }
+
+  def address: String = rack.getMountableData(slot).getString("terminalAddress")
 
   def sidedKeys = {
     if (!rack.world.isRemote) keys
@@ -206,13 +217,77 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
 
   override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.world.isRemote) state match {
     case Lifecycle.LifecycleState.Initialized =>
-      TerminalServer.loaded += this
+      TerminalServer.loaded.add(this)
     case Lifecycle.LifecycleState.Disposed =>
-      TerminalServer.loaded -= this
+      TerminalServer.loaded.remove(this)
     case _ => // Ignore.
   }
 }
 
 object TerminalServer {
-  val loaded = mutable.Buffer.empty[TerminalServer]
+  val loaded = new TerminalServerCache()
+
+  // we need a smart cache because nodes are loaded in before they have addresses
+  // and we need a unique set of terminal servers based on address
+  // This cache acts as a Map[address: String, term: TerminalServer]
+  // But it can store terminals before they have an address
+  // Null-address terminals are not available for binding
+  // As an address loads, repeated addresses are dropped from the list
+  class TerminalServerCache {
+
+    private val ready: mutable.Map[String, TerminalServer] = new mutable.HashMap[String, TerminalServer]()
+    private val pending: mutable.Buffer[TerminalServer] = mutable.Buffer.empty[TerminalServer]
+
+    private def completePending(): Unit = {
+      val promoted: mutable.Buffer[TerminalServer] = mutable.Buffer.empty[TerminalServer]
+      pending.foreach { term => if (term.hasAddress)
+        promoted += term
+      }
+      promoted.foreach { term =>
+        pending -= term
+        val address = term.address
+        if (!ready.contains(address)) {
+          ready.put(address, term)
+        }
+      }
+    }
+
+    def add(terminal: TerminalServer): Boolean = {
+      completePending()
+      if (terminal.hasAddress) {
+        val newAddress: String = terminal.address
+        if (ready.contains(newAddress)) {
+          false
+        } else {
+          ready.put(newAddress, terminal)
+          true
+        }
+      }
+      else {
+        pending += terminal
+        true
+      }
+    }
+
+    def remove(terminal: TerminalServer): Boolean = {
+      completePending()
+      if (terminal.hasAddress)
+        ready.remove(terminal.address).isDefined
+      else {
+        val before = pending.size
+        pending -= terminal
+        pending.size > before
+      }
+    }
+
+    def clear(): Unit = {
+      ready.clear()
+      pending.clear()
+    }
+
+    def find(address: String): Option[TerminalServer] = {
+      completePending()
+      Some(ready.getOrDefault(address, null))
+    }
+  }
 }
