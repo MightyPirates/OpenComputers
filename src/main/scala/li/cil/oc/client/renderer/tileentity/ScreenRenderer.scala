@@ -9,6 +9,7 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -61,6 +62,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
     RenderState.pushAttrib()
 
+    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 0xFF, 0xFF)
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     GlStateManager.color(1, 1, 1, 1)
