@@ -1,7 +1,7 @@
 -- called from /init.lua
 local raw_loadfile = ...
 
-_G._OSVERSION = "OpenOS 1.7.2"
+_G._OSVERSION = "OpenOS 1.7.3"
 
 local component = component
 local computer = computer
@@ -73,13 +73,9 @@ end
 status("Booting " .. _OSVERSION .. "...")
 
 -- Custom low-level dofile implementation reading from our ROM.
-local loadfile = function(file)
-  status("> " .. file)
-  return raw_loadfile(file)
-end
-
 local function dofile(file)
-  local program, reason = loadfile(file)
+  status("> " .. file)
+  local program, reason = raw_loadfile(file)
   if program then
     local result = table.pack(pcall(program))
     if result[1] then
@@ -112,11 +108,11 @@ do
   package.loaded.component = component
   package.loaded.computer = computer
   package.loaded.unicode = unicode
-  package.loaded.buffer = assert(loadfile("/lib/buffer.lua"))()
-  package.loaded.filesystem = assert(loadfile("/lib/filesystem.lua"))()
+  package.loaded.buffer = dofile("/lib/buffer.lua")
+  package.loaded.filesystem = dofile("/lib/filesystem.lua")
 
   -- Inject the io modules
-  _G.io = assert(loadfile("/lib/io.lua"))()
+  _G.io = dofile("/lib/io.lua")
 end
 
 status("Initializing file system...")
