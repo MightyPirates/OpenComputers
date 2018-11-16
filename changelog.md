@@ -2,10 +2,14 @@
 
 * Misc: Greatly improved Lua execution speed (asiekierka)
   - That means OC now executes Lua code roughly 70% faster than before.
-* Misc: Improved Screen rendering performance (cam72cam)
-  - Screens now render between 1 and 15 times faster than before, depending on your graphics card.
 * Misc: Improved Filesystem and block data saving performance
   - Saving computers to disk is now anything between 5 and 500 times faster than before, depending on your system. Maybe even more.
+* **Added: The Net Splitter is now a `net_splitter` component**
+  - This allows using computers to connect and disconnect various parts of your network.
+  - Make sure not to accidentally disconnect your controller!
+* **Added: New feature for filesystems: Locked mode!**
+  - A locked filesystem is read-only and cannot be unlocked unless recrafted or its mode is switched between managed and unmanaged, either action wiping the drive.
+  - The name of the player who locked it is shown in the tooltip, allowing authenticated sharing of data.
 * Added: Bundled redstone support for ComputerCraft (SquidDev)
 * Added: `debug.getlocal` and `debug.getupvalue`
   - They only return the name of the variable, and nothing else.
@@ -21,9 +25,6 @@
 * Added: Readded AE2 power support on Minecraft 1.12, meaning you can now power your computers directly off the ME network again.
 * Added: `scanContentsAt` to debug card
 * Added: More accessible information from Draconic Evolution items
-* **Added: The Net Splitter is now a `net_splitter` component**
-  - This allows using computers to connect and disconnect various parts of your network.
-  - Make sure not to accidentally disconnect your controller!
 * Added: Waypoints can now be placed facing up or down
 * Added: You can now craft two linked cards together to link them to one another
   - This will unlink them from any previously connected Linked Card.
@@ -36,9 +37,6 @@
   - Battery upgrades, tablets, and hover boots can be charged in Forge Energy compatible devices
   - Battery upgrades also support power extraction, allowing them to recharge Forge Energy devices acting as normal batteries
 * Added: The Analyzer now reports the internal components of an Adapter block when right-clicked
-* **Added: New feature for filesystems: Locked mode!**
-  - A locked filesystem is read-only and cannot be unlocked unless recrafted or its mode is switched between managed and unmanaged, either action wiping the drive.
-  - The name of the player who locked it is shown in the tooltip, allowing authenticated sharing of data.
 * **Changed: `redstone_changed` event for bundled signals**
   - Now includes the colour that changed, and only reports the old and new values for that colour
 * Changed: The order in which cases are filled with components is now based on the slot tiers
@@ -57,6 +55,7 @@
 * Misc: Improved chunkloader upgrade (svitoos)
   - Chunkloaders are now allowed in Microcontrollers.
 * Misc: Added more unicode glyphs to font (asiekierka)
+* Misc: The default Lua EEPROM now uses less RAM
 * Fixed: Inventory loss during minecraft server crashes
 * Fixed: Crash when placing microcontroller
 * Fixed: Allow the robot to swing at anything that would block its movement
@@ -115,9 +114,8 @@
 
 ## List of contributors
 payonel, Vexatos,  
-cam72cam, asiekierka,  
-SquidDev, kmecpp,  
-BrisingrAerowing, cyb0124,  
-svitoos, AntiBlueQuirk,  
-josephcsible, amesgen,  
-thiakil, paulhobbel
+asiekierka, SquidDev,  
+kmecpp, BrisingrAerowing,  
+cyb0124, svitoos,  
+AntiBlueQuirk, josephcsible,  
+amesgen, thiakil, paulhobbel
