@@ -34,7 +34,8 @@ object PetRenderer {
     "23c7ed71-fb13-4abe-abe7-f355e1de6e62" ->(0.3, 0.3, 1.0), // LizzyTheSiren
     "076541f1-f10a-46de-a127-dfab8adfbb75" ->(0.2, 1.0, 0.1), // vifino
     "e7e90198-0ccf-4662-a827-192ec8f4419d" ->(0.0, 0.2, 0.6), // Izaya
-    "f514ee69-7bbb-4e46-9e94-d8176324cec2" ->(0.098, 0.471, 0.784) // Wobbo
+    "f514ee69-7bbb-4e46-9e94-d8176324cec2" ->(0.098, 0.471, 0.784), // Wobbo
+    "f812c043-78ba-4324-82ae-e8f05c52ae6e" ->(0.1, 0.8, 0.5) // payonel
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
