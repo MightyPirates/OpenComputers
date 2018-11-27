@@ -3,10 +3,6 @@ local computer = require("computer")
 local unicode = require("unicode")
 local tty = require("tty")
 
-if not component.isAvailable("gpu") then
-  return
-end
-
 local f = io.open("/usr/misc/greetings.txt")
 local lines = {_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)"}
 local greeting = ""
