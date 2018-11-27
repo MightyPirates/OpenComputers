@@ -1,15 +1,12 @@
 local event = require("event")
 local keyboard = require("keyboard")
 
-local function onKeyDown(_, _, char, code)
-  keyboard.pressedChars[char] = true
-  keyboard.pressedCodes[code] = true
+local function onKeyChange(ev, _, char, code)
+  -- nil might be slightly more mem friendly during runtime
+  -- and `or nil` appears to only cost 30 bytes
+  keyboard.pressedChars[char] = ev == "key_down" or nil
+  keyboard.pressedCodes[code] = ev == "key_down" or nil
 end
 
-local function onKeyUp(_, _, char, code)
-  keyboard.pressedChars[char] = nil
-  keyboard.pressedCodes[code] = nil
-end
-
-event.listen("key_down", onKeyDown)
-event.listen("key_up", onKeyUp)
+event.listen("key_down", onKeyChange)
+event.listen("key_up", onKeyChange)
