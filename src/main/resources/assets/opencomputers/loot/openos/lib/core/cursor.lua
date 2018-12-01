@@ -223,12 +223,18 @@ function core_cursor.read(cursor)
     clipboard = tty.keyboard,
     touch = tty.screen,
     drag = tty.screen,
-    drop = tty.screen
+    drop = tty.screen,
+    interrupted = true
   }
 
+  local blink = tty.window.blink or math.huge
+  if blink == true then blink = .5 end
+  local next_blink = computer.uptime() + blink
+  cursor:echo()
   while true do
     local next_line = cursor.data:find("\10")
     if next_line then
+      cursor:echo(false)
       local result = cursor.data:sub(1, next_line)
       local overflow = cursor.data:sub(next_line + 1)
       local history = text.trim(result)
@@ -242,19 +248,25 @@ function core_cursor.read(cursor)
       return result
     end
 
-    cursor:echo()
-    local pack = table.pack(computer.pullSignal(tty.window.blink and .5 or math.huge))
+    local pack = table.pack(computer.pullSignal(next_blink - computer.uptime()))
     local name = pack[1]
-    cursor:echo(not name)
 
     if name then
       local filter_address = address_check[name]
-      if not filter_address or filter_address() == pack[2] then
+      if filter_address and (filter_address == true or filter_address() == pack[2]) then
+        cursor:echo(false)
         local ret, why = cursor:handle(name, table.unpack(pack, 3, pack.n))
         if not ret then
           return ret, why
         end
+        cursor:echo()
+        next_blink = computer.uptime() + blink
       end
+    end
+
+    if computer.uptime() >= next_blink then
+      cursor:echo(true)
+      next_blink = computer.uptime() + blink
     end
   end
 end

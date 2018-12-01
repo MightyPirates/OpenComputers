@@ -4,6 +4,7 @@ local keyboard = require("keyboard")
 local event = {}
 local handlers = {}
 local lastInterrupt = -math.huge
+local globalTimeout = math.huge
 
 event.handlers = handlers
 
@@ -16,7 +17,9 @@ function event.register(key, callback, interval, times, opt_handlers)
     interval = interval or math.huge,
   }
 
-  handler.timeout = computer.uptime() + handler.interval
+  local timeout = computer.uptime() + handler.interval
+  handler.timeout = timeout
+  if timeout < globalTimeout then globalTimeout = timeout end
   opt_handlers = opt_handlers or handlers
 
   local id = 0
@@ -30,7 +33,7 @@ end
 
 local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
-computer.pullSignal = function(...) -- dispatch
+computer.pullSignal = function(first, ...) -- dispatch
   local current_time = computer.uptime()
   local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
   if interrupting then
@@ -41,7 +44,19 @@ computer.pullSignal = function(...) -- dispatch
     end
     event.push("interrupted", current_time)
   end
-  local event_data = table.pack(handlers(...))
+  local timeout = globalTimeout - current_time
+  local args
+  if type(first) == 'number' then
+    args = {...}
+    if first < timeout then timeout = first end
+  else
+    args = {first, ...}
+  end
+  local event_data = table.pack(handlers(timeout, table.unpack(args)))
+  current_time = computer.uptime()
+  if globalTimeout <= current_time then
+    globalTimeout = math.huge
+  end
   local signal = event_data[1]
   local copy = {}
   for id,handler in pairs(handlers) do
@@ -65,6 +80,9 @@ computer.pullSignal = function(...) -- dispatch
       elseif message == false and handlers[id] == handler then
         handlers[id] = nil
       end
+    end
+    if handlers[id] == handler and handler.timeout < globalTimeout then
+      globalTimeout = handler.timeout
     end
   end
   return table.unpack(event_data, 1, event_data.n)
