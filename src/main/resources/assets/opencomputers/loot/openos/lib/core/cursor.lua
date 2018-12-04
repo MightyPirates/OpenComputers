@@ -227,14 +227,18 @@ function core_cursor.read(cursor)
     interrupted = true
   }
 
-  local blink = tty.window.blink or math.huge
-  if blink == true then blink = .5 end
-  local next_blink = computer.uptime() + blink
-  cursor:echo()
+  local blink = tty.window.blink
+  -- If tty.window.blink is internal, move this to term.setCursorBlink()
+  if not blink or blink == 0 then blink = math.huge
+  elseif type(blink) ~= 'number' then blink = .5
+  elseif blink < 0 then blink = nil end
+
+  local next_blink = computer.uptime() + (blink or math.huge)
+  if blink then cursor:echo() end
   while true do
     local next_line = cursor.data:find("\10")
     if next_line then
-      cursor:echo(false)
+      if blink then cursor:echo(false) end
       local result = cursor.data:sub(1, next_line)
       local overflow = cursor.data:sub(next_line + 1)
       local history = text.trim(result)
@@ -254,13 +258,15 @@ function core_cursor.read(cursor)
     if name then
       local filter_address = address_check[name]
       if filter_address and (filter_address == true or filter_address() == pack[2]) then
-        cursor:echo(false)
+        if blink then cursor:echo(false) end
         local ret, why = cursor:handle(name, table.unpack(pack, 3, pack.n))
         if not ret then
           return ret, why
         end
-        cursor:echo()
-        next_blink = computer.uptime() + blink
+        if blink then
+          cursor:echo()
+          next_blink = computer.uptime() + blink
+        end
       end
     end
 

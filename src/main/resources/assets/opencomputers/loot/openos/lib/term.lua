@@ -148,8 +148,11 @@ end
 
 function term.pull(...)
   local blink = tty.window.blink
-  if not blink then return event.pull(...) end
-  if blink == true then blink = .5 end
+  -- If tty.window.blink is internal, move this to term.setCursorBlink()
+  if not blink or blink == 0 then blink = math.huge
+  elseif type(blink) ~= 'number' then blink = .5
+  elseif blink < 0 then return event.pull(...) end
+
   local args = table.pack(...)
   local timeout = math.huge
   if type(args[1]) == "number" then
@@ -157,7 +160,7 @@ function term.pull(...)
     args.n = args.n - 1
   end
   local cursor = core_cursor.new()
-  local next_blink = computer.uptime() + blink
+  local next_blink = math.min(timeout, computer.uptime() + blink)
   cursor:echo()
   while timeout >= computer.uptime() do
     local s = table.pack(event.pull(next_blink - computer.uptime(), table.unpack(args, 1, args.n)))
@@ -167,7 +170,7 @@ function term.pull(...)
     end
     if computer.uptime() >= next_blink then
       cursor:echo(true)
-      next_blink = computer.uptime() + blink
+      next_blink = math.min(timeout, computer.uptime() + blink)
     end
   end
 end
