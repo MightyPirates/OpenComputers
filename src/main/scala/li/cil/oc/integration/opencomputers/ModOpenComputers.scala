@@ -151,6 +151,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverTerminalServer)
 
     api.Driver.add(DriverUpgradeAngel)
+    api.Driver.add(DriverUpgradeBarcodeReader)
     api.Driver.add(DriverUpgradeBattery)
     api.Driver.add(DriverUpgradeChunkloader)
     api.Driver.add(DriverUpgradeCrafting)
@@ -212,6 +213,7 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
+      Constants.ItemName.Analyzer,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.BatteryUpgradeTier1,
       Constants.ItemName.BatteryUpgradeTier2,
@@ -235,6 +237,7 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
+      Constants.ItemName.Analyzer,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
@@ -250,6 +253,7 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.CarpetedCapacitor,
+      Constants.ItemName.Analyzer,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
@@ -275,6 +279,7 @@ object ModOpenComputers extends ModProxy {
     blacklistHost(classOf[internal.Robot],
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
+      Constants.ItemName.Analyzer,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Tablet],
       Constants.BlockName.ScreenTier1,
