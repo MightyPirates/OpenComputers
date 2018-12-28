@@ -129,7 +129,7 @@ object PacketSender {
 
   def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) {
     fileSystemAccessTimeouts.synchronized(fileSystemAccessTimeouts.get(node)) match {
-      case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
+      case Some(hostTimeouts) if hostTimeouts.synchronized(hostTimeouts.getOrElse(name, 0L)) > System.currentTimeMillis() => // Cooldown.
       case _ =>
         val event = host match {
           case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
@@ -137,7 +137,8 @@ object PacketSender {
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
-          fileSystemAccessTimeouts.synchronized(fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500))
+          val hostTimeouts = fileSystemAccessTimeouts.synchronized(fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty))
+          hostTimeouts.synchronized(hostTimeouts += name -> (System.currentTimeMillis() + 500))
 
           val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
 
