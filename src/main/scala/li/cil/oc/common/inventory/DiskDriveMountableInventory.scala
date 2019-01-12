@@ -10,7 +10,7 @@ trait DiskDriveMountableInventory extends ItemStackInventory {
 
   override def getSizeInventory = 1
 
-  override protected def inventoryName = "DiskDrive"
+  override protected def inventoryName = "diskdrive"
 
   override def getInventoryStackLimit = 1
 
