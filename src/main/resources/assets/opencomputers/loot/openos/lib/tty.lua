@@ -103,7 +103,7 @@ function tty.stream:write(value)
 
     local x, y = tty.getCursor()
 
-    local _, ei, delim = unicode.sub(window.output_buffer, 1, window.width):find("([\27\t\r\n\a\b\15])")
+    local _, ei, delim = unicode.sub(window.output_buffer, 1, window.width):find("([\27\t\r\n\a\b\v\15])")
     local segment = ansi_print .. (ei and window.output_buffer:sub(1, ei - 1) or window.output_buffer)
 
     if segment ~= "" then
@@ -139,6 +139,8 @@ function tty.stream:write(value)
       y = y + 1
     elseif delim == "\b" then
       x = x - 1
+    elseif delim == "\v" then
+      y = y + 1
     elseif delim == "\a" and not beeped then
       computer.beep()
       beeped = true
