@@ -81,7 +81,10 @@ object BlockDataProvider extends IWailaDataProvider {
     tileEntity match {
       case te: tileentity.Relay =>
         tag.setDouble("signalStrength", te.strength)
-        tag.setNewTagList("addresses", stringIterableToNbt(te.componentNodes.map(_.address)))
+        // this might be called by waila before the components have finished loading, thus the addresses may be null
+        tag.setNewTagList("addresses", stringIterableToNbt(te.componentNodes.collect {
+          case n if n.address != null => n
+        }.map(_.address)))
       case te: tileentity.Assembler =>
         ignoreSidedness(te.node)
         if (te.isAssembling) {
