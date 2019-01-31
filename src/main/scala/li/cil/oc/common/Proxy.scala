@@ -168,7 +168,7 @@ class Proxy {
 
   @SubscribeEvent
   def missingBlockMappings(e: MissingMappings[Block]) {
-    for (missing <- e.getAllMappings()) {
+    for (missing <- e.getMappings) {
         blockRenames.get(missing.key.getResourcePath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
@@ -180,7 +180,7 @@ class Proxy {
 
   @SubscribeEvent
   def missingItemMappings(e: MissingMappings[Item]) {
-    for (missing <- e.getAllMappings()) {
+    for (missing <- e.getMappings) {
         itemRenames.get(missing.key.getResourcePath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
