@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
@@ -58,7 +59,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
                 breakingMapNew += pos -> info
                 info.update(world, player, now)
               case None =>
-                val event = new PlayerInteractEvent.LeftClickBlock(player, pos.toBlockPos, null, null)
+                val event = new PlayerInteractEvent.LeftClickBlock(player, pos.toBlockPos, player.getHorizontalFacing, null)
                 MinecraftForge.EVENT_BUS.post(event)
                 val allowed = !event.isCanceled && event.getUseBlock != Event.Result.DENY && event.getUseItem != Event.Result.DENY
                 val adventureOk = !world.getWorldInfo.getGameType.hasLimitedInteractions || player.canPlayerEdit(pos.toBlockPos, null, player.getHeldItemMainhand)
