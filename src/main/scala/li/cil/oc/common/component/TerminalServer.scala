@@ -293,7 +293,7 @@ object TerminalServer {
 
     def find(address: String): Option[TerminalServer] = {
       completePending()
-      Some(ready.getOrDefault(address, null))
+      ready.get(address)
     }
   }
 }
