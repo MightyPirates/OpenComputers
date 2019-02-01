@@ -399,6 +399,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val state = world.getBlockState(pos)
     val block = state.getBlock
 
+    if (!block.canHarvestBlock(world, pos, this)) return 0
+
     val hardness = block.getBlockHardness(state, world, pos)
     val cobwebOverride = block == Blocks.WEB && Settings.get.screwCobwebs
 
@@ -408,6 +410,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       else hardness * 1.5 / strength
 
     if (breakTime.isInfinity) return 0
+    if (breakTime < 0) return breakTime
 
     val preEvent = new RobotBreakBlockEvent.Pre(agent, world, pos, breakTime * Settings.get.harvestRatio)
     MinecraftForge.EVENT_BUS.post(preEvent)
