@@ -335,7 +335,7 @@ object InventoryUtils {
     inventoryAt(sourcePos) match {
       case Some(sourceInventory) =>
         inventoryAt(sinkPos) match {
-          case Some(sinkInventory) => () => transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)
+          case Some(sinkInventory) => () => transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)
           case _ => null
         }
       case _ => null
