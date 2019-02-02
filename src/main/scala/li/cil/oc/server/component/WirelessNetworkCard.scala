@@ -161,6 +161,9 @@ object WirelessNetworkCard {
     )
 
     override def getDeviceInfo: util.Map[String, String] = deviceInfo
+
+    override protected def isPacketAccepted(packet: Packet, distance: Double) = distance != 0 && super.isPacketAccepted(packet, distance)
+
   }
   
   class Tier2(host: EnvironmentHost) extends Tier1(host) {
