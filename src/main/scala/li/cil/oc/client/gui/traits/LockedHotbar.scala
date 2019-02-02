@@ -9,7 +9,7 @@ trait LockedHotbar extends GuiContainer {
   def lockedStack: ItemStack
 
   override def handleMouseClick(slot: Slot, slotId: Int, mouseButton: Int, clickType: ClickType): Unit = {
-    if (slot == null || slot.getStack != lockedStack) {
+    if (slot == null || !slot.getStack.isItemEqual(lockedStack)) {
       super.handleMouseClick(slot, slotId, mouseButton, clickType)
     }
   }
