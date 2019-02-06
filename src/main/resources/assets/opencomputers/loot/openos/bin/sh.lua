@@ -3,19 +3,21 @@ local tty = require("tty")
 local text = require("text")
 local sh = require("sh")
 
-local args, options = shell.parse(...)
+local args = shell.parse(...)
 
 shell.prime()
-local needs_profile = io.input().tty
-local has_prompt = needs_profile and io.output().tty and not options.c
-local input_handler = {hint = sh.hintHandler}
 
 if #args == 0 then
+  local has_profile
+  local input_handler = {hint = sh.hintHandler}
   while true do
-    if has_prompt then
-      if needs_profile then -- first time run AND interactive
-        needs_profile = nil
+    if io.stdin.tty and io.stdout.tty then
+      if not has_profile then -- first time run AND interactive
+        has_profile = true
         dofile("/etc/profile.lua")
+      end
+      if tty.getCursor() > 1 then
+        io.write("\n")
       end
       io.write(sh.expand(os.getenv("PS1") or "$ "))
     end
@@ -27,6 +29,7 @@ if #args == 0 then
       if command == "exit" then
         return
       elseif command ~= "" then
+        --luacheck: globals _ENV
         local result, reason = sh.execute(_ENV, command)
         if not result then
           io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
@@ -34,9 +37,6 @@ if #args == 0 then
       end
     elseif command == nil then -- false only means the input was interrupted
       return -- eof
-    end
-    if has_prompt and tty.getCursor() > 1 then
-      io.write("\n")
     end
   end
 else

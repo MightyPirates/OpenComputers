@@ -14,7 +14,7 @@ if f then
   f:close()
   greeting = greetings[math.random(1, math.max(#greetings, 1))] or ""
 end
-local width = math.min(#greeting, tty.getViewport() - 5)
+local width = math.min(#greeting, (tty.getViewport() or math.huge) - 5)
 local maxLine = #lines[1]
 while #greeting > 0 do
   local si, ei = greeting:sub(1, width):find("%s%S*$")

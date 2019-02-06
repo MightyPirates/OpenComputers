@@ -13,17 +13,18 @@ end
 
 local args, ops = shell.parse(...)
 
-local function pop(key)
-  local result = ops[key]
-  ops[key] = nil
+local function pop(...)
+  local result
+  for _,key in ipairs({...}) do
+    result = ops[key] or result
+    ops[key] = nil
+  end
   return result
 end
 
 local directory = pop('d')
-local verbose = pop('v')
-verbose = pop('verbose') or verbose
-local quiet = pop('q') or quiet
-quiet = pop('quiet') or quiet
+local verbose = pop('v', 'verbose')
+local quiet = pop('q', 'quiet')
 
 if pop('help') or #args > 1 or next(ops) then
   print([[Usage: mktmp [OPTION] [PATH]
