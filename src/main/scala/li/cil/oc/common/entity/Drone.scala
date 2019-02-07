@@ -280,7 +280,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   def preparePowerUp() {
     targetX = math.floor(posX).toFloat + 0.5f
-    targetY = math.floor(posY).toFloat + 0.5f
+    targetY = math.round(posY).toFloat + 0.5f
     targetZ = math.floor(posZ).toFloat + 0.5f
     targetAcceleration = maxAcceleration
 
