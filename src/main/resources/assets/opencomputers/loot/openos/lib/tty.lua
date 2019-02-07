@@ -79,7 +79,9 @@ function tty.stream:write(value)
     return
   end
   local window = tty.window
-  local cursor = window.cursor or {sy = 0, tails = {}}
+  local cursor = window.cursor or {}
+  cursor.sy = cursor.sy or 0
+  cursor.tails = cursor.tails or {}
   local beeped
   local uptime = computer.uptime
   local last_sleep = uptime()
