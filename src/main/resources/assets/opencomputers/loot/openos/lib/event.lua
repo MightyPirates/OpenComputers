@@ -30,44 +30,57 @@ end
 
 local _pullSignal = computer.pullSignal
 setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
-computer.pullSignal = function(...) -- dispatch
+computer.pullSignal = function(seconds) -- dispatch
+  checkArg(1, seconds, "number", "nil")
+  seconds = seconds or math.huge
   local current_time = computer.uptime()
-  local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
-  if interrupting then
-    lastInterrupt = current_time
-    if keyboard.isAltDown() then
-      require("process").info().data.signal("interrupted", 0)
-      return
-    end
-    event.push("interrupted", current_time)
-  end
-  local event_data = table.pack(handlers(...))
-  local signal = event_data[1]
-  local copy = {}
-  for id,handler in pairs(handlers) do
-    copy[id] = handler
-  end
-  for id,handler in pairs(copy) do
-    -- timers have false keys
-    -- nil keys match anything
-    if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
-      handler.times = handler.times - 1
-      handler.timeout = current_time + handler.interval
-      -- we have to remove handlers before making the callback in case of timers that pull
-      -- and we have to check handlers[id] == handler because callbacks may have unregistered things
-      if handler.times <= 0 and handlers[id] == handler then
-        handlers[id] = nil
+  local deadline = computer.uptime() + seconds
+  repeat
+    local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
+    if interrupting then
+      lastInterrupt = current_time
+      if keyboard.isAltDown() then
+        require("process").info().data.signal("interrupted", 0)
+        return
       end
-      -- call
-      local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
-      if not result then
-        pcall(event.onError, message)
-      elseif message == false and handlers[id] == handler then
-        handlers[id] = nil
+      event.push("interrupted", current_time)
+    end
+
+    local closest = deadline
+    for _,handler in pairs(handlers) do
+      closest = math.min(handler.timeout, closest)
+    end
+
+    local event_data = table.pack(handlers(closest - computer.uptime()))
+    local signal = event_data[1]
+    local copy = {}
+    for id,handler in pairs(handlers) do
+      copy[id] = handler
+    end
+    for id,handler in pairs(copy) do
+      -- timers have false keys
+      -- nil keys match anything
+      if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
+        handler.times = handler.times - 1
+        handler.timeout = current_time + handler.interval
+        -- we have to remove handlers before making the callback in case of timers that pull
+        -- and we have to check handlers[id] == handler because callbacks may have unregistered things
+        if handler.times <= 0 and handlers[id] == handler then
+          handlers[id] = nil
+        end
+        -- call
+        local result, message = pcall(handler.callback, table.unpack(event_data, 1, event_data.n))
+        if not result then
+          pcall(event.onError, message)
+        elseif message == false and handlers[id] == handler then
+          handlers[id] = nil
+        end
       end
     end
-  end
-  return table.unpack(event_data, 1, event_data.n)
+    if signal then
+      return table.unpack(event_data, 1, event_data.n)
+    end
+  until computer.uptime() >= deadline
 end
 
 local function createPlainFilter(name, ...)
@@ -116,7 +129,7 @@ end
 
 function event.pullFiltered(...)
   local args = table.pack(...)
-  local seconds, filter
+  local seconds, filter = math.huge
 
   if type(args[1]) == "function" then
     filter = args[1]
@@ -127,19 +140,14 @@ function event.pullFiltered(...)
     filter = args[2]
   end
 
-  local deadline = seconds and (computer.uptime() + seconds) or math.huge
   repeat
-    local closest = deadline
-    for _,handler in pairs(handlers) do
-      closest = math.min(handler.timeout, closest)
-    end
-    local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
+    local signal = table.pack(computer.pullSignal(seconds))
     if signal.n > 0 then
       if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
         return table.unpack(signal, 1, signal.n)
       end
     end
-  until computer.uptime() >= deadline
+  until signal.n == 0
 end
 
 -- users may expect to find event.push to exist

@@ -115,6 +115,8 @@ local dup_mt =   {__index = function(dfd, key)
     if key == "close" or self._closed then self._closed = true return end
     return fd_value(self.fd, ...)
   end
+end, __newindex = function(dfd, key, value)
+  dfd.fd[key] = value
 end}
 
 function io.dup(fd)

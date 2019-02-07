@@ -335,6 +335,7 @@ function filesystem.setAutorunEnabled(value)
   saveConfig()
 end
 
+-- luacheck: globals os
 os.remove = filesystem.remove
 os.rename = filesystem.rename
 
