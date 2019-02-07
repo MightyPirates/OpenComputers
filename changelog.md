@@ -11,6 +11,7 @@
 * Fixed: waila integration by checking for nulls with relay block
 * Fixed: practical logisitics integration by not passing null for EnumFacing
 * Fixed: locking items in hotbar when gui is open
+* Fixed: some container names localized
 
 ## OpenOS fixes/improvements
 
