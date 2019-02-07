@@ -3,6 +3,15 @@ if not install.root or #install.root == 0 then
 end
 if install.update then
   io.stderr:write("Please run 'oppm update oppm' from an installed version\nof this program to update oppm.\n")
-  return
+  return 1
 end
-os.execute(install.from:gsub("//","/") .. "usr/bin/oppm install --iKnowWhatIAmDoing -f oppm " .. install.to:gsub("//","/") .. install.root:gsub("//","/"))
+
+local to_path = install.to:gsub("//", "/")
+local etc_path = to_path .. "etc"
+if not require("filesystem").isDirectory(etc_path) then
+  io.stderr:write("Missing " .. etc_path .. "  directory. Install openos first, or fix the installation.\n")
+  return 1
+end
+
+os.execute(install.from:gsub("//","/") .. "usr/bin/oppm install --iKnowWhatIAmDoing -f oppm " .. to_path .. install.root:gsub("//","/"))
+
