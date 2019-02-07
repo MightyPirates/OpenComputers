@@ -116,6 +116,7 @@ trait Buffered extends OutputStreamFileSystem {
     }
     deletions.clear()
 
+    val buffer = ByteBuffer.allocateDirect(16 * 1024)
     def recurse(path: String):Boolean = {
       val directory = new io.File(fileRoot, path)
       directory.mkdirs()
@@ -133,7 +134,7 @@ trait Buffered extends OutputStreamFileSystem {
             val out = new io.FileOutputStream(childFile).getChannel
             val in = openInputChannel(childPath).get
 
-            val buffer = ByteBuffer.allocateDirect(16 * 1024)
+            buffer.clear()
             while (in.read(buffer) != -1) {
               buffer.flip()
               out.write(buffer)
