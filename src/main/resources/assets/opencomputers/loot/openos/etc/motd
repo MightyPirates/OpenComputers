@@ -3,10 +3,6 @@ local computer = require("computer")
 local unicode = require("unicode")
 local tty = require("tty")
 
-if not component.isAvailable("gpu") then
-  return
-end
-
 local f = io.open("/usr/misc/greetings.txt")
 local lines = {_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)"}
 local greeting = ""
@@ -18,7 +14,7 @@ if f then
   f:close()
   greeting = greetings[math.random(1, math.max(#greetings, 1))] or ""
 end
-local width = math.min(#greeting, tty.getViewport() - 5)
+local width = math.min(#greeting, (tty.getViewport() or math.huge) - 5)
 local maxLine = #lines[1]
 while #greeting > 0 do
   local si, ei = greeting:sub(1, width):find("%s%S*$")
