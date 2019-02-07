@@ -12,7 +12,7 @@ trait ServerInventory extends ItemStackInventory {
 
   override def getSizeInventory = InventorySlots.server(tier).length
 
-  override protected def inventoryName = "Server"
+  override protected def inventoryName = "server"
 
   override def getInventoryStackLimit = 1
 

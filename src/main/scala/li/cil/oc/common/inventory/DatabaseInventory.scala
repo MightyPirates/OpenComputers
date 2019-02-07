@@ -9,7 +9,7 @@ trait DatabaseInventory extends ItemStackInventory {
 
   override def getSizeInventory = Settings.get.databaseEntriesPerTier(tier)
 
-  override protected def inventoryName = "Database"
+  override protected def inventoryName = "database"
 
   override def getInventoryStackLimit = 1
 
