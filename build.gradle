@@ -67,7 +67,7 @@ minecraft {
 }
 
 repositories {
-    maven { url "http://maven.cil.li/" }
+    maven { url "https://maven.cil.li/" }
     maven { url "https://minecraft.curseforge.com/api/maven/" }
 }
 
