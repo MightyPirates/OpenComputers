@@ -33,17 +33,17 @@ setmetatable(handlers, {__call=function(_,...)return _pullSignal(...)end})
 computer.pullSignal = function(seconds) -- dispatch
   checkArg(1, seconds, "number", "nil")
   seconds = seconds or math.huge
-  local current_time = computer.uptime()
-  local deadline = computer.uptime() + seconds
+  local uptime = computer.uptime
+  local deadline = uptime() + seconds
   repeat
-    local interrupting = current_time - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
+    local interrupting = uptime() - lastInterrupt > 1 and keyboard.isControlDown() and keyboard.isKeyDown(keyboard.keys.c)
     if interrupting then
-      lastInterrupt = current_time
+      lastInterrupt = uptime()
       if keyboard.isAltDown() then
         require("process").info().data.signal("interrupted", 0)
         return
       end
-      event.push("interrupted", current_time)
+      event.push("interrupted", lastInterrupt)
     end
 
     local closest = deadline
@@ -51,7 +51,7 @@ computer.pullSignal = function(seconds) -- dispatch
       closest = math.min(handler.timeout, closest)
     end
 
-    local event_data = table.pack(handlers(closest - computer.uptime()))
+    local event_data = table.pack(handlers(closest - uptime()))
     local signal = event_data[1]
     local copy = {}
     for id,handler in pairs(handlers) do
@@ -60,9 +60,9 @@ computer.pullSignal = function(seconds) -- dispatch
     for id,handler in pairs(copy) do
       -- timers have false keys
       -- nil keys match anything
-      if (handler.key == nil or handler.key == signal) or current_time >= handler.timeout then
+      if (handler.key == nil or handler.key == signal) or uptime() >= handler.timeout then
         handler.times = handler.times - 1
-        handler.timeout = current_time + handler.interval
+        handler.timeout = handler.timeout + handler.interval
         -- we have to remove handlers before making the callback in case of timers that pull
         -- and we have to check handlers[id] == handler because callbacks may have unregistered things
         if handler.times <= 0 and handlers[id] == handler then
@@ -80,7 +80,7 @@ computer.pullSignal = function(seconds) -- dispatch
     if signal then
       return table.unpack(event_data, 1, event_data.n)
     end
-  until computer.uptime() >= deadline
+  until uptime() >= deadline
 end
 
 local function createPlainFilter(name, ...)
