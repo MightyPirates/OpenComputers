@@ -213,7 +213,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   override def interactOn(entity: Entity, hand: EnumHand): EnumActionResult = {
-    val cancel = try MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteract(this, EnumHand.MAIN_HAND, entity)) catch {
+    val cancel = try MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteract(this, hand, entity)) catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
           OpenComputers.log.warn("Some event handler screwed up!", t)
@@ -221,14 +221,14 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         false
     }
     if(!cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
-      val result = isItemUseAllowed(stack) && (entity.processInitialInteract(this, EnumHand.MAIN_HAND) || (entity match {
-        case living: EntityLivingBase if !getHeldItemMainhand.isEmpty => getHeldItemMainhand.interactWithEntity(this, living, EnumHand.MAIN_HAND)
+      val result = isItemUseAllowed(stack) && (entity.processInitialInteract(this, hand) || (entity match {
+        case living: EntityLivingBase if !getHeldItemMainhand.isEmpty => getHeldItemMainhand.interactWithEntity(this, living, hand)
         case _ => false
       }))
       if (!getHeldItemMainhand.isEmpty && getHeldItemMainhand.getCount <= 0) {
         val orig = getHeldItemMainhand
         this.inventory.setInventorySlotContents(this.inventory.currentItem, ItemStack.EMPTY)
-        ForgeEventFactory.onPlayerDestroyItem(this, orig, EnumHand.MAIN_HAND)
+        ForgeEventFactory.onPlayerDestroyItem(this, orig, hand)
       }
       result
     })) EnumActionResult.SUCCESS else EnumActionResult.PASS
@@ -241,7 +241,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       }
 
       val item = if (!stack.isEmpty) stack.getItem else null
-      if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
+      if (item != null && item.onItemUseFirst(this, world, pos, side, hitX, hitY, hitZ, EnumHand.OFF_HAND) == EnumActionResult.SUCCESS) {
         return ActivationType.ItemUsed
       }
 
@@ -250,7 +250,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       val canActivate = block != Blocks.AIR && Settings.get.allowActivateBlocks
       val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(stack, world, pos, this)))
       val result =
-        if (shouldActivate && block.onBlockActivated(world, pos, state, this, EnumHand.MAIN_HAND, side, hitX, hitY, hitZ))
+        if (shouldActivate && block.onBlockActivated(world, pos, state, this, EnumHand.OFF_HAND, side, hitX, hitY, hitZ))
           ActivationType.BlockActivated
         else if (duration <= Double.MinPositiveValue && isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
@@ -303,12 +303,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def fireRightClickAir(): PlayerInteractEvent.RightClickItem = {
-    val event = new PlayerInteractEvent.RightClickItem(this, EnumHand.MAIN_HAND)
+    val event = new PlayerInteractEvent.RightClickItem(this, EnumHand.OFF_HAND)
     MinecraftForge.EVENT_BUS.post(event)
     event
   }
 
-  private def trySetActiveHand(hand: EnumHand, duration: Double): Boolean = {
+  private def trySetActiveHand(duration: Double): Boolean = {
     stopActiveHand()
     val entity = this
     val durationHandler = new {
@@ -321,13 +321,48 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     MinecraftForge.EVENT_BUS.register(durationHandler)
     try {
-      setActiveHand(hand)
+      setActiveHand(EnumHand.OFF_HAND)
       isHandActive
     } catch {
         case _: Exception => false
     } finally {
       MinecraftForge.EVENT_BUS.unregister(durationHandler)
     }
+  }
+
+  def useItemWithHand(duration: Double, stack: ItemStack): Boolean = {
+    if (!trySetActiveHand(duration)) {
+      if (duration > 0) {
+        return false
+      }
+    }
+
+    val oldStack = stack.copy
+    if (!isItemUseAllowed(stack)) {
+      return false
+    }
+
+    val maxDuration = stack.getMaxItemUseDuration
+    val heldTicks = Math.max(0, Math.min(maxDuration, (duration * 20).toInt))
+    agent.machine.pause(heldTicks / 20.0)
+
+    // setting the active hand will also set its initial duration
+    val useItemResult = stack.useItemRightClick(world, this, EnumHand.OFF_HAND)
+    stopActiveHand()
+
+    if (useItemResult.getType != EnumActionResult.SUCCESS) {
+      return false
+    }
+
+    val newStack = useItemResult.getResult
+    val stackChanged: Boolean =
+      !ItemStack.areItemStacksEqual(oldStack, newStack) ||
+      !ItemStack.areItemStacksEqual(oldStack, stack)
+
+    if (stackChanged) {
+      inventory.offHandInventory.set(0, newStack)
+    }
+    stackChanged
   }
 
   def useEquippedItem(duration: Double, stackOption: Option[ItemStack] = None): Boolean = {
@@ -342,42 +377,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       return false
     }
 
-    // setting the active hand will also set its initial duration
-    var hand: EnumHand = EnumHand.MAIN_HAND
-    if (!trySetActiveHand(hand, duration)) {
-      hand = EnumHand.OFF_HAND
-      if (!trySetActiveHand(hand, duration)) {
-        return false
-      }
-    }
-
     // Change the offset at which items are used, to avoid hitting
     // the robot itself (e.g. with bows, potions, mining laser, ...).
     posX += facing.getFrontOffsetX / 2.0
     posZ += facing.getFrontOffsetZ / 2.0
 
     try {
-      val stack = getActiveItemStack
-      val oldStack = stack.copy
-      var newStack = stack.copy
-      if (isItemUseAllowed(stack)) {
-
-        val maxDuration = stack.getMaxItemUseDuration
-        val heldTicks = Math.max(0, Math.min(maxDuration, (duration * 20).toInt))
-        agent.machine.pause(heldTicks / 20.0)
-
-        newStack = stack.useItemRightClick(world, this, hand).getResult
-      }
-      stopActiveHand()
-
-      val stackChanged: Boolean =
-        !ItemStack.areItemStacksEqual(oldStack, newStack) ||
-        !ItemStack.areItemStacksEqual(oldStack, stack)
-
-      if (stackChanged) {
-        agent.equipmentInventory.setInventorySlotContents(0, newStack)
-      }
-      stackChanged
+      useItemWithHand(duration, stackOption.get)
     }
     finally {
       posX -= facing.getFrontOffsetX / 2.0
