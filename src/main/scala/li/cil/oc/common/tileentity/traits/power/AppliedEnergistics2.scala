@@ -136,5 +136,5 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def gridChanged(): Unit = {}
 
-  override def getMachineRepresentation: ItemStack = null
+  override def getMachineRepresentation: ItemStack = ItemStack.EMPTY
 }
