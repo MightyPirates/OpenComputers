@@ -1,27 +1,49 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.implementations.tiles.ISegmentedInventory
+import appeng.api.networking.IGridHost
+import appeng.api.networking.security.IActionHost
 import appeng.api.parts.{IPartHost, PartItemStack}
+import appeng.api.util.AEPartLocation
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback}
 import li.cil.oc.api.machine.Context
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverPartInterface extends driver.DriverBlock {
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing) =
+  override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean =
     world.getTileEntity(pos) match {
-      case container: IPartHost => EnumFacing.VALUES.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isPartInterface)
+      case container: IPartHost => {
+        EnumFacing.VALUES.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isPartInterface)
+      }
       case _ => false
     }
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = new Environment(world.getTileEntity(pos).asInstanceOf[IPartHost])
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): DriverPartInterface.Environment = {
+    val host: IPartHost = world.getTileEntity(pos).asInstanceOf[IPartHost]
+    val tile = host.asInstanceOf[TileEntity with IPartHost with ISegmentedInventory with IActionHost with IGridHost]
+    val aePos: AEPartLocation = side match {
+      case EnumFacing.EAST => AEPartLocation.WEST
+      case EnumFacing.WEST => AEPartLocation.EAST
+      case EnumFacing.NORTH => AEPartLocation.SOUTH
+      case EnumFacing.SOUTH => AEPartLocation.NORTH
+      case EnumFacing.UP => AEPartLocation.DOWN
+      case EnumFacing.DOWN => AEPartLocation.UP
+    }
+    new Environment(host, tile, aePos)
+  }
 
-  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface") with NamedBlock with PartEnvironmentBase {
+  final class Environment(val host: IPartHost, val tile: TileEntity with IPartHost with ISegmentedInventory with IActionHost with IGridHost, val pos: AEPartLocation)
+      extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface")
+      with NamedBlock with PartEnvironmentBase
+      with NetworkControl[TileEntity with ISegmentedInventory with IActionHost with IGridHost]
+  {
     override def preferredName = "me_interface"
 
     override def priority = 0
