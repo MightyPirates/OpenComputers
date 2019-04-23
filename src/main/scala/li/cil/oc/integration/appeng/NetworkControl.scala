@@ -63,11 +63,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
   private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
 
   private def convert(aeItem: IAEItemStack): java.util.HashMap[String, AnyRef] = {
-    case class StringAnyRefHash (value: java.util.HashMap[String, AnyRef])
+    def hashConvert(value: java.util.HashMap[_, _]) = {
+      val hash = new java.util.HashMap[String, AnyRef]
+      value.collect{ case (k:String, v:AnyRef) => hash += k -> v }
+      hash
+    }
     val potentialItem = aePotentialItem(aeItem)
-    val result = Registry
-      .convert(Array[AnyRef](potentialItem.getItemStack))
-      .collect { case StringAnyRefHash(hash) => hash }
+    val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
+      .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
     if (result.length > 0) {
       val hash = result(0)
       // it would have been nice to put these fields in a registry convert
