@@ -423,10 +423,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     if (preEvent.isCanceled) return 0
     val adjustedBreakTime = Math.max(0.05, preEvent.getBreakTime)
 
-    if (!PlayerInteractionManagerHelper.onBlockClicked(this, pos, side))
-      return 0
-
-    EventHandler.scheduleServer(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
+    if (PlayerInteractionManagerHelper.onBlockClicked(this, pos, side))
+      EventHandler.scheduleServer(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
 
     adjustedBreakTime
   })
