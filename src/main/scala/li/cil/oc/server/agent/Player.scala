@@ -629,16 +629,16 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         EventHandler.scheduleServer(() => tick())
       }
       else {
-        val itemsBefore = adjacentItems
-        this.player.posX -= side.getFrontOffsetX / 2.0
-        this.player.posZ -= side.getFrontOffsetZ / 2.0
-        val expGained: Int = PlayerInteractionManagerHelper.blockRemoving(player, pos)
-        this.player.posX += side.getFrontOffsetX / 2.0
-        this.player.posZ += side.getFrontOffsetZ / 2.0
-        if (expGained >= 0) {
-          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, expGained))
-          collectDroppedItems(itemsBefore)
-        }
+        callUsingItemInSlot(player.agent.equipmentInventory(), 0, _ => {
+          this.player.posX -= side.getFrontOffsetX / 2.0
+          this.player.posZ -= side.getFrontOffsetZ / 2.0
+          val expGained: Int = PlayerInteractionManagerHelper.blockRemoving(player, pos)
+          this.player.posX += side.getFrontOffsetX / 2.0
+          this.player.posZ += side.getFrontOffsetZ / 2.0
+          if (expGained >= 0) {
+            MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, expGained))
+          }
+        })
       }
     }
   }
