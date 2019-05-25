@@ -6,10 +6,11 @@ local internet = {}
 
 -------------------------------------------------------------------------------
 
-function internet.request(url, data, headers)
+function internet.request(url, data, headers, method)
   checkArg(1, url, "string")
   checkArg(2, data, "string", "table", "nil")
   checkArg(3, headers, "table", "nil")
+  checkArg(4, method, "string", "nil")
 
   if not component.isAvailable("internet") then
     error("no primary internet card found", 2)
@@ -26,7 +27,7 @@ function internet.request(url, data, headers)
     end
   end
 
-  local request, reason = inet.request(url, post, headers)
+  local request, reason = inet.request(url, post, headers, method)
   if not request then
     error(reason, 2)
   end
