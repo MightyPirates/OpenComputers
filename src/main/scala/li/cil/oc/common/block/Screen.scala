@@ -2,8 +2,6 @@ package li.cil.oc.common.block
 
 import java.util
 
-import _root_.net.minecraft.block.state.IBlockState
-import _root_.net.minecraft.client.Minecraft
 import _root_.net.minecraft.entity.Entity
 import _root_.net.minecraft.entity.EntityLivingBase
 import _root_.net.minecraft.entity.player.EntityPlayer
@@ -11,9 +9,7 @@ import _root_.net.minecraft.entity.projectile.EntityArrow
 import _root_.net.minecraft.item.ItemStack
 import _root_.net.minecraft.util.EnumFacing
 import _root_.net.minecraft.util.EnumHand
-import _root_.net.minecraft.util.math.BlockPos
-import _root_.net.minecraft.world.IBlockAccess
-import _root_.net.minecraft.world.World
+import _root_.net.minecraft.world.{IBlockAccess, World}
 import _root_.net.minecraftforge.common.property.ExtendedBlockState
 import _root_.net.minecraftforge.common.property.IExtendedBlockState
 import li.cil.oc.Constants
@@ -28,7 +24,11 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.state.IBlockState
+import net.minecraft.client.Minecraft
 import net.minecraft.client.util.ITooltipFlag
+import net.minecraft.util.math.{AxisAlignedBB, BlockPos}
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class Screen(val tier: Int) extends RedstoneAware {
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
@@ -141,4 +141,13 @@ class Screen(val tier: Int) extends RedstoneAware {
         }
       case _ => super.getValidRotations(world, pos)
     }
+
+  val emptyBB = new AxisAlignedBB(0, 0, 0, 0, 0, 0)
+
+  @SideOnly(Side.CLIENT)
+  override def getSelectedBoundingBox(state: IBlockState, worldIn: World, pos: BlockPos): AxisAlignedBB =
+    if (!Minecraft.getMinecraft.player.isSneaking)
+      emptyBB
+    else
+      super.getSelectedBoundingBox(state, worldIn, pos)
 }
