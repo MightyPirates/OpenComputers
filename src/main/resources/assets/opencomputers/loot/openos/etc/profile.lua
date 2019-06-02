@@ -26,7 +26,7 @@ shell.setAlias("..", "cd ..")
 shell.setAlias("df", "df -h")
 shell.setAlias("grep", "grep --color")
 shell.setAlias("more", "less --noback")
-shell.setAlias("reset", "clear; resolution `cat /dev/components/by-type/gpu/0/maxResolution`")
+shell.setAlias("reset", "resolution `cat /dev/components/by-type/gpu/0/maxResolution`")
 
 os.setenv("EDITOR", "/bin/edit")
 os.setenv("HISTSIZE", "10")
