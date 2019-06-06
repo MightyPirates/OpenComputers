@@ -159,7 +159,7 @@ function internal.tcp.handle(origin, data)
         end
     elseif data:sub(2,2) == "A" then
         local remote = data:byte(3)*256 + data:byte(4)
-        local ch = data:byte(3)*256 + data:byte(4)
+        local ch = data:byte(5)*256 + data:byte(6)
         if internal.tcp.channels[ch] and internal.tcp.channels[ch].waiting then
             internal.tcp.channels[ch].waiting = nil
             internal.tcp.channels[ch].open = true
