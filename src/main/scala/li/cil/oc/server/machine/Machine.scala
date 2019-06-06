@@ -102,6 +102,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
+  private val maxSignalQueueSize = Settings.get.maxSignalQueueSize
+
   // ----------------------------------------------------------------------- //
 
   override def onHostChanged(): Unit = {
@@ -311,7 +313,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     state.synchronized(state.top match {
       case Machine.State.Stopped | Machine.State.Stopping => return false
       case _ => signals.synchronized {
-        if (signals.size >= 256) return false
+        if (signals.size >= maxSignalQueueSize) return false
         else if (args == null) {
           signals.enqueue(new Machine.Signal(name, Array.empty))
         }
