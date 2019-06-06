@@ -130,7 +130,16 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def setNetworkStatus(p1: IGrid, p2: Int): Unit = {}
 
-  override def getConnectableSides: util.EnumSet[EnumFacing] = util.EnumSet.copyOf(JavaConversions.asJavaCollection(EnumFacing.values.filter(tileEntity.canConnectPower)))
+  override def getConnectableSides: util.EnumSet[EnumFacing] = {
+    val connectableSides = JavaConversions.asJavaCollection(EnumFacing.values.filter(tileEntity.canConnectPower))
+    if (connectableSides.isEmpty) {
+      val s = util.EnumSet.copyOf(JavaConversions.asJavaCollection(EnumFacing.values))
+      s.clear()
+      s
+    }
+    else
+      util.EnumSet.copyOf(connectableSides)
+  }
 
   override def getMachine: IGridHost = tileEntity.asInstanceOf[IGridHost]
 
