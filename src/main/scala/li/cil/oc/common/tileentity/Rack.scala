@@ -124,12 +124,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     }
   }
 
-  // ----------------------------------------------------------------------- //
-  // Hub
-
-  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet): Unit = {
-    if (isRelayEnabled) super.relayPacket(sourceSide, packet)
-
+  protected def sendPacketToMountables(sourceSide: Option[EnumFacing], packet: Packet): Unit = {
     // When a message arrives on a bus, also send it to all secondary nodes
     // connected to it. Only deliver it to that very node, if it's not the
     // sender, to avoid loops.
@@ -149,6 +144,22 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
         }
       }
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+  // Hub
+
+  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
+    sendPacketToMountables(sourceSide, packet)
+    if (isRelayEnabled)
+      super.tryEnqueuePacket(sourceSide, packet)
+    else
+      true
+  }
+
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet): Unit = {
+    if (isRelayEnabled)
+      super.relayPacket(sourceSide, packet)
   }
 
   override protected def onPlugConnect(plug: Plug, node: Node): Unit = {
