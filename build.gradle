@@ -72,7 +72,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 repositories {
     maven {
         name = "mightypirates"
-        url = "http://maven.cil.li/"
+        url = "https://maven.cil.li/"
     }
 }
 
