@@ -69,8 +69,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
     else {
       relayCooldown = -1
       if (queue.nonEmpty) queue.synchronized {
-        packetsPerCycleAvg += queue.size
-        for (i <- 0 until math.min(queue.size, relayAmount)) {
+        val packetsToRely = math.min(queue.size, relayAmount)
+        packetsPerCycleAvg += packetsToRely
+        for (i <- 0 until packetsToRely) {
           val (sourceSide, packet) = queue.dequeue()
           relayPacket(sourceSide, packet)
         }
@@ -96,8 +97,13 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
-    for (side <- ForgeDirection.VALID_DIRECTIONS if Option(side) != sourceSide && sidedNode(side) != null) {
-      sidedNode(side).sendToReachable("network.message", packet)
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      if (sourceSide.isEmpty || sourceSide.get != side) {
+        val node = sidedNode(side)
+        if (node != null) {
+          node.sendToReachable("network.message", packet)
+        }
+      }
     }
   }
 
