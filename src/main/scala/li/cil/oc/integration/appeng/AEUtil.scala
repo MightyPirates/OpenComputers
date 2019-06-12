@@ -28,14 +28,14 @@ object AEUtil {
   def controllerClass: Class[_] =
     if (AEApi.instance != null)
       AEApi.instance.definitions.blocks.controller.maybeEntity.get()
-    else null
+    else null: Class[_]
 
   // ----------------------------------------------------------------------- //
 
   def interfaceClass: Class[_] =
     if (AEApi.instance != null)
       AEApi.instance.definitions.blocks.iface.maybeEntity.get()
-    else null
+    else null: Class[_]
 
   // ----------------------------------------------------------------------- //
 
