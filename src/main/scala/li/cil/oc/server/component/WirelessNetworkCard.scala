@@ -138,12 +138,12 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
 
 object WirelessNetworkCard {
   class Tier1(host: EnvironmentHost) extends WirelessNetworkCard(host) {
-    override protected def wirelessCostPerRange = Settings.get.wirelessCostPerRange(Tier.One)
+    override protected def wirelessCostPerRange: Double = Settings.get.wirelessCostPerRange(Tier.One)
     
-    override protected def maxWirelessRange = Settings.get.maxWirelessRange(Tier.One)
+    override protected def maxWirelessRange: Double = Settings.get.maxWirelessRange(Tier.One)
     
     // wired network card is before wireless cards in max port list
-    override protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.One + 1)
+    override protected def maxOpenPorts: Int = Settings.get.maxOpenPorts(Tier.One + 1)
     
     override protected def shouldSendWiredTraffic = false
 
@@ -162,17 +162,18 @@ object WirelessNetworkCard {
 
     override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-    override protected def isPacketAccepted(packet: Packet, distance: Double) = distance != 0 && super.isPacketAccepted(packet, distance)
-
+    override protected def isPacketAccepted(packet: Packet, distance: Double): Boolean = {
+      (shouldSendWiredTraffic || distance == 0) && super.isPacketAccepted(packet, distance)
+    }
   }
   
   class Tier2(host: EnvironmentHost) extends Tier1(host) {
-    override protected def wirelessCostPerRange = Settings.get.wirelessCostPerRange(Tier.Two)
+    override protected def wirelessCostPerRange: Double = Settings.get.wirelessCostPerRange(Tier.Two)
     
-    override protected def maxWirelessRange = Settings.get.maxWirelessRange(Tier.Two)
+    override protected def maxWirelessRange: Double = Settings.get.maxWirelessRange(Tier.Two)
     
     // wired network card is before wireless cards in max port list
-    override protected def maxOpenPorts = Settings.get.maxOpenPorts(Tier.Two + 1)
+    override protected def maxOpenPorts: Int = Settings.get.maxOpenPorts(Tier.Two + 1)
     
     override protected def shouldSendWiredTraffic = true
 
