@@ -25,27 +25,21 @@ object AEUtil {
 
   // ----------------------------------------------------------------------- //
 
-  def areChannelsEnabled: Boolean = AEApi.instance != null && AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
-
-  // ----------------------------------------------------------------------- //
-
   def controllerClass: Class[_] =
     if (AEApi.instance != null)
-      if (areChannelsEnabled) AEApi.instance.definitions.blocks.controller.maybeEntity.get()
-      else null: Class[_]
+      AEApi.instance.definitions.blocks.controller.maybeEntity.get()
     else null
 
   // ----------------------------------------------------------------------- //
 
   def interfaceClass: Class[_] =
     if (AEApi.instance != null)
-      if (areChannelsEnabled) AEApi.instance.definitions.blocks.iface.maybeEntity.get()
-      else null: Class[_]
+      AEApi.instance.definitions.blocks.iface.maybeEntity.get()
     else null
 
   // ----------------------------------------------------------------------- //
 
-  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && areChannelsEnabled && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
+  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
