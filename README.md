@@ -94,7 +94,7 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 
 [api]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/java/li/cil/oc/api
 [code conventions]: https://ocdoc.cil.li/lua_conventions
-[dev-jar]: https://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-dev-MC1.7.10&type=dev
+[dev-jar]: https://ci.cil.li/view/OpenComputers/job/OpenComputers-MC1.7.10/
 [forums]: https://oc.cil.li/
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open

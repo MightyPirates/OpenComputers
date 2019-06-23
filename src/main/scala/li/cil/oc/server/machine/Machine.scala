@@ -102,6 +102,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
+  private val maxSignalQueueSize = Settings.get.maxSignalQueueSize
+
   // ----------------------------------------------------------------------- //
 
   override def onHostChanged(): Unit = {
@@ -307,30 +309,48 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
   }
 
+  def convertArg(param: Any): AnyRef = {
+    param match {
+      case arg: java.lang.Boolean => arg
+      case arg: java.lang.Character => Double.box(arg.toDouble)
+      case arg: java.lang.Long => arg
+      case arg: java.lang.Number => Double.box(arg.doubleValue)
+      case arg: java.lang.String => arg
+      case arg: Array[Byte] => arg
+      case arg: NBTTagCompound => arg
+      case arg =>
+        OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+        null
+    }
+  }
+
   override def signal(name: String, args: AnyRef*): Boolean = {
     state.synchronized(state.top match {
       case Machine.State.Stopped | Machine.State.Stopping => return false
       case _ => signals.synchronized {
-        if (signals.size >= 256) return false
+        if (signals.size >= maxSignalQueueSize) return false
         else if (args == null) {
           signals.enqueue(new Machine.Signal(name, Array.empty))
         }
         else {
           signals.enqueue(new Machine.Signal(name, args.map {
             case null | Unit | None => null
-            case arg: java.lang.Boolean => arg
-            case arg: java.lang.Character => Double.box(arg.toDouble)
-            case arg: java.lang.Long => arg
-            case arg: java.lang.Number => Double.box(arg.doubleValue)
-            case arg: java.lang.String => arg
-            case arg: Array[Byte] => arg
             case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
             case arg: mutable.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
-            case arg: java.util.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
-            case arg: NBTTagCompound => arg
-            case arg =>
-              OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
-              null
+            case arg: java.util.Map[_, _] => {
+              val convertedMap = new mutable.HashMap[AnyRef, AnyRef]
+              for ((key, value) <- arg) {
+                val convertedKey = convertArg(key)
+                if (convertedKey != null) {
+                  val convertedValue = convertArg(value)
+                  if (convertedValue != null) {
+                    convertedMap += convertedKey -> convertedValue
+                  }
+                }
+              }
+              convertedMap
+            }
+            case arg => convertArg(arg)
           }.toArray[AnyRef]))
         }
       }

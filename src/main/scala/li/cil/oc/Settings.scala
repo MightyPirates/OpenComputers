@@ -338,7 +338,6 @@ class Settings(val config: Config) {
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
-  val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!
   val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 4
@@ -465,6 +464,9 @@ class Settings(val config: Config) {
 
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
   val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
+
+  // >= 1.7.4
+  val maxSignalQueueSize: Int = (if (config.hasPath("computer.maxSignalQueueSize")) config.getInt("computer.maxSignalQueueSize") else 256) min 256
 }
 
 object Settings {
