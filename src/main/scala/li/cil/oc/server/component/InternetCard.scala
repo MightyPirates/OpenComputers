@@ -62,7 +62,7 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback(doc = """function(url:string[, postData:string[, headers:table]]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
+  @Callback(doc = """function(url:string[, postData:string[, headers:table[, method:string]]]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
@@ -80,7 +80,8 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
     if (!Settings.get.httpHeadersEnabled && headers.nonEmpty) {
       return result(Unit, "http request headers are unavailable")
     }
-    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers)
+    val method = if (args.isString(3)) Option(args.checkString(3)) else None
+    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers, method)
     connections += request
     result(request)
   }
@@ -366,10 +367,10 @@ object InternetCard {
   }
 
   class HTTPRequest extends AbstractValue with Closable {
-    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String]) {
+    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String], method: Option[String]) {
       this()
       this.owner = Some(owner)
-      this.stream = threadPool.submit(new RequestSender(url, post, headers))
+      this.stream = threadPool.submit(new RequestSender(url, post, headers, method))
     }
 
     private var owner: Option[InternetCard] = None
@@ -468,26 +469,22 @@ object InternetCard {
     }
 
     // This one doesn't (see comment in TCP socket), but I like to keep it consistent.
-    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String]) extends Callable[InputStream] {
+    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String], val method: Option[String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
         val proxy = Option(FMLCommonHandler.instance.getMinecraftServerInstance.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {
             http.setDoInput(true)
+            http.setDoOutput(post.isDefined)
+            http.setRequestMethod(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
             headers.foreach(Function.tupled(http.setRequestProperty))
             if (post.isDefined) {
-              http.setRequestMethod("POST")
-              http.setDoOutput(true)
               http.setReadTimeout(Settings.get.httpTimeout)
 
               val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
               out.write(post.get)
               out.close()
-            }
-            else {
-              http.setRequestMethod("GET")
-              http.setDoOutput(false)
             }
 
             val input = http.getInputStream
