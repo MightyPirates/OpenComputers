@@ -296,6 +296,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.PistonUpgrade),
       safeGetStack(Constants.BlockName.Geolyzer),
       safeGetStack(Constants.ItemName.NavigationUpgrade),
+      safeGetStack(Constants.ItemName.Analyzer),
 
       safeGetStack(Constants.ItemName.GraphicsCardTier2),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),
