@@ -17,7 +17,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.WorldServer
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
@@ -40,10 +39,10 @@ class UpgradeBarcodeReader(val host: EnvironmentHost) extends prefab.ManagedEnvi
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           host.world.getTileEntity(blockPos) match {
             case analyzable: Analyzable =>
-              processNodes(analyzable.onAnalyze(player, side.ordinal(), hitX.toFloat, hitY.toFloat, hitZ.toFloat), nbt)
+              processNodes(analyzable.onAnalyze(player, side, hitX.toFloat, hitY.toFloat, hitZ.toFloat), nbt)
             case host: SidedEnvironment =>
               processNodes(Array(host.sidedNode(side)), nbt)
             case host: Environment =>
