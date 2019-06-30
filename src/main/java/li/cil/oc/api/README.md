@@ -7,7 +7,7 @@ Making a tile entity available as a component / peripheral
 --------------------------------------------------
 If you simply wish to expose a couple of methods that can be called from a computer if your tile entity's block is 'connected' to the computer, you can use the `SimpleComponent` interface. This interface serves as a marker for OpenComputers to know it has to inject code that converts your tile entity into a component using its class transformer. It is an interface instead of an annotation to allow stripping it, removing any dependencies on OpenComputers. Here is an example implementation:
 ```java
-@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")
+@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")
 public class TileEntityMyFancyThing extends TileEntity
        implements SimpleComponent
 {
@@ -17,7 +17,7 @@ public class TileEntityMyFancyThing extends TileEntity
     }
 
     @Callback
-    @Optional.Method(modid = "OpenComputers")
+    @Optional.Method(modid = "opencomputers")
     public Object[] greet(Context context, Arguments args) {
         return new Object[]{String.format("Hello, %s!", args.checkString(0))};
     }
