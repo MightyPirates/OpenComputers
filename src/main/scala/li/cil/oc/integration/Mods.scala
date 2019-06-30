@@ -35,6 +35,7 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod((IDs.ProjectRedTransmission))
   val DraconicEvolution = new SimpleMod(IDs.DraconicEvolution)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
+  val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
 
   // ----------------------------------------------------------------------- //
 
@@ -52,6 +53,7 @@ object Mods {
     integration.projectred.ModProjectRed,
     integration.computercraft.ModComputerCraft,
     integration.enderstorage.ModEnderStorage,
+    integration.thaumcraft.ModThaumcraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
@@ -97,6 +99,7 @@ object Mods {
     final val ProjectRedTransmission = "projectred-transmission"
     final val DraconicEvolution = "draconicevolution"
     final val EnderStorage = "enderstorage"
+    final val Thaumcraft = "thaumcraft"
   }
 
   // ----------------------------------------------------------------------- //
