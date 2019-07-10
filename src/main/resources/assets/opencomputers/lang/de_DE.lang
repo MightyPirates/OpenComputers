@@ -1,6 +1,6 @@
-# This is the english master file for localizations. It will always be the most
-# up-to-date version, so other localizations should be based on this one.
-# Use [nl] to for a line break.
+# German (de_DE) localization file
+# Translations might not be 100% correct
+# Suggestions for improvements are welcome
 
 # Blocks
 tile.oc.accessPoint.name=Access Point
