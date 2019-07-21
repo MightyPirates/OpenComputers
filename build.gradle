@@ -77,6 +77,10 @@ repositories {
         name = "mightypirates"
         url = "https://maven.cil.li/"
     }
+    maven {
+        name = "ic2"
+        url = "http://maven.ic2.player.to/"
+    }
 }
 
 configurations {
