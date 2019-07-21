@@ -11,7 +11,7 @@ buildscript {
         }
         maven {
             url = "https://jitpack.io"
-        }
+    }
     }
     dependencies {
         classpath 'com.github.CDAGaming:ForgeGradle:1c670759c5'
