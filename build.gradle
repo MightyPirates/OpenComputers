@@ -11,7 +11,7 @@ buildscript {
         }
         maven {
             url = "https://jitpack.io"
-        }
+    }
     }
     dependencies {
         classpath 'com.github.CDAGaming:ForgeGradle:1c670759c5'
@@ -77,6 +77,10 @@ repositories {
     maven {
         name = "mightypirates"
         url = "https://maven.cil.li/"
+    }
+    maven {
+        name = "ic2, forestry"
+        url = "http://maven.ic2.player.to/"
     }
     // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
     ivy {
