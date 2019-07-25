@@ -4,15 +4,16 @@ import li.cil.oc.Settings
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.integration.Mods
-
 import mrtjp.projectred.api.IBundledTile
-
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.common.Optional
 import java.util
+
+import li.cil.oc.integration.charset.{CapabilitiesCharset, ModCharset}
+import net.minecraftforge.common.capabilities.Capability
 
 trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
 
@@ -184,6 +185,22 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
     nbt.setNewTagList(BundledOutputTag, _bundledOutput.view)
 
     nbt.setNewTagList(RednetInputTag, _rednetInput.view)
+  }
+
+  override def hasCapability(capability: Capability[_], side: EnumFacing): Boolean = {
+    if (capability == CapabilitiesCharset.BUNDLED_EMITTER || capability == CapabilitiesCharset.BUNDLED_RECEIVER) {
+      true
+    } else {
+      super.hasCapability(capability, side)
+    }
+  }
+
+  override def getCapability[T](capability: Capability[T], side: EnumFacing): T = {
+    if (capability == CapabilitiesCharset.BUNDLED_EMITTER || capability == CapabilitiesCharset.BUNDLED_RECEIVER) {
+      new ModCharset.BundledRedstoneView(getBundledOutput(side), () => setBundledInput(side, BundledRedstone.computeBundledInput(position, side))).asInstanceOf[T]
+    } else {
+      super.getCapability(capability, side)
+    }
   }
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)

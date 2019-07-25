@@ -36,6 +36,7 @@ object Mods {
   val DraconicEvolution = new SimpleMod(IDs.DraconicEvolution)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
+  val Charset = new SimpleMod(IDs.Charset)
 
   // ----------------------------------------------------------------------- //
 
@@ -54,6 +55,7 @@ object Mods {
     integration.computercraft.ModComputerCraft,
     integration.enderstorage.ModEnderStorage,
     integration.thaumcraft.ModThaumcraft,
+    integration.charset.ModCharset,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
@@ -100,6 +102,7 @@ object Mods {
     final val DraconicEvolution = "draconicevolution"
     final val EnderStorage = "enderstorage"
     final val Thaumcraft = "thaumcraft"
+    final val Charset = "charset"
   }
 
   // ----------------------------------------------------------------------- //
