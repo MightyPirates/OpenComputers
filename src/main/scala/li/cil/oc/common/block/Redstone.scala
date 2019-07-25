@@ -17,6 +17,9 @@ class Redstone extends RedstoneAware {
     if (Mods.ProjectRedTransmission.isModAvailable) {
       tooltip.addAll(Tooltip.get("RedstoneCard.ProjectRed"))
     }
+    if (Mods.Charset.isModAvailable) {
+      tooltip.addAll(Tooltip.get("RedstoneCard.Charset"))
+    }
   }
 
   // ----------------------------------------------------------------------- //

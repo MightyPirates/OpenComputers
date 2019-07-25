@@ -69,6 +69,10 @@ minecraft {
 repositories {
     maven { url "https://maven.cil.li/" }
     maven { url "https://minecraft.curseforge.com/api/maven/" }
+    ivy {
+        name 'Charset API'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+    }
 }
 
 configurations {
@@ -88,6 +92,7 @@ dependencies {
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
     deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
+    deobfCompile name: "Charset", version: "0.5.6.2", classifier: "api"
     
     provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
         transitive = false

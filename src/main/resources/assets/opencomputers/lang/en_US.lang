@@ -331,6 +331,7 @@ oc:tooltip.printer=Allows printing blocks of user-defined shapes using Chamelium
 oc:tooltip.raid=Allows combining three hard drives into one larger file system that can be used by all connected computers.
 oc:tooltip.rawcircuitboard=Can be hardened in any furnace compatible oven.
 oc:tooltip.redstone=Allows reading and emitting redstone signals around the block. Can be controlled by any computer the block is connected to. This is basically like an external redstone card.
+oc:tooltip.redstonecard.Charset=§fSimpleLogic§7 is §asupported§7.
 oc:tooltip.redstonecard.ProjectRed=§fProjectRed§7 is §asupported§7.
 oc:tooltip.redstonecard.RedLogic=§fRedLogic§7 is §asupported§7.
 oc:tooltip.redstonecard.RedNet=§fRedNet§7 is §asupported§7.
