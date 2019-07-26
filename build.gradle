@@ -69,10 +69,6 @@ minecraft {
 repositories {
     maven { url "https://maven.cil.li/" }
     maven { url "https://minecraft.curseforge.com/api/maven/" }
-    ivy {
-        name 'Charset API'
-        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
-    }
 }
 
 configurations {
