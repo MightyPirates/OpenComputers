@@ -22,11 +22,13 @@ object AEUtil {
 
   def useNewItemDefinitionAPI = versionsWithNewItemDefinitionAPI.containsVersion(
     Loader.instance.getIndexedModList.get(Mods.AppliedEnergistics2.id).getProcessedVersion)
+	
+  def areChannelsEnabled: Boolean = AEApi.instance != null && AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
 
   // ----------------------------------------------------------------------- //
 
   def controllerClass: Class[_] =
-    if (AEApi.instance != null)
+    if (AEApi.instance != null && areChannelsEnabled)
       AEApi.instance.definitions.blocks.controller.maybeEntity.get()
     else null: Class[_]
 
@@ -39,7 +41,7 @@ object AEUtil {
 
   // ----------------------------------------------------------------------- //
 
-  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
+  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && areChannelsEnabled && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
 
   // ----------------------------------------------------------------------- //
 
