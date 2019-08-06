@@ -6,11 +6,11 @@ import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.ModelInitialization
 import li.cil.oc.client.renderer.block.NetSplitterModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone

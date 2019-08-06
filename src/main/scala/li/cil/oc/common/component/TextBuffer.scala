@@ -15,8 +15,8 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
@@ -452,10 +452,10 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
   override def renderText() = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
-  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * getViewportWidth
+  override def renderWidth = TextBufferRenderCache.fontTextureProvider.getCharWidth / 2 * getViewportWidth
 
   @SideOnly(Side.CLIENT)
-  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * getViewportHeight
+  override def renderHeight = TextBufferRenderCache.fontTextureProvider.getCharHeight / 2 * getViewportHeight
 
   @SideOnly(Side.CLIENT)
   override def setRenderingEnabled(enabled: Boolean) = isRendering = enabled

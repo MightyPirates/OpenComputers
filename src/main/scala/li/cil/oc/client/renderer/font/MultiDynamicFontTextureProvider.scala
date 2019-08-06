@@ -1,7 +1,9 @@
 package li.cil.oc.client.renderer.font
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import li.cil.oc.Settings
-import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
+import li.cil.oc.client.renderer.font.MultiDynamicFontTextureProvider.{CharIcon, CharTexture}
+import li.cil.oc.client.renderer.font.FontTextureProvider.Receiver
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -18,14 +20,10 @@ import scala.collection.mutable
  * Font renderer that dynamically generates lookup textures by rendering a font
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
-class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
-  private val glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
-    case _ => new FontParserHex()
-  }
-
+class MultiDynamicFontTextureProvider(private val glyphProvider: IGlyphProvider) extends FontTextureProvider with IResourceManagerReloadListener {
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
-  private val charMap = mutable.Map.empty[Char, DynamicFontRenderer.CharIcon]
+  private val charMap = new Int2ObjectOpenHashMap[MultiDynamicFontTextureProvider.CharIcon]
 
   private var activeTexture: CharTexture = _
 
@@ -40,11 +38,13 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     for (texture <- textures) {
       texture.delete()
     }
+
     textures.clear()
     charMap.clear()
-    textures += new DynamicFontRenderer.CharTexture(this)
+    textures += new MultiDynamicFontTextureProvider.CharTexture(this)
     activeTexture = textures.head
-    generateChars(basicChars.toCharArray)
+
+    StaticFontTextureProvider.basicChars.foreach(c => getCodePoint(c))
   }
 
   def onResourceManagerReload(manager: IResourceManager) {
@@ -52,37 +52,54 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     initialize()
   }
 
-  override protected def charWidth = glyphProvider.getGlyphWidth
+  private def charWidth = glyphProvider.getGlyphWidth
 
-  override protected def charHeight = glyphProvider.getGlyphHeight
+  private def charHeight = glyphProvider.getGlyphHeight
 
-  override protected def textureCount = textures.length
+  override def getCharWidth: Int = charWidth
 
-  override protected def bindTexture(index: Int) {
-    activeTexture = textures(index)
+  override def getCharHeight: Int = charHeight
+
+  override def getTextureCount: Int = textures.size
+
+  override def begin(tex: Int): Unit = {
+    activeTexture = textures(tex)
     activeTexture.bind()
-    RenderState.checkError(getClass.getName + ".bindTexture")
+    RenderState.checkError(getClass.getName + ".begin")
   }
 
-  override protected def generateChar(char: Char) {
-    charMap.getOrElseUpdate(char, createCharIcon(char))
+  override def end(tex: Int): Unit = {
+
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  private def getCodePoint(char: Int): CharIcon = {
     charMap.get(char) match {
-      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
-      case _ =>
+      case icon: CharIcon => icon
+      case null =>
+        val result = createCharIcon(char)
+        charMap.put(char, result)
+        result
     }
   }
 
-  private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
+  override def drawCodePoint(char: Int, tx: Float, ty: Float, receiver: Receiver) {
+    getCodePoint(char) match {
+      case icon: CharIcon =>
+        if (icon.texture == activeTexture) {
+          receiver.draw(tx, tx + icon.w, ty, ty + icon.h, icon.u1, icon.u2, icon.v1, icon.v2)
+        }
+      case null =>
+    }
+  }
+
+  private def createCharIcon(char: Int): MultiDynamicFontTextureProvider.CharIcon = {
     if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
-      else charMap.getOrElseUpdate('?', createCharIcon('?'))
+      else getCodePoint('?')
     }
     else {
       if (textures.last.isFull(char)) {
-        textures += new DynamicFontRenderer.CharTexture(this)
+        textures += new MultiDynamicFontTextureProvider.CharTexture(this)
         textures.last.bind()
       }
       textures.last.add(char)
@@ -90,19 +107,20 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 }
 
-object DynamicFontRenderer {
-  private val size = 256
+object MultiDynamicFontTextureProvider {
+  private val size = 512
 
-  class CharTexture(val owner: DynamicFontRenderer) {
+  class CharTexture(val owner: MultiDynamicFontTextureProvider) {
     private val id = GlStateManager.generateTexture()
     RenderState.bindTexture(id)
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     } else {
-    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
     }
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
-    GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, size, size, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
+
+    GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_ALPHA8, size, size, 0, GL11.GL_ALPHA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
     RenderState.bindTexture(0)
 
     RenderState.checkError(getClass.getName + ".<init>: create texture")
@@ -127,9 +145,9 @@ object DynamicFontRenderer {
       RenderState.bindTexture(id)
     }
 
-    def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
+    def isFull(char: Int): Boolean = chars + FontUtils.wcwidth(char) > capacity
 
-    def add(char: Char) = {
+    def add(char: Int): CharIcon = {
       val glyphWidth = FontUtils.wcwidth(char)
       val w = owner.charWidth * glyphWidth
       val h = owner.charHeight
@@ -141,7 +159,7 @@ object DynamicFontRenderer {
       val y = chars / cols
 
       RenderState.bindTexture(id)
-      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
+      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_ALPHA, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
 
       chars += glyphWidth
 
@@ -150,16 +168,7 @@ object DynamicFontRenderer {
   }
 
   class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
-    def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty)
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty)
-    }
+
   }
 
 }

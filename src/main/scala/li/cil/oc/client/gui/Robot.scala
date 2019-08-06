@@ -6,8 +6,8 @@ import li.cil.oc.api
 import li.cil.oc.api.internal.TextBuffer
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
@@ -56,9 +56,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val maxBufferWidth = 240.0
   private val maxBufferHeight = 140.0
 
-  private def bufferRenderWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * Settings.screenResolutionsByTier(0)._1)
+  private def bufferRenderWidth = math.min(maxBufferWidth, TextBufferRenderCache.fontTextureProvider.getCharWidth / 2 * Settings.screenResolutionsByTier(0)._1)
 
-  private def bufferRenderHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
+  private def bufferRenderHeight = math.min(maxBufferHeight, TextBufferRenderCache.fontTextureProvider.getCharHeight / 2 * Settings.screenResolutionsByTier(0)._2)
 
   override protected def bufferX: Int = (8 + (maxBufferWidth - bufferRenderWidth) / 2).toInt
 
@@ -245,8 +245,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean): Double = {
-    val bw = w * TextBufferRenderCache.renderer.charRenderWidth
-    val bh = h * TextBufferRenderCache.renderer.charRenderHeight
+    val bw = w * TextBufferRenderCache.fontTextureProvider.getCharWidth / 2
+    val bh = h * TextBufferRenderCache.fontTextureProvider.getCharHeight / 2
     val scaleX = math.min(bufferRenderWidth / bw, 1)
     val scaleY = math.min(bufferRenderHeight / bh, 1)
     if (recompile) {

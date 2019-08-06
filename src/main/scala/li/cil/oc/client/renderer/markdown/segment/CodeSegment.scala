@@ -1,14 +1,12 @@
 package li.cil.oc.client.renderer.markdown.segment
 
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.markdown.MarkupFormat
+import li.cil.oc.client.renderer.textbuffer.{TextBufferRenderCache, TextBufferRendererDisplayList}
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.renderer.GlStateManager
 
 private[markdown] class CodeSegment(val parent: Segment, val text: String) extends BasicTextSegment {
   override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-    TextBufferRenderCache.renderer.generateChars(text.toCharArray)
-
     var currentX = x + indent
     var currentY = y
     var chars = text
@@ -17,7 +15,7 @@ private[markdown] class CodeSegment(val parent: Segment, val text: String) exten
     while (chars.length > 0) {
       val part = chars.take(numChars)
       GlStateManager.color(0.75f, 0.8f, 1, 1)
-      TextBufferRenderCache.renderer.drawString(part, currentX, currentY)
+      TextBufferRendererDisplayList.drawString(TextBufferRenderCache.fontTextureProvider, part, currentX, currentY)
       currentX = x + wrapIndent
       currentY += lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
@@ -29,7 +27,7 @@ private[markdown] class CodeSegment(val parent: Segment, val text: String) exten
 
   override protected def ignoreLeadingWhitespace: Boolean = false
 
-  override protected def stringWidth(s: String, renderer: FontRenderer): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
+  override protected def stringWidth(s: String, renderer: FontRenderer): Int = s.length * TextBufferRenderCache.fontTextureProvider.getCharWidth / 2
 
   override def toString(format: MarkupFormat.Value): String = format match {
     case MarkupFormat.Markdown => s"`$text`"
