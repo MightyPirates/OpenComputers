@@ -109,6 +109,9 @@ class TextBufferRendererVBO extends TextBufferRenderer with Receiver {
   }
 
   override def destroy(): Boolean = {
+    GL15.glDeleteBuffers(bgBufferVbo)
+    GL15.glDeleteBuffers(fgBufferVbo)
+
     true
   }
 
