@@ -6,9 +6,9 @@ import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotificati
 import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.client.renderer.font.{CouldNotFitTextureException, FontParserHex, FontTextureProvider, MultiDynamicFontTextureProvider, SingleDynamicFontTextureProvider, StaticFontTextureProvider, TextBufferRenderData}
 import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import org.lwjgl.opengl.GLContext
 
 object TextBufferRenderCache extends Callable[TextBufferRenderer] with RemovalListener[TextBufferRenderData, TextBufferRenderer] {
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
@@ -34,8 +34,29 @@ object TextBufferRenderCache extends Callable[TextBufferRenderer] with RemovalLi
     }
   }
 
+  private val profiler = Minecraft.getMinecraft.mcProfiler
+
   // To allow access in cache entry init.
   private var currentBuffer: TextBufferRenderData = _
+
+  private val renderingEngine: String = Settings.get.textRenderingEngine match {
+    case "vbo" =>
+      if (TextBufferRendererVBO.isSupported(fontTextureProvider)) {
+        "vbo"
+      } else {
+        OpenComputers.log.error("Could not initialize VBO-based renderer! Using fallback.")
+        "displaylist"
+      }
+    case "displaylist" => "displaylist"
+    case _ =>
+      if (TextBufferRendererVBO.isSupported(fontTextureProvider)) {
+        "vbo"
+      } else {
+        "displaylist"
+      }
+  }
+
+  OpenComputers.log.info("Using text rendering engine '" + renderingEngine + "'.")
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -43,7 +64,7 @@ object TextBufferRenderCache extends Callable[TextBufferRenderer] with RemovalLi
 
   def render(buffer: TextBufferRenderData) {
     currentBuffer = buffer
-    cache.get(currentBuffer, this).render(fontTextureProvider, buffer)
+    cache.get(currentBuffer, this).render(profiler, fontTextureProvider, buffer)
   }
 
   // ----------------------------------------------------------------------- //
@@ -53,13 +74,12 @@ object TextBufferRenderCache extends Callable[TextBufferRenderer] with RemovalLi
   def call = {
     RenderState.checkError(getClass.getName + ".call: entering (aka: wasntme)")
 
-    val renderer = {
-      if (GLContext.getCapabilities.OpenGL15 && fontTextureProvider.getTextureCount == 1) {
-        new TextBufferRendererVBO()
-      } else {
-        new TextBufferRendererDisplayList()
-      }
+    val renderer = renderingEngine match {
+      case "vbo" => new TextBufferRendererVBO()
+      case "displaylist" => new TextBufferRendererDisplayList()
+      case other => throw new RuntimeException("Unknown renderingEngine: " + other)
     }
+
     currentBuffer.dirty = true // Force compilation.
 
     RenderState.checkError(getClass.getName + ".call: leaving")

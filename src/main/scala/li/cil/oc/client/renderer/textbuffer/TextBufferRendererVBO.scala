@@ -4,11 +4,13 @@ import java.nio.{ByteBuffer, IntBuffer}
 
 import li.cil.oc.client.renderer.font.FontTextureProvider.Receiver
 import li.cil.oc.client.renderer.font.{FontTextureProvider, TextBufferRenderData}
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache.fontTextureProvider
 import li.cil.oc.util.{PackedColor, RenderState, TextBuffer}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.{GLAllocation, GlStateManager}
+import net.minecraft.profiler.Profiler
 import net.minecraft.util.math.MathHelper
-import org.lwjgl.opengl.{GL11, GL15}
+import org.lwjgl.opengl.{GL11, GL15, GLContext}
 
 class TextBufferRendererVBO extends TextBufferRenderer {
   private val bgBufferVbo = GL15.glGenBuffers()
@@ -16,9 +18,7 @@ class TextBufferRendererVBO extends TextBufferRenderer {
   private var bgBufferElems = 0
   private var fgBufferElems = 0
 
-  override def render(fontTextureProvider: FontTextureProvider, currentBuffer: TextBufferRenderData): Boolean = {
-    val profiler = Minecraft.getMinecraft.mcProfiler
-
+  override def render(profiler: Profiler, fontTextureProvider: FontTextureProvider, currentBuffer: TextBufferRenderData): Boolean = {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (currentBuffer.dirty) {
@@ -56,7 +56,7 @@ class TextBufferRendererVBO extends TextBufferRenderer {
     GlStateManager.glEnableClientState(GL11.GL_VERTEX_ARRAY)
     GlStateManager.glEnableClientState(GL11.GL_COLOR_ARRAY)
 
-    GlStateManager.glVertexPointer(2, GL11.GL_FLOAT, 12, 4)
+    GlStateManager.glVertexPointer(2, GL11.GL_INT, 12, 4)
     GlStateManager.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, 12, 0)
 
     GL11.glDrawArrays(GL11.GL_QUADS, 0, bgBufferElems)
@@ -112,6 +112,8 @@ object TextBufferRendererVBO {
   }
 
   def getVboBuffer(): VBOBuffer = vboBuffers.get()
+
+  def isSupported(fontTextureProvider: FontTextureProvider): Boolean = GLContext.getCapabilities.OpenGL15 && fontTextureProvider.getTextureCount == 1
 }
 
 class VBOBuffer extends Receiver {
@@ -158,14 +160,14 @@ class VBOBuffer extends Receiver {
       var width = 0
       for (col <- color.map(PackedColor.unpackBackground(_, format)) if x + width < viewportWidth) {
         if (col != cbg) {
-          drawBgQuad(charWidth, charHeight, cbg | 0xFF000000, x, y, width)
+          drawBgQuad(charWidth, charHeight, cbg, x, y, width)
           cbg = col
           x += width
           width = 0
         }
         width = width + 1
       }
-      drawBgQuad(charWidth, charHeight, cbg | 0xFF000000, x, y, width)
+      drawBgQuad(charWidth, charHeight, cbg, x, y, width)
     }
 
     // Foreground second. We only have to flush when the color changes, so
@@ -174,7 +176,7 @@ class VBOBuffer extends Receiver {
       val line = buffer.buffer(y)
       val color = buffer.color(y)
       val ty = y * charHeight
-      for (i <- 0 until fontTextureProvider.getTextureCount) {
+      for (_ <- 0 until fontTextureProvider.getTextureCount) {
         var tx = 0f
         for (n <- 0 until viewportWidth) {
           val ch = line(n)
@@ -231,20 +233,16 @@ class VBOBuffer extends Receiver {
 
     growBgBuffer(BG_ENTRY_SIZE)
 
-    val xf0 = java.lang.Float.floatToRawIntBits(x0)
-    val xf1 = java.lang.Float.floatToRawIntBits(x1)
-    val yf0 = java.lang.Float.floatToRawIntBits(y0)
-    val yf1 = java.lang.Float.floatToRawIntBits(y1)
     val colorSwapped = color & 0xFF00FF00 | ((color & 0xFF0000) >> 16) | ((color & 0xFF) << 16)
 
     bgBuffer.put(colorSwapped)
-    bgBuffer.put(xf0).put(yf1)
+    bgBuffer.put(x0).put(y1)
     bgBuffer.put(colorSwapped)
-    bgBuffer.put(xf1).put(yf1)
+    bgBuffer.put(x1).put(y1)
     bgBuffer.put(colorSwapped)
-    bgBuffer.put(xf1).put(yf0)
+    bgBuffer.put(x1).put(y0)
     bgBuffer.put(colorSwapped)
-    bgBuffer.put(xf0).put(yf0)
+    bgBuffer.put(x0).put(y0)
   }
 
   def growBgBuffer(size: Int): Unit = {

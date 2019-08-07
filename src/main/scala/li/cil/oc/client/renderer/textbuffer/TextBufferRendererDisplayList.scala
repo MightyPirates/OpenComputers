@@ -4,14 +4,17 @@ import li.cil.oc.client.renderer.font.FontTextureProvider.Receiver
 import li.cil.oc.client.renderer.font.{FontTextureProvider, TextBufferRenderData}
 import li.cil.oc.util.{PackedColor, RenderState, TextBuffer}
 import net.minecraft.client.renderer.{GLAllocation, GlStateManager}
+import net.minecraft.profiler.Profiler
 import org.lwjgl.opengl.GL11
 
 class TextBufferRendererDisplayList extends TextBufferRenderer {
   private val list = GLAllocation.generateDisplayLists(1)
 
-  override def render(fontTextureProvider: FontTextureProvider, currentBuffer: TextBufferRenderData): Boolean = {
+  override def render(profiler: Profiler, fontTextureProvider: FontTextureProvider, currentBuffer: TextBufferRenderData): Boolean = {
     if (currentBuffer.dirty) {
       RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
+
+      profiler.startSection("compile_list")
 
       val doCompile = !RenderState.compilingDisplayList
       if (doCompile) {
@@ -33,9 +36,13 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
       RenderState.checkError(getClass.getName + ".render: leaving")
 
+      profiler.endSection()
+
       true
     }
     else {
+      profiler.startSection("execute_list")
+
       GL11.glCallList(list)
       GlStateManager.enableTexture2D()
       GlStateManager.depthMask(true)
@@ -50,7 +57,9 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
       RenderState.disableBlend()
 
       RenderState.checkError(getClass.getName + ".render: glCallList")
-      
+
+      profiler.endSection()
+
       true
     }
   }
@@ -111,35 +120,35 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
     // Foreground second. We only have to flush when the color changes, so
     // unless every char has a different color this should be quite efficient.
-    for (y <- 0 until (viewportHeight min buffer.height)) {
-      val line = buffer.buffer(y)
-      val color = buffer.color(y)
-      val ty = y * charHeight
-      for (i <- 0 until fontTextureProvider.getTextureCount) {
-        fontTextureProvider.begin(i)
-        GL11.glBegin(GL11.GL_QUADS)
-        var cfg = -1
+    for (i <- 0 until fontTextureProvider.getTextureCount) {
+      fontTextureProvider.begin(i)
+      GL11.glBegin(GL11.GL_QUADS)
+      var cfg = -1
+      for (y <- 0 until (viewportHeight min buffer.height)) {
+        val line = buffer.buffer(y)
+        val color = buffer.color(y)
         var tx = 0f
+        val ty = y * charHeight
         for (n <- 0 until viewportWidth) {
           val ch = line(n)
           val col = PackedColor.unpackForeground(color(n), format)
-          // Check if color changed.
-          if (col != cfg) {
-            cfg = col
-            GL11.glColor3f(
-              ((cfg & 0xFF0000) >> 16) / 255f,
-              ((cfg & 0x00FF00) >> 8) / 255f,
-              ((cfg & 0x0000FF) >> 0) / 255f)
-          }
           // Don't render whitespace.
           if (ch != ' ') {
+            // Check if color changed.
+            if (col != cfg) {
+              cfg = col
+              GL11.glColor3f(
+                ((cfg & 0xFF0000) >> 16) / 255.0f,
+                ((cfg & 0x00FF00) >> 8) / 255.0f,
+                ((cfg & 0x0000FF) >> 0) / 255.0f)
+            }
             fontTextureProvider.drawCodePoint(ch, tx, ty, TextBufferRendererDisplayList.receiver)
           }
           tx += charWidth
         }
-        GL11.glEnd()
-        fontTextureProvider.end(i)
       }
+      GL11.glEnd()
+      fontTextureProvider.end(i)
     }
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
@@ -165,10 +174,10 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
       ((color >> 16) & 0xFF) / 255f,
       ((color >> 8) & 0xFF) / 255f,
       (color & 0xFF) / 255f)
-    GL11.glVertex3d(x0, y1, 0)
-    GL11.glVertex3d(x1, y1, 0)
-    GL11.glVertex3d(x1, y0, 0)
-    GL11.glVertex3d(x0, y0, 0)
+    GL11.glVertex3f(x0, y1, 0)
+    GL11.glVertex3f(x1, y1, 0)
+    GL11.glVertex3f(x1, y0, 0)
+    GL11.glVertex3f(x0, y0, 0)
   }
 }
 
