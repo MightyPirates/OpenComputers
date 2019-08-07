@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.font;
 
 public interface FontTextureProvider {
     interface Receiver {
-        void draw(double x1, double x2, double y1, double y2, double u1, double u2, double v1, double v2);
+        void draw(float x1, float x2, float y1, float y2, float u1, float u2, float v1, float v2);
     }
 
     int getCharWidth();

@@ -32,6 +32,24 @@ object PackedColor {
     (r, g, b)
   }
 
+  private val colorCube685 = new Array[Int](240)
+
+  {
+    val reds = 6
+    val greens = 8
+    val blues = 5
+
+    for (index <- colorCube685.indices) {
+      val idxB = index % blues
+      val idxG = (index / blues) % greens
+      val idxR = (index / blues / greens) % reds
+      val r = (idxR * 0xFF / (reds - 1.0) + 0.5).toInt
+      val g = (idxG * 0xFF / (greens - 1.0) + 0.5).toInt
+      val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
+      colorCube685(index) = (r << rShift32) | (g << gShift32) | (b << bShift32)
+    }
+  }
+
   trait ColorFormat extends Persistable {
     def depth: api.internal.TextBuffer.ColorDepth
 
@@ -132,13 +150,7 @@ object PackedColor {
       if (isFromPalette(value)) super.inflate(value)
       else {
         val index = value - palette.length
-        val idxB = index % blues
-        val idxG = (index / blues) % greens
-        val idxR = (index / blues / greens) % reds
-        val r = (idxR * 0xFF / (reds - 1.0) + 0.5).toInt
-        val g = (idxG * 0xFF / (greens - 1.0) + 0.5).toInt
-        val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
-        (r << rShift32) | (g << gShift32) | (b << bShift32)
+        if (index >= 0 && index < colorCube685.length) colorCube685(index) else 0
       }
 
     override def deflate(value: Color) = {

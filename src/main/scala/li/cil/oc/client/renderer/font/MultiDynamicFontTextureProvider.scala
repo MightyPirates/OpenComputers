@@ -130,9 +130,9 @@ object MultiDynamicFontTextureProvider {
     private val cellHeight = owner.charHeight + 2
     private val cols = size / cellWidth
     private val rows = size / cellHeight
-    private val uStep = cellWidth / size.toDouble
-    private val vStep = cellHeight / size.toDouble
-    private val pad = 1.0 / size
+    private val uStep = cellWidth / size.toFloat
+    private val vStep = cellHeight / size.toFloat
+    private val pad = 1.0f / size
     private val capacity = cols * rows
 
     private var chars = 0
@@ -167,7 +167,7 @@ object MultiDynamicFontTextureProvider {
     }
   }
 
-  class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
+  class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Float, val v1: Float, val u2: Float, val v2: Float) {
 
   }
 

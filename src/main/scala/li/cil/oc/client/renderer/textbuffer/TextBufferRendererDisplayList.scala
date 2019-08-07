@@ -174,15 +174,15 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
 object TextBufferRendererDisplayList {
   private val receiver = new Receiver {
-    override def draw(x1: Double, x2: Double, y1: Double, y2: Double, u1: Double, u2: Double, v1: Double, v2: Double): Unit = {
-      GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2d(x1, y2)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2d(x2, y2)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2d(x2, y1)
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2d(x1, y1)
+    override def draw(x1: Float, x2: Float, y1: Float, y2: Float, u1: Float, u2: Float, v1: Float, v2: Float): Unit = {
+      GL11.glTexCoord2f(u1, v2)
+      GL11.glVertex2f(x1, y2)
+      GL11.glTexCoord2f(u2, v2)
+      GL11.glVertex2f(x2, y2)
+      GL11.glTexCoord2f(u2, v1)
+      GL11.glVertex2f(x2, y1)
+      GL11.glTexCoord2f(u1, v1)
+      GL11.glVertex2f(x1, y1)
     }
   }
 

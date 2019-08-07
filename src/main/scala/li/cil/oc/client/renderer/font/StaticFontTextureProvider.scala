@@ -30,11 +30,11 @@ class StaticFontTextureProvider extends FontTextureProvider {
       (StaticFontTextureProvider.basicChars, 10, 18)
   }
 
-  private val cols = 256 / charWidth
-  private val uStep = charWidth / 256.0
+  private val cols = 256.0f / charWidth
+  private val uStep = charWidth / 256.0f
   private val uSize = uStep
-  private val vStep = (charHeight + 1) / 256.0
-  private val vSize = charHeight / 256.0
+  private val vStep = (charHeight + 1) / 256.0f
+  private val vSize = charHeight / 256.0f
   private val s = Settings.get.fontCharScale
   private val dw = charWidth * s - charWidth
   private val dh = charHeight * s - charHeight

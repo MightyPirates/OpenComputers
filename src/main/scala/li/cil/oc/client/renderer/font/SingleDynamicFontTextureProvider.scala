@@ -123,10 +123,10 @@ object SingleDynamicFontTextureProvider {
     private val cellHeight = owner.charHeight + 2
     private val cols = xSize / cellWidth
     private val rows = ySize / cellHeight
-    private val uStep = cellWidth / xSize.toDouble
-    private val vStep = cellHeight / ySize.toDouble
-    private val padU = 1.0 / xSize
-    private val padV = 1.0 / ySize
+    private val uStep = cellWidth / xSize.toFloat
+    private val vStep = cellHeight / ySize.toFloat
+    private val padU = 1.0f / xSize
+    private val padV = 1.0f / ySize
     private val capacity = cols * rows
 
     private var chars = 0
@@ -161,7 +161,7 @@ object SingleDynamicFontTextureProvider {
     }
   }
 
-  class CharIcon(val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
+  class CharIcon(val w: Int, val h: Int, val u1: Float, val v1: Float, val u2: Float, val v2: Float) {
 
   }
 
