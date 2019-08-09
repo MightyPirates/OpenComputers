@@ -8,8 +8,10 @@ public interface FontTextureProvider {
     int getCharWidth();
     int getCharHeight();
 
+    boolean isDynamic();
     int getTextureCount();
     void begin(int texture);
+    void loadCodePoint(int codePoint);
     void drawCodePoint(int codePoint, float tx, float ty, Receiver receiver);
     void end(int texture);
 }

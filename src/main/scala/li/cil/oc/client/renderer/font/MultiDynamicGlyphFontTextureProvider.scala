@@ -1,8 +1,10 @@
 package li.cil.oc.client.renderer.font
 
+import java.nio.ByteBuffer
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import li.cil.oc.Settings
-import li.cil.oc.client.renderer.font.MultiDynamicFontTextureProvider.{CharIcon, CharTexture}
+import li.cil.oc.client.renderer.font.MultiDynamicGlyphFontTextureProvider.{CharIcon, CharTexture}
 import li.cil.oc.client.renderer.font.FontTextureProvider.Receiver
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
@@ -16,14 +18,10 @@ import org.lwjgl.opengl._
 
 import scala.collection.mutable
 
-/**
- * Font renderer that dynamically generates lookup textures by rendering a font
- * to it. It's pretty broken right now, and font rendering looks crappy as hell.
- */
-class MultiDynamicFontTextureProvider(private val glyphProvider: IGlyphProvider) extends FontTextureProvider with IResourceManagerReloadListener {
+class MultiDynamicGlyphFontTextureProvider(private val glyphProvider: IGlyphProvider) extends FontTextureProvider with IResourceManagerReloadListener {
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
-  private val charMap = new Int2ObjectOpenHashMap[MultiDynamicFontTextureProvider.CharIcon]
+  private val charMap = new Int2ObjectOpenHashMap[MultiDynamicGlyphFontTextureProvider.CharIcon]
 
   private var activeTexture: CharTexture = _
 
@@ -41,10 +39,10 @@ class MultiDynamicFontTextureProvider(private val glyphProvider: IGlyphProvider)
 
     textures.clear()
     charMap.clear()
-    textures += new MultiDynamicFontTextureProvider.CharTexture(this)
+    textures += new MultiDynamicGlyphFontTextureProvider.CharTexture(this)
     activeTexture = textures.head
 
-    StaticFontTextureProvider.basicChars.foreach(c => getCodePoint(c))
+    StaticTextureFontTextureProvider.basicChars.foreach(c => getCodePoint(c))
   }
 
   def onResourceManagerReload(manager: IResourceManager) {
@@ -92,25 +90,29 @@ class MultiDynamicFontTextureProvider(private val glyphProvider: IGlyphProvider)
     }
   }
 
-  private def createCharIcon(char: Int): MultiDynamicFontTextureProvider.CharIcon = {
+  private def createCharIcon(char: Int): MultiDynamicGlyphFontTextureProvider.CharIcon = {
     if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
       else getCodePoint('?')
     }
     else {
       if (textures.last.isFull(char)) {
-        textures += new MultiDynamicFontTextureProvider.CharTexture(this)
+        textures += new MultiDynamicGlyphFontTextureProvider.CharTexture(this)
         textures.last.bind()
       }
       textures.last.add(char)
     }
   }
+
+  override def isDynamic: Boolean = true
+
+  override def loadCodePoint(codePoint: Int): Unit = getCodePoint(codePoint)
 }
 
-object MultiDynamicFontTextureProvider {
+object MultiDynamicGlyphFontTextureProvider {
   private val size = 512
 
-  class CharTexture(val owner: MultiDynamicFontTextureProvider) {
+  class CharTexture(val owner: MultiDynamicGlyphFontTextureProvider) {
     private val id = GlStateManager.generateTexture()
     RenderState.bindTexture(id)
     if (Settings.get.textLinearFiltering) {
@@ -120,7 +122,7 @@ object MultiDynamicFontTextureProvider {
     }
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
 
-    GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_ALPHA8, size, size, 0, GL11.GL_ALPHA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
+    GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_INTENSITY8, size, size, 0, GL11.GL_RED, GL11.GL_UNSIGNED_BYTE, null.asInstanceOf[ByteBuffer])
     RenderState.bindTexture(0)
 
     RenderState.checkError(getClass.getName + ".<init>: create texture")
@@ -159,7 +161,7 @@ object MultiDynamicFontTextureProvider {
       val y = chars / cols
 
       RenderState.bindTexture(id)
-      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_ALPHA, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
+      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_RED, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
 
       chars += glyphWidth
 

@@ -14,7 +14,7 @@ import scala.io.Source
  * Font renderer using a user specified texture file, meaning the list of
  * supported characters is fixed. But at least this one works.
  */
-class StaticFontTextureProvider extends FontTextureProvider {
+class StaticTextureFontTextureProvider extends FontTextureProvider {
   protected val (chars, charWidth, charHeight) = try {
     val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
     val chars = lines.next()
@@ -27,7 +27,7 @@ class StaticFontTextureProvider extends FontTextureProvider {
   catch {
     case t: Throwable =>
       OpenComputers.log.warn("Failed reading font metadata, using defaults.", t)
-      (StaticFontTextureProvider.basicChars, 10, 18)
+      (StaticTextureFontTextureProvider.basicChars, 10, 18)
   }
 
   private val cols = 256.0f / charWidth
@@ -75,8 +75,14 @@ class StaticFontTextureProvider extends FontTextureProvider {
       receiver.draw(tx - dw, tx + charWidth * s, ty - dh, ty + charHeight * s, u, u + uSize, v, v + vSize)
     }
   }
+
+  override def isDynamic: Boolean = false
+
+  override def loadCodePoint(codePoint: Int): Unit = {
+
+  }
 }
 
-object StaticFontTextureProvider {
+object StaticTextureFontTextureProvider {
   final val basicChars = """☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■"""
 }

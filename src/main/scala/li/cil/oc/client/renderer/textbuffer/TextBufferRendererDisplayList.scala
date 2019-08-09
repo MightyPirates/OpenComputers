@@ -18,6 +18,15 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
       val doCompile = !RenderState.compilingDisplayList
       if (doCompile) {
+        if (fontTextureProvider.isDynamic) {
+          for (y <- 0 until (currentBuffer.viewport._2 min currentBuffer.data.height)) {
+            val line = currentBuffer.data.buffer(y)
+            for (n <- 0 until currentBuffer.viewport._1) {
+              fontTextureProvider.loadCodePoint(line(n))
+            }
+          }
+        }
+
         currentBuffer.dirty = false
         GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 
@@ -37,31 +46,29 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
       RenderState.checkError(getClass.getName + ".render: leaving")
 
       profiler.endSection()
-
-      true
     }
     else {
       profiler.startSection("execute_list")
 
       GL11.glCallList(list)
-      GlStateManager.enableTexture2D()
-      GlStateManager.depthMask(true)
-      GlStateManager.color(1, 1, 1, 1)
-
-      // Because display lists and the GlStateManager don't like each other, apparently.
-      GL11.glEnable(GL11.GL_TEXTURE_2D)
-      RenderState.bindTexture(0)
-      GL11.glDepthMask(true)
-      GL11.glColor4f(1, 1, 1, 1)
-
-      RenderState.disableBlend()
 
       RenderState.checkError(getClass.getName + ".render: glCallList")
 
       profiler.endSection()
-
-      true
     }
+
+    RenderState.disableBlend()
+    GlStateManager.enableTexture2D()
+    GlStateManager.depthMask(true)
+    GlStateManager.color(1, 1, 1, 1)
+
+    // Because display lists and the GlStateManager don't like each other, apparently.
+    GL11.glEnable(GL11.GL_TEXTURE_2D)
+    RenderState.bindTexture(0)
+    GL11.glDepthMask(true)
+    GL11.glColor4f(1, 1, 1, 1)
+
+    true
   }
 
   override def destroy(): Boolean = {
@@ -82,10 +89,8 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
     GL11.glDepthMask(false)
     GL11.glDisable(GL11.GL_BLEND)
-    GL11.glEnable(GL11.GL_ALPHA_TEST)
+    GL11.glDisable(GL11.GL_ALPHA_TEST)
     GL11.glDisable(GL11.GL_TEXTURE_2D)
-    GL11.glAlphaFunc(GL11.GL_GEQUAL, 0.5f)
-    GlStateManager.alphaFunc(GL11.GL_GEQUAL, 0.5f)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
 
@@ -113,6 +118,9 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
     RenderState.checkError(getClass.getName + ".drawBuffer: background")
 
     GL11.glEnable(GL11.GL_TEXTURE_2D)
+    GL11.glEnable(GL11.GL_ALPHA_TEST)
+    GL11.glAlphaFunc(GL11.GL_GEQUAL, 0.5f)
+    GlStateManager.alphaFunc(GL11.GL_GEQUAL, 0.5f)
 
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -137,10 +145,11 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
             // Check if color changed.
             if (col != cfg) {
               cfg = col
-              GL11.glColor3f(
+              GL11.glColor4f(
                 ((cfg & 0xFF0000) >> 16) / 255.0f,
                 ((cfg & 0x00FF00) >> 8) / 255.0f,
-                ((cfg & 0x0000FF) >> 0) / 255.0f)
+                ((cfg & 0x0000FF) >> 0) / 255.0f,
+                1.0f)
             }
             fontTextureProvider.drawCodePoint(ch, tx, ty, TextBufferRendererDisplayList.receiver)
           }
@@ -155,7 +164,7 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
 
     GlStateManager.bindTexture(0)
     GL11.glDepthMask(true)
-    GL11.glColor3f(1, 1, 1)
+    GL11.glColor4f(1, 1, 1, 1)
     GL11.glDisable(GL11.GL_ALPHA_TEST)
     GlStateManager.disableAlpha()
     GlStateManager.disableBlend()
@@ -170,10 +179,11 @@ class TextBufferRendererDisplayList extends TextBufferRenderer {
     val x1 = (x + width) * charWidth
     val y0 = y * charHeight
     val y1 = (y + 1) * charHeight
-    GlStateManager.color(
+    GL11.glColor4f(
       ((color >> 16) & 0xFF) / 255f,
       ((color >> 8) & 0xFF) / 255f,
-      (color & 0xFF) / 255f)
+      (color & 0xFF) / 255f,
+      1.0f)
     GL11.glVertex3f(x0, y1, 0)
     GL11.glVertex3f(x1, y1, 0)
     GL11.glVertex3f(x1, y0, 0)
@@ -222,6 +232,8 @@ object TextBufferRendererDisplayList {
 
     RenderState.popAttrib()
     GlStateManager.popMatrix()
+
+    GL11.glColor4f(1f, 1f, 1f, 1f)
     GlStateManager.color(1, 1, 1)
   }
 }

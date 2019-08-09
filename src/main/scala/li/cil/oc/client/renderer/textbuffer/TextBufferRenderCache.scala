@@ -4,7 +4,7 @@ import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import li.cil.oc.{OpenComputers, Settings}
-import li.cil.oc.client.renderer.font.{CouldNotFitTextureException, FontParserHex, FontTextureProvider, MultiDynamicFontTextureProvider, SingleDynamicFontTextureProvider, StaticFontTextureProvider, TextBufferRenderData}
+import li.cil.oc.client.renderer.font.{CouldNotFitTextureException, FontParserHex, FontTextureProvider, MultiDynamicGlyphFontTextureProvider, SingleGlyphFontTextureProvider, StaticTextureFontTextureProvider, TextBufferRenderData}
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -19,16 +19,16 @@ object TextBufferRenderCache extends Callable[TextBufferRenderer] with RemovalLi
 
   val fontTextureProvider: FontTextureProvider = {
     if (Settings.get.fontRenderer == "texture") {
-      new StaticFontTextureProvider()
+      new StaticTextureFontTextureProvider()
     }
     else {
       val glyphProvider = new FontParserHex()
       try {
-        new SingleDynamicFontTextureProvider(glyphProvider)
+        new SingleGlyphFontTextureProvider(glyphProvider, false)
       } catch {
         case _: CouldNotFitTextureException => {
           OpenComputers.log.warn("Could not fit font into maximum texture; using slow fallback renderer.")
-          new MultiDynamicFontTextureProvider(glyphProvider)
+          new MultiDynamicGlyphFontTextureProvider(glyphProvider)
         }
       }
     }
