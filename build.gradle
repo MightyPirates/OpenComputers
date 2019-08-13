@@ -88,7 +88,7 @@ dependencies {
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
     deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
-    deobfCompile name: "Charset", version: "0.5.6.2", classifier: "api"
+    deobfCompile "charset:Charset:${config.charset.version}:api"
     
     provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
         transitive = false
