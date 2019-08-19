@@ -1,14 +1,23 @@
 package li.cil.oc.integration.ic2
 
-import net.minecraftforge.fml.common.Loader
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import net.minecraftforge.common.MinecraftForge
 
 object ModIndustrialCraft2 extends ModProxy {
   override def getMod = Mods.IndustrialCraft2
+
+  def tryAddDriver(driver: DriverSidedTileEntity): Unit = {
+    try {
+      if (driver.getTileEntityClass != null)
+        Driver.add(driver)
+    } catch {
+      case _: Exception =>
+    }
+  }
 
   override def initialize() {
     api.IMC.registerToolDurabilityProvider("li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.getDurability")
@@ -21,10 +30,8 @@ object ModIndustrialCraft2 extends ModProxy {
 
     MinecraftForge.EVENT_BUS.register(EventHandlerIndustrialCraft2)
 
-    if (!Loader.isModLoaded(Mods.IDs.IndustrialCraft2Spmod)) {
-      Driver.add(new DriverReactorRedstonePort)
-      Driver.add(new DriverMassFab)
-    }
+    tryAddDriver(new DriverReactorRedstonePort)
+    tryAddDriver(new DriverMassFab)
 
     Driver.add(new DriverEnergyConductor)
     Driver.add(new DriverEnergy)

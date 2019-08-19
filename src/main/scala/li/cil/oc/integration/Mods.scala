@@ -89,7 +89,6 @@ object Mods {
     final val Forestry = "forestry"
     final val Forge = "forge"
     final val IndustrialCraft2 = "ic2"
-    final val IndustrialCraft2Spmod = "IC2-Classic-Spmod"
     final val JustEnoughItems = "jei"
     final val Mekanism = "mekanism"
     final val MekanismGas = "MekanismAPI|gas"
