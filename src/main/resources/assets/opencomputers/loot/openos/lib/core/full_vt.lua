@@ -35,8 +35,16 @@ end
 
 -- [Line;ColumnH  Move cursor to screen location v,h
 -- [Line;Columnf  ^ same
-rules[{"%[", "%d+", ";", "%d+", "[Hf]"}] = function(window, _, y, _, x)
-  set_cursor(window, tonumber(x), tonumber(y))
+-- [;H            Move cursor to upper left corner
+-- [;f            ^ same
+rules[{"%[", "%d*", ";", "%d*", "[Hf]"}] = function(window, _, y, _, x)
+  set_cursor(window, tonumber(x) or 1, tonumber(y) or 1)
+end
+
+-- [H             move cursor to upper left corner
+-- [f             ^ same
+rules[{"%[[Hf]"}] = function(window)
+  set_cursor(window, 1, 1)
 end
 
 -- [K             clear line from cursor right
@@ -61,14 +69,6 @@ rules[{"%[", "[012]?", "J"}] = function(window, _, n)
   local y = n == 0 and (window.y + 1) or 1
   local rep = n == 1 and (window.y - 1) or (window.height)
   window.gpu.fill(1 + window.dx, y + window.dy, window.width, rep, " ")
-end
-
--- [H             move cursor to upper left corner
--- [;H            ^ same
--- [f             ^ same
--- [;f            ^ same
-rules[{"%[;?", "[Hf]"}] = function(window)
-  set_cursor(window, 1, 1)
 end
 
 -- [6n            get the cursor position [ EscLine;ColumnR 	Response: cursor is at v,h ]
