@@ -25,10 +25,16 @@ object AEUtil {
 
   // ----------------------------------------------------------------------- //
 
-  def controllerClass: Class[_] =
-    if (AEApi.instance != null)
-      AEApi.instance.definitions.blocks.controller.maybeEntity.get()
+  def controllerClass: Class[_] = {
+    if (AEApi.instance != null) {
+      val maybe = AEApi.instance.definitions.blocks.controller.maybeEntity
+      if (maybe.isPresent)
+        maybe.get()
+      else
+        null: Class[_]
+    }
     else null: Class[_]
+  }
 
   // ----------------------------------------------------------------------- //
 
