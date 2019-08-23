@@ -14,6 +14,8 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
@@ -279,8 +281,16 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
           // but for a drone, the block at its position is air, which is replaceable, and thus
           // ItemBlock does not offset the position. We can do it here to correct that, and the code
           // here is still correct for the robot's use case
-          val adjustedPos = blockPos.offset(facing)
-          player.placeBlock(agent.selectedSlot, adjustedPos, facing, hx, hy, hz)
+          val adjustedPos: BlockPos = blockPos.offset(facing)
+          // adjustedPos is the position we want to place the block
+          // but onItemUse will try to adjust the placement if the target position is not replaceable
+          // we don't want that
+          val block: Block = world.getBlockState(adjustedPos).getBlock
+          if (block.isReplaceable(world, adjustedPos)) {
+            player.placeBlock(agent.selectedSlot, adjustedPos, facing, hx, hy, hz)
+          } else {
+            false
+          }
         case _ => false
       }
       player.setSneaking(false)
