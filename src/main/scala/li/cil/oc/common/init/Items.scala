@@ -208,6 +208,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.TankUpgrade),
       safeGetStack(Constants.ItemName.TankControllerUpgrade),
       safeGetStack(Constants.ItemName.LeashUpgrade),
+      safeGetStack(Constants.ItemName.AngelUpgrade),
 
       safeGetStack(Constants.ItemName.WirelessNetworkCardTier2),
 

@@ -247,7 +247,6 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.GraphicsCardTier3,
       Constants.ItemName.NetworkCard,
       Constants.ItemName.RedstoneCardTier1,
-      Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)

@@ -274,7 +274,13 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
           player.placeBlock(agent.selectedSlot, blockPos, hit.sideHit, hx, hy, hz)
         case None if canPlaceInAir && player.closestEntity(classOf[Entity]).isEmpty =>
           val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
-          player.placeBlock(agent.selectedSlot, blockPos, facing, hx, hy, hz)
+          // blockPos here is the position of the agent
+          // When a robot uses angel placement, the ItemBlock code offsets the pos to EnumFacing
+          // but for a drone, the block at its position is air, which is replaceable, and thus
+          // ItemBlock does not offset the position. We can do it here to correct that, and the code
+          // here is still correct for the robot's use case
+          val adjustedPos = blockPos.offset(facing)
+          player.placeBlock(agent.selectedSlot, adjustedPos, facing, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
