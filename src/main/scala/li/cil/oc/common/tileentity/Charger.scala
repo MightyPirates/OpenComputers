@@ -37,6 +37,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     create()
 
   val connectors = mutable.Set.empty[Chargeable]
+  val equipment = mutable.Set.empty[ItemStack]
 
   var chargeSpeed = 0.0
 
@@ -78,6 +79,14 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
+  private def chargeStack(stack: ItemStack, charge: Double): Unit = {
+    if (stack != null && charge > 0) {
+      val offered = charge + node.changeBuffer(-charge)
+      val surplus = ItemCharge.charge(stack, offered)
+      node.changeBuffer(surplus)
+    }
+  }
+
   override def updateEntity() {
     super.updateEntity()
 
@@ -103,11 +112,16 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
         canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
         if (canCharge) {
-          (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (stack != null) {
-            val offered = charge + node.changeBuffer(-charge)
-            val surplus = ItemCharge.charge(stack, offered)
-            node.changeBuffer(surplus)
-          })
+          (0 until getSizeInventory).map(getStackInSlot).foreach(chargeStack(_, charge))
+        }
+      }
+
+      // Charging of equipment
+      {
+        val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
+        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        if (canCharge) {
+          equipment.foreach(chargeStack(_, charge))
         }
       }
 
@@ -233,16 +247,34 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     val players = world.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
-      case player: EntityPlayer if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
+      case player: EntityPlayer => player
+    }
+
+    val chargeablePlayers = players.collect {
+      case player if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.
 
-    val newConnectors = robots ++ drones ++ players
+    val newConnectors = robots ++ drones ++ chargeablePlayers
     if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
       connectors.clear()
       connectors ++= newConnectors
       world.notifyNeighborsOfStateChange(getPos, getBlockType)
+    }
+
+    // scan players for chargeable equipment
+    equipment.clear()
+    players.foreach {
+      player => player.inventory.mainInventory.foreach {
+        stack: ItemStack =>
+          if (Option(Driver.driverFor(stack, getClass)) match {
+            case Some(driver) if driver.slot(stack) == Slot.Tablet => true
+            case _ => ItemCharge.canCharge(stack)
+          }) {
+            equipment += stack
+          }
+      }
     }
   }
 
