@@ -177,6 +177,8 @@ object Localization {
     def PrintRedstoneLevel(level: Int): String = localizeImmediately("tooltip.print.RedstoneLevel", level.toString)
 
     def MFULinked(isLinked: Boolean): String = localizeImmediately(if (isLinked) "tooltip.upgrademf.Linked" else "tooltip.upgrademf.Unlinked")
+
+    def ExperienceLevel(level: Double): String = localizeImmediately("tooltip.robot_level", level.toString)
   }
 
 }
