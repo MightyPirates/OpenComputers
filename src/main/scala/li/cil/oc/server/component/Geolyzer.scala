@@ -91,7 +91,7 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     result(
       host.world.isDaytime &&
       canSeeSky &&
-      !host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
+        (!host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering)))
   }
 
   @Callback(doc = """function(x:number, z:number[, y:number, w:number, d:number, h:number][, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
