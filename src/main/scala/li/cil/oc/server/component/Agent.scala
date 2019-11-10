@@ -293,11 +293,20 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     entity.captureDrops = true
   }
 
+
   protected def endConsumeDrops(player: Player, entity: Entity) {
     entity.captureDrops = false
-    for (drop <- entity.capturedDrops) {
-      val stack = drop.getEntityItem
-      InventoryUtils.addToPlayerInventory(stack, player)
+    // this inventory size check is a HACK to preserve old behavior that a agent can suck items out
+    // of the capturedDrops. Ideally, we'd only pick up items off the ground. We could clear the
+    // capturedDrops when Player.attackTargetEntityWithCurrentItem() is called
+    // But this felt slightly less hacky, slightly
+    if (player.inventory.getSizeInventory > 0) {
+      for (drop <- entity.capturedDrops) {
+        if (!drop.isDead) {
+          val stack = drop.getEntityItem
+          InventoryUtils.addToPlayerInventory(stack, player, spawnInWorld = false)
+        }
+      }
     }
     entity.capturedDrops.clear()
   }
