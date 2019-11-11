@@ -41,6 +41,7 @@ if hookInterval < 1000 then hookInterval = 1000 end
 
 local deadline = math.huge
 local hitDeadline = false
+local tooLongWithoutYielding = setmetatable({},  { __tostring = function() return "too long without yielding" end})
 local function checkDeadline()
   if computer.realTime() > deadline then
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
@@ -48,8 +49,15 @@ local function checkDeadline()
       deadline = deadline + 0.5
     end
     hitDeadline = true
-    error("too long without yielding", 0)
+    error(tooLongWithoutYielding)
   end
+end
+local function pcallTimeoutCheck(...)
+  local ok, timeout = ...
+  if timeout == tooLongWithoutYielding then
+    return ok, tostring(tooLongWithoutYielding)
+  end
+  return ...
 end
 
 -------------------------------------------------------------------------------
@@ -739,9 +747,7 @@ sandbox = {
   next = next,
   pairs = pairs,
   pcall = function(...)
-    local result = table.pack(pcall(...))
-    checkDeadline()
-    return table.unpack(result, 1, result.n)
+    return pcallTimeoutCheck(pcall(...))
   end,
   print = nil, -- in boot/*_base.lua
   rawequal = rawequal,
@@ -788,15 +794,20 @@ sandbox = {
   _VERSION = _VERSION:match("5.3") and "Lua 5.3" or "Lua 5.2",
   xpcall = function(f, msgh, ...)
     local handled = false
+    checkArg(2, msgh, "function")
     local result = table.pack(xpcall(f, function(...)
-      if handled then
+      if (...) == tooLongWithoutYielding then
+        return tooLongWithoutYielding
+      elseif handled then
         return ...
       else
         handled = true
         return msgh(...)
       end
     end, ...))
-    checkDeadline()
+    if result[2] == tooLongWithoutYielding then
+      result = table.pack(result[1], select(2, pcallTimeoutCheck(pcall(msgh, tostring(tooLongWithoutYielding)))))
+    end
     return table.unpack(result, 1, result.n)
   end,
 
@@ -1503,4 +1514,4 @@ end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return pcall(main)
+return pcallTimeoutCheck(pcall(main))
