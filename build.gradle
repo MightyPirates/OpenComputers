@@ -109,6 +109,7 @@ dependencies {
     provided "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
 
+    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal"
     provided ("mrtjp:ProjectRed:${config.projred.version}:Base") {
         exclude module: "NotEnoughItems"
         exclude module: "CodeChickenLib"
