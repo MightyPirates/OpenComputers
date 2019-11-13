@@ -37,6 +37,7 @@ object Mods {
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val Charset = new SimpleMod(IDs.Charset)
+  val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
 
   // ----------------------------------------------------------------------- //
 
@@ -56,6 +57,7 @@ object Mods {
     integration.enderstorage.ModEnderStorage,
     integration.thaumcraft.ModThaumcraft,
     integration.charset.ModCharset,
+    integration.wrcbe.ModWRCBE,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
@@ -102,6 +104,7 @@ object Mods {
     final val EnderStorage = "enderstorage"
     final val Thaumcraft = "thaumcraft"
     final val Charset = "charset"
+    final val WirelessRedstoneCBE = "wrcbe"
   }
 
   // ----------------------------------------------------------------------- //

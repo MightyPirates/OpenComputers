@@ -7,7 +7,6 @@ import appeng.api.util.AEPartLocation
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.common.item.traits
 import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
@@ -30,6 +29,7 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
@@ -140,6 +140,15 @@ object EventHandler {
     }
   }
 
+  def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
+    if (SideTracker.isServer) pendingServer.synchronized {
+      pendingServer += (() => if (rs.node.network != null) {
+        util.WirelessRedstone.addReceiver(rs)
+        util.WirelessRedstone.updateOutput(rs)
+      })
+    }
+  }
+
   @SubscribeEvent
   def onAttachCapabilitiesItemStack(event: AttachCapabilitiesEvent[ItemStack]): Unit = {
     if (!event.getCapabilities.containsKey(traits.Chargeable.KEY)) {
@@ -182,7 +191,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onServerTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
+  def onServerTick(e: ServerTickEvent): Any = if (e.phase == TickEvent.Phase.START) {
     pendingServer.synchronized {
       val adds = pendingServer.toArray
       pendingServer.clear()
