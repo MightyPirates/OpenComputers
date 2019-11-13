@@ -79,7 +79,13 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override protected def onRunningChanged(): Unit = {
     super.onRunningChanged()
     getBlockType match {
-      case block: common.block.Case => getWorld.setBlockState(getPos, getWorld.getBlockState(getPos).withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
+      case block: common.block.Case => {
+        val state = getWorld.getBlockState(getPos)
+        // race condition that the world no longer has this block at the position (e.g. it was broken)
+        if (block == state.getBlock) {
+          getWorld.setBlockState(getPos, state.withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
+        }
+      }
       case _ =>
     }
   }
