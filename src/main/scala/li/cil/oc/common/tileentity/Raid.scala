@@ -8,6 +8,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.component.FileSystem
@@ -79,6 +80,12 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   def tryCreateRaid(id: String) {
     if (items.count(!_.isEmpty) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
       filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
+      items.foreach(fsStack => {
+        val drive = new DriveData(fsStack)
+        drive.lockInfo = ""
+        drive.isUnmanaged = false
+        drive.save(fsStack)
+      })
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
         label, this, Settings.resourceDomain + ":hdd_access", 6).
