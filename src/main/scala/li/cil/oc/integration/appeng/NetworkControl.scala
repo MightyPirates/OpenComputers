@@ -100,7 +100,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost] {
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allCraftables
-      .collect{ case aeCraftItem if matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, pos, aeCraftItem) }
+      .collect{ case aeCraftItem if filter.isEmpty || matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, pos, aeCraftItem) }
       .toArray)
   }
 
