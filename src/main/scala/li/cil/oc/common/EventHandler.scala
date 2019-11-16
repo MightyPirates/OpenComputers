@@ -247,7 +247,7 @@ object EventHandler {
     if (SideTracker.isServer) e.player match {
       case _: FakePlayer => // Nope
       case player: EntityPlayerMP =>
-        if (!LuaStateFactory.isAvailable) {
+        if (!LuaStateFactory.isAvailable && !LuaStateFactory.luajRequested) {
           player.sendMessage(Localization.Chat.WarningLuaFallback)
         }
         if (Recipes.hadErrors) {

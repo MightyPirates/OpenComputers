@@ -83,7 +83,7 @@ class Proxy {
     if (LuaStateFactory.include53) {
       api.Machine.add(classOf[NativeLua53Architecture])
     }
-    if (api.Machine.architectures.size == 0) {
+    if (LuaStateFactory.includeLuaJ) {
       api.Machine.add(classOf[LuaJLuaArchitecture])
     }
     
