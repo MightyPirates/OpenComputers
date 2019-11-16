@@ -147,7 +147,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
     val filter = getFilter(args, 0)
     result(allCraftables
-      .collect{ case aeCraftItem if matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, pos, aeCraftItem) }
+      .collect{ case aeCraftItem if filter.isEmpty || matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, pos, aeCraftItem) }
       .toArray)
   }
 
