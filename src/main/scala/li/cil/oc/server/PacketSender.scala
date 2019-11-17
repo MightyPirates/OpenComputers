@@ -260,8 +260,10 @@ object PacketSender {
       val x = (xz >> 8).toByte
       val z = xz.toByte
       pb.writeShort(xz)
-      pb.writeInt(t.volume(x + z * t.width))
-      pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
+      val rangeStart: Int = x + z * t.width
+      val rangeFinal: Int = x + z * t.width + t.width * t.width
+      pb.writeInt(t.volume(rangeStart max 0 min t.volume.length - 1))
+      pb.writeInt(t.volume(rangeFinal max 0 min t.volume.length - 1))
     }
 
     pb.sendToPlayersNearTileEntity(t)

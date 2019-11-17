@@ -22,24 +22,22 @@ import org.apache.commons.lang3.SystemUtils
 import scala.util.Random
 
 object LuaStateFactory {
-  def isAvailable = {
+  def isAvailable: Boolean = {
     // Force initialization of both.
     val lua52 = Lua52.isAvailable
     val lua53 = Lua53.isAvailable
     lua52 || lua53
   }
 
-  def include52 = {
-    Lua52.isAvailable && !Settings.get.forceLuaJ
-  }
+  def luajRequested: Boolean = Settings.get.forceLuaJ || Settings.get.registerLuaJArchitecture
 
-  def include53 = {
-    Lua53.isAvailable && Settings.get.enableLua53
-  }
+  def includeLuaJ: Boolean = !isAvailable || luajRequested
 
-  def default53 = {
-    include53 && Settings.get.defaultLua53
-  }
+  def include52: Boolean = Lua52.isAvailable && !Settings.get.forceLuaJ
+
+  def include53: Boolean = Lua53.isAvailable && Settings.get.enableLua53 && !Settings.get.forceLuaJ
+
+  def default53: Boolean = include53 && Settings.get.defaultLua53
 
   def setDefaultArch(stack: ItemStack): ItemStack = {
     if (default53) {
