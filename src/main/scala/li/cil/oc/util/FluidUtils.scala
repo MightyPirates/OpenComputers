@@ -156,7 +156,7 @@ object FluidUtils {
     override def canFill(from: ForgeDirection, fluid: Fluid): Boolean = fluid.canBePlacedInWorld
 
     override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean): Int = {
-      if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null) {
+      if (resource != null && resource.getFluid.canBePlacedInWorld && resource.getFluid.getBlock != null && resource.amount >= 1000) {
         if (doFill) {
           val world = position.world.get
           if (!world.isAirBlock(position) && !world.isAnyLiquid(position.bounds))

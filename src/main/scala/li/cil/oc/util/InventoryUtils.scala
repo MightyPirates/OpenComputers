@@ -369,7 +369,7 @@ object InventoryUtils {
   /**
    * Try inserting an item stack into a player inventory. If that fails, drop it into the world.
    */
-  def addToPlayerInventory(stack: ItemStack, player: EntityPlayer): Unit = {
+  def addToPlayerInventory(stack: ItemStack, player: EntityPlayer, spawnInWorld: Boolean = true): Unit = {
     if (stack != null) {
       if (player.inventory.addItemStackToInventory(stack)) {
         player.inventory.markDirty()
@@ -377,7 +377,7 @@ object InventoryUtils {
           player.openContainer.detectAndSendChanges()
         }
       }
-      if (stack.stackSize > 0) {
+      if (stack.stackSize > 0 && spawnInWorld) {
         player.dropPlayerItemWithRandomChoice(stack, false)
       }
     }
