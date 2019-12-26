@@ -181,7 +181,7 @@ function text.internal.reader(txt, mode)
   }, {__index=text.internal.stream_base((mode or ""):match("b"))})
   process.closeOnExit(reader)
 
-  return require("buffer").new(more or "r", reader)
+  return require("buffer").new(mode or "r", reader)
 end
 
 function text.internal.writer(ostream, mode, append_txt)
