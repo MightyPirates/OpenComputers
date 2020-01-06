@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util.UUID
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
@@ -13,12 +15,16 @@ import li.cil.oc.server.network.Waypoints
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.mutable
+
 class Waypoint extends traits.Environment with traits.Rotatable with traits.RedstoneAware {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("waypoint").
     create()
 
   var label = ""
+
+  val playersWhoCanEdit = new mutable.HashSet[UUID]()
 
   override def validFacings: Array[ForgeDirection] = ForgeDirection.VALID_DIRECTIONS
 

@@ -791,7 +791,9 @@ object PacketHandler extends CommonPacketHandler {
 
   def onWaypointLabel(p: PacketParser) =
     p.readTileEntity[Waypoint]() match {
-      case Some(waypoint) => waypoint.label = p.readUTF()
+      case Some(waypoint) if waypoint.playersWhoCanEdit.contains(p.player.getPersistentID) =>
+        waypoint.label = p.readUTF()
+        waypoint.playersWhoCanEdit -= p.player.getPersistentID
       case _ => // Invalid packet.
     }
 }

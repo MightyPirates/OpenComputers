@@ -27,6 +27,13 @@ class Waypoint extends RedstoneAware {
     if (!player.isSneaking) {
       if (world.isRemote) {
         player.openGui(OpenComputers, GuiType.Waypoint.id, world, x, y, z)
+      } else {
+        // If evaluation came here then  protective mods and plugins is allow interaction
+        world.getTileEntity(x, y, z) match {
+          case proxy: tileentity.Waypoint =>
+            proxy.playersWhoCanEdit += player.getPersistentID
+          case _ =>
+        }
       }
       true
     }
