@@ -163,10 +163,14 @@ object WirelessNetworkCard {
     override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
     override protected def isPacketAccepted(packet: Packet, distance: Double): Boolean = {
-      (shouldSendWiredTraffic || distance == 0) && super.isPacketAccepted(packet, distance)
+      if (distance <= maxWirelessRange && (distance > 0 || shouldSendWiredTraffic)) {
+        super.isPacketAccepted(packet, distance)
+      } else {
+        false
+      }
     }
   }
-  
+
   class Tier2(host: EnvironmentHost) extends Tier1(host) {
     override protected def wirelessCostPerRange: Double = Settings.get.wirelessCostPerRange(Tier.Two)
     
