@@ -181,7 +181,7 @@ function text.internal.reader(txt, mode)
   }, {__index=text.internal.stream_base((mode or ""):match("b"))})
   process.closeOnExit(reader)
 
-  return require("buffer").new((mode:match("[rb]+") or "r"), reader)
+  return require("buffer").new((mode or "r"):match("[rb]+"), reader)
 end
 
 function text.internal.writer(ostream, mode, append_txt)
@@ -223,7 +223,7 @@ function text.internal.writer(ostream, mode, append_txt)
   }, {__index=text.internal.stream_base((mode or ""):match("b"))})
   process.closeOnExit(writer)
 
-  return require("buffer").new((mode:match("[awb]+") or "w"), writer)
+  return require("buffer").new((mode or "w"):match("[awb]+"), writer)
 end
 
 function text.detab(value, tabWidth)
