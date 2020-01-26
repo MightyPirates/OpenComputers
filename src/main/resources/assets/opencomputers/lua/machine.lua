@@ -54,7 +54,7 @@ local function checkDeadline()
 end
 local function pcallTimeoutCheck(...)
   local ok, timeout = ...
-  if timeout == tooLongWithoutYielding then
+  if rawequal(timeout, tooLongWithoutYielding) then
     return ok, tostring(tooLongWithoutYielding)
   end
   return ...
