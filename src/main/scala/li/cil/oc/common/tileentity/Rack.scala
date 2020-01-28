@@ -331,7 +331,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     super.onRedstoneInputChanged(args)
     components.collect {
       case Some(mountable: RackMountable) if mountable.node != null =>
-        val toLocalArgs = RedstoneChangedEventArgs(toLocal(args.side), args.oldValue, args.newValue)
+        val toLocalArgs = RedstoneChangedEventArgs(toLocal(args.side), args.oldValue, args.newValue, args.color)
         mountable.node.sendToNeighbors("redstone.changed", toLocalArgs)
     }
   }
