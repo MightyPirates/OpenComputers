@@ -382,7 +382,7 @@ object DebugCard {
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
         val gametype = args.checkString(0)
-        player.setGameType(GameType.values.find(_.name == gametype).getOrElse(GameType.SURVIVAL))
+        player.setGameType(GameType.values.find(_.getName == gametype).getOrElse(GameType.SURVIVAL))
         null
       })
 
