@@ -87,6 +87,10 @@ repositories {
         name 'weird maven repos 2'
         artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
     }
+    maven {
+        name = "ic2, forestry"
+        url = "http://maven.ic2.player.to/"
+    }
 }
 
 configurations {
