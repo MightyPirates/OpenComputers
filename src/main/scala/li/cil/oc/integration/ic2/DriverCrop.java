@@ -18,21 +18,7 @@ public final class DriverCrop extends DriverSidedTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(World world, int x, int y, int z, ForgeDirection side) {
-        ICropTile tile = (ICropTile) world.getTileEntity(x, y, z);
-        if (tile.getScanLevel() < 4)
-            return new DriverCrop.DummyEnvironment((ICropTile) world.getTileEntity(x, y, z));
-        else
-            return new DriverCrop.Environment((ICropTile) world.getTileEntity(x, y, z));
-    }
-    public static final class DummyEnvironment extends ManagedTileEntityEnvironment<ICropTile> {
-        public DummyEnvironment(final ICropTile tileEntity) {
-            super(tileEntity, "crop");
-        }
-
-        @Callback
-        public Object[] getScanLevel(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getScanLevel()};
-        }
+        return new DriverCrop.Environment((ICropTile) world.getTileEntity(x, y, z));
     }
     public static final class Environment extends ManagedTileEntityEnvironment<ICropTile> {
         public Environment(final ICropTile tileEntity) {

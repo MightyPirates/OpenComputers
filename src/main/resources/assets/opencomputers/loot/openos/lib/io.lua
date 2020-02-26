@@ -47,17 +47,12 @@ end
 
 function io.stream(fd,file,mode)
   checkArg(1,fd,'number')
+  checkArg(2, file, "table", "string", "nil")
   assert(fd>=0,'fd must be >= 0. 0 is input, 1 is stdout, 2 is stderr')
   local dio = require("process").info().data.io
   if file then
     if type(file) == "string" then
-      local result, reason = io.open(file, mode)
-      if not result then
-        error(reason, 2)
-      end
-      file = result
-    elseif not io.type(file) then
-      error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
+      file = assert(io.open(file, mode))
     end
     dio[fd] = file
   end

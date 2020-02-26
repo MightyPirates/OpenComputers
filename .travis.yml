@@ -2,6 +2,7 @@ sudo: false
 language: scala
 scala: 2.11.1
 jdk: oraclejdk8
+dist: trusty
 
 notifications:
   email: false
