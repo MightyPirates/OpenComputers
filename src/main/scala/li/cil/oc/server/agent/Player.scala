@@ -187,11 +187,11 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   private def collectDroppedItems(itemsBefore: Iterable[EntityItem]) {
     val itemsAfter = adjacentItems
     val itemsDropped = itemsAfter -- itemsBefore
-    for (drop <- itemsDropped) {
-      
-      drop.delayBeforeCanPickup = 0
-      drop.onCollideWithPlayer(this)
-      drop.setDead()
+    if (itemsDropped.nonEmpty) {
+      for (drop <- itemsDropped) {
+        drop.delayBeforeCanPickup = 0
+        drop.onCollideWithPlayer(this)
+      }
     }
   }
 
