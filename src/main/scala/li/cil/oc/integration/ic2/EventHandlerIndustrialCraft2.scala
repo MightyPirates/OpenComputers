@@ -18,10 +18,12 @@ object EventHandlerIndustrialCraft2 {
     val world = e.host.world
     val tile = world.getTileEntity(e.x, e.y, e.z) match {
       case crop : ICropTile => {
+        crop.setScanLevel(4)
         val cc = crop.getCrop
         e.data += "crop:name" -> cc.name()
         e.data += "crop:tier" -> Int.box(cc.tier)
         e.data += "crop:size" -> Int.box(crop.getSize)
+        e.data += "crop:maxSize" -> Int.box(cc.maxSize)
         e.data += "crop:growth" -> Int.box(crop.getGrowth)
         e.data += "crop:gain" -> Int.box(crop.getGain)
         e.data += "crop:resistance" -> Int.box(crop.getResistance)
