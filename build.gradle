@@ -88,7 +88,7 @@ repositories {
         artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
     }
     maven {
-        name = "ic2, forestry"
+        name = "ic2"
         url = "http://maven.ic2.player.to/"
     }
 }
