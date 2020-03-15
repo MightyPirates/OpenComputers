@@ -5,6 +5,8 @@ import li.cil.oc.api
 import net.minecraft.nbt._
 import net.minecraftforge.common.util.Constants.NBT
 
+import java.lang
+
 /**
  * This stores chars in a 2D-Array and provides some manipulation functions.
  *
@@ -64,7 +66,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
   var color = Array.fill(height, width)(packed)
 
-  var buffer = Array.fill(height, width)(' ')
+  var buffer = Array.fill(height, width)(0x20)
 
   /** The current buffer size in columns by rows. */
   def size = (width, height)
@@ -80,7 +82,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val (iw, ih) = value
     val (w, h) = (math.max(iw, 1), math.max(ih, 1))
     if (width != w || height != h) {
-      val newBuffer = Array.fill(h, w)(' ')
+      val newBuffer = Array.fill(h, w)(0x20)
       val newColor = Array.fill(h, w)(packed)
       (0 until math.min(h, height)).foreach(y => {
         Array.copy(buffer(y), 0, newBuffer(y), 0, math.min(w, width))
@@ -103,17 +105,20 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   /** String based fill starting at a specified location. */
-  def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean =
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean = {
+    val sLength = ExtendedUnicodeHelper.length(s)
     if (vertical) {
       if (col < 0 || col >= width) false
       else {
         var changed = false
-        for (y <- row until math.min(row + s.length, height)) if (y >= 0) {
+        var cx = 0
+        for (y <- row until math.min(row + sLength, height)) if (y >= 0) {
           val line = buffer(y)
           val lineColor = color(y)
-          val c = s(y - row)
+          val c = s.codePointAt(cx)
           changed = changed || (line(col) != c) || (lineColor(col) != packed)
           setChar(line, lineColor, col, c)
+          cx = s.offsetByCodePoints(cx, 1)
         }
         changed
       }
@@ -125,18 +130,21 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         val line = buffer(row)
         val lineColor = color(row)
         var bx = math.max(col, 0)
-        for (x <- bx until math.min(col + s.length, width) if bx < line.length) {
-          val c = s(x - col)
+        var cx = 0
+        for (x <- bx until math.min(col + sLength, width) if bx < line.length) {
+          val c = s.codePointAt(cx)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
           setChar(line, lineColor, bx, c)
           bx += math.max(1, FontUtils.wcwidth(c))
+          cx = s.offsetByCodePoints(cx, 1)
         }
         changed
       }
     }
+  }
 
   /** Fills an area of the buffer with the specified character. */
-  def fill(col: Int, row: Int, w: Int, h: Int, c: Char): Boolean = {
+  def fill(col: Int, row: Int, w: Int, h: Int, c: Int): Boolean = {
     // Anything to do at all?
     if (w <= 0 || h <= 0) return false
     if (col + w < 0 || row + h < 0 || col >= width || row >= height) return false
@@ -234,7 +242,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     changed
   }
 
-  private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
+  private def setChar(line: Array[Int], lineColor: Array[Short], x: Int, c: Int) {
     if (FontUtils.wcwidth(c) > 1 && x >= line.length - 1) {
       // Don't allow setting wide chars in right-most col.
       return
@@ -260,7 +268,12 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val b = nbt.getTagList("buffer", NBT.TAG_STRING)
     for (i <- 0 until math.min(h, b.tagCount)) {
       val value = b.getStringTagAt(i)
-      System.arraycopy(value.toCharArray, 0, buffer(i), 0, math.min(value.length, buffer(i).length))
+      val valueIt = value.codePoints.iterator()
+      var j = 0
+      while (j < buffer(i).length && valueIt.hasNext) {
+        buffer(i)(j) = valueIt.nextInt()
+        j += 1
+      }
     }
 
     val depth = api.internal.TextBuffer.ColorDepth.values.apply(nbt.getInteger("depth") min (api.internal.TextBuffer.ColorDepth.values.length - 1) max 0)
@@ -280,7 +293,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
     val b = new NBTTagList()
     for (i <- 0 until height) {
-      b.appendTag(new NBTTagString(String.valueOf(buffer(i))))
+      b.appendTag(new NBTTagString(lineToString(i)))
     }
     nbt.setTag("buffer", b)
 
@@ -294,14 +307,29 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     NbtDataStream.setShortArray(nbt, "colors", color.flatten.map(_.toShort))
   }
 
-  override def toString: String = {
-    val b = StringBuilder.newBuilder
+  def lineToString(y: Int): String = {
+    val b = new lang.StringBuilder()
     if (buffer.length > 0) {
-      b.appendAll(buffer(0))
-      for (y <- 1 until height) {
-        b.append('\n').appendAll(buffer(y))
+      for (x <- 0 until width) {
+        b.appendCodePoint(buffer(y)(x))
       }
     }
-    b.toString()
+    b.toString
+  }
+
+  override def toString: String = {
+    val b = new lang.StringBuilder()
+    if (buffer.length > 0) {
+      for (x <- 0 until width) {
+        b.appendCodePoint(buffer(0)(x))
+      }
+      for (y <- 1 until height) {
+        b.append('\n')
+        for (x <- 0 until width) {
+          b.appendCodePoint(buffer(y)(x))
+        }
+      }
+    }
+    b.toString
   }
 }

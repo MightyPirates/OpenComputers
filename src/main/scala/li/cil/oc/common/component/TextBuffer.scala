@@ -318,7 +318,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.onBufferCopy(col, row, w, h, tx, ty)
   }
 
-  override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = {
+  override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int): Unit = {
     proxy.onBufferFill(col, row, w, h, c)
   }
 
@@ -338,7 +338,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.onBufferRamDestroy(ram)
   }
 
-  override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
+  override def rawSetText(col: Int, row: Int, text: Array[Array[Int]]): Unit = {
     super.rawSetText(col, row, text)
     proxy.onBufferRawSetText(col, row, text)
   }
@@ -538,7 +538,7 @@ object TextBuffer {
 
     def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth): Unit
 
-    def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       owner.relativeLitArea = -1
     }
 
@@ -571,7 +571,7 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+    def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Int]]) {
       owner.relativeLitArea = -1
     }
 
@@ -630,7 +630,7 @@ object TextBuffer {
       markDirty()
     }
 
-    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       super.onBufferFill(col, row, w, h, c)
       markDirty()
     }
@@ -732,7 +732,7 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }
 
-    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       super.onBufferFill(col, row, w, h, c)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferFill(owner.pendingCommands, col, row, w, h, c))
@@ -789,7 +789,7 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferRamDestroy(owner.pendingCommands, ram.owner, ram.id))
     }
 
-    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Int]]) {
       super.onBufferRawSetText(col, row, text)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferRawSetText(owner.pendingCommands, col, row, text))
@@ -844,7 +844,7 @@ object TextBuffer {
         stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
 
         if (line >= 0 && line < owner.getViewportHeight) {
-          val text = new String(owner.data.buffer(line)).trim
+          val text = owner.data.lineToString(line)
           if (!Strings.isNullOrEmpty(text)) {
             stack.getTagCompound.setString(Settings.namespace + "clipboard", text)
           }
