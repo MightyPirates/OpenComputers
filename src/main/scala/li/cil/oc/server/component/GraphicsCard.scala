@@ -270,7 +270,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (bgValue, Unit)
         }
 
-      result(s.get(x, y), fgColor, bgColor, fgIndex, bgIndex)
+      result(new java.lang.StringBuilder().appendCodePoint(s.getCodePoint(x, y)).toString, fgColor, bgColor, fgIndex, bgIndex)
     })
   }
 
@@ -317,11 +317,11 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val w = math.max(0, args.checkInteger(2))
     val h = math.max(0, args.checkInteger(3))
     val value = args.checkString(4)
-    if (value.length == 1) screen(s => {
-      val c = value.charAt(0)
+    if (value.codePointCount(0, value.length) == 1) screen(s => {
+      val c = value.codePointAt(0)
       val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
       if (consumePower(w * h, cost)) {
-        s.fill(x, y, w, h, value.charAt(0))
+        s.fill(x, y, w, h, c)
         result(true)
       }
       else {

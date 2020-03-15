@@ -361,28 +361,39 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
     if (data.copy(col, row, w, h, tx, ty))
       proxy.onBufferCopy(col, row, w, h, tx, ty)
 
+  @Deprecated
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =
+    fill(col, row, w, h, c.toInt)
+
+  def fill(col: Int, row: Int, w: Int, h: Int, c: Int) =
     if (data.fill(col, row, w, h, c))
       proxy.onBufferFill(col, row, w, h, c)
 
-  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit =
-    if (col < data.width && (col >= 0 || -col < s.length)) {
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit = {
+    val sLength = s.codePointCount(0, s.length)
+    if (col < data.width && (col >= 0 || -col < sLength)) {
       // Make sure the string isn't longer than it needs to be, in particular to
       // avoid sending too much data to our clients.
       val (x, y, truncated) =
-        if (vertical) {
-          if (row < 0) (col, 0, s.substring(-row))
-          else (col, row, s.substring(0, math.min(s.length, data.height - row)))
-        }
-        else {
-          if (col < 0) (0, row, s.substring(-col))
-          else (col, row, s.substring(0, math.min(s.length, data.width - col)))
-        }
+      if (vertical) {
+        val maxLength = data.height - row
+        if (row < 0) (col, 0, if (-col >= sLength) "" else s.substring(s.offsetByCodePoints(0, -row)))
+        else (col, row, if (sLength <= maxLength) s else s.substring(0, s.offsetByCodePoints(0, maxLength)))
+      }
+      else {
+        val maxLength = data.width - col
+        if (col < 0) (0, row, if (-col >= sLength) "" else s.substring(s.offsetByCodePoints(0, -col)))
+        else (col, row, if (sLength <= maxLength) s else s.substring(0, s.offsetByCodePoints(0, maxLength)))
+      }
       if (data.set(x, y, truncated, vertical))
         proxy.onBufferSet(x, row, truncated, vertical)
     }
+  }
 
-  def get(col: Int, row: Int) = data.get(col, row)
+  @Deprecated
+  def get(col: Int, row: Int) = data.get(col, row).toChar
+
+  def getCodePoint(col: Int, row: Int) = data.get(col, row)
 
   override def getForegroundColor(column: Int, row: Int) =
     if (isForegroundFromPalette(column, row)) {
@@ -406,7 +417,12 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
   override def isBackgroundFromPalette(column: Int, row: Int) =
     data.format.isFromPalette(PackedColor.extractBackground(color(column, row)))
 
+  @Deprecated
   override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
+    rawSetText(col, row, text.map(a => a.map(a => a.toInt)))
+  }
+
+  override def rawSetText(col: Int, row: Int, text: Array[Array[Int]]): Unit = {
     for (y <- row until ((row + text.length) min data.height)) {
       val line = text(y - row)
       Array.copy(line, 0, data.buffer(y), col, line.length min data.width)
@@ -638,7 +654,7 @@ object TextBuffer {
 
     def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth): Unit
 
-    def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       owner.relativeLitArea = -1
     }
 
@@ -659,7 +675,7 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+    def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Int]]) {
       owner.relativeLitArea = -1
     }
 
@@ -718,7 +734,7 @@ object TextBuffer {
       markDirty()
     }
 
-    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       super.onBufferFill(col, row, w, h, c)
       markDirty()
     }
@@ -807,7 +823,7 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }
 
-    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       super.onBufferFill(col, row, w, h, c)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferFill(owner.pendingCommands, col, row, w, h, c))
@@ -844,7 +860,7 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
     }
 
-    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Int]]) {
       super.onBufferRawSetText(col, row, text)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferRawSetText(owner.pendingCommands, col, row, text))
@@ -899,7 +915,9 @@ object TextBuffer {
         stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
 
         if (line >= 0 && line < owner.getViewportHeight) {
-          val text = new String(owner.data.buffer(line)).trim
+          val textBuilder = new java.lang.StringBuilder()
+          owner.data.buffer(line).foreach(textBuilder.appendCodePoint)
+          val text = textBuilder.toString.trim
           if (!Strings.isNullOrEmpty(text)) {
             stack.getTagCompound.setString(Settings.namespace + "clipboard", text)
           }

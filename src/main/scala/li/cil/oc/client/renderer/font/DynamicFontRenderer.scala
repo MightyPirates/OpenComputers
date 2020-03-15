@@ -25,7 +25,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
-  private val charMap = mutable.Map.empty[Char, DynamicFontRenderer.CharIcon]
+  private val charMap = mutable.Map.empty[Int, DynamicFontRenderer.CharIcon]
 
   private var activeTexture: CharTexture = _
 
@@ -64,18 +64,18 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     RenderState.checkError(getClass.getName + ".bindTexture")
   }
 
-  override protected def generateChar(char: Char) {
+  override protected def generateChar(char: Int) {
     charMap.getOrElseUpdate(char, createCharIcon(char))
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  override protected def drawChar(tx: Float, ty: Float, char: Int) {
     charMap.get(char) match {
       case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
       case _ =>
     }
   }
 
-  private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
+  private def createCharIcon(char: Int): DynamicFontRenderer.CharIcon = {
     if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
@@ -127,9 +127,9 @@ object DynamicFontRenderer {
       RenderState.bindTexture(id)
     }
 
-    def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
+    def isFull(char: Int) = chars + FontUtils.wcwidth(char) > capacity
 
-    def add(char: Char) = {
+    def add(char: Int) = {
       val glyphWidth = FontUtils.wcwidth(char)
       val w = owner.charWidth * glyphWidth
       val h = owner.charHeight

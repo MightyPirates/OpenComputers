@@ -1,5 +1,7 @@
 package li.cil.oc.server.machine.luaj
 
+import java.util.function.IntUnaryOperator
+
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
@@ -14,9 +16,16 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     unicode.set("upper", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).toUpperCase))
 
-    unicode.set("char", (args: Varargs) => LuaValue.valueOf(String.valueOf((1 to args.narg).map(args.checkint).map(_.toChar).toArray)))
+    unicode.set("char", (args: Varargs) => {
+      val builder = new java.lang.StringBuilder()
+      (1 to args.narg).map(args.checkint).foreach(builder.appendCodePoint)
+      LuaValue.valueOf(builder.toString)
+    })
 
-    unicode.set("len", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).length))
+    unicode.set("len", (args: Varargs) => {
+      val s = args.checkjstring(1)
+      LuaValue.valueOf(s.codePointCount(0, s.length))
+    })
 
     unicode.set("reverse", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).reverse))
 
@@ -44,7 +53,9 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     unicode.set("wlen", (args: Varargs) => {
       val value = args.checkjstring(1)
-      LuaValue.valueOf(value.toCharArray.map(ch => math.max(1, FontUtils.wcwidth(ch))).sum)
+      LuaValue.valueOf(value.codePoints.map(new IntUnaryOperator {
+        override def applyAsInt(ch: Int): Int = math.max(1, FontUtils.wcwidth(ch))
+      }).sum)
     })
 
     unicode.set("wtrunc", (args: Varargs) => {
