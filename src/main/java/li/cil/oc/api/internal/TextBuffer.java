@@ -301,8 +301,23 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param width  the width of the area to fill.
      * @param height the height of the area to fill.
      * @param value  the character to fill the area with.
+     * @deprecated Please use the int variant.
      */
+    @Deprecated
     void fill(int column, int row, int width, int height, char value);
+
+    /**
+     * Fill a portion of the text buffer.
+     * <p/>
+     * This will set the area's colors to the currently active ones.
+     *
+     * @param column the starting horizontal index of the area to fill.
+     * @param row    the starting vertical index of the area to fill.
+     * @param width  the width of the area to fill.
+     * @param height the height of the area to fill.
+     * @param value  the code point to fill the area with.
+     */
+    void fill(int column, int row, int width, int height, int value);
 
     /**
      * Write a string into the text buffer.
@@ -322,8 +337,19 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param column the horizontal index.
      * @param row    the vertical index.
      * @return the character at that index.
+     * @deprecated Please use getCodePoint going forward.
      */
+    @Deprecated
     char get(int column, int row);
+
+    /**
+     * Get the code point in the text buffer at the specified location.
+     *
+     * @param column the horizontal index.
+     * @param row    the vertical index.
+     * @return the character at that index.
+     */
+    int getCodePoint(int column, int row);
 
     /**
      * Get the foreground color of the text buffer at the specified location.
@@ -385,8 +411,31 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param column the horizontal index.
      * @param row    the vertical index.
      * @param text   the text to write.
+     * @deprecated Please use the int[][] variant.
      */
+    @Deprecated
     void rawSetText(int column, int row, char[][] text);
+
+    /**
+     * Overwrites a portion of the text in raw mode.
+     * <p/>
+     * This will copy the given char array into the buffer, starting at the
+     * specified column and row. The array is expected to be indexed row-
+     * first, i.e. the first dimension is the vertical axis, the second
+     * the horizontal.
+     * <p/>
+     * <em>Important</em>: this performs no checks as to whether something
+     * actually changed. It will always send the changed patch to clients.
+     * It will also not crop the specified array to the actually used range.
+     * In other words, this is not intended to be exposed as-is to user code,
+     * it should always be called with validated, and, as necessary, cropped
+     * values.
+     *
+     * @param column the horizontal index.
+     * @param row    the vertical index.
+     * @param text   the text code points to write.
+     */
+    void rawSetText(int column, int row, int[][] text);
 
     /**
      * Overwrites a portion of the foreground color information in raw mode.

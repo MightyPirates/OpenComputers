@@ -1,5 +1,7 @@
 package li.cil.oc.server.machine.luac
 
+import java.util.function.IntUnaryOperator
+
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.FontUtils
 
@@ -9,13 +11,16 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.newTable()
 
     lua.pushScalaFunction(lua => {
-      lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+      val builder = new java.lang.StringBuilder()
+      (1 to lua.getTop).map(lua.checkInteger).foreach(builder.appendCodePoint)
+      lua.pushString(builder.toString)
       1
     })
     lua.setField(-2, "char")
 
     lua.pushScalaFunction(lua => {
-      lua.pushInteger(lua.checkString(1).length)
+      val s = lua.checkString(1)
+      lua.pushInteger(s.codePointCount(0, s.length))
       1
     })
     lua.setField(-2, "len")
@@ -70,7 +75,9 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.checkString(1)
-      lua.pushInteger(value.toCharArray.map(ch => math.max(1, FontUtils.wcwidth(ch))).sum)
+      lua.pushInteger(value.codePoints().map(new IntUnaryOperator {
+        override def applyAsInt(ch: Int): Int = math.max(1, FontUtils.wcwidth(ch))
+      }).sum)
       1
     })
     lua.setField(-2, "wlen")

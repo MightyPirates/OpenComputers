@@ -8,14 +8,9 @@ import li.cil.oc.OpenComputers
 
 object FontUtils {
   private val defined_double_wide: BitSet = BitSet()
-  
-  // font.hex actually has some codepoints larger than 0x10000
-  // but, UnicodeAPI.scala is using java's Integer.ToChar which only supports the utf-16 range
-  // and thus will truncate any incoming codepoint, forcing it below 0x10000
-  // I believe the solution is to use StringBuffer.appendCodePoint
-  // but that change would deserve a bit of testing first, postponing for a later update
-  // review http://www.oracle.com/us/technologies/java/supplementary-142654.html
-  val codepoint_limit: Int = 0x10000
+
+  // theoretical Unicode maximum
+  val codepoint_limit: Int = 0x110000
   def wcwidth(charCode: Int): Int = if (defined_double_wide(charCode)) 2 else 1
 
   {

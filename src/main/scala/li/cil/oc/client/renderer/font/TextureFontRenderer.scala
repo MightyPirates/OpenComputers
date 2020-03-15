@@ -32,6 +32,13 @@ abstract class TextureFontRenderer {
     }
   }
 
+  def generateChars(chars: Array[Int]) {
+    GlStateManager.enableTexture2D()
+    for (char <- chars) {
+      generateChar(char)
+    }
+  }
+
   def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
     val format = buffer.format
 
@@ -120,6 +127,8 @@ abstract class TextureFontRenderer {
   }
 
   def drawString(s: String, x: Int, y: Int): Unit = {
+    val sLength = s.codePointCount(0, s.length)
+
     GlStateManager.pushMatrix()
     RenderState.pushAttrib()
 
@@ -131,8 +140,8 @@ abstract class TextureFontRenderer {
       bindTexture(i)
       GL11.glBegin(GL11.GL_QUADS)
       var tx = 0f
-      for (n <- 0 until s.length) {
-        val ch = s.charAt(n)
+      for (n <- 0 until sLength) {
+        val ch = s.codePointAt(n)
         // Don't render whitespace.
         if (ch != ' ') {
           drawChar(tx, 0, ch)
@@ -155,9 +164,9 @@ abstract class TextureFontRenderer {
 
   protected def bindTexture(index: Int): Unit
 
-  protected def generateChar(char: Char): Unit
+  protected def generateChar(char: Int): Unit
 
-  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
+  protected def drawChar(tx: Float, ty: Float, char: Int): Unit
 
   private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
     val x0 = x * charWidth

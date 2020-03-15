@@ -64,7 +64,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
   var color = Array.fill(height, width)(packed)
 
-  var buffer = Array.fill(height, width)(' ')
+  var buffer = Array.fill(height, width)(0x20)
 
   /** The current buffer size in columns by rows. */
   def size = (width, height)
@@ -80,7 +80,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val (iw, ih) = value
     val (w, h) = (math.max(iw, 1), math.max(ih, 1))
     if (width != w || height != h) {
-      val newBuffer = Array.fill(h, w)(' ')
+      val newBuffer = Array.fill(h, w)(0x20)
       val newColor = Array.fill(h, w)(packed)
       (0 until math.min(h, height)).foreach(y => {
         Array.copy(buffer(y), 0, newBuffer(y), 0, math.min(w, width))
@@ -103,15 +103,16 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   /** String based fill starting at a specified location. */
-  def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean =
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean = {
+    val sLength = s.codePointCount(0, s.length)
     if (vertical) {
       if (col < 0 || col >= width) false
       else {
         var changed = false
-        for (y <- row until math.min(row + s.length, height)) if (y >= 0) {
+        for (y <- row until math.min(row + sLength, height)) if (y >= 0) {
           val line = buffer(y)
           val lineColor = color(y)
-          val c = s(y - row)
+          val c = s.codePointAt(y - row)
           changed = changed || (line(col) != c) || (lineColor(col) != packed)
           setChar(line, lineColor, col, c)
         }
@@ -125,8 +126,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         val line = buffer(row)
         val lineColor = color(row)
         var bx = math.max(col, 0)
-        for (x <- bx until math.min(col + s.length, width) if bx < line.length) {
-          val c = s(x - col)
+        for (x <- bx until math.min(col + sLength, width) if bx < line.length) {
+          val c = s.codePointAt(x - col)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
           setChar(line, lineColor, bx, c)
           bx += math.max(1, FontUtils.wcwidth(c))
@@ -134,9 +135,10 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         changed
       }
     }
+  }
 
   /** Fills an area of the buffer with the specified character. */
-  def fill(col: Int, row: Int, w: Int, h: Int, c: Char): Boolean = {
+  def fill(col: Int, row: Int, w: Int, h: Int, c: Int): Boolean = {
     // Anything to do at all?
     if (w <= 0 || h <= 0) return false
     if (col + w < 0 || row + h < 0 || col >= width || row >= height) return false
@@ -205,7 +207,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     changed
   }
 
-  private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
+  private def setChar(line: Array[Int], lineColor: Array[Short], x: Int, c: Int) {
     if (FontUtils.wcwidth(c) > 1 && x >= line.length - 1) {
       // Don't allow setting wide chars in right-most col.
       return
@@ -231,7 +233,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val b = nbt.getTagList("buffer", NBT.TAG_STRING)
     for (i <- 0 until math.min(h, b.tagCount)) {
       val value = b.getStringTagAt(i)
-      System.arraycopy(value.toCharArray, 0, buffer(i), 0, math.min(value.length, buffer(i).length))
+      System.arraycopy(value.codePoints.toArray, 0, buffer(i), 0, math.min(value.codePointCount(0, value.length), buffer(i).length))
     }
 
     val depth = api.internal.TextBuffer.ColorDepth.values.apply(nbt.getInteger("depth") min (api.internal.TextBuffer.ColorDepth.values.length - 1) max 0)
@@ -273,11 +275,15 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   override def toString = {
-    val b = StringBuilder.newBuilder
+    val b = new java.lang.StringBuilder()
     if (buffer.length > 0) {
-      b.appendAll(buffer(0))
-      for (y <- 1 until height) {
-        b.append('\n').appendAll(buffer(y))
+      for (y <- 0 until height) {
+        if (y > 0) {
+          b.append('\n')
+        }
+        for (x <- 0 until width) {
+          b.appendCodePoint(buffer(y)(x))
+        }
       }
     }
     b.toString()

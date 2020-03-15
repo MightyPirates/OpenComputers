@@ -50,7 +50,7 @@ class StaticFontRenderer extends TextureFontRenderer {
     }
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  override protected def drawChar(tx: Float, ty: Float, char: Int) {
     val index = 1 + (chars.indexOf(char) match {
       case -1 => chars.indexOf('?')
       case i => i
@@ -69,5 +69,5 @@ class StaticFontRenderer extends TextureFontRenderer {
     GL11.glVertex3d(tx - dw, ty - dh, 0)
   }
 
-  override protected def generateChar(char: Char) {}
+  override protected def generateChar(char: Int) {}
 }

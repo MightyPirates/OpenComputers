@@ -149,6 +149,13 @@ abstract class PacketHandler {
       else null
     }
 
+    def readMedium(): Int = {
+      val c0 = readUnsignedByte()
+      val c1 = readUnsignedByte()
+      val c2 = readUnsignedByte()
+      (c0) | (c1 << 8) | (c2 << 16)
+    }
+
     def readPacketType() = PacketType(readByte())
   }
 
