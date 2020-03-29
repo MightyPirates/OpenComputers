@@ -1,3 +1,4 @@
+local start = computer.uptime()
 do
   local addr, invoke = computer.getBootAddress(), component.invoke
   local function loadfile(file)
@@ -13,6 +14,11 @@ do
   loadfile("/lib/core/boot.lua")(loadfile)
 end
 
+local c = require("computer")
+local time = c.uptime() - start
+function c.bootTime()
+  return time
+end
 while true do
   local result, reason = xpcall(require("shell").getShell(), function(msg)
     return tostring(msg).."\n"..debug.traceback()
