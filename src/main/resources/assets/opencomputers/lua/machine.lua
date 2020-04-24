@@ -1093,7 +1093,6 @@ local userdataWrapper = {
   end,
   __gc = function(self)
     local data = wrappedUserdata[self]
-    wrappedUserdata[self] = nil
     userdata.dispose(data)
   end,
   -- This is the persistence protocol for userdata. Userdata is considered
