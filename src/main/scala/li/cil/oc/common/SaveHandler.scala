@@ -200,13 +200,6 @@ object SaveHandler {
   }
 
   def cleanSaveData(): Unit = {
-    while (!chunkDirs.isEmpty) {
-      val chunkPath = chunkDirs.poll()
-      if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
-        for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
-      }
-    }
-
     // Delete empty folders to keep the state folder clean.
     val emptyDirs = savePath.listFiles(new FileFilter {
       override def accept(file: File) = file.isDirectory &&

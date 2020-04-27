@@ -83,7 +83,8 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
       Map(
         "position" -> Array(delta.xCoord, delta.yCoord, delta.zCoord),
         "redstone" -> waypoint.maxInput,
-        "label" -> waypoint.label
+        "label" -> waypoint.label,
+        "address" -> waypoint.node.address()
       )
     }).toArray)
   }
