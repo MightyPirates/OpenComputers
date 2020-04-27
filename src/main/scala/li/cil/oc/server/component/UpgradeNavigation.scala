@@ -84,7 +84,8 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
       Map(
         "position" -> Array(delta.x, delta.y, delta.z),
         "redstone" -> waypoint.maxInput,
-        "label" -> waypoint.label
+        "label" -> waypoint.label,
+        "address" -> waypoint.node.address()
       )
     }).toArray)
   }
