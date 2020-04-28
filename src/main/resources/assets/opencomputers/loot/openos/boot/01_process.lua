@@ -72,11 +72,11 @@ process.list[init_thread] = {
 }
 
 -- intercept fs open
-local fs_open = fs.open 
+local fs_open = fs.open
 fs.open = function(...)
   local fs_open_result = table.pack(fs_open(...))
   if fs_open_result[1] then
-    process.closeOnExit(fs_open_result[1])
+    process.addHandle(fs_open_result[1])
   end
   return table.unpack(fs_open_result, 1, fs_open_result.n)
 end

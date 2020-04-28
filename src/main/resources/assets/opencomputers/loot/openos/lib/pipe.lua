@@ -133,7 +133,7 @@ function pipe.buildPipeChain(progs)
     local piped_stream
     if i < #progs then
       local handle = setmetatable({buffer = ""}, {__index = pipe_stream})
-      process.closeOnExit(handle, proc)
+      process.addHandle(handle, proc)
       piped_stream = buffer.new("rw", handle)
       piped_stream:setvbuf("no", 1024)
       pio[1] = piped_stream
