@@ -41,7 +41,14 @@ if #args == 0 then
   end
 else
   -- execute command.
-  local result = table.pack(sh.execute(...))
+  local cargs = {...}
+  -- sh can run as a shell command (no env table)
+  local cenv = _ENV
+  if cargs[1] == nil or type(cargs[1]) == "table" then
+    -- sh can also run as a manually started process (see /bin/source.lua)
+    cenv = table.remove(cargs, 1)
+  end
+  local result = {sh.execute(cenv, table.unpack(cargs))}
   if not result[1] then
     error(result[2], 0)
   end
