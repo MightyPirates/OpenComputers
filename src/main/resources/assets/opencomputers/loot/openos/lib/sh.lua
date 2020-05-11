@@ -207,7 +207,7 @@ function sh.execute(env, command, ...)
   -- simple
   if not command:find("[;%$&|!<>]") then
     sh.internal.ec.last = sh.internal.command_result_as_code(sh.internal.executePipes({words}, eargs, env))
-    return true
+    return sh.internal.ec.last == 0
   end
 
   return sh.internal.execute_complex(words, eargs, env)

@@ -41,9 +41,5 @@ if #args == 0 then
   end
 else
   -- execute command.
-  local result = table.pack(sh.execute(...))
-  if not result[1] then
-    error(result[2], 0)
-  end
-  return table.unpack(result, 2)
+  return sh.execute(...)
 end
