@@ -48,8 +48,11 @@ class UpgradeBarcodeReader(val host: EnvironmentHost) extends AbstractManagedEnv
               processNodes(Array(host.sidedNode(side)), nbt)
             case host: Environment =>
               processNodes(Array(host.node), nbt)
+            case _ => // Ignore
           }
+          case _ => // Ignore
       }
+      case _ => // Ignore
     }
   }
 

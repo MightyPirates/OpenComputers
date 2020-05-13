@@ -166,7 +166,7 @@ function buffer:write(...)
     if self.bufferMode == "no" then
       result, reason = self.stream:write(arg)
     else
-      result, reason = self:buffered_write(arg)
+      result, reason = buffer.buffered_write(self, arg)
     end
 
     if not result then

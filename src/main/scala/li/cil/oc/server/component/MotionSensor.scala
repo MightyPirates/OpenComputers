@@ -18,7 +18,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
-import net.minecraft.util.math.{AxisAlignedBB, Vec3d}
+import net.minecraft.util.math.{AxisAlignedBB, BlockPos, Vec3d}
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -96,21 +96,22 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
 
   private def isInRange(entity: EntityLivingBase) = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= radius * radius
 
+  private def isClearPath(target: BlockPos): Boolean = {
+    val origin = new Vec3d(x, y, z)
+    val targetVec = new Vec3d(target.getX, target.getY, target.getZ)
+    val path = origin.subtract(targetVec).normalize()
+    val eye = origin.add(path)
+    world.rayTraceBlocks(eye, targetVec) == null
+  }
+
   private def isVisible(entity: EntityLivingBase) =
     entity.getActivePotionEffect(Potion.getPotionFromResourceLocation("invisibility")) == null &&
       // Note: it only working in lit conditions works and is neat, but this
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val origin = new Vec3d(x, y, z)
-      val target = new Vec3d(entity.posX, entity.posY, entity.posZ)
-      val path = target.subtract(origin).normalize()
-      val moved_origin = origin.addVector(
-        path.x * 0.75,
-        path.y * 0.75,
-        path.z * 0.75
-      )
-      world.rayTraceBlocks(moved_origin, target) == null
+      val target = entity.getPosition
+      isClearPath(target) || isClearPath(target.add(0, entity.getEyeHeight, 0))
     }
 
   private def sendSignal(entity: EntityLivingBase) {

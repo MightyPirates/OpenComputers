@@ -2,6 +2,7 @@ local text = require("text")
 local tx = require("transforms")
 local unicode = require("unicode")
 local process = require("process")
+local buffer = require("buffer")
 
 -- separate string value into an array of words delimited by whitespace
 -- groups by quotes
@@ -179,9 +180,7 @@ function text.internal.reader(txt, mode)
       return true
     end,
   }, {__index=text.internal.stream_base((mode or ""):match("b"))})
-  process.closeOnExit(reader)
-
-  return require("buffer").new((mode or "r"):match("[rb]+"), reader)
+  return process.addHandle(buffer.new((mode or "r"):match("[rb]+"), reader))
 end
 
 function text.internal.writer(ostream, mode, append_txt)
@@ -221,9 +220,7 @@ function text.internal.writer(ostream, mode, append_txt)
       return true
     end,
   }, {__index=text.internal.stream_base((mode or ""):match("b"))})
-  process.closeOnExit(writer)
-
-  return require("buffer").new((mode or "w"):match("[awb]+"), writer)
+  return process.addHandle(buffer.new((mode or "w"):match("[awb]+"), writer))
 end
 
 function text.detab(value, tabWidth)
