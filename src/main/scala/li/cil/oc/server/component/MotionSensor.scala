@@ -96,12 +96,11 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
 
   private def isInRange(entity: EntityLivingBase) = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= radius * radius
 
-  private def isClearPath(target: BlockPos): Boolean = {
+  private def isClearPath(target: Vec3d): Boolean = {
     val origin = new Vec3d(x, y, z)
-    val targetVec = new Vec3d(target.getX, target.getY, target.getZ)
-    val path = origin.subtract(targetVec).normalize()
+    val path = target.subtract(origin).normalize()
     val eye = origin.add(path)
-    world.rayTraceBlocks(eye, targetVec) == null
+    world.rayTraceBlocks(eye, target) == null
   }
 
   private def isVisible(entity: EntityLivingBase) =
@@ -110,8 +109,8 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val target = entity.getPosition
-      isClearPath(target) || isClearPath(target.add(0, entity.getEyeHeight, 0))
+      val target = entity.getPositionVector
+      isClearPath(target) || isClearPath(target.addVector(0.0D, entity.getEyeHeight, 0.0D))
     }
 
   private def sendSignal(entity: EntityLivingBase) {
