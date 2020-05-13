@@ -243,16 +243,17 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
               case ox if ox >= 0 && ox < width =>
                 volume(nz * width + nx) = volume(oz * width + ox)
                 volume(nz * width + nx + width * width) = volume(oz * width + ox + width * width)
+                // previous, we set the volume area as dirty. but this is error prone
+                // in case the update sends the values - we only send the corners of the copied arae
+                // it is FAR better to mark each bit as dirty, and let the optimized update do what
+                // it was designed to do
+                setDirty(nx, nz)
               case _ => /* Got no source column. */
             }
           }
         case _ => /* Got no source row. */
       }
     }
-
-    // Mark target rectangle dirty.
-    setDirty(math.min(dx0, dx1), math.min(dz0, dz1))
-    setDirty(math.max(dx0, dx1), math.max(dz0, dz1))
 
     // The reasoning here is: it'd take 18 ticks to do the whole are with fills,
     // so make this slightly more efficient (15 ticks - 0.75 seconds). Make it
@@ -358,6 +359,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     }
     else result(Unit, "not supported")
   }
+
+  @Callback(direct = true, doc = "function():number, number, number -- Get the dimension of the x,y,z axes.")
+  def getDimensions(context: Context, args: Arguments): Array[AnyRef] = result(width, height, width)
 
   private def checkCoordinates(args: Arguments, idxX: Int = 0, idxY: Int = 1, idxZ: Int = 2) = {
     val x = if (idxX >= 0) args.checkInteger(idxX) - 1 else 0

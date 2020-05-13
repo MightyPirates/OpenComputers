@@ -45,7 +45,7 @@ local cols =
   {"THREADS", function(_,p)
     -- threads are handles with mt.close == thread.waitForAll
     local count = 0
-    for h in pairs(p.data.handles) do
+    for _,h in ipairs(p.data.handles) do
       local mt = getmetatable(h)
       if mt and mt.__status then
         count = count + 1
@@ -55,7 +55,7 @@ local cols =
   end},
   {"PARENT", function(_,p)
     for _,process_info in pairs(process.list) do
-      for handle in pairs(process_info.data.handles) do
+      for i,handle in ipairs(process_info.data.handles) do
         local mt = getmetatable(handle)
         if mt and mt.__status then
           if mt.process == p then
@@ -67,12 +67,7 @@ local cols =
     return thread_id(nil, p.parent)
   end},
   {"HANDLES", function(_, p)
-    local count = 0
-    for _,closure in pairs(p.data.handles) do
-      if closure then
-        count = count + 1
-      end
-    end
+    local count = #p.data.handles
     return count == 0 and "-" or tostring(count)
   end},
   {"CMD", function(_,p) return p.command end},
