@@ -53,7 +53,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
 
     // y = block.bottom - player.feet
     // eye is higher, so the y delta should be more negative
-    val eye_delta: Double = y - Minecraft.getMinecraft.thePlayer.getEyeHeight
+    val eye_delta: Double = y - Minecraft.getMinecraft.player.getEyeHeight
 
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
