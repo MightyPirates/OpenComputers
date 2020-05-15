@@ -73,11 +73,11 @@ class Proxy {
 
     api.API.config = Settings.get.config
 
-    if (LuaStateFactory.include52) {
-      api.Machine.add(classOf[NativeLua52Architecture])
-    }
     if (LuaStateFactory.include53) {
       api.Machine.add(classOf[NativeLua53Architecture])
+    }
+    if (LuaStateFactory.include52) {
+      api.Machine.add(classOf[NativeLua52Architecture])
     }
     if (LuaStateFactory.includeLuaJ) {
       api.Machine.add(classOf[LuaJLuaArchitecture])
