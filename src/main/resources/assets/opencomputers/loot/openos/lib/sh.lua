@@ -198,7 +198,7 @@ function sh.execute(env, command, ...)
   if type(words) ~= "table" then
     return words, reason
   elseif #words == 0 then
-    return true, 0
+    return true
   end
 
   -- MUST be table.pack for non contiguous ...
