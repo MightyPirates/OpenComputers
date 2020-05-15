@@ -5,8 +5,6 @@ local sh = require("sh")
 
 local args = shell.parse(...)
 
-local t = type
-
 shell.prime()
 
 if #args == 0 then
@@ -21,7 +19,6 @@ if #args == 0 then
       if tty.getCursor() > 1 then
         io.write("\n")
       end
-      io.write("type:", t(type), '\n')
       io.write(sh.expand(os.getenv("PS1") or "$ "))
     end
     tty.window.cursor = input_handler
