@@ -31,8 +31,8 @@ if #args == 0 then
       elseif command ~= "" then
         --luacheck: globals _ENV
         local result, reason = sh.execute(_ENV, command)
-        if not result then
-          io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
+        if not result and reason then
+          io.stderr:write(tostring(reason), "\n")
         end
       end
     elseif command == nil then -- false only means the input was interrupted
