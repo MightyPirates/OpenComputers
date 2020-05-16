@@ -36,6 +36,8 @@ function tty.getViewport()
 end
 
 function tty.setViewport(width, height, dx, dy, x, y)
+  checkArg(1, width, "number")
+  checkArg(2, height, "number")
   local window = tty.window
   dx, dy, x, y = dx or 0, dy or 0, x or 1, y or 1
   window.width, window.height, window.dx, window.dy, window.x, window.y = width, height, dx, dy, x, y
