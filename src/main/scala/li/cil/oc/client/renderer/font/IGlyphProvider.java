@@ -2,6 +2,8 @@ package li.cil.oc.client.renderer.font;
 
 import java.nio.ByteBuffer;
 
+import li.cil.oc.util.PackedColor;
+
 /**
  * Common interface for classes providing glyph data in a format that can be
  * rendered using the {@link li.cil.oc.client.renderer.font.DynamicFontRenderer}.
@@ -33,6 +35,8 @@ public interface IGlyphProvider {
      * @see FontParserHex#getGlyph(int) See the hexfont parser for a reference implementation.
      */
     ByteBuffer getGlyph(int charCode);
+    
+    public ByteBuffer getGlyph(int charCode, int color, int bg, ByteBuffer buffer, int stride);
 
     /**
      * Get the single-width glyph width for this provider, in pixels.

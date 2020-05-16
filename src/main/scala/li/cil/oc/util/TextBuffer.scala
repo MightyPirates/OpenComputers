@@ -65,6 +65,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   var color = Array.fill(height, width)(packed)
 
   var buffer = Array.fill(height, width)(' ')
+  
+  var dirty =  Array.fill(height, width)(true)
 
   /** The current buffer size in columns by rows. */
   def size = (width, height)
@@ -88,6 +90,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       })
       buffer = newBuffer
       color = newColor
+      dirty = Array.fill(h, w)(true)
       width = w
       height = h
       true
@@ -111,9 +114,10 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         for (y <- row until math.min(row + s.length, height)) if (y >= 0) {
           val line = buffer(y)
           val lineColor = color(y)
+          val lineDirty = dirty(y)
           val c = s(y - row)
           changed = changed || (line(col) != c) || (lineColor(col) != packed)
-          setChar(line, lineColor, col, c)
+          setChar(line, lineColor, lineDirty, col, c)
         }
         changed
       }
@@ -124,11 +128,12 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         var changed = false
         val line = buffer(row)
         val lineColor = color(row)
+        val lineDirty = dirty(row)
         var bx = math.max(col, 0)
         for (x <- bx until math.min(col + s.length, width) if bx < line.length) {
           val c = s(x - col)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
-          setChar(line, lineColor, bx, c)
+          setChar(line, lineColor, lineDirty, bx, c)
           bx += math.max(1, FontUtils.wcwidth(c))
         }
         changed
@@ -144,10 +149,11 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     for (y <- math.max(row, 0) until math.min(row + h, height)) {
       val line = buffer(y)
       val lineColor = color(y)
+      val lineDirty = dirty(y)
       var bx = math.max(col, 0)
       for (x <- bx until math.min(col + w, width) if bx < line.length) {
         changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
-        setChar(line, lineColor, bx, c)
+        setChar(line, lineColor, lineDirty, bx, c)
         bx += math.max(1, FontUtils.wcwidth(c))
       }
     }
@@ -178,6 +184,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     for (ny <- dy0 to dy1 by sy) {
       val nl = buffer(ny)
       val nc = color(ny)
+      val nd = dirty(ny)
       ny - ty match {
         case oy if oy >= 0 && oy < height =>
           val ol = buffer(oy)
@@ -187,9 +194,11 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
               changed = changed || (nl(nx) != ol(ox)) || (nc(nx) != oc(ox))
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
+              nd(nx) = true
               for (offset <- 1 until FontUtils.wcwidth(nl(nx))) {
                 nl(nx + offset) = ' '
                 nc(nx + offset) = oc(nx)
+                nd(nx + offset) = true
               }
             case _ => /* Got no source column. */
           }
@@ -197,6 +206,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
           // don't change their colors
           if (left_edge >= 0 && FontUtils.wcwidth(nl(left_edge)) > 1) {
             nl(left_edge) = ' '
+            nd(left_edge) = true
             changed = true
           }
         case _ => /* Got no source row. */
@@ -205,20 +215,23 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     changed
   }
 
-  private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
+  private def setChar(line: Array[Char], lineColor: Array[Short], lineDirty: Array[Boolean], x: Int, c: Char) {
     if (FontUtils.wcwidth(c) > 1 && x >= line.length - 1) {
       // Don't allow setting wide chars in right-most col.
       return
     }
     line(x) = c
     lineColor(x) = packed
+    lineDirty(x) = true
     for (x1 <- x + 1 until x + FontUtils.wcwidth(c)) {
       line(x1) = ' '
       lineColor(x1) = packed
+      lineDirty(x1) = true
     }
     if (x > 0 && FontUtils.wcwidth(line(x - 1)) > 1) {
       // remove previous wide char (but don't change its color)
       line(x - 1) = ' '
+      lineDirty(x - 1) = true
     }
   }
 

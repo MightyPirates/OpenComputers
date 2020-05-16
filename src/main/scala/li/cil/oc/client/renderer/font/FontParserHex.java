@@ -70,6 +70,7 @@ public class FontParserHex implements IGlyphProvider {
         if (charCode < 0 || charCode >= glyphs.length || glyphs[charCode] == null || glyphs[charCode].length == 0)
             return null;
         final byte[] glyph = glyphs[charCode];
+        
         final ByteBuffer buffer = BufferUtils.createByteBuffer(glyph.length * getGlyphWidth() * 4);
         for (byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
@@ -83,6 +84,38 @@ public class FontParserHex implements IGlyphProvider {
         }
         buffer.rewind();
         return buffer;
+    }
+    
+    @Override
+    public ByteBuffer getGlyph(int charCode, int color, int bg, ByteBuffer buffer, int stride) {
+        if (charCode < 0 || charCode >= glyphs.length || glyphs[charCode] == null || glyphs[charCode].length == 0)
+            return null;
+
+        final byte[] cdata = {(byte) (((color & 0xFF0000) >> 16)), (byte) (((color & 0x00FF00) >> 8)), (byte) (((color & 0x0000FF) >> 0)), (byte) 255};
+        final byte[] bdata = {(byte) (((bg & 0xFF0000) >> 16)), (byte) (((bg & 0x00FF00) >> 8)), (byte) (((bg & 0x0000FF) >> 0)), (byte) 255};
+        final byte[] glyph = glyphs[charCode];
+        boolean first = true;
+        int width = FontUtils.wcwidth(charCode);
+        for (int i = 0; i < glyph.length; i+=width) {
+        	if (first) {
+        		first = false;
+        	} else {
+        		buffer.position(buffer.position() + stride * 4);
+        	}
+        	
+        	for (int k = 0; k < width; k++) {
+	        	byte aGlyph = glyph[i + k];
+	            int c = ((int) aGlyph) & 0xFF;
+	            // Grab all bits by grabbing the leftmost one then shifting.
+	            for (int j = 0; j < 8; j++) {
+	                final boolean isBitSet = (c & 0x80) > 0;
+	                if (isBitSet) buffer.put(cdata);
+	                else buffer.put(bdata);
+	                c <<= 1;
+	            }
+        	}
+        }
+        return null;
     }
 
     @Override
