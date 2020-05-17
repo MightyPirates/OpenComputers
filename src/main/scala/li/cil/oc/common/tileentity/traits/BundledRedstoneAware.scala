@@ -15,6 +15,7 @@ import java.util
 import li.cil.oc.integration.charset.{CapabilitiesCharset, ModCharset}
 import net.minecraftforge.common.capabilities.Capability
 
+@Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = "projectred-core")
 trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
 
   protected[tileentity] val _bundledInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))

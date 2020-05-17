@@ -92,7 +92,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
     RenderState.checkError(getClass.getName + ".render: fade")
 
     if (screen.buffer.isRenderingEnabled) {
+      val profiler = Minecraft.getMinecraft.mcProfiler
+      profiler.startSection("opencomputers:screen_buffer")
       draw()
+      profiler.endSection()
     }
 
     RenderState.disableBlend()

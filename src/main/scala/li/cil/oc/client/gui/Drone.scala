@@ -3,8 +3,8 @@ package li.cil.oc.client.gui
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.entity

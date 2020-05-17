@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Common interface for classes providing glyph data in a format that can be
- * rendered using the {@link li.cil.oc.client.renderer.font.DynamicFontRenderer}.
+ * rendered using the {@link li.cil.oc.client.renderer.font.FontTextureProvider}.
  */
 public interface IGlyphProvider {
     /**
@@ -13,6 +13,8 @@ public interface IGlyphProvider {
      * This should usually also be called from the implementation's constructor.
      */
     void initialize();
+
+    boolean containsGlyph(int charCode);
 
     /**
      * Get a byte array of RGBA data describing the specified char.

@@ -1,8 +1,8 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.api
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.renderer.textbuffer.TextBufferRenderCache
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Mouse
@@ -82,8 +82,8 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
   }
 
   private def toBufferCoordinates(mouseX: Int, mouseY: Int): Option[(Double, Double)] = {
-    val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
-    val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
+    val bx = (mouseX - x - bufferMargin) / scale / (TextBufferRenderCache.fontTextureProvider.getCharWidth / 2)
+    val by = (mouseY - y - bufferMargin) / scale / (TextBufferRenderCache.fontTextureProvider.getCharHeight / 2)
     val bw = buffer.getViewportWidth
     val bh = buffer.getViewportHeight
     if (bx >= 0 && by >= 0 && bx < bw && by < bh) Some((bx, by))
