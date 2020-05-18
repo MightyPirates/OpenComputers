@@ -93,6 +93,12 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
       Array(192, 256, 384, 512, 768, 1024)
   }
+  val vramSizes = Array(config.getIntList("computer.lua.vramSizes"): _*) match {
+    case Array(tier1, tier2, tier3) => Array(tier1: Int, tier2: Int, tier3: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of VRAM sizes, ignoring.")
+      Array(1, 2, 3)
+  }
   val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
   val maxTotalRam = config.getInt("computer.lua.maxTotalRam") max 0
 

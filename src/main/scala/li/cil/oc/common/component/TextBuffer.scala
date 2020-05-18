@@ -20,6 +20,7 @@ import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
 import li.cil.oc.common.item.data.NodeData
+import li.cil.oc.common.component.traits.TextBufferProxy
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -41,13 +42,13 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer with DeviceInfo {
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.TextBufferProxy with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
     create()
 
-  private var maxResolution = Settings.screenResolutionsByTier(Tier.One)
+  private var maxResolution: (Int, Int) = Settings.screenResolutionsByTier(Tier.One)
 
   private var maxDepth = Settings.screenDepthsByTier(Tier.One)
 
@@ -79,26 +80,26 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     pb
   }
 
-  var fullyLitCost = computeFullyLitCost()
+  var fullyLitCost: Double = computeFullyLitCost()
 
   // This computes the energy cost (per tick) to keep the screen running if
   // every single "pixel" is lit. This cost increases with higher tiers as
   // their maximum resolution (pixel density) increases. For a basic screen
   // this is simply the configured cost.
-  def computeFullyLitCost() = {
+  def computeFullyLitCost(): Double = {
     val (w, h) = Settings.screenResolutionsByTier(0)
     val mw = getMaximumWidth
     val mh = getMaximumHeight
     powerConsumptionPerTick * (mw * mh) / (w * h)
   }
 
-  val proxy =
+  val proxy: TextBuffer.Proxy =
     if (SideTracker.isClient) new TextBuffer.ClientProxy(this)
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
 
-  var viewport = data.size
+  var viewport: (Int, Int) = data.size
 
   def markInitialized(): Unit = {
     syncCooldown = -1 // Stop polling for init state.
@@ -227,7 +228,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     fullyLitCost = computeFullyLitCost()
   }
 
-  override def getEnergyCostPerTick = powerConsumptionPerTick
+  override def getEnergyCostPerTick: Double = powerConsumptionPerTick
 
   override def setPowerState(value: Boolean) {
     if (isDisplaying != value) {
@@ -240,7 +241,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
   }
 
-  override def getPowerState = isDisplaying
+  override def getPowerState: Boolean = isDisplaying
 
   override def setMaximumResolution(width: Int, height: Int) {
     if (width < 1) throw new IllegalArgumentException("width must be larger or equal to one")
@@ -250,15 +251,15 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.onBufferMaxResolutionChange(width, width)
   }
 
-  override def getMaximumWidth = maxResolution._1
+  override def getMaximumWidth: Int = maxResolution._1
 
-  override def getMaximumHeight = maxResolution._2
+  override def getMaximumHeight: Int = maxResolution._2
 
-  override def setAspectRatio(width: Double, height: Double) = this.synchronized(aspectRatio = (width, height))
+  override def setAspectRatio(width: Double, height: Double): Unit = this.synchronized(aspectRatio = (width, height))
 
-  override def getAspectRatio = aspectRatio._1 / aspectRatio._2
+  override def getAspectRatio: Double = aspectRatio._1 / aspectRatio._2
 
-  override def setResolution(w: Int, h: Int) = {
+  override def setResolution(w: Int, h: Int): Boolean = {
     val (mw, mh) = maxResolution
     if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
@@ -276,10 +277,6 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
     else false
   }
-
-  override def getWidth = data.width
-
-  override def getHeight = data.height
 
   override def setViewport(w: Int, h: Int): Boolean = {
     val (mw, mh) = data.size
@@ -302,185 +299,97 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def getViewportHeight: Int = viewport._2
 
-  override def setMaximumColorDepth(depth: api.internal.TextBuffer.ColorDepth) = maxDepth = depth
+  override def setMaximumColorDepth(depth: api.internal.TextBuffer.ColorDepth): Unit = maxDepth = depth
 
-  override def getMaximumColorDepth = maxDepth
+  override def getMaximumColorDepth: api.internal.TextBuffer.ColorDepth = maxDepth
 
-  override def setColorDepth(depth: api.internal.TextBuffer.ColorDepth) = {
-    if (depth.ordinal > maxDepth.ordinal)
-      throw new IllegalArgumentException("unsupported depth")
+  override def setColorDepth(depth: api.internal.TextBuffer.ColorDepth): Boolean = {
+    val colorDepthChanged: Boolean = super.setColorDepth(depth)
     // Always send to clients, their state might be dirty.
     proxy.onBufferDepthChange(depth)
-    data.format = PackedColor.Depth.format(depth)
+    colorDepthChanged
   }
 
-  override def getColorDepth = data.format.depth
+  override def onBufferColorChange(): Unit =
+    proxy.onBufferColorChange()
 
-  override def setPaletteColor(index: Int, color: Int) = data.format match {
-    case palette: PackedColor.MutablePaletteFormat =>
-      palette(index) = color
-      proxy.onBufferPaletteChange(index)
-    case _ => throw new Exception("palette not available")
+  override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int): Unit = {
+    proxy.onBufferCopy(col, row, w, h, tx, ty)
   }
 
-  override def getPaletteColor(index: Int) = data.format match {
-    case palette: PackedColor.MutablePaletteFormat => palette(index)
-    case _ => throw new Exception("palette not available")
+  override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = {
+    proxy.onBufferFill(col, row, w, h, c)
   }
 
-  override def setForegroundColor(color: Int) = setForegroundColor(color, isFromPalette = false)
-
-  override def setForegroundColor(color: Int, isFromPalette: Boolean) {
-    val value = PackedColor.Color(color, isFromPalette)
-    if (data.foreground != value) {
-      data.foreground = value
-      proxy.onBufferColorChange()
-    }
+  override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean): Unit = {
+    proxy.onBufferSet(col, row, s, vertical)
   }
 
-  override def getForegroundColor = data.foreground.value
-
-  override def isForegroundFromPalette = data.foreground.isPalette
-
-  override def setBackgroundColor(color: Int) = setBackgroundColor(color, isFromPalette = false)
-
-  override def setBackgroundColor(color: Int, isFromPalette: Boolean) {
-    val value = PackedColor.Color(color, isFromPalette)
-    if (data.background != value) {
-      data.background = value
-      proxy.onBufferColorChange()
-    }
+  override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+    proxy.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
   }
 
-  override def getBackgroundColor = data.background.value
+  override def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
+    proxy.onBufferRamInit(id, ram)
+  }
 
-  override def isBackgroundFromPalette = data.background.isPalette
-
-  def copy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    if (data.copy(col, row, w, h, tx, ty))
-      proxy.onBufferCopy(col, row, w, h, tx, ty)
-
-  def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =
-    if (data.fill(col, row, w, h, c))
-      proxy.onBufferFill(col, row, w, h, c)
-
-  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit =
-    if (col < data.width && (col >= 0 || -col < s.length)) {
-      // Make sure the string isn't longer than it needs to be, in particular to
-      // avoid sending too much data to our clients.
-      val (x, y, truncated) =
-        if (vertical) {
-          if (row < 0) (col, 0, s.substring(-row))
-          else (col, row, s.substring(0, math.min(s.length, data.height - row)))
-        }
-        else {
-          if (col < 0) (0, row, s.substring(-col))
-          else (col, row, s.substring(0, math.min(s.length, data.width - col)))
-        }
-      if (data.set(x, y, truncated, vertical))
-        proxy.onBufferSet(x, row, truncated, vertical)
-    }
-
-  def get(col: Int, row: Int) = data.get(col, row)
-
-  override def getForegroundColor(column: Int, row: Int) =
-    if (isForegroundFromPalette(column, row)) {
-      PackedColor.extractForeground(color(column, row))
-    }
-    else {
-      PackedColor.unpackForeground(color(column, row), data.format)
-    }
-
-  override def isForegroundFromPalette(column: Int, row: Int) =
-    data.format.isFromPalette(PackedColor.extractForeground(color(column, row)))
-
-  override def getBackgroundColor(column: Int, row: Int) =
-    if (isBackgroundFromPalette(column, row)) {
-      PackedColor.extractBackground(color(column, row))
-    }
-    else {
-      PackedColor.unpackBackground(color(column, row), data.format)
-    }
-
-  override def isBackgroundFromPalette(column: Int, row: Int) =
-    data.format.isFromPalette(PackedColor.extractBackground(color(column, row)))
+  override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+    proxy.onBufferRamDestroy(ids)
+  }
 
   override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
-    for (y <- row until ((row + text.length) min data.height)) {
-      val line = text(y - row)
-      Array.copy(line, 0, data.buffer(y), col, line.length min data.width)
-    }
+    super.rawSetText(col, row, text)
     proxy.onBufferRawSetText(col, row, text)
   }
 
   override def rawSetBackground(col: Int, row: Int, color: Array[Array[Int]]): Unit = {
-    for (y <- row until ((row + color.length) min data.height)) {
-      val line = color(y - row)
-      for (x <- col until ((col + line.length) min data.width)) {
-        val packedBackground = data.color(row)(col) & 0x00FF
-        val packedForeground = (data.format.deflate(PackedColor.Color(line(x - col))) << PackedColor.ForegroundShift) & 0xFF00
-        data.color(row)(col) = (packedForeground | packedBackground).toShort
-      }
-    }
+    super.rawSetBackground(col, row, color)
     // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
     // though, so let's be wasteful for once...
     proxy.onBufferRawSetBackground(col, row, color)
   }
 
   override def rawSetForeground(col: Int, row: Int, color: Array[Array[Int]]): Unit = {
-    for (y <- row until ((row + color.length) min data.height)) {
-      val line = color(y - row)
-      for (x <- col until ((col + line.length) min data.width)) {
-        val packedBackground = data.format.deflate(PackedColor.Color(line(x - col))) & 0x00FF
-        val packedForeground = data.color(row)(col) & 0xFF00
-        data.color(row)(col) = (packedForeground | packedBackground).toShort
-      }
-    }
+    super.rawSetForeground(col, row, color)
     // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
     // though, so let's be wasteful for once...
     proxy.onBufferRawSetForeground(col, row, color)
   }
 
-  private def color(column: Int, row: Int) = {
-    if (column < 0 || column >= getWidth || row < 0 || row >= getHeight)
-      throw new IndexOutOfBoundsException()
-    else data.color(row)(column)
-  }
+  @SideOnly(Side.CLIENT)
+  override def renderText: Boolean = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
-  override def renderText() = relativeLitArea != 0 && proxy.render()
+  override def renderWidth: Int = TextBufferRenderCache.renderer.charRenderWidth * getViewportWidth
 
   @SideOnly(Side.CLIENT)
-  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * getViewportWidth
+  override def renderHeight: Int = TextBufferRenderCache.renderer.charRenderHeight * getViewportHeight
 
   @SideOnly(Side.CLIENT)
-  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * getViewportHeight
+  override def setRenderingEnabled(enabled: Boolean): Unit = isRendering = enabled
 
   @SideOnly(Side.CLIENT)
-  override def setRenderingEnabled(enabled: Boolean) = isRendering = enabled
+  override def isRenderingEnabled: Boolean = isRendering
 
-  @SideOnly(Side.CLIENT)
-  override def isRenderingEnabled = isRendering
-
-  override def keyDown(character: Char, code: Int, player: EntityPlayer) =
+  override def keyDown(character: Char, code: Int, player: EntityPlayer): Unit =
     proxy.keyDown(character, code, player)
 
-  override def keyUp(character: Char, code: Int, player: EntityPlayer) =
+  override def keyUp(character: Char, code: Int, player: EntityPlayer): Unit =
     proxy.keyUp(character, code, player)
 
-  override def clipboard(value: String, player: EntityPlayer) =
+  override def clipboard(value: String, player: EntityPlayer): Unit =
     proxy.clipboard(value, player)
 
-  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) =
+  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
     proxy.mouseDown(x, y, button, player)
 
-  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) =
+  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
     proxy.mouseDrag(x, y, button, player)
 
-  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) =
+  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
     proxy.mouseUp(x, y, button, player)
 
-  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) =
+  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit =
     proxy.mouseScroll(x, y, delta, player)
 
   def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
@@ -553,7 +462,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   }
 
   // Null check for Waila (and other mods that may call this client side).
-  override def save(nbt: NBTTagCompound) = if (node != null) {
+  override def save(nbt: NBTTagCompound): Unit = if (node != null) {
     super.save(nbt)
     // Happy thread synchronization hack! Here's the problem: GPUs allow direct
     // calls for modifying screens to give a more responsive experience. This
@@ -658,6 +567,18 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
+    def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      owner.relativeLitArea = -1
+    }
+
     def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
       owner.relativeLitArea = -1
     }
@@ -739,6 +660,19 @@ object TextBuffer {
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
       markDirty()
+    }
+
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+      markDirty()
+    }
+
+    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
+      super.onBufferRamInit(id, buffer)
+    }
+
+    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      super.onBufferRamDestroy(ids)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
@@ -841,6 +775,26 @@ object TextBuffer {
       super.onBufferSet(col, row, s, vertical)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
+    }
+
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferBitBlt(owner.pendingCommands, col, row, w, h, id, fromCol, fromRow))
+    }
+
+    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
+      super.onBufferRamInit(id, buffer)
+      owner.host.markChanged()
+      val nbt = new NBTTagCompound()
+      buffer.data.save(nbt)
+      owner.synchronized(ServerPacketSender.appendTextBufferRamInit(owner.pendingCommands, id, nbt))
+    }
+
+    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      super.onBufferRamDestroy(ids)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferRamDestroy(owner.pendingCommands, ids))
     }
 
     override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
