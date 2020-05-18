@@ -14,7 +14,7 @@ class GpuTextBuffer(val id: Int, val data: li.cil.oc.util.TextBuffer) extends Ma
   override def getViewportWidth: Int = data.height
   override def getViewportHeight: Int = data.width
 
-  var dirty: Boolean = false
+  var dirty: Boolean = true
   override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean): Unit = dirty = true
   override def onBufferColorChange(): Unit = dirty = true
   override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = dirty = true
