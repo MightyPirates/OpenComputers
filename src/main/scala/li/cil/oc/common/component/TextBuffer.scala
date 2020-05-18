@@ -648,12 +648,12 @@ object TextBuffer {
 
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
-      dirty = true
+      markDirty()
     }
 
     override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
       super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
-      dirty = true
+      markDirty()
     }
 
     override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
