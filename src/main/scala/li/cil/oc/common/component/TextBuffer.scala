@@ -22,6 +22,7 @@ import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
+import li.cil.oc.common.component.traits.TextBufferProxy
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -34,7 +35,6 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
-import tconstruct.client.tabs.InventoryTabVanilla
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -311,67 +311,28 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def onBufferColorChange(): Unit =
     proxy.onBufferColorChange()
 
-  class ViewportBox(val x1: Int, val y1: Int, val x2: Int, val y2: Int) {
-    def width: Int = (x2 - x1 + 1) max 0
-    def height: Int = (y2 - y1 + 1) max 0
-    def isVisible: Boolean = width > 0 && height > 0
-    def isEmpty: Boolean = !isVisible
-  }
-
-  // return box within viewport
-  private def truncateToViewport(x1: Int, y1: Int, x2: Int, y2: Int): ViewportBox = {
-    val x: Int = (x1 min x2) max 0
-    val y: Int = (y1 min y2) max 0
-    val lastX: Int = ((x1 max x2) max 0) min (viewport._1 - 1)
-    val lastY: Int = ((y1 max y2) max 0) min (viewport._2 - 1)
-    new ViewportBox(x, y, lastX, lastY)
-  }
-
   override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int): Unit = {
-    // only notify about viewport changes
-    val box = truncateToViewport(col + tx, row + ty, col + tx + w - 1, row + ty + h - 1)
-    if (box.isVisible) {
-      proxy.onBufferCopy(col, row, box.width, box.height, tx, ty)
-    }
+    proxy.onBufferCopy(col, row, w, h, tx, ty)
   }
 
   override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = {
-    val box = truncateToViewport(col, row, col + w - 1, row + h - 1)
-    if (box.isVisible) {
-      proxy.onBufferFill(col, row, box.width, box.height, c)
-    }
-  }
-
-  private def truncateToViewport(col: Int, row: Int, s: String, vertical: Boolean): String = {
-    var start: Int = 0
-    var last: Int = -1
-    if (vertical) {
-      val box = truncateToViewport(col, row, col, row + s.length - 1)
-      if (box.isVisible) {
-        start = box.y1 - row
-        last = box.y2 - row
-      }
-    } else {
-      val box = truncateToViewport(col, row, col + s.length - 1, row)
-      if (box.isVisible) {
-        start = box.x1 - col
-        last = box.x2 - col
-      }
-    }
-
-    if (last >= start && start >= 0 && last < s.length) {
-      s.substring(start, last + 1)
-    } else {
-      ""
-    }
+    proxy.onBufferFill(col, row, w, h, c)
   }
 
   override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean): Unit = {
-    // only notify about viewport changes
-    val truncatedString = truncateToViewport(col, row, s, vertical)
-    if (!truncatedString.isEmpty) {
-      proxy.onBufferSet(col, row, truncatedString, vertical)
-    }
+    proxy.onBufferSet(col, row, s, vertical)
+  }
+
+  override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+    proxy.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+  }
+
+  override def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
+    proxy.onBufferRamInit(id, ram)
+  }
+
+  override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+    proxy.onBufferRamDestroy(ids)
   }
 
   override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
@@ -595,6 +556,18 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
+    def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      owner.relativeLitArea = -1
+    }
+
     def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
       owner.relativeLitArea = -1
     }
@@ -676,6 +649,19 @@ object TextBuffer {
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
       dirty = true
+    }
+
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+      dirty = true
+    }
+
+    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
+      super.onBufferRamInit(id, buffer)
+    }
+
+    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      super.onBufferRamDestroy(ids)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
@@ -778,6 +764,26 @@ object TextBuffer {
       super.onBufferSet(col, row, s, vertical)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
+    }
+
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferBitBlt(owner.pendingCommands, col, row, w, h, id, fromCol, fromRow))
+    }
+
+    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
+      super.onBufferRamInit(id, buffer)
+      owner.host.markChanged()
+      val nbt = new NBTTagCompound()
+      buffer.data.save(nbt)
+      owner.synchronized(ServerPacketSender.appendTextBufferRamInit(owner.pendingCommands, id, nbt))
+    }
+
+    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+      super.onBufferRamDestroy(ids)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferRamDestroy(owner.pendingCommands, ids))
     }
 
     override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {

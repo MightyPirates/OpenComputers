@@ -5,7 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.internal.TextBuffer
 import li.cil.oc.util.PackedColor
 
-trait TextBufferProxy extends api.internal.TextBuffer {
+trait TextBufferProxy extends api.internal.TextBuffer with VideoRamAware {
   def data: util.TextBuffer
 
   override def getWidth: Int = data.width
