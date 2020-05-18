@@ -105,12 +105,12 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   }
 
   @Callback(direct = true, doc = """function(): number -- returns the index of the currently selected buffer. 0 is reserved for the screen. Can return 0 even when there is no screen""")
-  def getBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+  def getActiveBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     result(bufferIndex)
   }
 
   @Callback(direct = true, doc = """function(index: number): number -- Sets the active buffer to `index`. 1 is the first vram buffer and 0 is reserved for the screen. returns nil for invalid index (0 is always valid)""")
-  def setBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+  def setActiveBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     val previousIndex: Int = bufferIndex
     val newIndex: Int = args.checkInteger(0)
     if (newIndex != RESERVED_SCREEN_INDEX && getBuffer(newIndex).isEmpty) {
