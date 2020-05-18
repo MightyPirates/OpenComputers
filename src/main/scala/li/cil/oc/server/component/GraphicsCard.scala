@@ -2,10 +2,7 @@ package li.cil.oc.server.component
 
 import java.util
 
-import li.cil.oc.Constants
-import li.cil.oc.Localization
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{Constants, Localization, Settings, api}
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
@@ -17,7 +14,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.PackedColor
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import li.cil.oc.common.component
+import li.cil.oc.common.component.GpuTextBuffer
 
 import scala.collection.convert.WrapAsJava._
 import scala.util.matching.Regex
@@ -34,7 +33,7 @@ import scala.util.matching.Regex
 // saved, but before the computer was saved, leading to mismatching states in
 // the save file - a Bad Thing (TM).
 
-class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo {
+class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo with component.traits.VideoRamAware {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
@@ -48,10 +47,23 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   private var screenInstance: Option[api.internal.TextBuffer] = None
 
-  private def screen(f: (api.internal.TextBuffer) => Array[AnyRef]) = screenInstance match {
-    case Some(screen) => screen.synchronized(f(screen))
-    case _ => Array(Unit, "no screen")
+  private var bufferIndex: Int = RESERVED_SCREEN_INDEX // screen is index zero
+
+  private def screen(index: Int, f: (api.internal.TextBuffer) => Array[AnyRef]): Array[AnyRef] = {
+    if (index == RESERVED_SCREEN_INDEX) {
+      screenInstance match {
+        case Some(screen) => screen.synchronized(f(screen))
+        case _ => Array(Unit, "no screen")
+      }
+    } else {
+      getBuffer(index) match {
+        case Some(buffer: api.internal.TextBuffer) => f(buffer)
+        case _ => Array(Unit, "invalid buffer index")
+      }
+    }
   }
+
+  private def screen(f: (api.internal.TextBuffer) => Array[AnyRef]): Array[AnyRef] = screen(bufferIndex, f)
 
   final val setBackgroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
   final val setForegroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
@@ -59,6 +71,8 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
   final val setCosts = Array(1.0 / 64, 1.0 / 128, 1.0 / 256)
   final val copyCosts = Array(1.0 / 16, 1.0 / 32, 1.0 / 64)
   final val fillCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+  final val bitbltCosts = Array(32, 16, 8)
+  final val totalVRAM: Int = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min Settings.get.vramSizes.length)
 
   // ----------------------------------------------------------------------- //
 
@@ -72,15 +86,164 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     DeviceAttribute.Clock -> clockInfo
   )
 
-  def capacityInfo = (maxResolution._1 * maxResolution._2).toString
+  def capacityInfo: String = (maxResolution._1 * maxResolution._2).toString
 
-  def widthInfo = Array("1", "4", "8").apply(maxDepth.ordinal())
+  def widthInfo: String = Array("1", "4", "8").apply(maxDepth.ordinal())
 
-  def clockInfo = ((2000 / setBackgroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setForegroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setPaletteColorCosts(tier)).toInt / 100).toString + "/" + ((2000 / setCosts(tier)).toInt / 100).toString + "/" + ((2000 / copyCosts(tier)).toInt / 100).toString + "/" + ((2000 / fillCosts(tier)).toInt / 100).toString
+  def clockInfo: String = ((2000 / setBackgroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setForegroundCosts(tier)).toInt / 100).toString + "/" + ((2000 / setPaletteColorCosts(tier)).toInt / 100).toString + "/" + ((2000 / setCosts(tier)).toInt / 100).toString + "/" + ((2000 / copyCosts(tier)).toInt / 100).toString + "/" + ((2000 / fillCosts(tier)).toInt / 100).toString
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
+
+  private def consumeViewportPower(buffer: api.internal.TextBuffer, context: Context, budgetCost: Double, units: Int, factor: Double): Boolean = {
+    buffer match {
+      case _: component.GpuTextBuffer => true
+      case _ =>
+        context.consumeCallBudget(budgetCost)
+        consumePower(units, factor)
+    }
+  }
+
+  @Callback(direct = true, doc = """function(): number -- returns the index of the currently selected buffer. 0 is reserved for the screen. Can return 0 even when there is no screen""")
+  def getBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+    result(bufferIndex)
+  }
+
+  @Callback(direct = true, doc = """function(index: number): number -- Sets the active buffer to `index`. 1 is the first vram buffer and 0 is reserved for the screen. returns nil for invalid index (0 is always valid)""")
+  def setBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+    val previousIndex: Int = bufferIndex
+    val newIndex: Int = args.checkInteger(0)
+    if (newIndex != RESERVED_SCREEN_INDEX && getBuffer(newIndex).isEmpty) {
+      result(Unit, "invalid buffer index")
+    } else {
+      bufferIndex = newIndex
+      if (bufferIndex == RESERVED_SCREEN_INDEX) {
+        screen(s => result(true))
+      }
+      result(previousIndex)
+    }
+  }
+
+  @Callback(direct = true, doc = """function(): number -- Returns an array of indexes of the allocated buffers""")
+  def buffers(context: Context, args: Arguments): Array[AnyRef] = {
+    result(bufferIndexes())
+  }
+  
+  @Callback(direct = true, doc = """function([width: number, height: number]): number -- allocates a new buffer with dimensions width*height (defaults to max resolution) and appends it to the buffer list. Returns the index of the new buffer and returns nil with an error message on failure. A buffer can be allocated even when there is no screen bound to this gpu. Index 0 is always reserved for the screen and thus the lowest index of an allocated buffer is always 1.""")
+  def allocateBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+    val width: Int = args.optInteger(0, maxResolution._1)
+    val height: Int = args.optInteger(1, maxResolution._2)
+    val size: Int = width * height
+    if (width <= 0 || height <= 0) {
+      result(Unit, "invalid page dimensions: must be greater than zero")
+    }
+    else if (size > (totalVRAM - calculateUsedMemory)) {
+      result(Unit, "not enough video memory")
+    } else {
+      val format: PackedColor.ColorFormat = PackedColor.Depth.format(Settings.screenDepthsByTier(tier))
+      val buffer = new li.cil.oc.util.TextBuffer(width, height, format)
+      val page = component.GpuTextBuffer.wrap(nextAvailableBufferIndex, buffer)
+      addBuffer(page)
+      result(page.id)
+    }
+  }
+
+  // this event occurs when the gpu is told a page was removed - we need to notify the screen of this
+  // we do this because the VideoRamAware trait only notifies itself, it doesn't assume there is a screen
+  override def onBufferRamDestroy(ids: Array[Int]): Unit = {
+    // first protect our buffer index - it needs to fall back to the screen if its buffer was removed
+    if (ids.contains(bufferIndex)) {
+      bufferIndex = RESERVED_SCREEN_INDEX
+    }
+    if (ids.nonEmpty) {
+      screen(RESERVED_SCREEN_INDEX, s => s match {
+        case oc: component.traits.VideoRamAware => result(oc.removeBuffers(ids))
+        case _ => result(true)// addon mod screen type that is not video ram aware
+      })
+    } else result(true)
+  }
+
+  @Callback(direct = true, doc = """function(index: number): boolean -- Closes buffer at `index`. Returns true if a buffer closed. If the current buffer is closed, index moves to 0""")
+  def freeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
+    val index: Int = args.optInteger(0, bufferIndex)
+    if (removeBuffers(Array(index))) result(true)
+    else result(Unit, "no buffer at index")
+  }
+
+  @Callback(direct = true, doc = """function(): number -- Closes all buffers and returns true on success. If the active buffer is closed, index moves to 0""")
+  def freeAllBuffers(context: Context, args: Arguments): Array[AnyRef] = result(removeAllBuffers())
+
+  @Callback(direct = true, doc = """function(): number -- returns the total memory size of the gpu vram. This does not include the screen.""")
+  def totalMemory(context: Context, args: Arguments): Array[AnyRef] = {
+    result(totalVRAM)
+  }
+
+  @Callback(direct = true, doc = """function(): number -- returns the total free memory not allocated to buffers. This does not include the screen.""")
+  def freeMemory(context: Context, args: Arguments): Array[AnyRef] = {
+    result(totalVRAM - calculateUsedMemory)
+  }
+
+  @Callback(direct = true, doc = """function(index: number): number, number -- returns the buffer size at index. Returns the screen resolution for index 0. returns nil for invalid indexes""")
+  def getBufferSize(context: Context, args: Arguments): Array[AnyRef] = {
+    val idx = args.optInteger(0, bufferIndex)
+    screen(idx, s => result(s.getWidth, s.getHeight))
+  }
+
+  private def determineBitbltBudgetCost(dst: api.internal.TextBuffer, src: api.internal.TextBuffer): Double = {
+    // large dirty buffers need throttling so their budget cost is more
+    // clean buffers have no budget cost.
+    src match {
+      case page: GpuTextBuffer if page.dirty => dst match {
+        case _: GpuTextBuffer => 0.0 // no cost to write to ram
+        case _ => // screen target will need the new buffer
+          // small buffers are cheap, so increase with size of buffer source
+          bitbltCosts(tier) * (src.getWidth * src.getHeight) / (maxResolution._1 * maxResolution._2)
+      }
+      case _ => 0.0 // from screen or from clean buffer is free
+    }
+  }
+
+  private def determineBitbltEnergyCost(dst: api.internal.TextBuffer): Double = {
+    // memory to memory copies are extremely energy efficient
+    // rasterizing to the screen has the same cost as copy (in fact, screen-to-screen blt _is_ a copy
+    dst match {
+      case _: GpuTextBuffer => 0
+      case _ => Settings.get.gpuCopyCost / (maxResolution._1 * maxResolution._2)
+    }
+  }
+
+  @Callback(direct = true, doc = """function([dst: number, col: number, row: number, width: number, height: number, src: number, fromCol: number, fromRow: number]):boolean -- bitblt from buffer to screen. All parameters are optional. Writes to `dst` page in rectangle `x, y, width, height`, defaults to the bound screen and its viewport. Reads data from `src` page at `fx, fy`, default is the active page from position 1, 1""")
+  def bitblt(context: Context, args: Arguments): Array[AnyRef] = {
+    val dstIdx = args.optInteger(0, RESERVED_SCREEN_INDEX)
+    screen(dstIdx, dst => {
+      val col = args.optInteger(1, 1)
+      val row = args.optInteger(2, 1)
+      val w = args.optInteger(3, dst.getWidth)
+      val h = args.optInteger(4, dst.getHeight)
+      val srcIdx = args.optInteger(5, bufferIndex)
+      screen(srcIdx, src => {
+        val fromCol = args.optInteger(6, 1)
+        val fromRow = args.optInteger(7, 1)
+
+        val budgetCost: Double = determineBitbltBudgetCost(dst, src)
+        val energyCost: Double = determineBitbltEnergyCost(dst)
+
+        if (consumeViewportPower(dst, context, budgetCost, w * h, energyCost)) {
+          if (dstIdx == srcIdx) {
+            val tx = col - fromCol
+            val ty = row - fromRow
+            dst.copy(fromCol - 1, fromRow - 1, w, h, tx, ty)
+            result(true)
+          } else {
+            // at least one of the two buffers is a gpu buffer
+            component.GpuTextBuffer.bitblt(dst, col, row, w, h, src, fromRow, fromCol)
+            result(true)
+          }
+        } else result(Unit, "not enough energy")
+      })
+    })
+  }
 
   @Callback(doc = """function(address:string[, reset:boolean=true]):boolean -- Binds the GPU to the screen with the specified address and resets screen settings if `reset` is true.""")
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
@@ -100,6 +263,10 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
             s.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
             s.setForegroundColor(0xFFFFFF)
             s.setBackgroundColor(0x000000)
+            s match {
+              case oc: component.traits.VideoRamAware => oc.removeAllBuffers()
+              case _ =>
+            }
           }
           else context.pause(0) // To discourage outputting "in realtime" to multiple screens using one GPU.
           result(true)
@@ -109,7 +276,13 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
   }
 
   @Callback(direct = true, doc = """function():string -- Get the address of the screen the GPU is currently bound to.""")
-  def getScreen(context: Context, args: Arguments): Array[AnyRef] = screen(s => result(s.node.address))
+  def getScreen(context: Context, args: Arguments): Array[AnyRef] = {
+    if (bufferIndex == RESERVED_SCREEN_INDEX) {
+      screen(s => result(s.node.address))
+    } else {
+      result(Unit, "the current text buffer is video ram")
+    }
+  }
 
   @Callback(direct = true, doc = """function():number, boolean -- Get the current background color and whether it's from the palette or not.""")
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
@@ -276,14 +449,15 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   @Callback(direct = true, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(setCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
     val vertical = args.optBoolean(3, false)
 
     screen(s => {
-      if (consumePower(value.length, Settings.get.gpuSetCost)) {
+      val x2 = if (vertical) x else x + value.length - 1
+      val y2 = if (!vertical) y else y + value.length - 1
+      if (consumeViewportPower(s, context, setCosts(tier), value.length, Settings.get.gpuSetCost)) {
         s.set(x, y, value, vertical)
         result(true)
       }
@@ -293,7 +467,6 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(copyCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -301,7 +474,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
-      if (consumePower(w * h, Settings.get.gpuCopyCost)) {
+      if (consumeViewportPower(s, context, copyCosts(tier), w * h, Settings.get.gpuCopyCost)) {
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
@@ -311,7 +484,6 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(fillCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -320,7 +492,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     if (value.length == 1) screen(s => {
       val c = value.charAt(0)
       val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
-      if (consumePower(w * h, cost)) {
+      if (consumeViewportPower(s, context, fillCosts(tier), w * h, cost)) {
         s.fill(x, y, w, h, value.charAt(0))
         result(true)
       }
@@ -337,6 +509,13 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   override def onMessage(message: Message) {
     super.onMessage(message)
+    if (node.isNeighborOf(message.source)) {
+      if (message.name == "computer.stopped" || message.name == "computer.started") {
+        bufferIndex = RESERVED_SCREEN_INDEX
+        removeAllBuffers()
+      }
+    }
+
     if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
       screen(s => {
         val (gmw, gmh) = maxResolution
@@ -400,17 +579,39 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 
   // ----------------------------------------------------------------------- //
 
-  private final val ScreenTag = "screen"
+  private val SCREEN_KEY: String = "screen"
+  private val BUFFER_INDEX_KEY: String = "bufferIndex"
+  private val VIDEO_RAM_KEY: String = "videoRam"
+  private final val NBT_PAGES: String = "pages"
+  private final val NBT_PAGE_IDX: String = "page_idx"
+  private final val NBT_PAGE_DATA: String = "page_data"
+  private val COMPOUND_ID = (new NBTTagCompound).getId
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    if (nbt.hasKey(ScreenTag)) {
-      nbt.getString(ScreenTag) match {
+    if (nbt.hasKey(SCREEN_KEY)) {
+      nbt.getString(SCREEN_KEY) match {
         case screen: String if !screen.isEmpty => screenAddress = Some(screen)
         case _ => screenAddress = None
       }
       screenInstance = None
+    }
+
+    if (nbt.hasKey(BUFFER_INDEX_KEY)) {
+      bufferIndex = nbt.getInteger(BUFFER_INDEX_KEY)
+    }
+
+    removeAllBuffers() // JUST in case
+    if (nbt.hasKey(VIDEO_RAM_KEY)) {
+      val videoRamNbt = nbt.getCompoundTag(VIDEO_RAM_KEY)
+      val nbtPages = videoRamNbt.getTagList(NBT_PAGES, COMPOUND_ID)
+      for (i <- 0 until nbtPages.tagCount) {
+        val nbtPage = nbtPages.getCompoundTagAt(i)
+        val idx: Int = nbtPage.getInteger(NBT_PAGE_IDX)
+        val data = nbtPage.getCompoundTag(NBT_PAGE_DATA)
+        loadBuffer(idx, data)
+      }
     }
   }
 
@@ -418,7 +619,29 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     super.save(nbt)
 
     if (screenAddress.isDefined) {
-      nbt.setString(ScreenTag, screenAddress.get)
+      nbt.setString(SCREEN_KEY, screenAddress.get)
     }
+
+    nbt.setInteger(BUFFER_INDEX_KEY, bufferIndex)
+
+    val videoRamNbt = new NBTTagCompound
+    val nbtPages = new NBTTagList
+
+    val indexes = bufferIndexes()
+    for (idx: Int <- indexes) {
+      getBuffer(idx) match {
+        case Some(page) => {
+          val nbtPage = new NBTTagCompound
+          nbtPage.setInteger(NBT_PAGE_IDX, idx)
+          val data = new NBTTagCompound
+          page.data.save(data)
+          nbtPage.setTag(NBT_PAGE_DATA, data)
+          nbtPages.appendTag(nbtPage)
+        }
+        case _ => // ignore
+      }
+    }
+    videoRamNbt.setTag(NBT_PAGES, nbtPages)
+    nbt.setTag(VIDEO_RAM_KEY, videoRamNbt)
   }
 }

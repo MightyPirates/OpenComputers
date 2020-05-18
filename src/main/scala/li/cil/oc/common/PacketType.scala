@@ -50,6 +50,9 @@ object PacketType extends Enumeration {
   SwitchActivity,
   TextBufferInit, // Goes both ways.
   TextBufferMulti,
+  TextBufferRamInit,
+  TextBufferBitBlt,
+  TextBufferRamDestroy,
   TextBufferMultiColorChange,
   TextBufferMultiCopy,
   TextBufferMultiDepthChange,
