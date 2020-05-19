@@ -73,8 +73,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   // These are dirty page bitblt budget costs
   // a single bitblt can send a screen of data, which is n*set calls where set is writing an entire line
   // So for each tier, we multiple the set cost with the number of lines the screen may have
-  // Additionally, we multiply by 4 for the packet size which is generally 4x larger than a set call
-  final val bitbltCosts = Array(setCosts(0) * 16 * 4, setCosts(1) * 25 * 4, setCosts(1) * 50 * 4)
+  final val bitbltCosts = Array(setCosts(0) * 16 * 1.5, setCosts(1) * 25 * 1.5, setCosts(1) * 50 * 1.5)
   final val totalVRAM: Int = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min Settings.get.vramSizes.length)
 
   // ----------------------------------------------------------------------- //
@@ -212,7 +211,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     // rasterizing to the screen has the same cost as copy (in fact, screen-to-screen blt _is_ a copy
     dst match {
       case _: GpuTextBuffer => 0
-      case _ => Settings.get.gpuCopyCost / 10
+      case _ => Settings.get.gpuCopyCost / 15
     }
   }
 
