@@ -73,8 +73,8 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   // These are dirty page bitblt budget costs
   // a single bitblt can send a screen of data, which is n*set calls where set is writing an entire line
   // So for each tier, we multiple the set cost with the number of lines the screen may have
-  final val bitbltCosts = Array(setCosts(0) * 16 * 1.5, setCosts(1) * 25 * 1.5, setCosts(1) * 50 * 1.5)
-  final val totalVRAM: Int = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min Settings.get.vramSizes.length)
+  final val bitbltCost: Double = Settings.get.bitbltCosts(0 max tier min 2)
+  final val totalVRAM: Double = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min 2)
 
   // ----------------------------------------------------------------------- //
 
@@ -98,12 +98,12 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   // ----------------------------------------------------------------------- //
 
-  private def consumeViewportPower(buffer: api.internal.TextBuffer, context: Context, budgetCost: Double, units: Int, factor: Double): Boolean = {
-    buffer match {
-      case _: component.GpuTextBuffer => true
-      case _ =>
+  private def resolveInvokeCosts(idx: Int, context: Context, budgetCost: Double, units: Int, factor: Double): Boolean = {
+    idx match {
+      case RESERVED_SCREEN_INDEX =>
         context.consumeCallBudget(budgetCost)
         consumePower(units, factor)
+      case _ => true
     }
   }
 
@@ -200,7 +200,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
         case _: GpuTextBuffer => 0.0 // no cost to write to ram
         case _ => // screen target will need the new buffer
           // small buffers are cheap, so increase with size of buffer source
-          bitbltCosts(tier) * (src.getWidth * src.getHeight) / (maxResolution._1 * maxResolution._2)
+          bitbltCost * (src.getWidth * src.getHeight) / (maxResolution._1 * maxResolution._2)
       }
       case _ => 0.0 // from screen or from clean buffer is free
     }
@@ -231,7 +231,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
         val budgetCost: Double = determineBitbltBudgetCost(dst, src)
         val energyCost: Double = determineBitbltEnergyCost(dst)
 
-        if (consumeViewportPower(dst, context, budgetCost, w * h, energyCost)) {
+        if (resolveInvokeCosts(dstIdx, context, budgetCost, w * h, energyCost)) {
           if (dstIdx == srcIdx) {
             val tx = col - fromCol
             val ty = row - fromRow
@@ -282,7 +282,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     if (bufferIndex == RESERVED_SCREEN_INDEX) {
       screen(s => result(s.node.address))
     } else {
-      result(Unit, "the current text buffer is video ram")
+      result(Unit, "the current device is video ram")
     }
   }
 
@@ -292,8 +292,10 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(setBackgroundCosts(tier))
     val color = args.checkInteger(0)
+    if (bufferIndex == RESERVED_SCREEN_INDEX) {
+      context.consumeCallBudget(setBackgroundCosts(tier))
+    }
     screen(s => {
       val oldValue = s.getBackgroundColor
       val (oldColor, oldIndex) =
@@ -314,8 +316,10 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(setForegroundCosts(tier))
     val color = args.checkInteger(0)
+    if (bufferIndex == RESERVED_SCREEN_INDEX) {
+      context.consumeCallBudget(setForegroundCosts(tier))
+    }
     screen(s => {
       val oldValue = s.getForegroundColor
       val (oldColor, oldIndex) =
@@ -340,10 +344,12 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   @Callback(direct = true, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
-    context.consumeCallBudget(setPaletteColorCosts(tier))
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
-    context.pause(0.1)
+    if (bufferIndex == RESERVED_SCREEN_INDEX) {
+      context.consumeCallBudget(setPaletteColorCosts(tier))
+      context.pause(0.1)
+    }
     screen(s => try {
       val oldColor = s.getPaletteColor(index)
       s.setPaletteColor(index, color)
@@ -457,11 +463,10 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     val vertical = args.optBoolean(3, false)
 
     screen(s => {
-      if (consumeViewportPower(s, context, setCosts(tier), value.length, Settings.get.gpuSetCost)) {
+      if (resolveInvokeCosts(bufferIndex, context, setCosts(tier), value.length, Settings.get.gpuSetCost)) {
         s.set(x, y, value, vertical)
         result(true)
-      }
-      else result(Unit, "not enough energy")
+      } else result(Unit, "not enough energy")
     })
   }
 
@@ -474,7 +479,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
-      if (consumeViewportPower(s, context, copyCosts(tier), w * h, Settings.get.gpuCopyCost)) {
+      if (resolveInvokeCosts(bufferIndex, context, copyCosts(tier), w * h, Settings.get.gpuCopyCost)) {
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
@@ -492,7 +497,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     if (value.length == 1) screen(s => {
       val c = value.charAt(0)
       val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
-      if (consumeViewportPower(s, context, fillCosts(tier), w * h, cost)) {
+      if (resolveInvokeCosts(bufferIndex, context, fillCosts(tier), w * h, cost)) {
         s.fill(x, y, w, h, value.charAt(0))
         result(true)
       }
