@@ -169,11 +169,11 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   @Callback(direct = true, doc = """function(index: number): boolean -- Closes buffer at `index`. Returns true if a buffer closed. If the current buffer is closed, index moves to 0""")
   def freeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     val index: Int = args.optInteger(0, bufferIndex)
-    if (removeBuffers(Array(index))) result(true)
+    if (removeBuffers(Array(index)) == 1) result(true)
     else result(Unit, "no buffer at index")
   }
 
-  @Callback(direct = true, doc = """function(): number -- Closes all buffers and returns true on success. If the active buffer is closed, index moves to 0""")
+  @Callback(direct = true, doc = """function(): number -- Closes all buffers and returns the count. If the active buffer is closed, index moves to 0""")
   def freeAllBuffers(context: Context, args: Arguments): Array[AnyRef] = result(removeAllBuffers())
 
   @Callback(direct = true, doc = """function(): number -- returns the total memory size of the gpu vram. This does not include the screen.""")

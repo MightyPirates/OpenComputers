@@ -1,6 +1,7 @@
 package li.cil.oc.common.component.traits
 
 import li.cil.oc.common.component
+import li.cil.oc.common.component.GpuTextBuffer
 import net.minecraft.nbt.NBTTagCompound
 
 trait VideoRamAware {
@@ -25,19 +26,20 @@ trait VideoRamAware {
     preexists
   }
 
-  def removeBuffers(ids: Array[Int]): Boolean = {
-    var allRemoved: Boolean = true
+  def removeBuffers(ids: Array[Int]): Int = {
+    var count = 0
     if (ids.nonEmpty) {
       onBufferRamDestroy(ids)
       for (id <- ids) {
-        if (internalBuffers.remove(id).isEmpty)
-          allRemoved = false
+        if (internalBuffers.remove(id).nonEmpty) {
+          count += 1
+        }
       }
     }
-    allRemoved
+    count
   }
 
-  def removeAllBuffers(): Boolean = removeBuffers(bufferIndexes())
+  def removeAllBuffers(): Int = removeBuffers(bufferIndexes())
 
   def loadBuffer(id: Int, nbt: NBTTagCompound): Unit = {
     val src = new li.cil.oc.util.TextBuffer(width = 1, height = 1, li.cil.oc.util.PackedColor.SingleBitFormat)
