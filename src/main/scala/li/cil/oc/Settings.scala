@@ -480,7 +480,7 @@ class Settings(val config: Config) {
     case Array(tier1, tier2, tier3) => Array(tier1: Double, tier2: Double, tier3: Double)
     case _ =>
       OpenComputers.log.warn("Bad number of bitblit costs (expected 3), ignoring.")
-      Array((1/64.0) * 16 * 1.5, (1/128.0) * 25 * 1.5, (1/256.0) * 50 * 1.5)
+      Array(1, 2, 8)
   }
 }
 
