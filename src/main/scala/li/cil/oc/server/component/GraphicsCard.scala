@@ -7,9 +7,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.machine.{Arguments, Callback, Context, LimitReachedException}
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.PackedColor
@@ -75,6 +73,8 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   // So for each tier, we multiple the set cost with the number of lines the screen may have
   final val bitbltCost: Double = Settings.get.bitbltCosts(0 max tier min 2)
   final val totalVRAM: Double = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min 2)
+
+  var budgetExhausted: Boolean = false // for especially expensive calls, bitblt
 
   // ----------------------------------------------------------------------- //
 
@@ -228,8 +228,25 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
         val fromCol = args.optInteger(6, 1)
         val fromRow = args.optInteger(7, 1)
 
-        val budgetCost: Double = determineBitbltBudgetCost(dst, src)
+        var budgetCost: Double = determineBitbltBudgetCost(dst, src)
         val energyCost: Double = determineBitbltEnergyCost(dst)
+        val tierCredit: Double = ((tier + 1) * .5)
+        val overBudget: Double = budgetCost - tierCredit
+
+        if (overBudget > 0) {
+          if (budgetExhausted) { // we've thrown once before
+            if (overBudget > tierCredit) { // we need even more pause than just a single tierCredit
+              val pauseNeeded = overBudget - tierCredit
+              val seconds: Double = (pauseNeeded / tierCredit) / 20
+              context.pause(seconds)
+            }
+            budgetCost = 0 // remove the rest of the budget cost at this point
+          } else {
+            budgetExhausted = true
+            throw new LimitReachedException()
+          }
+        }
+        budgetExhausted = false
 
         if (resolveInvokeCosts(dstIdx, context, budgetCost, w * h, energyCost)) {
           if (dstIdx == srcIdx) {
