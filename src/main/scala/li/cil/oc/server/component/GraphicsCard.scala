@@ -31,7 +31,7 @@ import scala.util.matching.Regex
 // the save file - a Bad Thing (TM).
 
 class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo with component.traits.VideoRamAware {
-  override val node = Network.newNode(this, Visibility.Neighbors).
+  override val node: Connector = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
     create()
@@ -196,13 +196,14 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
     // large dirty buffers need throttling so their budget cost is more
     // clean buffers have no budget cost.
     src match {
-      case page: GpuTextBuffer if page.dirty => dst match {
+      case page: GpuTextBuffer => dst match {
         case _: GpuTextBuffer => 0.0 // no cost to write to ram
-        case _ => // screen target will need the new buffer
+        case _ if page.dirty => // screen target will need the new buffer
           // small buffers are cheap, so increase with size of buffer source
           bitbltCost * (src.getWidth * src.getHeight) / (maxResolution._1 * maxResolution._2)
+        case _ => .001 // bitblt a clean page to screen has a minimal cost
       }
-      case _ => 0.0 // from screen or from clean buffer is free
+      case _ => 0.0 // from screen is free
     }
   }
 
