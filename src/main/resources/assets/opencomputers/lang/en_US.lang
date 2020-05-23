@@ -230,6 +230,7 @@ oc:gui.Rack.None=None
 oc:gui.Rack.Right=Right
 oc:gui.Rack.Enabled=Enabled
 oc:gui.Rack.Disabled=Disabled
+oc:gui.Rack.RelayModeTooltip=Relay Mode
 oc:gui.Rack.Top=Top
 oc:gui.Switch.PacketsPerCycle=Packets / cycle
 oc:gui.Switch.QueueSize=Queue size

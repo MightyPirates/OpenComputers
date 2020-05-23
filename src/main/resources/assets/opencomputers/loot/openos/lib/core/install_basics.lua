@@ -206,7 +206,7 @@ end
 
 local special_target = ""
 if #targets > 1 or target_filter or source_filter then
-  special_target = " to " .. transfer_args[1].args[2]
+  special_target = " to " .. transfer_args[1][1][2]
 end
 
 io.write("Install " .. source_display .. special_target .. "? [Y/n] ")

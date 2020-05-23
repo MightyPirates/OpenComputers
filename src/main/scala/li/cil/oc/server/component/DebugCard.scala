@@ -622,7 +622,7 @@ object DebugCard {
       }
       val count = args.checkInteger(1)
       val damage = args.checkInteger(2)
-      val tagJson = args.checkString(3)
+      val tagJson = args.optString(3, "")
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)
