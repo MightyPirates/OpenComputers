@@ -201,7 +201,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
     }
   }
 
-  @Callback(doc = """function(x:number, y:number, z:number):boolean -- Connect the debug card to the block at the specified coordinates.""")
+  @Callback(doc = """function(x:number, y:number, z:number):boolean -- Add a component block at the specified coordinates to the computer network.""")
   def connectToBlock(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     val x = args.checkInteger(0)
