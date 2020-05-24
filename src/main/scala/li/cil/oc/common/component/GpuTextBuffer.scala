@@ -1,14 +1,24 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.{ManagedEnvironment, Message, Node}
+import java.io.InvalidObjectException
+import java.security.InvalidParameterException
+
+import li.cil.oc.api.network.{Environment, Message, Node}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import li.cil.oc.api.internal.TextBuffer.ColorDepth
 import li.cil.oc.api
-import li.cil.oc.common.component.traits.TextBufferProxy
-import li.cil.oc.util.PackedColor
+import li.cil.oc.common.component.traits.{TextBufferProxy, VideoRamDevice, VideoRamRasterizer}
 
-class GpuTextBuffer(val id: Int, val data: li.cil.oc.util.TextBuffer) extends ManagedEnvironment with traits.TextBufferProxy {
+class GpuTextBuffer(val owner: String, val id: Int, val data: li.cil.oc.util.TextBuffer) extends traits.TextBufferProxy {
+
+  // the gpu ram does not join nor is searchable to the network
+  // this field is required because the api TextBuffer is an Environment
+  override def node(): Node = {
+    throw new InvalidObjectException("GpuTextBuffers do not have nodes")
+  }
+
+
   override def getMaximumWidth: Int = data.width
   override def getMaximumHeight: Int = data.height
   override def getViewportWidth: Int = data.height
@@ -17,10 +27,19 @@ class GpuTextBuffer(val id: Int, val data: li.cil.oc.util.TextBuffer) extends Ma
   var dirty: Boolean = true
   override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean): Unit = dirty = true
   override def onBufferColorChange(): Unit = dirty = true
-  override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = dirty = true
   override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int): Unit = dirty = true
   override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = dirty = true
-  override def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = dirty = false
+
+  override def load(nbt: NBTTagCompound): Unit = {
+    // the data is initially dirty because other devices don't know about it yet
+    data.load(nbt)
+    dirty = true
+  }
+
+  override def save(nbt: NBTTagCompound): Unit = {
+    data.save(nbt)
+    dirty = false
+  }
 
   override def setEnergyCostPerTick(value: Double): Unit = {}
   override def getEnergyCostPerTick: Double = 0
@@ -47,28 +66,41 @@ class GpuTextBuffer(val id: Int, val data: li.cil.oc.util.TextBuffer) extends Ma
   override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit = {}
   override def canUpdate: Boolean = false
   override def update(): Unit = {}
-  override def node: li.cil.oc.api.network.Node = null
   override def onConnect(node: Node): Unit = {}
   override def onDisconnect(node: Node): Unit = {}
   override def onMessage(message: Message): Unit = {}
-  override def load(nbt: NBTTagCompound): Unit = {}
-  override def save(nbt: NBTTagCompound): Unit = {}
 }
 
-object GpuTextBuffer {
-  def wrap(id: Int, data: li.cil.oc.util.TextBuffer): GpuTextBuffer = new GpuTextBuffer(id, data)
-
-  def bitblt(dst: api.internal.TextBuffer, col: Int, row: Int, w: Int, h: Int, srcId: Int, fromCol: Int, fromRow: Int): Unit = {
+object ClientGpuTextBufferHandler {
+  def bitblt(dst: api.internal.TextBuffer, col: Int, row: Int, w: Int, h: Int, owner: String, srcId: Int, fromCol: Int, fromRow: Int): Unit = {
     dst match {
-      case screen: traits.TextBufferProxy => screen.getBuffer(srcId) match {
+      case videoDevice: VideoRamRasterizer => videoDevice.getBuffer(owner, srcId) match {
         case Some(buffer: GpuTextBuffer) => {
-          bitblt(dst, col, row, w, h, buffer, fromCol, fromRow)
+          GpuTextBuffer.bitblt(dst, col, row, w, h, buffer, fromCol, fromRow)
         }
         case _ => // ignore - got a bitblt for a missing buffer
       }
-      case _ => // ignore - weird packet handler called this, should only happen for screens that know about thsi
+      case _ => // ignore - weird packet handler called this, should only happen for video ram aware devices
     }
   }
+
+  def removeBuffer(buffer: api.internal.TextBuffer, owner: String, id: Int): Boolean = {
+    buffer match {
+      case screen: VideoRamRasterizer => screen.removeBuffer(owner, id)
+      case _ => false // ignore, not compatible with bitblts
+    }
+  }
+
+  def loadBuffer(buffer: api.internal.TextBuffer, owner: String, id: Int, nbt: NBTTagCompound): Boolean = {
+    buffer match {
+      case screen: VideoRamRasterizer => screen.loadBuffer(owner, id, nbt)
+      case _ => false // ignore, not compatible with bitblts
+    }
+  }
+}
+
+object GpuTextBuffer {
+  def wrap(owner: String, id: Int, data: li.cil.oc.util.TextBuffer): GpuTextBuffer = new GpuTextBuffer(owner, id, data)
 
   def bitblt(dst: api.internal.TextBuffer, col: Int, row: Int, w: Int, h: Int, src: api.internal.TextBuffer, fromCol: Int, fromRow: Int): Unit = {
     val x = col - 1
@@ -118,37 +150,28 @@ object GpuTextBuffer {
     }
 
     dst match {
-      case dstRam: GpuTextBuffer => src match {
-        case srcRam: GpuTextBuffer => write_vram_to_vram(dstRam, adjustedDstX, adjustedDstY, adjustedWidth, adjustedHeight, srcRam, adjustedSourceX, adjustedSourceY)
-        case srcScreen: traits.TextBufferProxy => write_screen_to_vram(dstRam, adjustedDstX, adjustedDstY, adjustedWidth, adjustedHeight, srcScreen, adjustedSourceX, adjustedSourceY)
-        case _ => throw new UnsupportedOperationException("Source buffer does not support bitblt operations")
+      case dstScreen: TextBuffer => src match {
+        case srcGpu: GpuTextBuffer => write_vram_to_screen(dstScreen, adjustedDstX, adjustedDstY, adjustedWidth, adjustedHeight, srcGpu, adjustedSourceX, adjustedSourceY)
+        case _ => throw new UnsupportedOperationException("Source buffer does not support bitblt operations to a screen")
       }
-      case dstScreen: traits.TextBufferProxy => src match {
-        case srcRam: GpuTextBuffer => write_vram_to_screen(dstScreen, adjustedDstX, adjustedDstY, adjustedWidth, adjustedHeight, srcRam, adjustedSourceX, adjustedSourceY)
-        case _: traits.TextBufferProxy => throw new UnsupportedOperationException("Screen to screen bitblt not supported")
+      case dstGpu: GpuTextBuffer => src match {
+        case srcProxy: TextBufferProxy => write_to_vram(dstGpu, adjustedDstX, adjustedDstY, adjustedWidth, adjustedHeight, srcProxy, adjustedSourceX, adjustedSourceY)
         case _ => throw new UnsupportedOperationException("Source buffer does not support bitblt operations")
       }
       case _ => throw new UnsupportedOperationException("Destination buffer does not support bitblt operations")
     }
   }
 
-  def write_vram_to_vram(dstRam: GpuTextBuffer, x: Int, y: Int, w: Int, h: Int, srcRam: GpuTextBuffer, fx: Int, fy: Int): Boolean = {
-    dstRam.data.rawcopy(x + 1, y + 1, w, h, srcRam.data, fx + 1, fx + 1)
-  }
-
-  def write_vram_to_screen(dstScreen: traits.TextBufferProxy, x: Int, y: Int, w: Int, h: Int, srcRam: GpuTextBuffer, fx: Int, fy: Int): Boolean = {
+  def write_vram_to_screen(dstScreen: TextBuffer, x: Int, y: Int, w: Int, h: Int, srcRam: GpuTextBuffer, fx: Int, fy: Int): Boolean = {
     if (dstScreen.data.rawcopy(x + 1, y + 1, w, h, srcRam.data, fx + 1, fy + 1)) {
       // rawcopy returns true only if data was modified
       dstScreen.addBuffer(srcRam)
-      dstScreen.onBufferBitBlt(x + 1, y + 1, w, h, srcRam.id, fx + 1, fy + 1)
+      dstScreen.onBufferBitBlt(x + 1, y + 1, w, h, srcRam, fx + 1, fy + 1)
       true
     } else false
   }
 
-  def write_screen_to_vram(dstRam: GpuTextBuffer, x: Int, y: Int, w: Int, h: Int, srcScreen: traits.TextBufferProxy, fx: Int, fy: Int): Boolean = {
-    val format: PackedColor.ColorFormat = PackedColor.Depth.format(srcScreen.getColorDepth)
-    val tempGpu = GpuTextBuffer.wrap(id = -1, new li.cil.oc.util.TextBuffer(w, h, format))
-    tempGpu.data.rawcopy(col = 1, row = 1, w, h, srcScreen.data, fx + 1, fy + 1)
-    write_vram_to_vram(dstRam, x, y, w, h, tempGpu, fx = 0, fy = 0)
+  def write_to_vram(dstRam: GpuTextBuffer, x: Int, y: Int, w: Int, h: Int, src: TextBufferProxy, fx: Int, fy: Int): Boolean = {
+    dstRam.data.rawcopy(x + 1, y + 1, w, h, src.data, fx + 1, fy + 1)
   }
 }

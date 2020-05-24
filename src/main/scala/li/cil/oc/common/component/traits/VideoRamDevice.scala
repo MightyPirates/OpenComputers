@@ -1,37 +1,33 @@
 package li.cil.oc.common.component.traits
 
 import li.cil.oc.common.component
-import li.cil.oc.common.component.GpuTextBuffer
 import net.minecraft.nbt.NBTTagCompound
+import scala.collection.mutable
 
-trait VideoRamAware {
-  private val internalBuffers = new scala.collection.mutable.HashMap[Int, component.GpuTextBuffer]
+trait VideoRamDevice {
+  private val internalBuffers = new mutable.HashMap[Int, component.GpuTextBuffer]
   val RESERVED_SCREEN_INDEX: Int = 0
 
-  def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {}
-  def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {}
-  def onBufferRamDestroy(ids: Array[Int]): Unit = {}
+  def isEmpty: Boolean = internalBuffers.isEmpty
+
+  def onBufferRamDestroy(id: Int): Unit = {}
 
   def bufferIndexes(): Array[Int] = internalBuffers.collect {
     case (index: Int, _: Any) => index
   }.toArray
 
-  def addBuffer(buffer: component.GpuTextBuffer): Boolean = {
-    val preexists = internalBuffers.contains(buffer.id)
-    internalBuffers += buffer.id -> buffer
-    if (!preexists || buffer.dirty) {
-      buffer.onBufferRamInit(buffer.id, buffer)
-      onBufferRamInit(buffer.id, buffer)
-    }
+  def addBuffer(ram: component.GpuTextBuffer): Boolean = {
+    val preexists = internalBuffers.contains(ram.id)
+    internalBuffers += ram.id -> ram
     preexists
   }
 
   def removeBuffers(ids: Array[Int]): Int = {
     var count = 0
     if (ids.nonEmpty) {
-      onBufferRamDestroy(ids)
       for (id <- ids) {
         if (internalBuffers.remove(id).nonEmpty) {
+          onBufferRamDestroy(id)
           count += 1
         }
       }
@@ -41,10 +37,10 @@ trait VideoRamAware {
 
   def removeAllBuffers(): Int = removeBuffers(bufferIndexes())
 
-  def loadBuffer(id: Int, nbt: NBTTagCompound): Unit = {
+  def loadBuffer(address: String, id: Int, nbt: NBTTagCompound): Unit = {
     val src = new li.cil.oc.util.TextBuffer(width = 1, height = 1, li.cil.oc.util.PackedColor.SingleBitFormat)
     src.load(nbt)
-    addBuffer(component.GpuTextBuffer.wrap(id, src))
+    addBuffer(component.GpuTextBuffer.wrap(address, id, src))
   }
 
   def getBuffer(id: Int): Option[component.GpuTextBuffer] = {
