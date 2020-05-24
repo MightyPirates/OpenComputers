@@ -215,7 +215,14 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       val dstColorLine = color(row_index + yOffset)
       for (xOffset <- 0 until w) {
         val srcChar = src.buffer(fromRow + yOffset - 1)(fromCol + xOffset - 1)
-        val srcColor = src.color(fromRow + yOffset - 1)(fromCol + xOffset - 1)
+        var srcColor = src.color(fromRow + yOffset - 1)(fromCol + xOffset - 1)
+
+        if (this.format.depth != src.format.depth) {
+          val fg = PackedColor.Color(PackedColor.unpackForeground(srcColor, src.format))
+          val bg = PackedColor.Color(PackedColor.unpackBackground(srcColor, src.format))
+          srcColor = PackedColor.pack(fg, bg, format)
+        }
+
         if (srcChar != dstCharLine(col_index + xOffset) || srcColor != dstColorLine(col_index + xOffset)) {
           changed = true
           dstCharLine(col_index + xOffset) = srcChar
