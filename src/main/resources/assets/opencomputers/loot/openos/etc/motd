@@ -32,3 +32,7 @@ for _,line in ipairs(lines) do
   io.write(borders[2][1], " ", line, (" "):rep(maxLine - #line + 1), borders[2][3], " \n")
 end
 io.write(borders[3][1] .. string.rep(borders[3][2], maxLine + 2) .. borders[3][3] .. "\n")
+
+if require("filesystem").get("home").isReadOnly() then
+  io.write("\27[33mNote: Your home directory is readonly. Run `install` and reboot.\27[m\n")
+end

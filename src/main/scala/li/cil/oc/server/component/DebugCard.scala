@@ -208,7 +208,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
     }
   }
 
-  @Callback(doc = """function(x:number, y:number, z:number):boolean -- Connect the debug card to the block at the specified coordinates.""")
+  @Callback(doc = """function(x:number, y:number, z:number):boolean -- Add a component block at the specified coordinates to the computer network.""")
   def connectToBlock(context: Context, args: Arguments): Array[AnyRef] = {
     checkAccess()
     val x = args.checkInteger(0)
@@ -818,7 +818,7 @@ object DebugCard {
       }
       val count = args.checkInteger(1)
       val damage = args.checkInteger(2)
-      val tagJson = args.checkString(3)
+      val tagJson = args.optString(3, "")
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)

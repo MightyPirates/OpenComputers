@@ -14,6 +14,8 @@ import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava.asJavaCollection
+
 class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
   ySize = 210
 
@@ -249,6 +251,12 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       fontRendererObj.drawString(
         Localization.localizeImmediately(sideName(busToSide(bus))),
         x, y, 0x404040)
+    }
+
+    if (relayButton.isMouseOver) {
+      val tooltip = new java.util.ArrayList[String]
+      tooltip.addAll(asJavaCollection(Localization.Rack.RelayModeTooltip.lines.toIterable))
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 
     RenderState.popAttrib()

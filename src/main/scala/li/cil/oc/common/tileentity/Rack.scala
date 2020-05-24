@@ -31,7 +31,7 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
-  var isRelayEnabled = true
+  var isRelayEnabled = false
   val lastData = new Array[NBTTagCompound](getSizeInventory)
   val hasChanged = Array.fill(getSizeInventory)(true)
 

@@ -661,31 +661,31 @@ object PacketSender {
     pb.writeBoolean(vertical)
   }
 
-  def appendTextBufferBitBlt(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+  def appendTextBufferBitBlt(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, owner: String, id: Int, fromCol: Int, fromRow: Int): Unit = {
     pb.writePacketType(PacketType.TextBufferBitBlt)
 
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
     pb.writeInt(h)
+    pb.writeUTF(owner)
     pb.writeInt(id)
     pb.writeInt(fromCol)
     pb.writeInt(fromRow)
   }
 
-  def appendTextBufferRamInit(pb: PacketBuilder, id: Int, nbt: NBTTagCompound): Unit = {
+  def appendTextBufferRamInit(pb: PacketBuilder, address: String, id: Int, nbt: NBTTagCompound): Unit = {
     pb.writePacketType(PacketType.TextBufferRamInit)
 
+    pb.writeUTF(address)
     pb.writeInt(id)
     pb.writeNBT(nbt)
   }
 
-  def appendTextBufferRamDestroy(pb: PacketBuilder, ids: Array[Int]): Unit = {
+  def appendTextBufferRamDestroy(pb: PacketBuilder, owner: String, id: Int): Unit = {
     pb.writePacketType(PacketType.TextBufferRamDestroy)
-    pb.writeInt(ids.length)
-    for (idx <- ids) {
-      pb.writeInt(idx)
-    }
+    pb.writeUTF(owner)
+    pb.writeInt(id)
   }
 
   def appendTextBufferRawSetText(pb: PacketBuilder, col: Int, row: Int, text: Array[Array[Char]]) {

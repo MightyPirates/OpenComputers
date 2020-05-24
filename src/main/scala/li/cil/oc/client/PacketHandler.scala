@@ -721,13 +721,11 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTextBufferRamInit(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
+    val owner = p.readUTF()
     val id = p.readInt()
     val nbt = p.readNBT()
 
-    buffer match {
-      case screen: component.traits.VideoRamAware => screen.loadBuffer(id, nbt)
-      case _ => // ignore
-    }
+    component.ClientGpuTextBufferHandler.loadBuffer(buffer, owner, id, nbt)
   }
 
   def onTextBufferBitBlt(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
@@ -735,24 +733,19 @@ object PacketHandler extends CommonPacketHandler {
     val row = p.readInt()
     val w = p.readInt()
     val h = p.readInt()
+    val owner = p.readUTF()
     val id = p.readInt()
     val fromCol = p.readInt()
     val fromRow = p.readInt()
 
-    component.GpuTextBuffer.bitblt(buffer, col, row, w, h, id, fromCol, fromRow)
+    component.ClientGpuTextBufferHandler.bitblt(buffer, col, row, w, h, owner, id, fromCol, fromRow)
   }
 
   def onTextBufferRamDestroy(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
-    val length = p.readInt()
-    val ids = new Array[Int](length)
-    for (i <- 0 until length) {
-      ids(i) = p.readInt()
-    }
+    val owner = p.readUTF()
+    val id = p.readInt()
 
-    buffer match {
-      case screen: component.traits.VideoRamAware => screen.removeBuffers(ids)
-      case _ => // ignore, not compatible with bitblts
-    }
+    component.ClientGpuTextBufferHandler.removeBuffer(buffer, owner, id)
   }
 
   def onTextBufferMultiRawSetText(p: PacketParser, buffer: api.internal.TextBuffer) {

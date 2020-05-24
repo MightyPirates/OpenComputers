@@ -21,6 +21,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.common.component.traits.TextBufferProxy
+import li.cil.oc.common.component.traits.VideoRamRasterizer
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -42,7 +43,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.TextBufferProxy with DeviceInfo {
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with traits.TextBufferProxy with VideoRamRasterizer with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -325,16 +326,16 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.onBufferSet(col, row, s, vertical)
   }
 
-  override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
-    proxy.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+  override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
+    proxy.onBufferBitBlt(col, row, w, h, ram, fromCol, fromRow)
   }
 
-  override def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
-    proxy.onBufferRamInit(id, ram)
+  override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
+    proxy.onBufferRamInit(ram)
   }
 
-  override def onBufferRamDestroy(ids: Array[Int]): Unit = {
-    proxy.onBufferRamDestroy(ids)
+  override def onBufferRamDestroy(ram: component.GpuTextBuffer): Unit = {
+    proxy.onBufferRamDestroy(ram)
   }
 
   override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
@@ -567,15 +568,15 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
+    def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
       owner.relativeLitArea = -1
     }
 
-    def onBufferRamInit(id: Int, ram: TextBufferProxy): Unit = {
+    def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
       owner.relativeLitArea = -1
     }
 
-    def onBufferRamDestroy(ids: Array[Int]): Unit = {
+    def onBufferRamDestroy(ram: component.GpuTextBuffer): Unit = {
       owner.relativeLitArea = -1
     }
 
@@ -662,17 +663,17 @@ object TextBuffer {
       markDirty()
     }
 
-    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
-      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, ram, fromCol, fromRow)
       markDirty()
     }
 
-    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
-      super.onBufferRamInit(id, buffer)
+    override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
+      super.onBufferRamInit(ram)
     }
 
-    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
-      super.onBufferRamDestroy(ids)
+    override def onBufferRamDestroy(ram: component.GpuTextBuffer): Unit = {
+      super.onBufferRamDestroy(ram)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
@@ -777,24 +778,24 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
     }
 
-    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, id: Int, fromCol: Int, fromRow: Int): Unit = {
-      super.onBufferBitBlt(col, row, w, h, id, fromCol, fromRow)
+    override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
+      super.onBufferBitBlt(col, row, w, h, ram, fromCol, fromRow)
       owner.host.markChanged()
-      owner.synchronized(ServerPacketSender.appendTextBufferBitBlt(owner.pendingCommands, col, row, w, h, id, fromCol, fromRow))
+      owner.synchronized(ServerPacketSender.appendTextBufferBitBlt(owner.pendingCommands, col, row, w, h, ram.owner, ram.id, fromCol, fromRow))
     }
 
-    override def onBufferRamInit(id: Int, buffer: TextBufferProxy): Unit = {
-      super.onBufferRamInit(id, buffer)
+    override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
+      super.onBufferRamInit(ram)
       owner.host.markChanged()
       val nbt = new NBTTagCompound()
-      buffer.data.save(nbt)
-      owner.synchronized(ServerPacketSender.appendTextBufferRamInit(owner.pendingCommands, id, nbt))
+      ram.save(nbt)
+      owner.synchronized(ServerPacketSender.appendTextBufferRamInit(owner.pendingCommands, ram.owner, ram.id, nbt))
     }
 
-    override def onBufferRamDestroy(ids: Array[Int]): Unit = {
-      super.onBufferRamDestroy(ids)
+    override def onBufferRamDestroy(ram: component.GpuTextBuffer): Unit = {
+      super.onBufferRamDestroy(ram)
       owner.host.markChanged()
-      owner.synchronized(ServerPacketSender.appendTextBufferRamDestroy(owner.pendingCommands, ids))
+      owner.synchronized(ServerPacketSender.appendTextBufferRamDestroy(owner.pendingCommands, ram.owner, ram.id))
     }
 
     override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
