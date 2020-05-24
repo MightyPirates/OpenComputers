@@ -476,12 +476,7 @@ class Settings(val config: Config) {
       Array(1, 2, 3)
   }
 
-  val bitbltCosts: Array[Double] = Array(config.getDoubleList("gpu.bitbltCosts"): _*) match {
-    case Array(tier1, tier2, tier3) => Array(tier1: Double, tier2: Double, tier3: Double)
-    case _ =>
-      OpenComputers.log.warn("Bad number of bitblit costs (expected 3), ignoring.")
-      Array(1, 2, 8)
-  }
+  val bitbltCost: Double = if (config.hasPath("gpu.bitbltCost")) config.getDouble("gpu.bitbltCost") else 0.5
 }
 
 object Settings {

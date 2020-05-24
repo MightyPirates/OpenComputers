@@ -71,7 +71,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
   // These are dirty page bitblt budget costs
   // a single bitblt can send a screen of data, which is n*set calls where set is writing an entire line
   // So for each tier, we multiple the set cost with the number of lines the screen may have
-  final val bitbltCost: Double = Settings.get.bitbltCosts(0 max tier min 2)
+  final val bitbltCost: Double = Settings.get.bitbltCost * scala.math.pow(2, tier)
   final val totalVRAM: Double = (maxResolution._1 * maxResolution._2) * Settings.get.vramSizes(0 max tier min 2)
 
   var budgetExhausted: Boolean = false // for especially expensive calls, bitblt
