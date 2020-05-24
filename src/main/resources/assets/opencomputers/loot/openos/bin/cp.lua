@@ -30,7 +30,7 @@ options =
   P = options.P,
   v = options.v,
   x = options.x,
-  skip = options.skip,
+  skip = {options.skip},
 }
 
 return transfer.batch(args, options)

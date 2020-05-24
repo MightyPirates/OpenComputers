@@ -1,6 +1,4 @@
 local computer = require("computer")
-local shell = require("shell")
-
 local options
 
 do
@@ -12,21 +10,23 @@ do
   options = basic(...)
 end
 
-if not options then return end
+if not options then
+  return
+end
 
 if computer.freeMemory() < 50000 then
   print("Low memory, collecting garbage")
-  for i=1,20 do os.sleep(0) end
+  for i = 1, 20 do
+    os.sleep(0)
+  end
 end
 
-local cp, reason = loadfile(shell.resolve("cp", "lua"), "bt", _G)
-assert(cp, reason)
-
-local ok, ec = pcall(cp, table.unpack(options.cp_args))
-assert(ok, ec)
-
-if ec ~= nil and ec ~= 0 then
-  return ec
+local transfer = require("tools/transfer")
+for _, inst in ipairs(options.cp_args) do
+  local ec = transfer.batch(table.unpack(inst))
+  if ec ~= nil and ec ~= 0 then
+    return ec
+  end
 end
 
 print("Installation complete!")
@@ -44,7 +44,7 @@ end
 
 if options.reboot then
   io.write("Reboot now? [Y/n] ")
-  if ((io.read() or "n").."y"):match("^%s*[Yy]") then
+  if ((io.read() or "n") .. "y"):match("^%s*[Yy]") then
     print("\nRebooting now!\n")
     computer.shutdown(true)
   end

@@ -261,6 +261,8 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.CraftingUpgrade),
       safeGetStack(Constants.ItemName.HoverUpgradeTier2),
       safeGetStack(Constants.ItemName.AngelUpgrade),
+      safeGetStack(Constants.ItemName.TradingUpgrade),
+      safeGetStack(Constants.ItemName.ExperienceUpgrade),
 
       safeGetStack(Constants.ItemName.GraphicsCardTier3),
       safeGetStack(Constants.ItemName.RedstoneCardTier2),

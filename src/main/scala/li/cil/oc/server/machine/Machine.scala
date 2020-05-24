@@ -282,7 +282,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
 
   override def consumeCallBudget(callCost: Double): Unit = {
     if (architecture.isInitialized && !inSynchronizedCall) {
-      val clampedCost = math.max(0.001, callCost)
+      val clampedCost = math.max(0.0, callCost)
       if (clampedCost > callBudget) {
         throw new LimitReachedException()
       }

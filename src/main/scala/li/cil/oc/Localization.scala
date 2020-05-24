@@ -143,6 +143,8 @@ object Localization {
     def RelayEnabled: String = localizeImmediately("gui.Rack.Enabled")
 
     def RelayDisabled: String = localizeImmediately("gui.Rack.Disabled")
+
+    def RelayModeTooltip: String = localizeImmediately("gui.Rack.RelayModeTooltip")
   }
 
   object Switch {

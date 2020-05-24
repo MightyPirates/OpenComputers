@@ -102,27 +102,32 @@ class Trade(val info: TradeInfo) extends AbstractValue {
 
   def completeTrade(inventory: IInventory, recipe: MerchantRecipe, exact: Boolean) : Boolean = {
     // Now we'll check if we have enough items to perform the trade, caching first
-    val firstInputStack = recipe.getItemToBuy
-    val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
+    info.merchant.get match {
+      case Some(merchant) => {
+        val firstInputStack = recipe.getItemToBuy
+        val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
 
-    def containsAccumulativeItemStack(stack: ItemStack) =
-      InventoryUtils.extractFromInventory(stack, inventory, null, simulate = true, exact = exact).getCount == 0
+        def containsAccumulativeItemStack(stack: ItemStack) =
+          InventoryUtils.extractFromInventory(stack, inventory, null, simulate = true, exact = exact).getCount == 0
 
-    // Check if we have enough to perform the trade.
-    if (!containsAccumulativeItemStack(firstInputStack) || !secondInputStack.forall(containsAccumulativeItemStack))
-      return false
+        // Check if we have enough to perform the trade.
+        if (!containsAccumulativeItemStack(firstInputStack) || !secondInputStack.forall(containsAccumulativeItemStack))
+          return false
 
-    // Now we need to check if we have enough inventory space to accept the item we get for the trade.
-    val outputStack = recipe.getItemToSell.copy()
+        // Now we need to check if we have enough inventory space to accept the item we get for the trade.
+        val outputStack = recipe.getItemToSell.copy()
 
-    // We established that out inventory allows to perform the trade, now actually do the trade.
-    InventoryUtils.extractFromInventory(firstInputStack, InventoryUtils.asItemHandler(inventory), exact = exact)
-    secondInputStack.map(InventoryUtils.extractFromInventory(_, InventoryUtils.asItemHandler(inventory), exact = exact))
-    InventoryUtils.insertIntoInventory(outputStack, InventoryUtils.asItemHandler(inventory), outputStack.getCount)
+        // We established that out inventory allows to perform the trade, now actually do the trade.
+        InventoryUtils.extractFromInventory(firstInputStack, InventoryUtils.asItemHandler(inventory), exact = exact)
+        secondInputStack.map(InventoryUtils.extractFromInventory(_, InventoryUtils.asItemHandler(inventory), exact = exact))
+        InventoryUtils.insertIntoInventory(outputStack, InventoryUtils.asItemHandler(inventory), outputStack.getCount)
 
-    // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
-    info.merchant.get.orNull.useRecipe(recipe)
-    true
+        // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
+        merchant.useRecipe(recipe)
+        true
+      }
+      case _ => false
+    }
   }
 }
 
