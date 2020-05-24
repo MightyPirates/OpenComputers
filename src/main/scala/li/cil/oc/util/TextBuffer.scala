@@ -269,7 +269,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
     background = PackedColor.Color(nbt.getInteger("background"), nbt.getBoolean("backgroundIsPalette"))
 
-    if (!NbtDataStream.getShortArray(nbt, "color_bytes", color, w, h)) {
+    if (!NbtDataStream.getShortArray(nbt, "colors", color, w, h)) {
       NbtDataStream.getIntArrayLegacy(nbt, "color", color, w, h)
     }
   }
@@ -291,7 +291,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     nbt.setInteger("background", _background.value)
     nbt.setBoolean("backgroundIsPalette", _background.isPalette)
 
-    NbtDataStream.setShortArray(nbt, "color_bytes", color.flatten.map(_.toShort))
+    NbtDataStream.setShortArray(nbt, "colors", color.flatten.map(_.toShort))
   }
 
   override def toString: String = {

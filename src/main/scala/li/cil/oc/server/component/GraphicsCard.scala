@@ -444,6 +444,16 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceI
 
   @Callback(direct = true, doc = """function(x:number, y:number):string, number, number, number or nil, number or nil -- Get the value displayed on the screen at the specified index, as well as the foreground and background color. If the foreground or background is from the palette, returns the palette indices as fourth and fifth results, else nil, respectively.""")
   def get(context: Context, args: Arguments): Array[AnyRef] = {
+    // maybe one day:
+//    if (bufferIndex != RESERVED_SCREEN_INDEX && args.count() == 0) {
+//      return screen {
+//        case ram: GpuTextBuffer => {
+//          val nbt = new NBTTagCompound
+//          ram.data.save(nbt)
+//          result(nbt)
+//        }
+//      }
+//    }
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     screen(s => {
