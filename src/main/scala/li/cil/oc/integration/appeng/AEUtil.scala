@@ -9,18 +9,19 @@ import appeng.api.networking.energy.IEnergyGrid
 import appeng.api.networking.storage.IStorageGrid
 import appeng.api.storage.channels.{IFluidStorageChannel, IItemStorageChannel}
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack}
+import appeng.api.storage.IStorageHelper
 import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.versioning.VersionRange
 import net.minecraftforge.fml.common.Loader
 
 object AEUtil {
-  val versionsWithNewItemDefinitionAPI = VersionRange.createFromVersionSpec("[rv4-alpha-1,)")
+  val versionsWithNewItemDefinitionAPI: VersionRange = VersionRange.createFromVersionSpec("[rv6-stable-5,)")
 
-  val itemStorageChannel = AEApi.instance.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
-  val fluidStorageChannel = AEApi.instance.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
+  val itemStorageChannel: IItemStorageChannel = AEApi.instance.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
+  val fluidStorageChannel: IFluidStorageChannel = AEApi.instance.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
 
-  def useNewItemDefinitionAPI = versionsWithNewItemDefinitionAPI.containsVersion(
+  def useNewItemDefinitionAPI: Boolean = versionsWithNewItemDefinitionAPI.containsVersion(
     Loader.instance.getIndexedModList.get(Mods.AppliedEnergistics2.id).getProcessedVersion)
 
   // ----------------------------------------------------------------------- //
