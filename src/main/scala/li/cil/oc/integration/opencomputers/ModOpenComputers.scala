@@ -168,6 +168,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradePiston)
     api.Driver.add(DriverUpgradeSign)
     api.Driver.add(DriverUpgradeSolarGenerator)
+    api.Driver.add(DriverUpgradeStickyPiston)
     api.Driver.add(DriverUpgradeTank)
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
@@ -199,6 +200,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeNavigation.Provider)
     api.Driver.add(DriverUpgradePiston.Provider)
     api.Driver.add(DriverUpgradeSign.Provider)
+    api.Driver.add(DriverUpgradeStickyPiston.Provider)
     api.Driver.add(DriverUpgradeTankController.Provider)
     api.Driver.add(DriverUpgradeTractorBeam.Provider)
     api.Driver.add(DriverUpgradeMF.Provider)
@@ -229,6 +231,7 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.NavigationUpgrade,
       Constants.ItemName.PistonUpgrade,
+      Constants.ItemName.StickyPistonUpgrade,
       Constants.ItemName.SolarGeneratorUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TractorBeamUpgrade,

@@ -48,6 +48,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Piston Upgrade](pistonupgrade.md)
 * [Sign Upgrade](signupgrade.md)
 * [Solar Generator Upgrade](solargeneratorupgrade.md)
+* [Sticky Piston Upgrade](stickypistonupgrade.md)
 * [Tank Controller](tankcontrollerupgrade.md)
 * [Tank Upgrade](tankupgrade.md)
 * [Tractor Beam Upgrade](tractorbeamupgrade.md)

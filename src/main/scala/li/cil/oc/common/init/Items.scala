@@ -502,6 +502,9 @@ object Items extends ItemAPI {
     // 1.7.2
     Recipes.addSubItem(new item.WirelessNetworkCard(upgrades, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
     registerItem(new item.ComponentBus(upgrades, Tier.Four), Constants.ItemName.ComponentBusCreative)
+
+    // 1.8
+    Recipes.addSubItem(new item.UpgradeStickyPiston(upgrades), Constants.ItemName.StickyPistonUpgrade, "oc:stickyPistonUpgrade")
   }
 
   // Storage media of all kinds.

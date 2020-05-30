@@ -127,6 +127,7 @@ object Constants {
     final val NumPad = "numpad"
     final val OpenOS = "openos"
     final val PistonUpgrade = "pistonupgrade"
+    final val StickyPistonUpgrade = "stickypistonupgrade"
     final val Present = "present"
     final val PrintedCircuitBoard = "printedcircuitboard"
     final val RAMTier1 = "ram1"

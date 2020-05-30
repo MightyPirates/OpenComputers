@@ -319,6 +319,11 @@ pistonupgrade {
           [stickWood, "oc:circuitChip1", stickWood]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+stickypistonupgrade {
+  type: shapeless
+  input: ["oc:pistonUpgrade", "minecraft:slime_ball"]
+  output: 1
+}
 signupgrade {
   input: [[ingotIron, dyeBlack, ingotIron]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]

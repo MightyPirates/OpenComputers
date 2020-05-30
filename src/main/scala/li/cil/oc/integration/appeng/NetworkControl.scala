@@ -445,6 +445,9 @@ object NetworkControl {
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       stack = AEUtil.itemStorageChannel.createStack(new ItemStack(nbt))
+      links ++= nbt.getTagList(LINKS_KEY, NBT.TAG_COMPOUND).map(
+        (nbt: NBTTagCompound) => LinkCache.store(AEApi.instance.storage.loadCraftingLink(nbt, this)))
+      pos = AEPartLocation.fromOrdinal(NbtDataStream.getOptInt(nbt, POS_KEY, AEPartLocation.INTERNAL.ordinal))
       if (nbt.hasKey(DIMENSION_KEY)) {
         val dimension = nbt.getInteger(DIMENSION_KEY)
         val x = nbt.getInteger(X_KEY)
@@ -455,20 +458,11 @@ object NetworkControl {
         // but i don't want infinite lambda nesting in cases where the load is never ready
         pushDelayLoadBackoff(1)
       }
-      links ++= nbt.getTagList(LINKS_KEY, NBT.TAG_COMPOUND).map(
-        (nbt: NBTTagCompound) => LinkCache.store(AEApi.instance.storage.loadCraftingLink(nbt, this)))
-      pos = AEPartLocation.fromOrdinal(NbtDataStream.getOptInt(nbt, POS_KEY, AEPartLocation.INTERNAL.ordinal))
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
       stack.createItemStack().writeToNBT(nbt)
-      if (controller != null && !controller.isInvalid) {
-        nbt.setInteger(DIMENSION_KEY, controller.getWorld.provider.getDimension)
-        nbt.setInteger(X_KEY, controller.getPos.getX)
-        nbt.setInteger(Y_KEY, controller.getPos.getY)
-        nbt.setInteger(Z_KEY, controller.getPos.getZ)
-      }
       nbt.setNewTagList(LINKS_KEY, links.map((link) => {
         val comp = new NBTTagCompound()
         link.writeToNBT(comp)
@@ -476,6 +470,12 @@ object NetworkControl {
       }))
       if (pos != null)
         nbt.setInteger(POS_KEY, pos.ordinal)
+      if (controller != null && !controller.isInvalid) {
+        nbt.setInteger(DIMENSION_KEY, controller.getWorld.provider.getDimension)
+        nbt.setInteger(X_KEY, controller.getPos.getX)
+        nbt.setInteger(Y_KEY, controller.getPos.getY)
+        nbt.setInteger(Z_KEY, controller.getPos.getZ)
+      }
     }
   }
 
