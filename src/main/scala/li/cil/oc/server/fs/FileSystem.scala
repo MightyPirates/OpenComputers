@@ -21,7 +21,7 @@ import net.minecraftforge.common.DimensionManager
 import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
-  lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
+  lazy val isCaseInsensitive: Boolean = Settings.get.forceCaseInsensitive || (try {
     val uuid = UUID.randomUUID().toString
     val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
     val upperCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
@@ -48,9 +48,9 @@ object FileSystem extends api.detail.FileSystemAPI {
   // accordingly before the path is passed to the file system.
   private val invalidChars = """\:*?"<>|""".toSet
 
-  def isValidFilename(name: String) = !name.exists(invalidChars.contains)
+  def isValidFilename(name: String): Boolean = !name.exists(invalidChars.contains)
 
-  def validatePath(path: String) = {
+  def validatePath(path: String): String = {
     if (!isValidFilename(path)) {
       throw new java.io.IOException("path contains invalid characters")
     }
@@ -131,9 +131,11 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
-  override def asReadOnly(fileSystem: api.fs.FileSystem) =
+  override def asReadOnly(fileSystem: api.fs.FileSystem): api.fs.FileSystem =
     if (fileSystem.isReadOnly) fileSystem
-    else new ReadOnlyWrapper(fileSystem)
+    else {
+      new ReadOnlyWrapper(fileSystem)
+    }
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(accessSound), (speed - 1) max 0 min 5))).orNull
@@ -158,7 +160,7 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
 
-  private class ReadOnlyLabel(val label: String) extends Label {
+  class ReadOnlyLabel(val label: String) extends Label {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")
 
     def getLabel = label
