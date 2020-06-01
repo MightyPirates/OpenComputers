@@ -76,7 +76,7 @@ function process.load(path, env, init, name)
 
     --result[1] is false if the exception handler also crashed
     if not result[1] and type(result[2]) ~= "number" then
-      pcall(require("event").onError, string.format("process library exception handler crashed: %s", tostring(result[2])))
+      io.stderr:write("process library exception handler crashed: ", tostring(result[2]))
     end
 
     -- onError opens a file, you can't open a file without a process, we close the process last

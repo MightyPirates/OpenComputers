@@ -13,7 +13,7 @@ import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.server.component.Drive
-import li.cil.oc.server.fs.FileSystem.ItemLabel
+import li.cil.oc.server.fs.FileSystem.{ItemLabel, ReadOnlyLabel}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
@@ -67,7 +67,7 @@ object DriverFileSystem extends Item {
       // node's address as the folder name... so we generate the address here,
       // if necessary. No one will know, right? Right!?
       val address = addressFromTag(dataTag(stack))
-      val label = new ReadWriteItemLabel(stack)
+      var label: api.fs.Label = new ReadWriteItemLabel(stack)
       val isFloppy = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy)
       val sound = Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access")
       val drive = new DriveData(stack)
@@ -78,6 +78,7 @@ object DriverFileSystem extends Item {
         var fs = oc.api.FileSystem.fromSaveDirectory(address, capacity max 0, Settings.get.bufferChanges)
         if (drive.isLocked) {
           fs = oc.api.FileSystem.asReadOnly(fs)
+          label = new ReadOnlyLabel(label.getLabel)
         }
         oc.api.FileSystem.asManagedEnvironment(fs, label, host, sound, speed)
       }

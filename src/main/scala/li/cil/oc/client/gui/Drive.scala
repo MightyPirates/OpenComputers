@@ -20,12 +20,24 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
 
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0) {
-      ClientPacketSender.sendDriveMode(false)
+      ClientPacketSender.sendDriveMode(unmanaged = false)
+      DriveData.setUnmanaged(driveStack(), unmanaged = false)
     } else if (button.id == 1) {
-      ClientPacketSender.sendDriveMode(true)
+      ClientPacketSender.sendDriveMode(unmanaged = true)
+      DriveData.setUnmanaged(driveStack(), unmanaged = true)
     } else if (button.id == 2) {
       ClientPacketSender.sendDriveLock()
+      DriveData.lock(driveStack(), playerInventory.player)
     }
+    updateButtonStates()
+  }
+
+  def updateButtonStates(): Unit = {
+    val data = new DriveData(driveStack())
+    unmanagedButton.toggled = data.isUnmanaged
+    managedButton.toggled = !unmanagedButton.toggled
+    lockedButton.toggled = data.isLocked
+    lockedButton.enabled = !data.isLocked
   }
 
   override def initGui(): Unit = {
@@ -36,14 +48,10 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
     add(buttonList, managedButton)
     add(buttonList, unmanagedButton)
     add(buttonList, lockedButton)
+    updateButtonStates()
   }
 
   override def updateScreen(): Unit = {
-    val data = new DriveData(driveStack())
-    unmanagedButton.toggled = data.isUnmanaged
-    managedButton.toggled = !unmanagedButton.toggled
-    lockedButton.toggled = data.isLocked
-    lockedButton.enabled = !data.isLocked
     super.updateScreen()
   }
 
