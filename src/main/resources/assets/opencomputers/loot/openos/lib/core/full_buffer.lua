@@ -142,20 +142,36 @@ function buffer:readBytesOrChars(readChunk, n)
     sub = unicode.sub
   end
   local data = ""
-  while len(data) ~= n do
-    if len(self.bufferRead) == 0 then
+  while true do
+    local current_data_len = len(data)
+    local needed = n - current_data_len
+    if needed < 1 then
+      break
+    end
+    -- if the buffer is empty OR there is only 1 char left, read next chunk
+    -- this is to protect that last byte from bad unicode
+    if #self.bufferRead == 0 then
       local result, reason = readChunk(self)
       if not result then
         if reason then
           return result, reason
         else -- eof
-          return #data > 0 and data or nil
+          return current_data_len > 0 and data or nil
         end
       end
     end
-    local left = n - len(data)
-    data = data .. sub(self.bufferRead, 1, left)
-    self.bufferRead = sub(self.bufferRead, left + 1)
+    local splice = self.bufferRead
+    if len(self.bufferRead) > needed then
+      splice = sub(self.bufferRead, 1, needed)
+      if len(splice) ~= needed then
+        -- this can happen if the stream does not represent valid utf8 sequences
+        -- we could search the string for the bad sequence but regardless, we're going to just return the raw data
+        splice = self.bufferRead -- yes this is more than the user is asking for, but this is better than corrupting the stream
+      end
+    -- else -- we will read more chunks
+    end
+    data = data .. splice
+    self.bufferRead = string.sub(self.bufferRead, #splice + 1)
   end
   return data
 end

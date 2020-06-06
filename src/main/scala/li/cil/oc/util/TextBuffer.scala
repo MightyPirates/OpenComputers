@@ -205,6 +205,35 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     changed
   }
 
+  // copy a portion of another buffer into this buffer
+  def rawcopy(col: Int, row: Int, w: Int, h: Int, src: TextBuffer, fromCol: Int, fromRow: Int): Boolean = {
+    var changed: Boolean = false
+    val col_index = col - 1
+    val row_index = row - 1
+    for (yOffset <- 0 until h) {
+      val dstCharLine = buffer(row_index + yOffset)
+      val dstColorLine = color(row_index + yOffset)
+      for (xOffset <- 0 until w) {
+        val srcChar = src.buffer(fromRow + yOffset - 1)(fromCol + xOffset - 1)
+        var srcColor = src.color(fromRow + yOffset - 1)(fromCol + xOffset - 1)
+
+        if (this.format.depth != src.format.depth) {
+          val fg = PackedColor.Color(PackedColor.unpackForeground(srcColor, src.format))
+          val bg = PackedColor.Color(PackedColor.unpackBackground(srcColor, src.format))
+          srcColor = PackedColor.pack(fg, bg, format)
+        }
+
+        if (srcChar != dstCharLine(col_index + xOffset) || srcColor != dstColorLine(col_index + xOffset)) {
+          changed = true
+          dstCharLine(col_index + xOffset) = srcChar
+          dstColorLine(col_index + xOffset) = srcColor
+        }
+      }
+    }
+
+    changed
+  }
+
   private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
     if (FontUtils.wcwidth(c) > 1 && x >= line.length - 1) {
       // Don't allow setting wide chars in right-most col.
@@ -240,15 +269,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
     background = PackedColor.Color(nbt.getInteger("background"), nbt.getBoolean("backgroundIsPalette"))
 
-    val c = nbt.getIntArray("color")
-    for (i <- 0 until h) {
-      val rowColor = color(i)
-      for (j <- 0 until w) {
-        val index = j + i * w
-        if (index < c.length) {
-          rowColor(j) = c(index).toShort
-        }
-      }
+    if (!NbtDataStream.getShortArray(nbt, "colors", color, w, h)) {
+      NbtDataStream.getIntArrayLegacy(nbt, "color", color, w, h)
     }
   }
 
@@ -269,10 +291,10 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     nbt.setInteger("background", _background.value)
     nbt.setBoolean("backgroundIsPalette", _background.isPalette)
 
-    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt)))
+    NbtDataStream.setShortArray(nbt, "colors", color.flatten.map(_.toShort))
   }
 
-  override def toString = {
+  override def toString: String = {
     val b = StringBuilder.newBuilder
     if (buffer.length > 0) {
       b.appendAll(buffer(0))

@@ -97,21 +97,22 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
 
   private def isInRange(entity: EntityLivingBase) = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= radius * radius
 
+  private def isClearPath(target: Vec3): Boolean = {
+    val origin = Vec3.createVectorHelper(x, y, z)
+    val path = origin.subtract(target).normalize()
+    val eye = origin.addVector(path.xCoord, path.yCoord, path.zCoord)
+    val blocker = world.rayTraceBlocks(eye, target)
+    blocker == null
+  }
+
   private def isVisible(entity: EntityLivingBase): Boolean =
     entity.getActivePotionEffect(Potion.invisibility) == null &&
       // Note: it only working in lit conditions works and is neat, but this
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      var origin = Vec3.createVectorHelper(x, y, z)
-      val target = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ)
-      val path = origin.subtract(target).normalize()
-      origin = origin.addVector(
-        path.xCoord * 0.75,
-        path.yCoord * 0.75,
-        path.zCoord * 0.75
-      )
-      world.rayTraceBlocks(origin, target) == null
+      val target = entity.getPosition(1.0F)
+      isClearPath(target) || isClearPath(target.addVector(0, entity.getEyeHeight, 0))
     }
 
   private def sendSignal(entity: EntityLivingBase) {
