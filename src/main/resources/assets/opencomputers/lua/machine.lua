@@ -796,7 +796,7 @@ sandbox = {
     local handled = false
     checkArg(2, msgh, "function")
     local result = table.pack(xpcall(f, function(...)
-      if (...) == tooLongWithoutYielding then
+      if rawequal((...), tooLongWithoutYielding) then
         return tooLongWithoutYielding
       elseif handled then
         return ...
@@ -805,7 +805,7 @@ sandbox = {
         return msgh(...)
       end
     end, ...))
-    if result[2] == tooLongWithoutYielding then
+    if rawequal(result[2], tooLongWithoutYielding) then
       result = table.pack(result[1], select(2, pcallTimeoutCheck(pcall(msgh, tostring(tooLongWithoutYielding)))))
     end
     return table.unpack(result, 1, result.n)

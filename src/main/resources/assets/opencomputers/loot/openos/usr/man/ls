@@ -45,7 +45,7 @@ OPTIONS
     Do not colorize the output (default colorized)
 
   --help
-    display this help and exit]])
+    display this help and exit
 
   -p
     append / indicator to directories

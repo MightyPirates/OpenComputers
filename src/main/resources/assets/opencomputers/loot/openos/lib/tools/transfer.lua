@@ -93,7 +93,7 @@ function lib.recurse(fromPath, toPath, options, origin, top)
   local toPathFull = shell.resolve(toPath)
   local mv = options.cmd == "mv"
   local verbose = options.v and (not mv or top)
-  if select(2, fromPathFull:find(options.skip)) == #fromPathFull then
+  if options.skip[fromPathFull] then
     status(verbose, string.format("skipping %s", fromPath))
     return true
   end
@@ -221,8 +221,13 @@ function lib.batch(args, options)
   -- standardized options
   options.i = options.i and not options.f
   options.P = options.P or options.r
-  options.skip = text.escapeMagic(options.skip or "")
-  
+
+  local skips = options.skip or {}
+  options.skip = {}
+  for _, skip_item in ipairs(skips) do
+    options.skip[shell.resolve(skip_item)] = true
+  end
+
   local origin = {}
   for dev,path in fs.mounts() do
     origin[path] = dev

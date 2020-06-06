@@ -75,7 +75,7 @@ end
 rules[{"%[", "6", "n"}] = function(window)
   -- this solution puts the response on stdin, but it isn't echo'd
   -- I'm personally fine with the lack of echo
-  io.stdin.bufferRead = string.format("%s%s%d;%dR", io.stdin.bufferRead, string.char(0x1b), window.y, window.x)
+  io.stdin.bufferRead = string.format("%s%s[%d;%dR", io.stdin.bufferRead, string.char(0x1b), window.y, window.x)
 end
 
 -- D               scroll up one line -- moves cursor down

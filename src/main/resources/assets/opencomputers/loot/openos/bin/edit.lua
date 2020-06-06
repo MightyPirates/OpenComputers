@@ -51,7 +51,7 @@ local function loadConfig()
     pageUp = {{"pageUp"}},
     pageDown = {{"pageDown"}},
 
-    backspace = {{"back"}},
+    backspace = {{"back"}, {"shift", "back"}},
     delete = {{"delete"}},
     deleteLine = {{"control", "delete"}, {"shift", "delete"}},
     newline = {{"enter"}},

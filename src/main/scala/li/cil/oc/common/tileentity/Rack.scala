@@ -39,7 +39,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.Rack with traits.StateAware {
-  var isRelayEnabled = true
+  var isRelayEnabled = false
   val lastData = new Array[NBTTagCompound](getSizeInventory)
   val hasChanged = Array.fill(getSizeInventory)(true)
 

@@ -3,6 +3,8 @@ package li.cil.oc.common.item.data
 import li.cil.oc.Settings
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.fs
+import net.minecraft.entity.player.EntityPlayer
 
 class DriveData extends ItemData(null) {
   def this(stack: ItemStack) {
@@ -30,5 +32,29 @@ class DriveData extends ItemData(null) {
   override def save(nbt: NBTTagCompound) {
     nbt.setBoolean(UnmanagedKey, isUnmanaged)
     nbt.setString(LockKey, lockInfo)
+  }
+}
+
+object DriveData {
+  def lock(stack: ItemStack, player: EntityPlayer): Unit = {
+    val key = player.getDisplayName
+    val data = new DriveData(stack)
+    if (!data.isLocked) {
+      data.lockInfo = key match {
+        case name: String if name != null && !name.isEmpty => name
+        case _ => "notch" // meaning: "unknown"
+      }
+      data.save(stack)
+    }
+  }
+
+  def setUnmanaged(stack: ItemStack, unmanaged: Boolean): Unit = {
+    val data = new DriveData(stack)
+    if (data.isUnmanaged != unmanaged) {
+      fs.FileSystem.removeAddress(stack)
+      data.lockInfo = ""
+    }
+    data.isUnmanaged = unmanaged
+    data.save(stack)
   }
 }

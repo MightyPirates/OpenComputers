@@ -116,14 +116,11 @@ while term.isAvailable() do
     else
       local ok, why = pcall(function()
         for i = 2, result.n do
-          io.write(require("serialization").serialize(result[i], true) .. "\t")
+          io.write(require("serialization").serialize(result[i], true), i < result.n and "\t" or "\n")
         end
       end)
       if not ok then
         io.stderr:write("crashed serializing result: ", tostring(why))
-      end
-      if term.getCursor() > 1 then
-        io.write("\n")
       end
     end
   else
