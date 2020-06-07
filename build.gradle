@@ -124,6 +124,13 @@ dependencies {
         exclude module: "ForgeMultipart"
     }
 
+    provided ("mrtjp:MrTJPCore:${config.mrtjpcore.version}:universal") {
+        exclude module: "NotEnoughItems"
+        exclude module: "CodeChickenLib"
+        exclude module: "jei_1.12"
+        exclude module: "ForgeMultipart"
+    }
+
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
     testCompile "org.mockito:mockito-all:1.10.19"
