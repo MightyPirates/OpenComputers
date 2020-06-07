@@ -20,9 +20,12 @@ trait TextBufferProxy extends api.internal.TextBuffer {
 
   override def getColorDepth: TextBuffer.ColorDepth = data.format.depth
 
+  def onBufferPaletteChange(index: Int): Unit = {}
+
   override def setPaletteColor(index: Int, color: Int): Unit = data.format match {
     case palette: PackedColor.MutablePaletteFormat =>
       palette(index) = color
+      onBufferPaletteChange(index)
     case _ => throw new Exception("palette not available")
   }
 
