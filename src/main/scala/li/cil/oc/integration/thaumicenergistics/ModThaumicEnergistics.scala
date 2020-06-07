@@ -14,5 +14,6 @@ object ModThaumicEnergistics extends ModProxy {
 
     Driver.add(DriverController.Provider)
     Driver.add(DriverBlockInterface.Provider)
+    Driver.add(ConvertAspectCraftable)
   }
 }

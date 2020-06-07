@@ -311,6 +311,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     colorDepthChanged
   }
 
+  override def onBufferPaletteChange(index: Int): Unit =
+    proxy.onBufferPaletteChange(index)
+
   override def onBufferColorChange(): Unit =
     proxy.onBufferColorChange()
 
