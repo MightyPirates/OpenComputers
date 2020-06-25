@@ -14,6 +14,7 @@
 /*.iws
 /.idea
 /out
+/classes
 
 # Debugging
 /eclipse
