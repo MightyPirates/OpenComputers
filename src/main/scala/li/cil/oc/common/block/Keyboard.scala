@@ -103,7 +103,7 @@ class Keyboard extends SimpleBlock(Material.rock) with traits.SpecialBlock {
     }
 
   override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity): Unit = {
-    if (!world.isRemote)
+    if (!world.isRemote && Settings.get.keyboardWalking)
       world.getTileEntity(x, y, z) match {
         case keyboard: tileentity.Keyboard =>
           val node = keyboard.node
