@@ -2,17 +2,15 @@ package li.cil.oc.common.block
 
 import java.util.Random
 
-import li.cil.oc.Constants
-import li.cil.oc.api
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.{BlockPosition, InventoryUtils}
+import li.cil.oc.{Constants, Settings, api}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -103,6 +101,28 @@ class Keyboard extends SimpleBlock(Material.rock) with traits.SpecialBlock {
       case Some((keyboard, screen, position, facing)) => screen.rightClick(world, position.x, position.y, position.z, player, facing, 0, 0, 0, force = true)
       case _ => false
     }
+
+  override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity): Unit = {
+    if (!world.isRemote)
+      world.getTileEntity(x, y, z) match {
+        case keyboard: tileentity.Keyboard =>
+          val node = keyboard.node
+
+          val randChar: Int = world.rand.nextInt('z' - 'A') + 'A'
+
+          val javaCharRepr = Character.valueOf(randChar.toChar)
+          val javaIntRepr = Integer.valueOf(randChar)
+
+
+          if (Settings.get.inputUsername)
+            node.sendToReachable("computer.signal", "key_down", javaCharRepr, javaIntRepr, entity.getCommandSenderName)
+          else
+            node.sendToReachable("computer.signal", "key_down", javaCharRepr, javaIntRepr)
+
+
+        case _ =>
+      }
+  }
 
   def adjacencyInfo(world: World, position: BlockPosition) =
     world.getTileEntity(position) match {
