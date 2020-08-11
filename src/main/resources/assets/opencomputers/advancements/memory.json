@@ -1,0 +1,97 @@
+{
+    "display": {
+        "title": {
+            "text": "Deja Vu"
+        },
+        "description": {
+            "text": "Or is it? (Craft any tier of RAM)"
+        },
+        "icon": {
+            "item": "opencomputers:component",
+            "data": 6
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": true
+    },
+    "criteria": {
+        "memoryT1": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 6
+                    }
+                ]
+            }
+        },
+        "memoryT1.5": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 7
+                    }
+                ]
+            }
+        },
+        "memoryT2": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 8
+                    }
+                ]
+            }
+        },
+        "memoryT2.5": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 9
+                    }
+                ]
+            }
+        },
+        "memoryT3": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 10
+                    }
+                ]
+            }
+        },
+        "memoryT3.5": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 11
+                    }
+                ]
+            }
+        }
+    },
+    "requirements": [
+        [
+            "memoryT1",
+            "memoryT1.5",
+            "memoryT2",
+            "memoryT2.5",
+            "memoryT3",
+            "memoryT3.5"
+        ]
+    ],
+    "parent": "opencomputers:microchip"
+}
