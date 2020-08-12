@@ -1,0 +1,61 @@
+{
+    "display": {
+        "title": {
+            "text": "Underclocked"
+        },
+        "description": {
+            "text": "Making good use of computing cycles since 2015. (Craft any tier of CPU)"
+        },
+        "icon": {
+            "item": "opencomputers:component",
+            "data": 0
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "criteria": {
+        "cpuT1": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 0
+                    }
+                ]
+            }
+        },
+        "cpuT2": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 1
+                    }
+                ]
+            }
+        },
+        "cpuT3": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:component",
+                        "data": 2
+                    }
+                ]
+            }
+        }
+    },
+    "requirements": [
+        [
+            "cpuT1",
+            "cpuT2",
+            "cpuT3"
+        ]
+    ],
+    "parent": "opencomputers:transistor"
+}
