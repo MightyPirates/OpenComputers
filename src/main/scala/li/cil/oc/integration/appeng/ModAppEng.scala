@@ -23,6 +23,7 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverBlockInterface)
 
     Driver.add(new ConverterCellInventory)
+    Driver.add(new ConverterPattern)
 
     Driver.add(DriverController.Provider)
     Driver.add(DriverExportBus.Provider)
