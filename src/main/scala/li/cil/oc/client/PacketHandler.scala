@@ -13,6 +13,7 @@ import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.component
 import li.cil.oc.common.container
 import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
@@ -620,6 +621,9 @@ object PacketHandler extends CommonPacketHandler {
             case PacketType.TextBufferMultiViewportResolutionChange => onTextBufferMultiViewportResolutionChange(p, buffer)
             case PacketType.TextBufferMultiMaxResolutionChange => onTextBufferMultiMaxResolutionChange(p, buffer)
             case PacketType.TextBufferMultiSet => onTextBufferMultiSet(p, buffer)
+            case PacketType.TextBufferRamInit => onTextBufferRamInit(p, buffer)
+            case PacketType.TextBufferBitBlt => onTextBufferBitBlt(p, buffer)
+            case PacketType.TextBufferRamDestroy => onTextBufferRamDestroy(p, buffer)
             case PacketType.TextBufferMultiRawSetText => onTextBufferMultiRawSetText(p, buffer)
             case PacketType.TextBufferMultiRawSetBackground => onTextBufferMultiRawSetBackground(p, buffer)
             case PacketType.TextBufferMultiRawSetForeground => onTextBufferMultiRawSetForeground(p, buffer)
@@ -698,6 +702,34 @@ object PacketHandler extends CommonPacketHandler {
     val s = p.readUTF()
     val vertical = p.readBoolean()
     buffer.set(col, row, s, vertical)
+  }
+
+  def onTextBufferRamInit(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
+    val owner = p.readUTF()
+    val id = p.readInt()
+    val nbt = p.readNBT()
+
+    component.ClientGpuTextBufferHandler.loadBuffer(buffer, owner, id, nbt)
+  }
+
+  def onTextBufferBitBlt(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
+    val col = p.readInt()
+    val row = p.readInt()
+    val w = p.readInt()
+    val h = p.readInt()
+    val owner = p.readUTF()
+    val id = p.readInt()
+    val fromCol = p.readInt()
+    val fromRow = p.readInt()
+
+    component.ClientGpuTextBufferHandler.bitblt(buffer, col, row, w, h, owner, id, fromCol, fromRow)
+  }
+
+  def onTextBufferRamDestroy(p: PacketParser, buffer: api.internal.TextBuffer): Unit = {
+    val owner = p.readUTF()
+    val id = p.readInt()
+
+    component.ClientGpuTextBufferHandler.removeBuffer(buffer, owner, id)
   }
 
   def onTextBufferMultiRawSetText(p: PacketParser, buffer: api.internal.TextBuffer) {
