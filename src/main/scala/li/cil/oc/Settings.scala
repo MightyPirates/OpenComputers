@@ -467,24 +467,34 @@ class Settings(val config: Config) {
 
   // >= 1.7.4
   val maxSignalQueueSize: Int = (if (config.hasPath("computer.maxSignalQueueSize")) config.getInt("computer.maxSignalQueueSize") else 256) min 256
+
+  // >= 1.7.6
+  val vramSizes: Array[Double] = Array(config.getDoubleList("gpu.vramSizes"): _*) match {
+    case Array(tier1, tier2, tier3) => Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of VRAM sizes (expected 3), ignoring.")
+      Array(1, 2, 3)
+  }
+
+  val bitbltCost: Double = if (config.hasPath("gpu.bitbltCost")) config.getDouble("gpu.bitbltCost") else 0.5
 }
 
 object Settings {
   val resourceDomain = "opencomputers"
   val namespace = "oc:"
   val savePath = "opencomputers/"
-  val scriptPath = "/assets/" + resourceDomain + "/lua/"
-  val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
-  val screenDepthsByTier = Array(api.internal.TextBuffer.ColorDepth.OneBit, api.internal.TextBuffer.ColorDepth.FourBit, api.internal.TextBuffer.ColorDepth.EightBit)
-  val deviceComplexityByTier = Array(12, 24, 32, 9001)
+  val scriptPath: String = "/assets/" + resourceDomain + "/lua/"
+  val screenResolutionsByTier: Array[(Int, Int)] = Array((50, 16), (80, 25), (160, 50))
+  val screenDepthsByTier: Array[api.internal.TextBuffer.ColorDepth] = Array(api.internal.TextBuffer.ColorDepth.OneBit, api.internal.TextBuffer.ColorDepth.FourBit, api.internal.TextBuffer.ColorDepth.EightBit)
+  val deviceComplexityByTier: Array[Int] = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
-  var blockRenderId = -1
+  var blockRenderId: Int = -1
 
-  def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
+  def basicScreenPixels: Int = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
   private var settings: Settings = _
 
-  def get = settings
+  def get: Settings = settings
 
   def load(file: File) = {
     import scala.compat.Platform.EOL

@@ -66,7 +66,7 @@ f = nil
 if not options.q then
   io.write("Downloading... ")
 end
-local result, response = pcall(internet.request, url)
+local result, response = pcall(internet.request, url, nil, {["user-agent"]="Wget/OpenComputers"})
 if result then
   local result, reason = pcall(function()
     for chunk in response do

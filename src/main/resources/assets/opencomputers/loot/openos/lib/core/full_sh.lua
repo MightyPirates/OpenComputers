@@ -509,7 +509,7 @@ function sh.internal.execute_complex(words, eargs, env)
     end)
     sh.internal.ec.last = sh.internal.command_result_as_code(last_code, reason)
   end
-  return true
+  return sh.internal.ec.last == 0
 end
 
 -- params: words[tokenized word list]
