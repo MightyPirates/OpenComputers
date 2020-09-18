@@ -27,7 +27,7 @@ class ConverterDataStick extends Converter {
                 .toArray[NBTTagString].map((tag: NBTTagString) => tag.func_150285_a_().split('\n'))
           case _ =>
         }
-      else if (nbt.hasKey("author") && nbt.getString("author") == "Assembling Line Recipe Generator" && nbt.hasKey("output")) {
+      else if (nbt.hasKey("author") && nbt.getString("author").contains("Recipe Generator") && nbt.hasKey("output")) {
         val outputItem = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("output"))
         output += "output" -> outputItem.getDisplayName
         output += "time" -> nbt.getInteger("time").toString
