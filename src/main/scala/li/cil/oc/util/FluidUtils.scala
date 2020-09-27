@@ -44,7 +44,8 @@ object FluidUtils {
     val ti = source.getTankInfo(sourceSide)
     val srcFluid = if (sourceTank < 0 || ti == null || ti.length <= sourceTank) null else ti(sourceTank).fluid.copy()
 
-    val drained = if (srcFluid == null)
+    val nullFluid = srcFluid == null;
+    val drained = if (nullFluid)
       source.drain(sourceSide, limit, false)
     else {
       srcFluid.amount = limit
@@ -52,7 +53,12 @@ object FluidUtils {
     }
     if (drained != null) {
       val filled = sink.fill(sinkSide, drained, false)
-      sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
+      if (nullFluid) {
+        sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
+      } else {
+        srcFluid.amount = filled
+        sink.fill(sinkSide, source.drain(sourceSide, srcFluid, true), true)
+      }
     } else 0
   }
 
