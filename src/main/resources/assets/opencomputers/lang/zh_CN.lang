@@ -3,7 +3,7 @@
 # Use [nl] to for a line break. 使用[nl]作为换行标志
 
 # Blocks
-tile.oc.accessPoint.name=§c访问点§7
+tile.oc.accessPoint.name=§c接入点§7
 tile.oc.adapter.name=适配器
 tile.oc.assembler.name=设备装配器
 tile.oc.cable.name=线缆
@@ -238,7 +238,7 @@ oc:gui.Terminal.InvalidKey=无效键，看上去另一个终端已绑定到这�
 oc:gui.Terminal.OutOfRange=无信号。
 
 # Containers
-oc:container.AccessPoint=访问点
+oc:container.AccessPoint=接入点
 oc:container.Adapter=适配器
 oc:container.Case=计算机
 oc:container.Charger=充电器
