@@ -88,8 +88,20 @@ repositories {
         artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
     }
     maven {
+        name "Mobius Repo"
+        url "http://mobiusstrip.eu/maven"
+    }
+    maven {
+        name "CB Repo"
+        url "http://chickenbones.net/maven"
+    }
+    maven {
         name = "ic2"
         url = "http://maven.ic2.player.to/"
+    }
+    maven {
+        name = "gt"
+        url = "http://gregtech.overminddl1.com/"
     }
 }
 
@@ -137,6 +149,7 @@ dependencies {
     compileOnly name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     compileOnly name: 'ExtraCells', version: config.ec.version, ext: 'jar'
 	compileOnly name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
+    compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
