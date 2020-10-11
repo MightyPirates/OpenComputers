@@ -159,6 +159,11 @@ item.oc.WirelessNetworkCard0.name=Wireless Network Card (Tier 1)
 item.oc.WirelessNetworkCard1.name=Wireless Network Card (Tier 2)
 item.oc.WorldSensorCard.name=World Sensor Card
 item.oc.wrench.name=Scrench
+item.oc.APU2.name=Accelerated Processing Unit (APU) (Tier 3)
+item.oc.DroneCase3.name=Drone Case (Tier 3)
+item.oc.MicrocontrollerCase3.name=Microcontroller Case (Tier 3)
+item.oc.Server3.name=Server (Tier 4)
+item.oc.TabletCase3.name=Tablet Case (Tier 3)
 
 # Entities
 entity.oc.Drone.name=Drone
