@@ -213,7 +213,7 @@ end
 function filesystem.exists(path)
   if not filesystem.realPath(filesystem.path(path)) then
     return false
-  end 
+  end
   local node, rest, vnode, vrest = findNode(path)
   if not vrest or vnode.links[vrest] then -- virtual directory or symbolic link
     return true

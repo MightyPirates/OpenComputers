@@ -19,7 +19,7 @@ if #args < 2 or options.h then
 end
 
 -- clean options for copy (as opposed to move)
-options = 
+options =
 {
   cmd = "cp",
   i = options.i,

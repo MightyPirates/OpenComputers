@@ -1,6 +1,6 @@
 return
 {
-  eeprom = 
+  eeprom =
   {
     link = "components/by-type/eeprom/0/contents",
     isAvailable = function()

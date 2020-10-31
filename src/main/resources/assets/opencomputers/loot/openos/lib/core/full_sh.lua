@@ -139,8 +139,8 @@ function sh.internal.glob(eword)
 
   local segments = text.split(glob_pattern, {"/"}, true)
   local hiddens = tx.foreach(segments,function(e)return e:match("^%%%.")==nil end)
-  local function is_visible(s,i) 
-    return not hiddens[i] or s:match("^%.") == nil 
+  local function is_visible(s,i)
+    return not hiddens[i] or s:match("^%.") == nil
   end
 
   local function magical(s)
@@ -184,7 +184,7 @@ function sh.internal.glob(eword)
     relative_separator = "/"
   end
   return paths
-end 
+end
 
 function sh.getMatchingPrograms(baseName)
   if not baseName or baseName == "" then return {} end
@@ -205,7 +205,7 @@ function sh.getMatchingPrograms(baseName)
     end
   end
   return result
-end 
+end
 
 function sh.getMatchingFiles(partial_path)
   -- name: text of the partial file name being expanded
@@ -239,7 +239,7 @@ function sh.getMatchingFiles(partial_path)
     result[1] = result[1] .. "/"
   end
   return result
-end 
+end
 
 function sh.internal.hintHandlerSplit(line)
   -- I do not plan on having text tokenizer parse error on
@@ -293,7 +293,7 @@ function sh.internal.hintHandlerSplit(line)
   else
     return prefix, nil, normal
   end
-end 
+end
 
 function sh.internal.hintHandlerImpl(full_line, cursor)
   -- line: text preceding the cursor: we want to hint this part (expand it)
@@ -333,8 +333,8 @@ function sh.internal.hintHandlerImpl(full_line, cursor)
   local resultSuffix = suffix
   if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
      not suffix:sub(1,1):find('%s') and
-     #result == 1 or searchInPath then 
-    resultSuffix  = " " .. resultSuffix 
+     #result == 1 or searchInPath then
+    resultSuffix  = " " .. resultSuffix
   end
 
   table.sort(result)
@@ -343,7 +343,7 @@ function sh.internal.hintHandlerImpl(full_line, cursor)
     result[i] = prev .. result[i] .. resultSuffix
   end
   return result
-end 
+end
 
 -- verifies that no pipes are doubled up nor at the start nor end of words
 function sh.internal.hasValidPiping(words, pipes)
@@ -358,7 +358,7 @@ function sh.internal.hasValidPiping(words, pipes)
   pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
   local state = "" -- cannot start on a pipe
-  
+
   for w=1,#words do
     local word = words[w]
     for p=1,#word do
@@ -459,7 +459,7 @@ function sh.internal.splitStatements(words, semicolon)
   checkArg(1, words, "table")
   checkArg(2, semicolon, "string", "nil")
   semicolon = semicolon or ";"
-  
+
   return tx.partition(words, function(g, i)
     if isWordOf(g, {semicolon}) then
       return i, i
@@ -482,7 +482,7 @@ end
 function sh.internal.groupChains(s)
   checkArg(1,s,"table")
   return tx.partition(s,function(w)return isWordOf(w,{"&&","||"})end)
-end 
+end
 
 function sh.internal.remove_negation(chain)
   if isWordOf(chain[1], {"!"}) then

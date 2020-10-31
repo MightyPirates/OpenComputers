@@ -28,7 +28,7 @@ pcall(function()
         io.write("  " .. tostring(evt[i]))
       end
     end
-    
+
     io.write("\n")
   until evt[1] == "interrupted"
 end)
