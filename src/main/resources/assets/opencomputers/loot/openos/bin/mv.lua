@@ -17,7 +17,7 @@ if #args < 2 or options.h then
 end
 
 -- clean options for move (as opposed to copy)
-options = 
+options =
 {
   cmd = "mv",
   f = options.f,
