@@ -32,7 +32,7 @@ intercept_load = function(source, label, mode, env)
       return prev_load(_source, _label, _mode, _env or env)
     end}, {
       __index = env,
-      __pairs = function(...) return pairs(env, ...) end,
+      __pairs = function() return pairs(env) end,
       __newindex = function(_, key, value) env[key] = value end,
   })
   return kernel_load(source, label, mode, e or process.info().env)

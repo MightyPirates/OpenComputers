@@ -1,6 +1,5 @@
 local buffer = require("buffer")
 local component = require("component")
-local event = require("event")
 
 local internet = {}
 
