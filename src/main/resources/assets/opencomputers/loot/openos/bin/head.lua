@@ -1,5 +1,4 @@
 local shell = require("shell")
-local fs = require("filesystem")
 
 local args, options = shell.parse(...)
 local error_code = 0
@@ -26,11 +25,6 @@ quiet = quiet[1] or quiet[2] or quiet[3]
 local verbose = {pop('v'), pop('verbose')}
 verbose = verbose[1] or verbose[2]
 local help = pop('help')
-local invalid_key = next(options)
-
-if bytes and lines then
-  invalid_key = 'bytes and lines both specified'
-end
 
 if help or next(options) then
   local invalid_key = next(options)
@@ -111,7 +105,7 @@ end
 
 for i=1,#args do
   local arg = args[i]
-  local file
+  local file, reason
   if arg == '-' then
     arg = 'standard input'
     file = io.stdin

@@ -59,7 +59,7 @@ local function remove(path, ...)
     return ec_bump()
   else
     local list, reason = fs.list(rpath)
-        
+
     if not list then
       io.stderr:write(tostring(reason)..'\n')
       return ec_bump()
@@ -88,7 +88,7 @@ for _,path in ipairs(args) do
 
   local segments = {}
   if options.p and path:len() > 1 and path:find('/') then
-    chain = text.split(path, {'/'}, true)
+    local chain = text.split(path, {'/'}, true)
     local prefix = ''
     for _,e in ipairs(chain) do
       table.insert(segments, 1, prefix .. e)
