@@ -17,8 +17,6 @@ import li.cil.oc.api.{Network, prefab}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
-import org.apache.http.HttpHost
-import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.RequestBuilder
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -462,25 +460,14 @@ object InternetCard {
     private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String], val method: Option[String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
+        val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
 
         val requestBuilder = RequestBuilder.create(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
         headers.foreach(Function.tupled(requestBuilder.addHeader))
         requestBuilder.setUri(url.toURI)
         post.foreach(i => requestBuilder.setEntity(new StringEntity(i)))
+        val r = HttpClients.createDefault().execute(requestBuilder.build())
 
-        val proxy = Option(MinecraftServer.getServer.getServerProxy)
-          .map(proxy => proxy.address().asInstanceOf[InetSocketAddress])
-          .map(i => new HttpHost(i.getAddress, i.getPort))
-          .orNull
-
-        val r = HttpClients.custom()
-          .setProxy(proxy)
-          .setDefaultRequestConfig(RequestConfig.custom()
-            .setConnectTimeout(Settings.get.httpTimeout)
-            .setConnectionRequestTimeout(Settings.get.httpTimeout)
-            .setSocketTimeout(Settings.get.httpTimeout).build())
-          .build()
-          .execute(requestBuilder.build())
 
         val input = r.getEntity.getContent
         HTTPRequest.this.synchronized {
