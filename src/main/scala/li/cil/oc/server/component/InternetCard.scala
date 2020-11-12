@@ -1,34 +1,25 @@
 package li.cil.oc.server.component
 
-import java.io.BufferedWriter
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStreamWriter
+import java.io.{FileNotFoundException, IOException, InputStream}
 import java.net._
 import java.nio.ByteBuffer
-import java.nio.channels.SelectionKey
-import java.nio.channels.Selector
-import java.nio.channels.SocketChannel
+import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 import java.util
 import java.util.UUID
 import java.util.concurrent._
 
-import li.cil.oc.Constants
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api.Network
+import li.cil.oc.{Constants, OpenComputers, Settings}
 import li.cil.oc.api.driver.DeviceInfo
-import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
-import li.cil.oc.api.driver.DeviceInfo.DeviceClass
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
+import li.cil.oc.api.{Network, prefab}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
+import org.apache.http.client.methods.RequestBuilder
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.HttpClients
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -207,7 +198,7 @@ object InternetCard {
             readableKeys += key
           })
 
-          if(readableKeys.nonEmpty) {
+          if (readableKeys.nonEmpty) {
             val newSelector = Selector.open()
             selectedKeys.filter(!readableKeys.contains(_)).foreach(key => {
               key.channel.register(newSelector, SelectionKey.OP_READ, key.attachment)
@@ -470,33 +461,20 @@ object InternetCard {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-        url.openConnection(proxy) match {
-          case http: HttpURLConnection => try {
-            http.setDoInput(true)
-            http.setDoOutput(post.isDefined)
-            http.setRequestMethod(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
-            headers.foreach(Function.tupled(http.setRequestProperty))
-            if (post.isDefined) {
-              http.setReadTimeout(Settings.get.httpTimeout)
 
-              val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-              out.write(post.get)
-              out.close()
-            }
+        val requestBuilder = RequestBuilder.create(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
+        headers.foreach(Function.tupled(requestBuilder.addHeader))
+        requestBuilder.setUri(url.toURI)
+        post.foreach(i => requestBuilder.setEntity(new StringEntity(i)))
+        val r = HttpClients.createDefault().execute(requestBuilder.build())
 
-            val input = http.getInputStream
-            HTTPRequest.this.synchronized {
-              response = Some((http.getResponseCode, http.getResponseMessage, http.getHeaderFields))
-            }
-            input
-          }
-          catch {
-            case t: Throwable =>
-              http.disconnect()
-              throw t
-          }
-          case other => throw new IOException("unexpected connection type")
+
+        val input = r.getEntity.getContent
+        HTTPRequest.this.synchronized {
+          import collection.JavaConverters._
+          response = Some((r.getStatusLine.getStatusCode, r.getStatusLine.getReasonPhrase, r.getAllHeaders.groupBy(h => h.getName).map(i => i._1 -> i._2.toList.asJava).asJava))
         }
+        input
       }
       catch {
         case e: UnknownHostException =>
