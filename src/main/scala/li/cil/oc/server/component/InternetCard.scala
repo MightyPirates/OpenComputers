@@ -17,6 +17,8 @@ import li.cil.oc.api.{Network, prefab}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
+import org.apache.http.HttpHost
+import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.RequestBuilder
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -465,9 +467,19 @@ object InternetCard {
         val requestBuilder = RequestBuilder.create(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
         headers.foreach(Function.tupled(requestBuilder.addHeader))
         requestBuilder.setUri(url.toURI)
-        post.foreach(i => requestBuilder.setEntity(new StringEntity(i)))
-        val r = HttpClients.createDefault().execute(requestBuilder.build())
 
+        val clientBuilder = HttpClients.custom()
+
+        post.foreach { i =>
+          clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+            .setConnectTimeout(Settings.get.httpTimeout)
+            .setConnectionRequestTimeout(Settings.get.httpTimeout)
+            .setSocketTimeout(Settings.get.httpTimeout).build())
+
+          requestBuilder.setEntity(new StringEntity(i))
+        }
+
+        val r = clientBuilder.build().execute(requestBuilder.build())
 
         val input = r.getEntity.getContent
         HTTPRequest.this.synchronized {
