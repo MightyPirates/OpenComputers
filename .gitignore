@@ -25,3 +25,4 @@
 # VSCode
 /.vscode
 *.bat
+/classes
