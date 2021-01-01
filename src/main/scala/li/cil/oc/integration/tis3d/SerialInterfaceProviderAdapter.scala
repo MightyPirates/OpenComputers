@@ -18,6 +18,7 @@ import li.cil.tis3d.api.serial.SerialInterface
 import li.cil.tis3d.api.serial.SerialInterfaceProvider
 import li.cil.tis3d.api.serial.SerialProtocolDocumentationReference
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
@@ -36,7 +37,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
   override def interfaceFor(world: World, x: Int, y: Int, z: Int, side: EnumFacing): SerialInterface = new SerialInterfaceAdapter(world.getTileEntity(x, y, z).asInstanceOf[Adapter])
 
   override def isValid(world: World, x: Int, y: Int, z: Int, side: EnumFacing, serialInterface: SerialInterface): Boolean = serialInterface match {
-    case adapter: SerialInterfaceAdapter => adapter.tileEntity == world.getTileEntity(x, y, z)
+    case adapter: SerialInterfaceAdapter => adapter.tileEntity.asInstanceOf[TileEntity] == world.getTileEntity(x, y, z)
     case _ => false
   }
 
@@ -48,7 +49,7 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
 
     // ----------------------------------------------------------------------- //
 
-    val node = api.Network.newNode(this, Visibility.Network).withComponent("serial_port").create()
+    val node: Node = api.Network.newNode(this, Visibility.Network).withComponent("serial_port").create()
 
     override def onMessage(message: Message): Unit = {}
 

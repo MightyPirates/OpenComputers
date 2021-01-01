@@ -25,6 +25,10 @@ apply plugin: 'idea'
 apply plugin: 'maven-publish'
 apply plugin: 'com.matthewprenger.cursegradle'
 
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.additionalParameters = ["-deprecation:false"]
+}
+
 file "build.properties" withReader {
     def prop = new Properties()
     prop.load(it)
@@ -103,6 +107,14 @@ repositories {
         name = "gt"
         url = "http://gregtech.overminddl1.com/"
     }
+	ivy {
+        name 'gtnh_download_source'
+        artifactPattern "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/[module]-[revision].[ext]"
+    }
+    maven { // GalacticGreg, YAMCore,..
+        name 'UsrvDE'
+        url "http://jenkins.usrv.eu:8081/nexus/content/repositories/releases/"
+    }
 }
 
 configurations {
@@ -121,7 +133,7 @@ dependencies {
     compileOnly "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     compileOnly "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     compileOnly "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
-    compileOnly "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
+    compileOnly "com.gregoriust.gregtech:gregtech:${config.gt.version}:dev"
     compileOnly "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     compileOnly "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
     compileOnly "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
