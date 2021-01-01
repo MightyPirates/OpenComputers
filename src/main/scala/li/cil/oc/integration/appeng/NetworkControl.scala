@@ -393,7 +393,7 @@ object NetworkControl {
       val hash = result(0)
       // it would have been nice to put these fields in a registry convert
       // but the potential ae item needs the tile and position data
-      hash.update("size", Int.box(aeItem.getStackSize.toInt))
+      hash.update("size", Long.box(aeItem.getStackSize))
       hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
       return hash
     }
