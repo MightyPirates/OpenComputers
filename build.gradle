@@ -115,6 +115,9 @@ repositories {
         name 'UsrvDE'
         url "http://jenkins.usrv.eu:8081/nexus/content/repositories/releases/"
     }
+	maven {
+		url "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/"
+	}
 }
 
 configurations {
