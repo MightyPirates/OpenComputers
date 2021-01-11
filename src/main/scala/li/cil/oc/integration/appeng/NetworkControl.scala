@@ -1,11 +1,14 @@
 package li.cil.oc.integration.appeng
 
+import java.lang
+
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.crafting.ICraftingLink
 import appeng.api.networking.crafting.ICraftingRequester
-import appeng.api.networking.security.IActionHost
-import appeng.api.networking.security.MachineSource
+import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
+import appeng.api.networking.storage.IBaseMonitor
+import appeng.api.storage.IMEMonitorHandlerReceiver
 import appeng.api.storage.data.{IAEItemStack, IItemList}
 import appeng.me.helpers.IGridProxyable
 import appeng.util.item.AEItemStack
@@ -315,9 +318,11 @@ object NetworkControl {
     }
   }
 
-  class NetworkContents(var controller: TileEntity with IGridProxyable) extends AbstractValue
+  class NetworkContents(var controller: TileEntity with IGridProxyable) extends AbstractValue with IMEMonitorHandlerReceiver[IAEItemStack]
   {
     def this() = this(null)
+    if (controller != null)
+      controller.getProxy.getStorage.getItemInventory.addListener(this, null)
     var items : IItemList[IAEItemStack] = null
     var i : java.util.Iterator[IAEItemStack] = null
     var index = 0
@@ -350,8 +355,11 @@ object NetworkControl {
         index = nbt.getInteger("index")
         EventHandler.scheduleServer(() => {
           val tileEntity = DimensionManager.getWorld(dimension).getTileEntity(x, y, z)
-          if (tileEntity != null && tileEntity.isInstanceOf[TileEntity with IGridProxyable])
+          if (tileEntity != null && tileEntity.isInstanceOf[TileEntity with IGridProxyable]) {
             controller = tileEntity.asInstanceOf[TileEntity with IGridProxyable]
+            if (controller!= null)
+              controller.getProxy.getStorage.getItemInventory.addListener(this, null)
+          }
         })
       }
     }
@@ -364,6 +372,18 @@ object NetworkControl {
         nbt.setInteger("y", controller.yCoord)
         nbt.setInteger("z", controller.zCoord)
       }
+    }
+    var valid = true
+    def dispose(context: Nothing): Unit = {
+      valid = false
+    }
+
+    override def isValid(verificationToken: Any): Boolean = valid
+    override def onListUpdate(): Unit = {
+      this.items = null
+    }
+    override def postChange(monitor: IBaseMonitor[IAEItemStack], change: lang.Iterable[IAEItemStack], actionSource: BaseActionSource): Unit = {
+      this.items = null
     }
   }
   def aeCraftItem(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): IAEItemStack = {
