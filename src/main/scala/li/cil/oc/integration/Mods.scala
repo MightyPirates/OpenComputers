@@ -19,6 +19,7 @@ object Mods {
 
   val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
+  val AvaritiaAddons = new SimpleMod(IDs.AvaritiaAddons)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BetterRecords = new SimpleMod(IDs.BetterRecords)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
@@ -89,6 +90,7 @@ object Mods {
   val Proxies = Array(
     integration.agricraft.ModAgriCraft,
     integration.appeng.ModAppEng,
+    integration.avaritiaaddons.ModAvaritiaAddons,
     integration.betterrecords.ModBetterRecords,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
@@ -168,6 +170,7 @@ object Mods {
   object IDs {
     final val AgriCraft = "AgriCraft"
     final val AppliedEnergistics2 = "appliedenergistics2"
+    final val AvaritiaAddons = "avaritiaddons"
     final val BattleGear2 = "battlegear2"
     final val BetterRecords = "betterrecords"
     final val BloodMagic = "AWWayofTime"
