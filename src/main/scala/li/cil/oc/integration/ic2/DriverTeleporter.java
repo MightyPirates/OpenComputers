@@ -23,7 +23,7 @@ public class DriverTeleporter extends DriverSidedTileEntity {
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityTeleporter> {
         public Environment(final TileEntityTeleporter tileEntity) {
-            super(tileEntity,"gt_coloredTE");
+            super(tileEntity,"ic2_teleporter");
         }
         @Callback(doc = "function(X:number, Y:number, Z:number)")
         public Object[] setCoords(final Context context, final Arguments args) {
