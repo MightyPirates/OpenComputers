@@ -2,10 +2,6 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = "mightypirates"
-            url = "https://maven.cil.li/"
-        }
-        maven {
             url = "https://maven.minecraftforge.net/"
         }
         maven {
@@ -14,6 +10,10 @@ buildscript {
         maven {
             name = "forge"
             url = "https://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = "mightypirates"
+            url = "https://maven.cil.li/"
         }
         maven {
             name = "sonatype"
@@ -111,6 +111,7 @@ configurations {
 }
 
 dependencies {
+    /*
     compileOnly "appeng:RotaryCraft:${config.rotc.version}:api"
     compileOnly ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
@@ -133,6 +134,7 @@ dependencies {
     compileOnly ("mrtjp:ProjectRed:${config.projred.version}:dev") {
         exclude module: 'CoFHCore'
     }
+    */
     // compileOnly "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
     compileOnly name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
