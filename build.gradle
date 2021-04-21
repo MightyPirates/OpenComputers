@@ -2,6 +2,16 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
+            name = "mightypirates"
+            url = "https://maven.cil.li/"
+        }
+        maven {
+            url = "https://maven.minecraftforge.net/"
+        }
+        maven {
+            url = "https://repo.spongepowered.org/repository/forge-proxy"
+        }
+        maven {
             name = "forge"
             url = "https://files.minecraftforge.net/maven"
         }
@@ -74,6 +84,12 @@ if (JavaVersion.current().isJava8Compatible()) {
 }
 
 repositories {
+    maven {
+        url = "https://maven.minecraftforge.net/"
+    }
+    maven {
+        url = "https://repo.spongepowered.org/repository/forge-proxy"
+    }
     maven {
         name = "mightypirates"
         url = "https://maven.cil.li/"
