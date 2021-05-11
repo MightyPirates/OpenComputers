@@ -92,7 +92,10 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   def getOutput: Array[Int] = ForgeDirection.VALID_DIRECTIONS.map{ side: ForgeDirection => _output(toLocal(side).ordinal) }
 
-  def getOutput(side: ForgeDirection) = _output(toLocal(side).ordinal())
+  def getOutput(side: ForgeDirection) = Option(_output) match {
+    case Some(output) => output(toLocal(side).ordinal())
+    case _ => 0
+  }
 
   def setOutput(side: ForgeDirection, value: Int): Boolean = {
     if (value == getOutput(side)) return false
