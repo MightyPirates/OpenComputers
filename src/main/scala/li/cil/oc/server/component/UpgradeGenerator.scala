@@ -53,6 +53,8 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     if (!TileEntityFurnace.isItemFuel(stack)) {
       return result(Unit, "selected slot does not contain fuel")
     }
+    val container = stack.getItem().getContainerItem(stack)
+    var consumedCount = 0
     inventory match {
       case Some(existingStack) =>
         if (!existingStack.isItemEqual(stack) ||
@@ -63,38 +65,79 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
         if (space <= 0) {
           return result(Unit, "queue is full")
         }
-        val moveCount = math.min(stack.stackSize, math.min(space, count))
-        existingStack.stackSize += moveCount
-        stack.stackSize -= moveCount
+        consumedCount = math.min(stack.stackSize, math.min(space, count))
+        existingStack.stackSize += consumedCount
+        stack.stackSize -= consumedCount
       case _ =>
-        inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
+        consumedCount = math.min(stack.stackSize, count)
+        inventory = Some(stack.splitStack(consumedCount))
     }
-    if (stack.stackSize > 0) host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
-    else host.mainInventory.setInventorySlotContents(host.selectedSlot, null)
+    if (consumedCount > 0 && container != null) {
+      container.stackSize = consumedCount
+    }
+    if (stack.stackSize > 0) {
+      host.mainInventory.setInventorySlotContents(host.selectedSlot, stack)
+    }
+    if (stack.stackSize == 0 || container != null) {
+      host.mainInventory.setInventorySlotContents(host.selectedSlot, container)
+    }
+    
     result(true)
   }
 
   @Callback(doc = """function():number -- Get the size of the item stack in the generator's queue.""")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
-      case Some(stack) => result(stack.stackSize)
+      case Some(stack) => result(stack.stackSize, stack.getItem.getItemStackDisplayName(stack))
       case _ => result(0)
     }
+  }
+
+  @Callback()
+  def clear(context: Context, args: Arguments): Array[AnyRef] = {
+    inventory = None
+    remainingTicks = 0
+    result(true)
   }
 
   @Callback(doc = """function([count:number]):boolean -- Tries to remove items from the generator's queue.""")
   def remove(context: Context, args: Arguments): Array[AnyRef] = {
     val count = args.optInteger(0, Int.MaxValue)
+    var selectSlotContainer: ItemStack = null
     inventory match {
       case Some(stack) =>
-        val removedStack = stack.splitStack(math.min(count, stack.stackSize))
-        val success = host.player.inventory.addItemStackToInventory(removedStack)
-        stack.stackSize += removedStack.stackSize
-        if (success && stack.stackSize <= 0) {
-          inventory = None
+        val moveCount = Option(stack.getItem().getContainerItem(stack)) match {
+          case Some(fuelContainer) =>
+            // if the fuel requires a container, we can only refill containers
+            Option(host.mainInventory.getStackInSlot(host.selectedSlot)) match {
+              case Some(selectedStack) if selectedStack.getItem() == fuelContainer.getItem() =>
+                selectSlotContainer = selectedStack.copy() // keep a copy in case we have to put it back
+                1 // refill one container
+              case _ => 0 // container required
+            }
+          case _ => count
         }
-        result(success)
-      case _ => result(false)
+        if (moveCount == 0) {
+          result(false, "fuel requires container in the selected slot")
+        } else {
+          val removedStack = stack.splitStack(math.min(moveCount, stack.stackSize))
+          if (selectSlotContainer != null) {
+            host.mainInventory.decrStackSize(host.selectedSlot, 1)
+          }
+          val success = host.player.inventory.addItemStackToInventory(removedStack)
+          stack.stackSize += removedStack.stackSize
+          if (success) {
+            if (stack.stackSize <= 0) {
+              inventory = None
+            }
+            result(true)
+          } else {
+            // if we decremented the container, we need to put it back
+            host.mainInventory.setInventorySlotContents(host.selectedSlot, selectSlotContainer)
+            result(false, "no inventory space available for fuel")
+          }
+        }
+      case _ => result(false, "queue is empty")
     }
   }
 
@@ -108,13 +151,10 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
       val stack = inventory.get
       remainingTicks = TileEntityFurnace.getItemBurnTime(stack)
       if (remainingTicks > 0) {
-        // If not we probably have a container item now (e.g. bucket after lava bucket).
         updateClient()
         stack.stackSize -= 1
         if (stack.stackSize <= 0) {
-          if (stack.getItem.hasContainerItem(stack))
-            inventory = Option(stack.getItem.getContainerItem(stack))
-          else
+            // do not put container in inventory (we left the container when fuel was inserted)
             inventory = None
         }
       }
