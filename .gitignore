@@ -25,3 +25,7 @@
 # VSCode
 /.vscode
 /saves
+/logs
+/config
+/options.txt
+/usernamecache.json
