@@ -226,10 +226,16 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         case living: EntityLivingBase if !getHeldItemMainhand.isEmpty => getHeldItemMainhand.interactWithEntity(this, living, hand)
         case _ => false
       }))
-      if (!getHeldItemMainhand.isEmpty && getHeldItemMainhand.getCount <= 0) {
-        val orig = getHeldItemMainhand
-        this.inventory.setInventorySlotContents(this.inventory.currentItem, ItemStack.EMPTY)
-        ForgeEventFactory.onPlayerDestroyItem(this, orig, hand)
+      if (!getHeldItemMainhand.isEmpty) {
+        if (getHeldItemMainhand.getCount <= 0) {
+          val orig = getHeldItemMainhand
+          this.inventory.setInventorySlotContents(this.inventory.currentItem, ItemStack.EMPTY)
+          ForgeEventFactory.onPlayerDestroyItem(this, orig, hand)
+        } else {
+          // because of various hacks for IC2, we expect the in-hand result to be moved to our offhand buffer
+          this.inventory.offHandInventory.set(0, getHeldItemMainhand)
+          this.inventory.setInventorySlotContents(this.inventory.currentItem, ItemStack.EMPTY)
+        }
       }
       result
     })) EnumActionResult.SUCCESS else EnumActionResult.PASS
