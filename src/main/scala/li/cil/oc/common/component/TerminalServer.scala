@@ -293,7 +293,10 @@ object TerminalServer {
 
     def find(address: String): Option[TerminalServer] = {
       completePending()
-      Some(ready.getOrDefault(address, null))
+      ready.getOrDefault(address, null) match {
+        case term: TerminalServer => Option(term)
+        case _ => None
+      }
     }
   }
 }
