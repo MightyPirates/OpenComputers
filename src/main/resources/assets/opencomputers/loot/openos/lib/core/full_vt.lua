@@ -14,13 +14,13 @@ local function set_cursor(window, x, y)
 end
 
 -- -- These DO NOT SCROLL
--- [(%d+)A        move cursor up n lines
--- [(%d+)B        move cursor down n lines
--- [(%d+)C        move cursor right n lines
--- [(%d+)D        move cursor left n lines
-rules[{"%[", "%d+", "[ABCD]"}] = function(window, _, n, dir)
+-- [(%d*)A        move cursor up n lines
+-- [(%d*)B        move cursor down n lines
+-- [(%d*)C        move cursor right n lines
+-- [(%d*)D        move cursor left n lines
+rules[{"%[", "%d*", "[ABCD]"}] = function(window, _, n, dir)
   local dx, dy = 0, 0
-  n = tonumber(n)
+  n = tonumber(n) or 1
   if dir == "A" then
     dy = -n
   elseif dir == "B" then

@@ -621,7 +621,7 @@ do
 
   local function str_gsub(s, pattern, repl, n)
     checkArg(1, s, "string")
-    checkArg(2, pattern, "string")
+    checkArg(2, pattern, "string", "number")
     checkArg(3, repl, "number", "string", "function", "table")
     checkArg(4, n, "number", "nil")
 
@@ -629,6 +629,7 @@ do
       return string_gsub(s, pattern, repl, n)
     end
 
+    pattern = tostring(pattern)
     local src = strptr(s);
     local p = strptr(pattern)
     local tr = type(repl)

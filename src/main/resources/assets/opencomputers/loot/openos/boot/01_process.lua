@@ -16,7 +16,8 @@ _G.coroutine = setmetatable(
   },
   {
     __index = function(_, key)
-      return assert(process.info(_coroutine.running()), "thread has no proc").data.coroutine_handler[key]
+      local proc = process.info(_coroutine.running())
+      return (proc and proc.data.coroutine_handler or _coroutine)[key]
     end
   }
 )

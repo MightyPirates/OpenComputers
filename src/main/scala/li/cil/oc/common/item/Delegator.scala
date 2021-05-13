@@ -1,7 +1,6 @@
 package li.cil.oc.common.item
 
 import java.util
-
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver
@@ -10,6 +9,7 @@ import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.integration.opencomputers.{Item => OpenComputersItem}
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
@@ -53,7 +53,10 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 
   override def getItemStackLimit(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.maxStackSize
+      case Some(subItem) => OpenComputersItem.address(stack) match {
+        case Some(address) => 1
+        case _ => subItem.maxStackSize
+      }
       case _ => maxStackSize
     }
 

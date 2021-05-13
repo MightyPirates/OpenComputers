@@ -40,6 +40,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   var totalRequiredEnergy = 0.0
 
+  override def getInventoryStackLimit: Int = 1
+
   var buffer = 0.0
 
   var disassembleNextInstantly = false

@@ -80,7 +80,9 @@ trait RedstoneAware extends RotationAware {
 
   def getOutput: Array[Int] = EnumFacing.values.map{ side: EnumFacing => _output(toLocal(side).ordinal) }
 
-  def getOutput(side: EnumFacing) = _output(toLocal(side).ordinal())
+  def getOutput(side: EnumFacing) = if (_output != null && _output.length <= toLocal(side).ordinal())
+    _output(toLocal(side).ordinal())
+  else 0
 
   def setOutput(side: EnumFacing, value: Int): Boolean = {
     if (value == getOutput(side)) return false

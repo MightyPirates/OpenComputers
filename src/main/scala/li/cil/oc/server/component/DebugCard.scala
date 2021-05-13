@@ -269,8 +269,7 @@ class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with D
     checkAccess()
     val destination = args.checkString(0)
     DebugNetwork.getEndpoint(destination).filter(_ != this).foreach{endpoint =>
-      // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
-      val packet = Network.newPacket(node.address, destination, 0, args.drop(1).asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
+      val packet = Network.newPacket(node.address, destination, 0, args.drop(1).toArray)
       endpoint.receivePacket(packet)
     }
     result()

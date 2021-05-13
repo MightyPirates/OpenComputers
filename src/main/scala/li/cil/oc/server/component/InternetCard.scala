@@ -250,6 +250,7 @@ object InternetCard {
     private val id = UUID.randomUUID()
 
     private def setupSelector() {
+      if (channel == null) return
       TCPNotifier.add((channel, () => {
         owner match {
           case Some(internetCard) =>
