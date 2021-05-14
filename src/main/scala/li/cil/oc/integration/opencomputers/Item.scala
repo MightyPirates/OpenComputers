@@ -65,7 +65,7 @@ object Item {
   }
 
   private def getTag(stack: ItemStack, keys: Array[String]): Option[NBTTagCompound] = {
-    if (stack == null || stack.stackSize == 0) None
+    if (stack == null || stack.getCount == 0 || stack == ItemStack.EMPTY) None
     else if (!stack.hasTagCompound) None
     else getTag(stack.getTagCompound, keys)
   }
