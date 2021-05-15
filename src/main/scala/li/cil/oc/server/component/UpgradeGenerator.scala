@@ -129,7 +129,11 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     }
     val selectedEmptyContainer: Option[ItemStack] = inQueue.getItem.getContainerItem(inQueue) match {
       case requiredContainer if requiredContainer != null && requiredContainer.stackSize > 0 => previousSelectedItem match {
-        case slotItem: ItemStack if slotItem != null && slotItem.stackSize > 0 && slotItem.getItem == requiredContainer.getItem => Option(slotItem.copy)
+        case slotItem: ItemStack if
+          slotItem != null &&
+            slotItem.stackSize > 0 &&
+            slotItem.getItem == requiredContainer.getItem &&
+            ItemStack.areItemStackTagsEqual(slotItem, requiredContainer) => Option(slotItem.copy)
         case _ => return result(false, "removing this fuel requires the appropriate container in the selected slot")
       }
       case _ => None // nothing to do, nothing required
@@ -193,7 +197,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     }
   }
 
-  private def updateClient() = host match {
+  private def updateClient(): Unit = host match {
     case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
     case _ =>
   }
@@ -235,7 +239,4 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
       nbt.setInteger("remainingTicks", remainingTicks)
     }
   }
-}
-
-class GeneratorActionException extends Exception {
 }
