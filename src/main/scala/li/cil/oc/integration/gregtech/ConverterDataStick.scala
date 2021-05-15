@@ -14,19 +14,20 @@ class ConverterDataStick extends Converter {
   override def convert(value: Any, output: util.Map[AnyRef, AnyRef]): Unit = if (value.isInstanceOf[ItemStack]) {
     val stack = value.asInstanceOf[ItemStack]
     val nbt = stack.stackTagCompound
+    if (nbt != null) {
     if (nbt.hasKey("prospection_tier"))
       nbt.getString("title") match {
         case "Raw Prospection Data" => getRawProspectionData(output, nbt)
-        case "Analyzed Prospection Data" => {
+          case "Analyzed Prospection Data" =>
           getRawProspectionData(output, nbt)
           output += "Analyzed Prospection Data" ->
             nbt.getTagList("pages", NBT.TAG_STRING)
               .toArray[NBTTagString].map( (tag: NBTTagString) => tag.func_150285_a_().split('\n'))
-        }
         case _ =>
       }
+    }
   }
-  def getRawProspectionData(output: util.Map[AnyRef, AnyRef], nbt: NBTTagCompound) =
+  private def getRawProspectionData(output: util.Map[AnyRef, AnyRef], nbt: NBTTagCompound) =
     output += "Raw Prospection Data" -> Map(
       "prospection_tier" -> nbt.getByte("prospection_tier"),
       "prospection_pos" -> nbt.getString("prospection_pos"),
