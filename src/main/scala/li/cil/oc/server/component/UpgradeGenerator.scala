@@ -232,6 +232,3 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
     }
   }
 }
-
-class GeneratorActionException extends Exception {
-}
