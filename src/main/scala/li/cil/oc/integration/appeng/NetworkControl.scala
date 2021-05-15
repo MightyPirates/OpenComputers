@@ -6,7 +6,7 @@ import appeng.api.networking.crafting.ICraftingLink
 import appeng.api.networking.crafting.ICraftingRequester
 import appeng.api.networking.security.IActionHost
 import appeng.api.networking.security.MachineSource
-import appeng.api.storage.data.IAEItemStack
+import appeng.api.storage.data.{IAEItemStack, IItemList}
 import appeng.me.helpers.IGridProxyable
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
@@ -18,6 +18,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.appeng.NetworkControl._
 import li.cil.oc.integration.ec.ECUtil
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.DatabaseAccess
@@ -44,43 +45,8 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   def node: Node
 
-  private def aeCraftItem(aeItem: IAEItemStack): IAEItemStack = {
-    val patterns = tile.getProxy.getCrafting.getCraftingFor(aeItem, null, 0, tile.getWorldObj)
-    patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(aeItem))) match {
-      case Some(pattern) => pattern.getOutputs.find(_.isSameType(aeItem)).get
-      case _ => aeItem.copy.setStackSize(0) // Should not be possible, but hey...
-    }
-  }
-
-  private def aePotentialItem(aeItem: IAEItemStack): IAEItemStack = {
-    if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
-      aeItem
-    else
-      aeCraftItem(aeItem)
-  }
-
   private def allItems: Iterable[IAEItemStack] = tile.getProxy.getStorage.getItemInventory.getStorageList
-  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
-
-  private def convert(aeItem: IAEItemStack): java.util.HashMap[String, AnyRef] = {
-    def hashConvert(value: java.util.HashMap[_, _]) = {
-      val hash = new java.util.HashMap[String, AnyRef]
-      value.collect{ case (k:String, v:AnyRef) => hash += k -> v }
-      hash
-    }
-    val potentialItem = aePotentialItem(aeItem)
-    val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
-      .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
-    if (result.length > 0) {
-      val hash = result(0)
-      // it would have been nice to put these fields in a registry convert
-      // but the potential ae item needs the tile and position data
-      hash.update("size", Int.box(aeItem.getStackSize.toInt))
-      hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
-      return hash
-    }
-    null
-  }
+  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem, tile) }
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
   def getCpus(context: Context, args: Arguments): Array[AnyRef] = {
@@ -101,7 +67,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allCraftables
-      .collect{ case aeCraftItem if filter.isEmpty || matches(convert(aeCraftItem), filter) => new NetworkControl.Craftable(tile, aeCraftItem) }
+      .collect{ case aeCraftItem if filter.isEmpty || matches(convert(aeCraftItem, tile), filter) => new NetworkControl.Craftable(tile, aeCraftItem) }
       .toArray)
   }
 
@@ -111,9 +77,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allItems
-      .map(convert)
+      .map(item => convert(item, tile))
       .filter(hash => matches(hash, filter))
       .toArray)
+  }
+
+  @Callback(doc = "function():userdata -- Get an iterator object for the list of the items in the network.")
+  def allItems(context: Context, args: Arguments): Array[AnyRef] = {
+    result(new NetworkContents(tile))
   }
 
   @Callback(doc = "function(filter:table, dbAddress:string[, startSlot:number[, count:number]]): Boolean -- Store items in the network matching the specified filter in the database with the specified address.")
@@ -123,7 +94,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
     DatabaseAccess.withDatabase(node, args.checkString(1), database => {
       val items = allItems
-        .collect{ case aeItem if matches(convert(aeItem), filter) => aePotentialItem(aeItem)}.toArray
+        .collect{ case aeItem if matches(convert(aeItem, tile), filter) => aePotentialItem(aeItem, tile)}.toArray
       val offset = args.optSlot(database.data, 2, 0)
       val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min items.length
       var slot = offset
@@ -344,4 +315,88 @@ object NetworkControl {
     }
   }
 
+  class NetworkContents(var controller: TileEntity with IGridProxyable) extends AbstractValue
+  {
+    def this() = this(null)
+    var items : IItemList[IAEItemStack] = null
+    var i : java.util.Iterator[IAEItemStack] = null
+    var index = 0
+
+    override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
+      if (controller == null) return null
+      if (items == null) {
+        items = controller.getProxy.getStorage.getItemInventory.getStorageList
+        if (items != null)
+          i = items.iterator
+        if (i != null)
+          for (_ <- 1 to index) {
+            if (i.hasNext)
+              i.next
+          }
+      }
+      if (this.i == null && this.items != null)
+        this.i = items.iterator
+      if (!this.i.hasNext()) return null
+      index += 1
+      Array[AnyRef](convert(i.next(), controller))
+    }
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      if (nbt.hasKey("dimension")) {
+        val dimension = nbt.getInteger("dimension")
+        val x = nbt.getInteger("x")
+        val y = nbt.getInteger("y")
+        val z = nbt.getInteger("z")
+        index = nbt.getInteger("index")
+        EventHandler.scheduleServer(() => {
+          val tileEntity = DimensionManager.getWorld(dimension).getTileEntity(x, y, z)
+          if (tileEntity != null && tileEntity.isInstanceOf[TileEntity with IGridProxyable])
+            controller = tileEntity.asInstanceOf[TileEntity with IGridProxyable]
+        })
+      }
+    }
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      nbt.setInteger("index", index)
+      if (controller != null && !controller.isInvalid) {
+        nbt.setInteger("dimension", controller.getWorldObj.provider.dimensionId)
+        nbt.setInteger("x", controller.xCoord)
+        nbt.setInteger("y", controller.yCoord)
+        nbt.setInteger("z", controller.zCoord)
+      }
+    }
+  }
+  def aeCraftItem(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): IAEItemStack = {
+    val patterns = tile.getProxy.getCrafting.getCraftingFor(aeItem, null, 0, tile.getWorldObj)
+    patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(aeItem))) match {
+      case Some(pattern) => pattern.getOutputs.find(_.isSameType(aeItem)).get
+      case _ => aeItem.copy.setStackSize(0) // Should not be possible, but hey...
+    }
+  }
+
+  def aePotentialItem(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): IAEItemStack = {
+    if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
+      aeItem
+    else
+      aeCraftItem(aeItem, tile)
+  }
+  def convert(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
+    def hashConvert(value: java.util.HashMap[_, _]) = {
+      val hash = new java.util.HashMap[String, AnyRef]
+      value.collect{ case (k:String, v:AnyRef) => hash += k -> v }
+      hash
+    }
+    val potentialItem = aePotentialItem(aeItem, tile)
+    val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
+      .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
+    if (result.length > 0) {
+      val hash = result(0)
+      // it would have been nice to put these fields in a registry convert
+      // but the potential ae item needs the tile and position data
+      hash.update("size", Int.box(aeItem.getStackSize.toInt))
+      hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
+      return hash
+    }
+    null
+  }
 }
