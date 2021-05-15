@@ -1,10 +1,10 @@
 package li.cil.oc.api;
 
-import cpw.mods.fml.common.event.FMLInterModComms;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraftforge.fml.common.event.FMLInterModComms;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -23,6 +23,19 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 @SuppressWarnings("unused")
 public final class IMC {
+    public static final String REGISTER_ASSEMBLER_FILTER = "registerAssemblerFilter";
+    public static final String REGISTER_ASSEMBLER_TEMPLATE = "registerAssemblerTemplate";
+    public static final String REGISTER_DISASSEMBLER_TEMPLATE = "registerDisassemblerTemplate";
+    public static final String REGISTER_TOOL_DURABILITY_PROVIDER = "registerToolDurabilityProvider";
+    public static final String REGISTER_WRENCH_TOOL = "registerWrenchTool";
+    public static final String REGISTER_WRENCH_TOOL_CHECK = "registerWrenchToolCheck";
+    public static final String REGISTER_ITEM_CHARGE = "registerItemCharge";
+    public static final String REGISTER_INK_PROVIDER = "registerInkProvider";
+    public static final String BLACKLIST_PERIPHERAL = "blacklistPeripheral";
+    public static final String BLACKLIST_HOST = "blacklistHost";
+    public static final String REGISTER_CUSTOM_POWER_SYSTEM = "registerCustomPowerSystem";
+    public static final String REGISTER_PROGRAM_DISK_LABEL = "registerProgramDiskLabel";
+
     /**
      * Register a callback that is used as a filter for assembler templates.
      * Any templates that require a base item that is rejected by <em>any</em>
@@ -40,7 +53,7 @@ public final class IMC {
      * @param callback the callback to register as a filtering method.
      */
     public static void registerAssemblerFilter(final String callback) {
-        FMLInterModComms.sendMessage(MOD_ID, "registerAssemblerFilter", callback);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_ASSEMBLER_FILTER, callback);
     }
 
     /**
@@ -153,7 +166,7 @@ public final class IMC {
             nbt.setTag("componentSlots", componentsNbt);
         }
 
-        FMLInterModComms.sendMessage(MOD_ID, "registerAssemblerTemplate", nbt);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_ASSEMBLER_TEMPLATE, nbt);
     }
 
     /**
@@ -197,7 +210,7 @@ public final class IMC {
         nbt.setString("select", select);
         nbt.setString("disassemble", disassemble);
 
-        FMLInterModComms.sendMessage(MOD_ID, "registerDisassemblerTemplate", nbt);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_DISASSEMBLER_TEMPLATE, nbt);
     }
 
     /**
@@ -221,7 +234,7 @@ public final class IMC {
      * @param callback the callback to register as a durability provider.
      */
     public static void registerToolDurabilityProvider(final String callback) {
-        FMLInterModComms.sendMessage(MOD_ID, "registerToolDurabilityProvider", callback);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_TOOL_DURABILITY_PROVIDER, callback);
     }
 
     /**
@@ -245,7 +258,7 @@ public final class IMC {
      * @param callback the callback to register as a wrench tool handler.
      */
     public static void registerWrenchTool(final String callback) {
-        FMLInterModComms.sendMessage(MOD_ID, "registerWrenchTool", callback);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_WRENCH_TOOL, callback);
     }
 
     /**
@@ -268,7 +281,7 @@ public final class IMC {
      * @param callback the callback to register as a wrench tool tester.
      */
     public static void registerWrenchToolCheck(final String callback) {
-        FMLInterModComms.sendMessage(MOD_ID, "registerWrenchToolCheck", callback);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_WRENCH_TOOL_CHECK, callback);
     }
 
     /**
@@ -298,7 +311,7 @@ public final class IMC {
         nbt.setString("name", name);
         nbt.setString("canCharge", canCharge);
         nbt.setString("charge", charge);
-        FMLInterModComms.sendMessage(MOD_ID, "registerItemCharge", nbt);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_ITEM_CHARGE, nbt);
     }
 
     /**
@@ -322,7 +335,7 @@ public final class IMC {
      * @param callback the callback to register as an ink provider.
      */
     public static void registerInkProvider(final String callback) {
-        FMLInterModComms.sendMessage(MOD_ID, "registerInkProvider", callback);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_INK_PROVIDER, callback);
     }
 
     /**
@@ -335,7 +348,7 @@ public final class IMC {
      * @param peripheral the class of the peripheral to blacklist.
      */
     public static void blacklistPeripheral(final Class peripheral) {
-        FMLInterModComms.sendMessage(MOD_ID, "blacklistPeripheral", peripheral.getName());
+        FMLInterModComms.sendMessage(MOD_ID, BLACKLIST_PERIPHERAL, peripheral.getName());
     }
 
     /**
@@ -360,18 +373,7 @@ public final class IMC {
         final NBTTagCompound stackNbt = new NBTTagCompound();
         stack.writeToNBT(stackNbt);
         nbt.setTag("item", stackNbt);
-        FMLInterModComms.sendMessage(MOD_ID, "blacklistHost", nbt);
-    }
-
-    /**
-     * Notifies OpenComputers that there is some 3rd-party power system present
-     * that adds integration on its side.
-     * <p/>
-     * This will suppress the "no power system found" message on start up, and
-     * avoid auto-disabling power use.
-     */
-    public static void registerCustomPowerSystem() {
-        FMLInterModComms.sendMessage(MOD_ID, "registerCustomPowerSystem", "true");
+        FMLInterModComms.sendMessage(MOD_ID, BLACKLIST_HOST, nbt);
     }
 
     /**
@@ -409,12 +411,12 @@ public final class IMC {
             }
             nbt.setTag("architectures", architecturesNbt);
         }
-        FMLInterModComms.sendMessage(MOD_ID, "registerProgramDiskLabel", nbt);
+        FMLInterModComms.sendMessage(MOD_ID, REGISTER_PROGRAM_DISK_LABEL, nbt);
     }
 
     // ----------------------------------------------------------------------- //
 
-    private static final String MOD_ID = "OpenComputers";
+    private static final String MOD_ID = "opencomputers";
 
     private IMC() {
     }

@@ -1,0 +1,6 @@
+{
+    "parent": "opencomputers:item/flat",
+    "textures": {
+        "layer0": "opencomputers:items/angelupgrade"
+    }
+}

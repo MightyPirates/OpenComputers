@@ -4,6 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL11
 
@@ -23,7 +24,6 @@ object BufferRenderer {
     displayLists = GLAllocation.generateDisplayLists(2)
 
     RenderState.checkError(getClass.getName + ".displayLists: leaving")
-    Textures.init(tm)
   })
 
   def compileBackground(bufferWidth: Int, bufferHeight: Int, forRobot: Boolean = false) =
@@ -35,7 +35,7 @@ object BufferRenderer {
 
       GL11.glNewList(displayLists, GL11.GL_COMPILE)
 
-      textureManager.get.bindTexture(Textures.guiBorders)
+      Textures.bind(Textures.GUI.Borders)
 
       GL11.glBegin(GL11.GL_QUADS)
 
@@ -89,10 +89,11 @@ object BufferRenderer {
 
   def drawText(screen: api.internal.TextBuffer) =
     if (textureManager.isDefined) {
-      GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
-      GL11.glDepthMask(false)
+      RenderState.pushAttrib()
+      GlStateManager.depthMask(false)
       val changed = screen.renderText()
-      GL11.glPopAttrib()
+      GlStateManager.depthMask(true)
+      RenderState.popAttrib()
       changed
     }
     else false

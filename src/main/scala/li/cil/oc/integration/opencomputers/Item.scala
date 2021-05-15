@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.DriverItem
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.common.Tier
@@ -13,7 +14,7 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.annotation.tailrec
 
-trait Item extends driver.Item {
+trait Item extends DriverItem {
   def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
     worksWith(stack) && !Registry.blacklist.exists {
       case (blacklistedStack, blacklistedHost) =>
@@ -23,29 +24,29 @@ trait Item extends driver.Item {
 
   override def tier(stack: ItemStack) = Tier.One
 
-  override def dataTag(stack: ItemStack) = Item.dataTag(stack)
+  override def dataTag(stack: ItemStack): NBTTagCompound = Item.dataTag(stack)
 
-  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.filter(_ != null).contains(api.Items.get(stack))
+  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*): Boolean = items.filter(_ != null).contains(api.Items.get(stack))
 
-  protected def isAdapter(host: Class[_ <: EnvironmentHost]) = classOf[internal.Adapter].isAssignableFrom(host)
+  protected def isAdapter(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Adapter].isAssignableFrom(host)
 
-  protected def isComputer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Case].isAssignableFrom(host)
+  protected def isComputer(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Case].isAssignableFrom(host)
 
-  protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[internal.Robot].isAssignableFrom(host)
+  protected def isRobot(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Robot].isAssignableFrom(host)
 
-  protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[internal.Rotatable].isAssignableFrom(host)
+  protected def isRotatable(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Rotatable].isAssignableFrom(host)
 
-  protected def isServer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Server].isAssignableFrom(host)
+  protected def isServer(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Server].isAssignableFrom(host)
 
-  protected def isTablet(host: Class[_ <: EnvironmentHost]) = classOf[internal.Tablet].isAssignableFrom(host)
+  protected def isTablet(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Tablet].isAssignableFrom(host)
 
-  protected def isMicrocontroller(host: Class[_ <: EnvironmentHost]) = classOf[internal.Microcontroller].isAssignableFrom(host)
+  protected def isMicrocontroller(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Microcontroller].isAssignableFrom(host)
 
-  protected def isDrone(host: Class[_ <: EnvironmentHost]) = classOf[internal.Drone].isAssignableFrom(host)
+  protected def isDrone(host: Class[_ <: EnvironmentHost]): Boolean = classOf[internal.Drone].isAssignableFrom(host)
 }
 
 object Item {
-  def dataTag(stack: ItemStack) = {
+  def dataTag(stack: ItemStack): NBTTagCompound = {
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
     }
@@ -64,7 +65,7 @@ object Item {
   }
 
   private def getTag(stack: ItemStack, keys: Array[String]): Option[NBTTagCompound] = {
-    if (stack == null || stack.stackSize == 0) None
+    if (stack == null || stack.getCount == 0 || stack == ItemStack.EMPTY) None
     else if (!stack.hasTagCompound) None
     else getTag(stack.getTagCompound, keys)
   }

@@ -1,4 +1,5 @@
 package li.cil.oc.common.tileentity.traits.power
+/* TODO Factorization
 
 import cpw.mods.fml.common.Optional
 import factorization.api.Charge
@@ -91,3 +92,4 @@ trait Factorization extends Common {
   @Optional.Method(modid = Mods.IDs.Factorization)
   def getCoord = new Coord(this)
 }
+*/

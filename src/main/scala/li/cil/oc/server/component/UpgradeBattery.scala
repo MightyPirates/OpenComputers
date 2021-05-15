@@ -10,10 +10,11 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 
 import scala.collection.convert.WrapAsJava._
 
-class UpgradeBattery(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo {
+class UpgradeBattery(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withConnector(Settings.get.bufferCapacitorUpgrades(tier)).
     create()

@@ -46,4 +46,9 @@ object NbtDataStream {
     array.foreach(memWriter.writeShort(_))
     nbt.setByteArray(key, rawByteWriter.toByteArray)
   }
+
+  def getOptBoolean(nbt: NBTTagCompound, key: String, df: Boolean): Boolean = if (nbt.hasKey(key)) nbt.getBoolean(key) else df
+  def getOptString(nbt: NBTTagCompound, key: String, df: String): String = if (nbt.hasKey(key)) nbt.getString(key) else df
+  def getOptNbt(nbt: NBTTagCompound, key: String): NBTTagCompound = if (nbt.hasKey(key)) nbt.getCompoundTag(key) else new NBTTagCompound
+  def getOptInt(nbt: NBTTagCompound, key: String, df: Int): Int = if (nbt.hasKey(key)) nbt.getInteger(key) else df
 }

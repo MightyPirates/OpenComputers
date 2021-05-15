@@ -13,11 +13,12 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.item.TabletWrapper
 
 import scala.collection.convert.WrapAsJava._
 
-class Tablet(val tablet: TabletWrapper) extends prefab.ManagedEnvironment with DeviceInfo {
+class Tablet(val tablet: TabletWrapper) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tablet").
     withConnector(Settings.get.bufferTablet).

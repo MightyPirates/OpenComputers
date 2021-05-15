@@ -1,7 +1,8 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
-import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -16,22 +17,17 @@ import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
 object PacketSender {
-  def sendAbstractBusState(t: AbstractBusAware) {
-    val pb = new SimplePacketBuilder(PacketType.AbstractBusState)
-
-    pb.writeTileEntity(t)
-    pb.writeBoolean(t.isAbstractBusAvailable)
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
   def sendAdapterState(t: tileentity.Adapter): Unit = {
     val pb = new SimplePacketBuilder(PacketType.AdapterState)
 
@@ -79,7 +75,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
     pb.writeTileEntity(t)
-    pb.writeInt(t.color)
+    pb.writeInt(t.getColor)
 
     pb.sendToPlayersNearTileEntity(t)
   }
@@ -92,6 +88,15 @@ object PacketSender {
     pb.writeBoolean(t.hasErrored)
 
     pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendMachineItemState(player: EntityPlayerMP, stack: ItemStack, isRunning: Boolean): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.MachineItemStateResponse)
+
+    pb.writeItemStack(stack)
+    pb.writeBoolean(isRunning)
+
+    pb.sendToPlayer(player)
   }
 
   def sendComputerUserList(t: Computer, list: Array[String]) {
@@ -125,9 +130,9 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
+  val fileSystemAccessTimeouts: mutable.WeakHashMap[Node, mutable.Map[String, Long]] = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
 
-  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
+  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String): Unit = fileSystemAccessTimeouts.synchronized {
     fileSystemAccessTimeouts.get(node) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
@@ -149,7 +154,7 @@ object PacketSender {
               pb.writeTileEntity(t)
             case _ =>
               pb.writeBoolean(false)
-              pb.writeInt(event.getWorld.provider.dimensionId)
+              pb.writeInt(event.getWorld.provider.getDimension)
               pb.writeDouble(event.getX)
               pb.writeDouble(event.getY)
               pb.writeDouble(event.getZ)
@@ -160,7 +165,7 @@ object PacketSender {
     }
   }
 
-  def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
+  def sendNetworkActivity(node: Node, host: EnvironmentHost): Unit = {
 
     val event = host match {
       case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
@@ -178,7 +183,7 @@ object PacketSender {
           pb.writeTileEntity(t)
         case _ =>
           pb.writeBoolean(false)
-          pb.writeInt(event.getWorld.provider.dimensionId)
+          pb.writeInt(event.getWorld.provider.getDimension)
           pb.writeDouble(event.getX)
           pb.writeDouble(event.getY)
           pb.writeDouble(event.getZ)
@@ -188,7 +193,7 @@ object PacketSender {
     }
   }
 
-  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = null) {
+  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = ItemStack.EMPTY) {
     val pb = new SimplePacketBuilder(PacketType.FloppyChange)
 
     pb.writeTileEntity(t)
@@ -273,9 +278,9 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
 
     pb.writeTileEntity(t)
-    pb.writeDouble(t.translation.xCoord)
-    pb.writeDouble(t.translation.yCoord)
-    pb.writeDouble(t.translation.zCoord)
+    pb.writeDouble(t.translation.x)
+    pb.writeDouble(t.translation.y)
+    pb.writeDouble(t.translation.z)
 
     pb.sendToPlayersNearTileEntity(t)
   }
@@ -378,16 +383,16 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendParticleEffect(position: BlockPosition, name: String, count: Int, velocity: Double, direction: Option[ForgeDirection] = None): Unit = if (count > 0) {
+  def sendParticleEffect(position: BlockPosition, particleType: EnumParticleTypes, count: Int, velocity: Double, direction: Option[EnumFacing] = None): Unit = if (count > 0) {
     val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
 
-    pb.writeInt(position.world.get.provider.dimensionId)
+    pb.writeInt(position.world.get.provider.getDimension)
     pb.writeInt(position.x)
     pb.writeInt(position.y)
     pb.writeInt(position.z)
     pb.writeDouble(velocity)
     pb.writeDirection(direction)
-    pb.writeUTF(name)
+    pb.writeInt(particleType.getParticleID)
     pb.writeByte(count.toByte)
 
     pb.sendToNearbyPlayers(position.world.get, position.x, position.y, position.z, Some(32.0))
@@ -473,7 +478,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     for (slot <- 0 until t.getSizeInventory) {
-      pb.writeBoolean(t.getStackInSlot(slot) != null)
+      pb.writeBoolean(!t.getStackInSlot(slot).isEmpty)
     }
 
     pb.sendToPlayersNearTileEntity(t)
@@ -484,7 +489,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isOutputEnabled)
-    for (d <- ForgeDirection.VALID_DIRECTIONS) {
+    for (d <- EnumFacing.values) {
       pb.writeByte(t.getOutput(d))
     }
 
@@ -500,14 +505,14 @@ object PacketSender {
     pb.sendToPlayersNearHost(t)
   }
 
-  def sendRobotMove(t: tileentity.Robot, position: BlockPosition, direction: ForgeDirection) {
+  def sendRobotMove(t: tileentity.Robot, position: BlockPos, direction: EnumFacing) {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
-    pb.writeInt(t.proxy.world.provider.dimensionId)
-    pb.writeInt(position.x)
-    pb.writeInt(position.y)
-    pb.writeInt(position.z)
+    pb.writeInt(t.world.provider.getDimension)
+    pb.writeInt(position.getX)
+    pb.writeInt(position.getY)
+    pb.writeInt(position.getZ)
     pb.writeDirection(Option(direction))
 
     pb.sendToPlayersNearTileEntity(t)
@@ -584,7 +589,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendSwitchActivity(t: tileentity.traits.SwitchLike) {
+  def sendSwitchActivity(t: tileentity.Relay) {
     val pb = new SimplePacketBuilder(PacketType.SwitchActivity)
 
     pb.writeTileEntity(t)
@@ -764,11 +769,25 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendSound(world: World, x: Double, y: Double, z: Double, sound: ResourceLocation, category: SoundCategory, range: Double) {
+    val pb = new SimplePacketBuilder(PacketType.SoundEffect)
+
+    pb.writeInt(world.provider.getDimension)
+    pb.writeDouble(x)
+    pb.writeDouble(y)
+    pb.writeDouble(z)
+    pb.writeUTF(sound.toString)
+    pb.writeByte(category.ordinal())
+    pb.writeFloat(range.toFloat)
+
+    pb.sendToNearbyPlayers(world, x, y, z, Option(range))
+  }
+
   def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {
     val pb = new SimplePacketBuilder(PacketType.Sound)
 
     val blockPos = BlockPosition(x, y, z)
-    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(world.provider.getDimension)
     pb.writeInt(blockPos.x)
     pb.writeInt(blockPos.y)
     pb.writeInt(blockPos.z)
@@ -782,7 +801,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.SoundPattern)
 
     val blockPos = BlockPosition(x, y, z)
-    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(world.provider.getDimension)
     pb.writeInt(blockPos.x)
     pb.writeInt(blockPos.y)
     pb.writeInt(blockPos.z)

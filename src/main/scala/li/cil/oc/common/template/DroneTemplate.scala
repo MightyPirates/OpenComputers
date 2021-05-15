@@ -34,7 +34,7 @@ object DroneTemplate extends Template {
     val data = new DroneData()
     data.tier = caseTier(inventory)
     data.name = RobotData.randomName
-    data.components = items.drop(1).filter(_ != null).toArray
+    data.components = items.drop(1).filter(!_.isEmpty).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
     val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
     data.save(stack)

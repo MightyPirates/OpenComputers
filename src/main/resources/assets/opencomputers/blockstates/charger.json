@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "opencomputers:charger" },
+        "facing=south": { "model": "opencomputers:charger", "y": 180 },
+        "facing=west":  { "model": "opencomputers:charger", "y": 270 },
+        "facing=east":  { "model": "opencomputers:charger", "y": 90 }
+    }
+}

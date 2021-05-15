@@ -53,12 +53,17 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  private final val InputTag = "input"
+  private final val HandleTag = "handle"
+  private final val PathTag = "path"
+  private final val PositionTag = "position"
+
   override def load(nbt: NBTTagCompound) {
-    val handlesNbt = nbt.getTagList("input", NBT.TAG_COMPOUND)
+    val handlesNbt = nbt.getTagList(InputTag, NBT.TAG_COMPOUND)
     (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
-      val handle = handleNbt.getInteger("handle")
-      val path = handleNbt.getString("path")
-      val position = handleNbt.getLong("position")
+      val handle = handleNbt.getInteger(HandleTag)
+      val path = handleNbt.getString(PathTag)
+      val position = handleNbt.getLong(PositionTag)
       openInputChannel(path) match {
         case Some(channel) =>
           val fileHandle = new Handle(this, handle, path, channel)
@@ -74,12 +79,12 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     for (file <- handles.values) {
       assert(file.channel.isOpen)
       val handleNbt = new NBTTagCompound()
-      handleNbt.setInteger("handle", file.handle)
-      handleNbt.setString("path", file.path)
-      handleNbt.setLong("position", file.position)
+      handleNbt.setInteger(HandleTag, file.handle)
+      handleNbt.setString(PathTag, file.path)
+      handleNbt.setLong(PositionTag, file.position)
       handlesNbt.appendTag(handleNbt)
     }
-    nbt.setTag("input", handlesNbt)
+    nbt.setTag(InputTag, handlesNbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -89,7 +94,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
   protected trait InputChannel extends ReadableByteChannel {
     def isOpen: Boolean
 
-    def close()
+    def close(): Unit
 
     def position: Long
 

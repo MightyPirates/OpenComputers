@@ -5,6 +5,7 @@ import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.resources.IReloadableResourceManager
 import net.minecraft.client.resources.IResourceManager
 import net.minecraft.client.resources.IResourceManagerReloadListener
@@ -93,15 +94,16 @@ object DynamicFontRenderer {
   private val size = 256
 
   class CharTexture(val owner: DynamicFontRenderer) {
-    private val id = GL11.glGenTextures()
-    GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+    private val id = GlStateManager.generateTexture()
+    RenderState.bindTexture(id)
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     } else {
-      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
     }
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
     GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, size, size, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
+    RenderState.bindTexture(0)
 
     RenderState.checkError(getClass.getName + ".<init>: create texture")
 
@@ -118,11 +120,11 @@ object DynamicFontRenderer {
     private var chars = 0
 
     def delete() {
-      GL11.glDeleteTextures(id)
+      GlStateManager.deleteTexture(id)
     }
 
     def bind() {
-      GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+      RenderState.bindTexture(id)
     }
 
     def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
@@ -138,7 +140,7 @@ object DynamicFontRenderer {
       val x = chars % cols
       val y = chars / cols
 
-      GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+      RenderState.bindTexture(id)
       GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
 
       chars += glyphWidth

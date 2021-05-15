@@ -9,6 +9,10 @@ import li.cil.oc.server.component._
 import net.minecraft.nbt.NBTTagCompound
 
 trait WakeMessageAware extends traits.NetworkAware {
+  private final val WakeMessageTag = "wakeMessage"
+
+  private final val WakeMessageFuzzyTag = "wakeMessageFuzzy"
+
   protected var wakeMessage: Option[String] = None
 
   protected var wakeMessageFuzzy: Boolean = false
@@ -57,14 +61,14 @@ trait WakeMessageAware extends traits.NetworkAware {
   }
 
   def loadWakeMessage(nbt: NBTTagCompound): Unit = {
-    if (nbt.hasKey("wakeMessage")) {
-      wakeMessage = Option(nbt.getString("wakeMessage"))
+    if (nbt.hasKey(WakeMessageTag)) {
+      wakeMessage = Option(nbt.getString(WakeMessageTag))
     }
-    wakeMessageFuzzy = nbt.getBoolean("wakeMessageFuzzy")
+    wakeMessageFuzzy = nbt.getBoolean(WakeMessageFuzzyTag)
   }
 
   def saveWakeMessage(nbt: NBTTagCompound): Unit = {
-    wakeMessage.foreach(nbt.setString("wakeMessage", _))
-    nbt.setBoolean("wakeMessageFuzzy", wakeMessageFuzzy)
+    wakeMessage.foreach(nbt.setString(WakeMessageTag, _))
+    nbt.setBoolean(WakeMessageFuzzyTag, wakeMessageFuzzy)
   }
 }

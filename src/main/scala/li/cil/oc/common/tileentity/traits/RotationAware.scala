@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 trait RotationAware extends TileEntity {
-  def toLocal(value: ForgeDirection) = value
+  def toLocal(value: EnumFacing) = value
 
-  def toGlobal(value: ForgeDirection) = value
+  def toGlobal(value: EnumFacing) = value
 }

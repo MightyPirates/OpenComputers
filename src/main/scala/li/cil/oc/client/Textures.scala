@@ -1,168 +1,586 @@
 package li.cil.oc.client
 
 import li.cil.oc.Settings
-import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.util.IIcon
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.client.event.TextureStitchEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+
+import scala.collection.mutable
 
 object Textures {
-  val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
-  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
-  val guiBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/background.png")
-  val guiBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/bar.png")
-  val guiBorders = new ResourceLocation(Settings.resourceDomain, "textures/gui/borders.png")
-  val guiButtonDriveMode = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_drive_mode.png")
-  val guiButtonPower = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
-  val guiButtonRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_range.png")
-  val guiButtonRun = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_run.png")
-  val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
-  val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
-  val guiButtonRelay = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
-  val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
-  val guiDatabase = new ResourceLocation(Settings.resourceDomain, "textures/gui/database.png")
-  val guiDatabase1 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database1.png")
-  val guiDatabase2 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database2.png")
-  val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
-  val guiDrive = new ResourceLocation(Settings.resourceDomain, "textures/gui/drive.png")
-  val guiDrone = new ResourceLocation(Settings.resourceDomain, "textures/gui/drone.png")
-  val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
-  val guiManual = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual.png")
-  val guiManualHome = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_home.png")
-  val guiManualMissingItem = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_missing_item.png")
-  val guiManualTab = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_tab.png")
-  val guiPrinter = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer.png")
-  val guiPrinterInk = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_ink.png")
-  val guiPrinterMaterial = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_material.png")
-  val guiPrinterProgress = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_progress.png")
-  val guiRack = new ResourceLocation(Settings.resourceDomain, "textures/gui/rack.png")
-  val guiRaid = new ResourceLocation(Settings.resourceDomain, "textures/gui/raid.png")
-  val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
-  val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
-  val guiRobotNoScreen = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_noscreen.png")
-  val guiRobotAssembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_assembler.png")
-  val guiRobotSelection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
-  val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
-  val guiSlot = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
-  val guiUpgradeTab = new ResourceLocation(Settings.resourceDomain, "textures/gui/upgrade_tab.png")
-  val guiWaypoint = new ResourceLocation(Settings.resourceDomain, "textures/gui/waypoint.png")
+  object Font extends TextureBundle {
+    val Aliased = L("chars_aliased")
+    val AntiAliased = L("chars")
 
-  val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontOn.png")
-  val blockCaseFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontError.png")
-  val blockCaseFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontActivity.png")
-  val blockDiskDriveFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveFrontActivity.png")
-  val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/HologramEffect.png")
-  val blockMicrocontrollerFrontLight = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontLight.png")
-  val blockMicrocontrollerFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontOn.png")
-  val blockMicrocontrollerFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontError.png")
-  val blockRaidFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontError.png")
-  val blockRaidFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontActivity.png")
-  val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
-  val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
-  val blockRackDiskDriveActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveMountableActivity.png")
-  val blockRackServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
-  val blockRackServerError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
-  val blockRackServerActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
-  val blockRackServerNetworkActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontNetworkActivity.png")
-  val blockRackTerminalServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
-  val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
+    override protected def basePath = "textures/font/%s.png"
 
-  val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeCrafting.png")
-  val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
-  val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeInventory.png")
-
-  val overlayNanomachines = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power.png")
-  val overlayNanomachinesBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power_bar.png")
-
-  object Adapter {
-    var iconOn: IIcon = _
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
-  object Cable {
-    var iconCap: IIcon = _
+  object GUI extends TextureBundle {
+    val Background = L("background")
+    val Bar = L("bar")
+    val Borders = L("borders")
+    val ButtonDriveMode = L("button_drive_mode")
+    val ButtonPower = L("button_power")
+    val ButtonRange = L("button_range")
+    val ButtonRun = L("button_run")
+    val ButtonScroll = L("button_scroll")
+    val ButtonSide = L("button_side")
+    val ButtonRelay = L("button_relay")
+    val Computer = L("computer")
+    val Database = L("database")
+    val Database1 = L("database1")
+    val Database2 = L("database2")
+    val Disassembler = L("disassembler")
+    val Drive = L("drive")
+    val Drone = L("drone")
+    val KeyboardMissing = L("keyboard_missing")
+    val Manual = L("manual")
+    val ManualHome = L("manual_home")
+    val ManualMissingItem = L("manual_missing_item")
+    val ManualTab = L("manual_tab")
+    val Nanomachines = L("nanomachines_power")
+    val NanomachinesBar = L("nanomachines_power_bar")
+    val Printer = L("printer")
+    val PrinterInk = L("printer_ink")
+    val PrinterMaterial = L("printer_material")
+    val PrinterProgress = L("printer_progress")
+    val Rack = L("rack")
+    val Raid = L("raid")
+    val Range = L("range")
+    val Robot = L("robot")
+    val RobotAssembler = L("robot_assembler")
+    val RobotNoScreen = L("robot_noscreen")
+    val RobotSelection = L("robot_selection")
+    val Server = L("server")
+    val Slot = L("slot")
+    val UpgradeTab = L("upgrade_tab")
+    val Waypoint = L("waypoint")
+
+    override protected def basePath = "textures/gui/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
-  object Charger {
-    var iconFrontCharging: IIcon = _
-    var iconSideCharging: IIcon = _
+  object Icons extends TextureBundle {
+    private val ForSlotType = Slot.All.map(name => name -> L(name)).toMap
+    private val ForTier = Map(Tier.None -> L("na")) ++ (Tier.One to Tier.Three).map(tier => tier -> L("tier" + tier)).toMap
+
+    def get(slotType: String) = ForSlotType.get(slotType).orNull
+
+    def get(tier: Int) = ForTier.get(tier).orNull
+
+    override protected def basePath = "textures/icons/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
-  object Disassembler {
-    var iconSideOn: IIcon = _
-    var iconTopOn: IIcon = _
+  object Model extends TextureBundle {
+    val UpgradeCrafting = L("crafting_upgrade")
+    val UpgradeGenerator = L("generator_upgrade")
+    val UpgradeInventory = L("inventory_upgrade")
+    val HologramEffect = L("hologram_effect")
+    val Drone = L("drone")
+    val Robot = L("robot")
+
+    override protected def basePath = "textures/model/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
-  object Geolyzer {
-    var iconTopOn: IIcon = _
+  object Item extends TextureBundle {
+    val DroneItem = L("drone")
+    val Robot = L("robot")
+
+    override protected def basePath = "items/%s"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
   }
 
-  object HoverBoots {
-    var lightOverlay: IIcon = _
+  // These are kept in the block texture atlas to support animations.
+  object Block extends TextureBundle {
+    val AdapterOn = L("overlay/adapter_on")
+    val AssemblerSideAssembling = L("overlay/assembler_side_assembling")
+    val AssemblerSideOn = L("overlay/assembler_side_on")
+    val AssemblerTopOn = L("overlay/assembler_top_on")
+    val CaseFrontActivity = L("overlay/case_front_activity")
+    val CaseFrontError = L("overlay/case_front_error")
+    val CaseFrontOn = L("overlay/case_front_on")
+    val ChargerFrontOn = L("overlay/charger_front_on")
+    val ChargerSideOn = L("overlay/charger_side_on")
+    val DisassemblerSideOn = L("overlay/disassembler_side_on")
+    val DisassemblerTopOn = L("overlay/disassembler_top_on")
+    val DiskDriveFrontActivity = L("overlay/diskDrive_front_activity")
+    val GeolyzerTopOn = L("overlay/geolyzer_top_on")
+    val MicrocontrollerFrontLight = L("overlay/microcontroller_front_light")
+    val MicrocontrollerFrontOn = L("overlay/microcontroller_front_on")
+    val MicrocontrollerFrontError = L("overlay/microcontroller_front_error")
+    val NetSplitterOn = L("overlay/netSplitter_on")
+    val PowerDistributorSideOn = L("overlay/powerDistributor_side_on")
+    val PowerDistributorTopOn = L("overlay/powerDistributor_top_on")
+    val RackDiskDrive = L("rack_disk_drive")
+    val RackDiskDriveActivity = L("overlay/rack_disk_drive_activity")
+    val RackServer = L("rack_server")
+    val RackServerActivity = L("overlay/rack_server_activity")
+    val RackServerOn = L("overlay/rack_server_on")
+    val RackServerError = L("overlay/rack_server_error")
+    val RackServerNetworkActivity = L("overlay/rack_server_network_activity")
+    val RackTerminalServer = L("rack_terminal_server")
+    val RackTerminalServerOn = L("overlay/rack_terminal_server_on")
+    val RackTerminalServerPresence = L("overlay/rack_terminal_server_presence")
+    val RaidFrontActivity = L("overlay/raid_front_activity")
+    val RaidFrontError = L("overlay/raid_front_error")
+    val ScreenUpIndicator = L("overlay/screen_up_indicator")
+    val SwitchSideOn = L("overlay/switch_side_on")
+    val TransposerOn = L("overlay/transposer_on")
+
+    val Cable = L("cable")
+    val CableCap = L("cableCap")
+    val GenericTop = L("generic_top", load = false)
+    val NetSplitterSide = L("netSplitter_side")
+    val NetSplitterTop = L("netSplitter_top")
+    val RackFront = L("rack_front", load = false)
+    val RackSide = L("rack_side", load = false)
+
+    // Kill me now.
+    object Screen {
+      val Single = Array(
+        L("screen/b"),
+        L("screen/b"),
+        L("screen/b2"),
+        L("screen/b2"),
+        L("screen/b2"),
+        L("screen/b2")
+      )
+
+      val SingleFront = Array(
+        L("screen/f"),
+        L("screen/f2")
+      )
+
+      val Horizontal = Array(
+        // Vertical.
+        Array(
+          Array(
+            L("screen/bht"),
+            L("screen/bhb"),
+            L("screen/bht2"),
+            L("screen/bht2"),
+            L("screen/b2"),
+            L("screen/b2")
+          ),
+          Array(
+            L("screen/bhm"),
+            L("screen/bhm"),
+            L("screen/bhm2"),
+            L("screen/bhm2"),
+            L("screen/b"), // Not rendered.
+            L("screen/b") // Not rendered.
+          ),
+          Array(
+            L("screen/bhb"),
+            L("screen/bht"),
+            L("screen/bhb2"),
+            L("screen/bhb2"),
+            L("screen/b2"),
+            L("screen/b2")
+          )
+        ),
+        // Horizontal.
+        Array(
+          Array(
+            L("screen/bhb2"),
+            L("screen/bht2"),
+            L("screen/bht"),
+            L("screen/bhb"),
+            L("screen/b2"),
+            L("screen/b2")
+          ),
+          Array(
+            L("screen/bhm2"),
+            L("screen/bhm2"),
+            L("screen/bhm"),
+            L("screen/bhm"),
+            L("screen/b"), // Not rendered.
+            L("screen/b") // Not rendered.
+          ),
+          Array(
+            L("screen/bht2"),
+            L("screen/bhb2"),
+            L("screen/bhb"),
+            L("screen/bht"),
+            L("screen/b2"),
+            L("screen/b2")
+          )
+        )
+      )
+
+      val HorizontalFront = Array(
+        // Vertical.
+        Array(
+          L("screen/fhb2"),
+          L("screen/fhm2"),
+          L("screen/fht2")
+        ),
+        // Horizontal.
+        Array(
+          L("screen/fhb"),
+          L("screen/fhm"),
+          L("screen/fht")
+        )
+      )
+
+      val Vertical = Array(
+        // Vertical.
+        Array(
+          Array(
+            L("screen/b"),
+            L("screen/b"),
+            L("screen/bvt"),
+            L("screen/bvt"),
+            L("screen/bvt"),
+            L("screen/bvt")
+          ),
+          Array(
+            L("screen/b"), // Not rendered.
+            L("screen/b"), // Not rendered.
+            L("screen/bvm"),
+            L("screen/bvm"),
+            L("screen/bvm"),
+            L("screen/bvm")
+          ),
+          Array(
+            L("screen/b"),
+            L("screen/b"),
+            L("screen/bvb2"),
+            L("screen/bvb2"),
+            L("screen/bvb2"),
+            L("screen/bvb2")
+          )
+        ),
+        // Horizontal.
+        Array(
+          Array(
+            L("screen/b2"),
+            L("screen/b2"),
+            L("screen/bvt"),
+            L("screen/bvt"),
+            L("screen/bht2"),
+            L("screen/bhb2")
+          ),
+          Array(
+            L("screen/b"), // Not rendered.
+            L("screen/b"), // Not rendered.
+            L("screen/bvm"),
+            L("screen/bvm"),
+            L("screen/bhm2"),
+            L("screen/bhm2")
+          ),
+          Array(
+            L("screen/b2"),
+            L("screen/b2"),
+            L("screen/bvb"),
+            L("screen/bvb"),
+            L("screen/bhb2"),
+            L("screen/bht2")
+          )
+        )
+      )
+
+      val VerticalFront = Array(
+        // Vertical.
+        Array(
+          L("screen/fvt"),
+          L("screen/fvm"),
+          L("screen/fvb2")
+        ),
+        // Horizontal.
+        Array(
+          L("screen/fvt"),
+          L("screen/fvm"),
+          L("screen/fvb")
+        )
+      )
+
+      val Multi = Array(
+        // Vertical.
+        Array(
+          // Top.
+          Array(
+            Array(
+              L("screen/bht"),
+              L("screen/bhb"),
+              L("screen/btl"),
+              L("screen/btr"),
+              L("screen/bvb"),
+              L("screen/bvt")
+            ),
+            Array(
+              L("screen/bhm"),
+              L("screen/bhm"),
+              L("screen/btm"),
+              L("screen/btm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/bhb"),
+              L("screen/bht"),
+              L("screen/btr"),
+              L("screen/btl"),
+              L("screen/bvt"),
+              L("screen/bvb")
+            )
+          ),
+          // Middle.
+          Array(
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bml"),
+              L("screen/bmr"),
+              L("screen/bvm"),
+              L("screen/bvm")
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmm"),
+              L("screen/bmm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmr"),
+              L("screen/bml"),
+              L("screen/bvm"),
+              L("screen/bvt")
+            )
+          ),
+          // Bottom.
+          Array(
+            Array(
+              L("screen/bht"),
+              L("screen/bhb"),
+              L("screen/bbl2"),
+              L("screen/bbr2"),
+              L("screen/bvt"),
+              L("screen/bvb2")
+            ),
+            Array(
+              L("screen/bhm"),
+              L("screen/bhm"),
+              L("screen/bbm2"),
+              L("screen/bbm2"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/bhb"),
+              L("screen/bht"),
+              L("screen/bbr2"),
+              L("screen/bbl2"),
+              L("screen/bvb2"),
+              L("screen/bvt")
+            )
+          )
+        ),
+        // Horizontal.
+        Array(
+          // Top.
+          Array(
+            Array(
+              L("screen/bhb2"),
+              L("screen/bht2"),
+              L("screen/btl"),
+              L("screen/btr"),
+              L("screen/bht2"),
+              L("screen/bhb2")
+            ),
+            Array(
+              L("screen/bhm2"),
+              L("screen/bhm2"),
+              L("screen/btm"),
+              L("screen/btm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/bht2"),
+              L("screen/bhb2"),
+              L("screen/btr"),
+              L("screen/btl"),
+              L("screen/bht2"),
+              L("screen/bhb2")
+            )
+          ),
+          // Middle.
+          Array(
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bml"),
+              L("screen/bml"),
+              L("screen/bhm2"),
+              L("screen/bhm2")
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmm"),
+              L("screen/bmm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmr"),
+              L("screen/bmr"),
+              L("screen/bhm2"),
+              L("screen/bhm2")
+            )
+          ),
+          // Bottom.
+          Array(
+            Array(
+              L("screen/bhb2"),
+              L("screen/bht2"),
+              L("screen/bbl"),
+              L("screen/bbr"),
+              L("screen/bhb2"),
+              L("screen/bht2")
+            ),
+            Array(
+              L("screen/bhm2"),
+              L("screen/bhm2"),
+              L("screen/bbm"),
+              L("screen/bbm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/bht2"),
+              L("screen/bhb2"),
+              L("screen/bbr"),
+              L("screen/bbl"),
+              L("screen/bhb2"),
+              L("screen/bht2")
+            )
+          )
+        )
+      )
+
+      val MultiFront = Array(
+        // Vertical.
+        Array(
+          Array(
+            L("screen/ftr"),
+            L("screen/ftm"),
+            L("screen/ftl")
+          ),
+          Array(
+            L("screen/fmr"),
+            L("screen/fmm"),
+            L("screen/fml")
+          ),
+          Array(
+            L("screen/fbr2"),
+            L("screen/fbm2"),
+            L("screen/fbl2")
+          )
+        ),
+        // Horizontal.
+        Array(
+          Array(
+            L("screen/ftr"),
+            L("screen/ftm"),
+            L("screen/ftl")
+          ),
+          Array(
+            L("screen/fmr"),
+            L("screen/fmm"),
+            L("screen/fml")
+          ),
+          Array(
+            L("screen/fbr"),
+            L("screen/fbm"),
+            L("screen/fbl")
+          )
+        )
+      )
+
+      // The hacks I do for namespacing...
+      private[Block] def makeSureThisIsInitialized() {}
+    }
+
+    Screen.makeSureThisIsInitialized()
+
+    def bind(): Unit = Textures.bind(TextureMap.LOCATION_BLOCKS_TEXTURE)
+
+    override protected def basePath = "blocks/%s"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
   }
 
-  object PowerDistributor {
-    var iconSideOn: IIcon = _
-    var iconTopOn: IIcon = _
+  def bind(location: ResourceLocation): Unit = {
+    if (location == null) RenderState.bindTexture(0)
+    else {
+      val manager = Minecraft.getMinecraft.renderEngine
+      manager.bindTexture(location)
+      // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
+      // that has borked caching, so binding textures will sometimes fail,
+      // because it'll think the texture is already bound although it isn't.
+      // So we do it manually.
+      val texture = manager.getTexture(location)
+      if (texture != null) {
+        RenderState.bindTexture(texture.getGlTextureId)
+      }
+    }
   }
 
-  object Rack {
-    val icons = Array.fill[IIcon](6)(null)
-    var diskDrive: IIcon = _
-    var server: IIcon = _
-    var terminal: IIcon = _
+  def getSprite(location: String): TextureAtlasSprite = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location)
+
+  def getSprite(location: ResourceLocation): TextureAtlasSprite = getSprite(location.toString)
+
+  @SubscribeEvent
+  def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {
+    Font.init(e.getMap)
+    GUI.init(e.getMap)
+    Icons.init(e.getMap)
+    Model.init(e.getMap)
+    Item.init(e.getMap)
+    Block.init(e.getMap)
   }
 
-  object Assembler {
-    var iconSideAssembling: IIcon = _
-    var iconSideOn: IIcon = _
-    var iconTopOn: IIcon = _
+  abstract class TextureBundle {
+    private val locations = mutable.ArrayBuffer.empty[ResourceLocation]
+
+    protected def textureManager = Minecraft.getMinecraft.getTextureManager
+
+    final def init(map: TextureMap): Unit = {
+      locations.foreach(loader(map, _))
+    }
+
+    protected def L(name: String, load: Boolean = true) = {
+      val location = new ResourceLocation(Settings.resourceDomain, String.format(basePath, name))
+      if (load) locations += location
+      location
+    }
+
+    protected def basePath: String
+
+    protected def loader(map: TextureMap, loc: ResourceLocation): Unit
   }
 
-  object Switch {
-    var iconSideActivity: IIcon = _
-  }
-
-  object NetSplitter {
-    var iconOn: IIcon = _
-  }
-
-  object Transposer {
-    var iconOn: IIcon = _
-  }
-
-  def init(tm: TextureManager) {
-    tm.bindTexture(fontAntiAliased)
-    tm.bindTexture(fontAliased)
-
-    tm.bindTexture(guiBackground)
-    tm.bindTexture(guiBar)
-    tm.bindTexture(guiBorders)
-    tm.bindTexture(guiButtonPower)
-    tm.bindTexture(guiButtonRange)
-    tm.bindTexture(guiButtonRun)
-    tm.bindTexture(guiButtonSide)
-    tm.bindTexture(guiComputer)
-    tm.bindTexture(guiDrone)
-    tm.bindTexture(guiKeyboardMissing)
-    tm.bindTexture(guiRaid)
-    tm.bindTexture(guiRange)
-    tm.bindTexture(guiRobot)
-    tm.bindTexture(guiRobotAssembler)
-    tm.bindTexture(guiRobotSelection)
-    tm.bindTexture(guiServer)
-    tm.bindTexture(guiSlot)
-
-    tm.bindTexture(blockCaseFrontOn)
-    tm.bindTexture(blockCaseFrontActivity)
-    tm.bindTexture(blockHologram)
-    tm.bindTexture(blockMicrocontrollerFrontLight)
-    tm.bindTexture(blockMicrocontrollerFrontOn)
-    tm.bindTexture(blockRackServerOn)
-    tm.bindTexture(blockRobot)
-    tm.bindTexture(blockScreenUpIndicator)
-
-    tm.bindTexture(upgradeCrafting)
-    tm.bindTexture(upgradeGenerator)
-    tm.bindTexture(upgradeInventory)
-  }
 }

@@ -5,28 +5,29 @@ import dan200.computercraft.api.filesystem.IWritableMount
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.Settings
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.api.fs.Label
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.integration.opencomputers.Item
-import li.cil.oc.server.fs.ComputerCraftFileSystem
-import li.cil.oc.server.fs.ComputerCraftWritableFileSystem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object DriverComputerCraftMedia extends Item {
   override def worksWith(stack: ItemStack) = stack.getItem.isInstanceOf[IMedia]
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = if (!host.world.isRemote) {
     val address = addressFromTag(dataTag(stack))
-    val mount = oc.api.FileSystem.fromComputerCraft(stack.getItem.asInstanceOf[IMedia].createDataMount(stack, host.world))
+    val mount = fromComputerCraft(stack.getItem.asInstanceOf[IMedia].createDataMount(stack, host.world))
     Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, Settings.resourceDomain + ":floppy_access")) match {
       case Some(environment) =>
         environment.node.asInstanceOf[oc.server.network.Node].address = address
         environment
       case _ => null
     }
-  }
+  } else null
+
+  def fromComputerCraft(mount: AnyRef): FileSystem = DriverComputerCraftMedia.createFileSystem(mount).orNull
 
   override def slot(stack: ItemStack) = Slot.Floppy
 

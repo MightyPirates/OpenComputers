@@ -8,6 +8,8 @@ import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.StackOption._
+import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
@@ -22,8 +24,8 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def isEquivalentTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
-      case (None, None) => true
+      case (SomeStack(stackA), SomeStack(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
+      case (EmptyStack, EmptyStack) => true
       case _ => false
     })
   }
@@ -35,7 +37,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     val localStack = inventory.getStackInSlot(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
-      val nonEmpty = database.getStackInSlot(dbSlot) != null
+      val nonEmpty = database.getStackInSlot(dbSlot) != ItemStack.EMPTY // zero size stacks!
       database.setStackInSlot(dbSlot, localStack.copy())
       result(nonEmpty)
     })

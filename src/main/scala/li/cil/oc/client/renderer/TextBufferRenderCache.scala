@@ -6,13 +6,14 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.opengl.GL11
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] {
@@ -62,7 +63,6 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
         GL11.glEndList()
 
         RenderState.checkError(getClass.getName + ".compileOrDraw: glEndList")
-
       }
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: leaving")
@@ -71,6 +71,17 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     }
     else {
       GL11.glCallList(list)
+      GlStateManager.enableTexture2D()
+      GlStateManager.depthMask(true)
+      GlStateManager.color(1, 1, 1, 1)
+
+      // Because display lists and the GlStateManager don't like each other, apparently.
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      RenderState.bindTexture(0)
+      GL11.glDepthMask(true)
+      GL11.glColor4f(1, 1, 1, 1)
+
+      RenderState.disableBlend()
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }

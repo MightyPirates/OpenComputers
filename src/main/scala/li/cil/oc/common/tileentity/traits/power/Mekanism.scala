@@ -1,4 +1,5 @@
 package li.cil.oc.common.tileentity.traits.power
+/* TODO Mekanism
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.asm.Injectable
@@ -25,3 +26,4 @@ trait Mekanism extends Common {
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def setEnergy(energy: Double) {}
 }
+*/

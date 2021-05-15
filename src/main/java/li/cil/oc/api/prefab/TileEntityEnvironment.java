@@ -18,6 +18,8 @@ import net.minecraft.tileentity.TileEntity;
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class TileEntityEnvironment extends TileEntity implements Environment {
+    private static final String TAG_NODE = "oc:node";
+
     /**
      * This must be set in subclasses to the node that is used to represent
      * this tile entity.
@@ -54,9 +56,6 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
      * </pre>
      */
     protected Node node;
-
-    // See updateEntity().
-    protected boolean addedToNetwork = false;
 
     // ----------------------------------------------------------------------- //
 
@@ -96,16 +95,8 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void updateEntity() {
-        // On the first update, try to add our node to nearby networks. We do
-        // this in the update logic, not in validate() because we need to access
-        // neighboring tile entities, which isn't possible in validate().
-        // We could alternatively check node != null && node.network() == null,
-        // but this has somewhat better performance, and makes it clearer.
-        if (!addedToNetwork) {
-            addedToNetwork = true;
-            Network.joinOrCreateNetwork(this);
-        }
+    public void onLoad() {
+        Network.joinOrCreateNetwork(this);
     }
 
     @Override
@@ -138,18 +129,19 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
             // to continue working without interruption across loads. If the
             // node is a power connector this is also required to restore the
             // internal energy buffer of the node.
-            node.load(nbt.getCompoundTag("oc:node"));
+            node.load(nbt.getCompoundTag(TAG_NODE));
         }
     }
 
     @Override
-    public void writeToNBT(final NBTTagCompound nbt) {
+    public NBTTagCompound writeToNBT(final NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         // See readFromNBT() regarding host check.
         if (node != null && node.host() == this) {
             final NBTTagCompound nodeNbt = new NBTTagCompound();
             node.save(nodeNbt);
-            nbt.setTag("oc:node", nodeNbt);
+            nbt.setTag(TAG_NODE, nodeNbt);
         }
+        return nbt;
     }
 }

@@ -13,7 +13,7 @@ public final class CreativeTab {
      * <em>not</em> try to access this anyway when OpenComputers isn't
      * present (don't ship the API in your mod), so don't rely on this!
      */
-    public static CreativeTabs instance = CreativeTabs.tabRedstone;
+    public static CreativeTabs instance = CreativeTabs.REDSTONE;
 
     private CreativeTab() {
     }

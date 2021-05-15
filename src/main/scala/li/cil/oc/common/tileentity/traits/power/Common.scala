@@ -1,27 +1,27 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait Common extends TileEntity {
   @SideOnly(Side.CLIENT)
-  protected def hasConnector(side: ForgeDirection) = false
+  protected def hasConnector(side: EnumFacing) = false
 
-  protected def connector(side: ForgeDirection): Option[Connector] = None
+  protected def connector(side: EnumFacing): Option[Connector] = None
 
   // ----------------------------------------------------------------------- //
 
   def energyThroughput: Double
 
-  protected def tryAllSides(provider: (Double, ForgeDirection) => Double, fromOther: Double => Double, toOther: Double => Double) {
+  protected def tryAllSides(provider: (Double, EnumFacing) => Double, fromOther: Double => Double, toOther: Double => Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,
     // but our throughput is per tick, so multiply this up for actual budget.
     var budget = energyThroughput * Settings.get.tickFrequency
-    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+    for (side <- EnumFacing.values) {
       val demand = toOther(math.min(budget, globalDemand(side)))
       if (demand > 1) {
         val energy = fromOther(provider(demand, side))
@@ -34,9 +34,8 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  def canConnectPower(side: ForgeDirection) =
-    !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
-      (if (isClient) hasConnector(side) else connector(side).isDefined)
+  def canConnectPower(side: EnumFacing) =
+    !Settings.get.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined)
 
   /**
    * Tries to inject the specified amount of energy into the buffer via the specified side.
@@ -46,7 +45,7 @@ trait Common extends TileEntity {
    * @param doReceive whether to actually inject energy or only simulate it.
    * @return the amount of energy that was actually injected.
    */
-  def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true): Double =
+  def tryChangeBuffer(side: EnumFacing, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
@@ -56,19 +55,19 @@ trait Common extends TileEntity {
       case _ => 0
     }
 
-  def globalBuffer(side: ForgeDirection): Double =
+  def globalBuffer(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBuffer
       case _ => 0
     }
 
-  def globalBufferSize(side: ForgeDirection): Double =
+  def globalBufferSize(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBufferSize
       case _ => 0
     }
 
-  def globalDemand(side: ForgeDirection) = math.max(0, math.min(energyThroughput, globalBufferSize(side) - globalBuffer(side)))
+  def globalDemand(side: EnumFacing) = math.max(0, math.min(energyThroughput, globalBufferSize(side) - globalBuffer(side)))
 }

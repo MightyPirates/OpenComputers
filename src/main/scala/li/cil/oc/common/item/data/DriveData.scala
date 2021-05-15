@@ -19,25 +19,25 @@ class DriveData extends ItemData(null) {
     lockInfo != null && !lockInfo.isEmpty
   }
 
-  private val UnmanagedKey = Settings.namespace + "unmanaged"
-  private val LockKey = Settings.namespace + "lock"
+  private final val UnmanagedTag = Settings.namespace + "unmanaged"
+  private val LockTag = Settings.namespace + "lock"
 
   override def load(nbt: NBTTagCompound) {
-    isUnmanaged = nbt.getBoolean(UnmanagedKey)
-    lockInfo = if (nbt.hasKey(LockKey)) {
-      nbt.getString(LockKey)
+    isUnmanaged = nbt.getBoolean(UnmanagedTag)
+    lockInfo = if (nbt.hasKey(LockTag)) {
+      nbt.getString(LockTag)
     } else ""
   }
 
   override def save(nbt: NBTTagCompound) {
-    nbt.setBoolean(UnmanagedKey, isUnmanaged)
-    nbt.setString(LockKey, lockInfo)
+    nbt.setBoolean(UnmanagedTag, isUnmanaged)
+    nbt.setString(LockTag, lockInfo)
   }
 }
 
 object DriveData {
   def lock(stack: ItemStack, player: EntityPlayer): Unit = {
-    val key = player.getDisplayName
+    val key = player.getName
     val data = new DriveData(stack)
     if (!data.isLocked) {
       data.lockInfo = key match {

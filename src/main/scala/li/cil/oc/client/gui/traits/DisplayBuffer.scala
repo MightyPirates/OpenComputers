@@ -4,7 +4,7 @@ import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
-import org.lwjgl.opengl.GL11
+import net.minecraft.client.renderer.GlStateManager
 
 trait DisplayBuffer extends GuiScreen {
   protected def bufferX: Int
@@ -36,15 +36,15 @@ trait DisplayBuffer extends GuiScreen {
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
 
-    GL11.glPushMatrix()
-    RenderState.disableLighting()
+    GlStateManager.pushMatrix()
+    RenderState.disableEntityLighting()
     drawBuffer()
-    GL11.glPopMatrix()
+    GlStateManager.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer")
   }
 
-  protected def drawBuffer()
+  protected def drawBuffer(): Unit
 
   protected def changeSize(w: Double, h: Double, recompile: Boolean): Double
 }

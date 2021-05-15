@@ -18,14 +18,13 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.{AxisAlignedBB, BlockPos, Vec3d}
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
+class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("motion_sensor").
     withConnector().
@@ -91,33 +90,32 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
     }
   }
 
-  private def sensorBounds = AxisAlignedBB.getBoundingBox(
+  private def sensorBounds = new AxisAlignedBB(
     x + 0.5 - radius, y + 0.5 - radius, z + 0.5 - radius,
     x + 0.5 + radius, y + 0.5 + radius, z + 0.5 + radius)
 
   private def isInRange(entity: EntityLivingBase) = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= radius * radius
 
-  private def isClearPath(target: Vec3): Boolean = {
-    val origin = Vec3.createVectorHelper(x, y, z)
-    val path = origin.subtract(target).normalize()
-    val eye = origin.addVector(path.xCoord, path.yCoord, path.zCoord)
-    val blocker = world.rayTraceBlocks(eye, target)
-    blocker == null
+  private def isClearPath(target: Vec3d): Boolean = {
+    val origin = new Vec3d(x, y, z)
+    val path = target.subtract(origin).normalize()
+    val eye = origin.add(path)
+    world.rayTraceBlocks(eye, target) == null
   }
 
-  private def isVisible(entity: EntityLivingBase): Boolean =
-    entity.getActivePotionEffect(Potion.invisibility) == null &&
+  private def isVisible(entity: EntityLivingBase) =
+    entity.getActivePotionEffect(Potion.getPotionFromResourceLocation("invisibility")) == null &&
       // Note: it only working in lit conditions works and is neat, but this
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val target = entity.getPosition(1.0F)
-      isClearPath(target) || isClearPath(target.addVector(0, entity.getEyeHeight, 0))
+      val target = entity.getPositionVector
+      isClearPath(target) || isClearPath(target.addVector(0.0D, entity.getEyeHeight, 0.0D))
     }
 
   private def sendSignal(entity: EntityLivingBase) {
     if (Settings.get.inputUsername) {
-      node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)), entity.getCommandSenderName)
+      node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)), entity.getName)
     }
     else {
       node.sendToReachable("computer.signal", "motion", Double.box(entity.posX - (x + 0.5)), Double.box(entity.posY - (y + 0.5)), Double.box(entity.posZ - (z + 0.5)))

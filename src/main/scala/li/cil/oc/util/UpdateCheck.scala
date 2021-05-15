@@ -5,10 +5,10 @@ import java.net.URL
 
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.ComparableVersion
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.versioning.ComparableVersion
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global

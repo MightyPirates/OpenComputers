@@ -1,67 +1,51 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
-import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumHand
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 class Adapter extends SimpleBlock with traits.GUI {
-  override protected def customTextures = Array(
-    Some("AdapterTop"),
-    Some("AdapterTop"),
-    Some("AdapterSide"),
-    Some("AdapterSide"),
-    Some("AdapterSide"),
-    Some("AdapterSide")
-  )
-
-  @SideOnly(Side.CLIENT)
-  override def registerBlockIcons(iconRegister: IIconRegister): Unit = {
-    super.registerBlockIcons(iconRegister)
-    Textures.Adapter.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":AdapterOn")
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def guiType = GuiType.Adapter
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
-    world.getTileEntity(x, y, z) match {
+  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit =
+    world.getTileEntity(pos) match {
       case adapter: tileentity.Adapter => adapter.neighborChanged()
       case _ => // Ignore.
     }
 
-  override def onNeighborChange(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
-    world.getTileEntity(x, y, z) match {
+  override def onNeighborChange(world: IBlockAccess, pos: BlockPos, neighbor: BlockPos) =
+    world.getTileEntity(pos) match {
       case adapter: tileentity.Adapter =>
-        val (dx, dy, dz) = (tileX - x, tileY - y, tileZ - z)
-        val index = 3 + dx + dy + dy + dz + dz + dz
-        if (index >= 0 && index < sides.length) {
-          adapter.neighborChanged(sides(index))
-        }
+        // TODO can we just pass the blockpos?
+        val side =
+          if (neighbor == pos.down()) EnumFacing.DOWN
+          else if (neighbor == pos.up()) EnumFacing.UP
+          else if (neighbor == pos.north()) EnumFacing.NORTH
+          else if (neighbor == pos.south()) EnumFacing.SOUTH
+          else if (neighbor == pos.west()) EnumFacing.WEST
+          else if (neighbor == pos.east()) EnumFacing.EAST
+          else throw new IllegalArgumentException("not a neighbor") // TODO wat
+        adapter.neighborChanged(side)
       case _ => // Ignore.
     }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    if (Wrench.holdsApplicableWrench(player, pos)) {
       val sideToToggle = if (player.isSneaking) side.getOpposite else side
-      world.getTileEntity(x, y, z) match {
+      world.getTileEntity(pos) match {
         case adapter: tileentity.Adapter =>
           if (!world.isRemote) {
             val oldValue = adapter.openSides(sideToToggle.ordinal())
@@ -71,15 +55,6 @@ class Adapter extends SimpleBlock with traits.GUI {
         case _ => false
       }
     }
-    else super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+    else super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
   }
-
-  private val sides = Array(
-    ForgeDirection.NORTH,
-    ForgeDirection.DOWN,
-    ForgeDirection.WEST,
-    ForgeDirection.UNKNOWN,
-    ForgeDirection.EAST,
-    ForgeDirection.UP,
-    ForgeDirection.SOUTH)
 }

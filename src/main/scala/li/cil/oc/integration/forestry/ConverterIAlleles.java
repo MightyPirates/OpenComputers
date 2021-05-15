@@ -35,7 +35,7 @@ public class ConverterIAlleles implements Converter {
     }
 
     private void convertAlleleSpecies(final IAlleleSpecies value, final Map<Object, Object> output) {
-        output.put("name", value.getName());
+        output.put("name", value.getAlleleName());
         output.put("uid", value.getUID());
     }
 }

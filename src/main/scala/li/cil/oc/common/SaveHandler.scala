@@ -10,8 +10,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-import cpw.mods.fml.common.eventhandler.EventPriority
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.MachineHost
@@ -21,10 +19,12 @@ import li.cil.oc.util.SafeThreadPool
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.apache.commons.lang3.JavaVersion
 import org.apache.commons.lang3.SystemUtils
 
@@ -48,11 +48,11 @@ object SaveHandler {
   // which takes a lot of time and is completely unnecessary in those cases.
   var savingForClients = false
 
-  class SaveDataEntry(val data: Array[Byte], val pos: ChunkCoordIntPair, val name: String, val dimension: Int) extends Runnable {
+  class SaveDataEntry(val data: Array[Byte], val pos: ChunkPos, val name: String, val dimension: Int) extends Runnable {
     override def run(): Unit = {
       val path = statePath
       val dimPath = new io.File(path, dimension.toString)
-      val chunkPath = new io.File(dimPath, s"${this.pos.chunkXPos}.${this.pos.chunkZPos}")
+      val chunkPath = new io.File(dimPath, s"${this.pos.x}.${this.pos.z}")
       chunkDirs.add(chunkPath)
       if (!chunkPath.exists()) {
         chunkPath.mkdirs()
@@ -101,14 +101,14 @@ object SaveHandler {
 
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
-    val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
+    val dimension = world.provider.getDimension
+    val chunk = new ChunkPos(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
     nbt.setInteger("dimension", dimension)
-    nbt.setInteger("chunkX", chunk.chunkXPos)
-    nbt.setInteger("chunkZ", chunk.chunkZPos)
+    nbt.setInteger("chunkX", chunk.x)
+    nbt.setInteger("chunkZ", chunk.z)
 
     scheduleSave(dimension, chunk, name, data)
   }
@@ -142,7 +142,7 @@ object SaveHandler {
     // Same goes for the chunk. This also works around issues with computers
     // being moved (e.g. Redstone in Motion).
     val dimension = nbt.getInteger("dimension")
-    val chunk = new ChunkCoordIntPair(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
+    val chunk = new ChunkPos(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
 
     // Wait for the latest save task for the requested file to complete.
     // This prevents the chance of loading an outdated version
@@ -158,7 +158,7 @@ object SaveHandler {
     load(dimension, chunk, name)
   }
 
-  def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]): Unit = {
+  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]): Unit = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
       // Disregarding whether or not there already was a
@@ -169,12 +169,12 @@ object SaveHandler {
     }
   }
 
-  def load(dimension: Int, chunk: ChunkCoordIntPair, name: String): Array[Byte] = {
+  def load(dimension: Int, chunk: ChunkPos, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
 
     val path = statePath
     val dimPath = new io.File(path, dimension.toString)
-    val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     val file = new io.File(chunkPath, name)
     if (!file.exists()) return Array.empty[Byte]
     try {
@@ -219,11 +219,13 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
-    // Touch all externally saved data when loading, to avoid it getting
-    // deleted in the next save (because the now - save time will usually
-    // be larger than the time out after loading a world again).
-    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
-    else visitJava16()
+    if (!e.getWorld.isRemote) {
+      // Touch all externally saved data when loading, to avoid it getting
+      // deleted in the next save (because the now - save time will usually
+      // be larger than the time out after loading a world again).
+      if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
+      else visitJava16()
+    }
   }
 
   private def visitJava16() {

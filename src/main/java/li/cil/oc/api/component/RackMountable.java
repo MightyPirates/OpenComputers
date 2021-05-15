@@ -6,7 +6,9 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.util.StateAware;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumHand;
 
 /**
  * Use this interface on environments provided by drivers for items that can
@@ -61,10 +63,12 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
      * imprecise on the server side, since they'll have been sent in a
      * pointlessly compressed fashion (because MC is a dummy like that).
      *
-     * @param player the player activating the mountable.
-     * @param hitX   the relative x coordinate of the activation on the mountable.
-     * @param hitY   the relative y coordinate of the activation on the mountable.
+     * @param player   the player activating the mountable.
+     * @param hand     the hand the player used.
+     * @param heldItem the item held in that hand.
+     * @param hitX     the relative x coordinate of the activation on the mountable.
+     * @param hitY     the relative y coordinate of the activation on the mountable.
      * @return whether the activation was handled (e.g. GUI opened).
      */
-    boolean onActivate(EntityPlayer player, float hitX, float hitY);
+    boolean onActivate(EntityPlayer player, EnumHand hand, ItemStack heldItem, float hitX, float hitY);
 }

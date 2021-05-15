@@ -6,6 +6,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
+import li.cil.oc.util.StackOption._
+import net.minecraft.item.ItemStack
 
 trait InventoryControl extends InventoryAware {
   @Callback(doc = "function():number -- The size of this device's internal inventory.")
@@ -24,7 +26,7 @@ trait InventoryControl extends InventoryAware {
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
-      case Some(stack) => stack.stackSize
+      case SomeStack(stack) => stack.getCount
       case _ => 0
     })
   }
@@ -33,7 +35,7 @@ trait InventoryControl extends InventoryAware {
   def space(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
-      case Some(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
+      case SomeStack(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.getCount
       case _ => inventory.getInventoryStackLimit
     })
   }
@@ -42,8 +44,8 @@ trait InventoryControl extends InventoryAware {
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => InventoryUtils.haveSameItemType(stackA, stackB, args.optBoolean(1, false))
-      case (None, None) => true
+      case (SomeStack(stackA), SomeStack(stackB)) => InventoryUtils.haveSameItemType(stackA, stackB, args.optBoolean(1, false))
+      case (EmptyStack, EmptyStack) => true
       case _ => false
     })
   }
@@ -56,29 +58,29 @@ trait InventoryControl extends InventoryAware {
       result(true)
     }
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(from), Some(to)) =>
+      case (SomeStack(from), SomeStack(to)) =>
         if (InventoryUtils.haveSameItemType(from, to, checkNBT = true)) {
-          val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
-          val amount = math.min(count, math.min(space, from.stackSize))
+          val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.getCount
+          val amount = math.min(count, math.min(space, from.getCount))
           if (amount > 0) {
-            from.stackSize -= amount
-            to.stackSize += amount
-            assert(from.stackSize >= 0)
-            if (from.stackSize == 0) {
-              inventory.setInventorySlotContents(selectedSlot, null)
+            from.shrink(amount)
+            to.grow(amount)
+            assert(from.getCount >= 0)
+            if (from.getCount == 0) {
+              inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
             }
             inventory.markDirty()
             true
           }
           else false
         }
-        else if (count >= from.stackSize) {
+        else if (count >= from.getCount) {
           inventory.setInventorySlotContents(slot, from)
           inventory.setInventorySlotContents(selectedSlot, to)
           true
         }
         else false
-      case (Some(from), None) =>
+      case (SomeStack(from), EmptyStack) =>
         inventory.setInventorySlotContents(slot, inventory.decrStackSize(selectedSlot, count))
         true
       case _ => false

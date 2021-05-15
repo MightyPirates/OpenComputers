@@ -1,10 +1,10 @@
 package li.cil.oc.common.event
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.server.component.Server
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object NetworkActivityHandler {
   @SubscribeEvent

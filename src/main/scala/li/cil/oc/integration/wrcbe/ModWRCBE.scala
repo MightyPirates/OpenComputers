@@ -5,7 +5,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.WirelessRedstone
 
 object ModWRCBE extends ModProxy {
-  override def getMod = Mods.WirelessRedstoneCBE
+  override def getMod: Mods.SimpleMod = Mods.WirelessRedstoneCBE
 
   override def initialize() {
     WirelessRedstone.systems += WirelessRedstoneCBE

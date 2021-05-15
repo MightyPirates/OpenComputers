@@ -1,0 +1,20 @@
+{
+    "parent": "block/block",
+    "textures": {
+        "all": "opencomputers:blocks/white",
+        "particle": "opencomputers:blocks/generic_top"
+    },
+    "elements": [
+        {   "from": [ 0, 0, 0 ],
+            "to": [ 16, 16, 16 ],
+            "faces": {
+                "down":  { "texture": "#all", "cullface": "down", "tintindex": 0 },
+                "up":    { "texture": "#all", "cullface": "up", "tintindex": 0 },
+                "north": { "texture": "#all", "cullface": "north", "tintindex": 0 },
+                "south": { "texture": "#all", "cullface": "south", "tintindex": 0 },
+                "west":  { "texture": "#all", "cullface": "west", "tintindex": 0 },
+                "east":  { "texture": "#all", "cullface": "east", "tintindex": 0 }
+            }
+        }
+    ]
+}

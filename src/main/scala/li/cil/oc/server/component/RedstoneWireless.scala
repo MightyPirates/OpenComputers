@@ -1,9 +1,8 @@
 package li.cil.oc.server.component
 
 import codechicken.lib.vec.Vector3
-import codechicken.wirelessredstone.core.WirelessReceivingDevice
-import codechicken.wirelessredstone.core.WirelessTransmittingDevice
-import cpw.mods.fml.common.Optional
+import codechicken.wirelessredstone.api.WirelessReceivingDevice
+import codechicken.wirelessredstone.api.WirelessTransmittingDevice
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -19,13 +18,13 @@ import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.Optional
 
 import scala.collection.convert.WrapAsJava._
 
 @Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
+  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
+  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
 trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice with DeviceInfo {
   def redstone: EnvironmentHost
@@ -107,18 +106,18 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      onRedstoneChanged(RedstoneChangedEventArgs(ForgeDirection.UNKNOWN, if (on) 0 else 1, if (on) 1 else 0))
+      onRedstoneChanged(RedstoneChangedEventArgs(null, if (on) 0 else 1, if (on) 1 else 0))
     }
   }
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getPosition = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
+  override def getTransmitPos = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension = redstone.world.provider.dimensionId
+  override def getDimension: Int = redstone.world.provider.getDimension
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getFreq = wirelessFrequency
+  override def getFreq: Int = wirelessFrequency
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getAttachedEntity = null
@@ -144,17 +143,21 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
 
   // ----------------------------------------------------------------------- //
 
+  private final val WirelessFrequencyTag = "wirelessFrequency"
+  private final val WirelessInputTag = "wirelessInput"
+  private final val WirelessOutputTag = "wirelessOutput"
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    wirelessFrequency = nbt.getInteger("wirelessFrequency")
-    wirelessInput = nbt.getBoolean("wirelessInput")
-    wirelessOutput = nbt.getBoolean("wirelessOutput")
+    wirelessFrequency = nbt.getInteger(WirelessFrequencyTag)
+    wirelessInput = nbt.getBoolean(WirelessInputTag)
+    wirelessOutput = nbt.getBoolean(WirelessOutputTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger("wirelessFrequency", wirelessFrequency)
-    nbt.setBoolean("wirelessInput", wirelessInput)
-    nbt.setBoolean("wirelessOutput", wirelessOutput)
+    nbt.setInteger(WirelessFrequencyTag, wirelessFrequency)
+    nbt.setBoolean(WirelessInputTag, wirelessInput)
+    nbt.setBoolean(WirelessOutputTag, wirelessOutput)
   }
 }

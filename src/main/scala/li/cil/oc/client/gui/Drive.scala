@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) extends GuiScreen with traits.Window {
   override val windowHeight = 120
 
-  override def backgroundImage = Textures.guiDrive
+  override def backgroundImage = Textures.GUI.Drive
 
   protected var managedButton: ImageButton = _
   protected var unmanagedButton: ImageButton = _
@@ -42,9 +42,9 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
 
   override def initGui(): Unit = {
     super.initGui()
-    managedButton = new ImageButton(0, guiLeft + 11, guiTop + 11, 74, 18, Textures.guiButtonDriveMode, text = Localization.Drive.Managed, textColor = 0x608060, canToggle = true)
-    unmanagedButton = new ImageButton(1, guiLeft + 91, guiTop + 11, 74, 18, Textures.guiButtonDriveMode, text = Localization.Drive.Unmanaged, textColor = 0x608060, canToggle = true)
-    lockedButton = new ImageButton(2, guiLeft + 11, guiTop + windowHeight - 42, 44, 18, Textures.guiButtonDriveMode, text = Localization.Drive.ReadOnlyLock, textColor = 0x608060, canToggle = true)
+    managedButton = new ImageButton(0, guiLeft + 11, guiTop + 11, 74, 18, Textures.GUI.ButtonDriveMode, text = Localization.Drive.Managed, textColor = 0x608060, canToggle = true)
+    unmanagedButton = new ImageButton(1, guiLeft + 91, guiTop + 11, 74, 18, Textures.GUI.ButtonDriveMode, text = Localization.Drive.Unmanaged, textColor = 0x608060, canToggle = true)
+    lockedButton = new ImageButton(2, guiLeft + 11, guiTop + windowHeight - 42, 44, 18, Textures.GUI.ButtonDriveMode, text = Localization.Drive.ReadOnlyLock, textColor = 0x608060, canToggle = true)
     add(buttonList, managedButton)
     add(buttonList, unmanagedButton)
     add(buttonList, lockedButton)
@@ -57,7 +57,7 @@ class Drive(playerInventory: InventoryPlayer, val driveStack: () => ItemStack) e
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
     super.drawScreen(mouseX, mouseY, dt)
-    fontRendererObj.drawSplitString(Localization.Drive.Warning, guiLeft + 11, guiTop + 37, xSize - 20, 0x404040)
-    fontRendererObj.drawSplitString(Localization.Drive.LockWarning, guiLeft + 61, guiTop + windowHeight - 48, xSize - 68, 0x404040)
+    fontRenderer.drawSplitString(Localization.Drive.Warning, guiLeft + 11, guiTop + 37, xSize - 20, 0x404040)
+    fontRenderer.drawSplitString(Localization.Drive.LockWarning, guiLeft + 61, guiTop + windowHeight - 48, xSize - 68, 0x404040)
   }
 }

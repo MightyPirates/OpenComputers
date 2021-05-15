@@ -8,11 +8,12 @@ import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.IChatComponent
-import org.lwjgl.opengl.GL11
+import net.minecraft.util.text.ITextComponent
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -32,7 +33,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     info = validate
   }
 
-  var info: Option[(Boolean, IChatComponent, Array[IChatComponent])] = None
+  var info: Option[(Boolean, ITextComponent, Array[ITextComponent])] = None
 
   protected var runButton: ImageButton = _
 
@@ -50,12 +51,12 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   override def initGui() {
     super.initGui()
-    runButton = new ImageButton(0, guiLeft + 7, guiTop + 89, 18, 18, Textures.guiButtonRun, canToggle = true)
+    runButton = new ImageButton(0, guiLeft + 7, guiTop + 89, 18, 18, Textures.GUI.ButtonRun, canToggle = true)
     add(buttonList, runButton)
   }
 
-  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int): Unit = {
+    RenderState.pushAttrib()
     if (!inventoryContainer.isAssembling) {
       val message =
         if (!inventoryContainer.getSlot(0).getHasStack) {
@@ -66,8 +67,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
           case _ if inventoryContainer.getSlot(0).getHasStack => Localization.Assembler.CollectResult
           case _ => ""
         }
-      fontRendererObj.drawString(message, 30, 94, 0x404040)
-      if (runButton.func_146115_a) {
+      fontRenderer.drawString(message, 30, 94, 0x404040)
+      if (runButton.isMouseOver) {
         val tooltip = new java.util.ArrayList[String]
         tooltip.add(Localization.Assembler.Run)
         info.foreach {
@@ -75,16 +76,16 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
             tooltip.addAll(warnings.map(_.getUnformattedText).toList)
           }
         }
-        drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+        copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       }
     }
-    else if (func_146978_c(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
+    else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(inventoryContainer.assemblyRemainingTime)
       tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
-    GL11.glPopAttrib()
+    RenderState.popAttrib()
   }
 
   private def formatTime(seconds: Int) = {
@@ -94,8 +95,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiRobotAssembler)
+    GlStateManager.color(1, 1, 1) // Required under Linux.
+    Textures.bind(Textures.GUI.RobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     if (inventoryContainer.isAssembling) progress.level = inventoryContainer.assemblyProgress / 100.0
     else progress.level = 0

@@ -10,6 +10,7 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.api.machine.{Arguments, Callback, Context, LimitReachedException}
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import li.cil.oc.common.component
@@ -30,8 +31,8 @@ import scala.util.matching.Regex
 // saved, but before the computer was saved, leading to mismatching states in
 // the save file - a Bad Thing (TM).
 
-class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment with DeviceInfo with component.traits.VideoRamDevice {
-  override val node: Connector = Network.newNode(this, Visibility.Neighbors).
+class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with DeviceInfo with component.traits.VideoRamDevice {
+  override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
     create()

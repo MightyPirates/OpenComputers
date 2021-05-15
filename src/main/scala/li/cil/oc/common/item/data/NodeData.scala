@@ -16,30 +16,39 @@ class NodeData extends ItemData(null) {
   var buffer: Option[Double] = None
   var visibility: Option[Visibility] = None
 
+  private final val DataTag = Settings.namespace + "data"
+
   override def load(nbt: NBTTagCompound): Unit = {
-    val nodeNbt = nbt.getCompoundTag(Settings.namespace + "data").getCompoundTag("node")
-    if (nodeNbt.hasKey("address")) {
-      address = Option(nodeNbt.getString("address"))
+    val nodeNbt = nbt.getCompoundTag(DataTag).getCompoundTag(NodeData.NodeTag)
+    if (nodeNbt.hasKey(NodeData.AddressTag)) {
+      address = Option(nodeNbt.getString(NodeData.AddressTag))
     }
-    if (nodeNbt.hasKey("buffer")) {
-      buffer = Option(nodeNbt.getDouble("buffer"))
+    if (nodeNbt.hasKey(NodeData.BufferTag)) {
+      buffer = Option(nodeNbt.getDouble(NodeData.BufferTag))
     }
-    if (nodeNbt.hasKey("visibility")) {
-      visibility = Option(Visibility.values()(nodeNbt.getInteger("visibility")))
+    if (nodeNbt.hasKey(NodeData.VisibilityTag)) {
+      visibility = Option(Visibility.values()(nodeNbt.getInteger(NodeData.VisibilityTag)))
     }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
-    if (!nbt.hasKey(Settings.namespace + "data")) {
-      nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
+    if (!nbt.hasKey(DataTag)) {
+      nbt.setTag(DataTag, new NBTTagCompound())
     }
-    val dataNbt = nbt.getCompoundTag(Settings.namespace + "data")
-    if (!dataNbt.hasKey("node")) {
-      dataNbt.setTag("node", new NBTTagCompound())
+    val dataNbt = nbt.getCompoundTag(DataTag)
+    if (!dataNbt.hasKey(NodeData.NodeTag)) {
+      dataNbt.setTag(NodeData.NodeTag, new NBTTagCompound())
     }
-    val nodeNbt = dataNbt.getCompoundTag("node")
-    address.foreach(nodeNbt.setString("address", _))
-    buffer.foreach(nodeNbt.setDouble("buffer", _))
-    visibility.map(_.ordinal()).foreach(nodeNbt.setInteger("visibility", _))
+    val nodeNbt = dataNbt.getCompoundTag(NodeData.NodeTag)
+    address.foreach(nodeNbt.setString(NodeData.AddressTag, _))
+    buffer.foreach(nodeNbt.setDouble(NodeData.BufferTag, _))
+    visibility.map(_.ordinal()).foreach(nodeNbt.setInteger(NodeData.VisibilityTag, _))
   }
+}
+
+object NodeData {
+  final val NodeTag = "node"
+  final val AddressTag = "address"
+  final val BufferTag = "buffer"
+  final val VisibilityTag = "visibility"
 }

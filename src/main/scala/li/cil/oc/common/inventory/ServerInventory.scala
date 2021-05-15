@@ -12,11 +12,11 @@ trait ServerInventory extends ItemStackInventory {
 
   override def getSizeInventory = InventorySlots.server(tier).length
 
-  override protected def inventoryName = "Server"
+  override protected def inventoryName = "server"
 
   override def getInventoryStackLimit = 1
 
-  override def isUseableByPlayer(player: EntityPlayer) = false
+  override def isUsableByPlayer(player: EntityPlayer) = false
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack, classOf[internal.Server])).fold(false)(driver => {

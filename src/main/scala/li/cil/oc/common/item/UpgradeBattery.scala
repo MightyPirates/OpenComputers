@@ -5,40 +5,45 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.common.item.data.NodeData
 import net.minecraft.item.ItemStack
 
-class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with Chargeable {
-  override val unlocalizedName = super.unlocalizedName + tier
+class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with traits.Chargeable {
+  override val unlocalizedName: String = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
   override protected def tooltipData = Seq(Settings.get.bufferCapacitorUpgrades(tier).toInt)
 
-  override def isDamageable = true
+  override def showDurabilityBar(stack: ItemStack) = true
 
-  override def damage(stack: ItemStack) = {
+  override def durability(stack: ItemStack): Double = {
     val data = new NodeData(stack)
-    ((1 - data.buffer.getOrElse(0.0) / Settings.get.bufferCapacitorUpgrades(tier)) * 100).toInt
+    1 - data.buffer.getOrElse(0.0) / Settings.get.bufferCapacitorUpgrades(tier)
   }
-
-  override def maxDamage(stack: ItemStack) = 100
 
   // ----------------------------------------------------------------------- //
 
-  def canCharge(stack: ItemStack): Boolean = true
+  override def canCharge(stack: ItemStack): Boolean = true
 
-  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+  override def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     val data = new NodeData(stack)
     val buffer = data.buffer match {
       case Some(value) => value
       case _ => 0.0
     }
-    if (amount < 0) amount // TODO support discharging
-    else {
-      val charge = math.min(amount, Settings.get.bufferCapacitorUpgrades(tier).toInt - buffer)
-      if (!simulate) {
-        data.buffer = Option(buffer + charge)
-        data.save(stack)
-      }
-      amount - charge
-    }
+    traits.Chargeable.applyCharge(amount, buffer, Settings.get.bufferCapacitorUpgrades(tier), used => if (!simulate) {
+      data.buffer = Option(buffer + used)
+      data.save(stack)
+    })
   }
+
+  override def maxCharge(stack: ItemStack): Double = Settings.get.bufferCapacitorUpgrades(tier)
+
+  override def getCharge(stack: ItemStack): Double = new NodeData(stack).buffer.getOrElse(0.0)
+
+  override def setCharge(stack: ItemStack, amount: Double): Unit = {
+    val data = new NodeData(stack)
+    data.buffer = Option((0.0 max amount) min maxCharge(stack))
+    data.save(stack)
+  }
+
+  override def canExtract(stack: ItemStack): Boolean = true
 }

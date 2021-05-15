@@ -3,6 +3,7 @@ package li.cil.oc.server.network
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.common.item.data.NodeData
 import net.minecraft.nbt.NBTTagCompound
 
 trait Connector extends network.Connector with Node {
@@ -120,11 +121,11 @@ trait Connector extends network.Connector with Node {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = nbt.getDouble("buffer")
+    localBuffer = nbt.getDouble(NodeData.BufferTag)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble("buffer", math.min(localBuffer, localBufferSize))
+    nbt.setDouble(NodeData.BufferTag, math.min(localBuffer, localBufferSize))
   }
 }

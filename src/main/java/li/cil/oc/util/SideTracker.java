@@ -1,6 +1,6 @@
 package li.cil.oc.util;
 
-import cpw.mods.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.Collections;
 import java.util.Set;

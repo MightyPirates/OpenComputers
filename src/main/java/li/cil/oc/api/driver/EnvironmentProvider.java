@@ -20,7 +20,7 @@ public interface EnvironmentProvider {
      * by the class transformer at runtime.
      * <p/>
      * For items this will be the type of the environment returned by the
-     * item driver's {@link Item#createEnvironment} method.
+     * item driver's {@link DriverItem#createEnvironment} method.
      *
      * @param stack the stack to get the environment type for.
      * @return the environment type for the specified stack.

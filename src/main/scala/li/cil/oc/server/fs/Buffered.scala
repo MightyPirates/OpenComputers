@@ -28,7 +28,7 @@ trait Buffered extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def delete(path: String) = {
+  override def delete(path: String): Boolean = {
     if (super.delete(path)) {
       deletions += path -> System.currentTimeMillis()
       true
@@ -36,7 +36,7 @@ trait Buffered extends OutputStreamFileSystem {
     else false
   }
 
-  override def rename(from: String, to: String) = {
+  override def rename(from: String, to: String): Boolean = {
     if (super.rename(from, to)) {
       deletions += from -> System.currentTimeMillis()
       true
@@ -101,7 +101,7 @@ trait Buffered extends OutputStreamFileSystem {
     else recurse("", fileRoot)
   }
 
-  override def save(nbt: NBTTagCompound) = {
+  override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
     saving = Buffered.fileSaveHandler.withPool(_.submit(new Runnable {
       override def run(): Unit = saveFiles()

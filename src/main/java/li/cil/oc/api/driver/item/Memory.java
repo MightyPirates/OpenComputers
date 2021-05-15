@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver.item;
 
-import li.cil.oc.api.driver.Item;
+import li.cil.oc.api.driver.DriverItem;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
  * work. If it is installed in an external inventory the computer will not
  * recognize the memory.
  */
-public interface Memory extends Item {
+public interface Memory extends DriverItem {
     /**
      * The amount of RAM this component provides, as a generic scaling factor.
      * <p/>

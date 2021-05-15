@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -22,7 +23,7 @@ import scala.language.existentials
 
 object Transposer {
 
-  abstract class Common extends prefab.ManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
+  abstract class Common extends AbstractManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
     override val node = api.Network.newNode(this, Visibility.Network).
       withComponent("transposer").
       withConnector().

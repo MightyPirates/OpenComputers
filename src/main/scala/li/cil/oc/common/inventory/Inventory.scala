@@ -2,86 +2,83 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
 trait Inventory extends SimpleInventory {
-  def items: Array[Option[ItemStack]]
+  def items: Array[ItemStack]
 
-  def updateItems(slot: Int, stack: ItemStack) = items(slot) = Option(stack)
+  def updateItems(slot: Int, stack: ItemStack): Unit = items(slot) = StackOption(stack).orEmpty
 
   // ----------------------------------------------------------------------- //
 
-  override def getStackInSlot(slot: Int) =
-    if (slot >= 0 && slot < getSizeInventory) items(slot).orNull
-    else null
+  override def getStackInSlot(slot: Int): ItemStack =
+    if (slot >= 0 && slot < getSizeInventory) items(slot)
+    else ItemStack.EMPTY
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
     if (slot >= 0 && slot < getSizeInventory) {
-      if (stack == null && items(slot).isEmpty) {
+      if (stack.isEmpty && items(slot).isEmpty) {
         return
       }
-      if (items(slot).contains(stack)) {
+      if (items(slot) == stack) {
         return
       }
 
       val oldStack = items(slot)
-      updateItems(slot, null)
-      if (oldStack.isDefined) {
-        onItemRemoved(slot, oldStack.get)
+      updateItems(slot, ItemStack.EMPTY)
+      if (!oldStack.isEmpty) {
+        onItemRemoved(slot, oldStack)
       }
-      if (stack != null && stack.stackSize >= getInventoryStackRequired) {
-        if (stack.stackSize > getInventoryStackLimit) {
-          stack.stackSize = getInventoryStackLimit
+      if (!stack.isEmpty && stack.getCount >= getInventoryStackRequired) {
+        if (stack.getCount > getInventoryStackLimit) {
+          stack.setCount(getInventoryStackLimit)
         }
         updateItems(slot, stack)
       }
 
-      if (items(slot).isDefined) {
-        onItemAdded(slot, items(slot).get)
+      if (!items(slot).isEmpty) {
+        onItemAdded(slot, items(slot))
       }
 
       markDirty()
     }
   }
 
-  override def getInventoryName = Settings.namespace + "container." + inventoryName
+  override def getName: String = Settings.namespace + "container." + inventoryName
 
-  protected def inventoryName = getClass.getSimpleName
+  protected def inventoryName: String = getClass.getSimpleName.toLowerCase
+
+  override def isEmpty: Boolean = items.forall(_.isEmpty)
 
   // ----------------------------------------------------------------------- //
 
+  private final val ItemsTag = Settings.namespace + "items"
+  private final val SlotTag = "slot"
+  private final val ItemTag = "item"
+
   def load(nbt: NBTTagCompound) {
-    // Implicit slot numbers are compatibility code for loading old server save format.
-    // TODO 1.7 remove compat code.
-    var count = 0
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
-      if (tag.hasKey("slot")) {
-        val slot = tag.getByte("slot")
+    nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
+      if (tag.hasKey(SlotTag)) {
+        val slot = tag.getByte(SlotTag)
         if (slot >= 0 && slot < items.length) {
-          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag("item")))
+          updateItems(slot, new ItemStack(tag.getCompoundTag(ItemTag)))
         }
       }
-      else {
-        val slot = count
-        if (slot >= 0 && slot < items.length) {
-          updateItems(slot, ItemStack.loadItemStackFromNBT(tag))
-        }
-      }
-      count += 1
     })
   }
 
   def save(nbt: NBTTagCompound) {
-    nbt.setNewTagList(Settings.namespace + "items",
+    nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
-        case (Some(stack), slot) => (stack, slot)
+        case (stack, slot) if !stack.isEmpty => (stack, slot)
       } map {
         case (stack, slot) =>
           val slotNbt = new NBTTagCompound()
-          slotNbt.setByte("slot", slot.toByte)
-          slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+          slotNbt.setByte(SlotTag, slot.toByte)
+          slotNbt.setNewCompoundTag(ItemTag, stack.writeToNBT)
       })
   }
 

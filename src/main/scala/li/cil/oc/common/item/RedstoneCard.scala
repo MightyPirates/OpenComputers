@@ -3,8 +3,6 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.common.Tier
-import li.cil.oc.integration.Mods
-import li.cil.oc.util.Tooltip
 import net.minecraft.item.ItemStack
 
 class RedstoneCard(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
@@ -18,21 +16,10 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends traits.Delegate
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     super.tooltipExtended(stack, tooltip)
     if (tier == Tier.Two) {
-      if (Mods.ProjectRedTransmission.isAvailable) {
-        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".ProjectRed"))
-      }
-      if (Mods.RedLogic.isAvailable) {
-        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedLogic"))
-      }
-      if (Mods.MineFactoryReloaded.isAvailable) {
-        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedNet"))
-      }
-      if (Mods.WirelessRedstoneCBE.isAvailable) {
-        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessCBE"))
-      }
-      if (Mods.WirelessRedstoneSVE.isAvailable) {
-        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessSV"))
-      }
+      // TODO Generic system for redstone integration modules to register in a list of tooltip lines.
+      //      if (Mods.MOD_NAME.isAvailable) {
+      //        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".MOD_NAME"))
+      //      }
     }
   }
 }

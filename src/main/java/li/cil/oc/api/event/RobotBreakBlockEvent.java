@@ -1,8 +1,9 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
 import li.cil.oc.api.internal.Agent;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 
 public abstract class RobotBreakBlockEvent extends RobotEvent {
     protected RobotBreakBlockEvent(Agent agent) {
@@ -24,19 +25,17 @@ public abstract class RobotBreakBlockEvent extends RobotEvent {
         /**
          * The coordinates at which the block will be broken.
          */
-        public final int x, y, z;
+        public final BlockPos pos;
 
         /**
          * The time it takes to break the block.
          */
         private double breakTime;
 
-        public Pre(Agent agent, World world, int x, int y, int z, double breakTime) {
+        public Pre(Agent agent, World world, BlockPos pos, double breakTime) {
             super(agent);
             this.world = world;
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.pos = pos;
             this.breakTime = breakTime;
         }
 

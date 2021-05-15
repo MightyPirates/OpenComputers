@@ -1,6 +1,7 @@
 package li.cil.oc.api.manual;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -36,10 +37,8 @@ public interface PathProvider {
      * other providers to be queried.
      *
      * @param world the world containing the block.
-     * @param x     the X coordinate of the block.
-     * @param y     the Y coordinate of the block.
-     * @param z     the Z coordinate of the block.
+     * @param pos   the position coordinate of the block.
      * @return the path to the page, <tt>null</tt> if none is known.
      */
-    String pathFor(World world, int x, int y, int z);
+    String pathFor(World world, BlockPos pos);
 }

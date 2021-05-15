@@ -10,9 +10,9 @@ import scala.collection.convert.WrapAsScala._
 
 object OreDictImageProvider extends ImageProvider {
   override def getImage(data: String): ImageRenderer = {
-    val stacks = OreDictionary.getOres(data).filter(stack => stack != null && stack.getItem != null)
+    val stacks = OreDictionary.getOres(data).filter(stack => !stack.isEmpty && stack.getItem != null)
     if (stacks != null && stacks.nonEmpty) new ItemStackImageRenderer(stacks.toArray)
-    else new TextureImageRenderer(Textures.guiManualMissingItem) with InteractiveImageRenderer {
+    else new TextureImageRenderer(Textures.GUI.ManualMissingItem) with InteractiveImageRenderer {
       override def getTooltip(tooltip: String): String = "oc:gui.Manual.Warning.OreDictMissing"
 
       override def onMouseClick(mouseX: Int, mouseY: Int): Boolean = false

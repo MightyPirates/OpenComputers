@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver.item;
 
-import li.cil.oc.api.driver.Item;
+import li.cil.oc.api.driver.DriverItem;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
  * can be no hot-swappable inventories - at least none that are represented
  * in the GUI.
  */
-public interface Inventory extends Item {
+public interface Inventory extends DriverItem {
     /**
      * The additional amount of inventory space the specified item provides.
      *

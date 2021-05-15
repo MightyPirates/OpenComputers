@@ -15,10 +15,12 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.DriverBlock
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.Vec3
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.Vec3d
 
 import scala.collection.convert.WrapAsJava._
 
@@ -27,13 +29,13 @@ import scala.collection.convert.WrapAsJava._
   *
   * @author Sangar, Vexatos
   */
-class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: ForgeDirection) extends prefab.ManagedEnvironment with ChangeListener with DeviceInfo {
+class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: EnumFacing) extends AbstractManagedEnvironment with ChangeListener with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
 
   private var otherEnv: Option[api.network.Environment] = None
-  private var otherDrv: Option[(ManagedEnvironment, api.driver.SidedBlock)] = None
+  private var otherDrv: Option[(ManagedEnvironment, DriverBlock)] = None
   private var blockData: Option[BlockData] = None
 
   override val canUpdate = true
@@ -55,8 +57,8 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
   }
 
   private def updateBoundState() {
-    if (node != null && node.network != null && coord.world.exists(_.provider.dimensionId == host.world.provider.dimensionId)
-      && coord.toVec3.distanceTo(Vec3.createVectorHelper(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
+    if (node != null && node.network != null && coord.world.exists(_.provider.getDimension == host.world.provider.getDimension)
+      && coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
       host.world.getTileEntity(coord) match {
         case env: TileEntity with api.network.Environment =>
           otherEnv match {
@@ -84,8 +86,8 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
               otherEnv = None
             case _ => // Nothing to do here.
           }
-          val (world, x, y, z) = (coord.world.get, coord.x, coord.y, coord.z)
-          Option(api.Driver.driverFor(world, coord.x, coord.y, coord.z, dir)) match {
+          val world = coord.world.get
+          Option(api.Driver.driverFor(world, coord.toBlockPos, dir)) match {
             case Some(newDriver) =>
               otherDrv match {
                 case Some((oldEnvironment, driver)) =>
@@ -96,7 +98,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
                     node.disconnect(oldEnvironment.node)
 
                     // Then rebuild - if we have something.
-                    val environment = newDriver.createEnvironment(world, x, y, z, dir)
+                    val environment = newDriver.createEnvironment(world, coord.toBlockPos, dir)
                     if (environment != null) {
                       otherDrv = Some((environment, newDriver))
                       blockData = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
@@ -105,7 +107,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
                   } // else: the more things change, the more they stay the same.
                 case _ =>
                   // A challenger appears. Maybe.
-                  val environment = newDriver.createEnvironment(world, x, y, z, dir)
+                  val environment = newDriver.createEnvironment(world, coord.toBlockPos, dir)
                   if (environment != null) {
                     otherDrv = Some((environment, newDriver))
                     blockData match {
@@ -158,7 +160,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
     }
     if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (!node.tryChangeBuffer(-Settings.get.mfuCost * Settings.get.tickFrequency
-        * coord.toVec3.distanceTo(Vec3.createVectorHelper(host.xPosition, host.yPosition, host.zPosition)))) {
+        * coord.toVec3.distanceTo(new Vec3d(host.xPosition, host.yPosition, host.zPosition)))) {
         disconnect()
       }
     }

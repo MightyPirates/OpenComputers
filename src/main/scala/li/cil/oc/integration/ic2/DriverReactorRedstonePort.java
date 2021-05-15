@@ -1,7 +1,7 @@
 package li.cil.oc.integration.ic2;
 
 import ic2.api.reactor.IReactor;
-import ic2.api.reactor.IReactorChamber;
+import ic2.core.block.comp.FluidReactorLookup;
 import ic2.core.block.reactor.tileentity.TileEntityReactorRedstonePort;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
@@ -10,9 +10,9 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public final class DriverReactorRedstonePort extends DriverSidedTileEntity {
     @Override
@@ -21,8 +21,8 @@ public final class DriverReactorRedstonePort extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
-        return new Environment((TileEntityReactorRedstonePort) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+        return new Environment((TileEntityReactorRedstonePort) world.getTileEntity(pos));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityReactorRedstonePort> implements NamedBlock {
@@ -41,12 +41,11 @@ public final class DriverReactorRedstonePort extends DriverSidedTileEntity {
         }
 
         private IReactor getReactor() {
-            final TileEntity reactorInventory = tileEntity.getReactor();
-
-            if (reactorInventory instanceof IReactor) {
-                return (IReactor) reactorInventory;
+            final FluidReactorLookup lookup = tileEntity.getComponent(FluidReactorLookup.class);
+            if (lookup != null) {
+                return lookup.getReactor();
             } else {
-                return ((IReactorChamber) reactorInventory).getReactor();
+                return null;
             }
         }
 
@@ -82,7 +81,12 @@ public final class DriverReactorRedstonePort extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number -- Get the reactor's base EU/t value.")
         public Object[] getReactorEUOutput(final Context context, final Arguments args) {
-            return new Object[]{getReactor().getReactorEUEnergyOutput()};
+            final IReactor reactor = getReactor();
+            if (reactor != null) {
+                return new Object[]{getReactor().getReactorEUEnergyOutput()};
+            } else {
+                return new Object[]{false};
+            }
         }
 
         @Callback(doc = "function():boolean -- Get whether the reactor is active and supposed to produce energy.")

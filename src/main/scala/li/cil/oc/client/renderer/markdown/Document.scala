@@ -3,8 +3,10 @@ package li.cil.oc.client.renderer.markdown
 import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 
 import scala.collection.Iterable
@@ -68,24 +70,24 @@ object Document {
   def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val mc = Minecraft.getMinecraft
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
     // On some systems/drivers/graphics cards the next calls won't update the
     // depth buffer correctly if alpha test is enabled. Guess how we found out?
     // By noticing that on those systems it only worked while chat messages
     // were visible. Yeah. I know.
-    GL11.glDisable(GL11.GL_ALPHA_TEST)
+    GlStateManager.disableAlpha()
 
     // Clear depth mask, then create masks in foreground above and below scroll area.
-    GL11.glColor4f(1, 1, 1, 1)
-    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-    GL11.glEnable(GL11.GL_DEPTH_TEST)
-    GL11.glDepthFunc(GL11.GL_LEQUAL)
-    GL11.glDepthMask(true)
-    GL11.glColorMask(false, false, false, false)
+    GlStateManager.color(1, 1, 1, 1)
+    GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT)
+    GlStateManager.enableDepth()
+    GlStateManager.depthFunc(GL11.GL_LEQUAL)
+    GlStateManager.depthMask(true)
+    GlStateManager.colorMask(false, false, false, false)
 
-    GL11.glPushMatrix()
-    GL11.glTranslatef(0, 0, 300)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(0, 0, 500)
     GL11.glBegin(GL11.GL_QUADS)
     GL11.glVertex2f(0, y)
     GL11.glVertex2f(mc.displayWidth, y)
@@ -96,8 +98,8 @@ object Document {
     GL11.glVertex2f(mc.displayWidth, y + maxHeight)
     GL11.glVertex2f(0, y + maxHeight)
     GL11.glEnd()
-    GL11.glPopMatrix()
-    GL11.glColorMask(true, true, true, true)
+    GlStateManager.popMatrix()
+    GlStateManager.colorMask(true, true, true, true)
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
@@ -119,7 +121,8 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
-    GL11.glPopAttrib()
+    RenderState.popAttrib()
+    GlStateManager.bindTexture(0)
 
     hovered
   }

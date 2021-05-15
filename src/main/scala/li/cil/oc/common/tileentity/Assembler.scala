@@ -2,8 +2,6 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -17,19 +15,23 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with DeviceInfo {
+class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
     create()
 
-  var output: Option[ItemStack] = None
+  var output: StackOption = EmptyStack
 
   var totalRequiredEnergy = 0.0
 
@@ -47,14 +49,14 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
+  override def canConnect(side: EnumFacing) = side != EnumFacing.UP
 
-  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
+  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = canConnect(side)
+  override protected def hasConnector(side: EnumFacing) = canConnect(side)
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
   override def energyThroughput = Settings.get.assemblerRate
 
@@ -84,10 +86,10 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
       case Some(template) if !isAssembling && output.isEmpty && template.validate(this)._1 =>
         for (slot <- 0 until getSizeInventory) {
           val stack = getStackInSlot(slot)
-          if (stack != null && !isItemValidForSlot(slot, stack)) return false
+          if (!stack.isEmpty && !isItemValidForSlot(slot, stack)) return false
         }
         val (stack, energy) = template.assemble(this)
-        output = Some(stack)
+        output = StackOption(stack)
         if (finishImmediately) {
           totalRequiredEnergy = 0
         }
@@ -97,7 +99,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
         requiredEnergy = totalRequiredEnergy
         ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
-        for (slot <- 0 until getSizeInventory) updateItems(slot, null)
+        for (slot <- 0 until getSizeInventory) updateItems(slot, ItemStack.EMPTY)
         markDirty()
 
         true
@@ -121,52 +123,56 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
   override def updateEntity() {
     super.updateEntity()
-    if (output.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (!output.isEmpty && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         setInventorySlotContents(0, output.get)
-        output = None
+        output = EmptyStack
         requiredEnergy = 0
       }
-      ServerPacketSender.sendRobotAssembling(this, have > 0.5 && output.isDefined)
+      ServerPacketSender.sendRobotAssembling(this, have > 0.5 && !output.isEmpty)
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val OutputTag = Settings.namespace + "output"
+  private final val OutputTagCompat = Settings.namespace + "robot"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val RemainingTag = Settings.namespace + "remaining"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
+    if (nbt.hasKey(OutputTag)) {
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
-    else if (nbt.hasKey(Settings.namespace + "robot")) {
-      // Backwards compatibility.
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
+    else if (nbt.hasKey(OutputTagCompat)) {
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTagCompat)))
     }
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
-    requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
-    nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
+    nbt.setNewCompoundTag(OutputTag, output.get.writeToNBT)
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    requiredEnergy = nbt.getDouble("remaining")
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setDouble("remaining", requiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //

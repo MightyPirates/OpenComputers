@@ -3,64 +3,71 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-object CaseRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+object CaseRenderer extends TileEntitySpecialRenderer[Case] {
+  override def render(computer: Case, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    val computer = tileEntity.asInstanceOf[Case]
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
 
-    GL11.glPushMatrix()
+    GlStateManager.pushMatrix()
 
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     computer.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
+      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
-    GL11.glTranslated(-0.5, 0.5, 0.505)
-    GL11.glScalef(1, -1, 1)
+    GlStateManager.translate(-0.5, 0.5, 0.505)
+    GlStateManager.scale(1, -1, 1)
 
     if (computer.isRunning) {
-      renderFrontOverlay(Textures.blockCaseFrontOn)
+      renderFrontOverlay(Textures.Block.CaseFrontOn)
       if (System.currentTimeMillis() - computer.lastFileSystemAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        renderFrontOverlay(Textures.blockCaseFrontActivity)
+        renderFrontOverlay(Textures.Block.CaseFrontActivity)
       }
     }
     else if (computer.hasErrored && RenderUtil.shouldShowErrorLight(computer.hashCode)) {
-      renderFrontOverlay(Textures.blockCaseFrontError)
+      renderFrontOverlay(Textures.Block.CaseFrontError)
     }
 
-    RenderState.enableLighting()
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popMatrix()
+    RenderState.popAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
   private def renderFrontOverlay(texture: ResourceLocation): Unit = {
-    bindTexture(texture)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(0, 1, 0, 0, 1)
-    t.addVertexWithUV(1, 1, 0, 1, 1)
-    t.addVertexWithUV(1, 0, 0, 1, 0)
-    t.addVertexWithUV(0, 0, 0, 0, 0)
+    val t = Tessellator.getInstance
+    val r = t.getBuffer
+
+    Textures.Block.bind()
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+
+    val icon = Textures.getSprite(texture)
+    r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+    r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+    r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+    r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
+
     t.draw()
   }
 }

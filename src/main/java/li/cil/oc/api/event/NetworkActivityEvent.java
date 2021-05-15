@@ -1,10 +1,10 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Event;
 import li.cil.oc.api.network.Node;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Events for handling network activity and representing it on the client.
@@ -38,10 +38,10 @@ public class NetworkActivityEvent extends Event {
      * @param data       the additional data.
      */
     protected NetworkActivityEvent(TileEntity tileEntity, NBTTagCompound data) {
-        this.world = tileEntity.getWorldObj();
-        this.x = tileEntity.xCoord + 0.5;
-        this.y = tileEntity.yCoord + 0.5;
-        this.z = tileEntity.zCoord + 0.5;
+        this.world = tileEntity.getWorld();
+        this.x = tileEntity.getPos().getX() + 0.5;
+        this.y = tileEntity.getPos().getY() + 0.5;
+        this.z = tileEntity.getPos().getZ() + 0.5;
         this.tileEntity = tileEntity;
         this.data = data;
     }

@@ -1,14 +1,6 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.ClientRegistry
-import cpw.mods.fml.client.registry.RenderingRegistry
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.FMLInitializationEvent
-import cpw.mods.fml.common.event.FMLPreInitializationEvent
-import cpw.mods.fml.common.network.NetworkRegistry
-import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
@@ -16,20 +8,26 @@ import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
-import li.cil.oc.client.renderer.block.BlockRenderer
+import li.cil.oc.client.renderer.block.ModelInitialization
+import li.cil.oc.client.renderer.block.NetSplitterModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
-import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.event.RackMountableRenderHandler
-import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
-import net.minecraftforge.client.MinecraftForgeClient
+import net.minecraft.block.Block
+import net.minecraft.item.Item
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.client.registry.ClientRegistry
+import net.minecraftforge.fml.client.registry.RenderingRegistry
+import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
+import net.minecraftforge.fml.common.network.NetworkRegistry
 import org.lwjgl.opengl.GLContext
 
 private[oc] class Proxy extends CommonProxy {
@@ -40,7 +38,10 @@ private[oc] class Proxy extends CommonProxy {
 
     CommandHandler.register()
 
-    MinecraftForge.EVENT_BUS.register(gui.Icons)
+    MinecraftForge.EVENT_BUS.register(Textures)
+    MinecraftForge.EVENT_BUS.register(NetSplitterModel)
+
+    ModelInitialization.preInit()
   }
 
   override def init(e: FMLInitializationEvent) {
@@ -48,8 +49,8 @@ private[oc] class Proxy extends CommonProxy {
 
     OpenComputers.channel.register(client.PacketHandler)
 
-    Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
-    RenderingRegistry.registerBlockHandler(BlockRenderer)
+    ColorHandler.init()
+
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Adapter], AdapterRenderer)
@@ -69,17 +70,11 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Printer], PrinterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], SwitchRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], SwitchRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], SwitchRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], RelayRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Transposer], TransposerRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.ItemName.Floppy).createItemStack(1).getItem, ItemRenderer)
-    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.BlockName.Print).createItemStack(1).getItem, ItemRenderer)
-
-    ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
@@ -93,10 +88,16 @@ private[oc] class Proxy extends CommonProxy {
 
     NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
 
-    FMLCommonHandler.instance.bus.register(Audio)
-    FMLCommonHandler.instance.bus.register(HologramRenderer)
-    FMLCommonHandler.instance.bus.register(PetRenderer)
-    FMLCommonHandler.instance.bus.register(Sound)
-    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
+    MinecraftForge.EVENT_BUS.register(Audio)
+    MinecraftForge.EVENT_BUS.register(HologramRenderer)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
+    MinecraftForge.EVENT_BUS.register(Sound)
+    MinecraftForge.EVENT_BUS.register(TextBufferRenderCache)
   }
+
+  override def registerModel(instance: Delegate, id: String): Unit = ModelInitialization.registerModel(instance, id)
+
+  override def registerModel(instance: Item, id: String): Unit = ModelInitialization.registerModel(instance, id)
+
+  override def registerModel(instance: Block, id: String): Unit = ModelInitialization.registerModel(instance, id)
 }

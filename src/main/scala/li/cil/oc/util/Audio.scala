@@ -2,15 +2,18 @@ package li.cil.oc.util
 
 import java.nio.ByteBuffer
 
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
-import net.minecraft.client.audio.SoundCategory
+import net.minecraft.init.SoundEvents
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvent
+import net.minecraft.util.math.BlockPos
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10
@@ -19,12 +22,12 @@ import org.lwjgl.openal.OpenALException
 import scala.collection.mutable
 
 /**
- * This class contains the logic used by computers' internal "speakers".
- * It can generate square waves with a specific frequency and duration
- * and will play them through OpenAL, acquiring sources as necessary.
- * Tones that have finished playing are disposed automatically in the
- * tick handler.
- */
+  * This class contains the logic used by computers' internal "speakers".
+  * It can generate square waves with a specific frequency and duration
+  * and will play them through OpenAL, acquiring sources as necessary.
+  * Tones that have finished playing are disposed automatically in the
+  * tick handler.
+  */
 object Audio {
   private def sampleRate = Settings.get.beepSampleRate
 
@@ -44,7 +47,7 @@ object Audio {
 
   def play(x: Float, y: Float, z: Float, pattern: String, frequencyInHz: Int = 1000, durationInMilliseconds: Int = 200): Unit = {
     val mc = Minecraft.getMinecraft
-    val distanceBasedGain = math.max(0, 1 - mc.thePlayer.getDistance(x, y, z) / maxDistance).toFloat
+    val distanceBasedGain = math.max(0, 1 - mc.player.getDistance(x, y, z) / maxDistance).toFloat
     val gain = distanceBasedGain * volume
     if (gain <= 0 || amplitude <= 0) return
 
@@ -58,7 +61,7 @@ object Audio {
       val clampedFrequency = ((frequencyInHz - 20) max 0 min 1980) / 1980f + 0.5f
       var delay = 0
       for (ch <- pattern) {
-        val record = new PositionedSoundRecord(new ResourceLocation("note.harp"), gain, clampedFrequency, x, y, z)
+        val record = new PositionedSoundRecord(SoundEvents.BLOCK_NOTE_HARP, SoundCategory.BLOCKS, gain, clampedFrequency, new BlockPos(x, y, z))
         if (delay == 0) mc.getSoundHandler.playSound(record)
         else mc.getSoundHandler.playDelayedSound(record, delay)
         delay += ((if (ch == '.') durationInMilliseconds else 2 * durationInMilliseconds) * 20 / 1000) max 1
@@ -185,7 +188,7 @@ object Audio {
     }
   }
 
-  FMLCommonHandler.instance.bus.register(this)
+  MinecraftForge.EVENT_BUS.register(this)
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {

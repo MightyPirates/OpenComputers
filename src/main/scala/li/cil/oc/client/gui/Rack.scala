@@ -5,10 +5,13 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava.asJavaCollection
@@ -70,7 +73,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     (83, 104)
   )
 
-  final val busToSide = ForgeDirection.VALID_DIRECTIONS.filter(_ != ForgeDirection.SOUTH)
+  final val busToSide = EnumFacing.values().filter(_ != EnumFacing.SOUTH)
   final val sideToBus = busToSide.zipWithIndex.toMap
 
   var relayButton: ImageButton = _
@@ -78,12 +81,12 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   // bus -> mountable -> connectable
   var wireButtons = Array.fill(rack.getSizeInventory)(Array.fill(4)(Array.fill(5)(null: ImageButton)))
 
-  def sideName(side: ForgeDirection) = side match {
-    case ForgeDirection.UP => Localization.Rack.Top
-    case ForgeDirection.DOWN => Localization.Rack.Bottom
-    case ForgeDirection.EAST => Localization.Rack.Left
-    case ForgeDirection.WEST => Localization.Rack.Right
-    case ForgeDirection.NORTH => Localization.Rack.Back
+  def sideName(side: EnumFacing) = side match {
+    case EnumFacing.UP => Localization.Rack.Top
+    case EnumFacing.DOWN => Localization.Rack.Bottom
+    case EnumFacing.EAST => Localization.Rack.Left
+    case EnumFacing.WEST => Localization.Rack.Right
+    case EnumFacing.NORTH => Localization.Rack.Back
     case _ => Localization.Rack.None
   }
 
@@ -131,7 +134,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def initGui() {
     super.initGui()
 
-    relayButton = new ImageButton(0, guiLeft + 101, guiTop + 96, 65, 18, Textures.guiButtonRelay, Localization.Rack.RelayDisabled, textIndent = 18)
+    relayButton = new ImageButton(0, guiLeft + 101, guiTop + 96, 65, 18, Textures.GUI.ButtonRelay, Localization.Rack.RelayDisabled, textIndent = 18)
     add(buttonList, relayButton)
 
     val (mw, mh) = hoverMasterSize
@@ -160,14 +163,14 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
+    RenderState.pushAttrib() // Prevents NEI render glitch.
 
-    fontRendererObj.drawString(
-      Localization.localizeImmediately(rack.getInventoryName),
+    fontRenderer.drawString(
+      Localization.localizeImmediately(rack.getName),
       8, 6, 0x404040)
 
-    GL11.glColor3f(1, 1, 1)
-    mc.renderEngine.bindTexture(Textures.guiRack)
+    GlStateManager.color(1, 1, 1)
+    mc.renderEngine.bindTexture(Textures.GUI.Rack)
 
     if (rack.isRelayEnabled) {
       val (left, top, w, h) = relayModeUVs
@@ -245,23 +248,23 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       val x = 122
       val y = 20 + bus * 11
 
-      fontRendererObj.drawString(
+      fontRenderer.drawString(
         Localization.localizeImmediately(sideName(busToSide(bus))),
         x, y, 0x404040)
     }
 
-    if (relayButton.func_146115_a) {
+    if (relayButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.addAll(asJavaCollection(Localization.Rack.RelayModeTooltip.lines.toIterable))
-      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
 
-    GL11.glPopAttrib()
+    RenderState.popAttrib()
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiRack)
+    GlStateManager.color(1, 1, 1) // Required under Linux.
+    mc.renderEngine.bindTexture(Textures.GUI.Rack)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 
@@ -270,12 +273,13 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     val v0 = v / 256f
     val u1 = u0 + w / 256f
     val v1 = v0 + h / 256f
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(x, y, windowZ, u0, v0)
-    t.addVertexWithUV(x, y + h, windowZ, u0, v1)
-    t.addVertexWithUV(x + w, y + h, windowZ, u1, v1)
-    t.addVertexWithUV(x + w, y, windowZ, u1, v0)
+    val t = Tessellator.getInstance()
+    val r = t.getBuffer
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+    r.pos(x, y, windowZ).tex(u0, v0).endVertex()
+    r.pos(x, y + h, windowZ).tex(u0, v1).endVertex()
+    r.pos(x + w, y + h, windowZ).tex(u1, v1).endVertex()
+    r.pos(x + w, y, windowZ).tex(u1, v0).endVertex()
     t.draw()
   }
 }

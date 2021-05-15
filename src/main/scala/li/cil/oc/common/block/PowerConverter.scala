@@ -6,47 +6,30 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   if (Settings.get.ignorePower) {
     setCreativeTab(null)
-    NEI.hide(this)
+    ItemBlacklist.hide(this)
   }
 
   private val formatter = new DecimalFormat("#.#")
 
   // ----------------------------------------------------------------------- //
 
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide")
-  )
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipTail(metadata, stack, player, tooltip, advanced)
-
-    if (Mods.Factorization.isAvailable) {
-      addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
-    }
-    if (Mods.IndustrialCraft2.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) {
+    super.tooltipTail(metadata, stack, world, tooltip, advanced)
+// TODO more generic way of integration modules of power providing mods to provide tooltip lines
+//    if (Mods.Factorization.isAvailable) {
+//      addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
+//    }
+    if (Mods.IndustrialCraft2.isModAvailable) {
       addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
-    }
-    if (Mods.Mekanism.isAvailable) {
-      addRatio(tooltip, "Mekanism", Settings.get.ratioMekanism)
-    }
-    if (Mods.CoFHEnergy.isAvailable) {
-      addRatio(tooltip, "ThermalExpansion", Settings.get.ratioRedstoneFlux)
     }
   }
 
@@ -60,14 +43,12 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
     val (a, b) =
       if (ratio > 1) (1.0, ratio)
       else (1.0 / ratio, 1.0)
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName + "." + name, addExtension(a), addExtension(b)))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase + "." + name, addExtension(a), addExtension(b)))
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def energyThroughput = Settings.get.powerConverterRate
+  override def energyThroughput: Double = Settings.get.powerConverterRate
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

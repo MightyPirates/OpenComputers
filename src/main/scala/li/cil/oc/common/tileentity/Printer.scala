@@ -2,8 +2,6 @@ package li.cil.oc.common.tileentity
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -14,19 +12,24 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.AxisAlignedBB
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 
-class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with ISidedInventory with DeviceInfo {
-  val node = api.Network.newNode(this, Visibility.Network).
+class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
+  val node: ComponentConnector = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
     create()
@@ -39,7 +42,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   var data = new PrintData()
   var isActive = false
   var limit = 0
-  var output: Option[ItemStack] = None
+  var output: StackOption = EmptyStack
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
 
@@ -59,11 +62,11 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
+  override def canConnect(side: EnumFacing): Boolean = side != EnumFacing.UP
 
-  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
+  override def sidedNode(side: EnumFacing): ComponentConnector = if (side != EnumFacing.UP) node else null
 
-  override def getCurrentState = {
+  override def getCurrentState: util.EnumSet[StateAware.State] = {
     if (isPrinting) util.EnumSet.of(api.util.StateAware.State.IsWorking)
     else if (canPrint) util.EnumSet.of(api.util.StateAware.State.CanWork)
     else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
@@ -71,13 +74,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint: Boolean = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
 
-  def isPrinting = output.isDefined
+  def isPrinting: Boolean = output.isDefined
 
-  def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
+  def progress: Double = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
-  def timeRemaining = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+  def timeRemaining: Int = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
 
   // ----------------------------------------------------------------------- //
 
@@ -184,7 +187,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     if (minZ == maxZ) throw new IllegalArgumentException("empty block")
 
     val list = if (state) data.stateOn else data.stateOff
-    list += new PrintData.Shape(AxisAlignedBB.getBoundingBox(
+    list += new PrintData.Shape(new AxisAlignedBB(
       math.min(minX, maxX),
       math.min(minY, maxY),
       math.min(minZ, maxZ),
@@ -194,7 +197,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       texture, tint)
     isActive = false // Needs committing.
 
-    world.markBlockForUpdate(x, y, z)
+    getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
 
     result(true)
   }
@@ -224,15 +227,17 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
-
-  override def updateEntity() {
+  override def updateEntity(): Unit = {
     super.updateEntity()
+
+    if (isClient) {
+      return
+    }
 
     def canMergeOutput = {
       val presentStack = getStackInSlot(slotOutput)
       val outputStack = data.createItemStack()
-      presentStack == null || (presentStack.isItemEqual(outputStack) && ItemStack.areItemStackTagsEqual(presentStack, outputStack))
+      presentStack.isEmpty || (presentStack.isItemEqual(outputStack) && ItemStack.areItemStackTagsEqual(presentStack, outputStack))
     }
 
     if (isActive && output.isEmpty && canMergeOutput) {
@@ -245,7 +250,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
             amountMaterial -= materialRequired
             amountInk -= inkRequired
             limit -= 1
-            output = Option(data.createItemStack())
+            output = StackOption(data.createItemStack())
             if (limit < 1) isActive = false
             ServerPacketSender.sendPrinting(this, printing = true)
           }
@@ -261,18 +266,18 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)
-        if (result == null) {
+        if (result.isEmpty) {
           setInventorySlotContents(slotOutput, output.get)
         }
-        else if (result.stackSize < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
-          result.stackSize += 1
+        else if (result.getCount < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
+          result.grow(1)
           markDirty()
         }
         else {
           return
         }
         requiredEnergy = 0
-        output = None
+        output = EmptyStack
       }
       ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
@@ -297,50 +302,64 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
+  private final val AmountMaterialTag = Settings.namespace + "amountMaterial"
+  private final val AmountInkTag = Settings.namespace + "amountInk"
+  private final val DataTag = Settings.namespace + "data"
+  private final val IsActiveTag = Settings.namespace + "active"
+  private final val LimitTag = Settings.namespace + "limit"
+  private final val OutputTag = Settings.namespace + "output"
+  private final val TotalTag = Settings.namespace + "total"
+  private final val RemainingTag = Settings.namespace + "remaining"
+
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    amountMaterial = nbt.getInteger(Settings.namespace + "amountMaterial")
-    amountInk = nbt.getInteger(Settings.namespace + "amountInk")
-    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
-    isActive = nbt.getBoolean(Settings.namespace + "active")
-    limit = nbt.getInteger(Settings.namespace + "limit")
-    if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
+    amountMaterial = nbt.getInteger(AmountMaterialTag)
+    amountInk = nbt.getInteger(AmountInkTag)
+    data.load(nbt.getCompoundTag(DataTag))
+    isActive = nbt.getBoolean(IsActiveTag)
+    limit = nbt.getInteger(LimitTag)
+    if (nbt.hasKey(OutputTag)) {
+      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTag)))
     }
-    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
-    requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
+    else {
+      output = EmptyStack
+    }
+    totalRequiredEnergy = nbt.getDouble(TotalTag)
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setInteger(Settings.namespace + "amountMaterial", amountMaterial)
-    nbt.setInteger(Settings.namespace + "amountInk", amountInk)
-    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
-    nbt.setBoolean(Settings.namespace + "active", isActive)
-    nbt.setInteger(Settings.namespace + "limit", limit)
-    output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
-    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
-    nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
+    nbt.setInteger(AmountMaterialTag, amountMaterial)
+    nbt.setInteger(AmountInkTag, amountInk)
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setBoolean(IsActiveTag, isActive)
+    nbt.setInteger(LimitTag, limit)
+    output.foreach(stack => nbt.setNewCompoundTag(OutputTag, stack.writeToNBT))
+    nbt.setDouble(TotalTag, totalRequiredEnergy)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
-    requiredEnergy = nbt.getDouble("remaining")
+    data.load(nbt.getCompoundTag(DataTag))
+    requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
-    nbt.setDouble("remaining", requiredEnergy)
+    nbt.setNewCompoundTag(DataTag, data.save)
+    nbt.setDouble(RemainingTag, requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //
 
   override def getSizeInventory = 3
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean =
     if (slot == slotMaterial)
       PrintData.materialValue(stack) > 0
     else if (slot == slotInk)
@@ -349,9 +368,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array(slotMaterial, slotInk, slotOutput)
+  override def getSlotsForFace(side: EnumFacing): Array[Int] = Array(slotMaterial, slotInk, slotOutput)
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: Int): Boolean = !isItemValidForSlot(slot, stack)
+  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = !isItemValidForSlot(slot, stack)
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: Int): Boolean = slot != slotOutput
+  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = slot != slotOutput
 }

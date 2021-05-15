@@ -1,19 +1,27 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.util.Color
 import net.minecraft.block.material.Material
+import net.minecraft.block.properties.PropertyEnum
+import net.minecraft.block.state.BlockStateContainer
+import net.minecraft.block.state.IBlockState
+import net.minecraft.item.EnumDyeColor
 
-class ChameliumBlock extends SimpleBlock(Material.rock) {
-  override protected def customTextures = Array(
-    Some("White"),
-    Some("White"),
-    Some("White"),
-    Some("White"),
-    Some("White"),
-    Some("White")
-  )
+object ChameliumBlock {
+  final val Color = PropertyEnum.create("color", classOf[EnumDyeColor])
+}
 
-  override def getRenderColor(meta: Int): Int = Color.byOreName(Color.dyes(meta max 0 min Color.dyes.length))
+class ChameliumBlock extends SimpleBlock(Material.ROCK) {
+  setDefaultState(blockState.getBaseState.withProperty(ChameliumBlock.Color, EnumDyeColor.BLACK))
 
-  override def damageDropped(meta: Int): Int = meta
+  override def damageDropped(state: IBlockState): Int = getMetaFromState(state)
+
+  override def getStateFromMeta(meta: Int): IBlockState =
+    getDefaultState.withProperty(ChameliumBlock.Color, EnumDyeColor.byDyeDamage(meta))
+
+  override def getMetaFromState(state: IBlockState): Int =
+    state.getValue(ChameliumBlock.Color).getDyeDamage
+
+  override def createBlockState() = new BlockStateContainer(this, ChameliumBlock.Color)
+
+  override def hasTileEntity(state: IBlockState): Boolean = false
 }

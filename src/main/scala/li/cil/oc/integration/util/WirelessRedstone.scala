@@ -7,7 +7,7 @@ import scala.collection.mutable
 object WirelessRedstone {
   val systems = mutable.Set.empty[WirelessRedstoneSystem]
 
-  def isAvailable = systems.nonEmpty
+  def isAvailable: Boolean = systems.nonEmpty
 
   def addReceiver(rs: RedstoneWireless) {
     systems.foreach(system => try system.addReceiver(rs) catch {
@@ -33,7 +33,7 @@ object WirelessRedstone {
     })
   }
 
-  def getInput(rs: RedstoneWireless) = systems.exists(_.getInput(rs))
+  def getInput(rs: RedstoneWireless): Boolean = systems.exists(_.getInput(rs))
 
   trait WirelessRedstoneSystem {
     def addReceiver(rs: RedstoneWireless)

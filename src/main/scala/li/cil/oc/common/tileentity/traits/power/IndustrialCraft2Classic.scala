@@ -1,4 +1,5 @@
 package li.cil.oc.common.tileentity.traits.power
+/* TODO IC2 Classic
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.Event
@@ -97,3 +98,4 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
     else 0
   }
 }
+*/

@@ -10,7 +10,6 @@ import forestry.api.apiculture.IBee;
 import forestry.api.apiculture.IBeeGenome;
 import forestry.api.arboriculture.EnumTreeChromosome;
 import forestry.api.arboriculture.IAlleleFruit;
-import forestry.api.arboriculture.IAlleleGrowth;
 import forestry.api.arboriculture.IAlleleLeafEffect;
 import forestry.api.arboriculture.IAlleleTreeSpecies;
 import forestry.api.arboriculture.ITree;
@@ -21,18 +20,13 @@ import forestry.api.genetics.IAlleleBoolean;
 import forestry.api.genetics.IAlleleFloat;
 import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IAlleleInteger;
-import forestry.api.genetics.IAllelePlantType;
 import forestry.api.genetics.IAlleleTolerance;
 import forestry.api.genetics.IChromosome;
 import forestry.api.genetics.IChromosomeType;
 import forestry.api.genetics.IGenome;
 import forestry.api.genetics.IIndividual;
 import forestry.api.genetics.IIndividualLiving;
-import forestry.api.lepidopterology.EnumButterflyChromosome;
-import forestry.api.lepidopterology.IAlleleButterflyEffect;
-import forestry.api.lepidopterology.IAlleleButterflySpecies;
-import forestry.api.lepidopterology.IButterfly;
-import forestry.api.lepidopterology.IButterflyGenome;
+import forestry.api.lepidopterology.*;
 import li.cil.oc.api.driver.Converter;
 
 import java.util.Map;
@@ -97,18 +91,6 @@ public class ConverterIIndividual implements Converter {
                             return allele.getValue();
                         }
                     })
-                    .put(IAllelePlantType.class, new IAlleleConverter<IAllelePlantType>() {
-                        @Override
-                        public Object convert(IAllelePlantType allele) {
-                            return allele.getPlantTypes();
-                        }
-                    })
-                    .put(IAlleleGrowth.class, new IAlleleConverter<IAlleleGrowth>() {
-                        @Override
-                        public Object convert(IAlleleGrowth allele) {
-                            return allele.getProvider().getInfo();
-                        }
-                    })
                     .build();
 
     private abstract static class GenomeReader<G extends IGenome, E extends Enum<E> & IChromosomeType> {
@@ -130,7 +112,7 @@ public class ConverterIIndividual implements Converter {
             if (allele == null) return "missing";
             @SuppressWarnings("unchecked")
             IAlleleConverter<IAllele> converter = (IAlleleConverter<IAllele>) converters.get(cls);
-            return converter != null ? converter.convert(allele) : allele.getName();
+            return converter != null ? converter.convert(allele) : allele.getAlleleName();
         }
 
         protected abstract void addAlleleInfo(GenomeAccess access, Map<String, Object> result);
@@ -161,9 +143,9 @@ public class ConverterIIndividual implements Converter {
             result.put("lifespan", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.LIFESPAN));
             result.put("fertility", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FERTILITY));
             result.put("temperatureTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.TEMPERATURE_TOLERANCE));
-            result.put("nocturnal", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.NOCTURNAL));
+            result.put("neverSleeps", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.NEVER_SLEEPS));
             result.put("humidityTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.HUMIDITY_TOLERANCE));
-            result.put("tolerantFlyer", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.TOLERANT_FLYER));
+            result.put("toleratesRain", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.TOLERATES_RAIN));
             result.put("caveDwelling", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.CAVE_DWELLING));
             result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumBeeChromosome.FLOWER_PROVIDER));
             result.put("flowering", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FLOWERING));
@@ -193,7 +175,7 @@ public class ConverterIIndividual implements Converter {
             result.put("fireResist", convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.FIRE_RESIST));
             result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumButterflyChromosome.FLOWER_PROVIDER));
             result.put("effect", convertAllele(access, IAlleleButterflyEffect.class, EnumButterflyChromosome.EFFECT));
-            result.put("territory", convertAllele(access, IAlleleArea.class, EnumButterflyChromosome.TERRITORY));
+            result.put("cocoon", convertAllele(access, IAlleleButterflyCocoon.class, EnumButterflyChromosome.COCOON));
         }
     }
 
@@ -206,14 +188,12 @@ public class ConverterIIndividual implements Converter {
         @Override
         protected void addAlleleInfo(GenomeAccess access, Map<String, Object> result) {
             result.put("species", convertAllele(access, IAlleleTreeSpecies.class, EnumTreeChromosome.SPECIES));
-            result.put("growth", convertAllele(access, IAlleleGrowth.class, EnumTreeChromosome.GROWTH));
+            result.put("fireproof", convertAllele(access, IAlleleBoolean.class, EnumTreeChromosome.FIREPROOF));
             result.put("height", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.HEIGHT));
             result.put("fertility", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.FERTILITY));
             result.put("fruits", convertAllele(access, IAlleleFruit.class, EnumTreeChromosome.FRUITS));
             result.put("yield", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.YIELD));
-            result.put("plant", convertAllele(access, IAllelePlantType.class, EnumTreeChromosome.PLANT));
             result.put("sappiness", convertAllele(access, IAlleleFloat.class, EnumTreeChromosome.SAPPINESS));
-            result.put("territory", convertAllele(access, IAlleleArea.class, EnumTreeChromosome.TERRITORY));
             result.put("effect", convertAllele(access, IAlleleLeafEffect.class, EnumTreeChromosome.EFFECT));
             result.put("maturation", convertAllele(access, IAlleleInteger.class, EnumTreeChromosome.MATURATION));
             result.put("girth", convertAllele(access, IAlleleInteger.class, EnumTreeChromosome.GIRTH));
@@ -256,7 +236,7 @@ public class ConverterIIndividual implements Converter {
             } else if (individual instanceof ITree) {
                 ITree tree = (ITree) individual;
                 output.put("type", "tree");
-                output.put("plantType", tree.getPlantTypes().toString());
+                output.put("plantType", tree.getDisplayName());
                 if (isAnalyzed) genomeReader = new TreeGenomeReader(tree.getGenome());
             }
 

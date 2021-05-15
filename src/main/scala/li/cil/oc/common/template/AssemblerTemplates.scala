@@ -13,7 +13,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.IChatComponent
+import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -43,7 +43,7 @@ object AssemblerTemplates {
   }
 
   def select(stack: ItemStack) = {
-    if (stack != null && templateFilters.forall(IMC.tryInvokeStatic(_, stack)(true)))
+    if (!stack.isEmpty && templateFilters.forall(IMC.tryInvokeStatic(_, stack)(true)))
       templates.find(_.select(stack))
     else
       None
@@ -58,16 +58,16 @@ object AssemblerTemplates {
     def select(stack: ItemStack) = IMC.tryInvokeStatic(selector, stack)(false)
 
     def validate(inventory: IInventory) = IMC.tryInvokeStatic(validator, inventory)(null: Array[AnyRef]) match {
-      case Array(valid: java.lang.Boolean, progress: IChatComponent, warnings: Array[IChatComponent]) => (valid: Boolean, progress, warnings)
-      case Array(valid: java.lang.Boolean, progress: IChatComponent) => (valid: Boolean, progress, Array.empty[IChatComponent])
-      case Array(valid: java.lang.Boolean) => (valid: Boolean, null, Array.empty[IChatComponent])
-      case _ => (false, null, Array.empty[IChatComponent])
+      case Array(valid: java.lang.Boolean, progress: ITextComponent, warnings: Array[ITextComponent]) => (valid: Boolean, progress, warnings)
+      case Array(valid: java.lang.Boolean, progress: ITextComponent) => (valid: Boolean, progress, Array.empty[ITextComponent])
+      case Array(valid: java.lang.Boolean) => (valid: Boolean, null, Array.empty[ITextComponent])
+      case _ => (false, null, Array.empty[ITextComponent])
     }
 
     def assemble(inventory: IInventory) = IMC.tryInvokeStatic(assembler, inventory)(null: Array[AnyRef]) match {
       case Array(stack: ItemStack, energy: java.lang.Number) => (stack, energy.doubleValue(): Double)
       case Array(stack: ItemStack) => (stack, 0.0)
-      case _ => (null, 0.0)
+      case _ => (ItemStack.EMPTY, 0.0)
     }
   }
 

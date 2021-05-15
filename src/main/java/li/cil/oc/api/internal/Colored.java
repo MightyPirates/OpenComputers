@@ -22,4 +22,16 @@ public interface Colored {
      * @param value the new color value.
      */
     void setColor(int value);
+
+    /**
+     * Whether the color of the implementing object controls how it can connect
+     * to other objects. If this is <tt>true</tt> for <em>both</em> involved
+     * objects, silver/light gray objects connect to any other object, but
+     * objects of otherwise different color do not connect to each other. If
+     * this is <tt>false</tt> for <em>either</em> of the two objects, they may
+     * always connect to each other.
+     *
+     * @return whether the color influences this object's connectivity.
+     */
+    boolean controlsConnectivity();
 }

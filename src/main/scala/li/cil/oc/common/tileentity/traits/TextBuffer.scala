@@ -1,14 +1,16 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.internal
+import li.cil.oc.api.network.Node
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-trait TextBuffer extends Environment {
-  lazy val buffer = {
+trait TextBuffer extends Environment with Tickable {
+  lazy val buffer: internal.TextBuffer = {
     val screenItem = api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)
     val buffer = api.Driver.driverFor(screenItem, getClass).createEnvironment(screenItem, this).asInstanceOf[api.internal.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(tier)
@@ -17,7 +19,7 @@ trait TextBuffer extends Environment {
     buffer
   }
 
-  override def node = buffer.node
+  override def node: Node = buffer.node
 
   def tier: Int
 
@@ -30,12 +32,12 @@ trait TextBuffer extends Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
     buffer.load(nbt)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
     buffer.save(nbt)
   }

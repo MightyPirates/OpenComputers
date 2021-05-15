@@ -3,7 +3,7 @@ package li.cil.oc.common.inventory
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.driver.{DriverItem => ItemDriver}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
@@ -55,7 +55,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def connectComponents() {
     for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
       val stack = getStackInSlot(slot)
-      if (stack != null && components(slot).isEmpty && isComponentSlot(slot, stack)) {
+      if (!stack.isEmpty && components(slot).isEmpty && isComponentSlot(slot, stack)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
@@ -107,7 +107,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def saveComponents() {
     for (slot <- 0 until getSizeInventory) {
       val stack = getStackInSlot(slot)
-      if (stack != null) {
+      if (!stack.isEmpty) {
         if (slot >= components.length) {
           // isSizeInventoryReady was added to resolve issues where an inventory was used before its
           // nbt data had been parsed. See https://github.com/MightyPirates/OpenComputers/issues/2522
@@ -194,7 +194,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       val tag = dataTag(driver, stack)
       // Clear the tag compound before saving to get the same behavior as
       // in tile entities (otherwise entries have to be cleared manually).
-      for (key <- tag.func_150296_c.map(_.asInstanceOf[String])) {
+      for (key <- tag.getKeySet.map(_.asInstanceOf[String])) {
         tag.removeTag(key)
       }
       component.save(tag)

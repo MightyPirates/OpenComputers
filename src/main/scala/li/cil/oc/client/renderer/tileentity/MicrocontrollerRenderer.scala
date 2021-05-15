@@ -3,70 +3,71 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Microcontroller
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+object MicrocontrollerRenderer extends TileEntitySpecialRenderer[Microcontroller] {
+  override def render(mcu: Microcontroller, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    val mcu = tileEntity.asInstanceOf[Microcontroller]
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
+    GlStateManager.color(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    GlStateManager.pushMatrix()
 
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     mcu.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
+      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
-    GL11.glTranslated(-0.5, 0.5, 0.505)
-    GL11.glScalef(1, -1, 1)
+    GlStateManager.translate(-0.5, 0.5, 0.505)
+    GlStateManager.scale(1, -1, 1)
 
-    bindTexture(Textures.blockMicrocontrollerFrontLight)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(0, 1, 0, 0, 1)
-    t.addVertexWithUV(1, 1, 0, 1, 1)
-    t.addVertexWithUV(1, 0, 0, 1, 0)
-    t.addVertexWithUV(0, 0, 0, 0, 0)
-    t.draw()
+    val t = Tessellator.getInstance
+    val r = t.getBuffer
+
+    Textures.Block.bind()
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+
+    renderFrontOverlay(Textures.Block.MicrocontrollerFrontLight, r)
 
     if (mcu.isRunning) {
-      renderFrontOverlay(Textures.blockMicrocontrollerFrontOn)
+      renderFrontOverlay(Textures.Block.MicrocontrollerFrontOn, r)
     }
     else if (mcu.hasErrored && RenderUtil.shouldShowErrorLight(mcu.hashCode)) {
-      renderFrontOverlay(Textures.blockMicrocontrollerFrontError)
+      renderFrontOverlay(Textures.Block.MicrocontrollerFrontError, r)
     }
 
-    RenderState.enableLighting()
+    t.draw()
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    RenderState.disableBlend()
+    RenderState.enableEntityLighting()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    GlStateManager.popMatrix()
+    RenderState.popAttrib()
+
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
-  private def renderFrontOverlay(texture: ResourceLocation): Unit = {
-    bindTexture(texture)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(0, 1, 0, 0, 1)
-    t.addVertexWithUV(1, 1, 0, 1, 1)
-    t.addVertexWithUV(1, 0, 0, 1, 0)
-    t.addVertexWithUV(0, 0, 0, 0, 0)
-    t.draw()
+  private def renderFrontOverlay(texture: ResourceLocation, r: BufferBuilder): Unit = {
+    val icon = Textures.getSprite(texture)
+    r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+    r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+    r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+    r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
   }
 }

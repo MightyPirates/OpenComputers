@@ -241,15 +241,19 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
         case _ => None // Directory.
       }
 
+    private final val ChildrenTag = "children"
+    private final val IsDirectoryTag = "isDirectory"
+    private final val NameTag = "name"
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      val childrenNbt = nbt.getTagList("children", NBT.TAG_COMPOUND)
+      val childrenNbt = nbt.getTagList(ChildrenTag, NBT.TAG_COMPOUND)
       (0 until childrenNbt.tagCount).map(childrenNbt.getCompoundTagAt).foreach(childNbt => {
         val child =
-          if (childNbt.getBoolean("isDirectory")) new VirtualDirectory
+          if (childNbt.getBoolean(IsDirectoryTag)) new VirtualDirectory
           else new VirtualFile
         child.load(childNbt)
-        children += childNbt.getString("name") -> child
+        children += childNbt.getString(NameTag) -> child
       })
     }
 
@@ -258,12 +262,12 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       val childrenNbt = new NBTTagList()
       for ((childName, child) <- children) {
         val childNbt = new NBTTagCompound()
-        childNbt.setBoolean("isDirectory", child.isDirectory)
-        childNbt.setString("name", childName)
+        childNbt.setBoolean(IsDirectoryTag, child.isDirectory)
+        childNbt.setString(NameTag, childName)
         child.save(childNbt)
         childrenNbt.appendTag(childNbt)
       }
-      nbt.setTag("children", childrenNbt)
+      nbt.setTag(ChildrenTag, childrenNbt)
     }
 
     override def get(path: Iterable[String]) =

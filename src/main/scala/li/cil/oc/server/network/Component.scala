@@ -4,6 +4,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
 import li.cil.oc.api.network._
 import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.ArgumentsImpl
@@ -18,8 +19,6 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 trait Component extends network.Component with Node {
-  val name: String
-
   def visibility = _visibility
 
   private lazy val callbacks = Callbacks(host)
@@ -121,14 +120,14 @@ trait Component extends network.Component with Node {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("visibility")) {
-      _visibility = Visibility.values()(nbt.getInteger("visibility"))
+    if (nbt.hasKey(NodeData.VisibilityTag)) {
+      _visibility = Visibility.values()(nbt.getInteger(NodeData.VisibilityTag))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger("visibility", _visibility.ordinal())
+    nbt.setInteger(NodeData.VisibilityTag, _visibility.ordinal())
   }
 
   override def toString = super.toString + s"@$name"

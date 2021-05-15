@@ -23,7 +23,7 @@ object DriverUpgradeDatabase extends Item with api.driver.item.HostAware {
     else new component.UpgradeDatabase(new DatabaseInventory {
       override def container = stack
 
-      override def isUseableByPlayer(player: EntityPlayer) = false
+      override def isUsableByPlayer(player: EntityPlayer) = false
     })
 
   override def slot(stack: ItemStack) = Slot.Upgrade

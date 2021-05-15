@@ -1,6 +1,6 @@
 package li.cil.oc.integration.wrcbe
 
-import codechicken.wirelessredstone.core.RedstoneEther
+import codechicken.wirelessredstone.manager.RedstoneEther
 import li.cil.oc.integration.util.WirelessRedstone.WirelessRedstoneSystem
 import li.cil.oc.server.component.RedstoneWireless
 
@@ -39,5 +39,5 @@ object WirelessRedstoneCBE extends WirelessRedstoneSystem {
     }
   }
 
-  def getInput(rs: RedstoneWireless) = rs.wirelessInput
+  def getInput(rs: RedstoneWireless): Boolean = rs.wirelessInput
 }

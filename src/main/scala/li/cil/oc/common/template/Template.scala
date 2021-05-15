@@ -6,9 +6,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.util.StackOption
+import li.cil.oc.util.StackOption._
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IChatComponent
+import net.minecraft.util.text.ITextComponent
 import org.apache.commons.lang3.tuple
 
 import scala.collection.mutable
@@ -46,7 +48,7 @@ abstract class Template {
       else if (!hasRAM && requiresRAM) Localization.Assembler.InsertRAM
       else Localization.Assembler.Complexity(complexity, maxComplexity)
 
-    val warnings = mutable.ArrayBuffer.empty[IChatComponent]
+    val warnings = mutable.ArrayBuffer.empty[ITextComponent]
     for ((name, check) <- suggestedComponents) {
       if (!check(inventory)) {
         warnings += Localization.Assembler.Warning(name)
@@ -60,8 +62,8 @@ abstract class Template {
   }
 
   protected def exists(inventory: IInventory, p: ItemStack => Boolean) = {
-    (0 until inventory.getSizeInventory).exists(slot => Option(inventory.getStackInSlot(slot)) match {
-      case Some(stack) => p(stack)
+    (0 until inventory.getSizeInventory).exists(slot => StackOption(inventory.getStackInSlot(slot)) match {
+      case SomeStack(stack) => p(stack)
       case _ => false
     })
   }
