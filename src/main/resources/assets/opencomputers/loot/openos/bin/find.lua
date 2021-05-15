@@ -2,11 +2,11 @@ local shell = require("shell")
 local fs = require("filesystem")
 local text = require("text")
 
-local USAGE = 
+local USAGE =
 [===[Usage: find [path] [--type=[dfs]] [--[i]name=EXPR]
   --path  if not specified, path is assumed to be current working directory
   --type  returns results of a given type, d:directory, f:file, and s:symlinks
-  --name  specify the file name pattern. Use quote to include *. iname is 
+  --name  specify the file name pattern. Use quote to include *. iname is
           case insensitive
   --help  display this help and exit]===]
 
@@ -74,31 +74,31 @@ if options.iname or options.name then
   -- prefix any * with . for gnu find glob matching
   fileNamePattern = text.escapeMagic(fileNamePattern)
   fileNamePattern = fileNamePattern:gsub("%%%*", ".*")
-end  
+end
 
 local function isValidType(spath)
   if not fs.exists(spath) then
     return false
   end
-    
+
   if fileNamePattern:len() > 0 then
     local fileName = spath:gsub('.*/','')
-        
+
     if fileName:len() == 0 then
       return false
     end
-        
+
     local caseFileName = fileName
-        
+
     if not bCaseSensitive then
       caseFileName = caseFileName:lower()
     end
-        
+
     local s, e = caseFileName:find(fileNamePattern)
     if not s or not e then
       return false
     end
-        
+
     if s ~= 1 or e ~= caseFileName:len() then
       return false
     end

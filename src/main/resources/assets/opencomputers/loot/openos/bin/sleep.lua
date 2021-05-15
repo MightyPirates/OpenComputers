@@ -1,5 +1,4 @@
 local shell = require("shell")
-local tty = require("tty")
 local args, options = shell.parse(...)
 
 if options.help then

@@ -21,7 +21,7 @@ local function saveConfig(conf)
   for key, value in pairs(conf) do
     file:write(tostring(key) .. " = " .. require("serialization").serialize(value) .. "\n")
   end
-  
+
   file:close()
   return true
 end

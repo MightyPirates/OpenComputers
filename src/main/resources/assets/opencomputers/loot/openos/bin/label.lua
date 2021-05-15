@@ -28,7 +28,7 @@ if options.a then
     end
   end
 else
-  proxy, reason = devfs.getDevice(args[1])
+  proxy, reason = devfs.getDevice(filter)
 end
 
 if not proxy then
@@ -45,5 +45,5 @@ if #args < 2 then
     return 1
   end
 else
-  devfs.setDeviceLabel(proxy, args[2])
+  devfs.setDeviceLabel(proxy, label)
 end

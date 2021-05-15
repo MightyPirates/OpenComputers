@@ -1,7 +1,6 @@
 local process = require("process")
 local unicode = require("unicode")
 local event = require("event")
-local thread = require("thread")
 local event_mt = getmetatable(event.handlers)
 
 -- WARNING this code does not use official kernel API and is likely to change

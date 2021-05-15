@@ -8,7 +8,7 @@ end
 
 for i = 1, #args do
   local result, reason = shell.resolve(args[i], "lua")
-  
+
   if not result then
     result = shell.getAlias(args[i])
     if result then

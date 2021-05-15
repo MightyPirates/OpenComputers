@@ -5,7 +5,7 @@ if #args < 1 then
     io.write(k .. "='" .. string.gsub(v, "'", [['"'"']]) .. "'\n")
   end
 else
-  local count = 0 
+  local count = 0
   for _, expr in ipairs(args) do
     local e = expr:find('=')
     if e then

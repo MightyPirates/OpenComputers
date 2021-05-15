@@ -1,6 +1,5 @@
 local fs = require("filesystem")
 local shell = require("shell")
-local text = require("text")
 local lib = {}
 
 local function perr(ops, format, ...)
@@ -141,7 +140,7 @@ function lib.recurse(fromPath, toPath, options, origin, top)
   if mv and is_mount then
     return false, string.format("cannot move '%s', it is a mount point", fromPath)
   end
-  
+
   if fromIsLink and options.P and not (toExists and same_path and not toIsLink) then
     if toExists and options.n then
       return true

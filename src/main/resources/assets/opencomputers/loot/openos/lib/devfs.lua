@@ -182,7 +182,7 @@ end
 
 function api.proxy.list(path)
   local result = {}
-  for name in pairs(dynamic_list(path, false, false)) do
+  for name in pairs(dynamic_list(path, false)) do
     table.insert(result, name)
   end
   return result

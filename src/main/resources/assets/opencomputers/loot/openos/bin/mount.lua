@@ -31,7 +31,7 @@ end
 local function print_mounts()
   -- for each mount
   local mounts = {}
-  
+
   for proxy,path in fs.mounts() do
     local device = {}
 
@@ -56,7 +56,7 @@ local function print_mounts()
     for _,device in ipairs(dev_mounts) do
       local rw_ro = "(" .. device.rw_ro .. ")"
       local fs_label = "\"" .. device.fs_label .. "\""
-            
+
       io.write(string.format("%-8s on %-10s %s %s\n",
         dev_path:sub(1,8),
         device.mount_path,

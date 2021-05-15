@@ -69,7 +69,7 @@ local function formatSize(size)
     unit = unit + 1
     size = size / power
   end
-    
+
   return math.floor(size * 10) / 10 .. sizes[unit]
 end
 
@@ -90,7 +90,7 @@ local function visitor(rpath)
       subtotal = subtotal + vtotal
       dirs = dirs + vdirs
     end
-        
+
     if dirs == 0 then -- no child dirs
       if not bSummary then
         printSize(subtotal, rpath)
@@ -113,7 +113,7 @@ for i,arg in ipairs(args) do
   else
     if fs.isDirectory(path) then
       local total = visitor(arg)
-                
+
       if bSummary then
         printSize(total, arg)
       end

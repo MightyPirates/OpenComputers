@@ -52,7 +52,7 @@ local prefix = args[1] or os.getenv("TMPDIR") .. '/'
 if not fs.exists(prefix) then
   io.stderr:write(
     string.format(
-      "cannot create tmp file or directory at %s, it does not exist\n", 
+      "cannot create tmp file or directory at %s, it does not exist\n",
       prefix))
   return 1
 end

@@ -308,8 +308,8 @@ do
     handlers_mt.__newindex = function(_, key, value)
       process.info().data.handlers[key] = value
     end
-    handlers_mt.__pairs = function(_, ...)
-      return pairs(process.info().data.handlers, ...)
+    handlers_mt.__pairs = function(_)
+      return pairs(process.info().data.handlers)
     end
     handlers_mt.__call = function(tbl, ...)
       return process.info().data.pull(tbl, ...)

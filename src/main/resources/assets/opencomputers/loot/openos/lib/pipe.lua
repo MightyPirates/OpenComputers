@@ -43,7 +43,7 @@ function pipe.createCoroutineStack(root, env, name)
   return pco
 end
 
-local pipe_stream = 
+local pipe_stream =
 {
   continue = function(self, exit)
     local result = table.pack(coroutine.resume(self.next))

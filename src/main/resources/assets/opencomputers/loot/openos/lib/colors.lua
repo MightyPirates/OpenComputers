@@ -1,5 +1,5 @@
 local colors = {
-  [0] = "white",  
+  [0] = "white",
   [1] = "orange",
   [2] = "magenta",
   [3] = "lightblue",

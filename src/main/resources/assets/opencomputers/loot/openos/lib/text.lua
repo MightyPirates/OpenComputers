@@ -31,7 +31,7 @@ function text.internal.tokenize(value, options)
   local words, reason = text.internal.words(value, options)
 
   local splitter = text.escapeMagic(custom and table.concat(delimiters) or "<>|;&")
-  if type(words) ~= "table" or 
+  if type(words) ~= "table" or
     #splitter == 0 or
     not value:find("["..splitter.."]") then
     return words, reason

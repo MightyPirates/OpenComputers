@@ -19,7 +19,7 @@ end
 
 local function readRom()
   local eeprom = component.eeprom
-  fileName = shell.resolve(args[1])
+  local fileName = shell.resolve(args[1])
   if not options.q then
     if fs.exists(fileName) then
       io.write("Are you sure you want to overwrite " .. fileName .. "?\n")

@@ -8,7 +8,7 @@ SYNOPSIS
   mount --bind PATH PATH
 
 OPTIONS
-  -r, --readonly  mount filesystem readonly 
+  -r, --readonly  mount filesystem readonly
       --bind      mount a bind point (folder to folder)
   -h, --help      print help message
 

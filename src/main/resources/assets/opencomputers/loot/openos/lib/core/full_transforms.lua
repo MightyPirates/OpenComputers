@@ -13,7 +13,7 @@ function lib.sub(tbl,f,l)
     r[#r+1]=tbl[i]
   end
   return r
-end 
+end
 
 -- Returns a list of subsets of tbl where partitioner acts as a delimiter.
 function lib.partition(tbl,partitioner,dropEnds,f,l)
@@ -64,7 +64,7 @@ function lib.partition(tbl,partitioner,dropEnds,f,l)
   end
 
   return result
-end 
+end
 
 -- calls callback(e,i,tbl) for each ith element e in table tbl from first
 function lib.foreach(tbl,c,f,l)
@@ -106,4 +106,4 @@ function lib.at(tbl, index)
     current_index = current_index + 1
   end
   return nil, current_index - 1 -- went one too far
-end 
+end

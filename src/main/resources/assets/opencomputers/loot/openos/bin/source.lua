@@ -19,13 +19,13 @@ end
 
 local lines = file:lines()
 
-while true do  
+while true do
   local line = lines()
   if not line then
     break
   end
   local current_data = process.info().data
-  
+
   local source_proc = process.load((assert(os.getenv("SHELL"), "no $SHELL set")))
   local source_data = process.list[source_proc].data
   source_data.aliases = current_data.aliases -- hacks to propogate sub shell env changes

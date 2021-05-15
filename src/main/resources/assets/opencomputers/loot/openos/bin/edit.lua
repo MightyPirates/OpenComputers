@@ -485,7 +485,7 @@ local function uncut()
   for _, line in ipairs(cutBuffer) do
     insert(line)
     enter()
-  end 
+  end
 end
 
 -------------------------------------------------------------------------------

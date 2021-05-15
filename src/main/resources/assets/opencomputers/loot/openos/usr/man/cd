@@ -9,13 +9,13 @@ DESCRIPTION
   `cd` allows changing the current working directory, i.e the directory based on which relative paths are resolved.
 
   If no operand is given then HOME environment variable is used.
-  
+
   If the operand is - (just a single dash) then OLDPWD environment variable is used.
-  
+
   Relative path components ./ and ../ may be used to denote the working directory and the parent directory, respectively. An operand starting with ./ is equivalent to PWD environment variable. See examples for illustrations.
-  
+
   Lastly, cd will attempt to change the current directory to the path defined by the operand, reporting errors if any.
-  
+
   If cd is successful, OLDPWD environment variable will also be set to the previous value of PWD (that is the current working directory immediately prior to the call to cd).
 
 ENVIRONMENT VARIABLES
