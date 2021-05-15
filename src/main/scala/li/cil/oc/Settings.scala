@@ -1,8 +1,7 @@
 package li.cil.oc
 
 import java.io._
-import java.net.Inet4Address
-import java.net.InetAddress
+import java.net.{Inet4Address, InetAddress}
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.UUID
@@ -11,11 +10,9 @@ import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.DefaultArtifactVersion
-import cpw.mods.fml.common.versioning.VersionRange
+import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
 import org.apache.commons.codec.binary.Hex
@@ -23,11 +20,23 @@ import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.io.Codec
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.util.matching.Regex
 
 class Settings(val config: Config) {
+  //network
+  val syncRange = config.getDouble("network.syncRange")
+  val soundRange = config.getDouble("network.soundRange")
+  val fileSystemActivityRange = config.getDouble("network.fileSystemActivityRange")
+  val networkActivityRange = config.getDouble("network.networkActivityRange")
+  val robotAnimateSwingRange = config.getDouble("network.robotAnimateSwingRange")
+  val robotAnimateTurnRange = config.getDouble("network.robotAnimateTurnRange")
+  val robotLightChangeRange = config.getDouble("network.robotLightChangeRange")
+  val robotSelectedSlotChangeRange = config.getDouble("network.robotSelectedSlotChangeRange")
+  val switchActivityRange = config.getDouble("network.switchActivityRange")
+  val soundPatternRange = config.getDouble("network.soundPatternRange")
+  val transposerActivityRange = config.getDouble("network.transposerActivityRange")
+
   // ----------------------------------------------------------------------- //
   // client
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")

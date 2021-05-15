@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
-import li.cil.oc.api
-import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.event.{FileSystemAccessEvent, NetworkActivityEvent}
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -155,7 +155,7 @@ object PacketSender {
               pb.writeDouble(event.getZ)
           }
 
-          pb.sendToPlayersNearHost(host, Option(64))
+          pb.sendToPlayersNearHost(host, Option(Settings.get.fileSystemActivityRange))
         }
     }
   }
@@ -184,7 +184,7 @@ object PacketSender {
           pb.writeDouble(event.getZ)
       }
 
-      pb.sendToPlayersNearHost(host, Option(64))
+      pb.sendToPlayersNearHost(host, Option(Settings.get.networkActivityRange))
     }
   }
 
@@ -519,7 +519,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, Option(64))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.robotAnimateSwingRange))
   }
 
   def sendRobotAnimateTurn(t: tileentity.Robot) {
@@ -529,7 +529,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, Option(64))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.robotAnimateTurnRange))
   }
 
   def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
@@ -548,7 +548,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.info.lightColor)
 
-    pb.sendToPlayersNearTileEntity(t, Option(64))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.robotLightChangeRange))
   }
 
   def sendRobotNameChange(t: tileentity.Robot) {
@@ -571,7 +571,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToPlayersNearTileEntity(t, Option(16))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.robotSelectedSlotChangeRange))
   }
 
   def sendRotatableState(t: Rotatable) {
@@ -589,7 +589,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToPlayersNearTileEntity(t, Option(64))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.switchActivityRange))
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
@@ -775,7 +775,7 @@ object PacketSender {
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(Settings.get.soundRange))
   }
 
   def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
@@ -788,7 +788,7 @@ object PacketSender {
     pb.writeInt(blockPos.z)
     pb.writeUTF(pattern)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(Settings.get.soundPatternRange))
   }
 
   def sendTransposerActivity(t: tileentity.Transposer) {
@@ -796,7 +796,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToPlayersNearTileEntity(t, Option(32))
+    pb.sendToPlayersNearTileEntity(t, Option(Settings.get.transposerActivityRange))
   }
 
   def sendWaypointLabel(t: Waypoint): Unit = {
