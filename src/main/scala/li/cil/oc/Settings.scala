@@ -413,6 +413,9 @@ class Settings(val config: Config) {
   val chunkloadDimensionBlacklist = Settings.getIntList(config, "chunkloader.dimBlacklist")
   val chunkloadDimensionWhitelist = Settings.getIntList(config, "chunkloader.dimWhitelist")
 
+  //keyboard
+  val keyboardWalking = config.getBoolean("keyboard.keyboardWalking")
+
   // ----------------------------------------------------------------------- //
   // integration
   val modBlacklist = config.getStringList("integration.modBlacklist")
