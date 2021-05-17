@@ -1,0 +1,61 @@
+{
+    "display": {
+        "title": {
+            "text": "Not for Consumption"
+        },
+        "description": {
+            "text": "Mmm, tasty silicon... (Craft any tier of Microchip)"
+        },
+        "icon": {
+            "item": "opencomputers:material",
+            "data": 7
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "criteria": {
+        "chipT1": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:material",
+                        "data": 7
+                    }
+                ]
+            }
+        },
+        "chipT2": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:material",
+                        "data": 8
+                    }
+                ]
+            }
+        },
+        "chipT3": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:material",
+                        "data": 9
+                    }
+                ]
+            }
+        }
+    },
+    "requirements": [
+        [
+            "chipT1",
+            "chipT2",
+            "chipT3"
+        ]
+    ],
+    "parent": "opencomputers:transistor"
+}

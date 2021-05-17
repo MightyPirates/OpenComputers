@@ -1,0 +1,32 @@
+{
+    "display": {
+        "title": {
+            "text": "We Still Accept Cards"
+        },
+        "description": {
+            "text": "No ulterior motives. (Craft a Card Base)"
+        },
+        "icon": {
+            "item": "opencomputers:material",
+            "data": 4
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "criteria": {
+        "hasCardBase": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:material",
+                        "data": 4
+                    }
+                ]
+            }
+        }
+    },
+    "parent": "opencomputers:root"
+}

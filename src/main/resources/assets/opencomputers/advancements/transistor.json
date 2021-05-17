@@ -1,0 +1,37 @@
+{
+    "display": {
+        "title": {
+            "text": "The Really Small Things"
+        },
+        "description": {
+            "text": "Craft a Transistor."
+        },
+        "icon": {
+            "item": "opencomputers:material",
+            "data": 6
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "criteria": {
+        "hasTransistor": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "item": "opencomputers:material",
+                        "data": 6
+                    }
+                ]
+            }
+        }
+    },
+    "requirements": [
+        [
+            "hasTransistor"
+        ]
+    ],
+    "parent": "opencomputers:root"
+}
