@@ -61,4 +61,4 @@ do
   end
   computer.beep(1000, 0.2)
 end
-init()
+return init()
