@@ -12,6 +12,10 @@
       "name": "English",
       "region": "United States"
     },
+    "es_MX":{
+      "name": "Español",
+      "region": "México"
+    },
     "fr_FR":{
       "name": "French",
       "region": "France"
