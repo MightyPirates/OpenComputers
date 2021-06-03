@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.traits
 
+import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -54,7 +55,7 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
         result(Unit, reason)
       case _ =>
         val moved = FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count, sourceTank)
-        if (moved > 0) context.pause(moved / 1000 * 0.25) // Allow up to 4 buckets per second.
+        if (moved > 0) context.pause(moved / Settings.get.transposerFluidTransferRate) // Allow up to 16 buckets per second.
         result(moved > 0, moved)
     }
   }
