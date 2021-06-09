@@ -1,8 +1,12 @@
 local package = {}
 
+package.config = "/\n;\n?\n!\n-\n"
+
 package.path = "/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua;./?.lua;/lib/?/init.lua;/usr/lib/?/init.lua;/home/lib/?/init.lua;./?/init.lua"
 
 local loading = {}
+
+local preload = {}
 
 local loaded = {
   ["_G"] = _G,
@@ -15,6 +19,7 @@ local loaded = {
   ["table"] = table
 }
 package.loaded = loaded
+package.preload = preload
 
 function package.searchpath(name, path, sep, rep)
   checkArg(1, name, "string")
@@ -46,6 +51,14 @@ function require(module)
   checkArg(1, module, "string")
   if loaded[module] ~= nil then
     return loaded[module]
+  elseif package.preload[module] then
+    assert(type(package.preload[module]) == "function", string.format("package.preload for '%s' is not a function", module))
+    loading[module] = true
+    local library, status = pcall(package.preload[module], module)
+    loading[module] = false
+    assert(library, string.format("module '%s' load failed:\n%s", module, status))
+    loaded[module] = status
+    return status
   elseif not loading[module] then
     local library, status, step
 
