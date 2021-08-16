@@ -376,7 +376,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
         case t: Throwable =>
-          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          OpenComputers.log.warn(s"Error cleaning up loaded computer @ ${machinePosition}. This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
           machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
@@ -414,19 +414,22 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
         case t: Throwable =>
-          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          OpenComputers.log.warn(s"Error cleaning up loaded computer @ ${machinePosition}. This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
           machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warn(s"Could not persist computer @ ${machinePosition}.\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
       case e: LuaGcMetamethodException =>
-        OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}).\n${e.toString}")
+        OpenComputers.log.warn(s"Could not persist computer @ ${machinePosition}.\n${e.toString}")
         nbt.removeTag("state")
     }
 
     // Limit memory again.
     recomputeMemory(machine.host.internalComponents)
   }
+
+  /** Helper method for printing the machine position in error messages and debug statements. */
+  private def machinePosition = s"(${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}, ${machine.host.world().provider.dimensionId})"
 }

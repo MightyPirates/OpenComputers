@@ -780,7 +780,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     catch {
       case t: Throwable =>
         OpenComputers.log.error(
-          s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+          s"""Unexpected error loading a state of computer at ${machinePosition}. """ +
             s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
         close()
     }
@@ -862,7 +862,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     catch {
       case t: Throwable =>
         OpenComputers.log.error(
-          s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+          s"""Unexpected error saving a state of computer at ${machinePosition}. """ +
             s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   })
@@ -1039,6 +1039,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // Keep track of time spent executing the computer.
     cpuTotal += System.nanoTime() - cpuStart
   }
+
+  /** Helper method for printing the machine position in error messages and debug statements. */
+  private def machinePosition = s"(${host.xPosition}, ${host.yPosition}, ${host.zPosition}, ${host.world().provider.dimensionId})"
 }
 
 object Machine extends MachineAPI {

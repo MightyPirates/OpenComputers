@@ -18,7 +18,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.common.tileentity.{Robot => EntityRobot, Microcontroller}
+import li.cil.oc.common.tileentity.{Microcontroller, Robot => EntityRobot}
 import li.cil.oc.common.entity.{Drone => EntityDrone}
 import li.cil.oc.common.item.TabletWrapper
 import li.cil.oc.util.BlockPosition
@@ -30,6 +30,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.biome.BiomeGenDesert
+import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -182,6 +183,12 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
         result(nonEmpty)
       })
     }
+  }
+  @Callback(doc = """function():table -- Returns GregTech underground fluids information""")
+  def scanUndergroundFluids(computer: Context, args: Arguments): Array[AnyRef] = {
+    val blockPos = BlockPosition(host)
+    val fluid = gregtech.common.GT_UndergroundOil.undergroundOilReadInformation(new Chunk(host.world, blockPos.x>>4, blockPos.z>>4))
+    result(Map("type" -> fluid.getLocalizedName, "quantity" -> fluid.amount))
   }
 
   override def onMessage(message: Message): Unit = {
