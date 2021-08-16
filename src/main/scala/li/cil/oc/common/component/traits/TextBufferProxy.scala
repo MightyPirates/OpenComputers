@@ -130,9 +130,9 @@ trait TextBufferProxy extends api.internal.TextBuffer {
     for (y <- row until ((row + color.length) min data.height)) {
       val line = color(y - row)
       for (x <- col until ((col + line.length) min data.width)) {
-        val packedBackground = data.format.deflate(PackedColor.Color(line(x - col))) & 0x00FF
-        val packedForeground = data.color(row)(col) & 0xFF00
-        data.color(row)(col) = (packedForeground | packedBackground).toShort
+        val packedBackground = data.color(y)(x) & 0x00FF
+        val packedForeground = (data.format.deflate(PackedColor.Color(line(x - col))) << PackedColor.ForegroundShift) & 0xFF00
+        data.color(y)(x) = (packedForeground | packedBackground).toShort
       }
     }
   }
@@ -141,9 +141,9 @@ trait TextBufferProxy extends api.internal.TextBuffer {
     for (y <- row until ((row + color.length) min data.height)) {
       val line = color(y - row)
       for (x <- col until ((col + line.length) min data.width)) {
-        val packedBackground = data.color(row)(col) & 0x00FF
-        val packedForeground = (data.format.deflate(PackedColor.Color(line(x - col))) << PackedColor.ForegroundShift) & 0xFF00
-        data.color(row)(col) = (packedForeground | packedBackground).toShort
+        val packedBackground = data.format.deflate(PackedColor.Color(line(x - col))) & 0x00FF
+        val packedForeground = data.color(y)(x) & 0xFF00
+        data.color(y)(x) = (packedForeground | packedBackground).toShort
       }
     }
   }

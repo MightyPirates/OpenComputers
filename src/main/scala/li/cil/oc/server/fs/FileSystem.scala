@@ -101,7 +101,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean) = {
+  override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean): Capacity = {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
     if (!path.isDirectory) {
       path.delete()
@@ -200,7 +200,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     extends VirtualFileSystem
     with Buffered
     with Capacity {
-    protected override def segments(path: String) = {
+    protected override def segments(path: String): Array[String] = {
       val parts = super.segments(path)
       if (isCaseInsensitive) toCaseInsensitive(parts) else parts
     }

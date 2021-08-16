@@ -41,7 +41,7 @@ object DriveData {
     val data = new DriveData(stack)
     if (!data.isLocked) {
       data.lockInfo = key match {
-        case name: String if name != null && !name.isEmpty => name
+        case name: String if name != null && name.nonEmpty => name
         case _ => "notch" // meaning: "unknown"
       }
       data.save(stack)
