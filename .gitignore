@@ -25,4 +25,9 @@
 # VSCode
 /.vscode
 *.bat
+/saves
+/logs
+/config
+/options.txt
+/usernamecache.json
 /classes
