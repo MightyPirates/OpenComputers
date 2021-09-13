@@ -60,6 +60,7 @@ object Constants {
     final val BatteryUpgradeTier1 = "batteryUpgrade1"
     final val BatteryUpgradeTier2 = "batteryUpgrade2"
     final val BatteryUpgradeTier3 = "batteryUpgrade3"
+    final val BeekeeperUpgrade = "beekeeperUpgrade"
     final val ButtonGroup = "buttonGroup"
     final val Card = "card"
     final val CardContainerTier1 = "cardContainer1"
