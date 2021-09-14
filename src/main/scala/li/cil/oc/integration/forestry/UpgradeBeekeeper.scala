@@ -86,15 +86,15 @@ class UpgradeBeekeeper(val host: EnvironmentHost with internal.Agent) extends pr
     withApiary(facing, housing => result(housing.getBeekeepingLogic.canWork))
   }
 
-  @Callback(doc = """function(slot:number, honeyslot:number):boolean -- Analyzes bee in the slot, uses honey from the second slot.""")
+  @Callback(doc = """function(honeyslot:number):boolean -- Analyzes bee in selected slot, uses honey from the specified slot.""")
   def analyze(context: Context, args: Arguments): Array[AnyRef] = {
     val inventory = host.mainInventory
-    val specimenSlot = args.checkSlot(inventory, 0)
+    val specimenSlot = host.selectedSlot
     val specimen = inventory.getStackInSlot(specimenSlot)
-    if (BeeManager.beeRoot.isMember(specimen))
+    if (!BeeManager.beeRoot.isMember(specimen))
       return result(false, "Not a bee")
 
-    val honeySlot = args.checkSlot(inventory, 1)
+    val honeySlot = args.checkSlot(inventory, 0)
     val honeyStack = inventory.getStackInSlot(honeySlot)
     if (honeyStack== null || honeyStack.stackSize == 0 || (honeyStack.getItem != PluginApiculture.items.honeydew && honeyStack.getItem != PluginApiculture.items.honeyDrop))
       return result(false, "No honey!")
