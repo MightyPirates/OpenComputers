@@ -159,6 +159,7 @@ item.oc.WirelessNetworkCard0.name=Wireless Network Card (Tier 1)
 item.oc.WirelessNetworkCard1.name=Wireless Network Card (Tier 2)
 item.oc.WorldSensorCard.name=World Sensor Card
 item.oc.wrench.name=Scrench
+item.oc.UpgradeBeekeeper.name=Beekeeper Upgrade
 
 # Entities
 entity.oc.Drone.name=Drone
