@@ -201,11 +201,14 @@ trait SmartBlockModelBase extends IBakedModel {
   private def shade(value: Int, brightness: Float) = (brightness * value).toInt max 0 min 255
 
   protected def getFaceBrightness(face: EnumFacing): Float = {
-    face match {
+    /*face match {
       case EnumFacing.DOWN => 0.5f
       case EnumFacing.UP => 1.0f
       case EnumFacing.NORTH | EnumFacing.SOUTH => 0.8f
       case EnumFacing.WEST | EnumFacing.EAST => 0.6f
-    }
+    }*/
+
+    //minecraft already applies tint based on quad's facing, so there is no need to apply it second time
+    1.0f
   }
 }

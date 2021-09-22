@@ -6,10 +6,11 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.IMC
+import li.cil.oc.common.item.data.PrintData.Shape
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTBase, NBTTagCompound, NBTTagList}
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.common.util.Constants.NBT
 
@@ -97,12 +98,34 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
     nbt.setBoolean(IsButtonModeTag, isButtonMode)
     nbt.setInteger(RedstoneLevelTag, redstoneLevel)
     nbt.setBoolean(PressurePlateTag, pressurePlate)
-    nbt.setNewTagList(StateOffTag, stateOff.map(PrintData.shapeToNBT))
-    nbt.setNewTagList(StateOnTag, stateOn.map(PrintData.shapeToNBT))
+    setNewShapeSet(nbt, StateOffTag, stateOff)
+    setNewShapeSet(nbt, StateOnTag, stateOn)
     nbt.setBoolean(IsBeaconBaseTag, isBeaconBase)
     nbt.setByte(LightLevelTag, lightLevel.toByte)
     nbt.setBoolean(NoclipOffTag, noclipOff)
     nbt.setBoolean(NoclipOnTag, noclipOn)
+  }
+
+  // Shapes are stored in a set and sets do not have an order, that means NBT shape lists may be in any order.
+  // Because NBT list comparison considers order of tags in a list, and prints may have arbitrarily ordered list of shapes,
+  // the comparison fails and minecraft considers two identical prints different.
+  // One possible solution is to sort the shapes before serializing them to NBT
+  private def setNewShapeSet(nbt: NBTTagCompound, name: String, values: Iterable[Shape]) = {
+    val seq = values.toSeq.sortWith(compareShape);
+    nbt.setNewTagList(name, seq.map(PrintData.shapeToNBT))
+  }
+
+  private def compareShape(a: Shape, b: Shape): Boolean = {
+    import scala.math.Ordering.Implicits._
+    if (a.bounds.minX != b.bounds.minX) return a.bounds.minX > b.bounds.minX;
+    if (a.bounds.minY != b.bounds.minY) return a.bounds.minY > b.bounds.minY;
+    if (a.bounds.minZ != b.bounds.minZ) return a.bounds.minZ > b.bounds.minZ;
+    if (a.bounds.maxX != b.bounds.maxX) return a.bounds.maxX > b.bounds.maxX;
+    if (a.bounds.maxY != b.bounds.maxY) return a.bounds.maxY > b.bounds.maxY;
+    if (a.bounds.maxZ != b.bounds.maxZ) return a.bounds.maxZ > b.bounds.maxZ;
+    if (a.tint != b.tint) return a.tint > b.tint;
+    if (a.texture != b.texture) return a.texture > b.texture;
+    false
   }
 }
 
