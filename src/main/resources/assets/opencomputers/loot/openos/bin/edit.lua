@@ -37,7 +37,7 @@ local cursorX,cursorY=term.getCursor()
 local resX,resY=gpu.getResolution()
 local buff=gpu.allocateBuffer(resX,resY)
 gpu.setActiveBuffer(0)
-gpu.bitblt(1,1,1,resX,resY,0,1,1)
+gpu.bitblt(buff,1,1,resX,resY,0,1,1)
 
 local function loadConfig()
   -- Try to load user settings.
@@ -57,7 +57,7 @@ local function loadConfig()
     pageUp = {{"pageUp"}},
     pageDown = {{"pageDown"}},
 
-    backspace = {{"back"}},
+    backspace = {{"back"}, {"shift", "back"}},
     delete = {{"delete"}},
     deleteLine = {{"control", "delete"}, {"shift", "delete"}},
     newline = {{"enter"}},
@@ -724,7 +724,7 @@ while running do
   end
 end
 
-gpu.bitblt(0,1,1,resX,resY,1,1,1)
+gpu.bitblt(0,1,1,resX,resY,buff,1,1)
 gpu.freeBuffer(buff)
 term.setCursor(cursorX,cursorY)
 term.setCursorBlink(true)
