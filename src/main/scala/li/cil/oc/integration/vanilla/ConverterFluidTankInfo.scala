@@ -8,7 +8,7 @@ import net.minecraftforge.fluids
 import scala.collection.convert.WrapAsScala._
 
 object ConverterFluidTankInfo extends api.driver.Converter {
-  override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
+  override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]): Unit =
     value match {
       case tankInfo: fluids.FluidTankInfo =>
         output += "capacity" -> Int.box(tankInfo.capacity)
