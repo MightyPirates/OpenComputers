@@ -116,6 +116,7 @@ abstract class LuaStateFactory {
     else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X86) "native.32.bsd.so"
 
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_ARM) "native.32.arm.so"
+    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_ARM) "native.64.arm.so"
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X64) "native.64.so"
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X86) "native.32.so"
 
@@ -408,6 +409,8 @@ abstract class LuaStateFactory {
     }
 
     val IS_OS_ARM = isOSArchMatch("arm")
+
+    val IS_OS_A64 = isOSArchMatch("aarch64")
 
     val IS_OS_X86 = isOSArchMatch("x86") || isOSArchMatch("i386")
 
