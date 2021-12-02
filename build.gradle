@@ -12,7 +12,7 @@ buildscript {
         maven {
             name = "jitpack"
             url = "https://jitpack.io"
-    }
+        }
     }
     dependencies {
         classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.4'
@@ -112,6 +112,14 @@ repositories {
 	maven {
 		url "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/"
 	}
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io"
+    }
+    maven {
+        name = "curse.maven"
+        url = "https://curse.maven"
+    }
 }
 
 configurations {
@@ -121,9 +129,7 @@ configurations {
 
 dependencies {
     compileOnly "appeng:RotaryCraft:${config.rotc.version}:api"
-    compileOnly ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
-        exclude module: 'buildcraft'
-    }
+    compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
     compileOnly "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     compileOnly "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     compileOnly "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
