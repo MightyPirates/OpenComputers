@@ -131,9 +131,7 @@ dependencies {
     compileOnly "appeng:RotaryCraft:${config.rotc.version}:api"
     compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
-    compileOnly ("com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev") {
-        transitive = false
-    }
+    compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:Waila:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
     compileOnly "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
