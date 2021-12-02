@@ -19,6 +19,14 @@ buildscript {
     }
 }
 
+plugins {
+    id 'idea'
+    id 'scala'
+    id("org.ajoberstar.grgit") version("3.1.1")
+    id("com.github.johnrengelman.shadow") version("4.0.4")
+    id("com.palantir.git-version") version("0.12.3")
+}
+
 apply plugin: 'scala'
 apply plugin: 'forge'
 apply plugin: 'idea'
@@ -27,15 +35,135 @@ tasks.withType(ScalaCompile) {
     scalaCompileOptions.additionalParameters = ["-deprecation:false"]
 }
 
-file "build.properties" withReader {
-    def prop = new Properties()
-    prop.load(it)
-    ext.config = new ConfigSlurper().parse prop
+repositories {
+    maven {
+        name = "mightypirates"
+        url = "https://maven.cil.li/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
+    ivy {
+        name 'weird maven repos'
+        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision].[ext]"
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
+    ivy {
+        name 'weird maven repos 2'
+        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
+    maven {
+        name "Mobius Repo"
+        url "http://mobiusstrip.eu/maven"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        name = "ic2"
+        url = "https://maven.ic2.player.to/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        name = "gt"
+        url = "https://gregtech.overminddl1.com/"
+    }
+    ivy {
+        name 'gtnh_download_source'
+        artifactPattern "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/[module]-[revision].[ext]"
+    }
+    maven { // GalacticGreg, YAMCore,..
+        name 'UsrvDE'
+        url "http://jenkins.usrv.eu:8081/nexus/content/repositories/releases/"
+    }
+    maven {
+        url "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/"
+    }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io"
+    }
+    maven {
+        name = "curse.maven"
+        url = "https://cursemaven.com"
+    }
 }
 
-version = "${config.oc.version}"
 group = "li.cil.oc"
 archivesBaseName = "OpenComputers"
+
+// Define properties file
+ext.configFile = file "build.properties"
+
+configFile.withReader {
+    // Load config.  It shall from now be referenced as simply config or project.config
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
+}
+
+dependencies {
+    compileOnly ("appeng:RotaryCraft:${project.config.rotc_version}:api") {
+        transitive = false
+    }
+    compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:Waila:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:GT5-Unofficial:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:ForestryMC:master-SNAPSHOT:dev"
+    compileOnly ("com.github.GTNewHorizons:Galacticraft:master-SNAPSHOT:dev") {
+        transitive = false
+    }
+    compileOnly "com.github.GTNewHorizons:Railcraft:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:ThaumicEnergistics:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:ExtraCells2:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:EnderIO:master-SNAPSHOT:dev"
+    compileOnly "com.mod-buildcraft:buildcraft:7.1.23:dev"
+    compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
+    compileOnly "curse.maven:mekanism-268560:2475797" //mekanism - not needed in gtnh, won't build without
+    compileOnly "codechicken:WR-CBE:${project.config.minecraft_version}-${project.config.wrcbe_version}:dev"
+    compileOnly "com.bluepowermod:BluePower:${project.config.bluepower.version}:deobf"
+    compileOnly "igwmod:IGW-Mod-1.7.10:${project.config.igwmod.version}:userdev"
+    compileOnly "li.cil.tis3d:TIS-3D:${project.config.tis3d.version}:dev"
+    compileOnly "net.industrial-craft:industrialcraft-2:${project.config.ic2.version}:dev"
+    compileOnly "dev.modwarriors.notenoughkeys:NotEnoughKeys:${project.config.minecraft_version}-${project.config.nek.version}:deobf-dev"
+    compileOnly "qmunity:QmunityLib:${project.config.qmunitylib.version}:deobf"
+    compileOnly "tmech:TMechworks:${project.config.minecraft_version}-${project.config.tmech.version}:deobf"
+    compileOnly ("mrtjp:ProjectRed:${project.config.projred.version}:dev") {
+        exclude module: 'CoFHCore'
+    }
+    compileOnly name: 'redlogic', version: project.config.redlogic.version, ext: 'jar'
+    compileOnly name: 'MineFactoryReloaded', version: project.config.mfr.version, ext: 'jar'
+    compileOnly name: 'ComputerCraft', version: project.config.cc.version, ext: 'jar'
+    compileOnly name: 'BloodMagic', version: project.config.bloodmagic.version, ext: 'jar'
+
+    implementation 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
+
+    //embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
+
+    testCompile "org.mockito:mockito-all:1.10.19"
+    testCompile "org.scalactic:scalactic_2.11:2.2.6"
+    testCompile "org.scalatest:scalatest_2.11:2.2.6"
+}
+
+version =  "${project.config.mod_version}" ?: "1"
+
+println config.minecraft_version + "-" + config.forge_version
 
 def getGitRef() {
   try {
@@ -58,7 +186,9 @@ else
     version += "+" + getGitRef()
 
 ext.simpleVersion = version
-version = "MC${config.minecraft.version}-${project.version}"
+version = "MC${config.minecraft_version}-${project.version}"
+
+def root = project.projectDir.parentFile
 
 runClient {
     jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
@@ -75,110 +205,18 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
 }
 
-repositories {
-    maven {
-        name = "mightypirates"
-        url = "https://maven.cil.li/"
-    }
-    // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
-    ivy {
-        name 'weird maven repos'
-        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision].[ext]"
-    }
-    ivy {
-        name 'weird maven repos 2'
-        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
-    }
-    maven {
-        name "Mobius Repo"
-        url "http://mobiusstrip.eu/maven"
-    }
-    maven {
-        name = "ic2"
-        url = "https://maven.ic2.player.to/"
-    }
-    maven {
-        name = "gt"
-        url = "https://gregtech.overminddl1.com/"
-    }
-	ivy {
-        name 'gtnh_download_source'
-        artifactPattern "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/[module]-[revision].[ext]"
-    }
-    maven { // GalacticGreg, YAMCore,..
-        name 'UsrvDE'
-        url "http://jenkins.usrv.eu:8081/nexus/content/repositories/releases/"
-    }
-	maven {
-		url "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/"
-	}
-    maven {
-        name = "jitpack"
-        url = "https://jitpack.io"
-    }
-    maven {
-        name = "curse.maven"
-        url = "https://cursemaven.com"
-    }
-}
-
 configurations {
     embedded
     implementation.extendsFrom embedded
 }
 
-dependencies {
-    compileOnly "appeng:RotaryCraft:${config.rotc.version}:api"
-    compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:Waila:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
-    compileOnly "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
-    compileOnly "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
-    compileOnly "com.gregoriust.gregtech:gregtech:${config.gt.version}:dev"
-    compileOnly "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
-    compileOnly "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
-    compileOnly "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
-    compileOnly "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
-    compileOnly "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
-    compileOnly "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
-    compileOnly "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
-    compileOnly ("mrtjp:ProjectRed:${config.projred.version}:dev") {
-        exclude module: 'CoFHCore'
-    }
-    // compileOnly "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
-    compileOnly name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
-    compileOnly name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
-    compileOnly name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
-    compileOnly name: 'redlogic', version: config.redlogic.version, ext: 'jar'
-
-    compileOnly name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
-    compileOnly name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
-    compileOnly name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    compileOnly name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
-    compileOnly name: 'EnderIO', version: config.eio.version, ext: 'jar'
-    compileOnly name: 'Railcraft', version: config.rc.version, ext: 'jar'
-    compileOnly name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
-    compileOnly name: 'ExtraCells', version: config.ec.version, ext: 'jar'
-	compileOnly name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
-    compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
-
-    compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
-
-    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
-
-    testCompile "org.mockito:mockito-all:1.10.19"
-    testCompile "org.scalactic:scalactic_2.11:2.2.6"
-    testCompile "org.scalatest:scalatest_2.11:2.2.6"
-}
 
 minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
+    version = config.minecraft_version + "-" + config.forge_version + "-" + config.minecraft_version
 
     replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
+    //replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {
