@@ -118,7 +118,7 @@ repositories {
     }
     maven {
         name = "curse.maven"
-        url = "https://curse.maven"
+        url = "https://cursemaven.com"
     }
 }
 
@@ -130,16 +130,17 @@ configurations {
 dependencies {
     compileOnly "appeng:RotaryCraft:${config.rotc.version}:api"
     compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
-    compileOnly "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    compileOnly "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
-    compileOnly "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    compileOnly "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
+    compileOnly ("com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev") {
+        transitive = false
+    }
+    compileOnly "com.github.GTNewHorizons:Waila:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
     compileOnly "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     compileOnly "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     compileOnly "com.gregoriust.gregtech:gregtech:${config.gt.version}:dev"
     compileOnly "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     compileOnly "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
-    compileOnly "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     compileOnly "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     compileOnly "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     compileOnly "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
