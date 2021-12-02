@@ -94,16 +94,12 @@ repositories {
         url "http://mobiusstrip.eu/maven"
     }
     maven {
-        name "CB Repo"
-        url "http://chickenbones.net/maven"
-    }
-    maven {
         name = "ic2"
-        url = "http://maven.ic2.player.to/"
+        url = "https://maven.ic2.player.to/"
     }
     maven {
         name = "gt"
-        url = "http://gregtech.overminddl1.com/"
+        url = "https://gregtech.overminddl1.com/"
     }
 	ivy {
         name 'gtnh_download_source'
