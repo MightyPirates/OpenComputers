@@ -122,7 +122,7 @@ dependencies {
     compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:Waila:master-SNAPSHOT:dev"
+    compileOnly "com.github.GTNewHorizons:waila:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:GT5-Unofficial:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ForestryMC:master-SNAPSHOT:dev"
@@ -135,7 +135,7 @@ dependencies {
     compileOnly "com.github.GTNewHorizons:EnderIO:master-SNAPSHOT:dev"
     compileOnly "com.mod-buildcraft:buildcraft:7.1.23:dev"
     compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
-    compileOnly "curse.maven:mekanism-268560:2475797" //mekanism - not needed in gtnh, won't build without
+    compileOnly "curse.maven:mekanism-268560:2475797" //mekanism - not needed in GTNH, won't build without
     compileOnly "codechicken:WR-CBE:${project.config.minecraft_version}-${project.config.wrcbe_version}:dev"
     compileOnly "com.bluepowermod:BluePower:${project.config.bluepower.version}:deobf"
     compileOnly "igwmod:IGW-Mod-1.7.10:${project.config.igwmod.version}:userdev"
