@@ -116,9 +116,6 @@ configFile.withReader {
 }
 
 dependencies {
-    compileOnly ("appeng:RotaryCraft:${project.config.rotc_version}:api") {
-        transitive = false
-    }
     compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
@@ -126,13 +123,16 @@ dependencies {
     compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:GT5-Unofficial:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ForestryMC:master-SNAPSHOT:dev"
-    compileOnly ("com.github.GTNewHorizons:Galacticraft:master-SNAPSHOT:dev") {
-        transitive = false
-    }
     compileOnly "com.github.GTNewHorizons:Railcraft:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ThaumicEnergistics:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:ExtraCells2:master-SNAPSHOT:dev"
     compileOnly "com.github.GTNewHorizons:EnderIO:master-SNAPSHOT:dev"
+    compileOnly ("com.github.GTNewHorizons:Galacticraft:master-SNAPSHOT:dev") {
+        transitive = false
+    }
+    compileOnly ("appeng:RotaryCraft:${project.config.rotc_version}:api") {
+        transitive = false
+    }
     compileOnly "com.mod-buildcraft:buildcraft:7.1.23:dev"
     compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
     compileOnly "curse.maven:mekanism-268560:2475797" //mekanism - not needed in GTNH, won't build without
