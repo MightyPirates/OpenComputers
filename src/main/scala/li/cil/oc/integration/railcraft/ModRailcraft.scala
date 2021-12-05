@@ -14,5 +14,6 @@ object ModRailcraft extends ModProxy {
 
     Driver.add(new DriverBoilerFirebox)
     Driver.add(new DriverSteamTurbine)
+    Driver.add(DriverAnchor)
   }
 }
