@@ -9,6 +9,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
+import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -162,6 +163,15 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     pb.writeBoolean(enabled)
+
+    pb.sendToServer()
+  }
+
+  def sendDatabaseSetSlot(slot :Int, stack: ItemStack) {
+    val pb = new SimplePacketBuilder(PacketType.DatabaseSetSlot)
+
+    pb.writeByte(slot)
+    pb.writeItemStack(stack)
 
     pb.sendToServer()
   }
