@@ -227,7 +227,7 @@ object PacketHandler extends CommonPacketHandler {
     val slot = p.readByte()
     val stack = p.readItemStack()
     p.player.openContainer match {
-      case db: Database => db.putStackInSlot(slot, stack)
+      case db: Database => if (slot < db.rows*db.rows && slot >= 0) db.putStackInSlot(slot, stack)
       case _ => // Invalid packet.
     }
   }
