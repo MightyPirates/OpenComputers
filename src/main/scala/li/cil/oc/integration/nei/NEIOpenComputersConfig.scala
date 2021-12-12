@@ -12,15 +12,16 @@ import li.cil.oc.integration.util.NEI
 
 @SideOnly(Side.CLIENT)
 class NEIOpenComputersConfig extends IConfigureNEI {
-  override def getName = OpenComputers.Name
+  override def getName: String = OpenComputers.Name
 
-  override def getVersion = OpenComputers.Version
+  override def getVersion: String = OpenComputers.Version
 
   override def loadConfig() {
     // Non-alphabetic order haunts my OCD, but I want the "Manual" to show up
     // before the API doc.
     API.registerUsageHandler(new ManualUsageHandler())
     API.registerUsageHandler(new CallbackDocHandler())
+    API.registerNEIGuiHandler(new GuiHandler())
 
     // Add option to show items' ore dictionary name in tooltips.
     NEIClientConfig.global.config.getTag("inventory.oredict").getBooleanValue(false)

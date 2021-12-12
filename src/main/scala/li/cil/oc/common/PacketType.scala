@@ -76,6 +76,7 @@ object PacketType extends Enumeration {
   // Client -> Server
   ComputerPower,
   CopyToAnalyzer,
+  DatabaseSetSlot,
   DriveLock,
   DriveMode,
   DronePower,

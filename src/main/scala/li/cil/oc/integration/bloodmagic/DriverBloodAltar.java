@@ -76,5 +76,10 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
         public Object[] getDislocationMultiplier(final Context context, final Arguments arguments) {
             return new Object[]{tileEntity.getDislocationMultiplier()};
         }
+
+        @Callback(doc = "function():number -- Get IO buffer capacity.")
+        public Object[] getBufferCapacity(final Context context, final Arguments arguments) {
+            return new Object[]{tileEntity.getBufferCapacity()};
+        }
     }
 }

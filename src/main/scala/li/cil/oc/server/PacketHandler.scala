@@ -9,6 +9,7 @@ import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.container.Database
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.DriveData
@@ -21,14 +22,15 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
+import net.minecraft.world.WorldServer
 import net.minecraftforge.common.DimensionManager
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
-  def onPacket(e: ServerCustomPacketEvent) =
+  def onPacket(e: ServerCustomPacketEvent): Unit =
     onPacketData(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
 
-  override protected def world(player: EntityPlayer, dimension: Int) =
+  override protected def world(player: EntityPlayer, dimension: Int): Option[WorldServer] =
     Option(DimensionManager.getWorld(dimension))
 
   override def dispatch(p: PacketParser) {
@@ -43,6 +45,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.DatabaseSetSlot => onDatabaseSetSlot(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
       case PacketType.PetVisibility => onPetVisibility(p)
@@ -217,6 +220,15 @@ object PacketHandler extends CommonPacketHandler {
         val player = p.player.asInstanceOf[EntityPlayer]
         buffer.mouseScroll(x, y, button, player)
       case _ => // Invalid Packet
+    }
+  }
+
+  def onDatabaseSetSlot(p: PacketParser) {
+    val slot = p.readByte()
+    val stack = p.readItemStack()
+    p.player.openContainer match {
+      case db: Database => if (slot < db.rows*db.rows && slot >= 0) db.putStackInSlot(slot, stack)
+      case _ => // Invalid packet.
     }
   }
 

@@ -41,7 +41,7 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
     }
   }
 
-  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number [, sourceTank:number]]):number -- Transfer some items between two inventories.""")
+  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number [, sourceTank:number]]):boolean, number -- Transfer some fluid between two tanks. Returns operation result and filled amount""")
   def transferFluid(context: Context, args: Arguments): Array[AnyRef] = {
     val sourceSide = checkSideForAction(args, 0)
     val sourcePos = position.offset(sourceSide)
