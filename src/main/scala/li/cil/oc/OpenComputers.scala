@@ -21,7 +21,7 @@ object OpenComputers {
 
   final val Name = "OpenComputers"
 
-  final val Version = "GRADLETOKEN_VERSION"
+  final val Version = "@VERSION@"
 
   def log = logger.getOrElse(LogManager.getLogger(Name))
 
