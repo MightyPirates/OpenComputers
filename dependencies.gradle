@@ -45,7 +45,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:ProjectRed:master-SNAPSHOT:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:BloodMagic:update-build-script-SNAPSHOT:dev") {  // TODO: change to master
+    compileOnly("com.github.GTNewHorizons:BloodMagic:master-SNAPSHOT:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:master-SNAPSHOT:dev") {
@@ -63,11 +63,11 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:gendustry:master-SNAPSHOT:dev") {
         transitive = false
     }
-
-    compileOnly("appeng:RotaryCraft:V5c:api") {
+    compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:unified-build-script-SNAPSHOT:dev") {
         transitive = false
     }
-    compileOnly("codechicken:WR-CBE:1.7.10-1.4.1.2:dev") {
+
+    compileOnly("appeng:RotaryCraft:V5c:api") {
         transitive = false
     }
     compileOnly("com.bluepowermod:BluePower:0.2.928:deobf") {
