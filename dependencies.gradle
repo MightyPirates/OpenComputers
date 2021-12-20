@@ -63,7 +63,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:gendustry:master-SNAPSHOT:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:unified-build-script-SNAPSHOT:dev") {
+    compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:master-SNAPSHOT:dev") {
         transitive = false
     }
 
