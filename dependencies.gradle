@@ -57,7 +57,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:EnderIO:master-SNAPSHOT:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:Avaritiaddons:unified-build-script-SNAPSHOT:dev") {  // TODO: change to master
+    compileOnly("com.github.GTNewHorizons:Avaritiaddons:master-SNAPSHOT:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:gendustry:master-SNAPSHOT:dev") {
