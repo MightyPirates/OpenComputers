@@ -1,0 +1,3 @@
+minecraft {
+    replace "@VERSION@", versionDetails().lastTag
+}

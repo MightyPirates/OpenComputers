@@ -1,33 +1,31 @@
-# Gradle
-/.gradle
-/build
-
-# Eclipse
-/.classpath
-/.project
-/.settings
-/bin
-
-# IntelliJ IDEA
-/*.iml
-/*.ipr
-/*.iws
-/.idea
-/out
-
-# Debugging
-/eclipse
-/run
-
-# OS X
-.DS_Store
-
-# VSCode
-/.vscode
+.gradle
+.settings
+/.idea/
+/run/
+/build/
+/eclipse/
+.classpath
+.project
+/bin/
+/config/
+/crash-reports/
+/logs/
+options.txt
+/saves/
+usernamecache.json
+banned-ips.json
+banned-players.json
+eula.txt
+ops.json
+server.properties
+servers.dat
+usercache.json
+whitelist.json
+/out/
+*.iml
+*.ipr
+*.iws
+src/main/resources/mixins.*.json
 *.bat
-/saves
-/logs
-/config
-/options.txt
-/usernamecache.json
-/classes
+*.DS_Store
+!gradlew.bat

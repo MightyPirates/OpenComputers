@@ -1,13 +1,30 @@
+//version: 29197fa3cf1ea6ef5c07884a613171d01c026d1d
+/*
+DO NOT CHANGE THIS FILE!
+
+Also, you may replace this file at any time if there is an update available.
+Please check https://github.com/SinTh0r4s/ExampleMod1.7.10/blob/main/build.gradle for updates.
+ */
+
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+import java.util.concurrent.TimeUnit
+
 buildscript {
     repositories {
-        mavenCentral()
         maven {
-            name = "gt"
-            url = "https://gregtech.overminddl1.com/"
+            name = "forge"
+            url = "https://maven.minecraftforge.net"
         }
         maven {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            name = "Scala CI dependencies"
+            url = "https://repo1.maven.org/maven2/"
         }
         maven {
             name = "jitpack"
@@ -25,292 +42,521 @@ plugins {
     id("org.ajoberstar.grgit") version("3.1.1")
     id("com.github.johnrengelman.shadow") version("4.0.4")
     id("com.palantir.git-version") version("0.12.3")
+    id("maven-publish")
 }
 
-apply plugin: 'scala'
 apply plugin: 'forge'
-apply plugin: 'idea'
 
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.additionalParameters = ["-deprecation:false"]
+def projectJavaVersion = JavaLanguageVersion.of(8)
+
+java {
+    toolchain {
+        languageVersion.set(projectJavaVersion)
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = true
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
+    throw new GradleException("This project requires Java 8, but it's running on " + JavaVersion.current())
+}
+
+checkPropertyExists("modName")
+checkPropertyExists("modId")
+checkPropertyExists("modGroup")
+checkPropertyExists("autoUpdateBuildScript")
+checkPropertyExists("minecraftVersion")
+checkPropertyExists("forgeVersion")
+checkPropertyExists("replaceGradleTokenInFile")
+checkPropertyExists("gradleTokenModId")
+checkPropertyExists("gradleTokenModName")
+checkPropertyExists("gradleTokenVersion")
+checkPropertyExists("gradleTokenGroupName")
+checkPropertyExists("apiPackage")
+checkPropertyExists("accessTransformersFile")
+checkPropertyExists("usesMixins")
+checkPropertyExists("mixinPlugin")
+checkPropertyExists("mixinsPackage")
+checkPropertyExists("coreModClass")
+checkPropertyExists("containsMixinsAndOrCoreModOnly")
+checkPropertyExists("usesShadowedDependencies")
+checkPropertyExists("developmentEnvironmentUserName")
+
+
+String javaSourceDir = "src/main/java/"
+String scalaSourceDir = "src/main/scala/"
+
+String targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/")
+String targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/")
+if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
+    throw new GradleException("Could not resolve \"modGroup\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+}
+
+if(apiPackage) {
+    targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/")
+    targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/")
+    if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
+        throw new GradleException("Could not resolve \"apiPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+    }
+}
+
+if(accessTransformersFile) {
+    String targetFile = "src/main/resources/META-INF/" + accessTransformersFile
+    if(getFile(targetFile).exists() == false) {
+        throw new GradleException("Could not resolve \"accessTransformersFile\"! Could not find " + targetFile)
+    }
+}
+
+if(usesMixins.toBoolean()) {
+    if(mixinsPackage.isEmpty() || mixinPlugin.isEmpty()) {
+        throw new GradleException("\"mixinPlugin\" requires \"mixinsPackage\" and \"mixinPlugin\" to be set!")
+    }
+
+    targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinsPackage.toString().replaceAll("\\.", "/")
+    targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinsPackage.toString().replaceAll("\\.", "/")
+    if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
+        throw new GradleException("Could not resolve \"mixinsPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+    }
+
+    String targetFileJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".java"
+    String targetFileScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".scala"
+    String targetFileScalaJava = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".java"
+    if((getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists()) == false) {
+        throw new GradleException("Could not resolve \"mixinPlugin\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava)
+    }
+}
+
+if(coreModClass) {
+    String targetFileJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".java"
+    String targetFileScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".scala"
+    String targetFileScalaJava = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".java"
+    if((getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists()) == false) {
+        throw new GradleException("Could not resolve \"coreModClass\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava)
+    }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
+
+    // Make sure GregTech build won't time out
+    System.setProperty("org.gradle.internal.http.connectionTimeout", 120000 as String)
+    System.setProperty("org.gradle.internal.http.socketTimeout", 120000 as String)
+}
+
+// Fix Jenkins' Git: chmod a file should not be detected as a change and append a '.dirty' to the version
+'git config core.fileMode false'.execute()
+// Pulls version from git tag
+try {
+    version = minecraftVersion + "-" + gitVersion()
+}
+catch (Exception e) {
+    throw new IllegalStateException("This mod must be version controlled by Git AND the repository must provide at least one tag!");
+}
+
+group = modGroup
+if(project.hasProperty("customArchiveBaseName") && customArchiveBaseName) {
+    archivesBaseName = customArchiveBaseName
+}
+else {
+    archivesBaseName = modId
+}
+
+minecraft {
+    version = minecraftVersion + "-" + forgeVersion + "-" + minecraftVersion
+    runDir = "run"
+
+    if (replaceGradleTokenInFile) {
+        replaceIn replaceGradleTokenInFile
+        if(gradleTokenModId) {
+            replace gradleTokenModId, modId
+        }
+        if(gradleTokenModName) {
+            replace gradleTokenModName, modName
+        }
+        if(gradleTokenVersion) {
+            replace gradleTokenVersion, versionDetails().lastTag
+        }
+        if(gradleTokenGroupName) {
+            replace gradleTokenGroupName, modGroup
+        }
+    }
+}
+
+if(file("addon.gradle").exists()) {
+    apply from: "addon.gradle"
+}
+
+apply from: 'repositories.gradle'
+
+configurations {
+    implementation.extendsFrom(shadowImplementation)
 }
 
 repositories {
     maven {
-        name = "mightypirates"
-        url = "https://maven.cil.li/"
-        metadataSources {
-            mavenPom()
-            artifact()
-        }
-    }
-    // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
-    ivy {
-        name 'weird maven repos'
-        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision].[ext]"
-        metadataSources {
-            ivyDescriptor()
-            artifact()
-        }
-    }
-    ivy {
-        name 'weird maven repos 2'
-        artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
-        metadataSources {
-            ivyDescriptor()
-            artifact()
-        }
-    }
-    maven {
-        name "Mobius Repo"
-        url "http://mobiusstrip.eu/maven"
-        allowInsecureProtocol true
-        metadataSources {
-            mavenPom()
-            artifact()
-        }
-    }
-    maven {
-        name = "ic2"
-        url = "https://maven.ic2.player.to/"
-        metadataSources {
-            mavenPom()
-            artifact()
-        }
-    }
-    maven {
-        name = "gt"
+        name = "Overmind forge repo mirror"
         url = "https://gregtech.overminddl1.com/"
     }
-    ivy {
-        name 'gtnh_download_source'
-        artifactPattern "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/[module]-[revision].[ext]"
-        allowInsecureProtocol true
+    if(usesMixins.toBoolean()) {
+        maven {
+            name = "sponge"
+            url = "https://repo.spongepowered.org/repository/maven-public"
+        }
+        maven {
+            url = "https://jitpack.io"
+        }
     }
-    maven { // GalacticGreg, YAMCore,..
-        name 'UsrvDE'
-        url "http://jenkins.usrv.eu:8081/nexus/content/repositories/releases/"
-        allowInsecureProtocol true
-    }
-    maven {
-        url "http://downloads.gtnewhorizons.com/Mods_for_Jenkins/"
-        allowInsecureProtocol true
-    }
-    maven {
-        name = "jitpack"
-        url = "https://jitpack.io"
-    }
-    maven {
-        name = "curse.maven"
-        url = "https://cursemaven.com"
-    }
-}
-
-group = "li.cil.oc"
-archivesBaseName = "OpenComputers"
-
-// Define properties file
-ext.configFile = file "build.properties"
-
-configFile.withReader {
-    // Load config.  It shall from now be referenced as simply config or project.config
-    def prop = new Properties()
-    prop.load(it)
-    project.ext.config = new ConfigSlurper().parse prop
-}
-
-configurations {
-    embedded
-    implementation.extendsFrom embedded
 }
 
 dependencies {
-    compileOnly "com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:NotEnoughItems:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:EnderStorage:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:waila:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:ForgeMultipart:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:GT5-Unofficial:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:ForestryMC:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:Railcraft:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:ThaumicEnergistics:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:ExtraCells2:master-SNAPSHOT:dev"
-    compileOnly "com.github.GTNewHorizons:EnderIO:master-SNAPSHOT:dev"
-    compileOnly ("com.github.GTNewHorizons:Galacticraft:master-SNAPSHOT:dev") {
-        transitive = false
-    }
-    compileOnly ("appeng:RotaryCraft:${project.config.rotc_version}:api") {
-        transitive = false
-    }
-    compileOnly "com.mod-buildcraft:buildcraft:7.1.23:dev"
-    compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
-    compileOnly "curse.maven:mekanism-268560:2475797" //mekanism - not needed in GTNH, won't build without
-    compileOnly "codechicken:WR-CBE:${project.config.minecraft_version}-${project.config.wrcbe_version}:dev"
-    compileOnly "com.bluepowermod:BluePower:${project.config.bluepower.version}:deobf"
-    compileOnly "igwmod:IGW-Mod-1.7.10:${project.config.igwmod.version}:userdev"
-    compileOnly "li.cil.tis3d:TIS-3D:${project.config.tis3d.version}:dev"
-    compileOnly "net.industrial-craft:industrialcraft-2:${project.config.ic2.version}:dev"
-    compileOnly "dev.modwarriors.notenoughkeys:NotEnoughKeys:${project.config.minecraft_version}-${project.config.nek.version}:deobf-dev"
-    compileOnly "qmunity:QmunityLib:${project.config.qmunitylib.version}:deobf"
-    compileOnly "tmech:TMechworks:${project.config.minecraft_version}-${project.config.tmech.version}:deobf"
-    compileOnly ("mrtjp:ProjectRed:${project.config.projred.version}:dev") {
-        exclude module: 'CoFHCore'
-    }
-    compileOnly name: 'redlogic', version: project.config.redlogic.version, ext: 'jar'
-    compileOnly name: 'MineFactoryReloaded', version: project.config.mfr.version, ext: 'jar'
-    compileOnly name: 'ComputerCraft', version: project.config.cc.version, ext: 'jar'
-    compileOnly name: 'BloodMagic', version: project.config.bloodmagic.version, ext: 'jar'
-    compileOnly name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
-
-    implementation 'com.google.code.findbugs:jsr305:3.0.2' // Annotations used by google libs.
-
-    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
-
-    testCompile "org.mockito:mockito-all:1.10.19"
-    testCompile "org.scalactic:scalactic_2.11:2.2.6"
-    testCompile "org.scalatest:scalatest_2.11:2.2.6"
-}
-
-version =  "${project.config.mod_version}" ?: "1"
-
-println config.minecraft_version + "-" + config.forge_version
-
-def getGitRef() {
-  try {
-    def stdout = new ByteArrayOutputStream()
-    exec {
-      commandLine 'git', 'rev-parse', '--short', 'HEAD'
-      standardOutput = stdout
-    }
-    return stdout.toString().trim()
-  } catch (Throwable e) {
-    return "unknown"
-  }
-}
-
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += ".${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
-
-ext.simpleVersion = version
-version = "MC${config.minecraft_version}-${project.version}"
-
-def root = project.projectDir.parentFile
-
-runClient {
-    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
-}
-runServer {
-    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
-}
-
-if (JavaVersion.current().isJava8Compatible()) {
-    allprojects {
-        tasks.withType(Javadoc) {
-            options.addStringOption('Xdoclint:none', '-quiet')
+    if(usesMixins.toBoolean()) {
+        annotationProcessor("org.ow2.asm:asm-debug-all:5.0.3")
+        annotationProcessor("com.google.guava:guava:24.1.1-jre")
+        annotationProcessor("com.google.code.gson:gson:2.8.6")
+        annotationProcessor("org.spongepowered:mixin:0.8-SNAPSHOT")
+        // using 0.8 to workaround a issue in 0.7 which fails mixin application
+        compile("org.spongepowered:mixin:0.7.11-SNAPSHOT") {
+            // Mixin includes a lot of dependencies that are too up-to-date
+            exclude module: "launchwrapper"
+            exclude module: "guava"
+            exclude module: "gson"
+            exclude module: "commons-io"
+            exclude module: "log4j-core"
         }
+        compile("com.github.GTNewHorizons:SpongeMixins:1.3.3:dev")
     }
 }
 
-configurations {
-    embedded
-    implementation.extendsFrom embedded
+apply from: 'dependencies.gradle'
+
+def mixingConfigRefMap = "mixins." + modId + ".refmap.json"
+def refMap = "${tasks.compileJava.temporaryDir}" + File.separator + mixingConfigRefMap
+def mixinSrg = "${tasks.reobf.temporaryDir}" + File.separator + "mixins.srg"
+
+task generateAssets {
+    if(usesMixins.toBoolean()) {
+        getFile("/src/main/resources/mixins." + modId + ".json").text = """{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "${modGroup}.${mixinsPackage}",
+  "plugin": "${modGroup}.${mixinPlugin}",
+  "refmap": "${mixingConfigRefMap}",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8"
 }
 
-minecraft {
-    version = config.minecraft_version + "-" + config.forge_version + "-" + config.minecraft_version
-
-    replace "@VERSION@", project.simpleVersion
-    //replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
+"""
+    }
 }
 
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        include 'application.conf'
-        filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
-        }
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-        exclude 'application.conf'
-    }
-
-    // Move access transformer to META-INF
-    rename '(.+_at.cfg)', 'META-INF/$1'
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowJar
+    prefix = modGroup + ".shadow"
 }
 
-def commonManifest = {
-    attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-    attributes FMLCorePluginContainsFMLMod: "true"
-    attributes FMLAT: "oc_at.cfg"
+shadowJar {
+    manifest {
+        attributes(getManifestAttributes())
+    }
+
+    minimize()  // This will only allow shading for actually used classes
+    configurations = [project.configurations.shadowImplementation]
+    dependsOn(relocateShadowJar)
 }
 
 jar {
-    exclude "cofh/**"
-    exclude "mods/**"
-    configurations.embedded.each { dep ->
-        from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
+    manifest {
+        attributes(getManifestAttributes())
+    }
+
+    if(usesShadowedDependencies.toBoolean()) {
+        dependsOn(shadowJar)
+        enabled = false
+    }
+}
+
+reobf {
+    if(usesMixins.toBoolean()) {
+        addExtraSrgFile mixinSrg
+    }
+}
+
+afterEvaluate {
+    if(usesMixins.toBoolean()) {
+        tasks.compileJava {
+            options.compilerArgs += [
+                    "-AreobfSrgFile=${tasks.reobf.srg}",
+                    "-AoutSrgFile=${mixinSrg}",
+                    "-AoutRefMapFile=${refMap}",
+                    // Elan: from what I understand they are just some linter configs so you get some warning on how to properly code
+                    "-XDenableSunApiLintControl",
+                    "-XDignore.symbol.file"
+            ]
         }
     }
-    classifier = 'universal'
-    manifest commonManifest
 }
 
-javadoc {
-    include 'li/cil/oc/api/**'
-}
+runClient {
+    def arguments = []
 
-// because the normal default jar task has been modified to be obfuscated
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    exclude "cofh/**"
-    exclude "mods/**"
-    configurations.embedded.each { dep ->
-        from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
-        }
+    if(usesMixins.toBoolean()) {
+        arguments += [
+                "--mods=../build/libs/$modId-${version}.jar",
+                "--tweakClass org.spongepowered.asm.launch.MixinTweaker"
+        ]
     }
-    classifier = 'dev'
-    manifest commonManifest
+
+    if(developmentEnvironmentUserName) {
+        arguments += [
+                "--username",
+                developmentEnvironmentUserName
+        ]
+    }
+
+    args(arguments)
 }
 
-task apiJar(type: Jar) {
-    from sourceSets.main.output
-    from sourceSets.main.java
-    classifier = 'api'
-    include 'li/cil/oc/api/**'
+runServer {
+    def arguments = []
+
+    if (usesMixins.toBoolean()) {
+        arguments += [
+                "--mods=../build/libs/$modId-${version}.jar",
+                "--tweakClass org.spongepowered.asm.launch.MixinTweaker"
+        ]
+    }
+
+    args(arguments)
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    from 'build/docs/javadoc'
-    classifier 'javadoc'
+tasks.withType(JavaExec).configureEach {
+    javaLauncher.set(
+            javaToolchains.launcherFor {
+                languageVersion = projectJavaVersion
+            }
+    )
+}
+
+processResources
+        {
+            // this will ensure that this task is redone when the versions change.
+            inputs.property "version", project.version
+            inputs.property "mcversion", project.minecraft.version
+
+            // replace stuff in mcmod.info, nothing else
+            from(sourceSets.main.resources.srcDirs) {
+                include 'mcmod.info'
+
+                // replace version and mcversion
+                expand "minecraftVersion": project.minecraft.version,
+                        "modVersion": versionDetails().lastTag,
+                        "modId": modId,
+                        "modName": modName
+            }
+
+            if(usesMixins.toBoolean()) {
+                from refMap
+            }
+
+            // copy everything else, thats not the mcmod.info
+            from(sourceSets.main.resources.srcDirs) {
+                exclude 'mcmod.info'
+            }
+        }
+
+def getManifestAttributes() {
+    def manifestAttributes = [:]
+    if(containsMixinsAndOrCoreModOnly.toBoolean() == false && (usesMixins.toBoolean() || coreModClass)) {
+        manifestAttributes += ["FMLCorePluginContainsFMLMod": true]
+    }
+
+    if(accessTransformersFile) {
+        manifestAttributes += ["FMLAT" : accessTransformersFile.toString()]
+    }
+
+    if(coreModClass) {
+        manifestAttributes += ["FMLCorePlugin": modGroup + "." + coreModClass]
+    }
+
+    if(usesMixins.toBoolean()) {
+        manifestAttributes += [
+                "TweakClass" : "org.spongepowered.asm.launch.MixinTweaker",
+                "MixinConfigs" : "mixins." + modId + ".json",
+                "ForceLoadAsMod" : containsMixinsAndOrCoreModOnly.toBoolean() == false
+        ]
+    }
+    return manifestAttributes
 }
 
 task sourcesJar(type: Jar) {
-    from sourceSets.main.java
-    from sourceSets.main.scala
-    classifier = 'sources'
+    from (sourceSets.main.allJava)
+    from (file("$projectDir/LICENSE"))
+    getArchiveClassifier().set('sources')
+}
+
+task shadowDevJar(type: ShadowJar) {
+    from sourceSets.main.output
+    getArchiveClassifier().set("dev")
+
+    manifest {
+        attributes(getManifestAttributes())
+    }
+
+    minimize()  // This will only allow shading for actually used classes
+    configurations = [project.configurations.shadowImplementation]
+}
+
+task relocateShadowDevJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowDevJar
+    prefix = modGroup + ".shadow"
+}
+
+task circularResolverJar(type: Jar) {
+    dependsOn(relocateShadowDevJar)
+    dependsOn(shadowDevJar)
+    enabled = false
+}
+
+task devJar(type: Jar) {
+    from sourceSets.main.output
+    getArchiveClassifier().set("dev")
+
+    manifest {
+        attributes(getManifestAttributes())
+    }
+
+    if(usesShadowedDependencies.toBoolean()) {
+        dependsOn(circularResolverJar)
+        enabled = false
+    }
+}
+
+task apiJar(type: Jar) {
+    from (sourceSets.main.allJava) {
+        include modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/") + '/**'
+    }
+
+    from (sourceSets.main.output) {
+        include modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/") + '/**'
+    }
+
+    from (sourceSets.main.resources.srcDirs) {
+        include("LICENSE")
+    }
+
+    getArchiveClassifier().set('api')
 }
 
 artifacts {
-    archives deobfJar
-    archives apiJar
-    archives javadocJar
     archives sourcesJar
+    archives devJar
+    if(apiPackage) {
+        archives apiJar
+    }
 }
 
-// this is needed for IntelliJ so we don't have to copy over the assets manually every time
-idea {
-    module {
-        outputDir = file('build/classes/main')
+// publishing
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact source: jar
+            artifact source: sourcesJar, classifier: "src"
+            artifact source: devJar, classifier: "dev"
+            if (apiPackage) {
+                artifact source: apiJar, classifier: "api"
+            }
+
+            groupId = System.getenv("ARTIFACT_GROUP_ID") ?: group
+            artifactId = System.getenv("ARTIFACT_ID") ?: project.name
+            version = System.getenv("ARTIFACT_VERSION") ?: project.version
+        }
     }
+    
+    repositories {
+        maven {
+            String owner = System.getenv("REPOSITORY_OWNER") ?: "Unknown"
+            String repositoryName = System.getenv("REPOSITORY_NAME") ?: "Unknown"
+            String githubRepositoryUrl = "https://maven.pkg.github.com/$owner/$repositoryName"
+            name = "GitHubPackages"
+            url = githubRepositoryUrl
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: "NONE"
+                password = System.getenv("GITHUB_TOKEN") ?: "NONE"
+            }
+        }
+    }
+}
+
+// Updating
+task updateBuildScript {
+    doLast {
+        if (performBuildScriptUpdate(projectDir.toString())) return
+
+        print("Build script already up-to-date!")
+    }
+}
+
+if (isNewBuildScriptVersionAvailable(projectDir.toString())) {
+    if (autoUpdateBuildScript.toBoolean()) {
+        performBuildScriptUpdate(projectDir.toString())
+    } else {
+        println("Build script update available! Run 'gradle updateBuildScript'")
+    }
+}
+
+static URL availableBuildScriptUrl() {
+    new URL("https://raw.githubusercontent.com/SinTh0r4s/ExampleMod1.7.10/main/build.gradle")
+}
+
+boolean performBuildScriptUpdate(String projectDir) {
+    if (isNewBuildScriptVersionAvailable(projectDir)) {
+        def buildscriptFile = getFile("build.gradle")
+        availableBuildScriptUrl().withInputStream { i -> buildscriptFile.withOutputStream { it << i } }
+        print("Build script updated. Please REIMPORT the project or RESTART your IDE!")
+        return true
+    }
+    return false
+}
+
+boolean isNewBuildScriptVersionAvailable(String projectDir) {
+    Map parameters = ["connectTimeout": 2000, "readTimeout": 2000]
+
+    String currentBuildScript = getFile("build.gradle").getText()
+    String currentBuildScriptHash = getVersionHash(currentBuildScript)
+    String availableBuildScript = availableBuildScriptUrl().newInputStream(parameters).getText()
+    String availableBuildScriptHash = getVersionHash(availableBuildScript)
+
+    boolean isUpToDate = currentBuildScriptHash.empty || availableBuildScriptHash.empty || currentBuildScriptHash == availableBuildScriptHash
+    return !isUpToDate
+}
+
+static String getVersionHash(String buildScriptContent) {
+    String versionLine = buildScriptContent.find("^//version: [a-z0-9]*")
+    if(versionLine != null) {
+        return versionLine.split(": ").last()
+    }
+    return ""
+}
+
+configure(updateBuildScript) {
+    group = 'forgegradle'
+    description = 'Updates the build script to the latest version'
+}
+
+// Helper methods
+
+def checkPropertyExists(String propertyName) {
+    if (project.hasProperty(propertyName) == false) {
+        throw new GradleException("This project requires a property \"" + propertyName + "\"! Please add it your \"gradle.properties\". You can find all properties and their description here: https://github.com/SinTh0r4s/ExampleMod1.7.10/blob/main/gradle.properties")
+    }
+}
+
+def getFile(String relativePath) {
+    return new File(projectDir, relativePath)
 }

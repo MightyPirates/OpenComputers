@@ -1,9 +1,9 @@
 [{
-  "modid": "OpenComputers",
-  "name": "OpenComputers",
+  "modid": "${modId}",
+  "name": "${modName}",
   "description": "This mod adds modular computers and robots that can be programmed in Lua.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
   "url": "https://oc.cil.li/",
   "authorList": ["Florian 'Sangar' Nuecke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
