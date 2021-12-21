@@ -17,6 +17,7 @@ object EventHandlerGregTech {
       case tile : IGregTechTileEntity =>
         e.data += "facing" -> ForgeDirection.getOrientation(tile.getFrontFacing).name()
         e.data += "sensorInformation" -> tile.getInfoData()
+      case _ =>
     }
   }
 
