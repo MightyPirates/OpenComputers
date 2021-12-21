@@ -1,8 +1,8 @@
 // Add your dependencies here
 
 dependencies {
-    shadowImplementation files("dependencies/OpenComputers-JNLua.jar")
-    shadowImplementation files("dependencies/OpenComputers-LuaJ.jar")
+    shadeCompile files("dependencies/OpenComputers-JNLua.jar")
+    shadeCompile files("dependencies/OpenComputers-LuaJ.jar")
 
     compile("com.google.code.findbugs:jsr305:3.0.2")
 
