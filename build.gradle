@@ -1,4 +1,4 @@
-//version: 29197fa3cf1ea6ef5c07884a613171d01c026d1d
+//version: 8fa7883b6196c1765266f4e6ddf3118d5043aafb
 /*
 DO NOT CHANGE THIS FILE!
 
@@ -195,7 +195,9 @@ if(file("addon.gradle").exists()) {
 apply from: 'repositories.gradle'
 
 configurations {
-    implementation.extendsFrom(shadowImplementation)
+    implementation.extendsFrom(shadowImplementation)  // TODO: remove after all uses are refactored
+    implementation.extendsFrom(shadowCompile)
+    implementation.extendsFrom(shadeCompile)
 }
 
 repositories {
@@ -261,16 +263,28 @@ task relocateShadowJar(type: ConfigureShadowRelocation) {
 }
 
 shadowJar {
+    project.configurations.shadeCompile.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+
     manifest {
         attributes(getManifestAttributes())
     }
 
     minimize()  // This will only allow shading for actually used classes
-    configurations = [project.configurations.shadowImplementation]
+    configurations = [project.configurations.shadowImplementation, project.configurations.shadowCompile]
     dependsOn(relocateShadowJar)
 }
 
 jar {
+    project.configurations.shadeCompile.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+
     manifest {
         attributes(getManifestAttributes())
     }
@@ -344,31 +358,31 @@ tasks.withType(JavaExec).configureEach {
 }
 
 processResources
-        {
-            // this will ensure that this task is redone when the versions change.
-            inputs.property "version", project.version
-            inputs.property "mcversion", project.minecraft.version
+{
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
 
-            // replace stuff in mcmod.info, nothing else
-            from(sourceSets.main.resources.srcDirs) {
-                include 'mcmod.info'
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
 
-                // replace version and mcversion
-                expand "minecraftVersion": project.minecraft.version,
-                        "modVersion": versionDetails().lastTag,
-                        "modId": modId,
-                        "modName": modName
-            }
+        // replace version and mcversion
+        expand "minecraftVersion": project.minecraft.version,
+                "modVersion": versionDetails().lastTag,
+                "modId": modId,
+                "modName": modName
+    }
 
-            if(usesMixins.toBoolean()) {
-                from refMap
-            }
+    if(usesMixins.toBoolean()) {
+        from refMap
+    }
 
-            // copy everything else, thats not the mcmod.info
-            from(sourceSets.main.resources.srcDirs) {
-                exclude 'mcmod.info'
-            }
-        }
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
 
 def getManifestAttributes() {
     def manifestAttributes = [:]
@@ -401,6 +415,12 @@ task sourcesJar(type: Jar) {
 }
 
 task shadowDevJar(type: ShadowJar) {
+    project.configurations.shadeCompile.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+
     from sourceSets.main.output
     getArchiveClassifier().set("dev")
 
@@ -409,7 +429,7 @@ task shadowDevJar(type: ShadowJar) {
     }
 
     minimize()  // This will only allow shading for actually used classes
-    configurations = [project.configurations.shadowImplementation]
+    configurations = [project.configurations.shadowImplementation, project.configurations.shadowCompile]
 }
 
 task relocateShadowDevJar(type: ConfigureShadowRelocation) {
@@ -424,6 +444,12 @@ task circularResolverJar(type: Jar) {
 }
 
 task devJar(type: Jar) {
+    project.configurations.shadeCompile.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+
     from sourceSets.main.output
     getArchiveClassifier().set("dev")
 
@@ -477,7 +503,7 @@ publishing {
             version = System.getenv("ARTIFACT_VERSION") ?: project.version
         }
     }
-    
+
     repositories {
         maven {
             String owner = System.getenv("REPOSITORY_OWNER") ?: "Unknown"
