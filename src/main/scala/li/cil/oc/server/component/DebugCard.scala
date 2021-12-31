@@ -619,7 +619,7 @@ object DebugCard {
       if (item == null) {
         throw new IllegalArgumentException("invalid item id")
       }
-      val count = args.checkInteger(1)
+      var count = args.checkInteger(1)
       val damage = args.checkInteger(2)
       val tagJson = args.optString(3, "")
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
@@ -629,7 +629,22 @@ object DebugCard {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
           stack.setTagCompound(tag)
-          result(InventoryUtils.insertIntoInventory(stack, inventory, Option(side)))
+          val res = InventoryUtils.insertIntoInventory(stack, inventory, Option(side), count)
+          if (!res)
+            result(res)
+          else {
+            var stored = count - stack.stackSize
+            while (stored > 0 && stack.stackSize > 0) {
+              count = stack.stackSize
+              // InventoryUtils.insertIntoInventory honors max stack size for the stack,
+              // but debug card may ignore that e.g. for infinity chest
+              // so we try to insert the rest until we fail
+              if (!InventoryUtils.insertIntoInventory(stack, inventory, Option(side), count))
+                return result(true)
+              stored = count - stack.stackSize
+            }
+            result(true)
+          }
         case _ => result(Unit, "no inventory")
       }
     }
