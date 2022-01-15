@@ -13,6 +13,7 @@ import appeng.api.storage.data.{IAEItemStack, IItemList}
 import appeng.api.util.AECableType
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
+import appeng.tile.crafting.TileCraftingMonitorTile
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
@@ -300,6 +301,21 @@ object NetworkControl {
       getCpu.getListOfItem(list, CraftingItemList.STORAGE)
       result(list.map(item => convert(item, controller)).toArray)
     }
+
+    @Callback(doc = "function():table -- Get crafting final output.")
+    def finalOutput(context: Context, args: Arguments): Array[AnyRef] = {
+      val monitor = getCpu.getTiles.find(t => t.isInstanceOf[TileCraftingMonitorTile])
+      if (monitor.isEmpty)
+        result(null, "No crafting monitor")
+      else {
+        val aeStack = monitor.get.asInstanceOf[TileCraftingMonitorTile].getJobProgress
+        if (aeStack == null)
+          result(null, "Nothing is crafted")
+        else
+          result(aeStack.getItemStack)
+      }
+    }
+    
     private def getCpu = {
       if (cpu == null && controller != null) {
         var i = 0
