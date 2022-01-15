@@ -180,9 +180,9 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     val panel = LayoutManager.itemPanel
     if (panel == null) return
     zLevel += 350
-    val itemsPerPage = ReflectionHelper.getPrivateValue(classOf[ItemPanel], LayoutManager.itemPanel, "itemsPerPage").asInstanceOf[Int]
+    val itemsPerPage = panel.getGrid.getPerPage
     for (index <- 0 until itemsPerPage) {
-      val rect = panel.getSlotRect(index)
+      val rect = panel.getGrid.getSlotRect(index)
       val slot = panel.getSlotMouseOver(rect.x, rect.y)
       if (slot != null) hoveredSlot match {
         case Some(hovered) =>
