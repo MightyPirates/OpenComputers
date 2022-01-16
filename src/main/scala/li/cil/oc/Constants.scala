@@ -143,6 +143,7 @@ object Constants {
     final val RawCircuitBoard = "rawCircuitBoard"
     final val RedstoneCardTier1 = "redstoneCard1"
     final val RedstoneCardTier2 = "redstoneCard2"
+    final val RITEGUpgrade = "ritegUpgrade"
     final val ServerCreative = "serverCreative"
     final val ServerTier1 = "server1"
     final val ServerTier2 = "server2"
