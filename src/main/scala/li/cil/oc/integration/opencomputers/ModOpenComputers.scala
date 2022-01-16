@@ -228,13 +228,13 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.NavigationUpgrade,
       Constants.ItemName.PistonUpgrade,
-      Constants.ItemName.RITEGUpgrade,
       Constants.ItemName.SolarGeneratorUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade,
       Constants.ItemName.TradingUpgrade,
-      Constants.ItemName.BeekeeperUpgrade
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
     )
     blacklistHost(classOf[internal.Drone],
       Constants.BlockName.Keyboard,
@@ -253,7 +253,9 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2,
-      Constants.ItemName.BeekeeperUpgrade)
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Microcontroller],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -286,7 +288,9 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
       Constants.ItemName.Analyzer,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Tablet],
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,
