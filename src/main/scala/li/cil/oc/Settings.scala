@@ -149,6 +149,7 @@ class Settings(val config: Config) {
   val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
+  val ritegUpgradeEfficiency = try { config.getDouble("power.ritegEfficiency") } catch { case _ : Throwable => 0.6}
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
   val printerTickAmount = config.getDouble("power.printerTickAmount") max 1

@@ -79,7 +79,8 @@ object MicrocontrollerTemplate extends Template {
       hostClass,
       null,
       Array(
-        Tier.Three
+        Tier.Three,
+        Tier.Two
       ),
       asJavaIterable(Iterable(
         (Slot.Card, Tier.Two),

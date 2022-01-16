@@ -164,6 +164,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeLeash)
     api.Driver.add(DriverUpgradeNavigation)
     api.Driver.add(DriverUpgradePiston)
+    api.Driver.add(DriverUpgradeRITEG)
     api.Driver.add(DriverUpgradeSign)
     api.Driver.add(DriverUpgradeSolarGenerator)
     api.Driver.add(DriverUpgradeTank)
@@ -232,7 +233,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade,
       Constants.ItemName.TradingUpgrade,
-      Constants.ItemName.BeekeeperUpgrade
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
     )
     blacklistHost(classOf[internal.Drone],
       Constants.BlockName.Keyboard,
@@ -251,7 +253,9 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2,
-      Constants.ItemName.BeekeeperUpgrade)
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Microcontroller],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -284,7 +288,9 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
       Constants.ItemName.Analyzer,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Tablet],
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,

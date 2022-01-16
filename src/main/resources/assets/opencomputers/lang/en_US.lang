@@ -165,6 +165,7 @@ item.oc.MicrocontrollerCase3.name=Microcontroller Case (Tier 3)
 item.oc.Server3.name=Server (Tier 4)
 item.oc.TabletCase3.name=Tablet Case (Tier 3)
 item.oc.UpgradeBeekeeper.name=Beekeeper Upgrade
+item.oc.UpgradeRITEG.name=RITEG Upgrade
 
 # Entities
 entity.oc.Drone.name=Drone
@@ -400,6 +401,8 @@ oc:tooltip.Waypoint=Provides a point of reference to devices with a navigation u
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
 oc:tooltip.WorldSensorCard=Allows reading out information about the world, such as its gravity and whether it has a breathable atmosphere. Use results at own risk. The manufacturer takes no responsibility for bodily or material harm caused by decisions made upon the cards' outputs. We have lawyers. And money. Don't even try.
 oc:tooltip.Wrench=A hybrid of Screwdriver and Wrench, this tool is easy to learn, but hard to master.
+oc:tooltip.UpgradeRITEG=Pocket nuke for your microcontrollers and tablets. Generates energy at %s%% of the speed of a Stirling Engine.
+
 
 #Achievements
 achievement.oc.adapter=Plug In Baby
