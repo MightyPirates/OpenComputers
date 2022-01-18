@@ -44,18 +44,8 @@ jobs:
           title: "${{ env.RELEASE_VERSION }}"
           files: build/libs/*.jar
 
-      - name: Set repository owner and name
-        run: |
-          echo "REPOSITORY_OWNER=${GITHUB_REPOSITORY%/*}" >> $GITHUB_ENV
-          echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-
-      - name: Publish package
+      - name: Publish to Maven
         run: ./gradlew publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ARTIFACT_GROUP_ID: com.github.${{ env.REPOSITORY_OWNER }}
-          ARTIFACT_ID: "${{ env.REPOSITORY_NAME }}"
-          ARTIFACT_VERSION: "${{ env.RELEASE_VERSION }}"
-          REPOSITORY_NAME: "${{ env.REPOSITORY_NAME }}"
-          REPOSITORY_OWNER: "${{ env.REPOSITORY_OWNER }}"
-    
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
