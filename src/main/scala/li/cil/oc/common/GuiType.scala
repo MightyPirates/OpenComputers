@@ -50,7 +50,7 @@ object GuiType extends ScalaEnum {
 
   def embedSlot(y: Int, slot: Int) = (y & 0x00FFFFFF) | (slot << 24)
 
-  def extractY(value: Int) = value & 0x00FFFFFF
+  def extractY(value: Int) = value << 8 >> 8
 
-  def extractSlot(value: Int) = (value >>> 24) & 0xFF
+  def extractSlot(value: Int) = value >>> 24
 }
