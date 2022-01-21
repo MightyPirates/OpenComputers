@@ -4,11 +4,11 @@ buildscript {
         jcenter()
         maven {
             name = "forge"
-            url = "https://files.minecraftforge.net/maven"
+            url = "https://maven.minecraftforge.net/"
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.+'
     }
 }
 
@@ -17,7 +17,7 @@ plugins {
 }
 
 apply plugin: 'scala'
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
