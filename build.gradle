@@ -20,8 +20,7 @@ apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -53,17 +52,26 @@ else if (System.getenv("BUILD_NUMBER") != null)
 else
     version += "+" + getGitRef()
 
-ext.simpleVersion = version
-version = "MC${config.minecraft.version}-${project.version}"
-
 minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
-    runDir = "run"
 
-    mappings = config.minecraft.mappings
+    mappings channel: 'stable', version: '39-1.12'
+    // version = '1.12.2' // A problem occurred evaluating root project 'OpenComputers'. > version > Missing 'minecraft' dependency.
 
-    replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+        server {
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
+
+    // replace "@VERSION@", project.simpleVersion
+    // replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
 }
 
 repositories {
@@ -80,18 +88,18 @@ dependencies {
 
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
 
-    deobfCompile ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
+    fg.deobf ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
         exclude module: "jei_1.12"
     }
-    deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
-    deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
+    fg.deobf "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
+    fg.deobf "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
     provided ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
         exclude module: "jei_1.12"
     }
-    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
-    deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
-    deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
-    deobfCompile "charset:Charset:${config.charset.version}:api"
+    fg.deobf "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
+    fg.deobf "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
+    fg.deobf "dan200.computercraft:ComputerCraft:${config.cc.version}"
+    fg.deobf "charset:Charset:${config.charset.version}:api"
     
     provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
         transitive = false
@@ -136,23 +144,23 @@ dependencies {
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
-    testCompile "org.mockito:mockito-all:1.10.19"
+    testImplementation "org.mockito:mockito-all:1.10.19"
 
     provided "codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal"
 }
 
 processResources {
-    inputs.property "version", project.simpleVersion
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property "version", project.version
+    inputs.property "mcversion", config.minecraft.version
     inputs.property "fversion", config.forge.version
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version':project.simpleVersion, 'mcversion':project.minecraft.version, 'fversion':config.forge.version
+        expand 'version':project.version, 'mcversion':config.minecraft.version, 'fversion':config.forge.version
     }
     from(sourceSets.main.resources.srcDirs) {
         include 'application.conf'
         filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
+            line.replaceAll("@VERSION@", project.version)
         }
     }
     from(sourceSets.main.resources.srcDirs) {
