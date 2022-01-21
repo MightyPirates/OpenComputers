@@ -32,7 +32,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.NonNullList
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.registries.{GameData}
+import net.minecraftforge.registries.GameData
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -492,8 +492,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeLeash(upgrades), Constants.ItemName.LeashUpgrade, "oc:leashUpgrade")
 
     // 1.5.8
-    Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
-    Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
+    Recipes.addSubItem(new item.UpgradeHover(upgrades, Settings.get.upgradeFlightHeight(Tier.One), Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
+    Recipes.addSubItem(new item.UpgradeHover(upgrades, Settings.get.upgradeFlightHeight(Tier.Two), Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
 
     // 1.6
     Recipes.addSubItem(new item.UpgradeTrading(upgrades), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
