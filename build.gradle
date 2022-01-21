@@ -13,7 +13,7 @@ buildscript {
 }
 
 plugins {
-    id "com.matthewprenger.cursegradle" version "1.0.9"
+    id "com.matthewprenger.cursegradle" version "1.4.+"
 }
 
 apply plugin: 'scala'
@@ -55,7 +55,6 @@ else
 minecraft {
 
     mappings channel: 'stable', version: '39-1.12'
-    // version = '1.12.2' // A problem occurred evaluating root project 'OpenComputers'. > version > Missing 'minecraft' dependency.
 
     runs {
         client {
