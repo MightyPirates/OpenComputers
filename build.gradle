@@ -1,4 +1,4 @@
-//version: 1642484596
+//version: 1643020202
 /*
 DO NOT CHANGE THIS FILE!
 
@@ -32,16 +32,18 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.5'
+        classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.7'
     }
 }
 
 plugins {
     id 'idea'
+    id 'eclipse'
     id 'scala'
     id("org.ajoberstar.grgit") version("3.1.1")
     id("com.github.johnrengelman.shadow") version("4.0.4")
     id("com.palantir.git-version") version("0.12.3")
+    id('de.undercouch.download') version('4.1.2')
     id("maven-publish")
 }
 
@@ -172,6 +174,19 @@ else {
     archivesBaseName = modId
 }
 
+
+def arguments = []
+def jvmArguments = []
+
+if(usesMixins.toBoolean()) {
+    arguments += [
+            "--tweakClass org.spongepowered.asm.launch.MixinTweaker"
+    ]
+    jvmArguments += [
+            "-Dmixin.debug.countInjections=true", "-Dmixin.debug.verbose=true", "-Dmixin.debug.export=true"
+    ]
+}
+
 minecraft {
     version = minecraftVersion + "-" + forgeVersion + "-" + minecraftVersion
     runDir = "run"
@@ -190,6 +205,20 @@ minecraft {
         if(gradleTokenGroupName) {
             replace gradleTokenGroupName, modGroup
         }
+    }
+
+    clientIntellijRun {
+        args(arguments)
+        jvmArgs(jvmArguments)
+
+        if(developmentEnvironmentUserName) {
+            args("--username", developmentEnvironmentUserName)
+        }
+    }
+
+    serverIntellijRun {
+        args(arguments)
+        jvmArgs(jvmArguments)
     }
 }
 
@@ -322,15 +351,6 @@ afterEvaluate {
 }
 
 runClient {
-    def arguments = []
-
-    if(usesMixins.toBoolean()) {
-        arguments += [
-                "--mods=../build/libs/$modId-${version}.jar",
-                "--tweakClass org.spongepowered.asm.launch.MixinTweaker"
-        ]
-    }
-
     if(developmentEnvironmentUserName) {
         arguments += [
                 "--username",
@@ -339,19 +359,12 @@ runClient {
     }
 
     args(arguments)
+    jvmArgs(jvmArguments)
 }
 
 runServer {
-    def arguments = []
-
-    if (usesMixins.toBoolean()) {
-        arguments += [
-                "--mods=../build/libs/$modId-${version}.jar",
-                "--tweakClass org.spongepowered.asm.launch.MixinTweaker"
-        ]
-    }
-
     args(arguments)
+    jvmArgs(jvmArguments)
 }
 
 tasks.withType(JavaExec).configureEach {
@@ -494,11 +507,21 @@ artifacts {
     }
 }
 
+// The gradle metadata includes all of the additional deps that we disabled from POM generation (including forgeBin with no groupID), 
+// and isn't strictly needed with the POM so just disable it.
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
+
 // publishing
 publishing {
     publications {
         maven(MavenPublication) {
-            artifact source: usesShadowedDependencies.toBoolean() ? shadowJar : jar, classifier: ""
+            from components.java
+            if(usesShadowedDependencies.toBoolean()) {
+                artifact source: shadowJar, classifier: ""
+            }
             if(!noPublishedSources) {
                 artifact source: sourcesJar, classifier: "src"
             }
@@ -511,6 +534,18 @@ publishing {
             artifactId = System.getenv("ARTIFACT_ID") ?: project.name
             // Using the identified version, not project.version as it has the prepended 1.7.10
             version = System.getenv("RELEASE_VERSION") ?: identifiedVersion
+            
+            // Remove all non GTNH deps here.
+            // Original intention was to remove an invalid forgeBin being generated without a groupId (mandatory), but
+            // it also removes all of the MC deps
+            pom.withXml {
+                Node pomNode = asNode()
+                pomNode.dependencies.'*'.findAll() {
+                    it.groupId.text() != 'com.github.GTNewHorizons'
+                }.each() {
+                    it.parent().remove(it)
+                }
+            }
         }
     }
 
@@ -579,6 +614,72 @@ static String getVersionHash(String buildScriptContent) {
 configure(updateBuildScript) {
     group = 'forgegradle'
     description = 'Updates the build script to the latest version'
+}
+
+// Deobfuscation
+
+def deobf(String sourceURL) {
+    try {
+        URL url = new URL(sourceURL)
+        String fileName = url.getFile()
+
+        //get rid of directories:
+        int lastSlash = fileName.lastIndexOf("/")
+        if(lastSlash > 0) {
+            fileName = fileName.substring(lastSlash + 1)
+        }
+        //get rid of extension:
+        if(fileName.endsWith(".jar")) {
+            fileName = fileName.substring(0, fileName.lastIndexOf("."))
+        }
+
+        String hostName = url.getHost()
+        if(hostName.startsWith("www.")) {
+            hostName = hostName.substring(4)
+        }
+        List parts = Arrays.asList(hostName.split("\\."))
+        Collections.reverse(parts)
+        hostName = String.join(".", parts)
+
+        return deobf(sourceURL, hostName + "/" + fileName)
+    } catch(Exception e) {
+        return deobf(sourceURL, "deobf/" + String.valueOf(sourceURL.hashCode()))
+    }
+}
+
+// The method above is to be prefered. Use this method if the filename is not at the end of the URL.
+def deobf(String sourceURL, String fileName) {
+    String cacheDir = System.getProperty("user.home") + "/.gradle/caches/"
+    String bon2Dir = cacheDir + "forge_gradle/deobf"
+    String bon2File  = bon2Dir + "/BON2-2.5.0.jar"
+    String obfFile = cacheDir + "modules-2/files-2.1/" + fileName + ".jar"
+    String deobfFile = cacheDir + "modules-2/files-2.1/" + fileName + "-deobf.jar"
+    
+    if(file(deobfFile).exists()) {
+        return files(deobfFile)
+    }
+
+    download {
+        src 'https://github.com/GTNewHorizons/BON2/releases/download/2.5.0/BON2-2.5.0.CUSTOM-all.jar'
+        dest bon2File
+        quiet true
+        overwrite false
+    }
+
+    download {
+        src sourceURL
+        dest obfFile
+        quiet true
+        overwrite false
+    }
+
+    exec {
+        commandLine 'java', '-jar', bon2File, '--inputJar', obfFile, '--outputJar', deobfFile, '--mcVer', '1.7.10', '--mappingsVer', 'stable_12', '--notch'
+        workingDir bon2Dir
+        standardOutput = new ByteArrayOutputStream()
+    }
+
+    return files(deobfFile)
 }
 
 // Helper methods
