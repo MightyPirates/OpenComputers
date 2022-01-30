@@ -17,30 +17,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
--------------------------------------------------------------------------------
-
-All images / textures and localization strings (resources) are put in the
-public domain, unless explicitly excluded below. More specicially, see CC0 1.0
-Universal:
-
-        http://creativecommons.org/publicdomain/zero/1.0/
-
-Contributions:
-  PixelToast - Capacitor textures.
-  asie - Disk drive inject/eject and floppy disk access sound samples.
-
-Thanks a lot!
-
--------------------------------------------------------------------------------
-
-The font used for screens and for monospace text in manual is unscii, made by
-viznut, and was further expanded by asie. For more information, please see:
-
-        https://github.com/asiekierka/unscii-asie
-
--------------------------------------------------------------------------------
-
-Assets from other sources:
-  HDD access samples based on this sample from freesound.org:
-    https://www.freesound.org/people/artykris/sounds/117401/
