@@ -166,6 +166,7 @@ item.oc.Server3.name=Server (Tier 4)
 item.oc.TabletCase3.name=Tablet Case (Tier 3)
 item.oc.UpgradeBeekeeper.name=Beekeeper Upgrade
 item.oc.UpgradeRITEG.name=RITEG Upgrade
+item.oc.UpgradeConfigurator.name=Configurator Upgrade
 
 # Entities
 entity.oc.Drone.name=Drone

@@ -249,6 +249,13 @@ beekeeperUpgrade {
           ["oc:circuitChip3", {item="Forestry:beealyzer"}, "oc:circuitChip3"]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
+
+configuratorUpgrade {
+  input: [[ingotIron, "", ingotIron]
+          ["oc:circuitChip1", "oc:wrench", "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+
 chunkloaderUpgrade {
   input: [[ingotGold, blockGlass, ingotGold]
           ["oc:circuitChip3", eyeOfEnder, "oc:circuitChip3"]
@@ -710,3 +717,4 @@ appengTunnel {
   type: shapeless
   input: [{item="appliedenergistics2:item.ItemMultiPart", subID=460}, "oc:adapter"]
 }
+ritegUpgrade = false
