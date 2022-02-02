@@ -15,7 +15,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.40.19:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ForestryMC:4.4.5:dev") {
+    compile("com.github.GTNewHorizons:ForestryMC:4.4.5:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Railcraft:9.13.5:dev") {
@@ -119,6 +119,7 @@ dependencies {
     compileOnly(deobf("https://github.com/purpleposeidon/fz_archive/raw/master/old/Factorization-1.7.10-0.8.108.jar"))
     compileOnly("api:coloredlightscore:1")
 	compileOnly(deobf("http://immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar"))
+	runtime("curse.maven:cofh-core-69162:2388751")
 
     testCompile("org.mockito:mockito-all:1.10.19")
     testCompile("org.scalactic:scalactic_2.11:2.2.6")
