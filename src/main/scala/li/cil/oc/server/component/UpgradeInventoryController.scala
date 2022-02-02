@@ -107,6 +107,22 @@ object UpgradeInventoryController {
       }
       else result(false)
     }
+
+    @Callback(doc = """function(slot:number):string -- get upgrade container type at the given slot.""")
+    def getUpgradeContainerType(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = args.checkInteger(0)
+      if (!host.isContainerSlot(slot))
+        return result("None")
+      result(host.containerSlotType(slot))
+    }
+
+    @Callback(doc = """function(slot:number):number -- get upgrade container tier at the given slot.""")
+    def getUpgradeContainerTier(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = args.checkInteger(0)
+      if (!host.isContainerSlot(slot))
+        return result(0)
+      result(host.containerSlotTier(slot))
+    }
   }
 
 }
