@@ -119,7 +119,7 @@ object UpgradeConfigurator {
   trait Configurator extends ConfiguratorBase with SideRestricted with NetworkAware {
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number):table -- Get conduit configuration at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection: number):table -- Get conduit configuration at the specified conduitDirection""")
     def getConduitConfiguration(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -141,7 +141,7 @@ object UpgradeConfigurator {
       result(null, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number, isInput:boolean, color: string):boolean -- Set conduit input/output color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection: number, isInput:boolean, color:string):boolean -- Set item conduit input/output color""")
     def setItemConduitColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -156,7 +156,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number, priority: number):boolean -- Set conduit output priority at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, priority:number):boolean -- Set item conduit output priority""")
     def setItemConduitOutputPriority(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -169,7 +169,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number, database: string, dbSlot:number, filterIndex:number, isInput:boolean):boolean -- Set conduit input or output filter at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection: number, database: string, dbSlot:number, filterIndex:number, isInput:boolean):boolean -- Set item from database slot to conduit input or output filter""")
     def setItemConduitFilter(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -193,7 +193,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, mode:string):boolean -- Set item conduit connection mode at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, mode:string):boolean -- Set item conduit connection mode (IN_OUT,INPUT,OUTPUT,DISABLED,NOT_SET)""")
     def setItemConduitConnectionMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -207,7 +207,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set item conduit extraction redstone signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, color:string):boolean -- Set item conduit extraction redstone signal color""")
     def setItemConduitExtractionRedstoneColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -221,7 +221,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set item conduit extraction redstone signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, mode:string):boolean -- Set item conduit extraction redstone signal mode (IGNORE,ON,OFF,NEVER). """)
     def setItemConduitExtractionRedstoneMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -235,7 +235,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, fluid:string, blacklist:boolean, isInput:boolean[, filterIndex:number]):boolean -- Set ender liquid conduit filter at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, fluid:string, blacklist:boolean, isInput:boolean[, filterIndex:number]):boolean -- Set Ender liquid conduit filter""")
     def setEnderLiquidConduitFilter(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -253,7 +253,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, isInput:boolean, color:string):boolean -- Set fluid conduit color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, isInput:boolean, color:string):boolean -- Set Color for Ender liquid conduit input or output.""")
     def setEnderLiquidConduitColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -268,7 +268,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, mode:string):boolean -- Set fluid conduit connection mode at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, mode:string):boolean -- Set liquid conduit connection mode (IN_OUT,INPUT,OUTPUT,DISABLED,NOT_SET)""")
     def setLiquidConduitConnectionMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -282,7 +282,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set fluid conduit extraction redstone signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, color:string):boolean -- Set fluid conduit extraction redstone signal color""")
     def setLiquidConduitExtractionRedstoneColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -296,7 +296,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set fluid conduit extraction redstone signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, mode:string):boolean -- Set fluid conduit extraction redstone signal mode at side facing conduitDirection. mode:(IGNORE,ON,OFF,NEVER)""")
     def setLiquidConduitExtractionRedstoneMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -310,7 +310,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set redstone conduit signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, color:string):boolean -- Set redstone conduit signal color at side facing conduitDirection""")
     def setRedstoneConduitSignalColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -324,7 +324,7 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, strength:boolean):boolean -- Set redstone conduit signal color at side facing direction""")
+    @Callback(doc = """function(side:number, conduitDirection:number, strength:boolean):boolean -- Set redstone conduit signal strength. (true = strong signal, false = weak)""")
     def setRedstoneConduitSignalStrength(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
@@ -412,7 +412,7 @@ object UpgradeConfigurator {
   trait RobotConfigurator extends ConfiguratorBase with SideRestricted with NetworkAware with traits.InventoryAware {
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, input:boolean):boolean -- Replace conduit input or output filter at side facing direction with the filter in selected slot""")
+    @Callback(doc = """function(side:number, conduitDirection:number, input:boolean):boolean -- Replace item conduit input or output filter with the filter in selected slot""")
     def replaceConduitFilter(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val stack = inventory.getStackInSlot(selectedSlot)
