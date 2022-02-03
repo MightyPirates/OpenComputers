@@ -376,14 +376,15 @@ object UpgradeConfigurator {
       )
       case _ => null
     }
-    private def convert(f: FluidFilter): Map[AnyRef, AnyRef] =
-      Map(
-        "blacklist"-> f.isBlacklist.asInstanceOf[AnyRef],
-        "1" -> Option(f.getFluidStackAt(0)).fold("")(_.getLocalizedName),
-        "2" -> Option(f.getFluidStackAt(1)).fold("")(_.getLocalizedName),
-        "3" -> Option(f.getFluidStackAt(2)).fold("")(_.getLocalizedName),
-        "4" -> Option(f.getFluidStackAt(3)).fold("")(_.getLocalizedName),
-        "5" -> Option(f.getFluidStackAt(4)).fold("")(_.getLocalizedName))
+    private def convert(f: FluidFilter): Map[AnyRef, AnyRef] = if (f != null) Map (
+      "blacklist" -> f.isBlacklist.asInstanceOf[AnyRef],
+      "1" -> Option (f.getFluidStackAt (0) ).fold ("") (_.getLocalizedName),
+      "2" -> Option (f.getFluidStackAt (1) ).fold ("") (_.getLocalizedName),
+      "3" -> Option (f.getFluidStackAt (2) ).fold ("") (_.getLocalizedName),
+      "4" -> Option (f.getFluidStackAt (3) ).fold ("") (_.getLocalizedName),
+      "5" -> Option (f.getFluidStackAt (4) ).fold ("") (_.getLocalizedName) )
+    else
+      null
 
 
     private def convert(f: IItemFilter): Map[AnyRef, AnyRef] = f match {
