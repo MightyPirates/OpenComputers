@@ -3,10 +3,12 @@ package li.cil.oc.server.component
 import java.util
 
 import com.enderio.core.common.util.DyeColor
-import crazypants.enderio.conduit.IConduitBundle
+import crazypants.enderio.conduit.{ConnectionMode, IConduitBundle}
 import crazypants.enderio.conduit.item.IItemConduit
 import crazypants.enderio.conduit.item.filter.{IItemFilter, ItemFilter}
 import crazypants.enderio.conduit.liquid.{AbstractEnderLiquidConduit, AbstractTankConduit, FluidFilter, ILiquidConduit}
+import crazypants.enderio.conduit.redstone.{IInsulatedRedstoneConduit, IRedstoneConduit}
+import crazypants.enderio.machine.RedstoneControlMode
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
@@ -97,7 +99,20 @@ object UpgradeConfigurator {
       conduitAt(position.offset(side)) match {
         case Some(conduit) if conduit.hasType(classOf[AbstractEnderLiquidConduit])
           => f(conduit.getConduit(classOf[AbstractEnderLiquidConduit]))
-        case _ => result(Unit, "no item conduit here")
+        case _ => result(Unit, "no ender conduit here")
+      }
+
+    def withFluidConduit(side: ForgeDirection, f: ILiquidConduit => Array[AnyRef]): Array[AnyRef] =
+      conduitAt(position.offset(side)) match {
+        case Some(conduit) if conduit.hasType(classOf[ILiquidConduit])
+        => f(conduit.getConduit(classOf[ILiquidConduit]))
+        case _ => result(Unit, "no liquid conduit here")
+      }
+    def withInsulatedRedstoneConduit(side: ForgeDirection, f: IInsulatedRedstoneConduit => Array[AnyRef]): Array[AnyRef] =
+      conduitAt(position.offset(side)) match {
+        case Some(conduit) if conduit.hasType(classOf[IInsulatedRedstoneConduit])
+        => f(conduit.getConduit(classOf[IInsulatedRedstoneConduit]))
+        case _ => result(Unit, "no liquid conduit here")
       }
   }
 
@@ -115,6 +130,8 @@ object UpgradeConfigurator {
             info += "ItemConduit" -> convert(dir, conduit.getConduit(classOf[IItemConduit]))
           if (conduit.hasType(classOf[ILiquidConduit]))
             info += "LiquidConduit" -> convert(dir, conduit.getConduit(classOf[ILiquidConduit]))
+          if (conduit.hasType(classOf[IRedstoneConduit]))
+            info += "RedstoneConduit" -> convert(dir, conduit.getConduit(classOf[IRedstoneConduit]))
           result(info)
 
         case _ => result(null, "No conduit here")
@@ -124,25 +141,14 @@ object UpgradeConfigurator {
       result(null, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number, color: string):boolean -- Set conduit input color at side facing direction""")
-    def setItemConduitInputColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+    @Callback(doc = """function(side:number, direction: number, isInput:boolean, color: string):boolean -- Set conduit input/output color at side facing direction""")
+    def setItemConduitColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
       withItemConduit(facing, c =>{
-        c.setInputColor(dir, DyeColor.valueOf(args.checkString(2)))
-        result(true)
-      })
-    }
-    else
-      result(false, "EnderIO not loaded")
-
-    //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction: number, color: string):boolean -- Set conduit output color at side facing direction""")
-    def setItemConduitOutputColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
-      val facing = checkSideForAction(args, 0)
-      val dir = args.checkSideAny(1)
-      withItemConduit(facing, c => {
-        c.setOutputColor(dir, DyeColor.valueOf(args.checkString(2)))
+        val color = DyeColor.valueOf(args.checkString(3).toUpperCase)
+        val isInput = args.checkBoolean(2)
+        if (isInput) c.setInputColor(dir, color) else c.setOutputColor(dir, color)
         result(true)
       })
     }
@@ -187,6 +193,48 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, mode:string):boolean -- Set item conduit connection mode at side facing direction""")
+    def setItemConduitConnectionMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withItemConduit(facing, c => {
+        val mode = ConnectionMode.valueOf(args.checkString(2).toUpperCase)
+        c.setConnectionMode(dir, mode)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set item conduit extraction redstone signal color at side facing direction""")
+    def setItemConduitExtractionRedstoneColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withItemConduit(facing, c => {
+        val color = DyeColor.valueOf(args.checkString(2).toUpperCase)
+        c.setExtractionSignalColor(dir, color)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set item conduit extraction redstone signal color at side facing direction""")
+    def setItemConduitExtractionRedstoneMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withItemConduit(facing, c => {
+        val mode = RedstoneControlMode.valueOf(args.checkString(2).toUpperCase)
+        c.setExtractionRedstoneMode(mode, dir)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
     @Callback(doc = """function(side:number, direction:number, fluid:string, blacklist:boolean, isInput:boolean[, filterIndex:number]):boolean -- Set ender liquid conduit filter at side facing direction""")
     def setEnderLiquidConduitFilter(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
@@ -205,14 +253,84 @@ object UpgradeConfigurator {
       result(false, "EnderIO not loaded")
 
     //noinspection ScalaUnusedSymbol
-    @Callback(doc = """function(side:number, direction:number, isInput:boolean, color:string):boolean -- Set fluid conduit priority at side facing direction""")
+    @Callback(doc = """function(side:number, direction:number, isInput:boolean, color:string):boolean -- Set fluid conduit color at side facing direction""")
     def setEnderLiquidConduitColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
       val facing = checkSideForAction(args, 0)
       val dir = args.checkSideAny(1)
       withEnderFluidConduit(facing, c => {
         val isInput = args.checkBoolean(2)
-        val color = DyeColor.valueOf(args.checkString(3))
+        val color = DyeColor.valueOf(args.checkString(3).toUpperCase)
         if (isInput) c.setInputColor(dir, color) else c.setOutputColor(dir, color)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, mode:string):boolean -- Set fluid conduit connection mode at side facing direction""")
+    def setLiquidConduitConnectionMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withFluidConduit(facing, c => {
+        val mode = ConnectionMode.valueOf(args.checkString(2).toUpperCase)
+        c.setConnectionMode(dir, mode)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set fluid conduit extraction redstone signal color at side facing direction""")
+    def setLiquidConduitExtractionRedstoneColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withFluidConduit(facing, c => {
+        val color = DyeColor.valueOf(args.checkString(2).toUpperCase)
+        c.setExtractionSignalColor(dir, color)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set fluid conduit extraction redstone signal color at side facing direction""")
+    def setLiquidConduitExtractionRedstoneMode(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withFluidConduit(facing, c => {
+        val mode = RedstoneControlMode.valueOf(args.checkString(2).toUpperCase)
+        c.setExtractionRedstoneMode(mode, dir)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, color:string):boolean -- Set redstone conduit signal color at side facing direction""")
+    def setRedstoneConduitSignalColor(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withInsulatedRedstoneConduit(facing, c => {
+        val color = DyeColor.valueOf(args.checkString(2).toUpperCase)
+        c.setSignalColor(dir, color)
+        result(true)
+      })
+    }
+    else
+      result(false, "EnderIO not loaded")
+
+    //noinspection ScalaUnusedSymbol
+    @Callback(doc = """function(side:number, direction:number, strength:boolean):boolean -- Set redstone conduit signal color at side facing direction""")
+    def setRedstoneConduitSignalStrength(context: Context, args: Arguments): Array[AnyRef] = if (Mods.EnderIO.isModAvailable) {
+      val facing = checkSideForAction(args, 0)
+      val dir = args.checkSideAny(1)
+      withInsulatedRedstoneConduit(facing, c => {
+        val strength = args.checkBoolean(2)
+        c.setOutputStrength(dir, strength)
         result(true)
       })
     }
@@ -227,19 +345,34 @@ object UpgradeConfigurator {
         "ExtractionRedstoneConditionMet" -> ic.isExtractionRedstoneConditionMet(dir).asInstanceOf[AnyRef],
         "OutputPriority" -> ic.getOutputPriority(dir).asInstanceOf[AnyRef],
         "InputFilter" -> convert(ic.getInputFilter(dir)),
-        "OutputFilter" -> convert(ic.getOutputFilter(dir))
+        "OutputFilter" -> convert(ic.getOutputFilter(dir)),
+        "ConnectionMode" -> ic.getConnectionMode(dir),
+        "ExtractionRedstoneMode" -> ic.getExtractionRedstoneMode(dir),
+        "ExtractionRedstoneColor" -> ic.getExtractionSignalColor(dir)
         )
+
+    private def convert(dir: ForgeDirection, ic: IRedstoneConduit): Map[AnyRef, AnyRef] = Map(
+        "SignalColor" -> ic.getSignalColor(dir),
+        "IsOutputStrong" -> ic.isProvidingStrongPower(dir).toString,
+        "ConnectionMode" -> ic.getConnectionMode(dir)
+    )
 
     private def convert(dir: ForgeDirection, ic: ILiquidConduit): Map[AnyRef, AnyRef] = ic match {
       case c: AbstractEnderLiquidConduit => Map[AnyRef,AnyRef](
         "InputFilter" -> convert(c.getFilter(dir, true)),
         "OutputFilter" -> convert(c.getFilter(dir, false)),
         "InputColor" -> c.getInputColor(dir).getName,
-        "OutputColor" -> c.getOutputColor(dir).getName
+        "OutputColor" -> c.getOutputColor(dir).getName,
+        "ConnectionMode" -> c.getConnectionMode(dir),
+        "ExtractionRedstoneMode" -> c.getExtractionRedstoneMode(dir),
+        "ExtractionRedstoneColor" -> c.getExtractionSignalColor(dir)
       )
 
       case c: AbstractTankConduit => Map[AnyRef,AnyRef](
-        "FluidType" -> c.getFluidType.getLocalizedName
+        "FluidType" -> c.getFluidType.getLocalizedName,
+        "ConnectionMode" -> c.getConnectionMode(dir),
+        "ExtractionRedstoneMode" -> c.getExtractionRedstoneMode(dir),
+        "ExtractionRedstoneColor" -> c.getExtractionSignalColor(dir)
       )
       case _ => null
     }
