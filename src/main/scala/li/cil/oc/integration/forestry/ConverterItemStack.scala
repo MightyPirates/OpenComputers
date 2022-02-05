@@ -16,7 +16,8 @@ object ConverterItemStack extends Converter {
     case stack: ItemStack if ChipsetManager.circuitRegistry.getCircuitboard(stack) != null => {
       val cc = ChipsetManager.circuitRegistry.getCircuitboard(stack).getCircuits
       val names = cc.collect{case c: ICircuit => c.getName}
-      output += "circuits" -> names
+      if (names.length > 0)
+        output += "circuits" -> names
     }
     case _ =>
   }

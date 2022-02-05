@@ -172,6 +172,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTractorBeam)
     api.Driver.add(DriverUpgradeTrading)
     api.Driver.add(DriverUpgradeMF)
+    api.Driver.add(DriverUpgradeConfigurator)
 
     api.Driver.add(DriverAPU.Provider)
     api.Driver.add(DriverDataCard.Provider)
@@ -206,6 +207,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(InventoryProviderDatabase)
     api.Driver.add(InventoryProviderServer)
+    api.Driver.add(DriverUpgradeConfigurator.Provider)
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
@@ -313,7 +315,9 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankControllerUpgrade,
       Constants.ItemName.LeashUpgrade,
       Constants.ItemName.TradingUpgrade,
-      Constants.ItemName.BeekeeperUpgrade)
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.ConfiguratorUpgrade
+    )
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)

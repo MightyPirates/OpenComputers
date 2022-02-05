@@ -91,6 +91,38 @@ object UpgradeInventoryController {
       }
       else result(false)
     }
+    @Callback(doc = """function([slot:number]):boolean -- Swaps the installed upgrade in the slot (1 by default) with the content of the currently selected inventory slot.""")
+    def installUpgrade(context: Context, args: Arguments): Array[AnyRef] = {
+      if (inventory.getSizeInventory > 0) {
+        val slot = args.optInteger(0, 1)
+        if (!host.isContainerSlot(slot))
+          return result(false, "not a container slot")
+        val selected = inventory.getStackInSlot(selectedSlot)
+        if (selected != null && !host.isItemValidForSlot(slot, selected))
+          return result(false, "Invalid upgrade")
+        val equipped = host.getStackInSlot(slot)
+        host.setInventorySlotContents(slot, selected)
+        inventory.setInventorySlotContents(selectedSlot, equipped)
+        result(true)
+      }
+      else result(false)
+    }
+
+    @Callback(doc = """function(slot:number):string -- get upgrade container type at the given slot.""")
+    def getUpgradeContainerType(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = args.checkInteger(0)
+      if (!host.isContainerSlot(slot))
+        return result("None")
+      result(host.containerSlotType(slot))
+    }
+
+    @Callback(doc = """function(slot:number):number -- get upgrade container tier at the given slot.""")
+    def getUpgradeContainerTier(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = args.checkInteger(0)
+      if (!host.isContainerSlot(slot))
+        return result(0)
+      result(host.containerSlotTier(slot))
+    }
   }
 
 }
