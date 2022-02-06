@@ -18,7 +18,7 @@ dependencies {
     compile("com.github.GTNewHorizons:ForestryMC:4.4.5:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:Railcraft:9.13.5:dev") {
+    compileOnly("com.github.GTNewHorizons:Railcraft:9.13.6:dev") {
         transitive = false
     }
     compile("com.github.GTNewHorizons:NotEnoughItems:2.2.5-GTNH:dev") {
@@ -57,7 +57,7 @@ dependencies {
     compile("com.github.GTNewHorizons:EnderCore:0.2.6:dev") {
         transitive = false
     }
-	compile("com.github.GTNewHorizons:EnderIO:2.3.1.28:dev") {
+	compile("com.github.GTNewHorizons:EnderIO:2.3.1.29:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.5.3-GTNH:dev") {
@@ -69,7 +69,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.4.4:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.25:dev") {
+    compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.26:dev") {
         transitive = false
     }
     compileOnly("appeng:RotaryCraft:V5c:api") {

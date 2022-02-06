@@ -185,7 +185,7 @@ catch (Exception e) {
     identifiedVersion = versionOverride
 }
 version = minecraftVersion + '-' + identifiedVersion
-String modVersion = version
+String modVersion = identifiedVersion
 
 if( identifiedVersion.equals(versionOverride) ) {
     logger.error('\u001B[31m\u001B[7mWe hope you know what you\'re doing using\u001B[0m\u001B[1;34m ' + modVersion + '\u001B[0m\n');
