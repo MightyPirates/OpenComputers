@@ -1,4 +1,4 @@
-//version: 1643020202
+//version: 1643844119
 /*
 DO NOT CHANGE THIS FILE!
 
@@ -40,11 +40,16 @@ plugins {
     id 'idea'
     id 'eclipse'
     id 'scala'
-    id("org.ajoberstar.grgit") version("3.1.1")
-    id("com.github.johnrengelman.shadow") version("4.0.4")
-    id("com.palantir.git-version") version("0.12.3")
-    id('de.undercouch.download') version('4.1.2')
-    id("maven-publish")
+    id('org.jetbrains.kotlin.jvm') version ('1.6.10') apply false
+    id('org.ajoberstar.grgit') version('4.1.1')
+    id('com.github.johnrengelman.shadow') version('4.0.4')
+    id('com.palantir.git-version') version('0.13.0') apply false
+    id('de.undercouch.download') version('5.0.1')
+    id('maven-publish')
+}
+
+if (project.file('.git/HEAD').isFile()) {
+    apply plugin: 'com.palantir.git-version'
 }
 
 apply plugin: 'forge'
@@ -94,24 +99,27 @@ boolean noPublishedSources = project.findProperty("noPublishedSources") ? projec
 
 String javaSourceDir = "src/main/java/"
 String scalaSourceDir = "src/main/scala/"
+String kotlinSourceDir = "src/main/kotlin/"
 
 String targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/")
 String targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/")
-if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
-    throw new GradleException("Could not resolve \"modGroup\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+String targetPackageKotlin = kotlinSourceDir + modGroup.toString().replaceAll("\\.", "/")
+if(!(getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists() || getFile(targetPackageKotlin).exists())) {
+    throw new GradleException("Could not resolve \"modGroup\"! Could not find " + targetPackageJava + " or " + targetPackageScala + " or " + targetPackageKotlin)
 }
 
 if(apiPackage) {
     targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/")
     targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/")
-    if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
-        throw new GradleException("Could not resolve \"apiPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+    targetPackageKotlin = kotlinSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + apiPackage.toString().replaceAll("\\.", "/")
+    if(!(getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists() || getFile(targetPackageKotlin).exists())) {
+        throw new GradleException("Could not resolve \"apiPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala + " or " + targetPackageKotlin)
     }
 }
 
 if(accessTransformersFile) {
     String targetFile = "src/main/resources/META-INF/" + accessTransformersFile
-    if(getFile(targetFile).exists() == false) {
+    if(!getFile(targetFile).exists()) {
         throw new GradleException("Could not resolve \"accessTransformersFile\"! Could not find " + targetFile)
     }
 }
@@ -123,15 +131,17 @@ if(usesMixins.toBoolean()) {
 
     targetPackageJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinsPackage.toString().replaceAll("\\.", "/")
     targetPackageScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinsPackage.toString().replaceAll("\\.", "/")
-    if((getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists()) == false) {
-        throw new GradleException("Could not resolve \"mixinsPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala)
+    targetPackageKotlin = kotlinSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinsPackage.toString().replaceAll("\\.", "/")
+    if(!(getFile(targetPackageJava).exists() || getFile(targetPackageScala).exists() || getFile(targetPackageKotlin).exists())) {
+        throw new GradleException("Could not resolve \"mixinsPackage\"! Could not find " + targetPackageJava + " or " + targetPackageScala  + " or " + targetPackageKotlin)
     }
 
     String targetFileJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".java"
     String targetFileScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".scala"
     String targetFileScalaJava = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".java"
-    if((getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists()) == false) {
-        throw new GradleException("Could not resolve \"mixinPlugin\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava)
+    String targetFileKotlin = kotlinSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + mixinPlugin.toString().replaceAll("\\.", "/") + ".kt"
+    if(!(getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists() || getFile(targetFileKotlin).exists())) {
+        throw new GradleException("Could not resolve \"mixinPlugin\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava + " or " + targetFileKotlin)
     }
 }
 
@@ -139,8 +149,9 @@ if(coreModClass) {
     String targetFileJava = javaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".java"
     String targetFileScala = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".scala"
     String targetFileScalaJava = scalaSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".java"
-    if((getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists()) == false) {
-        throw new GradleException("Could not resolve \"coreModClass\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava)
+    String targetFileKotlin = kotlinSourceDir + modGroup.toString().replaceAll("\\.", "/") + "/" + coreModClass.toString().replaceAll("\\.", "/") + ".kt"
+    if(!(getFile(targetFileJava).exists() || getFile(targetFileScala).exists() || getFile(targetFileScalaJava).exists() || getFile(targetFileKotlin).exists())) {
+        throw new GradleException("Could not resolve \"coreModClass\"! Could not find " + targetFileJava + " or " + targetFileScala + " or " + targetFileScalaJava + " or " + targetFileKotlin)
     }
 }
 
@@ -153,17 +164,32 @@ configurations.all {
 }
 
 // Fix Jenkins' Git: chmod a file should not be detected as a change and append a '.dirty' to the version
-'git config core.fileMode false'.execute()
+try {
+    'git config core.fileMode false'.execute()
+}
+catch (Exception e) {
+    logger.error("\u001B[31mgit isn't installed at all\u001B[0m")
+}
 
 // Pulls version first from the VERSION env and then git tag
 String identifiedVersion
+String versionOverride = System.getenv("VERSION") ?: null
 try {
-    String versionOverride = System.getenv("VERSION") ?: null
     identifiedVersion = versionOverride == null ? gitVersion() : versionOverride
-    version = minecraftVersion + "-" + identifiedVersion
 }
 catch (Exception e) {
-    throw new IllegalStateException("This mod must be version controlled by Git AND the repository must provide at least one tag, or the VERSION override must be set!");
+    logger.error("\n\u001B[1;31mThis mod must be version controlled by Git AND the repository must provide at least one tag,\n" +
+                 "or the VERSION override must be set! \u001B[32m(Don't download from GitHub using the ZIP option, instead\n" +
+                 "clone the repository, see\u001B[33m https://gtnh.miraheze.org/wiki/Development \u001B[32mfor details.)\u001B[0m\n");
+    versionOverride = 'NO-GIT-TAG-SET'
+    identifiedVersion = versionOverride
+}
+version = minecraftVersion + '-' + identifiedVersion
+String modVersion = version
+
+if( identifiedVersion.equals(versionOverride) ) {
+    logger.error('\u001B[31m\u001B[7mWe hope you know what you\'re doing using\u001B[0m\u001B[1;34m ' + modVersion + '\u001B[0m\n');
+    logger.error('\7\u001B[31mGoing to blindly try to use\u001B[1;34m ' + modVersion + '\u001B[0m\u001B[31m, this probably won\'t work the way you expect!!\u001B[0m\n');
 }
 
 group = modGroup
@@ -200,7 +226,7 @@ minecraft {
             replace gradleTokenModName, modName
         }
         if(gradleTokenVersion) {
-            replace gradleTokenVersion, versionDetails().lastTag
+            replace gradleTokenVersion, modVersion
         }
         if(gradleTokenGroupName) {
             replace gradleTokenGroupName, modGroup
@@ -380,16 +406,16 @@ processResources
     // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
-
+    
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
 
         // replace version and mcversion
         expand "minecraftVersion": project.minecraft.version,
-                "modVersion": versionDetails().lastTag,
-                "modId": modId,
-                "modName": modName
+            "modVersion": modVersion,
+            "modId": modId,
+            "modName": modName
     }
 
     if(usesMixins.toBoolean()) {
