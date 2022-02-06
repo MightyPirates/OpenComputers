@@ -39,7 +39,7 @@ tile.oc.screen2.name=高级显示屏
 tile.oc.screen3.name=超级显示屏
 tile.oc.rack.name=机架
 tile.oc.switch.name=§c交换机§7
-tile.oc.transposer.name=转换器
+tile.oc.transposer.name=转运器
 tile.oc.waypoint.name=路径点
 
 # Items
@@ -49,7 +49,7 @@ item.oc.ALU.name=算逻运算单元(ALU)
 item.oc.Analyzer.name=分析器
 item.oc.APU0.name=加速运算单元(APU)(T2)
 item.oc.APU1.name=加速运算单元(APU)(T3)
-item.oc.APU2.name=加速运算单元(APU)(创造)
+item.oc.APU2.name=加速运算单元(APU)(T3)
 item.oc.ArrowKeys.name=方向键
 item.oc.ButtonGroup.name=按钮组
 item.oc.CardBase.name=基板
@@ -159,6 +159,13 @@ item.oc.WirelessNetworkCard0.name=无线网卡
 item.oc.WirelessNetworkCard1.name=无线网卡
 item.oc.WorldSensorCard.name=世界感应卡
 item.oc.wrench.name=螺丝刀扳手
+item.oc.APU2.name=加速运算单元(APU)(T3)
+item.oc.DroneCase3.name=超级机器人外壳
+item.oc.MicrocontrollerCase3.name=超级微控制器外壳
+item.oc.Server3.name=特级服务器
+item.oc.TabletCase3.name=平板电脑保护套T3
+item.oc.UpgradeBeekeeper.name=养蜂员升级
+item.oc.UpgradeRITEG.name=放射性同位素温差发电机升级
 
 # Entities
 entity.oc.Drone.name=无人机
@@ -230,6 +237,7 @@ oc:gui.Rack.None=无
 oc:gui.Rack.Right=右
 oc:gui.Rack.Enabled=启用
 oc:gui.Rack.Disabled=禁用
+oc:gui.Rack.RelayModeTooltip=中继模式
 oc:gui.Rack.Top=顶部
 oc:gui.Switch.PacketsPerCycle=数据包 / 周期
 oc:gui.Switch.QueueSize=队列长度
@@ -388,10 +396,13 @@ oc:tooltip.UpgradeSolarGenerator=可以让机器人在太阳光的照射下四�
 oc:tooltip.UpgradeTank=为你的机器人装上一个可存储流体的水箱. 如果没有升级此功能, 你的机器人将无法在内部存储流体.
 oc:tooltip.UpgradeTankController=这个升级能让你的机器人与外界水箱交互, 向其传输流体.
 oc:tooltip.UpgradeTractorBeam=十分先进的高科技, 别名 "物品磁铁". 它能让机器人在任何地方捡起3格范围内的掉落物.
+oc:tooltip.UpgradeTrading=让你的机器人和无人机可以与村民交易. 
 oc:tooltip.Waypoint=为安装有导航升级的设备提供参考点。
 oc:tooltip.WirelessNetworkCard=允许在发送正常信息的情况下发送无线网络信息. 请确保已设置好 §f信号强度§7 否则不会发出信息. 越高的信号强度会导致越高的能量消耗.
 oc:tooltip.WorldSensorCard=可读取关于世界的各种信息, 例如重力加速度和是否有可供呼吸的大气. 使用风险自负. 制造商对由卡片输出结果造成的损失不承担任何法律责任. 我们不仅有律师, 还有现金. 不要试图告倒我们.
 oc:tooltip.Wrench=螺丝刀和扳手混合体, 新手友好, 高手毁灭者.
+oc:tooltip.UpgradeRITEG=使用微型核弹为你的微控制器和工作台供能.斯特林发电机产能速度：%s%%.
+
 
 #Achievements
 achievement.oc.adapter=万金油
@@ -486,3 +497,4 @@ nei.usage.oc.Manual=打开手册
 option.oc.address=地址
 option.oc.componentName=组件名
 option.oc.energy=能量
+
