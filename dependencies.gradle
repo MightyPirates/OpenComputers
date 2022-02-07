@@ -57,7 +57,7 @@ dependencies {
     compile("com.github.GTNewHorizons:EnderCore:0.2.6:dev") {
         transitive = false
     }
-	compile("com.github.GTNewHorizons:EnderIO:2.3.1.29:dev") {
+    compile("com.github.GTNewHorizons:EnderIO:2.3.1.29:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.5.3-GTNH:dev") {
@@ -118,8 +118,8 @@ dependencies {
     compileOnly files("dependencies/ic2classic-api.zip") //curseforge one does NOT work ...
     compileOnly(deobf("https://github.com/purpleposeidon/fz_archive/raw/master/old/Factorization-1.7.10-0.8.108.jar"))
     compileOnly("api:coloredlightscore:1")
-	compileOnly(deobf("http://immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar"))
-	runtime("curse.maven:cofh-core-69162:2388751")
+    compileOnly(deobf("http://immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar"))
+    runtime("curse.maven:cofh-core-69162:2388751")
 
     testCompile("org.mockito:mockito-all:1.10.19")
     testCompile("org.scalactic:scalactic_2.11:2.2.6")
