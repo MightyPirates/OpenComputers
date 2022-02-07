@@ -12,7 +12,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.4.11:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.40.31:dev") {
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.40.32:dev") {
         transitive = false
     }
     compile("com.github.GTNewHorizons:ForestryMC:4.4.5:dev") {
@@ -21,7 +21,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:Railcraft:9.13.6:dev") {
         transitive = false
     }
-    compile("com.github.GTNewHorizons:NotEnoughItems:2.2.5-GTNH:dev") {
+    compile("com.github.GTNewHorizons:NotEnoughItems:2.2.6-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.2.7:dev") {
@@ -51,7 +51,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.3.16-GTNH:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.7:dev") {
+    compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.8:dev") {
         transitive = false
     }
     compile("com.github.GTNewHorizons:EnderCore:0.2.6:dev") {
