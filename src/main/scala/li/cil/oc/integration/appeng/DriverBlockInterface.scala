@@ -111,7 +111,10 @@ object DriverBlockInterface extends DriverSidedTileEntity {
       if (encodedValue == null)
         throw new IllegalArgumentException("No pattern here!")
       val nbt = encodedValue.getTagList(tag, 10)
-      val stackNBT = nbt.getCompoundTagAt(args.checkInteger(1))
+      val index = args.checkInteger(1) - 1
+      if (index < 0)
+        throw new IllegalArgumentException("Invalid index!")
+      val stackNBT = nbt.getCompoundTagAt(index)
       val stack = ItemStack.loadItemStackFromNBT(stackNBT)
       DatabaseAccess.withDatabase(node, args.checkString(2), database => {
         val slot = args.optSlot(database.data, 3, 0)
@@ -129,7 +132,9 @@ object DriverBlockInterface extends DriverSidedTileEntity {
       if (encodedValue == null)
         throw new IllegalArgumentException("No pattern here!")
       val nbt = encodedValue.getTagList(tag, 10)
-      val index = args.checkInteger(1)
+      val index = args.checkInteger(1) - 1
+      if (index < 0)
+        throw new IllegalArgumentException("Invalid index!")
       nbt.removeTag(index)
       encodedValue.setTag(tag, nbt)
       pattern.setTagCompound(encodedValue)
@@ -142,10 +147,9 @@ object DriverBlockInterface extends DriverSidedTileEntity {
       val inv = tileEntity.getInventoryByName("patterns")
       val slot = if (args.isString(0)) 0 else args.optSlot(inv, 0, 0)
       val stack = getStack(args)
-      var index = args.checkInteger(4)
-      if (index < 1 || index > 512)
+      val index = args.checkInteger(4) - 1
+      if (index < 0 || index > 511)
         throw new IllegalArgumentException("Invalid index!")
-      index -= 1
       val pattern = inv.getStackInSlot(slot)
       val encodedValue = pattern.getTagCompound
       if (encodedValue == null)
