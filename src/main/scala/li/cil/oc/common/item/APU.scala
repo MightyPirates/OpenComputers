@@ -15,6 +15,7 @@ class APU(val parent: Delegator, val tier: Int) extends traits.Delegate with tra
     else super.rarity(stack)
 
   override def cpuTier = math.min(Tier.Three, tier + 1)
+  override def cpuTierForComponents = tier + 1
 
   override def gpuTier = tier
 

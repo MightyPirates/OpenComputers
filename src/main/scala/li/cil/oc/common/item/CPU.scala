@@ -6,6 +6,7 @@ class CPU(val parent: Delegator, val tier: Int) extends traits.Delegate with tra
   override val unlocalizedName = super.unlocalizedName + tier
 
   override def cpuTier = tier
+  override def cpuTierForComponents = tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
 }

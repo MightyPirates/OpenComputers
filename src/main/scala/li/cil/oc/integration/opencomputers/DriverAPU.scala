@@ -25,8 +25,7 @@ object DriverAPU extends DriverCPU with HostAware {
     }
 
   override def supportedComponents(stack: ItemStack) = Delegator.subItem(stack) match {
-    // have to use GPU tier here because CPU tier is limited by 3, creative tier is special
-    case Some(apu: common.item.APU) => Settings.get.cpuComponentSupport(apu.gpuTier + 1)
+    case Some(apu: common.item.APU) => Settings.get.cpuComponentSupport(apu.cpuTierForComponents)
     case _ => Settings.get.cpuComponentSupport(1)
   }
 
