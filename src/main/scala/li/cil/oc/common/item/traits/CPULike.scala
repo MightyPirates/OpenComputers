@@ -17,8 +17,9 @@ import scala.language.existentials
 
 trait CPULike extends Delegate {
   def cpuTier: Int
+  def cpuTierForComponents: Int // Creative APU provides components like T4 CPU, but there is no T4 CPU
 
-  override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTier))
+  override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTierForComponents))
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     tooltip.addAll(Tooltip.get("CPU.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack))))

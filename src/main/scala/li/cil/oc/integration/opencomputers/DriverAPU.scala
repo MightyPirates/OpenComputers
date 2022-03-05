@@ -1,11 +1,9 @@
 package li.cil.oc.integration.opencomputers
 
-import li.cil.oc.Constants
-import li.cil.oc.api
+import li.cil.oc.{Constants, Settings, api, common}
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.common
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
@@ -25,6 +23,11 @@ object DriverAPU extends DriverCPU with HostAware {
       case Tier.Three => new component.APU(Tier.Three)
       case _ => null
     }
+
+  override def supportedComponents(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(apu: common.item.APU) => Settings.get.cpuComponentSupport(apu.cpuTierForComponents)
+    case _ => Settings.get.cpuComponentSupport(1)
+  }
 
   override def cpuTier(stack: ItemStack) =
     Delegator.subItem(stack) match {
