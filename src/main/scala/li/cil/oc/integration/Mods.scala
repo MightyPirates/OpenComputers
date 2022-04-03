@@ -129,7 +129,6 @@ object Mods {
     integration.tis3d.ModTIS3D,
     integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
-    integration.versionchecker.ModVersionChecker,
     integration.waila.ModWaila,
     integration.wrcbe.ModWRCBE,
     integration.wrsve.ModWRSVE,
