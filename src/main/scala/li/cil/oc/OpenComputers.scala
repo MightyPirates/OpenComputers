@@ -13,15 +13,11 @@ import li.cil.oc.util.ThreadPoolFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-@Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
-  version = OpenComputers.Version,
-  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
+@Mod(OpenComputers.ID)
 object OpenComputers {
   final val ID = "opencomputers"
 
   final val Name = "OpenComputers"
-
-  final val Version = "@VERSION@"
 
   def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
 
