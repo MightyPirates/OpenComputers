@@ -12,7 +12,6 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.common.Optional
 import java.util
 
-import li.cil.oc.integration.charset.{CapabilitiesCharset, ModCharset}
 import net.minecraftforge.common.capabilities.Capability
 
 trait BundledRedstoneAware extends RedstoneAware with IBundledTile {

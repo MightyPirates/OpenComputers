@@ -1,4 +1,4 @@
-package li.cil.oc.integration.mekanism.gas
+package li.cil.oc.integration.mekanism
 
 import java.util
 

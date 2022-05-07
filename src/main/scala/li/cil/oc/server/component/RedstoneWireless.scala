@@ -1,8 +1,5 @@
 package li.cil.oc.server.component
 
-import codechicken.lib.vec.Vector3
-import codechicken.wirelessredstone.api.WirelessReceivingDevice
-import codechicken.wirelessredstone.api.WirelessTransmittingDevice
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -22,10 +19,6 @@ import net.minecraftforge.fml.common.Optional
 
 import scala.collection.convert.WrapAsJava._
 
-@Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
-  new Optional.Interface(iface = "codechicken.wirelessredstone.api.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
-))
 trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice with DeviceInfo {
   def redstone: EnvironmentHost
 
@@ -99,28 +92,6 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
 
     result(oldValue)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def updateDevice(frequency: Int, on: Boolean) {
-    if (frequency == wirelessFrequency && on != wirelessInput) {
-      wirelessInput = on
-      onRedstoneChanged(RedstoneChangedEventArgs(null, if (on) 0 else 1, if (on) 1 else 0))
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getTransmitPos = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
-
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension: Int = redstone.world.provider.getDimension
-
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getFreq: Int = wirelessFrequency
-
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getAttachedEntity = null
 
   // ----------------------------------------------------------------------- //
 

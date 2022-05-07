@@ -1,10 +1,8 @@
 package li.cil.oc.common.item.traits
 
-import ic2.api.item.IElectricItemManager
 import li.cil.oc.{Settings, api}
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.ic2.ElectricItemManager
 import li.cil.oc.integration.opencomputers.ModOpenComputers
 import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraftforge.fml.common.Optional
@@ -13,9 +11,6 @@ import net.minecraftforge.common.capabilities.{Capability, ICapabilityProvider}
 import net.minecraftforge.energy.{CapabilityEnergy, IEnergyStorage}
 
 // TODO Forge power capabilities.
-@Injectable.InterfaceList(Array(
-  new Injectable.Interface(value = "ic2.api.item.ISpecialElectricItem", modid = Mods.IDs.IndustrialCraft2)
-))
 trait Chargeable extends api.driver.item.Chargeable {
 
   def maxCharge(stack: ItemStack): Double
@@ -25,9 +20,6 @@ trait Chargeable extends api.driver.item.Chargeable {
   def setCharge(stack: ItemStack, amount: Double): Unit
 
   def canExtract(stack: ItemStack): Boolean = false
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 }
 
 object Chargeable {

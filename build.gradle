@@ -71,8 +71,44 @@ minecraft {
 }
 
 repositories {
-    maven { url "https://maven.cil.li/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven {
+        url "https://maven.cil.li/"
+        content {
+            includeGroup "li.cil.tis3d"
+        }
+    }
+    maven {
+        url "https://dvs1.progwml6.com/files/maven"
+        content {
+            includeGroup "mezz.jei"
+        }
+    }
+    maven {
+        url "https://maven.tehnut.info/"
+        content {
+            includeGroup "mcp.mobius.waila"
+        }
+    }
+    maven {
+        url "https://chickenbones.net/maven/"
+        content {
+            includeGroup "codechicken"
+            includeGroup "mrtjp"
+        }
+    }
+    maven {
+        url "https://squiddev.cc/maven/"
+        content {
+            includeGroup "org.squiddev"
+        }
+    }
+    maven {
+        url "https://modmaven.dev/"
+        content {
+            includeGroup "appeng"
+            includeGroup "mekanism"
+        }
+    }
 }
 
 configurations {
@@ -81,65 +117,43 @@ configurations {
 }
 
 dependencies {
+    var jeiSlug = "jei-${config.minecraft.version}"
+    
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
+    implementation "com.typesafe:config:1.2.1"
+    implementation "org.scala-lang:scala-library:2.11.12"
 
-    compileOnly fg.deobf("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
-        exclude module: "jei_1.12"
-    }
-    compileOnly fg.deobf("com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}")
-    compileOnly fg.deobf("MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}")
-    compileOnly ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
-        exclude module: "jei_1.12"
-    }
-    compileOnly fg.deobf("net.industrial-craft:industrialcraft-2:${config.ic2.version}")
+    compileOnly fg.deobf("li.cil.tis3d:tis3d-1.16.5-forge:${config.tis3d.version}")
     compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${config.hwyla.version}:api")
-    compileOnly fg.deobf("dan200.computercraft:ComputerCraft:${config.cc.version}")
-    compileOnly fg.deobf("charset:Charset:${config.charset.version}:api")
+    compileOnly fg.deobf("org.squiddev:cc-tweaked-${config.minecraft.version}:${config.cct.version}")
 
     compileOnly ("appeng:appliedenergistics2:${config.ae2.version}:api") {
         transitive = false
     }
-    compileOnly "extracells2:ExtraCells-api:${config.extracells.version}"
 
     compileOnly("mekanism:Mekanism:${config.mekanism.version}:api") {
         transitive = false
     }
 
-    compileOnly ("codechicken:ForgeMultipart:${config.minecraft.version}-${config.forgemultipart.version}:universal") {
-        exclude module: "jei_1.12"
+    compileOnly ("codechicken:CBMultipart:${config.cbmultipart.version}:universal") {
+        exclude module: jeiSlug
         exclude module: "CodeChickenLib"
     }
 
     compileOnly ("codechicken:ChickenASM:${config.casm.version}")
 
-    compileOnly "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    compileOnly "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
-    compileOnly "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal"
+    compileOnly "mezz.jei:${jeiSlug}:${config.jei.version}"
+    compileOnly "codechicken:CodeChickenLib:${config.ccl.version}:universal"
 
-    compileOnly ("mrtjp:ProjectRed:${config.projred.version}:Base") {
-        exclude module: "NotEnoughItems"
+    compileOnly ("mrtjp:ProjectRed:${config.projred.version}:core") {
         exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
-    }
-
-    compileOnly ("mrtjp:ProjectRed:${config.projred.version}:integration") {
-        exclude module: "NotEnoughItems"
-        exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
-    }
-
-    compileOnly ("mrtjp:MrTJPCore:${config.mrtjpcore.version}:universal") {
-        exclude module: "NotEnoughItems"
-        exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
+        exclude module: jeiSlug
+        exclude module: "CBMultipart"
     }
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
-    compileOnly "codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal"
+    compileOnly "codechicken:EnderStorage:${config.enderstorage.version}:universal"
 }
 
 processResources {
