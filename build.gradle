@@ -1,14 +1,17 @@
-// For those who want the bleeding edge
 buildscript {
     repositories {
-        jcenter()
         maven {
             name = "forge"
             url = "https://maven.minecraftforge.net/"
         }
+        maven {
+            name 'FancyGradle'
+            url 'https://gitlab.com/api/v4/projects/26758973/packages/maven'
+        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.+'
+        classpath group: 'wtf.gofancy.fancygradle', name: 'wtf.gofancy.fancygradle.gradle.plugin', version: '1.1.1-6'
     }
 }
 
@@ -17,8 +20,18 @@ plugins {
 }
 
 apply plugin: 'scala'
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
+apply plugin: 'wtf.gofancy.fancygradle'
+
+fancyGradle {
+    patches {
+        resources
+        coremods
+        codeChickenLib
+        asm
+    }
+}
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -57,79 +70,149 @@ ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
 minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
-    runDir = "run"
+    mappings channel: "${config.minecraft.mappings_channel}", version: "${config.minecraft.mappings_version}"
 
-    mappings = config.minecraft.mappings
+    runs {
+        client {
+            workingDirectory project.file('run')
+            jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
 
-    replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                opencomputers {
+                    source sourceSets.main
+                }
+            }
+        }
+        server {
+            jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                opencomputers {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+
+    accessTransformer = file('src/main/resources/oc_at.cfg')
+}
+
+task replaceSourceTokensScala(type: Sync) {
+    from sourceSets.main.scala
+    filter { line -> line
+            .replaceAll('@VERSION@', project.simpleVersion)
+            .replaceAll("/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\"") }
+    into "$buildDir/srcReplaced/scala"
+}
+
+/* Do not pull this in on IDEA, as it changes the compiler's source path, making navigating to errors harder */
+if (!System.getProperty('idea.active')) {
+    compileScala {
+        source = replaceSourceTokensScala.outputs
+    }
+}
+
+compileScala {
+    configure(scalaCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+    }
 }
 
 repositories {
-    maven { url "https://maven.cil.li/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven {
+        name "MightyPirates"
+        url "https://maven.cil.li/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        name "SquidDev" /* CC: Tweaked */
+        url "https://squiddev.cc/maven/"
+    }
+    maven {
+        name "CurseForge"
+        url "https://minecraft.curseforge.com/api/maven/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
     ivy {
         name 'asie dependency mirror'
         artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+        metadataSources {
+            artifact()
+        }
     }
 }
 
 configurations {
     embedded
-    compile.extendsFrom provided, embedded
+
+    compileOnly.extendsFrom provided
+    implementation.extendsFrom embedded
 }
 
 dependencies {
-    deobfCompile ("li.cil.tis3d:TIS-3D:${config.tis3d.version}") {
+    minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
+
+    compileOnly fg.deobf("li.cil.tis3d:TIS-3D:${config.tis3d.version}") {
         exclude module: "jei_1.12"
     }
-    deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
-    deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
-    provided ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
+    compileOnly fg.deobf("com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}")
+    compileOnly fg.deobf("MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}")
+    provided fg.deobf("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
         exclude module: "jei_1.12"
     }
-    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
-    deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
-    /* deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}" */
-    deobfCompile name: "cc-tweaked", version: "${config.cctweaked.version}"
-    deobfCompile "charset:Charset:${config.charset.version}:api"
-    
-    provided ("appeng:appliedenergistics2:${config.ae2.version}") {
+    compileOnly fg.deobf("net.industrial-craft:industrialcraft-2:${config.ic2.version}")
+    compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${config.hwyla.version}:api")
+    /* compileOnly fg.deobf("dan200.computercraft:ComputerCraft:${config.cc.version}") */
+    compileOnly fg.deobf("org.squiddev:cc-tweaked-1.12.2:${config.cctweaked.version}")
+    compileOnly fg.deobf("charset:Charset:${config.charset.version}:api")
+
+    provided fg.deobf("appeng:appliedenergistics2:${config.ae2.version}") {
         transitive = false
     }
-    provided "extracells2:ExtraCells:${config.extracells.version}:api"
+    provided fg.deobf("extracells:ExtraCells:${config.extracells.version}:api")
     
-    provided("mekanism:Mekanism:${config.mekanism.version}:api") {
+    provided fg.deobf("mekanism:Mekanism:${config.mekanism.version}:api") {
         transitive = false
     }
 
-    provided ("codechicken:ForgeMultipart:${config.minecraft.version}-${config.forgemultipart.version}:universal") {
+    provided fg.deobf("codechicken:ForgeMultipart:${config.minecraft.version}-${config.forgemultipart.version}:universal") {
         exclude module: "jei_1.12"
         exclude module: "CodeChickenLib"
     }
 
-    provided ("codechicken:ChickenASM:${config.casm.version}")
+    provided fg.deobf("codechicken:ChickenASM:${config.casm.version}")
 
-    provided "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal"
+    provided fg.deobf("mezz.jei:jei_${config.minecraft.version}:${config.jei.version}")
+    provided fg.deobf("codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal")
+    provided fg.deobf("codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal")
 
-    provided ("mrtjp:ProjectRed:${config.projred.version}:Base") {
+    provided fg.deobf("mrtjp:ProjectRed:${config.projred.version}:Base") {
         exclude module: "NotEnoughItems"
         exclude module: "CodeChickenLib"
         exclude module: "jei_1.12"
         exclude module: "ForgeMultipart"
     }
 
-    provided ("mrtjp:ProjectRed:${config.projred.version}:integration") {
+    provided fg.deobf("mrtjp:ProjectRed:${config.projred.version}:integration") {
         exclude module: "NotEnoughItems"
         exclude module: "CodeChickenLib"
         exclude module: "jei_1.12"
         exclude module: "ForgeMultipart"
     }
 
-    provided ("mrtjp:MrTJPCore:${config.mrtjpcore.version}:universal") {
+    provided fg.deobf("mrtjp:MrTJPCore:${config.mrtjpcore.version}:universal") {
         exclude module: "NotEnoughItems"
         exclude module: "CodeChickenLib"
         exclude module: "jei_1.12"
@@ -138,18 +221,19 @@ dependencies {
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 
-    testCompile "org.mockito:mockito-all:1.10.19"
+    testImplementation("org.mockito:mockito-all:1.10.19")
 
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal"
+    provided fg.deobf("codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal")
 }
 
 processResources {
     inputs.property "version", project.simpleVersion
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property "mcversion", config.minecraft.version
     inputs.property "fversion", config.forge.version
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version':project.simpleVersion, 'mcversion':project.minecraft.version, 'fversion':config.forge.version
+        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':config.forge.version
     }
     from(sourceSets.main.resources.srcDirs) {
         include 'application.conf'
