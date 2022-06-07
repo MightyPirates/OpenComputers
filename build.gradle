@@ -4,7 +4,7 @@ buildscript {
         jcenter()
         maven {
             name = "forge"
-            url = "https://files.minecraftforge.net/maven"
+            url = "https://maven.minecraftforge.net/"
         }
     }
     dependencies {
@@ -13,15 +13,15 @@ buildscript {
 }
 
 plugins {
-    id "com.matthewprenger.cursegradle" version "1.0.9"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
 apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -69,6 +69,10 @@ minecraft {
 repositories {
     maven { url "https://maven.cil.li/" }
     maven { url "https://minecraft.curseforge.com/api/maven/" }
+    ivy {
+        name 'asie dependency mirror'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+    }
 }
 
 configurations {
@@ -77,7 +81,7 @@ configurations {
 }
 
 dependencies {
-    deobfCompile ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
+    deobfCompile ("li.cil.tis3d:TIS-3D:${config.tis3d.version}") {
         exclude module: "jei_1.12"
     }
     deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
@@ -87,10 +91,11 @@ dependencies {
     }
     deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
     deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
-    deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
+    /* deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}" */
+    deobfCompile name: "cc-tweaked", version: "${config.cctweaked.version}"
     deobfCompile "charset:Charset:${config.charset.version}:api"
     
-    provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
+    provided ("appeng:appliedenergistics2:${config.ae2.version}") {
         transitive = false
     }
     provided "extracells2:ExtraCells-api:${config.extracells.version}"
@@ -225,5 +230,6 @@ curseforge {
         changelog = file("changelog.md")
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
+        addGameVersion "Forge"
     }
 }
