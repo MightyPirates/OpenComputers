@@ -157,7 +157,7 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
     val sideIndex = args.checkInteger(0)
     if (sideIndex < 0 || sideIndex > 5)
       return result(Unit, "invalid direction")
-    val side = EnumFacing.getFront(sideIndex)
+    val side = EnumFacing.byIndex(sideIndex)
     result(setSide(side, value))
   }
 

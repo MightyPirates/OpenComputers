@@ -4,6 +4,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Node
+import li.cil.oc.util.OCObfuscationReflectionHelper
 import net.minecraft.server.management.PlayerInteractionManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerEvent
@@ -17,7 +18,7 @@ object PlayerInteractionManagerHelper {
 
   private def isDestroyingBlock(player: Player): Boolean = {
     try {
-      ObfuscationReflectionHelper.getPrivateValue(classOf[PlayerInteractionManager], player.interactionManager, "isDestroyingBlock", "field_73088_d").asInstanceOf[Boolean]
+      OCObfuscationReflectionHelper.getPrivateValue(classOf[PlayerInteractionManager], player.interactionManager, "field_73088_d").asInstanceOf[Boolean]
     } catch {
       case _: Exception => true
     }

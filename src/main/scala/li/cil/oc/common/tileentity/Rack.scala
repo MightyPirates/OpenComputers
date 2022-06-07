@@ -414,7 +414,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
     isRelayEnabled = nbt.getBoolean(IsRelayEnabledTag)
     nbt.getTagList(NodeMappingTag, NBT.TAG_INT_ARRAY).map((buses: NBTTagIntArray) =>
-      buses.getIntArray.map(id => if (id < 0 || id == EnumFacing.SOUTH.ordinal()) None else Option(EnumFacing.getFront(id)))).
+      buses.getIntArray.map(id => if (id < 0 || id == EnumFacing.SOUTH.ordinal()) None else Option(EnumFacing.byIndex(id)))).
       copyToArray(nodeMapping)
 
     // Kickstart initialization.

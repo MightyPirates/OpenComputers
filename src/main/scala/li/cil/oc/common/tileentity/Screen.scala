@@ -102,7 +102,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   def toScreenCoordinates(hitX: Double, hitY: Double, hitZ: Double): (Boolean, Option[(Double, Double)]) = {
     // Compute absolute position of the click on the face, measured in blocks.
-    def dot(f: EnumFacing) = f.getFrontOffsetX * hitX + f.getFrontOffsetY * hitY + f.getFrontOffsetZ * hitZ
+    def dot(f: EnumFacing) = f.getXOffset * hitX + f.getYOffset * hitY + f.getZOffset * hitZ
     val (hx, hy) = (dot(toGlobal(EnumFacing.EAST)), dot(toGlobal(EnumFacing.UP)))
     val tx = if (hx < 0) 1 + hx else hx
     val ty = 1 - (if (hy < 0) 1 + hy else hy)
@@ -408,12 +408,12 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   }
 
   private def project(t: Screen) = {
-    def dot(f: EnumFacing, s: Screen) = f.getFrontOffsetX * s.x + f.getFrontOffsetY * s.y + f.getFrontOffsetZ * s.z
+    def dot(f: EnumFacing, s: Screen) = f.getXOffset * s.x + f.getYOffset * s.y + f.getZOffset * s.z
     BlockPosition(dot(toGlobal(EnumFacing.EAST), t), dot(toGlobal(EnumFacing.UP), t), dot(toGlobal(EnumFacing.SOUTH), t))
   }
 
   private def unproject(x: Int, y: Int, z: Int) = {
-    def dot(f: EnumFacing) = f.getFrontOffsetX * x + f.getFrontOffsetY * y + f.getFrontOffsetZ * z
+    def dot(f: EnumFacing) = f.getXOffset * x + f.getYOffset * y + f.getZOffset * z
     BlockPosition(dot(toLocal(EnumFacing.EAST)), dot(toLocal(EnumFacing.UP)), dot(toLocal(EnumFacing.SOUTH)))
   }
 }

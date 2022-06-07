@@ -104,7 +104,7 @@ class Analyzer(val parent: Delegator) extends traits.Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
     if (player.isSneaking && stack.hasTagCompound) {
       stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
-      if (stack.getTagCompound.hasNoTags) {
+      if (stack.getTagCompound.isEmpty) {
         stack.setTagCompound(null)
       }
     }

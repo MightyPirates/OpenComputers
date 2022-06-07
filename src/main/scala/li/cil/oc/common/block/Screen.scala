@@ -35,7 +35,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0x3))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.byIndex(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.byHorizontalIndex(meta & 0x3))
 
   override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
@@ -103,7 +103,7 @@ class Screen(val tier: Int) extends RedstoneAware {
       case _ => super.onEntityWalk(world, pos, entity)
     }
 
-  override def onEntityCollidedWithBlock(world: World, pos: BlockPos, state: IBlockState, entity: Entity): Unit =
+  override def onEntityCollision(world: World, pos: BlockPos, state: IBlockState, entity: Entity): Unit =
     if (world.isRemote) (entity, world.getTileEntity(pos)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - pos.getX))

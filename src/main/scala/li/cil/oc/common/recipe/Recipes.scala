@@ -436,12 +436,12 @@ object Recipes {
   }
 
   private def findItem(name: String) = getObjectWithoutFallback(Item.REGISTRY, name).orElse(Item.REGISTRY.find {
-    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
+    case item: Item => item.getTranslationKey == name || item.getTranslationKey == "item." + name || Item.REGISTRY.getNameForObject(item).toString == name
     case _ => false
   })
 
   private def findBlock(name: String) = getObjectWithoutFallback(Block.REGISTRY.asInstanceOf[RegistryNamespaced[ResourceLocation, Block]], name).orElse(Block.REGISTRY.find {
-    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
+    case block: Block => block.getTranslationKey == name || block.getTranslationKey == "tile." + name || Block.REGISTRY.getNameForObject(block).toString == name
     case _ => false
   })
 
@@ -507,7 +507,7 @@ object Recipes {
     case r: IRecipe => r.getRecipeOutput match {
       case stack: ItemStack if !stack.isEmpty =>
         // Who cares about recipe names?
-        addRecipe(recipe, stack.getItem.getRegistryName.getResourcePath + recipeCounter.toString)
+        addRecipe(recipe, stack.getItem.getRegistryName.getPath + recipeCounter.toString)
         recipeCounter += 1
       case _ => throw new IllegalArgumentException("invalid recipe name: " + r.getRecipeOutput)
     }

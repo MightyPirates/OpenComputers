@@ -38,7 +38,7 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
   override def registerModelLocations(): Unit = {
     for (dyeName <- Color.dyes) {
       val location = modelLocationFromDyeName(dyeName)
-      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
+      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getNamespace + ":" + location.getPath))
     }
   }
 

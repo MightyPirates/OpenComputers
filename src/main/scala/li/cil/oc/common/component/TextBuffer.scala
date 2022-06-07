@@ -863,7 +863,7 @@ object TextBuffer {
           }
         }
 
-        if (stack.getTagCompound.hasNoTags) {
+        if (stack.getTagCompound.isEmpty) {
           stack.setTagCompound(null)
         }
       }

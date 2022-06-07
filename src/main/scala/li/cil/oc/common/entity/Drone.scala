@@ -424,7 +424,7 @@ class Drone(world: World) extends Entity(world) with MachineHost with internal.D
 
     if (isRunning) {
       val toTarget = new Vec3d(targetX - posX, targetY - posY, targetZ - posZ)
-      val distance = toTarget.lengthVector()
+      val distance = toTarget.length()
       val velocity = new Vec3d(motionX, motionY, motionZ)
       if (distance > 0 && (distance > 0.005f || velocity.dotProduct(velocity) > 0.005f)) {
         val acceleration = math.min(targetAcceleration.floatValue(), distance) / distance

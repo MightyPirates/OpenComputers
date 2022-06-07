@@ -33,7 +33,7 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0x3))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.byIndex(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.byHorizontalIndex(meta & 0x3))
 
   // ----------------------------------------------------------------------- //
 
@@ -53,12 +53,12 @@ class Keyboard extends SimpleBlock(Material.ROCK) {
         }
         val side = forward.getRotation(up)
         val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
-        val x0 = -up.getFrontOffsetX * sizes(1) - side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * sizes(0)
-        val x1 = up.getFrontOffsetX * sizes(1) + side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * 0.5f
-        val y0 = -up.getFrontOffsetY * sizes(1) - side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * sizes(0)
-        val y1 = up.getFrontOffsetY * sizes(1) + side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * 0.5f
-        val z0 = -up.getFrontOffsetZ * sizes(1) - side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * sizes(0)
-        val z1 = up.getFrontOffsetZ * sizes(1) + side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * 0.5f
+        val x0 = -up.getXOffset * sizes(1) - side.getXOffset * sizes(2) - forward.getXOffset * sizes(0)
+        val x1 = up.getXOffset * sizes(1) + side.getXOffset * sizes(2) - forward.getXOffset * 0.5f
+        val y0 = -up.getYOffset * sizes(1) - side.getYOffset * sizes(2) - forward.getYOffset * sizes(0)
+        val y1 = up.getYOffset * sizes(1) + side.getYOffset * sizes(2) - forward.getYOffset * 0.5f
+        val z0 = -up.getZOffset * sizes(1) - side.getZOffset * sizes(2) - forward.getZOffset * sizes(0)
+        val z1 = up.getZOffset * sizes(1) + side.getZOffset * sizes(2) - forward.getZOffset * 0.5f
         new AxisAlignedBB(x0, y0, z0, x1, y1, z1).offset(0.5, 0.5, 0.5)
       case _ => super.getBoundingBox(state, world, pos)
     }

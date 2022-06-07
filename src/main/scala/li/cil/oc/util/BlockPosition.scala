@@ -18,9 +18,9 @@ class BlockPosition(val x: Int, val y: Int, val z: Int, val world: Option[World]
   )
 
   def offset(direction: EnumFacing, n: Int) = new BlockPosition(
-    x + direction.getFrontOffsetX * n,
-    y + direction.getFrontOffsetY * n,
-    z + direction.getFrontOffsetZ * n,
+    x + direction.getXOffset * n,
+    y + direction.getYOffset * n,
+    z + direction.getZOffset * n,
     world
   )
 

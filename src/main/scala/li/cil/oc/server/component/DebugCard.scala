@@ -921,7 +921,7 @@ object DebugCard {
 
     override def canUseCommand(level: Int, commandName: String): Boolean = {
       val profile = underlying.getGameProfile
-      val server = underlying.mcServer
+      val server = underlying.server
       val config = server.getPlayerList
       server.isSinglePlayer || (config.canSendCommands(profile) && (config.getOppedPlayers.getEntry(profile) match {
         case entry: UserListOpsEntry => entry.getPermissionLevel >= level

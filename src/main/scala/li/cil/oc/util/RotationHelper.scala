@@ -31,9 +31,9 @@ object RotationHelper {
       getOrElseUpdate(yaw, {
       val t = translationFor(pitch, yaw)
       t.indices.
-        map(EnumFacing.getFront).
+        map(EnumFacing.byIndex).
         map(t.indexOf).
-        map(EnumFacing.getFront).
+        map(EnumFacing.byIndex).
         toArray
     }))
 

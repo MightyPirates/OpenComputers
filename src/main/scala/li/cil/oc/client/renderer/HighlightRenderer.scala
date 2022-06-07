@@ -49,7 +49,7 @@ object HighlightRenderer {
         GlStateManager.scale(1.002, 1.002, 1.002)
 
         if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
-          val (sx, sy, sz) = (1 - math.abs(sideHit.getFrontOffsetX), 1 - math.abs(sideHit.getFrontOffsetY), 1 - math.abs(sideHit.getFrontOffsetZ))
+          val (sx, sy, sz) = (1 - math.abs(sideHit.getXOffset), 1 - math.abs(sideHit.getYOffset), 1 - math.abs(sideHit.getZOffset))
           GlStateManager.scale(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
           GlStateManager.translate(random.nextGaussian() * 0.01 * sx, random.nextGaussian() * 0.01 * sy, random.nextGaussian() * 0.01 * sz)
         }

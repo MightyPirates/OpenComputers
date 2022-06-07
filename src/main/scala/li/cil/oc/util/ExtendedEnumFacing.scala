@@ -19,7 +19,7 @@ object ExtendedEnumFacing {
       Array(0, 1, 2, 3, 4, 5, 6))
 
     def getRotation(axis: EnumFacing) = {
-      EnumFacing.getFront(ROTATION_MATRIX(axis.ordinal)(facing.ordinal))
+      EnumFacing.byIndex(ROTATION_MATRIX(axis.ordinal)(facing.ordinal))
     }
   }
 

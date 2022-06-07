@@ -49,8 +49,8 @@ class Item(value: Block) extends ItemBlock(value) {
     else super.getItemStackDisplayName(stack)
   }
 
-  override def getUnlocalizedName: String = block match {
-    case simple: SimpleBlock => simple.getUnlocalizedName
+  override def getTranslationKey: String = block match {
+    case simple: SimpleBlock => simple.getTranslationKey
     case _ => Settings.namespace + "tile"
   }
 

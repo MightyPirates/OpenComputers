@@ -333,17 +333,17 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   protected def pick(player: Player, range: Double): RayTraceResult = {
     val origin = new Vec3d(
-      player.posX + player.facing.getFrontOffsetX * 0.5,
-      player.posY + player.facing.getFrontOffsetY * 0.5,
-      player.posZ + player.facing.getFrontOffsetZ * 0.5)
-    val blockCenter = origin.addVector(
-      player.facing.getFrontOffsetX * 0.51,
-      player.facing.getFrontOffsetY * 0.51,
-      player.facing.getFrontOffsetZ * 0.51)
-    val target = blockCenter.addVector(
-      player.side.getFrontOffsetX * range,
-      player.side.getFrontOffsetY * range,
-      player.side.getFrontOffsetZ * range)
+      player.posX + player.facing.getXOffset * 0.5,
+      player.posY + player.facing.getYOffset * 0.5,
+      player.posZ + player.facing.getZOffset * 0.5)
+    val blockCenter = origin.add(
+      player.facing.getXOffset * 0.51,
+      player.facing.getYOffset * 0.51,
+      player.facing.getZOffset * 0.51)
+    val target = blockCenter.add(
+      player.side.getXOffset * range,
+      player.side.getYOffset * range,
+      player.side.getZOffset * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity(classOf[Entity]) match {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3d(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistance(entity) => new RayTraceResult(entity)
@@ -361,15 +361,15 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   protected def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing): (BlockPos, Float, Float, Float) = {
     val blockPos = position.offset(facing).offset(side)
     (blockPos.toBlockPos,
-      0.5f - side.getFrontOffsetX * 0.5f,
-      0.5f - side.getFrontOffsetY * 0.5f,
-      0.5f - side.getFrontOffsetZ * 0.5f)
+      0.5f - side.getXOffset * 0.5f,
+      0.5f - side.getYOffset * 0.5f,
+      0.5f - side.getZOffset * 0.5f)
   }
 
   protected def clickParamsForPlace(facing: EnumFacing): (BlockPos, Float, Float, Float) = {
     (position.toBlockPos,
-      0.5f + facing.getFrontOffsetX * 0.5f,
-      0.5f + facing.getFrontOffsetY * 0.5f,
-      0.5f + facing.getFrontOffsetZ * 0.5f)
+      0.5f + facing.getXOffset * 0.5f,
+      0.5f + facing.getYOffset * 0.5f,
+      0.5f + facing.getZOffset * 0.5f)
   }
 }

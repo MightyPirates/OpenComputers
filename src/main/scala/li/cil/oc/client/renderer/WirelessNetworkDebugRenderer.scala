@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer
 
 import li.cil.oc.Settings
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.util.RenderState
+import li.cil.oc.util.{OCObfuscationReflectionHelper, RenderState}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.world.World
@@ -19,7 +19,7 @@ object WirelessNetworkDebugRenderer {
     if (Settings.rTreeDebugRenderer) {
       RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
-      val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.getContext, "theWorld", "field_72769_h", "r").asInstanceOf[World]
+      val world = OCObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.getContext, "field_72769_h").asInstanceOf[World]
       WirelessNetwork.dimensions.get(world.provider.getDimension) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft

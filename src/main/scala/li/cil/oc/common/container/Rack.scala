@@ -23,7 +23,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def updateCustomData(nbt: NBTTagCompound): Unit = {
     super.updateCustomData(nbt)
     nbt.getTagList("nodeMapping", NBT.TAG_INT_ARRAY).map((sides: NBTTagIntArray) => {
-      sides.getIntArray.map(side => if (side >= 0) Option(EnumFacing.getFront(side)) else None)
+      sides.getIntArray.map(side => if (side >= 0) Option(EnumFacing.byIndex(side)) else None)
     }).copyToArray(rack.nodeMapping)
     nbt.getBooleanArray("nodePresence").grouped(MaxConnections).copyToArray(nodePresence)
     rack.isRelayEnabled = nbt.getBoolean("isRelayEnabled")

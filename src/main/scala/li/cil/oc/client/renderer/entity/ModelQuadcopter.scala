@@ -71,7 +71,7 @@ final class ModelQuadcopter extends ModelBase {
     if (direction.dotProduct(up) < 0.99) {
       // Flying sideways.
       val rotationAxis = direction.crossProduct(up)
-      val relativeSpeed = velocity.lengthVector().toFloat / drone.maxVelocity
+      val relativeSpeed = velocity.length().toFloat / drone.maxVelocity
       GlStateManager.rotate(relativeSpeed * -20, rotationAxis.x.toFloat, rotationAxis.y.toFloat, rotationAxis.z.toFloat)
     }
 

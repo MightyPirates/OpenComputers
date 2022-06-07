@@ -110,7 +110,7 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
       val target = entity.getPositionVector
-      isClearPath(target) || isClearPath(target.addVector(0.0D, entity.getEyeHeight, 0.0D))
+      isClearPath(target) || isClearPath(target.add(0.0D, entity.getEyeHeight, 0.0D))
     }
 
   private def sendSignal(entity: EntityLivingBase) {

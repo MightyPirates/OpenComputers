@@ -2,7 +2,6 @@ package li.cil.oc.server.agent
 
 import java.util
 import java.util.UUID
-
 import com.mojang.authlib.GameProfile
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -10,8 +9,7 @@ import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.{BlockPosition, InventoryUtils, OCObfuscationReflectionHelper}
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -75,9 +73,9 @@ object Player {
     player.facing = facing
     player.side = side
     val direction = new Vec3d(
-      facing.getFrontOffsetX + side.getFrontOffsetX,
-      facing.getFrontOffsetY + side.getFrontOffsetY,
-      facing.getFrontOffsetZ + side.getFrontOffsetZ).normalize()
+      facing.getXOffset + side.getXOffset,
+      facing.getYOffset + side.getYOffset,
+      facing.getZOffset + side.getZOffset).normalize()
     val yaw = Math.toDegrees(-Math.atan2(direction.x, direction.z)).toFloat
     val pitch = Math.toDegrees(-Math.atan2(direction.y, Math.sqrt((direction.x * direction.x) + (direction.z * direction.z)))).toFloat * 0.99f
     player.setLocationAndAngles(player.agent.xPosition, player.agent.yPosition, player.agent.zPosition, yaw, pitch)
@@ -129,7 +127,7 @@ object Player {
 }
 
 class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
-  connection= new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
+  connection= new NetHandlerPlayServer(server, FakeNetworkManager, this)
 
   capabilities.allowFlying = true
   capabilities.disableDamage = true
@@ -150,9 +148,9 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     this.openContainer = this.inventoryContainer
 
     try {
-      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerMainInvWrapper(inventory), "playerMainHandler")
-      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)), "playerEquipmentHandler")
-      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerInvWrapper(inventory), "playerJoinedHandler")
+      OCObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerMainInvWrapper(inventory), "playerMainHandler")
+      OCObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory)), "playerEquipmentHandler")
+      OCObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, new PlayerInvWrapper(inventory), "playerJoinedHandler")
     } catch {
       case _: Exception =>
     }
@@ -386,15 +384,15 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
     // Change the offset at which items are used, to avoid hitting
     // the robot itself (e.g. with bows, potions, mining laser, ...).
-    posX += facing.getFrontOffsetX / 2.0
-    posZ += facing.getFrontOffsetZ / 2.0
+    posX += facing.getXOffset / 2.0
+    posZ += facing.getZOffset / 2.0
 
     try {
       useItemWithHand(duration, stackOption.get)
     }
     finally {
-      posX -= facing.getFrontOffsetX / 2.0
-      posZ -= facing.getFrontOffsetZ / 2.0
+      posX -= facing.getXOffset / 2.0
+      posZ -= facing.getZOffset / 2.0
     }
   }
 
@@ -557,15 +555,15 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def swingArm(hand: EnumHand): Unit = {}
 
   override def canUseCommand(level: Int, command: String): Boolean = {
-    ("seed" == command && !mcServer.isDedicatedServer) ||
+    ("seed" == command && !server.isDedicatedServer) ||
       "tell" == command ||
       "help" == command ||
       "me" == command || {
-      val config = mcServer.getPlayerList
+      val config = server.getPlayerList
       config.canSendCommands(getGameProfile) && {
         config.getOppedPlayers.getEntry(getGameProfile) match {
           case opEntry: UserListOpsEntry => opEntry.getPermissionLevel >= level
-          case _ => mcServer.getOpPermissionLevel >= level
+          case _ => server.getOpPermissionLevel >= level
         }
       }
     }
@@ -641,11 +639,11 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       }
       else {
         callUsingItemInSlot(player.agent.equipmentInventory(), 0, _ => {
-          this.player.posX -= side.getFrontOffsetX / 2.0
-          this.player.posZ -= side.getFrontOffsetZ / 2.0
+          this.player.posX -= side.getXOffset / 2.0
+          this.player.posZ -= side.getZOffset / 2.0
           val expGained: Int = PlayerInteractionManagerHelper.blockRemoving(player, pos)
-          this.player.posX += side.getFrontOffsetX / 2.0
-          this.player.posZ += side.getFrontOffsetZ / 2.0
+          this.player.posX += side.getXOffset / 2.0
+          this.player.posZ += side.getZOffset / 2.0
           if (expGained >= 0) {
             MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, expGained))
           }

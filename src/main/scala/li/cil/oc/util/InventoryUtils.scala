@@ -372,7 +372,7 @@ object InventoryUtils {
   def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[EnumFacing] = None, validator: Option[EntityItem => Boolean] = None): EntityItem = position.world match {
     case Some(world) if !stack.isEmpty && stack.getCount > 0 =>
       val rng = world.rand
-      val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getFrontOffsetX, d.getFrontOffsetY, d.getFrontOffsetZ))
+      val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.getXOffset, d.getYOffset, d.getZOffset))
       val (tx, ty, tz) = (
         0.1 * (rng.nextDouble - 0.5) + ox * 0.65,
         0.1 * (rng.nextDouble - 0.5) + oy * 0.75 + (ox + oz) * 0.25,

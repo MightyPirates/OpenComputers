@@ -178,7 +178,7 @@ class Proxy {
   @SubscribeEvent
   def missingBlockMappings(e: MissingMappings[Block]) {
     for (missing <- e.getMappings) {
-        blockRenames.get(missing.key.getResourcePath) match {
+        blockRenames.get(missing.key.getPath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
             else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
@@ -190,7 +190,7 @@ class Proxy {
   @SubscribeEvent
   def missingItemMappings(e: MissingMappings[Item]) {
     for (missing <- e.getMappings) {
-        itemRenames.get(missing.key.getResourcePath) match {
+        itemRenames.get(missing.key.getPath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
             else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))

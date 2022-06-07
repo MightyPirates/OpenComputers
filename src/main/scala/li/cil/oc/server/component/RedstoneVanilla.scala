@@ -118,7 +118,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
-    redstone.toGlobal(EnumFacing.getFront(side))
+    redstone.toGlobal(EnumFacing.byIndex(side))
   }
 
   private def valuesToMap(ar: Array[Int]): Map[Int, Int] = SIDE_RANGE.map(_.ordinal).map{ case side if side < ar.length => side -> ar(side) }.toMap

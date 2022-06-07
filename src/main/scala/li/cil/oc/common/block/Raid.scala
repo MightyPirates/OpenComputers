@@ -23,7 +23,7 @@ import scala.reflect.ClassTag
 class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.byHorizontalIndex(meta))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
@@ -61,7 +61,7 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
         tileEntity.setInventorySlotContents(i, data.disks(i))
       }
       data.label.foreach(tileEntity.label.setLabel)
-      if (!data.filesystem.hasNoTags) {
+      if (!data.filesystem.isEmpty) {
         tileEntity.tryCreateRaid(data.filesystem.getCompoundTag("node").getString("address"))
         tileEntity.filesystem.foreach(_.load(data.filesystem))
       }

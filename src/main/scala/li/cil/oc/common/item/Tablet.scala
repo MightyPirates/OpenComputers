@@ -124,7 +124,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   override def registerModelLocations(): Unit = {
     for (state <- Seq(None, Some(true), Some(false))) {
       val location = modelLocationFromState(state)
-      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
+      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getNamespace + ":" + location.getPath))
     }
   }
 
@@ -182,7 +182,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
                 if (computer.isRunning) {
                   val data = new NBTTagCompound()
                   computer.node.sendToReachable("tablet.use", data, stack, player, position, side, Float.box(hitX), Float.box(hitY), Float.box(hitZ))
-                  if (!data.hasNoTags) {
+                  if (!data.isEmpty) {
                     computer.signal("tablet_use", data)
                   }
                 }

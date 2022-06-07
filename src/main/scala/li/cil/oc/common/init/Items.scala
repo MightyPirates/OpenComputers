@@ -58,13 +58,13 @@ object Items extends ItemAPI {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleBlock =>
-          instance.setUnlocalizedName("oc." + id)
+          instance.setTranslationKey("oc." + id)
           instance.setRegistryName(id)
           GameData.register_impl(instance)
           OpenComputers.proxy.registerModel(instance, id)
 
           val item : Item = new common.block.Item(instance)
-          item.setUnlocalizedName("oc." + id)
+          item.setTranslationKey("oc." + id)
           item.setRegistryName(id)
           GameData.register_impl(item)
           OpenComputers.proxy.registerModel(item, id)
@@ -108,7 +108,7 @@ object Items extends ItemAPI {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleItem =>
-          simple.setUnlocalizedName("oc." + id)
+          simple.setTranslationKey("oc." + id)
           GameData.register_impl(simple.setRegistryName(new ResourceLocation(Settings.resourceDomain, id)))
           OpenComputers.proxy.registerModel(instance, id)
         case _ =>
@@ -551,7 +551,7 @@ object Items extends ItemAPI {
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {
-    item.setUnlocalizedName("oc." + name)
+    item.setTranslationKey("oc." + name)
     GameData.register_impl(item.setRegistryName(new ResourceLocation(Settings.resourceDomain, name)))
     item
   }

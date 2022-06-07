@@ -73,7 +73,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getPlayerList
     for (player <- manager.getPlayers if player.dimension == dimension) {
-      val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
+      val playerRenderDistance = 16 // OCObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
         sendToPlayer(player)

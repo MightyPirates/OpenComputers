@@ -98,7 +98,7 @@ object ExtendedRecipe {
             }
           }
         }
-        if (nbt.hasNoTags) {
+        if (nbt.isEmpty) {
           craftedStack.setTagCompound(null)
         }
       }

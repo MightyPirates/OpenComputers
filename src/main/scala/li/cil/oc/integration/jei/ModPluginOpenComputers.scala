@@ -90,7 +90,7 @@ class ModPluginOpenComputers extends IModPlugin {
         if (compound.hasKey(Settings.namespace + "lootFactory")) {
           data.setTag(Settings.namespace + "lootFactory", compound.getTag(Settings.namespace + "lootFactory"))
         }
-        if (data.hasNoTags) null else data.toString
+        if (data.isEmpty) null else data.toString
       }
     })
   }

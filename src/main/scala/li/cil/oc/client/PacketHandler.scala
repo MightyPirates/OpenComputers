@@ -424,18 +424,18 @@ object PacketHandler extends CommonPacketHandler {
             case _ => world.rand.nextFloat * 2.0 - 1
           }
 
-          val vx = rv(_.getFrontOffsetX)
-          val vy = rv(_.getFrontOffsetY)
-          val vz = rv(_.getFrontOffsetZ)
+          val vx = rv(_.getXOffset)
+          val vy = rv(_.getYOffset)
+          val vz = rv(_.getZOffset)
           if (vx * vx + vy * vy + vz * vz < 1) {
             def rp(x: Int, v: Double, f: EnumFacing => Int) = direction match {
               case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
               case _ => x + 0.5 + v * velocity
             }
 
-            val px = rp(x, vx, _.getFrontOffsetX)
-            val py = rp(y, vy, _.getFrontOffsetY)
-            val pz = rp(z, vz, _.getFrontOffsetZ)
+            val px = rp(x, vx, _.getXOffset)
+            val py = rp(y, vy, _.getYOffset)
+            val pz = rp(z, vz, _.getZOffset)
             world.spawnParticle(particleType, px, py, pz, vx, vy + velocity * 0.25, vz)
           }
         }
@@ -582,7 +582,7 @@ object PacketHandler extends CommonPacketHandler {
       case (Some(t), Some(d)) => t.robot.move(d)
       case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + d.getFrontOffsetX, y + d.getFrontOffsetY, z + d.getFrontOffsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.getXOffset, y + d.getYOffset, z + d.getZOffset)
       case _ => // Invalid packet.
     }
   }

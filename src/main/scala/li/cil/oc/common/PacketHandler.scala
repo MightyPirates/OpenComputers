@@ -130,7 +130,7 @@ abstract class PacketHandler {
 
     def readDirection(): Option[EnumFacing] = readByte() match {
       case id if id < 0 => None
-      case id => Option(EnumFacing.getFront(id))
+      case id => Option(EnumFacing.byIndex(id))
     }
 
     def readItemStack(): ItemStack = {

@@ -207,5 +207,5 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
   override def canConnectBundled(side: Int): Boolean = isOutputEnabled
 
   @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  override def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(EnumFacing.getFront(side)).map(value => math.min(math.max(value, 0), 255).toByte)
+  override def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(EnumFacing.byIndex(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

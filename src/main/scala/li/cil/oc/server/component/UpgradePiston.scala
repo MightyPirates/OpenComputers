@@ -83,7 +83,7 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends AbstractManagedE
       val innerBlockState = host.world.getBlockState(innerBlockPos)
       if (innerBlockState != null) {
         if (!innerBlockState.getBlock.isAir(innerBlockState, host.world, innerBlockPos)) {
-          if (innerBlockState.getMobilityFlag != EnumPushReaction.DESTROY) {
+          if (innerBlockState.getPushReaction != EnumPushReaction.DESTROY) {
             return result(false, "path is obstructed")
           }
         }

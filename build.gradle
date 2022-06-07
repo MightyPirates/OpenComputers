@@ -98,7 +98,7 @@ dependencies {
     provided ("appeng:appliedenergistics2:${config.ae2.version}") {
         transitive = false
     }
-    provided "extracells2:ExtraCells-api:${config.extracells.version}"
+    provided "extracells2:ExtraCells:${config.extracells.version}:api"
     
     provided("mekanism:Mekanism:${config.mekanism.version}:api") {
         transitive = false

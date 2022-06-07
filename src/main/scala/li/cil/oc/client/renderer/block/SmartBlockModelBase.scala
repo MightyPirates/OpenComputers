@@ -174,9 +174,9 @@ trait SmartBlockModelBase extends IBakedModel {
 
   // See FaceBakery#storeVertexData.
   protected def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Float, v: Float, colorRGB: Int) = {
-    val vx = (face.getFrontOffsetX * 127) & 0xFF
-    val vy = (face.getFrontOffsetY * 127) & 0xFF
-    val vz = (face.getFrontOffsetZ * 127) & 0xFF
+    val vx = (face.getXOffset * 127) & 0xFF
+    val vy = (face.getYOffset * 127) & 0xFF
+    val vz = (face.getZOffset * 127) & 0xFF
 
     Array(
       java.lang.Float.floatToRawIntBits(x.toFloat),

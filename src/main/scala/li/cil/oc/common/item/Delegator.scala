@@ -79,7 +79,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
     if(isInCreativeTab(tab)){
       subItems.indices.filter(subItems(_).showInItemList).
         map(subItems(_).createItemStack()).
-        sortBy(_.getUnlocalizedName).
+        sortBy(_.getTranslationKey).
         foreach(list.add)
     }
   }
@@ -88,10 +88,10 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   // Item
   // ----------------------------------------------------------------------- //
 
-  override def getUnlocalizedName(stack: ItemStack): String =
+  override def getTranslationKey(stack: ItemStack): String =
     Delegator.subItem(stack) match {
       case Some(subItem) => "item.oc." + subItem.unlocalizedName
-      case _ => getUnlocalizedName
+      case _ => getTranslationKey
     }
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
@@ -221,7 +221,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.onUpdate(stack, world, player, slot, selected)
     }
 
-  override def toString: String = getUnlocalizedName
+  override def toString: String = getTranslationKey
 
   // ----------------------------------------------------------------------- //
 

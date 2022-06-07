@@ -52,14 +52,14 @@ class CompoundBlockDriver(val sidedBlocks: Array[DriverBlock]) extends DriverBlo
       }
       else None
       if (stack.isDefined) {
-        return stack.get.getUnlocalizedName.stripPrefix("tile.")
+        return stack.get.getTranslationKey.stripPrefix("tile.")
       }
     } catch {
       case _: Throwable =>
     }
     try world.getTileEntity(pos) match {
       case tileEntity: TileEntity =>
-        return TileEntity.getKey(tileEntity.getClass).getResourcePath
+        return TileEntity.getKey(tileEntity.getClass).getPath
     } catch {
       case _: Throwable =>
     }

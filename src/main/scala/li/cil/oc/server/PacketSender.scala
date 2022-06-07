@@ -110,7 +110,7 @@ object PacketSender {
   }
 
   def sendContainerUpdate(c: Container, nbt: NBTTagCompound, player: EntityPlayerMP): Unit = {
-    if (!nbt.hasNoTags) {
+    if (!nbt.isEmpty) {
       val pb = new SimplePacketBuilder(PacketType.ContainerUpdate)
 
       pb.writeByte(c.windowId.toByte)

@@ -24,7 +24,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new ExtendedBlockState(this, Array(PropertyRotatable.Facing), Array(property.PropertyTile.Tile))
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.byHorizontalIndex(meta))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
@@ -119,7 +119,7 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
             case _ => 0
           }
           // Rotate *centers* of pixels to keep association when reversing axis.
-          val localHitVec = rotate(hitVec.addVector(-0.5 + 1 / 32f, -0.5 + 1 / 32f, -0.5 + 1 / 32f), rotation).addVector(0.5 - 1 / 32f, 0.5 - 1 / 32f, 0.5 - 1 / 32f)
+          val localHitVec = rotate(hitVec.add(-0.5 + 1 / 32f, -0.5 + 1 / 32f, -0.5 + 1 / 32f), rotation).add(0.5 - 1 / 32f, 0.5 - 1 / 32f, 0.5 - 1 / 32f)
           val globalX = (localHitVec.x * 16.05f).toInt // [0, 15], work around floating point inaccuracies
           val globalY = (localHitVec.y * 16.05f).toInt // [0, 15], work around floating point inaccuracies
           val localX = (if (side.getAxis != Axis.Z) 15 - globalX else globalX) - 1

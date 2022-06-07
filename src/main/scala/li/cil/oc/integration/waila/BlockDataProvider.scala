@@ -91,7 +91,7 @@ object BlockDataProvider extends IWailaDataProvider {
           tag.setDouble("progress", te.progress)
           tag.setInteger("timeRemaining", te.timeRemaining)
           te.output match {
-            case SomeStack(output) => tag.setString("output", output.getUnlocalizedName)
+            case SomeStack(output) => tag.setString("output", output.getTranslationKey)
             case _ => // Huh...
           }
         }
@@ -117,7 +117,7 @@ object BlockDataProvider extends IWailaDataProvider {
 
   override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = {
     val tag = accessor.getNBTData
-    if (tag == null || tag.hasNoTags) return tooltip
+    if (tag == null || tag.isEmpty) return tooltip
 
     accessor.getTileEntity match {
       case _: tileentity.Relay =>

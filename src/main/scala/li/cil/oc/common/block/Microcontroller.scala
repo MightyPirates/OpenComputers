@@ -37,7 +37,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.byHorizontalIndex(meta))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 

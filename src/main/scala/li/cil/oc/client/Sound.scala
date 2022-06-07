@@ -243,7 +243,7 @@ object Sound {
 
   // This is copied from SoundManager.getURLForSoundResource, which is private.
   private def toUrl(resource: ResourceLocation): URL = {
-    val name = s"mcsounddomain:${resource.getResourceDomain}:${resource.getResourcePath}"
+    val name = s"mcsounddomain:${resource.getNamespace}:${resource.getPath}"
     try {
       new URL(null, name, new URLStreamHandler {
         protected def openConnection(url: URL): URLConnection = new URLConnection(url) {

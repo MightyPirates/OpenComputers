@@ -169,7 +169,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   // Used for custom value synchronization, because shorts simply don't cut it most of the time.
   protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
     val delta = synchronizedData.getDelta
-    if (delta != null && !delta.hasNoTags) {
+    if (delta != null && !delta.isEmpty) {
       nbt.setTag("delta", delta)
     }
     else if (System.currentTimeMillis() - lastSync > 250) {
@@ -191,7 +191,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     private var delta = new NBTTagCompound()
 
     def getDelta: NBTTagCompound = this.synchronized {
-      if (delta.hasNoTags) null
+      if (delta.isEmpty) null
       else {
         val result = delta
         delta = new NBTTagCompound()

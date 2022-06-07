@@ -56,7 +56,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
     val side = args.checkSideAny(0)
     val nearBounds = position.bounds
-    val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
+    val farBounds = nearBounds.offset(side.getXOffset * 2.0, side.getYOffset * 2.0, side.getZOffset * 2.0)
     val bounds = nearBounds.union(farBounds)
     entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
       case Some(entity) =>

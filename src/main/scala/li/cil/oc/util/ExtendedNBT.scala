@@ -231,7 +231,7 @@ object ExtendedNBT {
     def getDirection(name: String) = {
       nbt.getByte(name) match {
         case id if id < 0 || id > EnumFacing.values.length => None
-        case id => Option(EnumFacing.getFront(id))
+        case id => Option(EnumFacing.byIndex(id))
       }
     }
 

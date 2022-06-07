@@ -46,7 +46,7 @@ class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
   override def registerModelLocations(): Unit = {
     for (state <- Seq(true, false)) {
       val location = modelLocationFromState(state)
-      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
+      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getNamespace + ":" + location.getPath))
     }
   }
 

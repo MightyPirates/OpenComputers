@@ -58,7 +58,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    if (screenFacing.getFrontOffsetX * (x + 0.5) + screenFacing.getFrontOffsetY * (eye_delta + 0.5) + screenFacing.getFrontOffsetZ * (z + 0.5) < 0) {
+    if (screenFacing.getXOffset * (x + 0.5) + screenFacing.getYOffset * (eye_delta + 0.5) + screenFacing.getZOffset * (z + 0.5) < 0) {
       return
     }
 

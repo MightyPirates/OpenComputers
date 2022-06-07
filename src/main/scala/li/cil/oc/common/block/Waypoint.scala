@@ -19,7 +19,7 @@ class Waypoint extends RedstoneAware {
 
   override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0x3))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.byIndex(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.byHorizontalIndex(meta & 0x3))
 
   override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {

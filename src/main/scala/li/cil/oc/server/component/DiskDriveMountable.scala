@@ -73,9 +73,9 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
     if (!ejected.isEmpty) {
       val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
       if (entity != null) {
-        val vx = rack.facing.getFrontOffsetX * velocity
-        val vy = rack.facing.getFrontOffsetY * velocity
-        val vz = rack.facing.getFrontOffsetZ * velocity
+        val vx = rack.facing.getXOffset * velocity
+        val vy = rack.facing.getYOffset * velocity
+        val vz = rack.facing.getZOffset * velocity
         entity.addVelocity(vx, vy, vz)
       }
       result(true)

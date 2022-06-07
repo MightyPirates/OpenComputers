@@ -67,9 +67,9 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
     if (!ejected.isEmpty) {
       val entity = InventoryUtils.spawnStackInWorld(position, ejected, Option(facing))
       if (entity != null) {
-        val vx = facing.getFrontOffsetX * velocity
-        val vy = facing.getFrontOffsetY * velocity
-        val vz = facing.getFrontOffsetZ * velocity
+        val vx = facing.getXOffset * velocity
+        val vy = facing.getYOffset * velocity
+        val vz = facing.getZOffset * velocity
         entity.addVelocity(vx, vy, vz)
       }
       result(true)

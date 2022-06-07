@@ -21,7 +21,7 @@ import net.minecraft.world.World
 class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta >> 1))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.byHorizontalIndex(meta >> 1))
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex << 1 | (if (state.getValue(property.PropertyRunning.Running)) 1 else 0)
 

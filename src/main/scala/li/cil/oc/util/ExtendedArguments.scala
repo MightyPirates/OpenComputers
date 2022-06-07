@@ -97,7 +97,7 @@ object ExtendedArguments {
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
       }
-      val direction = EnumFacing.getFront(side)
+      val direction = EnumFacing.byIndex(side)
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
     }

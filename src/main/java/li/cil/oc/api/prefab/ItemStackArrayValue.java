@@ -76,7 +76,7 @@ public class ItemStackArrayValue extends AbstractValue {
 			this.array = new ItemStack[tagList.tagCount()];
 			for (int i = 0; i < tagList.tagCount(); ++i){
 				NBTTagCompound el = tagList.getCompoundTagAt(i);
-				if (el.hasNoTags())
+				if (el.isEmpty())
 					this.array[i] = ItemStack.EMPTY;
 				else
 					this.array[i] = new ItemStack(el);
