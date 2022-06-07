@@ -165,14 +165,11 @@ object FontUtils {
               case n => OpenComputers.log.warn(s"Invalid glyph size detected in font.hex. Expected 64 or 32, got: $n")
             }
           } else {
-            if (out_of_range_glyph == 0) {
-              OpenComputers.log.warn(f"Invalid glyph char code detected in font.hex. Expected 0<= charCode <$codepoint_limit%X, got: $charCode%X")
-            }
             out_of_range_glyph += 1
           }
         }
         if (out_of_range_glyph > 1) {
-          OpenComputers.log.warn(f"${out_of_range_glyph} total invalid glyph char codes detected in font.hex")
+          OpenComputers.log.info(f"${out_of_range_glyph} total non-BMP glyph char codes detected in font.hex")
         }
       } finally {
         try {
