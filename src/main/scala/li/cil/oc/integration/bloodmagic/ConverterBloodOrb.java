@@ -14,7 +14,7 @@ public class ConverterBloodOrb implements Converter {
         if (value instanceof ItemStack) {
             final ItemStack stack = (ItemStack) value;
             final Item item = stack.getItem();
-            if (item instanceof IBloodOrb) {
+            if (item instanceof IBloodOrb && stack.stackTagCompound != null) {
                 final IBloodOrb bloodOrb = (IBloodOrb) item;
                 final String ownerName = stack.stackTagCompound.getString("ownerName");
                 final int maxOrbTier = SoulNetworkHandler.getCurrentMaxOrb(ownerName);
