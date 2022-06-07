@@ -9,7 +9,7 @@ object EventHandlerProjectRed {
     player.getHeldItem.getItem match {
       case wrench: IScrewdriver =>
         if (changeDurability) {
-          wrench.damageScrewdriver(player.getEntityWorld, player)
+          wrench.damageScrewdriver(player, player.getHeldItem)
           true
         }
         else true

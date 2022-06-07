@@ -3,7 +3,11 @@ buildscript {
         mavenCentral()
         maven {
             name = "forge"
-            url = "https://files.minecraftforge.net/maven"
+            url = "https://maven.minecraftforge.net/"
+        }
+        maven {
+            name = "gt"
+            url = "http://gregtech.overminddl1.com/"
         }
         maven {
             name = "sonatype"
@@ -14,15 +18,18 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.github.CDAGaming:ForgeGradle:1c670759c5'
-        classpath 'com.github.CDAGaming:CurseGradle:184e4322fd'
+        classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.7'
+        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
     }
 }
 
-apply plugin: 'scala'
+plugins {
+    id 'scala'
+    id 'idea'
+    id 'maven-publish'
+}
+
 apply plugin: 'forge'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
 apply plugin: 'com.matthewprenger.cursegradle'
 
 file "build.properties" withReader {
@@ -77,15 +84,36 @@ repositories {
     maven {
         name = "mightypirates"
         url = "https://maven.cil.li/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        name 'Overmind forge repo mirror'
+        url 'https://gregtech.overminddl1.com/'
     }
     // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
     ivy {
         name 'weird maven repos'
         artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision].[ext]"
+        metadataSources {
+            artifact()
+        }
     }
     ivy {
         name 'weird maven repos 2'
         artifactPattern "https://maven.cil.li/[module]/[revision]/[module]-[revision]-[classifier].[ext]"
+        metadataSources {
+            artifact()
+        }
+    }
+    ivy {
+        name 'asie dependency mirror'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+        metadataSources {
+            artifact()
+        }
     }
 }
 
@@ -119,20 +147,20 @@ dependencies {
     }
     // compileOnly "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
-    compileOnly name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
+    compileOnly name: 'buildcraft', version: config.bc.version, classifier: 'dev', ext: 'jar'
     compileOnly name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
     compileOnly name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
-    compileOnly name: 'redlogic', version: config.redlogic.version, ext: 'jar'
+    compileOnly name: 'redlogic', version: config.redlogic.version, classifier: 'dev', ext: 'jar'
 
-    compileOnly name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
-    compileOnly name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
-    compileOnly name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    compileOnly name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
-    compileOnly name: 'EnderIO', version: config.eio.version, ext: 'jar'
-    compileOnly name: 'Railcraft', version: config.rc.version, ext: 'jar'
-    compileOnly name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
-    compileOnly name: 'ExtraCells', version: config.ec.version, ext: 'jar'
-	compileOnly name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
+    compileOnly name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'ComputerCraft', version: config.cc.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'EnderIO', version: config.eio.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'Railcraft', version: config.rc.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'ExtraCells', version: config.ec.version, ext: 'jar', classifier: 'dev'
+    compileOnly name: 'thaumicenergistics', version: config.thaumicenergistics.version, ext: 'jar', classifier: 'dev'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
@@ -257,6 +285,8 @@ curseforge {
         changelog = file("changelog.md")
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
+        addGameVersion "Forge"
+
         mainArtifact jar
     }
 }
@@ -264,6 +294,6 @@ curseforge {
 // this is needed for IntelliJ so we don't have to copy over the assets manually every time
 idea {
     module {
-        outputDir = file('build/classes/main')
+        inheritOutputDirs = true
     }
 }

@@ -1,6 +1,6 @@
 package li.cil.oc.integration.enderio
 
-import crazypants.enderio.tool.ITool
+import crazypants.enderio.api.tool.ITool
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
