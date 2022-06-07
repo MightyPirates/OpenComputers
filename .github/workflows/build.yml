@@ -29,3 +29,13 @@ jobs:
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenComputers
+          path: build/libs/*-universal.jar
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenComputers (development environment build)
+          path: build/libs/*-dev.jar
