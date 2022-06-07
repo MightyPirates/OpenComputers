@@ -17,6 +17,7 @@ buildscript {
 
 plugins {
     id "com.matthewprenger.cursegradle" version "1.4.0"
+    id 'com.modrinth.minotaur' version '2.2.0'
 }
 
 apply plugin: 'scala'
@@ -42,7 +43,7 @@ file "build.properties" withReader {
     ext.config = new ConfigSlurper().parse prop
 }
 
-version = config.mod.version
+version = "${mod_version}"
 group = config.mod.group
 archivesBaseName = config.mod.name
 
@@ -59,12 +60,7 @@ def getGitRef() {
     }
 }
 
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += ".${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
+version += "+" + getGitRef()
 
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
@@ -293,6 +289,9 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = mod_version
             artifact jar
             artifact apiJar
             artifact javadocJar
@@ -300,20 +299,36 @@ publishing {
     }
     repositories {
         maven {
-            url System.getenv("MAVEN_PATH")
+            name = "GitHubPackages"
+            url = System.getenv("GITHUB_MAVEN_URL") ?: ""
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
 
 curseforge {
-    apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+    apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
     project {
         id = config.curse.project.id
-        releaseType = config.curse.project.releaseType
+        releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = "markdown"
-        changelog = file("changelog.md")
+        changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
         addGameVersion "Forge"
     }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_API_KEY") ?: ""
+    projectId = config.modrinth.project.id
+    changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
+    versionNumber = mod_version
+    versionName = "${rootProject.name}-${version}"
+    versionType = System.getenv('MODRINTH_RELEASE_TYPE') ?: "alpha"
+    uploadFile = jar
+    gameVersions = [config.minecraft.version]
 }

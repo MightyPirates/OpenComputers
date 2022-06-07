@@ -1,0 +1,154 @@
+name: publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-github:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract Version from Tag
+        uses: rishabhgupta/split-by@v1
+        id: split_tag
+        with:
+          string: ${{ github.event.release.tag_name }}
+          split-by: '/'
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ubuntu-latest-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ubuntu-latest-gradle-
+      - name: Build with Gradle
+        run: ./gradlew -Pmod_version='${{ steps.split_tag.outputs._1 }}' build
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+
+      - name: Add Artifacts to Github Release
+        uses: alexellis/upload-assets@0.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["./build/libs/*.jar"]'
+
+      - name: Publish to Github Packages
+        run: gradle -Pmod_version='${{ steps.split_tag.outputs._1 }}' publish
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+          GITHUB_MAVEN_URL: 'https://maven.pkg.github.com/${{ github.repository }}'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-curse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract Version from Tag
+        uses: rishabhgupta/split-by@v1
+        id: split_tag
+        with:
+          string: ${{ github.event.release.tag_name }}
+          split-by: '/'
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ubuntu-latest-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ubuntu-latest-gradle-
+
+      # Set Curseforge release type based on pre-release flag.
+      - name: Set release type to 'release'
+        run: |
+          echo "CURSEFORGE_RELEASE_TYPE=release" >> $GITHUB_ENV
+        if: github.event.release.prerelease == false
+      - name: Set release type to 'alpha'
+        run: |
+          echo "CURSEFORGE_RELEASE_TYPE=alpha" >> $GITHUB_ENV
+        if: github.event.release.prerelease == true
+
+      - name: Publish to Curseforge
+        run: ./gradlew -Pmod_version='${{ steps.split_tag.outputs._1 }}' curseforge
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          CURSEFORGE_RELEASE_TYPE: ${{ env.CURSEFORGE_RELEASE_TYPE }}
+          CHANGELOG: ${{ github.event.release.body }}
+
+  publish-modrinth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract Version from Tag
+        uses: rishabhgupta/split-by@v1
+        id: split_tag
+        with:
+          string: ${{ github.event.release.tag_name }}
+          split-by: '/'
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ubuntu-latest-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ubuntu-latest-gradle-
+
+      # Set Modrinth release type based on pre-release flag.
+      - name: Set release type to 'release'
+        run: |
+          echo "MODRINTH_RELEASE_TYPE=release" >> $GITHUB_ENV
+        if: github.event.release.prerelease == false
+      - name: Set release type to 'alpha'
+        run: |
+          echo "MODRINTH_RELEASE_TYPE=alpha" >> $GITHUB_ENV
+        if: github.event.release.prerelease == true
+
+      - name: Publish to Modrinth
+        run: ./gradlew -Pmod_version='${{ steps.split_tag.outputs._1 }}' modrinth
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+          MODRINTH_RELEASE_TYPE: ${{ env.MODRINTH_RELEASE_TYPE }}
+          CHANGELOG: ${{ github.event.release.body }}
