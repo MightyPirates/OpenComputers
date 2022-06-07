@@ -106,7 +106,7 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when relaying messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized {
-    strength = math.max(args.checkDouble(0), math.min(0, maxWirelessRange))
+    strength = math.max(0, math.min(args.checkDouble(0), maxWirelessRange))
     result(strength)
   }
 
