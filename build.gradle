@@ -38,7 +38,7 @@ file "build.properties" withReader {
     ext.config = new ConfigSlurper().parse prop
 }
 
-version = "${config.oc.version}"
+version = "${mod_version}"
 group = "li.cil.oc"
 archivesBaseName = "OpenComputers"
 
@@ -55,12 +55,7 @@ def getGitRef() {
   }
 }
 
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += ".${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
+version += "+" + getGitRef()
 
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
