@@ -72,6 +72,12 @@ runServer {
     jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
 }
 
+compileScala {
+    configure(scalaCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+    }
+}
+
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
         tasks.withType(Javadoc) {
