@@ -14,7 +14,7 @@ class ConverterDataStick extends Converter {
   override def convert(value: Any, output: util.Map[AnyRef, AnyRef]): Unit = if (value.isInstanceOf[ItemStack]) {
     val stack = value.asInstanceOf[ItemStack]
     val nbt = stack.stackTagCompound
-    if (nbt.hasKey("prospection_tier"))
+    if (nbt != null && nbt.hasKey("prospection_tier"))
       nbt.getString("title") match {
         case "Raw Prospection Data" => getRawProspectionData(output, nbt)
         case "Analyzed Prospection Data" => {
