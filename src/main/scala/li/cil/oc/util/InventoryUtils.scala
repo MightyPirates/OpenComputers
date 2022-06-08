@@ -110,9 +110,9 @@ object InventoryUtils {
    * <br>
    * Only tries to extract from the specified slot. This <em>can</em> be used
    * to empty a slot. It will extract items using the specified consumer method
-   * which is called with the extracted stack before the stack in the inventory
-   * that we extract from is cleared from. This allows placing back excess
-   * items with as few inventory updates as possible.
+   * which is called with the extracted stack and a simulation flag before the
+   * stack in the inventory that we extract from is cleared from. This allows
+   * placing back excess items with as few inventory updates as possible.
    * <br>
    * The consumer is the only way to retrieve the actually extracted stack. It
    * is called with a separate stack instance, so it does not have to be copied
@@ -129,7 +129,7 @@ object InventoryUtils {
    * also be achieved by a check in the consumer, but it saves some unnecessary
    * code repetition this way.
    */
-  def extractFromInventorySlot(consumer: ItemStack => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Int = {
+  def extractFromInventorySlot(consumer: (ItemStack, Boolean) => Unit, inventory: IItemHandler, slot: Int, limit: Int = 64): Int = {
     val stack = inventory.getStackInSlot(slot)
     if (stack.isEmpty || limit <= 0 || stack.getCount <= 0)
       return 0
@@ -138,19 +138,19 @@ object InventoryUtils {
       case simExtracted: ItemStack =>
         val extracted = simExtracted.copy
         amount = extracted.getCount
-        consumer(extracted)
+        consumer(extracted, true)
         val count = (amount - extracted.getCount) max 0
         if (count > 0) inventory.extractItem(slot, count, false) match {
-          case realExtracted: ItemStack if realExtracted.getCount == count =>
+          case realExtracted: ItemStack if realExtracted.getCount == count => consumer(realExtracted, false)
           case _ =>
-            OpenComputers.log.warn("Items may have been duplicated during inventory extraction. This means an IItemHandler instance acted differently between simulated and non-simulated extraction. Offender: " + inventory)
+            OpenComputers.log.warn("An IItemHandler instance acted differently between simulated and non-simulated extraction. Offender: " + inventory)
         }
         count
       case _ => 0
     }
   }
 
-  def extractFromInventorySlot(consumer: (ItemStack) => Unit, inventory: IInventory, side: EnumFacing, slot: Int, limit: Int): Int =
+  def extractFromInventorySlot(consumer: (ItemStack, Boolean) => Unit, inventory: IInventory, side: EnumFacing, slot: Int, limit: Int): Int =
     extractFromInventorySlot(consumer, asItemHandler(inventory, side), slot, limit)
 
     /**
@@ -200,7 +200,7 @@ object InventoryUtils {
    * <br>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractAnyFromInventory(consumer: ItemStack => Unit, inventory: IItemHandler, limit: Int = 64): Int = {
+  def extractAnyFromInventory(consumer: (ItemStack, Boolean) => Unit, inventory: IItemHandler, limit: Int = 64): Int = {
     for (slot <- 0 until inventory.getSlots) {
       val extracted = extractFromInventorySlot(consumer, inventory, slot, limit)
       if (extracted > 0)
@@ -209,7 +209,7 @@ object InventoryUtils {
     0
   }
 
-  def extractAnyFromInventory(consumer: ItemStack => Unit, inventory: IInventory, side: EnumFacing, limit: Int): Int =
+  def extractAnyFromInventory(consumer: (ItemStack, Boolean) => Unit, inventory: IInventory, side: EnumFacing, limit: Int): Int =
     extractAnyFromInventory(consumer, asItemHandler(inventory, side), limit)
 
   /**
@@ -225,11 +225,13 @@ object InventoryUtils {
   def extractFromInventory(stack: ItemStack, inventory: IItemHandler, simulate: Boolean = false, exact: Boolean = true): ItemStack = {
     val remaining = stack.copy()
     for (slot <- 0 until inventory.getSlots if remaining.getCount > 0) {
-      extractFromInventorySlot(stackInInv => {
+      extractFromInventorySlot((stackInInv, simulateInsert) => {
         if (stackInInv != null && remaining.getItem == stackInInv.getItem && (!exact || haveSameItemType(remaining, stackInInv, checkNBT = true))) {
           val transferred = stackInInv.getCount min remaining.getCount
-          remaining.shrink(transferred)
-          if (!simulate) {
+          if(!simulateInsert) {
+            remaining.shrink(transferred)
+          }
+          if (simulateInsert || !simulate) {
             stackInInv.shrink(transferred)
           }
         }
@@ -254,7 +256,7 @@ object InventoryUtils {
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
    * in the world.
    */
-  def getExtractorFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: EnumFacing, limit: Int = 64): Extractor =
+  def getExtractorFromInventoryAt(consumer: (ItemStack, Boolean) => Unit, position: BlockPosition, side: EnumFacing, limit: Int = 64): Extractor =
     inventoryAt(position, side) match {
       case Some(inventory) => () => extractAnyFromInventory(consumer, inventory, limit)
       case _ => null
@@ -275,7 +277,7 @@ object InventoryUtils {
    */
   def transferBetweenInventories(source: IItemHandler, sink: IItemHandler, limit: Int = 64): Int =
     extractAnyFromInventory(
-      insertIntoInventory(_, sink, limit), source, limit = limit)
+      insertIntoInventory(_, sink, limit, _), source, limit = limit)
 
   def transferBetweenInventories(source: IInventory, sourceSide: EnumFacing, sink: IInventory, sinkSide: Option[EnumFacing], limit: Int): Int =
     transferBetweenInventories(asItemHandler(source, sourceSide), asItemHandler(sink, sinkSide.orNull), limit)
@@ -287,10 +289,10 @@ object InventoryUtils {
     sinkSlot match {
       case Some(explicitSinkSlot) =>
         extractFromInventorySlot(
-          insertIntoInventorySlot(_, sink, explicitSinkSlot, limit), source, sourceSlot, limit = limit)
+          insertIntoInventorySlot(_, sink, explicitSinkSlot, limit, _), source, sourceSlot, limit = limit)
       case _ =>
         extractFromInventorySlot(
-          insertIntoInventory(_, sink, limit), source, sourceSlot, limit = limit)
+          insertIntoInventory(_, sink, limit, _), source, sourceSlot, limit = limit)
     }
 
   def transferBetweenInventoriesSlots(source: IInventory, sourceSide: EnumFacing, sourceSlot: Int, sink: IInventory, sinkSide: Option[EnumFacing], sinkSlot: Option[Int], limit: Int): Int =
