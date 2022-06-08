@@ -2,18 +2,18 @@ package li.cil.oc.api.manual;
 
 /**
  * This allows implementing custom image renderers.
- * <p/>
+ * <br>
  * Image renderers are used to draw custom areas in a manual page, defined as
  * an image with a special URL, matching the prefix of a registered image
  * provider. A renderer will then be used to draw something at the position
  * of the image tag.
- * <p/>
+ * <br>
  * Built-in image renderers are <tt>item</tt>, <tt>block</tt> and <tt>oredict</tt>.
  */
 public interface ImageRenderer {
     /**
      * The width of the area this renderer uses.
-     * <p/>
+     * <br>
      * This is used to offset the OpenGL state properly before calling
      * {@link #render(int, int)}, to correctly align the image horizontally.
      *
@@ -23,7 +23,7 @@ public interface ImageRenderer {
 
     /**
      * The height of the area this renderer uses.
-     * <p/>
+     * <br>
      * This is used to offset the OpenGL state properly before calling
      * {@link #render(int, int)}, as well as to know where to resume rendering
      * other content below the image.
@@ -34,7 +34,7 @@ public interface ImageRenderer {
 
     /**
      * Render the image, with specified maximum width.
-     * <p/>
+     * <br>
      * This should render the image as is, the OpenGL state will be set up
      * such that you can start drawing at (0,0,*), and render up to
      * (getWidth,getHeight,*), i.e. translation and scaling are taken care

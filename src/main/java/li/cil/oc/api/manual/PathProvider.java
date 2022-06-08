@@ -5,14 +5,14 @@ import net.minecraft.world.World;
 
 /**
  * Allows providing paths for item stacks and blocks in the world.
- * <p/>
+ * <br>
  * This is used for generating NEI usage pages with a button opening the manual
  * on the page at the specified path, or for opening the manual when held in
  * hand and sneak-activating a block in the world.
- * <p/>
+ * <br>
  * This way you can easily make entries in your documentation available the
  * same way OpenComputers does it itself.
- * <p/>
+ * <br>
  * Note that you can use the special variable <tt>%LANGUAGE%</tt> in your
  * paths, for language agnostic paths. These will be resolved to the currently
  * set language, falling back to <tt>en_US</tt>, during actual content lookup.
@@ -20,7 +20,7 @@ import net.minecraft.world.World;
 public interface PathProvider {
     /**
      * Get the path to the documentation page for the provided item stack.
-     * <p/>
+     * <br>
      * Return <tt>null</tt> if there is no known page for this item, allowing
      * other providers to be queried.
      *
@@ -31,7 +31,7 @@ public interface PathProvider {
 
     /**
      * Get the path to the documentation page for the provided block.
-     * <p/>
+     * <br>
      * Return <tt>null</tt> if there is no known page for this item, allowing
      * other providers to be queried.
      *

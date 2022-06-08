@@ -4,23 +4,23 @@ import li.cil.oc.api.Persistable;
 
 /**
  * A single node in a {@link Network}.
- * <p/>
+ * <br>
  * All nodes in a network have a unique address; the network will generate a
  * unique address and assign it to new nodes.
- * <p/>
+ * <br>
  * Per default there are two kinds of nodes: tile entities and items.
- * <p/>
+ * <br>
  * Items will usually only have nodes when in containers, such as a computer or
  * disk drive. Otherwise you'll have to connect/disconnect them manually as
  * desired.
- * <p/>
+ * <br>
  * All other kinds of nodes you may come up with will also have to be
  * handled manually.
- * <p/>
+ * <br>
  * Items have to be handled by a corresponding {@link li.cil.oc.api.driver.Item}.
  * Existing blocks may be interfaced with the adapter block if a
  * {@link li.cil.oc.api.driver.Block} exists that supports the block.
- * <p/>
+ * <br>
  * <em>Important</em>: like the <tt>Network</tt> interface you must not create
  * your own implementations of this interface. Use the factory methods in the
  * network API to create new node instances and store them in your environment.
@@ -30,7 +30,7 @@ import li.cil.oc.api.Persistable;
 public interface Node extends Persistable {
     /**
      * The environment hosting this node.
-     * <p/>
+     * <br>
      * For blocks whose tile entities implement {@link Environment} this will
      * be the tile entity. For all other implementations this will be a managed
      * environment.
@@ -39,20 +39,20 @@ public interface Node extends Persistable {
 
     /**
      * The reachability of this node.
-     * <p/>
+     * <br>
      * This is used by the network to control which system messages to deliver
      * to which nodes. This value should not change over the lifetime of a node.
-     * <p/>
+     * <br>
      * It furthermore determines what is returned by the <tt>Network</tt>'s
      * <tt>neighbors</tt> and <tt>nodes</tt> functions.
-     * <p/>
+     * <br>
      * Note that this has no effect on the <em>real</em> reachability of a node;
      * it is only used to filter to which nodes to send connect, disconnect and
      * reconnect messages. If addressed directly, the node will still receive
      * that message even if it comes from a node that should not be able to see
      * it. Therefore nodes should still verify themselves that they want to
      * accept a message from the message's source.
-     * <p/>
+     * <br>
      * A different matter is a {@link Component}'s <tt>visibility</tt>, which is
      * checked before delivering messages a computer tries to send.
      */
@@ -60,7 +60,7 @@ public interface Node extends Persistable {
 
     /**
      * The address of the node, so that it can be found in the network.
-     * <p/>
+     * <br>
      * This is used by the network manager when a node is added to a network to
      * assign it a unique address, if it doesn't already have one. Nodes must not
      * use custom addresses, only those assigned by the network. The only option
@@ -71,11 +71,11 @@ public interface Node extends Persistable {
 
     /**
      * The network this node is currently in.
-     * <p/>
+     * <br>
      * Note that valid nodes should never return `None` here. When created a node
      * should immediately be added to a network, after being removed from its
      * network a node should be considered invalid.
-     * <p/>
+     * <br>
      * This will always be set automatically by the network manager. Do not
      * change this value and do not return anything that it wasn't set to.
      */
@@ -102,9 +102,9 @@ public interface Node extends Persistable {
     /**
      * Get the list of neighbor nodes, i.e. nodes directly connected to this
      * node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.neighbors(node)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this returns an empty list.
      *
@@ -115,9 +115,9 @@ public interface Node extends Persistable {
     /**
      * Get the list of nodes reachable from this node, based on their
      * {@link #reachability()}.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.nodes(node)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this returns an empty list.
      *
@@ -129,9 +129,9 @@ public interface Node extends Persistable {
 
     /**
      * Connects the specified node to this node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.connect(node, other)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will throw an exception.
      *
@@ -142,9 +142,9 @@ public interface Node extends Persistable {
 
     /**
      * Disconnects the specified node from this node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.disconnect(node, other)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      *
@@ -155,9 +155,9 @@ public interface Node extends Persistable {
 
     /**
      * Removes this node from its network.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.remove(node)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      */
@@ -167,9 +167,9 @@ public interface Node extends Persistable {
 
     /**
      * Send a message to a node with the specified address.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.sendToAddress(node, ...)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      *
@@ -181,9 +181,9 @@ public interface Node extends Persistable {
 
     /**
      * Send a message to all neighbors of this node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.sendToNeighbors(node, ...)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      *
@@ -194,9 +194,9 @@ public interface Node extends Persistable {
 
     /**
      * Send a message to all nodes reachable from this node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.sendToReachable(node, ...)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      *
@@ -207,9 +207,9 @@ public interface Node extends Persistable {
 
     /**
      * Send a message to all nodes visible from this node.
-     * <p/>
+     * <br>
      * This is a shortcut for <tt>node.network.sendToVisible(node, ...)</tt>.
-     * <p/>
+     * <br>
      * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
      * this will do nothing.
      *

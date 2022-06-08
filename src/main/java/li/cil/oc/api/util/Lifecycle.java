@@ -6,7 +6,7 @@ import li.cil.oc.api.network.Node;
  * Implement this on {@link li.cil.oc.api.network.ManagedEnvironment}s to be
  * notified with proper lifecycle changes, instead of relying on something
  * like {@link li.cil.oc.api.network.Environment#onDisconnect(Node)}.
- * <p/>
+ * <br>
  * This is primarily intended to be used on the client side, where there
  * are no nodes, to allow components to know when they are being unloaded.
  */
@@ -17,7 +17,7 @@ public interface Lifecycle {
     enum LifecycleState {
         /**
          * State immediately active after construction of the object.
-         * <p/>
+         * <br>
          * This generally means initial construction of the object and
          * restoring its state (e.g. loading data if it's persistable).
          */
@@ -25,7 +25,7 @@ public interface Lifecycle {
 
         /**
          * State active when object is being lazily set up.
-         * <p/>
+         * <br>
          * This generally means setting up references, and connecting
          * nodes if the object is networked.
          */
@@ -33,7 +33,7 @@ public interface Lifecycle {
 
         /**
          * State active when object finished setting up.
-         * <p/>
+         * <br>
          * This means everything is set up and the object now enters
          * its general use lifetime (where components are updated each
          * tick for example).
@@ -42,7 +42,7 @@ public interface Lifecycle {
 
         /**
          * State active when object begins cleaning up.
-         * <p/>
+         * <br>
          * This means tearing down references and disconnecting nodes,
          * for example.
          */
@@ -51,7 +51,7 @@ public interface Lifecycle {
         /**
          * State active after object has been cleaned up, right before
          * references by the managing container to it are dropped.
-         * <p/>
+         * <br>
          * This means the object is now considered "dead".
          */
         Disposed

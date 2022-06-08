@@ -2,7 +2,7 @@ package li.cil.oc.api.nanomachines;
 
 /**
  * Enum with reasons why a nanomachine behavior was disabled.
- * <p/>
+ * <br>
  * This allows some more context specific behavior in a more stable fashion.
  */
 public enum DisableReason {

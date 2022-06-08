@@ -18,13 +18,13 @@ import java.util.Set;
 
 /**
  * This API allows registering new drivers with the mod.
- * <p/>
+ * <br>
  * Drivers are used to make items and third-party blocks available in the mod's
  * component network, and optionally to user programs. If you implement a new
  * block that should interact with the mod's component network it is enough to
  * have it implement {@link li.cil.oc.api.network.Environment} - no driver is
  * needed in that case.
- * <p/>
+ * <br>
  * Note that these methods should <em>not</em> be called in the pre-init phase,
  * since the {@link li.cil.oc.api.API#driver} may not have been initialized
  * at that time. Only start calling these methods in the init phase or later.
@@ -36,11 +36,11 @@ import java.util.Set;
 public final class Driver {
     /**
      * Registers a new block driver.
-     * <p/>
+     * <br>
      * Whenever the neighboring blocks of an Adapter block change, it checks if
      * there exists a driver for the changed block, and if it is configured to
      * interface that block type connects it to the component network.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -55,11 +55,11 @@ public final class Driver {
 
     /**
      * Registers a new side-aware block driver.
-     * <p/>
+     * <br>
      * Whenever the neighboring blocks of an Adapter block change, it checks if
      * there exists a driver for the changed block, and if it is configured to
      * interface that block type connects it to the component network.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -72,10 +72,10 @@ public final class Driver {
 
     /**
      * Registers a new item driver.
-     * <p/>
+     * <br>
      * Item components can inserted into a computers component slots. They have
      * to specify their type, to determine into which slots they can fit.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -88,10 +88,10 @@ public final class Driver {
 
     /**
      * Registers a new type converter.
-     * <p/>
+     * <br>
      * Type converters are used to automatically convert values returned from
      * callbacks to a "simple" format that can be pushed to any architecture.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -104,7 +104,7 @@ public final class Driver {
 
     /**
      * Register a new environment provider.
-     * <p/>
+     * <br>
      * Environment providers are used for mapping item stacks to the type of
      * environment that will be created by the stack, either by it being
      * placed in the world and acting as a block component, or by being
@@ -119,7 +119,7 @@ public final class Driver {
 
     /**
      * Register a new inventory provider.
-     * <p/>
+     * <br>
      * Inventory providers are used for accessing item inventories using
      * the inventory controller upgrade, for example.
      *
@@ -133,7 +133,7 @@ public final class Driver {
     /**
      * Looks up a driver for the block at the specified position in the
      * specified world.
-     * <p/>
+     * <br>
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you should will <em>not</em>
@@ -157,7 +157,7 @@ public final class Driver {
     /**
      * Looks up a driver for the block at the specified position in the
      * specified world.
-     * <p/>
+     * <br>
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you should will <em>not</em>
@@ -177,7 +177,7 @@ public final class Driver {
 
     /**
      * Looks up a driver for the specified item stack.
-     * <p/>
+     * <br>
      * Note that unlike for blocks, there can always only be one item driver
      * per item. If there are multiple ones, the first one that was registered
      * will be used.
@@ -194,11 +194,11 @@ public final class Driver {
 
     /**
      * Looks up a driver for the specified item stack.
-     * <p/>
+     * <br>
      * Note that unlike for blocks, there can always only be one item driver
      * per item. If there are multiple ones, the first one that was registered
      * will be used.
-     * <p/>
+     * <br>
      * This is a context-agnostic variant used mostly for "house-keeping"
      * stuff, such as querying slot types and tier.
      *
@@ -213,7 +213,7 @@ public final class Driver {
 
     /**
      * Looks up the environment associated with the specified item stack.
-     * <p/>
+     * <br>
      * This will use the registered {@link EnvironmentProvider}s to find
      * an environment type for the specified item stack. If none can be
      * found, returns <tt>null</tt>.
@@ -231,7 +231,7 @@ public final class Driver {
 
     /**
      * Looks up the environments associated with the specified item stack.
-     * <p/>
+     * <br>
      * This will use the registered {@link EnvironmentProvider}s to find
      * environment types for the specified item stack. If none can be
      * found, returns an empty Set.
@@ -247,11 +247,11 @@ public final class Driver {
 
     /**
      * Get an inventory implementation providing access to an item inventory.
-     * <p/>
+     * <br>
      * This will use the registered {@link InventoryProvider}s to find an
      * inventory implementation providing access to the specified stack.
      * If none can be found, returns <tt>null</tt>.
-     * <p/>
+     * <br>
      * Note that the specified <tt>player</tt> may be null, but will usually
      * be the <em>fake player</em> of the agent making use of this API.
      *
@@ -267,10 +267,10 @@ public final class Driver {
 
     /**
      * Get a list of all registered block drivers.
-     * <p/>
+     * <br>
      * This is intended to allow checking for particular drivers using more
      * customized logic.
-     * <p/>
+     * <br>
      * The returned collection is read-only.
      *
      * @return the list of all registered block drivers.
@@ -283,10 +283,10 @@ public final class Driver {
 
     /**
      * Get a list of all registered item drivers.
-     * <p/>
+     * <br>
      * This is intended to allow checking for particular drivers using more
      * customized logic.
-     * <p/>
+     * <br>
      * The returned collection is read-only.
      *
      * @return the list of all registered item drivers.

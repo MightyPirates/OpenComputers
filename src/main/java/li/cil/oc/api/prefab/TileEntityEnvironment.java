@@ -12,7 +12,7 @@ import net.minecraft.tileentity.TileEntity;
  * TileEntities can implement the {@link li.cil.oc.api.network.Environment}
  * interface to allow them to interact with the component network, by providing
  * a {@link li.cil.oc.api.network.Node} and connecting it to said network.
- * <p/>
+ * <br>
  * Nodes in such a network can communicate with each other, or just use the
  * network as an index structure to find other nodes connected to them.
  */
@@ -21,10 +21,10 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     /**
      * This must be set in subclasses to the node that is used to represent
      * this tile entity.
-     * <p/>
+     * <br>
      * You must only create new nodes using the factory method in the network
      * API, {@link li.cil.oc.api.Network#newNode(Environment, Visibility)}.
-     * <p/>
+     * <br>
      * For example:
      * <pre>
      * // The first parameters to newNode is the host() of the node, which will

@@ -9,34 +9,34 @@ import java.util.Set;
 /**
  * This interface can be implemented by items to allow custom rendering of
  * upgrades installed in robots.
- * <p/>
+ * <br>
  * Upgrades installed in a robot can have an external representation. This is
  * achieved by implementing this interface on an item that serves as a
  * renderable upgrade. When the robot is rendered, each equipped upgrade is
  * checked for this interface, and if present, the {@link #render} method
  * is called.
- * <p/>
+ * <br>
  * Note that these methods are only ever called on the client side.
  */
 public interface UpgradeRenderer {
     /**
      * Returns which mount point this renderer wants to render the specified
      * upgrade in.
-     * <p/>
+     * <br>
      * This method is used to determine which upgrade is rendered where, and is
      * called for every installed, renderable upgrade. The available mount
      * point names are defined in {@link MountPointName}, with the two special
      * values <tt>None</tt> and <tt>Any</tt>.
-     * <p/>
+     * <br>
      * <tt>None</tt> means that the upgrade should not be rendered at all. This
      * can be the case when there is no slot remaining that the upgrade may be
      * rendered in. Returning <tt>null</tt> is equivalent to returning <tt>None</tt>.
-     * <p/>
+     * <br>
      * <tt>Any</tt> means that the upgrade doesn't really care where it's being
      * rendered. Mount points not assigned by another upgrade preferring to be
      * rendered in it will be assigned to such upgrades in the order they are
      * installed in the robot.
-     * <p/>
+     * <br>
      * Returning a mount point not in the list of available mount points will
      * be equivalent to returning <tt>None</tt>.
      *
@@ -49,18 +49,18 @@ public interface UpgradeRenderer {
 
     /**
      * Render the specified upgrade on a robot.
-     * <p/>
+     * <br>
      * The GL state has not been adjusted to the mount points position, so
      * that you can perform rotations without having to revert the translation.
      * It is your responsibility to position the rendered model to fit the
      * specified mount point. The state will be such that the origin is the
      * center of the robot. This is what the offset of the mount-point is
      * relative to.
-     * <p/>
+     * <br>
      * If the stack cannot be rendered, the renderer should indicate so in
      * {@link #computePreferredMountPoint}, otherwise it will still consume a mount
      * point.
-     * <p/>
+     * <br>
      * You usually won't need the robot parameter, but in case you <em>do</em>
      * need some contextual information, this should provide you with anything
      * you could need.

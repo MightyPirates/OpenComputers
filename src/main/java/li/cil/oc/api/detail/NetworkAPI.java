@@ -12,11 +12,11 @@ public interface NetworkAPI {
     /**
      * Tries to add a tile entity's network node(s) at the specified coordinates
      * to adjacent networks.
-     * <p/>
+     * <br>
      * If the tile entity implements {@link Environment} its one node will be
      * connected to any existing adjacent tile entity nodes. If none exist a
      * new network with the specified tile entity's node as its sole entry.
-     * <p/>
+     * <br>
      * If the tile entity is a {@link li.cil.oc.api.network.SidedEnvironment}
      * the same rules as for simple environments apply, except that the
      * respective for each side is used when connecting, and each side's node
@@ -28,7 +28,7 @@ public interface NetworkAPI {
 
     /**
      * Creates a new network with the specified node as its initial node.
-     * <p/>
+     * <br>
      * This can be used to create networks that are not bound to any tile
      * entity. For example, this is used to create the internal networks of
      * robots.
@@ -42,12 +42,12 @@ public interface NetworkAPI {
 
     /**
      * Makes a wireless endpoint join the wireless network defined by the mod.
-     * <p/>
+     * <br>
      * OpenComputers tracks endpoints to which to send wireless packets sent
      * via the {@link #sendWirelessPacket(WirelessEndpoint, double, Packet)}
      * method. The packets will <em>only</em> be sent to endpoints registered
      * with the network.
-     * <p/>
+     * <br>
      * <em>Important</em>: when your endpoint is removed from the world,
      * <em>you must ensure it is also removed from the network</em>!
      *
@@ -57,11 +57,11 @@ public interface NetworkAPI {
 
     /**
      * Updates a wireless endpoint in the wireless network.
-     * <p/>
+     * <br>
      * This is more efficient than removing and then adding the node again, as
      * it only performs the update if the position significantly changed since
      * the last time the position was updated (more than 0.5 along any axis).
-     * <p/>
+     * <br>
      * Calling this for an endpoint that was not added before does nothing.
      *
      * @param endpoint the endpoint for which to update the position.
@@ -70,10 +70,10 @@ public interface NetworkAPI {
 
     /**
      * Removes a wireless endpoint from the wireless network.
-     * <p/>
+     * <br>
      * This must be called when an endpoint becomes invalid, otherwise it will
      * remain in the network!
-     * <p/>
+     * <br>
      * Calling this for an endpoint that was not added before does nothing.
      *
      * @param endpoint the endpoint to remove from the wireless network.
@@ -82,10 +82,10 @@ public interface NetworkAPI {
 
     /**
      * Removes a wireless endpoint from the wireless network of a specific dimension.
-     * <p/>
+     * <br>
      * This may be useful if the dimension of an endpoint changed and you can only
      * react to that change (e.g. a player changing dimensions).
-     * <p/>
+     * <br>
      * Calling this for an endpoint that was not added before does nothing.
      *
      * @param endpoint  the endpoint to remove from the wireless network.
@@ -95,7 +95,7 @@ public interface NetworkAPI {
 
     /**
      * Sends a packet via the wireless network.
-     * <p/>
+     * <br>
      * This will look for all other registered wireless endpoints in range of
      * the sender and submit the packets to them. Whether another end point is
      * reached depends on the distance and potential obstacles between the
@@ -112,12 +112,12 @@ public interface NetworkAPI {
 
     /**
      * Factory function for creating new nodes.
-     * <p/>
+     * <br>
      * Use this to create a node for your environment (e.g. tile entity). This
      * will return a builder that can be used to further specialize the node,
      * making it either a component node (for callbacks), a connector node
      * (for power interaction) or both.
-     * <p/>
+     * <br>
      * Example use:
      * <pre>
      * class YourThing extends TileEntity implements Environment {
@@ -132,7 +132,7 @@ public interface NetworkAPI {
      *     // ...
      * }
      * </pre>
-     * <p/>
+     * <br>
      * Note that the <em>reachability</em> specified here is the general
      * availability of the created node to other nodes in the network. Special
      * rules apply to components, which have a <em>visibility</em> that is used
@@ -152,7 +152,7 @@ public interface NetworkAPI {
     /**
      * Creates a new network packet as it would be sent or received by a
      * network card.
-     * <p/>
+     * <br>
      * These packets can be forwarded by switches and access points. For wired
      * transmission they must be sent over a node's send method, with the
      * message name being <tt>network.message</tt>.

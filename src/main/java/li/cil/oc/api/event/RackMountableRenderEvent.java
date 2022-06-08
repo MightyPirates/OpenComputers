@@ -14,7 +14,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Fired to allow rendering a custom overlay for {@link li.cil.oc.api.component.RackMountable}s.
- * </p>
+ * <br>
  * When this event is fired, the GL state is set up such that the origin is
  * the top left corner of the mountable the event was fired for. It's the
  * event handler's responsibility to not render outside the are of the
@@ -46,12 +46,12 @@ public abstract class RackMountableRenderEvent extends Event {
 
     /**
      * Fired when the static rack model is rendered.
-     * <p/>
+     * <br>
      * Code here runs inside a <tt>ISimpleBlockRenderingHandler</tt>, so functionality
      * is limited to what's possible in there. This is primarily meant to allow setting
      * a custom override texture (<tt>renderer.setOverrideBlockTexture</tt>) for the
      * mountables front.
-     * <p/>
+     * <br>
      * The bounds will be set up before this call, so you may adjust those, if you wish.
      */
     @Cancelable
@@ -96,23 +96,23 @@ public abstract class RackMountableRenderEvent extends Event {
 
     /**
      * Fired when the dynamic rack model is rendered.
-     * <p/>
+     * <br>
      * Code here runs inside a <tt>TileEntitySpecialRenderer</tt>, so go nuts. This is
      * primarily meant to allow rendering custom overlays, such as LEDs. The GL state
      * will have been adjusted such that rendering a one by one quad starting at the
      * origin will fill the full front face of the rack (i.e. rotation and translation
      * have already been applied).
-     * <p/>
+     * <br>
      * If you wish to have something glowing (like LEDs), you'll have to disable
      * lighting yourself (and enable it again afterwards!).
-     * <p/>
+     * <br>
      * Use the {@link #renderOverlay(ResourceLocation)} to render a slice from a
      * texture in the vertical area occupied by the mountable.
      */
     public static class TileEntity extends RackMountableRenderEvent {
         /**
          * The vertical low and high texture coordinates for the mountable's slot.
-         * <p/>
+         * <br>
          * This is purely for convenience; they're computed as <tt>(2/16)+i*(3/16)</tt>.
          */
         public final float v0, v1;

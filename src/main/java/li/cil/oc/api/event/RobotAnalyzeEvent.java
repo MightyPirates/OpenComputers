@@ -5,7 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 
 /**
  * Fired when an analyzer is used on a robot.
- * <p/>
+ * <br>
  * Use this to echo additional information for custom components.
  */
 public class RobotAnalyzeEvent extends RobotEvent {

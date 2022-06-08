@@ -9,13 +9,13 @@ import net.minecraft.world.World;
 
 /**
  * Events for handling file system access and representing it on the client.
- * <p/>
+ * <br>
  * This is used to play file system access sounds and render disk activity
  * indicators on some containers (e.g. disk drive, computer, server).
- * <p/>
+ * <br>
  * Use this to implement rendering of disk access indicators on you own
  * containers / computers / drive bays.
- * <p/>
+ * <br>
  * Canceling this event is provided to allow registering higher priority
  * event handlers that override default behavior.
  */
@@ -109,7 +109,7 @@ public class FileSystemAccessEvent extends Event {
 
     /**
      * The tile entity hosting the file system.
-     * <p/>
+     * <br>
      * <em>Important</em>: this can be <tt>null</tt>, which is usually the
      * case when the container is an entity or item.
      */

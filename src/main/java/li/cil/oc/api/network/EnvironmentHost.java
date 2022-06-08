@@ -4,10 +4,10 @@ import net.minecraft.world.World;
 
 /**
  * To be implemented by 'hosts' of components.
- * <p/>
+ * <br>
  * This is what's passed to drivers as the host when creating an environment.
  * It is generally used to represent the components' location in the world.
- * <p/>
+ * <br>
  * You will only need to implement this if you intend to host components, e.g.
  * by providing a custom computer case or such. In OpenComputers this interface
  * is usually implemented directly by the tile entities acting as the host, so
@@ -22,7 +22,7 @@ public interface EnvironmentHost {
 
     /**
      * The container's X position in the world.
-     * <p/>
+     * <br>
      * For tile entities this is the <em>centered</em> position. For example,
      * if the tile entity is located at (0, 2, 3) this will be 0.5.
      */
@@ -30,7 +30,7 @@ public interface EnvironmentHost {
 
     /**
      * The container's Y position in the world.
-     * <p/>
+     * <br>
      * For tile entities this is the <em>centered</em> position. For example,
      * if the tile entity is located at (0, 2, 3) this will be 2.5.
      */
@@ -38,7 +38,7 @@ public interface EnvironmentHost {
 
     /**
      * The container's Z position in the world.
-     * <p/>
+     * <br>
      * For tile entities this is the <em>centered</em> position. For example,
      * if the tile entity is located at (0, 2, 3) this will be 3.5.
      */

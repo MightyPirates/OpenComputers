@@ -5,11 +5,11 @@ import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Implemented by providers for behaviors.
- * <p/>
+ * <br>
  * You may implement one provider for each of your behaviors, or one provider
  * for all of your behaviors; it really doesn't matter. This just allows for
  * some logical grouping of behaviors, where desired.
- * <p/>
+ * <br>
  * Each behavior provider must be capable or serializing the behaviors it
  * creates, and re-create the behavior from its serialized form. It will
  * not be given any hints as to whether a provided tag was originally
@@ -22,7 +22,7 @@ import net.minecraft.nbt.NBTTagCompound;
 public interface BehaviorProvider {
     /**
      * Create all behaviors valid for the specified player.
-     * <p/>
+     * <br>
      * Note that this is only called on the server side when reconfiguring
      * nanomachines. If you have a behavior that actually acts client-only,
      * you still need to return it here, as it will be synchronized to the
@@ -35,9 +35,9 @@ public interface BehaviorProvider {
 
     /**
      * Write a behavior to NBT.
-     * <p/>
+     * <br>
      * This will only be called for behaviors originally created by this provider.
-     * <p/>
+     * <br>
      * This will only be called on the server. All behaviors not saved will be
      * lost when loading again, they will <em>not</em> be regenerated using
      * {@link #createBehaviors}, so make sure to save all your behaviors.
@@ -49,11 +49,11 @@ public interface BehaviorProvider {
 
     /**
      * Restore a behavior from NBT.
-     * <p/>
+     * <br>
      * You are <em>not</em> guaranteed that his nbt belongs to a behavior
      * created by this provider! If the NBT cannot be handled, return
      * <tt>null</tt>.
-     * <p/>
+     * <br>
      * This is called both on the server and the client; on the server it
      * is called when restoring a saved player, on the client when
      * synchronizing a configuration.

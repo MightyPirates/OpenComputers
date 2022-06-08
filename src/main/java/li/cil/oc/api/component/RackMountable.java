@@ -11,26 +11,26 @@ import net.minecraft.nbt.NBTTagCompound;
 /**
  * Use this interface on environments provided by drivers for items that can
  * be installed in a server rack.
- * <p/>
+ * <br>
  * The provided environment can be used for updating the part in its installed
  * state. The nodes provided by the getters in this interface are used to
  * access nodes provided by the environment (e.g. multiple "interfacing"
  * nodes for a switch), and connect the nodes to the corresponding buses as
  * defined by the rack's configuration.
- * <p/>
+ * <br>
  * Note: mountables may implement the {@link ComponentHost} interface and
  * {@link IInventory}. In this case, if they contain a redstone card and have
  * a state of <tt>State.IsWorking</tt> the rack will visually connect to
  * redstone, for example. Same goes for abstract bus cards, and potentially
  * more things in the future.
- * <p/>
+ * <br>
  * Furthermore, implementing {@link Analyzable} will allow specifying more
  * information when the analyzer is used on the mountable while it's in a rack.
  */
 public interface RackMountable extends ManagedEnvironment, StateAware {
     /**
      * Returns some data describing the state of the mountable.
-     * <p/>
+     * <br>
      * This is called on the server side to synchronize data to the client after
      * the rack's {@link li.cil.oc.api.internal.Rack#markChanged(int)}
      * method has been called for the slot this mountable is in. It will there
@@ -43,7 +43,7 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
 
     /**
      * The number of connectables exposed by the environment.
-     * <p/>
+     * <br>
      * Node that only the first three will ever be used.
      */
     int getConnectableCount();
@@ -56,7 +56,7 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
     /**
      * This gets called when the server rack is activated by a player, and
      * hits the space occupied by this mountable.
-     * <p/>
+     * <br>
      * As per usual, keep in mind that the hit coordinates are comparatively
      * imprecise on the server side, since they'll have been sent in a
      * pointlessly compressed fashion (because MC is a dummy like that).

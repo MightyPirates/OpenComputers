@@ -11,14 +11,14 @@ import net.minecraftforge.oredict.OreDictionary;
  * If you wish to create a block component for a third-party block, i.e. a block
  * for which you do not control the tile entity, such as vanilla blocks, you
  * will need a block driver.
- * <p/>
+ * <br>
  * This prefab allows creating a driver that works for a specified list of item
  * stacks (to support different blocks with the same id but different metadata
  * values).
- * <p/>
+ * <br>
  * You still have to provide the implementation for creating its environment, if
  * any.
- * <p/>
+ * <br>
  * To limit sidedness, I recommend overriding {@link #worksWith(World, int, int, int, ForgeDirection)}
  * and calling <code>super.worksWith</code> in addition to the side check.
  *

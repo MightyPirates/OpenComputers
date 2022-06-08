@@ -2,25 +2,25 @@ package li.cil.oc.api.network;
 
 /**
  * The environment of a node.
- * <p/>
+ * <br>
  * For blocks/tile entities this will usually be the tile entity. For items
  * this will usually be an object created when a component is added to a
  * compatible inventory (e.g. put into a computer).
- * <p/>
+ * <br>
  * Tile entities should implement this interface if they want to be connected
  * to the component network of their neighboring blocks. If you cannot do that,
  * as mentioned above, you will have to provide a driver that creates a managed
  * environment for the block you wish to connect instead.
- * <p/>
+ * <br>
  * To get some more control over which sides of your block may connect to a
  * network, see {@link SidedEnvironment}.
- * <p/>
+ * <br>
  * When a tile entity implements this interface a good way of connecting and
  * disconnecting is the following pattern:
  * <pre>
  *     void updateEntity() {
  *         super.updateEntity()
- *         if (node != null && node.network == null) {
+ *         if (node != null &amp;&amp; node.network == null) {
  *             api.Network.joinOrCreateNetwork(this);
  *         }
  *     }
@@ -35,10 +35,10 @@ package li.cil.oc.api.network;
  *         if (node != null) node.remove()
  *     }
  * </pre>
- * <p/>
+ * <br>
  * Item environments are always managed, so you will always have to provide a
  * driver for items that should interact with the component network.
- * <p/>
+ * <br>
  * To interact with environments from user code you will have to do two things:
  * <ol>
  * <li>Make the environment's {@link #node} a {@link Component} and ensure
@@ -50,7 +50,7 @@ package li.cil.oc.api.network;
 public interface Environment {
     /**
      * The node this environment wraps.
-     * <p/>
+     * <br>
      * The node is the environments gateway to the component network, and thus
      * its preferred way to interact with other components in the same network.
      *
@@ -60,13 +60,13 @@ public interface Environment {
 
     /**
      * This is called when a node is added to a network.
-     * <p/>
+     * <br>
      * This is also called for the node itself, if it was added to the network.
-     * <p/>
+     * <br>
      * At this point the node's network is never <tt>null</tt> and you can use
      * it to query it for other nodes. Use this to perform initialization logic,
      * such as building lists of nodes of a certain type in the network.
-     * <p/>
+     * <br>
      * For example, if node A is added to a network with nodes B and C, these
      * calls are made:
      * <ul>
@@ -81,15 +81,15 @@ public interface Environment {
 
     /**
      * This is called when a node is removed from the network.
-     * <p/>
+     * <br>
      * This is also called for the node itself, when it has been removed from
      * its network. Note that this is called on the node that is being removed
      * <em>only once</em> with the node itself as the parameter.
-     * <p/>
+     * <br>
      * At this point the node's network is no longer available (<tt>null</tt>).
      * Use this to perform clean-up logic such as removing references to the
      * removed node.
-     * <p/>
+     * <br>
      * For example, if node A is removed from a network with nodes A, B and C,
      * these calls are made:
      * <ul>
@@ -102,7 +102,7 @@ public interface Environment {
 
     /**
      * This is the generic message handler.
-     * <p/>
+     * <br>
      * It is called whenever this environments {@link Node} receives a message
      * that was sent via one of the <tt>send</tt> methods in the {@link Network}
      * or the <tt>Node</tt> itself.

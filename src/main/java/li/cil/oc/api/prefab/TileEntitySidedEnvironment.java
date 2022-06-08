@@ -13,7 +13,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  * a separate {@link li.cil.oc.api.network.Node} for each block face, and
  * connecting it to said network. This allows more control over connectivity
  * than the simple {@link li.cil.oc.api.network.Environment}.
- * <p/>
+ * <br>
  * Nodes in such a network can communicate with each other, or just use the
  * network as an index structure to find other nodes connected to them.
  */
@@ -27,10 +27,10 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
 
     /**
      * This expects a node per face that is used to represent this tile entity.
-     * <p/>
+     * <br>
      * You must only create new nodes using the factory method in the network
      * API, {@link li.cil.oc.api.Network#newNode(li.cil.oc.api.network.Environment, li.cil.oc.api.network.Visibility)}.
-     * <p/>
+     * <br>
      * For example:
      * <pre>
      * // The first parameters to newNode is the host() of the node, which will

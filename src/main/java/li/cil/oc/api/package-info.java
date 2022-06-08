@@ -1,6 +1,6 @@
 /**
  * This API provides interfaces and factory methods for the OpenComputers mod.
- * <p/>
+ * <br>
  * There are several parts to this API:
  * <dl>
  * <dt>The {@link li.cil.oc.api.Driver} API</dt>
@@ -11,7 +11,7 @@
  * you wish to interact with other blocks / components of the mod. The most
  * typical scenario for this will be adding a new object that user programs
  * should be able to interact with: a {@link li.cil.oc.api.network.Component}.
- * <p/>
+ * <br>
  * Note that for tile entities you implement yourself, you will not have to
  * provide a driver, as long as you implement the necessary interface:
  * {@link li.cil.oc.api.network.Environment} and call {@link li.cil.oc.api.Network#joinOrCreateNetwork(net.minecraft.tileentity.TileEntity)}

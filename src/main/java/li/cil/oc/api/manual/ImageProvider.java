@@ -10,13 +10,13 @@ package li.cil.oc.api.manual;
 public interface ImageProvider {
     /**
      * Gets an image renderer for the specified data.
-     * <p/>
+     * <br>
      * The data passed here will be part of the image URL following the prefix
      * that the provider was registered with. So for example, if the provider
      * was registered for the prefix <tt>custom</tt>, and the image to be
      * rendered in the Markdown document was <tt>[blah](custom:the data]</tt>,
      * then the string passed where would be <tt>the data</tt>.
-     * <p/>
+     * <br>
      * If there is no appropriate image renderer (for example, for the built-in
      * item stack renderers: if the item definition is invalid), this should
      * return <tt>null</tt>, it should <em>never</em> throw an exception.

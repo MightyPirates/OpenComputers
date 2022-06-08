@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * This interface is kind of the opposite to FML's Optional annotations.
- * <p/>
+ * <br>
  * Instead of stripping interfaces if they are not present, it will inject them
  * when they <em>are</em> present. This helps with some strange cases where
  * stripping does not work as it should.
@@ -41,7 +41,7 @@ public final class Injectable {
 
         /**
          * The modid that is required to be present for the injecting to occur.
-         * <p/>
+         * <br>
          * Note that injection will not occur if the interface is not fully
          * implemented.
          */

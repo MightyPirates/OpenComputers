@@ -2,7 +2,7 @@ package li.cil.oc.api.fs;
 
 /**
  * Possible file modes.
- * <p/>
+ * <br>
  * This is used when opening files from a {@link FileSystem}.
  */
 public enum Mode {

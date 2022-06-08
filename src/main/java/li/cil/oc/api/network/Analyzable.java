@@ -5,20 +5,20 @@ import net.minecraft.entity.player.EntityPlayer;
 /**
  * Allows defining a callback for when a block is right-clicked with an
  * analyzer.
- * <p/>
+ * <br>
  * This has to be implemented by a {@link net.minecraft.tileentity.TileEntity},
  * else it will have no effect.
  */
 public interface Analyzable {
     /**
      * Called when a player uses the analyzer tool on the tile entity's block.
-     * <p/>
+     * <br>
      * This can be used to display additional block specific information in the
      * player's chat when the analyzer is used (or do whatever) and may also be
      * used to redirect the query to some other environment by returning some
      * other environment than <tt>this</tt>. The latter is used by multi-block
      * screens, for example, to always show information of the primary screen.
-     * <p/>
+     * <br>
      * Return <tt>null</tt> to suppress any further node information being
      * displayed.
      *

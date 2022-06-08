@@ -14,7 +14,7 @@ public interface ManagedPeripheral {
     /**
      * Get the list of methods provided by this environment, in
      * <em>addition</em> to methods marked as callbacks.
-     * <p/>
+     * <br>
      * Returning <tt>null</tt> has the same meaning as returning an empty array,
      * that being that there are no methods - in which case you don't need this
      * interface!
@@ -25,7 +25,7 @@ public interface ManagedPeripheral {
 
     /**
      * Calls a method from the list provided by {@link #methods()}.
-     * <p/>
+     * <br>
      *
      * @param method  the name of the method to call.
      * @param context the context from which the method is called.

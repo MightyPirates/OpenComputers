@@ -14,7 +14,7 @@ import java.util.ArrayList;
 /**
  * Basic implementation of a content provider based on Minecraft's resource
  * loading framework.
- * <p/>
+ * <br>
  * Beware that the manual is unaware of resource domains. In other words, two
  * paths that are identical except for their resource domain will be the same,
  * as seen from the manual. This means you should probably place your

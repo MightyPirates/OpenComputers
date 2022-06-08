@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 /**
  * Use this interface to implement item drivers extending the number of
  * components a server can control.
- * <p/>
+ * <br>
  * Note that the item must be installed in the actual server's inventory to
  * work. If it is installed in an external inventory the server will not
  * recognize the memory.
@@ -24,7 +24,7 @@ public interface Processor extends Item {
 
     /**
      * The architecture of this CPU.
-     * <p/>
+     * <br>
      * This usually controls which architecture is created for a machine the
      * CPU is installed in (this is true for all computers built into OC, such
      * as computer cases, server racks and robots, it my not be true for third-

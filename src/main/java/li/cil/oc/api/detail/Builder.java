@@ -14,7 +14,7 @@ import li.cil.oc.api.network.Visibility;
 public interface Builder<T extends Node> {
     /**
      * Finalizes the construction of the node.
-     * <p/>
+     * <br>
      * This performs the actual creation of the node, initializes it to the
      * settings defined by the current builder and returns it.
      *
@@ -29,7 +29,7 @@ public interface Builder<T extends Node> {
     public static interface NodeBuilder extends Builder<Node> {
         /**
          * Makes the node a component.
-         * <p/>
+         * <br>
          * Nodes that are components can be accessed from computers, methods
          * declared in them marked using the {@link li.cil.oc.api.machine.Callback} annotation can
          * be invoked from computers that can see the component.
@@ -43,7 +43,7 @@ public interface Builder<T extends Node> {
 
         /**
          * Makes the node a component.
-         * <p/>
+         * <br>
          * Like {@link #withComponent(String, Visibility)}, but with a default
          * visibility set to the <em>reachability</em> of the node.
          *
@@ -55,7 +55,7 @@ public interface Builder<T extends Node> {
 
         /**
          * Makes the node a connector.
-         * <p/>
+         * <br>
          * A connector node can feed power into the network and extract power
          * from the network. This is used both for passive energy drain (such
          * as running screens and computers) and for active power consumption
@@ -69,7 +69,7 @@ public interface Builder<T extends Node> {
 
         /**
          * Makes the node a connector.
-         * <p/>
+         * <br>
          * Like {@link #withConnector(double)}, but with a default buffer size
          * of zero.
          *
@@ -86,7 +86,7 @@ public interface Builder<T extends Node> {
     public static interface ComponentBuilder extends Builder<Component> {
         /**
          * Makes the node a connector.
-         * <p/>
+         * <br>
          * A connector node can feed power into the network and extract power
          * from the network. This is used both for passive energy drain (such
          * as running screens and computers) and for active power consumption
@@ -100,7 +100,7 @@ public interface Builder<T extends Node> {
 
         /**
          * Makes the node a connector.
-         * <p/>
+         * <br>
          * Like {@link #withConnector(double)}, but with a default buffer size
          * of zero.
          *
@@ -117,7 +117,7 @@ public interface Builder<T extends Node> {
     public static interface ConnectorBuilder extends Builder<Connector> {
         /**
          * Makes the node a component.
-         * <p/>
+         * <br>
          * Nodes that are components can be accessed from computers, methods
          * declared in them marked using the {@link li.cil.oc.api.machine.Callback} annotation can
          * be invoked from computers that can see the component.
@@ -131,7 +131,7 @@ public interface Builder<T extends Node> {
 
         /**
          * Makes the node a component.
-         * <p/>
+         * <br>
          * Like {@link #withComponent(String, Visibility)}, but with a default
          * visibility set to the <em>reachability</em> of the node.
          *

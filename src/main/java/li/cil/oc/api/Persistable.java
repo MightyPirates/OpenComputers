@@ -15,7 +15,7 @@ public interface Persistable {
 
     /**
      * Saves the current state of the object into the specified NBT tag.
-     * <p/>
+     * <br>
      * This should write the state in such a way that it can be restored when
      * {@link #load} is called with that tag.
      *

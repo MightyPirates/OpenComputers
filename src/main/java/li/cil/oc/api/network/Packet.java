@@ -5,9 +5,9 @@ import net.minecraft.nbt.NBTTagCompound;
 /**
  * These packets represent messages sent using a network card or wireless
  * network card, and can be relayed by the switch and access point blocks.
- * <p/>
+ * <br>
  * These will be sent as the payload of <tt>network.message</tt> messages.
- * <p/>
+ * <br>
  * <em>Important</em>: do <em>not</em> implement this interface. Use the factory
  * methods in {@link li.cil.oc.api.Network} instead.
  */
@@ -36,7 +36,7 @@ public interface Packet {
 
     /**
      * The size of the packet's payload.
-     * <p/>
+     * <br>
      * This is computed based on the types in the data array, but is only defined
      * for primitive types, i.e. null, boolean, integer, boolean byte array and
      * string. All other types do <em>not</em> contribute to the packet's size.
@@ -52,7 +52,7 @@ public interface Packet {
 
     /**
      * Generates a copy of the packet, with a reduced time to live.
-     * <p/>
+     * <br>
      * This is called by switches and access points to generate relayed packets.
      *
      * @return a copy of this packet with a reduced TTL.
@@ -61,7 +61,7 @@ public interface Packet {
 
     /**
      * Saves the packet's data to the specified compound tag.
-     * <p/>
+     * <br>
      * Restore a packet saved like this using the factory method in the
      * {@link li.cil.oc.api.Network} class.
      */

@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 /**
  * Base class for behaviors, mostly useful to have less cluttered classes when
  * you only need one or two of the methods in the interface.
- * <p/>
+ * <br>
  * This implementation will also store the player the behavior was created for.
  */
 public abstract class AbstractBehavior implements Behavior {

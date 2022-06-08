@@ -6,9 +6,9 @@ import java.io.FileNotFoundException;
 
 /**
  * Interface for file system driver compatible file systems.
- * <p/>
+ * <br>
  * See {@link li.cil.oc.api.FileSystem} for factory methods.
- * <p/>
+ * <br>
  * Note that all paths passed here are assumed to be absolute in the underlying
  * file system implementation, meaning they do not contain any "." or "..", and
  * are relative to the root of the file system. When wrapping a file system in
@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 public interface FileSystem extends Persistable {
     /**
      * Whether this file system is read-only.
-     * <p/>
+     * <br>
      * This is used to allow programs to check whether a file system can be
      * written to without trying to open a file for writing. Note that this is
      * merely used as an indicator. All mutating accessors should be implemented
@@ -31,7 +31,7 @@ public interface FileSystem extends Persistable {
 
     /**
      * The total storage capacity of the file system, in bytes.
-     * <p/>
+     * <br>
      * For read-only systems this should return zero, for writable file systems
      * that do not enforce a storage limit this should be a negative value.
      *
@@ -50,7 +50,7 @@ public interface FileSystem extends Persistable {
 
     /**
      * Tests if a file or directory exists at the specified path.
-     * <p/>
+     * <br>
      * This function should never throw.
      *
      * @param path the path to check at.
@@ -61,10 +61,10 @@ public interface FileSystem extends Persistable {
 
     /**
      * Gets the size of a file.
-     * <p/>
+     * <br>
      * For files this should return the actual length of the file, in bytes. For
      * folders this should return zero.
-     * <p/>
+     * <br>
      * If the path is invalid this should return zero. It should never throw.
      *
      * @param path the path to get the size for.
@@ -74,7 +74,7 @@ public interface FileSystem extends Persistable {
 
     /**
      * Tests whether the object at the specified path is a directory.
-     * <p/>
+     * <br>
      * If the path is invalid (i.e. there is neither a file nor a directory at
      * the specified location) this should also return false. It should never
      * throw.
@@ -87,12 +87,12 @@ public interface FileSystem extends Persistable {
     /**
      * Gets the timestamp of the last time the file at the specified path was
      * written to.
-     * <p/>
+     * <br>
      * For folders this should be the time they were created.
-     * <p/>
+     * <br>
      * If the path is invalid (i.e. there is neither a file nor a directory at
      * the specified location) this should return zero. It should never throw.
-     * <p/>
+     * <br>
      * For read-only systems this may be zero for all queries.
      *
      * @param path the path to the object to get the last modified time of.
@@ -102,15 +102,15 @@ public interface FileSystem extends Persistable {
 
     /**
      * Gets a list of all items in the specified folder.
-     * <p/>
+     * <br>
      * This must return the actual object names in the specified parent folder,
      * not their full path. For example, for a file at <tt>/home/test</tt>, when
      * doing <tt>list("/home/")</tt> this should return <tt>["test"]</tt>,
      * <em>not</em> <tt>["/home/test"]</tt>.
-     * <p/>
+     * <br>
      * Sub-folders should be returned with a trailing slash, to indicate that
      * they are folders.
-     * <p/>
+     * <br>
      * If the folder is empty this should return an empty array.
      *
      * @param path the path to the folder to get the contents of.
@@ -124,11 +124,11 @@ public interface FileSystem extends Persistable {
 
     /**
      * Deletes a file or folder.
-     * <p/>
+     * <br>
      * This only has to support deleting single files and empty folders. If a
      * directory is non-empty this may return <tt>false</tt>. If the target
      * object does not exists it should return <tt>false</tt>.
-     * <p/>
+     * <br>
      * This is only available for writable file systems. For read-only systems
      * it should always return <tt>false</tt>.
      *
@@ -140,11 +140,11 @@ public interface FileSystem extends Persistable {
 
     /**
      * Create the specified directory.
-     * <p/>
+     * <br>
      * This should always only create a single directory. If the parent
      * directory does not exists it should return <tt>false</tt>. If the target
      * object already exists it should also return <tt>false</tt>.
-     * <p/>
+     * <br>
      * This is only available for writable file systems. For read-only systems
      * it should always return <tt>false</tt>.
      *
@@ -155,7 +155,7 @@ public interface FileSystem extends Persistable {
 
     /**
      * Moves / renames a file or folder.
-     * <p/>
+     * <br>
      * This is only available for writable file systems. For read-only systems
      * it should always return false.
      *
@@ -169,12 +169,12 @@ public interface FileSystem extends Persistable {
 
     /**
      * Sets the time a file or folder was supposedly last modified.
-     * <p/>
+     * <br>
      * This is not available to the user side via the file system driver. It is
      * intended to be used when initializing a file system to a set of known
      * modification times (for example, this is used when creating a virtual
      * file system from a set of real files).
-     * <p/>
+     * <br>
      * Read-only file systems may ignore this request.
      *
      * @param path the path of the object for which to set the modification time.
@@ -188,15 +188,15 @@ public interface FileSystem extends Persistable {
 
     /**
      * Opens a file for reading or writing.
-     * <p/>
+     * <br>
      * This should create some internal handle to the file, based on the mode
      * specified. A unique ID corresponding to that handle should be returned.
      * This ID can be used in {@link #getHandle} to get an abstract wrapper for
      * the handle, and to allow interaction with the file.
-     * <p/>
+     * <br>
      * It is the responsibility of the file system to restore all handles to
      * their previous state when it is reloaded (game loaded for example).
-     * <p/>
+     * <br>
      * <em>Important</em>: you should return a random value as the handle, to
      * reduce the chance for conflicts. For example, a file system may be used
      * in a compound of file systems (e.g. for the ROM of machines), in which
@@ -214,10 +214,10 @@ public interface FileSystem extends Persistable {
 
     /**
      * Gets a wrapper for a file previously opened using {@link #open}.
-     * <p/>
+     * <br>
      * The wrapper allows interaction with the underlying file (stream) based
      * on the mode it was opened in. See {@link Handle} for more details.
-     * <p/>
+     * <br>
      * If there is no such handle, this should return <tt>null</tt>, but never
      * throw.
      *
@@ -229,12 +229,12 @@ public interface FileSystem extends Persistable {
 
     /**
      * Called when the file system is destroyed.
-     * <p/>
+     * <br>
      * This should close any open real file handles (e.g. all open I/O streams),
      * but keep any internal state that may have to be persisted, for example
      * for floppy disks (which are removed before they are saved so they don't
      * save any open handles).
-     * <p/>
+     * <br>
      * When the filesystem is made available as a network node created via
      * one of the factory functions in {@link li.cil.oc.api.FileSystem} this
      * will be called whenever the node is disconnected from its network. If

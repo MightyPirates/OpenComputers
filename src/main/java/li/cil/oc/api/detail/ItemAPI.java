@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 public interface ItemAPI {
     /**
      * Get a descriptor object for the block or item with the specified name.
-     * <p/>
+     * <br>
      * The names are the same as the ones used in the recipe files. An info
      * object can be used to retrieve both the block and item instance of the
      * item, if available. It can also be used to create a new item stack of
@@ -32,17 +32,17 @@ public interface ItemAPI {
 
     /**
      * Register a single loot floppy disk.
-     * <p/>
+     * <br>
      * The disk will be listed in the creative tab of OpenComputers.
-     * <p/>
+     * <br>
      * The specified factory callable will be used to generate a new file
      * system when the loot disk is used as a component. The specified name
      * will be used as the label for the loot disk, as well as the identifier
      * to select the corresponding factory method, so choose wisely.
-     * <p/>
+     * <br>
      * To use some directory in your mod JAR as the directory provided by the
      * loot disk, use {@link FileSystem#fromClass} in your callable.
-     * <p/>
+     * <br>
      * Call this in the init phase or later, <em>not</em> in pre-init.
      *
      * @param name    the label and identifier to use for the loot disk.
@@ -58,20 +58,20 @@ public interface ItemAPI {
 
     /**
      * Register a single loot floppy disk.
-     * <p/>
+     * <br>
      * The disk will be listed in the creative tab of OpenComputers.
-     * <p/>
+     * <br>
      * The specified factory callable will be used to generate a new file
      * system when the loot disk is used as a component. The specified name
      * will be used as the label for the loot disk, as well as the identifier
      * to select the corresponding factory method, so choose wisely.
-     * <p/>
+     * <br>
      * To use some directory in your mod JAR as the directory provided by the
      * loot disk, use {@link FileSystem#fromClass} in your callable.
-     * <p/>
+     * <br>
      * If <tt>doRecipeCycling</tt> is <tt>true</tt>, the floppy disk will be
      * included in the floppy disk recipe cycle if that is enabled.
-     * <p/>
+     * <br>
      * Call this in the init phase or later, <em>not</em> in pre-init.
      *
      * @param name    the label and identifier to use for the loot disk.
@@ -86,13 +86,13 @@ public interface ItemAPI {
 
     /**
      * Register a single custom EEPROM.
-     * <p/>
+     * <br>
      * The EEPROM will be listed in the creative tab of OpenComputers.
-     * <p/>
+     * <br>
      * The EEPROM will be initialized with the specified code and data byte
      * arrays. For script code (e.g. a Lua script) use <tt>String.getBytes("UTF-8")</tt>.
      * You can omit any of the arguments by passing <tt>null</tt>.
-     * <p/>
+     * <br>
      * Call this in the init phase or later, <em>not</em> in pre-init.
      *
      * @param name     the label of the EEPROM.

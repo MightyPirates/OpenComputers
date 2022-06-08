@@ -20,7 +20,7 @@ import net.minecraftforge.fluids.IFluidHandler
 object FluidUtils {
   /**
    * Retrieves an actual fluid handler implementation for a specified world coordinate.
-   * <p/>
+   * <br>
    * This performs special handling for in-world liquids.
    */
   def fluidHandlerAt(position: BlockPosition): Option[IFluidHandler] = position.world match {
@@ -33,11 +33,11 @@ object FluidUtils {
 
   /**
    * Transfers some fluid between two fluid handlers.
-   * <p/>
+   * <br>
    * This will try to extract up the specified amount of fluid from any handler,
    * then insert it into the specified sink handler. If the insertion fails, the
    * fluid will remain in the source handler.
-   * <p/>
+   * <br>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
   def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: ForgeDirection, sink: IFluidHandler, sinkSide: ForgeDirection, limit: Int = FluidContainerRegistry.BUCKET_VOLUME) : Int = {
@@ -52,7 +52,7 @@ object FluidUtils {
   /**
    * Utility method for calling <tt>transferBetweenFluidHandlers</tt> on handlers
    * in the world.
-   * <p/>
+   * <br>
    * This uses the <tt>fluidHandlerAt</tt> method, and therefore handles special
    * cases such as fluid blocks.
    */

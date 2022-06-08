@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 
 /**
  * This interface can be implemented on items that go into a charger.
- * <p/>
+ * <br>
  * This provides a generic way of charging items, even such that are not
  * components. Doing it this way enables items to provide another environment,
  * that is unrelated to charging, such as tablets providing their file system,
@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 public interface Chargeable {
     /**
      * Whether the specified item stack can be charged.
-     * <p/>
+     * <br>
      * This is primarily meant to filter meta item subitems that are not meant
      * to be chargeable.
      *
@@ -24,7 +24,7 @@ public interface Chargeable {
 
     /**
      * Called when checking if an item can be charged or should be charged.
-     * <p/>
+     * <br>
      * To discharge an item, pass a negative value.
      *
      * @param stack    the item to charge.

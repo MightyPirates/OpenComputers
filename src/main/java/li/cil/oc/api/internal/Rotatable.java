@@ -8,13 +8,13 @@ import net.minecraftforge.common.util.ForgeDirection;
  * allow getting the facing of the tile entity passed to their drivers'
  * {@link li.cil.oc.api.driver.Item#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.network.EnvironmentHost)}
  * method.
- * <p/>
+ * <br>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
 public interface Rotatable {
     /**
      * The current facing of a tile entity implementing this interface.
-     * <p/>
+     * <br>
      * Intended to be used to query the orientation of an item components' host.
      * For example:
      * <pre>
@@ -37,7 +37,7 @@ public interface Rotatable {
      * Converts a facing relative to the block's <em>local</em> coordinate
      * system to a <tt>global orientation</tt>, using south as the standard
      * orientation.
-     * <p/>
+     * <br>
      * For example, if the block is facing east, calling this with south will
      * return east, calling it with west will return south and so on.
      *
@@ -50,7 +50,7 @@ public interface Rotatable {
      * Converts a <tt>global</tt> orientation to a facing relative to the
      * block's <em>local</em> coordinate system, using south as the standard
      * orientation.
-     * <p/>
+     * <br>
      * For example, if the block is facing east, calling this with south will
      * return east, calling it with west will return north and so on.
      *

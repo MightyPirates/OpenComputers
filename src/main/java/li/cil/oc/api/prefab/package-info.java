@@ -1,6 +1,6 @@
 /**
  * This package provides base implementations of some interfaces.
- * <p/>
+ * <br>
  * This is provided for convenience only, you do not have to use these classes,
  * you are free to fully implement them yourself. You may also copy these
  * classes and / or rename them if you wish. Just don't make changes to them

@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * existing methods will be moved. This allows transparent injection of our
  * functionality, i.e. existing validate() etc. methods will be called as
  * if we didn't inject our code.
- * <p/>
+ * <br>
  * Yes, the names are not "conventional", but that is by design, to avoid
  * naming collisions.
  */

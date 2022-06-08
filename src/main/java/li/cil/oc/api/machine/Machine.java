@@ -25,10 +25,10 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The underlying architecture of the machine.
-     * <p/>
+     * <br>
      * This is what actually evaluates code running on the machine, where the
      * machine class itself serves as a scheduler.
-     * <p/>
+     * <br>
      * This may be <tt>null</tt>, for example when the hosting computer has
      * no CPU installed.
      *
@@ -38,12 +38,12 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The list of components attached to this machine.
-     * <p/>
+     * <br>
      * This maps address to component type/name. Note that the list may not
      * immediately reflect changes after components were added to the network,
      * since such changes are cached in an internal list of 'added components'
      * that are processed in the machine's update logic (i.e. server tick).
-     * <p/>
+     * <br>
      * This list is kept up-to-date automatically, do <em>not</em> mess with it.
      *
      * @return the list of attached components.
@@ -52,7 +52,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The number of connected components.
-     * <p/>
+     * <br>
      * This number can differ from <tt>components().size()</tt>, since this is
      * the number of actually <em>connected</em> components, which is used to
      * determine whether the component limit has been exceeded, for example. It
@@ -65,7 +65,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The maximum number of components this machine can currently support.
-     * <p/>
+     * <br>
      * This is automatically recomputed based on the hosts internal components
      * whenever the host calls {@link li.cil.oc.api.machine.Machine#onHostChanged()}.
      *
@@ -94,7 +94,7 @@ public interface Machine extends ManagedEnvironment, Context {
      * (tmpfs). This may return <tt>null</tt> if either the creation of the file
      * system failed, or if the size of the tmpfs has been set to zero in the
      * config.
-     * <p/>
+     * <br>
      * Use this in a custom architecture to allow code do differentiate the
      * tmpfs from other file systems, for example.
      *
@@ -104,11 +104,11 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * A string with the last error message.
-     * <p/>
+     * <br>
      * The error string is set either when the machine crashes (see the
      * {@link #crash(String)} method), or when it fails to start (which,
      * technically, is also a crash).
-     * <p/>
+     * <br>
      * When the machine started, this is reset to <tt>null</tt>.
      *
      * @return the last error message, or <tt>null</tt>.
@@ -118,7 +118,7 @@ public interface Machine extends ManagedEnvironment, Context {
     /**
      * The current world time. This is updated each tick and provides a thread
      * safe way to access the world time for architectures.
-     * <p/>
+     * <br>
      * This is equivalent to <tt>owner().world().getWorldTime()</tt>.
      *
      * @return the current world time.
@@ -127,7 +127,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The time that has passed since the machine was started, in seconds.
-     * <p/>
+     * <br>
      * Note that this is actually measured in world time, so the resolution is
      * pretty limited. This is done to avoid 'time skips' when leaving the game
      * and coming back later, resuming a persisted machine.
@@ -145,18 +145,18 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Play a sound using the machine's built-in speaker.
-     * <p/>
+     * <br>
      * This is what's used to emit beep codes when an error occurs while trying
      * to start the computer, for example, and what's used for playing sounds
      * when <tt>computer.beep</tt> is called.
-     * <p/>
+     * <br>
      * Be responsible in how you limit calls to this, as each call will cause
      * a packet to be sent to all nearby clients, and will cause the receiving
      * clients to generate the required sound sample on-the-fly. It is
      * therefore recommended to not call this too frequently, and to limit the
      * length of the sound to something relatively short (not longer than a few
      * seconds at most).
-     * <p/>
+     * <br>
      * The audio will be played at the machine's host's location.
      *
      * @param frequency the frequency of the tone to generate.
@@ -166,20 +166,20 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Utility method for playing beep codes.
-     * <p/>
+     * <br>
      * The underlying functionality is similar to that of {@link #beep(short, short)},
      * except that this will play tones at a fixed frequency, and two different
      * durations - in a pattern as defined in the passed string.
-     * <p/>
+     * <br>
      * This is useful for generating beep codes, such as for boot errors. It
      * has the advantage of only generating a single network packet, and
      * generating a single, longer sound sample for the full pattern. As such
      * the same considerations should be made as for {@link #beep(short, short)},
      * i.e. prefer not to use overly long patterns.
-     * <p/>
+     * <br>
      * The passed pattern must consist of dots (<tt>.</tt>) and dashes (<tt>-</tt>),
      * where a dot is short tone, and a dash is a long tone.
-     * <p/>
+     * <br>
      * The audio will be played at the machine's host's location.
      *
      * @param pattern the beep pattern to play.
@@ -188,7 +188,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Crashes the computer.
-     * <p/>
+     * <br>
      * This is exactly the same as {@link Context#stop()}, except that it also
      * sets the error message in the machine. This message can be seen when the
      * Analyzer is used on computer cases, for example.
@@ -200,7 +200,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Tries to pop a signal from the queue and returns it.
-     * <p/>
+     * <br>
      * Signals are stored in a FIFO queue of limited size. This method is / must
      * be called by architectures regularly to process the queue.
      *
@@ -210,7 +210,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Get a list of all methods and their annotations of the specified object.
-     * <p/>
+     * <br>
      * The specified object can be either a {@link li.cil.oc.api.machine.Value}
      * or a {@link li.cil.oc.api.network.Environment}. This is useful for
      * custom architectures, to allow providing a list of callback methods to
@@ -223,11 +223,11 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Makes the machine call a component callback.
-     * <p/>
+     * <br>
      * This is intended to be used from architectures, but may be useful in
      * other scenarios, too. It will make the machine call the method with the
      * specified name on the attached component with the specified address.
-     * <p/>
+     * <br>
      * This will perform a visibility check, ensuring the component can be seen
      * from the machine. It will also ensure that the direct call limit for
      * individual callbacks is respected.
@@ -246,11 +246,11 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Makes the machine call a value callback.
-     * <p/>
+     * <br>
      * This is intended to be used from architectures, but may be useful in
      * other scenarios, too. It will make the machine call the method with the
      * specified name on the specified value.
-     * <p/>
+     * <br>
      * This will will ensure that the direct call limit for individual
      * callbacks is respected.
      *
@@ -270,7 +270,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * The list of users registered on this machine.
-     * <p/>
+     * <br>
      * This list is used for {@link Context#canInteract(String)}. Exposed for
      * informative purposes only, for example to expose it to user code. Note
      * that the returned array is a copy of the internal representation of the
@@ -282,7 +282,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Add a player to the machine's list of users, by username.
-     * <p/>
+     * <br>
      * This requires for the player to be online.
      *
      * @param name the name of the player to add as a user.
@@ -298,7 +298,7 @@ public interface Machine extends ManagedEnvironment, Context {
 
     /**
      * Removes a player as a user from this machine, by username.
-     * <p/>
+     * <br>
      * Unlike when adding players, the player does <em>not</em> have to be
      * online to be removed from the list.
      *
