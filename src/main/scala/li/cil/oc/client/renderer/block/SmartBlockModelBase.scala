@@ -2,7 +2,6 @@ package li.cil.oc.client.renderer.block
 
 import java.util
 import java.util.Collections
-
 import li.cil.oc.client.Textures
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
@@ -11,6 +10,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.Vec3d
+import net.minecraftforge.common.ForgeModContainer
 import org.lwjgl.util.vector.Vector3f
 
 trait SmartBlockModelBase extends IBakedModel {
@@ -189,13 +189,19 @@ trait SmartBlockModelBase extends IBakedModel {
     )
   }
 
-  // See FaceBakery.
   protected def getFaceShadeColor(face: EnumFacing, colorRGB: Int): Int = {
-    val brightness = getFaceBrightness(face)
-    val b = (colorRGB >> 16) & 0xFF
-    val g = (colorRGB >> 8) & 0xFF
-    val r = colorRGB & 0xFF
-    0xFF000000 | shade(r, brightness) << 16 | shade(g, brightness) << 8 | shade(b, brightness)
+    if (ForgeModContainer.forgeLightPipelineEnabled) {
+      // Forge's light pipeline uses a separate lighting stage.
+      0xFF000000 | colorRGB
+    } else {
+      // See FaceBakery.
+      // TODO: This still doesn't look right on non-solid blocks (compare print3d/stairs.3dm).
+      val brightness = getFaceBrightness(face)
+      val b = (colorRGB >> 16) & 0xFF
+      val g = (colorRGB >> 8) & 0xFF
+      val r = colorRGB & 0xFF
+      0xFF000000 | shade(r, brightness) << 16 | shade(g, brightness) << 8 | shade(b, brightness)
+    }
   }
 
   private def shade(value: Int, brightness: Float) = (brightness * value).toInt max 0 min 255
