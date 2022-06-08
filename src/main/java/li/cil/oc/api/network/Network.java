@@ -2,30 +2,30 @@ package li.cil.oc.api.network;
 
 /**
  * Interface for interacting with networks.
- * <p/>
+ * <br>
  * Computers and components form ad-hoc "networks" when placed next to each
  * other. They allow computers to communicate with the components attached to
  * them (and nodes amongst each other) by using the network as an index
  * structure.
- * <p/>
+ * <br>
  * There are three types of nodes:
  * <ul>
  * <li>{@link Node}, the most basic form.</li>
  * <li>{@link Component}, used to expose callbacks to user code.</li>
  * <li>{@link Connector}, used for consuming of producing energy.</li>
  * </ul>
- * <p/>
+ * <br>
  * See <tt>Node</tt> for more details on the behavior of single nodes, and in
  * particular how nodes represented by tile entities should be added.
- * <p/>
+ * <br>
  * Another important concept of node networks is reachability and visibility,
  * see {@link Visibility}.
- * <p/>
+ * <br>
  * Note that network access in general is <em>not</em> thread safe! Networks
  * should only be accessed from the main server thread. The exception are the
  * connector nodes, which can be used to consume or produce energy from other
  * threads.
- * <p/>
+ * <br>
  * IMPORTANT: do *not* implement this interface yourself and create
  * instances of your own network implementation; this will lead to
  * incompatibilities with the built-in network implementation (which can only
@@ -35,14 +35,14 @@ package li.cil.oc.api.network;
 public interface Network {
     /**
      * Adds a new node connection in the network.
-     * <p/>
+     * <br>
      * This is used by nodes to join an existing network. At least one of the two
      * nodes must already be in the network. If one of the nodes is not yet in the
      * network, it will be added to the network. If both nodes are already in the
      * network only the connection between the two nodes is added. If one of the
      * nodes is not in this network but in another network, the networks will be
      * merged.
-     * <p/>
+     * <br>
      * This way of adding nodes is used to build an internal graph to allow
      * properly splitting networks when nodes are removed.
      *
@@ -56,9 +56,9 @@ public interface Network {
 
     /**
      * Removes a node connection in the network.
-     * <p/>
+     * <br>
      * Both nodes must be part of this network.
-     * <p/>
+     * <br>
      * This can be useful for cutting connections that depend on some condition
      * that does not involve the nodes' actual existence in the network, such as
      * the distance between two nodes, for example (think access points of a
@@ -73,7 +73,7 @@ public interface Network {
 
     /**
      * Removes a node from the network.
-     * <p/>
+     * <br>
      * This should be called by nodes when they are destroyed (e.g. in
      * {@link net.minecraft.tileentity.TileEntity#invalidate()}) or unloaded
      * (e.g. in {@link net.minecraft.tileentity.TileEntity#onChunkUnload()}).
@@ -104,13 +104,13 @@ public interface Network {
 
     /**
      * The list of addressed nodes in the network reachable by the specified node.
-     * <p/>
+     * <br>
      * This does <em>not</em> include nodes with a visibility of <tt>None</tt>
      * or a visibility of <tt>Neighbors</tt> when there is no direct connection
      * between that node and the reference node.
-     * <p/>
+     * <br>
      * This does <em>not</em> include the node itself.
-     * <p/>
+     * <br>
      * This can be useful when performing a delayed initialization of a node.
      * For example, computers will use this when starting up to generate
      * <tt>component_added</tt> signals for all visible components in the
@@ -123,11 +123,11 @@ public interface Network {
 
     /**
      * The list of nodes the specified node is directly connected to.
-     * <p/>
+     * <br>
      * This <em>does</em> include nodes with a visibility of <tt>None</tt>.
-     * <p/>
+     * <br>
      * This does <em>not</em> include the node itself.
-     * <p/>
+     * <br>
      * This can be used to verify arguments for components that should only work
      * for other components that are directly connected to them, for example.
      *
@@ -141,13 +141,13 @@ public interface Network {
 
     /**
      * Sends a message to the node with the specified address.
-     * <p/>
+     * <br>
      * If the target node with that address has a visibility of <tt>None</tt>
      * the message will <em>not</em> be delivered to that node. If the target
      * node with that address has a visibility of <tt>Neighbors</tt> and the
      * source node is not directly connected to the target the message will
      * <em>not</em> be delivered to that node.
-     * <p/>
+     * <br>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
@@ -164,10 +164,10 @@ public interface Network {
 
     /**
      * Sends a message to all addressed, visible neighbors of the source node.
-     * <p/>
+     * <br>
      * Targets are determined using {@link #neighbors(Node)} and additionally
      * filtered for reachability (so that unreachable nodes are ignored).
-     * <p/>
+     * <br>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
@@ -184,9 +184,9 @@ public interface Network {
 
     /**
      * Sends a message to all addressed nodes reachable to the source node.
-     * <p/>
+     * <br>
      * Targets are determined using {@link #nodes(Node)}.
-     * <p/>
+     * <br>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
@@ -202,13 +202,13 @@ public interface Network {
 
     /**
      * Sends a message to all addressed nodes visible to the source node.
-     * <p/>
+     * <br>
      * Targets are determined using {@link #nodes(Node)} and additionally
      * filtered for visibility (so that invisible nodes are ignored).
-     * <p/>
+     * <br>
      * Note that messages sent this way are <em>only</em> delivered to other
      * components. The message will <em>not</em> be delivered to normal nodes.
-     * <p/>
+     * <br>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to

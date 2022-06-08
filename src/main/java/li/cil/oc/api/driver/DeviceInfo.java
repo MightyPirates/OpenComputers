@@ -6,20 +6,20 @@ import java.util.Map;
  * Implement this on {@link li.cil.oc.api.network.Environment}s if you wish to
  * expose some (typically static) information about the device represented by
  * that environment to a {@link li.cil.oc.api.Machine} connected to it.
- * <p/>
+ * <br>
  * You may also implement this on a {@link li.cil.oc.api.machine.MachineHost}
  * in which case the <code>Machine</code> will forward that information as
  * its own (since <code>MachineHost</code>s usually use the machine's node as
  * their own, this avoids a dummy environment used solely for device info).
- * <p/>
+ * <br>
  * This is intended to permit programs to reflect on the hardware they are
  * running on, typically for purely informational purposes, but possibly to
  * toggle certain hardware specific features.
- * <p/>
+ * <br>
  * For example, graphics cards may expose their timings via this interface, so
  * that programs may determine at what speed they can redraw, and optimize
  * execution order.
- * <p/>
+ * <br>
  * While the format of the returned table of information is entirely up to you,
  * it is recommended to orient yourself on the key values and names that
  * <code>lshw</code> uses (http://www.ezix.org/project/wiki/HardwareLiSter),
@@ -28,16 +28,16 @@ import java.util.Map;
 public interface DeviceInfo {
     /**
      * Compile a list of device information strings as key-value pairs.
-     * <p/>
+     * <br>
      * For example, this may list the type of the device, a vendor (for example
      * your mod name, or something more creative if you like), specifications
      * of the device (speeds, capacities).
-     * <p/>
+     * <br>
      * For example, OC's tier one memory module returns the following:
-     * <table>
+     * <table summary="Example table of device information.">
      * <tr><td>class</td><td>memory</td></tr>
      * <tr><td>description</td><td>Memory bank</td></tr>
-     * <tr><td>vendor</td><td>MightyPirates GmbH & Co. KG</td></tr>
+     * <tr><td>vendor</td><td>MightyPirates GmbH &amp; Co. KG</td></tr>
      * <tr><td>product</td><td>Multipurpose RAM Type</td></tr>
      * <tr><td>clock</td><td>500</td></tr>
      * </table>
@@ -48,11 +48,11 @@ public interface DeviceInfo {
 
     /**
      * Recommended list of key values for the device info table.
-     * <p/>
+     * <br>
      * You are strongly encouraged to at least define <code>class</code>, <code>description</code>,
      * <code>vendor</code> and <code>product</code>, to allow a more homogenous experience for the
      * end-user reading this information via a script.
-     * <p/>
+     * <br>
      * Feel free to be somewhat... flexible with the designated uses of these fields. For example,
      * the capacity and size fields have differing meaning depending on the device in OpenComputers
      * itself (e.g. they're used for maximum number of characters for graphics cards, width is
@@ -76,7 +76,7 @@ public interface DeviceInfo {
 
     /**
      * Recommended list of values for the <code>class</code> attribute (see above).
-     * <p/>
+     * <br>
      * Again, feel free to be somewhat creative with those. When in doubt, use <code>generic</code>.
      */
     final class DeviceClass {

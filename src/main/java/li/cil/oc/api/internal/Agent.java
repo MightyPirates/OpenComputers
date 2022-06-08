@@ -12,10 +12,10 @@ import java.util.UUID;
 public interface Agent extends MachineHost, Rotatable {
     /**
      * The equipment inventory of this agent.
-     * <p/>
+     * <br>
      * For example, for the robot this is the tool slot as well as slots
      * provided by containers installed in the robot, if any.
-     * <p/>
+     * <br>
      * If an agent has no equipment slots this will be a zero-sized inventory.
      */
     IInventory equipmentInventory();
@@ -23,14 +23,14 @@ public interface Agent extends MachineHost, Rotatable {
     /**
      * The main inventory of this agent, which it (usually) also can
      * interact with on its own.
-     * <p/>
+     * <br>
      * If an agent has no inventory slots this will be a zero-sized inventory.
      */
     IInventory mainInventory();
 
     /**
      * Provides access to the tanks of the agent.
-     * <p/>
+     * <br>
      * If an agent has no tanks this will be a zero-sized multi-tank.
      */
     MultiTank tank();
@@ -58,11 +58,11 @@ public interface Agent extends MachineHost, Rotatable {
     /**
      * Returns the fake player used to represent the agent as an entity for
      * certain actions that require one.
-     * <p/>
+     * <br>
      * This will automatically be positioned and rotated to represent the
      * agent's current position and rotation in the world. Use this to trigger
      * events involving the agent that require a player entity.
-     * <p/>
+     * <br>
      * Note that this <em>may</em> be the common OpenComputers fake player.
      *
      * @return the fake player for the agent.

@@ -22,7 +22,7 @@ public class RobotUsedToolEvent extends RobotEvent {
      * The rate at which the used tool should lose durability, where one means
      * it loses durability at full speed, zero means it doesn't lose durability
      * at all.
-     * <p/>
+     * <br>
      * This value is in an interval of [0, 1].
      */
     public double getDamageRate() {
@@ -42,7 +42,7 @@ public class RobotUsedToolEvent extends RobotEvent {
 
         /**
          * Set the rate at which the tool actually gets damaged.
-         * <p/>
+         * <br>
          * This will be clamped to an iterval of [0, 1].
          *
          * @param damageRate the new damage rate.

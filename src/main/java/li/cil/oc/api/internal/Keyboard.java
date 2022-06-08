@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 /**
  * This interface is implemented by the keyboard component, to allow more
  * flexible use of it.
- * <p/>
+ * <br>
  * You can obtain an instance of the keyboard component via the item driver
  * of the keyboard block, for example:
  * <pre>
@@ -18,11 +18,11 @@ import net.minecraft.entity.player.EntityPlayer;
 public interface Keyboard extends Environment, Persistable {
     /**
      * Sets a custom usability override.
-     * <p/>
+     * <br>
      * Instead of the default check, which is based on the component's owner's
      * position, the specified callback will be queried for usability checks
      * instead.
-     * <p/>
+     * <br>
      * Pass <tt>null</tt> here to unset a previously set override.
      *
      * @param callback the usability checker to use.

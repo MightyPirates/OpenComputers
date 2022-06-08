@@ -10,13 +10,13 @@ import org.apache.commons.lang3.tuple.Pair;
 /**
  * This is a pure utility class to more comfortably register things that can
  * only be registered using IMC.
- * <p/>
+ * <br>
  * Use this if you have some kind of abstraction layer in place anyway, and can
  * safely use the API without class not found exceptions and such, and don't
  * want to put together the IMC messages manually.
- * <p/>
+ * <br>
  * This also servers to document of all IMC messages OpenComputers handles.
- * <p/>
+ * <br>
  * Feel free to copy these functions into your own code, just please don't
  * copy this class while keeping the package name, to avoid conflicts if this
  * class gets updated.
@@ -41,12 +41,12 @@ public final class IMC {
      * Any templates that require a base item that is rejected by <em>any</em>
      * registered filter will be disabled. For example, if a filter rejects the
      * computer case item stacks, robots can not be assembled.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean callback(ItemStack stack)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -58,7 +58,7 @@ public final class IMC {
 
     /**
      * Register a new template for the assembler.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean select(ItemStack stack)
@@ -81,7 +81,7 @@ public final class IMC {
      * // The assembled device and energy cost (which also determines assembly duration).
      * new Object[]{ItemStack, Number}
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -171,19 +171,19 @@ public final class IMC {
 
     /**
      * Register a new template for the disassembler.
-     * <p/>
+     * <br>
      * The <tt>disassemble</tt> callback gets passed the item stack to
      * disassemble, and a list of inferred ingredients (based on crafting
      * recipes). This is useful for not having to compute those yourself when
      * you just want to add a number of items from an internal inventory to
      * the output (e.g. for servers it's the components in the server).
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean select(ItemStack stack)
      * Object disassemble(ItemStack stack, ItemStack[] ingredients)
      * </pre>
-     * <p/>
+     * <br>
      * Where the <code>Object</code> returned from the <code>disassemble</code>
      * method must be one of the following:
      * <ul>
@@ -191,7 +191,7 @@ public final class IMC {
      * <li><code>Object[]{ItemStack[],ItemStack[]}</code>: two lists of resulting items, the first being subject to
      * random failure, the second being guaranteed drops (e.g. for item inventory contents).</li>
      * </ul>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -215,19 +215,19 @@ public final class IMC {
 
     /**
      * Register a callback for providing tool durability information.
-     * <p/>
+     * <br>
      * If your provider does not handle a tool/item, return <tt>Double.NaN</tt>
      * to indicate that another provider should be queried. The first value
      * that isn't <tt>NaN</tt> will be used as the durability.
-     * <p/>
+     * <br>
      * The returned value must be the <em>relative</em> durability of the tool,
      * in a range of [0,1], with 0 being broken, 1 being new/fully repaired.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * double callback(ItemStack stack)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -239,19 +239,19 @@ public final class IMC {
 
     /**
      * Register a callback handling a wrench tool.
-     * <p/>
+     * <br>
      * These are used when determining whether an item is a wrench tool, when
      * interacting with certain blocks while the player is holding such an item,
      * for example to avoid rotating blocks when opening their GUI.
-     * <p/>
+     * <br>
      * The returned value must be <tt>true</tt> if the wrench was used/usable,
      * <tt>false</tt> otherwise.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean callback(EntityPlayer player, BlockPos pos, boolean changeDurability)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -263,18 +263,18 @@ public final class IMC {
 
     /**
      * Register a callback for checking if an item is a wrench.
-     * <p/>
+     * <br>
      * This is used to determine whether certain item stacks are wrench items,
      * which is used, for example, when "itemizing" a drone.
-     * <p/>
+     * <br>
      * The returned value must <tt>true</tt> if the item stack is a wrench,
      * <tt>false</tt> otherwise.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean callback(ItemStack stack)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -286,19 +286,19 @@ public final class IMC {
 
     /**
      * Register a handler for items that can be charged.
-     * <p/>
+     * <br>
      * This is used by the charger to determine whether items can be charged
      * by it (<tt>canCharge</tt>) and to actually charge them (<tt>charge</tt>).
-     * <p/>
+     * <br>
      * Note that OpenComputers comes with a few built-in handlers for third-
      * party charged items, such as Redstone Flux and IndustrialCraft 2.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * boolean canCharge(ItemStack stack)
      * double charge(ItemStack stack, double amount, boolean simulate)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -316,19 +316,19 @@ public final class IMC {
 
     /**
      * Register a provider for ink usable in the 3D printer.
-     * <p/>
+     * <br>
      * Default providers in OpenComputers are one for the ink cartridges as
      * well as one for arbitrary dyes (via the OreDictionary).
-     * <p/>
+     * <br>
      * Use this to make other items usable as ink in the 3D printer. Return a
      * value larger than zero to indicate you handled the provided item stack,
      * with the value being the amount of ink provided by the stack.
-     * <p/>
+     * <br>
      * Signature of callbacks must be:
      * <pre>
      * int callback(ItemStack stack)
      * </pre>
-     * <p/>
+     * <br>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
      * For example: <tt>com.example.Integration.callbackMethod</tt>.
      *
@@ -341,7 +341,7 @@ public final class IMC {
     /**
      * Blacklist a ComputerCraft peripheral from being wrapped by OpenComputers'
      * built-in driver for ComputerCraft peripherals.
-     * <p/>
+     * <br>
      * Use this if you provide a driver for something that is a peripheral and
      * wish to avoid conflicts in the registered callbacks, for example.
      *
@@ -353,12 +353,12 @@ public final class IMC {
 
     /**
      * Blacklist an item for a specified host.
-     * <p/>
+     * <br>
      * This can be used to prevent certain components to be installed in select
      * devices, via the devices class. For example, this is used to prevent
      * components that would not be functional in certain devices to be
      * installed in those devices, such as graphics cards in micro-controllers.
-     * <p/>
+     * <br>
      * The host class is the class of the environment the component would be
      * installed in, e.g. {@link li.cil.oc.api.internal.Tablet}.
      *
@@ -378,21 +378,21 @@ public final class IMC {
 
     /**
      * Register a mapping of program name to loot disk.
-     * <p/>
+     * <br>
      * The table of mappings is made available to machines to allow displaying
      * a message to the user telling her on which floppy disk to find the program
      * they were trying to run.
-     * <p/>
+     * <br>
      * For Lua programs, this should be the program <em>name</em>, i.e. the file
      * name without the <code>.lua</code> extension.
-     * <p/>
+     * <br>
      * The list of architectures is optional, if it is not specified this mapping
      * will be made available to all architectures. It allows filtering since
      * typically programs will be written for one specific architecture type, e.g.
      * Lua programs will not (directly) work on a MIPS architecture. The name
      * specified is the in the {@link li.cil.oc.api.machine.Architecture.Name}
      * annotation of the architecture (also shown in the CPU tooltip).
-     * <p/>
+     * <br>
      * The architecture names for Lua are <code>Lua 5.2</code>, <code>Lua 5.3</code>
      * and <code>LuaJ</code> for example.
      *

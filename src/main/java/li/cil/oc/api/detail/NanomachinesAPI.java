@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 public interface NanomachinesAPI {
     /**
      * Register a new behavior provider.
-     * <p/>
+     * <br>
      * When a controller is reconfigured it will draw behaviors from all
      * registered providers and build a new random connection graph to
      * those behaviors.
@@ -33,7 +33,7 @@ public interface NanomachinesAPI {
 
     /**
      * Get the nanomachine controller of the specified player.
-     * <p/>
+     * <br>
      * If the player has a controller installed, this will initialize the
      * controller if it has not already been loaded. If the player has no
      * controller, this will return <tt>null</tt>.
@@ -46,7 +46,7 @@ public interface NanomachinesAPI {
     /**
      * Install a controller for the specified player if it doesn't already
      * have one.
-     * <p/>
+     * <br>
      * This will also initialize the controller if it has not already been
      * initialized.
      *
@@ -57,7 +57,7 @@ public interface NanomachinesAPI {
 
     /**
      * Uninstall a controller from the specified player if it has one.
-     * <p/>
+     * <br>
      * This will disable all active behaviors before disposing the controller.
      *
      * @param player the player to uninstall a nanomachine controller from.

@@ -3,7 +3,7 @@ package li.cil.oc.api.machine;
 /**
  * Used by the Machine to determine the result of a call to
  * {@link Architecture#runThreaded(boolean)}.
- * <p/>
+ * <br>
  * Do not implement this interface, only use the predefined internal classes.
  */
 public abstract class ExecutionResult {

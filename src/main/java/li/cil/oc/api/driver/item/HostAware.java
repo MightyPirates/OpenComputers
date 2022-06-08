@@ -7,14 +7,14 @@ import net.minecraft.item.ItemStack;
 /**
  * This interface can be added to item drivers to allow them to be picky
  * about their supported host environment.
- * <p/>
+ * <br>
  * This is useful for drivers for components that should only go into certain
  * environments, such as robot specific upgrades.
  */
 public interface HostAware extends DriverItem {
     /**
      * Used to determine the item types this driver handles.
-     * <p/>
+     * <br>
      * This is used to determine which driver to use for an item when it should
      * be installed in a computer. Note that the return value should not change
      * over time; if it does, though, an already installed component will not

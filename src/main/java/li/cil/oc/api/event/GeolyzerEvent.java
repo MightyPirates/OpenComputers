@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * This event is fired by the geolyzer block/upgrade.
- * <p/>
+ * <br>
  * When cancelling this event, the respective method will bail and report
  * that the operation failed.
  */
@@ -36,7 +36,7 @@ public abstract class GeolyzerEvent extends Event {
      * Long-distance scan, getting quantified information about blocks around
      * the geolyzer. By default this will yield a (noisy) listing of the
      * hardness of the blocks.
-     * <p/>
+     * <br>
      * The bounds are guaranteed to not define a volume larger than 64.
      * Resulting data should be written to the {@link #data} array such that
      * <code>index = x + z*w + y*w*d</code>, with <code>w = maxX - minX</code>
@@ -100,7 +100,7 @@ public abstract class GeolyzerEvent extends Event {
     public static class Analyze extends GeolyzerEvent {
         /**
          * The position of the block to scan.
-         * <p/>
+         * <br>
          * Note: get the world via the host if you need it.
          */
         public final BlockPos pos;

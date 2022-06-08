@@ -9,7 +9,7 @@ import java.util.Collection;
 public interface MachineAPI {
     /**
      * Register an architecture that can be used to create new machines.
-     * <p/>
+     * <br>
      * Note that although registration is optional, it is strongly recommended
      * to allow {@link #architectures()} to be useful.
      *
@@ -20,7 +20,7 @@ public interface MachineAPI {
 
     /**
      * A list of all <em>registered</em> architectures.
-     * <p/>
+     * <br>
      * Note that registration is optional, although automatic when calling
      * {@link #create(li.cil.oc.api.machine.MachineHost)} with a not yet
      * registered architecture. What this means is that unless a mod providing
@@ -39,7 +39,7 @@ public interface MachineAPI {
 
     /**
      * Creates a new machine for the specified host.
-     * <p/>
+     * <br>
      * You are responsible for calling update and save / load functions on the
      * machine for it to work correctly.
      *

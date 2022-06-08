@@ -9,7 +9,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * This interface is like {@link net.minecraft.inventory.ISidedInventory} is to
  * {@link net.minecraft.inventory.IInventory}, it allows an environment to
  * specify different node access for its different sides.
- * <p/>
+ * <br>
  * This interface is intended to be used on tile entities that are environments.
  * It is used to determine which neighbors a tile entity can connect to when
  * calling {@link li.cil.oc.api.Network#joinOrCreateNetwork(TileEntity)}. It is
@@ -19,10 +19,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public interface SidedEnvironment {
     /**
      * The node this environment uses for the specified side.
-     * <p/>
+     * <br>
      * This is the side aware version of the normal {@link li.cil.oc.api.network.Environment#node}
      * method.
-     * <p/>
+     * <br>
      * The provided side is relative to the environment, i.e. when the tile
      * entity hosting the environment sits at (0, 0, 0) and is asked for its
      * southern node (positive Z axis) it has to return the node for the face
@@ -37,14 +37,14 @@ public interface SidedEnvironment {
     /**
      * Whether the environment provides a node to connect to on the specified
      * side.
-     * <p/>
+     * <br>
      * For each side the environment returns <tt>false</tt> here, it should
      * return <tt>null</tt> from {@link #sidedNode}, and for each side it
      * returns <tt>true</tt> for it should return a node.
-     * <p/>
+     * <br>
      * This is intended for the client side, i.e. rendering related things,
      * since nodes are not created on the client side.
-     * <p/>
+     * <br>
      * The side is relative to the environment, same as for <tt>sidedNode</tt>.
      *
      * @param side the side to check for.

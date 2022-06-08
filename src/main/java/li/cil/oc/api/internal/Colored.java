@@ -3,9 +3,9 @@ package li.cil.oc.api.internal;
 /**
  * This interface is implemented by tile entities that can be colored by
  * players, such as screens, computer cases and cables.
- * <p/>
+ * <br>
  * Colors are in the common <tt>RRGGBB</tt> format.
- * <p/>
+ * <br>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
 public interface Colored {

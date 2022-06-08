@@ -17,7 +17,7 @@ public class RobotAttackEntityEvent extends RobotEvent {
 
     /**
      * Fired when a robot is about to attack an entity.
-     * <p/>
+     * <br>
      * Canceling this event will prevent the attack.
      */
     @Cancelable

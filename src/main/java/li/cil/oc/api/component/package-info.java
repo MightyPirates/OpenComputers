@@ -1,6 +1,6 @@
 /**
  * This package contains interfaces to be implemented on components.
- * <p/>
+ * <br>
  * This will allow OpenComputers to provide some more advanced integration
  * with your components.
  */

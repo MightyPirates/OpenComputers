@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 /**
  * Use this interface to implement item drivers extending the memory of a computer.
- * <p/>
+ * <br>
  * Note that the item must be installed in the actual computer's inventory to
  * work. If it is installed in an external inventory the computer will not
  * recognize the memory.
@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 public interface Memory extends DriverItem {
     /**
      * The amount of RAM this component provides, as a generic scaling factor.
-     * <p/>
+     * <br>
      * This factor has to be interpreted by each individual architecture to fit
      * its own memory needs. The actual values returned here should roughly be
      * equivalent to the item's tier. For example, the built-in memory modules

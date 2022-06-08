@@ -11,7 +11,7 @@ import li.cil.oc.api.detail.NetworkAPI;
 
 /**
  * Central reference for the API.
- * <p/>
+ * <br>
  * Don't use this class directly, prefer using the other classes in this
  * package instead. This class is initialized by OpenComputers in the
  * pre-init phase, so it should not be used before the init phase.
@@ -29,7 +29,7 @@ public class API {
 
     /**
      * Whether OpenComputers uses power.
-     * <p/>
+     * <br>
      * This is set in the init phase, so do not rely it before the post-init phase.
      */
     public static boolean isPowerEnabled = false;

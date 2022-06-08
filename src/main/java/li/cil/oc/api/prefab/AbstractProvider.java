@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Example base implementation of nanomachine behavior provider.
- * <p/>
+ * <br>
  * This class takes care of handling the unique identifier used to tell
  * if a behavior is its own when loading from NBT.
  */
@@ -31,7 +31,7 @@ public abstract class AbstractProvider implements BehaviorProvider {
 
     /**
      * Called when saving a behavior created using this behavior to NBT.
-     * <p/>
+     * <br>
      * The ID will already have been written, don't overwrite it. Store
      * any additional data you need to restore the behavior here, if any.
      *
@@ -43,7 +43,7 @@ public abstract class AbstractProvider implements BehaviorProvider {
 
     /**
      * Called when loading a behavior from NBT.
-     * <p/>
+     * <br>
      * Use the data written in {@link #writeBehaviorToNBT} to restore the behavior
      * to its previous state, then return it.
      *

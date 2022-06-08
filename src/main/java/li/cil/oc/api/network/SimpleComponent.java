@@ -12,24 +12,24 @@ import java.lang.annotation.Target;
  * component network, since you won't have access to the node representing the
  * tile entity. Use this only for simple cases, where you want to expose a
  * couple of methods to the programs running computers.
- * <p/>
+ * <br>
  * This is an interface instead of an annotation, to allow stripping via the
  * ever so handy {@link net.minecraftforge.fml.common.Optional} annotation,
  * meaning there will be no strong dependency on OpenComputers.
- * <p/>
+ * <br>
  * Classes implementing this interface will be expanded with the methods
  * required for them to function as native block components (say, like the
  * screen or keyboard). This means functions in the <tt>Environment</tt>
  * interface have to created using a class transformer. If any of the methods
  * already exist, this will fail! If things don't work, check your logs, first.
- * <p/>
+ * <br>
  * To expose methods to OC, tag them with {@link li.cil.oc.api.machine.Callback}
  * and have them use the according signature (see the documentation on the
  * <tt>Callback</tt> annotation).
- * <p/>
+ * <br>
  * Alternatively, implement {@link li.cil.oc.api.network.ManagedPeripheral} in
  * addition to this interface, to make methods available ComputerCraft style.
- * <p/>
+ * <br>
  * So, in short:
  * <ul>
  * <li>Implement this interface on a tile entity that should expose
@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  * <li>Alternatively/additionally implement <tt>ManagedPeripheral</tt> to
  * provide methods via a list of names and single callback method.</li>
  * </ul>
- * <p/>
+ * <br>
  * For example:
  * <pre>
  *     {@literal @}Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")
@@ -89,7 +89,7 @@ import java.lang.annotation.Target;
 public interface SimpleComponent {
     /**
      * The name the component should be made available as.
-     * <p/
+     * <br>
      * This is the name as seen in the <tt>component.list()</tt> in Lua, for
      * example. You'll want to make this short and descriptive. The convention
      * for component names is: all lowercase, underscores where necessary. Good
@@ -101,7 +101,7 @@ public interface SimpleComponent {
 
     /**
      * Use this to skip logic injection for the class this is implemented by.
-     * <p/>
+     * <br>
      * For example, if you have a class transformer that injects logic from a
      * template class into your actual tile entities, OC's class transformer
      * would complain when it finds the interface on the template class. That

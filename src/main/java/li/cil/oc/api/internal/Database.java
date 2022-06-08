@@ -4,12 +4,12 @@ import net.minecraft.item.ItemStack;
 
 /**
  * This interface is implemented by the database component.
- * <p/>
+ * <br>
  * This allows getting actual item stack instances as referenced by callers
  * of other components' callbacks, without having to push a full representation
  * of an item stacks' NBT data to the VM (which can be both a memory and a
  * security issue).
- * <p/>
+ * <br>
  * To use this, you'll usually want to accept an address and either an index
  * or a hash in your component's callback function, the address being that of
  * a database component in the same network as your component. Alternatively
@@ -24,7 +24,7 @@ public interface Database {
 
     /**
      * Get an item stack stored in the specified slot of this database.
-     * <p/>
+     * <br>
      * This will return <tt>null</tt> if there is no entry for the specified
      * slot. If there is an entry, this will return a <em>copy</em> of that
      * item stack, so it is safe to modify the returned stack.
@@ -36,7 +36,7 @@ public interface Database {
 
     /**
      * Set the contents of a slot in the database upgrade.
-     * <p/>
+     * <br>
      * Use this to change the configuration of a database upgrade.
      *
      * @param slot  the slot to configure.
@@ -46,7 +46,7 @@ public interface Database {
 
     /**
      * Get an item stack with the specified hash stored in this database.
-     * <p/>
+     * <br>
      * This will return a negative value if there is no entry with a matching
      * hash.
      *

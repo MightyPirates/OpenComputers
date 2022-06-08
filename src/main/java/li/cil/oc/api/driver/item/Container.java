@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
  * i.e. which can be installed into the 'dynamic' slots, and provide on-the-fly
  * changeable upgrade slots (i.e. which can be changed in the robot GUI,
  * without disassembling and re-assembling the robot).
- * <p/>
+ * <br>
  * These drivers will not be queried for environments. The reported tier is the
  * maximum tier supported in the dynamic slot they provide.
  */
@@ -16,7 +16,7 @@ public interface Container extends DriverItem {
     /**
      * The type of slot provided as the dynamic slot. This will usually be
      * for other upgrades, but may be for any type of item component.
-     * <p/>
+     * <br>
      * While the driver's own type implicitly has to be 'Container' and could
      * therefore be used instead, this makes the intention more clear.
      *
@@ -29,7 +29,7 @@ public interface Container extends DriverItem {
     /**
      * The maximum item tier of the items that can be placed into the slot
      * provided by the specified container.
-     * <p/>
+     * <br>
      * This will usually be equal to the container's tier.
      *
      * @param stack the item stack to the the supported tier for.

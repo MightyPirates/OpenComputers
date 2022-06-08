@@ -20,11 +20,11 @@ import java.util.Set;
 public interface DriverAPI {
     /**
      * Registers a new side-aware block driver.
-     * <p/>
+     * <br>
      * Whenever the neighboring blocks of an Adapter block change, it checks if
      * there exists a driver for the changed block, and if it is configured to
      * interface that block type connects it to the component network.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -34,10 +34,10 @@ public interface DriverAPI {
 
     /**
      * Registers a new driver for an item component.
-     * <p/>
+     * <br>
      * Item components can inserted into a computers component slots. They have
      * to specify their type, to determine into which slots they can fit.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -47,10 +47,10 @@ public interface DriverAPI {
 
     /**
      * Registers a new type converter.
-     * <p/>
+     * <br>
      * Type converters are used to automatically convert values returned from
      * callbacks to a "simple" format that can be pushed to any architecture.
-     * <p/>
+     * <br>
      * This must be called in the init phase, <em>not</em> the pre- or post-init
      * phases.
      *
@@ -60,7 +60,7 @@ public interface DriverAPI {
 
     /**
      * Register a new environment provider.
-     * <p/>
+     * <br>
      * Environment providers are used for mapping item stacks to the type of
      * environment that will be created by the stack, either by it being
      * placed in the world and acting as a block component, or by being
@@ -72,7 +72,7 @@ public interface DriverAPI {
 
     /**
      * Register a new inventory provider.
-     * <p/>
+     * <br>
      * Inventory providers are used for accessing item inventories using
      * the inventory controller upgrade, for example.
      *
@@ -83,7 +83,7 @@ public interface DriverAPI {
     /**
      * Looks up a driver for the block at the specified position in the
      * specified world.
-     * <p/>
+     * <br>
      * Note that several drivers for a single block can exist. Because of this
      * block drivers are always encapsulated in a 'compound' driver, which is
      * what will be returned here. In other words, you should will <em>not</em>
@@ -99,7 +99,7 @@ public interface DriverAPI {
 
     /**
      * Looks up a driver for the specified item stack.
-     * <p/>
+     * <br>
      * Note that unlike for blocks, there can always only be one item driver
      * per item. If there are multiple ones, the first one that was registered
      * will be used.
@@ -113,11 +113,11 @@ public interface DriverAPI {
 
     /**
      * Looks up a driver for the specified item stack.
-     * <p/>
+     * <br>
      * Note that unlike for blocks, there can always only be one item driver
      * per item. If there are multiple ones, the first one that was registered
      * will be used.
-     * <p/>
+     * <br>
      * This is a context-agnostic variant used mostly for "house-keeping"
      * stuff, such as querying slot types and tier.
      *
@@ -129,7 +129,7 @@ public interface DriverAPI {
 
     /**
      * Looks up the environment associated with the specified item stack.
-     * <p/>
+     * <br>
      * This will use the registered {@link EnvironmentProvider}s to find
      * an environment type for the specified item stack. If none can be
      * found, returns <tt>null</tt>.
@@ -143,7 +143,7 @@ public interface DriverAPI {
 
     /**
      * Looks up the environments associated with the specified item stack.
-     * <p/>
+     * <br>
      * This will use the registered {@link EnvironmentProvider}s to find
      * environment types for the specified item stack. If none can be
      * found, returns an empty Set.
@@ -155,11 +155,11 @@ public interface DriverAPI {
 
     /**
      * Get an IItemHandler implementation providing access to an item inventory.
-     * <p/>
+     * <br>
      * This will use the registered {@link InventoryProvider}s to find an
      * IItemHandler implementation providing access to the specified stack.
      * If none can be found, returns <tt>null</tt>.
-     * <p/>
+     * <br>
      * Note that the specified <tt>player</tt> may be null, but will usually
      * be the <em>fake player</em> of the agent making use of this API.
      *
@@ -171,10 +171,10 @@ public interface DriverAPI {
 
     /**
      * Get a list of all registered item drivers.
-     * <p/>
+     * <br>
      * This is intended to allow checking for particular drivers using more
      * customized logic.
-     * <p/>
+     * <br>
      * The returned collection is read-only.
      *
      * @return the list of all registered item drivers.

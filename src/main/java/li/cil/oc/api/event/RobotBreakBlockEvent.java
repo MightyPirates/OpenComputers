@@ -12,7 +12,7 @@ public abstract class RobotBreakBlockEvent extends RobotEvent {
 
     /**
      * Fired when a robot is about to break a block.
-     * <p/>
+     * <br>
      * Canceling this event will prevent the block from getting broken.
      */
     @Cancelable
@@ -41,7 +41,7 @@ public abstract class RobotBreakBlockEvent extends RobotEvent {
 
         /**
          * Sets the time it should take the robot to break the block.
-         * <p/>
+         * <br>
          * Note that the robot will still break the block instantly, but the
          * robot's execution is paused for the specified amount of time.
          *

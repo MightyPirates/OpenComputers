@@ -3,17 +3,17 @@ package li.cil.oc.api.network;
 /**
  * Interface for nodes that act as power connectors between their network and
  * some power producer or consumer.
- * <p/>
+ * <br>
  * For each connector a buffer is managed. Its size is initialized via the
  * factory function in the network API, but can also be configured later on.
  * Its current fill level can be queried and manipulated as desired.
- * <p/>
+ * <br>
  * Each connector can take two roles: it can be a <em>producer</em>, feeding
  * power into the network, or it can be a <em>consumer</em>, requiring power
  * from the network to power something (or it can be both). This depends
  * entirely on how you call {@link #changeBuffer}, i.e. on whether you
  * fill up the connectors buffer or drain it.
- * <p/>
+ * <br>
  * To feed power into the network, simply fill up the buffer, to consume power
  * take power from the buffer. The network will balance the power between all
  * buffers connected to it. The algorithm goes as follows: if there was a change
@@ -47,18 +47,18 @@ public interface Connector extends Node {
 
     /**
      * Try to apply the specified delta to the <em>global</em> buffer.
-     * <p/>
+     * <br>
      * This can be used to apply reactionary power changes. For example, a
      * screen may require a certain amount of energy to refresh its display when
      * a program tries to display text on it. For running costs just apply the
      * same delta each tick.
-     * <p/>
+     * <br>
      * If the specified delta cannot be completely applied to the buffer, the
      * remaining delta will be returned. This means that for negative values
      * a part of the energy will have been consumed, though.
-     * <p/>
+     * <br>
      * If there is enough energy or no overflow this will return <tt>0</tt>.
-     * <p/>
+     * <br>
      * Keep in mind that this change is applied to the <em>global</em> buffer,
      * i.e. energy from multiple buffers may be consumed / multiple buffers may
      * be filled. The buffer for which this method is called (i.e. this node
@@ -80,11 +80,11 @@ public interface Connector extends Node {
 
     /**
      * Change the size of the connectors local buffer.
-     * <p/>
+     * <br>
      * If the size is reduced, any superfluous energy is distributed across
      * other connectors' buffers in the network, if possible. Any surplus
      * energy that cannot be stored in other buffers will be lost.
-     * <p/>
+     * <br>
      * Note that this automatically called when the connector is disconnected
      * from its network to set its buffer size to zero and distribute its
      * energy to other connectors in the network.

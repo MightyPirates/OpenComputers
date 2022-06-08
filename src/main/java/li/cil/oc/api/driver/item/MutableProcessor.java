@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 /**
  * May be implemented in processor drivers of processors that can be reconfigured.
- * <p/>
+ * <br>
  * This is the case for OC's built-in CPUs, for example, which can be reconfigured
  * to any registered architecture. It a CPU has such a driver, it may also be
  * reconfigured by the machine it is running in (e.g. in the Lua case via

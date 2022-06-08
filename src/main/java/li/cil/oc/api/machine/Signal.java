@@ -2,7 +2,7 @@ package li.cil.oc.api.machine;
 
 /**
  * A single signal that was queued on a machine.
- * <p/>
+ * <br>
  * This interface is not intended to be implemented, it only serves as a return
  * type for {@link Machine#popSignal()}.
  */

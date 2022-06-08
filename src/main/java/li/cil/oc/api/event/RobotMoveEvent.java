@@ -17,7 +17,7 @@ public abstract class RobotMoveEvent extends RobotEvent {
 
     /**
      * Fired when a robot is about to move.
-     * <p/>
+     * <br>
      * Canceling the event will prevent the robot from moving.
      */
     @Cancelable

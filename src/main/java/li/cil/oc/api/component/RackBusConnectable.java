@@ -6,7 +6,7 @@ import li.cil.oc.api.network.Packet;
 /**
  * Use this interface on environments that may receive network messages from a
  * bus in a rack.
- * <p/>
+ * <br>
  * Specifically, this is checked on environments in servers installed in racks.
  * The server will collect the first three environments of components in it
  * implement this interface, and provide their nodes to the rack via the

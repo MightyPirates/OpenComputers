@@ -120,7 +120,7 @@ trait SmartBlockModelBase extends IBakedModel {
 
   /**
     * Create the BakedQuads for a set of quads defined by the specified vertices.
-    * <p/>
+    * <br>
     * Usually used to generate the quads for a cube previously generated using makeBox().
     */
   protected def bakeQuads(box: Array[Array[Vec3d]], texture: Array[TextureAtlasSprite], color: Option[Int]): Array[BakedQuad] = {
@@ -130,7 +130,7 @@ trait SmartBlockModelBase extends IBakedModel {
 
   /**
     * Create the BakedQuads for a set of quads defined by the specified vertices.
-    * <p/>
+    * <br>
     * Usually used to generate the quads for a cube previously generated using makeBox().
     */
   protected def bakeQuads(box: Array[Array[Vec3d]], texture: Array[TextureAtlasSprite], colorRGB: Int): Array[BakedQuad] = {

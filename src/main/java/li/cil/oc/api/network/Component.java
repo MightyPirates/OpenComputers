@@ -7,18 +7,18 @@ import java.util.Collection;
 
 /**
  * Components are nodes that can be addressed computers via drivers.
- * <p/>
+ * <br>
  * Components therefore form a sub-network in the overall network, and some
  * special rules apply to them. For one, components specify an additional
  * kind of visibility. Component visibility may have to differ from real
  * network reachability in some cases, such as network cards (which have to
  * be able to communicate across the whole network, but computers should only
  * "see" the cards installed directly in them).
- * <p/>
+ * <br>
  * Unlike the {@link Node}'s network reachability, this is a dynamic value and
  * can be changed at any time. For example, this is used to hide multi-block
  * screen parts that are not the origin from computers in the network.
- * <p/>
+ * <br>
  * The method responsible for dispatching network messages from computers also
  * only allows sending messages to components that the computer can see,
  * according to the component's visibility. Therefore nodes won't receive
@@ -27,7 +27,7 @@ import java.util.Collection;
 public interface Component extends Node {
     /**
      * The name of the node.
-     * <p/>
+     * <br>
      * This should be the type name of the component represented by the node,
      * since this is what is returned from <tt>component.type</tt>. As such it
      * is to be expected that there be multiple nodes with the same name, but
@@ -43,7 +43,7 @@ public interface Component extends Node {
 
     /**
      * Set the visibility of this component.
-     * <p/>
+     * <br>
      * Note that this cannot be higher / more visible than the reachability of
      * the node. Trying to set it to a higher value will generate an exception.
      *
@@ -56,7 +56,7 @@ public interface Component extends Node {
     /**
      * Tests whether this component can be seen by the specified node,
      * usually representing a computer in the network.
-     * <p/>
+     * <br>
      * <em>Important</em>: this will always return <tt>true</tt> if the node is
      * not currently in a network.
      *
@@ -69,18 +69,18 @@ public interface Component extends Node {
 
     /**
      * The list of names of methods exposed by this component.
-     * <p/>
+     * <br>
      * This does not return the callback annotations directly, because those
      * may not contain the method's name (as it defaults to the name of the
      * annotated method).
-     * <p/>
+     * <br>
      * The returned collection is read-only.
      */
     Collection<String> methods();
 
     /**
      * Get the annotation information of a method.
-     * <p/>
+     * <br>
      * This is needed for custom architecture implementations that need to know
      * if a callback is direct or not, for example.
      *
@@ -91,7 +91,7 @@ public interface Component extends Node {
 
     /**
      * Tries to call a function with the specified name on this component.
-     * <p/>
+     * <br>
      * The name of the method must be one of the names in {@link #methods()}.
      * The returned array may be <tt>null</tt> if there is no return value.
      *

@@ -4,7 +4,7 @@ import net.minecraftforge.fluids.IFluidTank;
 
 /**
  * Implemented by objects with multiple internal tanks.
- * <p/>
+ * <br>
  * This is specifically for containers where the side does not matter when
  * accessing the internal tanks, only the index of the tank; unlike with the
  * {@link net.minecraftforge.fluids.IFluidTank} interface.

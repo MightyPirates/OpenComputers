@@ -8,13 +8,13 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Events for handling network activity and representing it on the client.
- * <p/>
+ * <br>
  * This is used to render network activity
  * indicators on some containers (e.g. computer, server).
- * <p/>
+ * <br>
  * Use this to implement rendering of disk access indicators on you own
  * containers / computers / drive bays.
- * <p/>
+ * <br>
  * Canceling this event is provided to allow registering higher priority
  * event handlers that override default behavior.
  */
@@ -94,7 +94,7 @@ public class NetworkActivityEvent extends Event {
 
     /**
      * The tile entity hosting the network card.
-     * <p/>
+     * <br>
      * <em>Important</em>: this can be <tt>null</tt>, which is usually the
      * case when the container is an entity or item.
      */

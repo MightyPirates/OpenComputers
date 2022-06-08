@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 public interface ItemInfo {
     /**
      * The name of this item descriptor.
-     * <p/>
+     * <br>
      * This is the name that yields this instance when passed to
      * {@link li.cil.oc.api.Items#get(String)}. Useful for reverse-lookup when
      * retrieving the descriptor via an item stack.
@@ -19,7 +19,7 @@ public interface ItemInfo {
     /**
      * Returns the block type of the represented item. In case the item is not
      * a block this will return <tt>null</tt>.
-     * <p/>
+     * <br>
      * Note that OpenComputers represents most of its items using just a few
      * actual <tt>Block</tt> instances, so descriptors for different blocks may
      * return the same object here.
@@ -31,7 +31,7 @@ public interface ItemInfo {
     /**
      * Returns the item type of the represented item. In case the item is a
      * blocks this will return <tt>null</tt>.
-     * <p/>
+     * <br>
      * Note that OpenComputers represents most of its items using just a few
      * actual <tt>Item</tt> instances, so descriptors for different items may
      * return the same object here.

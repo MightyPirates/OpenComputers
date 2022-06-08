@@ -4,17 +4,17 @@ package li.cil.oc.api.nanomachines;
  * The nanomachine controller is responsible for keeping track of the current
  * layout of neural connections (i.e. how nanomachine "inputs" connect to
  * behaviors, directly or indirectly).
- * <p/>
+ * <br>
  * Each input can connect to one or more nodes. A node can either be a
  * behavior, or an indirect connection, which in turn is connected to one
  * or more behaviors (there is at maximum one layer of indirection). Each
  * indirection may trigger one or more behaviors, but may also require one
  * or more inputs to activate its outputs.
- * <p/>
+ * <br>
  * Each node, input or indirection, will only connect to one or two other
  * nodes, to keep randomization at a somewhat manageable level, but to still
  * allow for some optimization by re-rolling the connections.
- * <p/>
+ * <br>
  * This interface is not meant to be implemented externally. To get a reference
  * to a controller, use {@link li.cil.oc.api.Nanomachines#getController}.
  */
@@ -24,7 +24,7 @@ public interface Controller {
      * will lead to the system being unavailable for a short while, in which
      * the neural connections are rebuilt in a new configuration. In addition,
      * some debuffs will be applied to the player.
-     * <p/>
+     * <br>
      * This will reset all inputs to disabled and deactivate all previously
      * active behaviors.
      *
@@ -34,7 +34,7 @@ public interface Controller {
 
     /**
      * Get the number of inputs available.
-     * <p/>
+     * <br>
      * This number depends on the total number of behaviors available, to keep
      * randomization at a manageable level. It is computed internally and
      * based on a configuration value.
@@ -46,7 +46,7 @@ public interface Controller {
     /**
      * Get the number of inputs that may be active at the same time
      * before negative effects are applied to the player.
-     * <p/>
+     * <br>
      * The number of active inputs may exceed this value, but this will
      * have negative effects on the player.
      *
@@ -56,7 +56,7 @@ public interface Controller {
 
     /**
      * Get the total number of inputs that may be active at the same time.
-     * <p/>
+     * <br>
      * The number of active inputs cannot exceed this value.
      *
      * @return the number of inputs that may be active at a time.
@@ -74,7 +74,7 @@ public interface Controller {
 
     /**
      * Set the state of the input with the specified index.
-     * <p/>
+     * <br>
      * This will fail if too many inputs are active already. It will also
      * always fail when called on the client.
      *
@@ -87,7 +87,7 @@ public interface Controller {
 
     /**
      * Get the list of currently active behaviors, based on the current input states.
-     * <p/>
+     * <br>
      * Note that behaviors may behave differently depending on how many active
      * inputs they have. Behaviors in the returned list will have at least one
      * active input.
@@ -118,7 +118,7 @@ public interface Controller {
 
     /**
      * Try to apply the specified delta to the controller's buffer.
-     * <p/>
+     * <br>
      * A negative value will drain energy from the buffer, a positive value
      * will inject energy into the buffer.
      *

@@ -31,7 +31,7 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
 
     /**
      * Fired when a robot is about to place a block.
-     * <p/>
+     * <br>
      * Canceling this event will prevent the block from being placed.
      */
     @Cancelable

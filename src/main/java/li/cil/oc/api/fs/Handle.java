@@ -18,7 +18,7 @@ public interface Handle {
 
     /**
      * Closes the handle.
-     * <p/>
+     * <br>
      * For example, if there is an underlying stream, this should close that
      * stream. Any future calls to {@link #read} or {@link #write} should throw
      * an <tt>IOException</tt> after this function was called.
@@ -28,7 +28,7 @@ public interface Handle {
     /**
      * Tries to read as much data from the file as fits into the specified
      * array.
-     * <p/>
+     * <br>
      * For files opened in write or append mode this should always throw an
      * exception.
      *
@@ -42,7 +42,7 @@ public interface Handle {
 
     /**
      * Jump to the specified position in the file, if possible.
-     * <p/>
+     * <br>
      * For files opened in write or append mode this should always throw an
      * exception.
      *
@@ -54,7 +54,7 @@ public interface Handle {
 
     /**
      * Tries to write all the data from the specified array into the file.
-     * <p/>
+     * <br>
      * For files opened in read mode this should always throw an exception.
      *
      * @param value the data to write into the file.
