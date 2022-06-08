@@ -26,13 +26,18 @@ abstract class PacketHandler {
     // Don't crash on badly formatted packets (may have been altered by a
     // malicious client, in which case we don't want to allow it to kill the
     // server like this). Just spam the log a bit... ;)
+    var stream: InputStream = null
     try {
-      val stream = new ByteBufInputStream(data)
-      if (stream.read() == 0) dispatch(new PacketParser(stream, player))
-      else dispatch(new PacketParser(new InflaterInputStream(stream), player))
+      stream = new ByteBufInputStream(data)
+      if (stream.read() != 0) stream = new InflaterInputStream(stream)
+      dispatch(new PacketParser(stream, player))
     } catch {
       case e: Throwable =>
         OpenComputers.log.warn("Received a badly formatted packet.", e)
+    } finally {
+      if (stream != null) {
+        stream.close()
+      }
     }
 
     // Avoid AFK kicks by marking players as non-idle when they send packets.
