@@ -133,7 +133,7 @@ object InventoryUtils {
     val stack = inventory.getStackInSlot(slot)
     if (stack.isEmpty || limit <= 0 || stack.getCount <= 0)
       return 0
-    var amount = stack.getMaxStackSize min stack.getCount  min limit
+    var amount = stack.getMaxStackSize min stack.getCount min limit
     inventory.extractItem(slot, amount, true) match {
       case simExtracted: ItemStack =>
         val extracted = simExtracted.copy
@@ -142,9 +142,13 @@ object InventoryUtils {
         val count = (amount - extracted.getCount) max 0
         if (count > 0) inventory.extractItem(slot, count, false) match {
           case realExtracted: ItemStack if realExtracted.getCount == count => consumer(realExtracted, false)
-          case _ =>
+          case realExtracted =>
             OpenComputers.log.warn("An IItemHandler instance acted differently between simulated and non-simulated extraction. Offender: " + inventory)
-        }
+            // Attempt inserting the stack anyway, to minimize world-side item loss.
+            if (realExtracted != null && !realExtracted.isEmpty) {
+              consumer(realExtracted, false)
+            }
+         }
         count
       case _ => 0
     }
