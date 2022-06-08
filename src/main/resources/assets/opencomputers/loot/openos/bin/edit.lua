@@ -202,6 +202,7 @@ end
 
 local function setCursor(nbx, nby)
   local x, y, w, h = getArea()
+  nbx, nby = nbx // 1, nby // 1
   nby = math.max(1, math.min(#buffer, nby))
 
   local ncy = nby - scrollY
