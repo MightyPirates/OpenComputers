@@ -41,5 +41,5 @@ if #args == 0 then
   end
 else
   -- execute command.
-  return sh.execute(...)
+  return sh.execute(_ENV, ...)
 end

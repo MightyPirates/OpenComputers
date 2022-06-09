@@ -10,8 +10,8 @@ function shell.execute(command, env, ...)
   if not sh then
     return false, reason
   end
-  local proc = process.load(sh, nil, nil, command)
-  local result = table.pack(process.internal.continue(proc, env, command, ...))
+  local proc = process.load(sh, env, nil, command)
+  local result = table.pack(process.internal.continue(proc, command, ...))
   if result.n == 0 then return true end
   return table.unpack(result, 1, result.n)
 end
