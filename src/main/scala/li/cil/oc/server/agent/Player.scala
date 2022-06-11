@@ -345,7 +345,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       val hardness = block.getBlockHardness(world, x, y, z)
       val isBlockUnbreakable = hardness < 0
-      val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
+      val canDestroyBlock = !isBlockUnbreakable
       if (!canDestroyBlock) {
         return 0
       }
