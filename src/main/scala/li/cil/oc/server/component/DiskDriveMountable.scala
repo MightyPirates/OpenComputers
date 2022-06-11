@@ -80,6 +80,14 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends pre
     else result(false)
   }
 
+  @Callback(doc = "function(): string -- Return the internal floppy disk address")
+  def media(context: Context, args: Arguments): Array[AnyRef] = {
+    if (filesystemNode.isEmpty)
+      result(Unit, "drive is empty")
+    else
+      result(filesystemNode.head.address)
+  }
+
   // ----------------------------------------------------------------------- //
   // Analyzable
 
