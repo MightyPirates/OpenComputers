@@ -26,7 +26,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       LuaValue.valueOf(s.codePointCount(0, s.length))
     })
 
-    unicode.set("reverse", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).reverse))
+    unicode.set("reverse", (args: Varargs) => LuaValue.valueOf(ExtendedUnicodeHelper.reverse(args.checkjstring(1))))
 
     unicode.set("sub", (args: Varargs) => {
       val string = args.checkjstring(1)
