@@ -40,13 +40,26 @@ object FluidUtils {
    * <br>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: ForgeDirection, sink: IFluidHandler, sinkSide: ForgeDirection, limit: Int = FluidContainerRegistry.BUCKET_VOLUME) : Int = {
-    val drained = source.drain(sourceSide, limit, false)
-    if (drained == null) {
-      return 0
+  def transferBetweenFluidHandlers(source: IFluidHandler, sourceSide: ForgeDirection, sink: IFluidHandler, sinkSide: ForgeDirection, limit: Int = FluidContainerRegistry.BUCKET_VOLUME, sourceTank: Int = -1) : Int = {
+    val ti = source.getTankInfo(sourceSide)
+    val srcFluid = if (sourceTank < 0 || ti == null || ti.length <= sourceTank) null else ti(sourceTank).fluid.copy()
+
+    val nullFluid = srcFluid == null;
+    val drained = if (nullFluid)
+      source.drain(sourceSide, limit, false)
+    else {
+      srcFluid.amount = limit
+      source.drain(sourceSide, srcFluid, false)
     }
-    val filled = sink.fill(sinkSide, drained, false)
-    sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
+    if (drained != null) {
+      val filled = sink.fill(sinkSide, drained, false)
+      if (nullFluid) {
+        sink.fill(sinkSide, source.drain(sourceSide, filled, true), true)
+      } else {
+        srcFluid.amount = filled
+        sink.fill(sinkSide, source.drain(sourceSide, srcFluid, true), true)
+      }
+    } else 0
   }
 
   /**
@@ -56,10 +69,10 @@ object FluidUtils {
    * This uses the <tt>fluidHandlerAt</tt> method, and therefore handles special
    * cases such as fluid blocks.
    */
-  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sinkPos: BlockPosition, sinkSide: ForgeDirection, limit: Int = FluidContainerRegistry.BUCKET_VOLUME) =
+  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sinkPos: BlockPosition, sinkSide: ForgeDirection, limit: Int = FluidContainerRegistry.BUCKET_VOLUME, sourceTank: Int = -1) =
     fluidHandlerAt(sourcePos).fold(0)(source =>
       fluidHandlerAt(sinkPos).fold(0)(sink =>
-        transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit)))
+        transferBetweenFluidHandlers(source, sourceSide, sink, sinkSide, limit, sourceTank)))
 
   /**
    * Lookup fluid taking into account flowing liquid blocks...

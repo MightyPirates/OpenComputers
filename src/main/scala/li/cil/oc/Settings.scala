@@ -53,6 +53,7 @@ class Settings(val config: Config) {
       (-1.0, -1.0)
   }
   val enableNanomachinePfx = config.getBoolean("client.enableNanomachinePfx")
+  val transposerFluidTransferRate = try { config.getInt("misc.transposerFluidTransferRate") } catch { case _ : Throwable => 16000 }
 
   // ----------------------------------------------------------------------- //
   // computer
