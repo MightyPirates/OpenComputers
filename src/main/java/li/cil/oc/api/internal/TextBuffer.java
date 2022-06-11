@@ -308,7 +308,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
 
     /**
      * Fill a portion of the text buffer.
-     * <p/>
+     * <br>
      * This will set the area's colors to the currently active ones.
      *
      * @param column the starting horizontal index of the area to fill.
@@ -418,12 +418,12 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
 
     /**
      * Overwrites a portion of the text in raw mode.
-     * <p/>
+     * <br>
      * This will copy the given char array into the buffer, starting at the
      * specified column and row. The array is expected to be indexed row-
      * first, i.e. the first dimension is the vertical axis, the second
      * the horizontal.
-     * <p/>
+     * <br>
      * <em>Important</em>: this performs no checks as to whether something
      * actually changed. It will always send the changed patch to clients.
      * It will also not crop the specified array to the actually used range.
