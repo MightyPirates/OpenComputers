@@ -130,13 +130,7 @@ object EventHandler {
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def scheduleAE2Add(tileEntity: power.AppliedEnergistics2): Unit = {
     if (SideTracker.isServer) pendingServer.synchronized {
-      tileEntity match {
-        case tile: IGridBlock =>
-          pendingServer += (() => if (!tileEntity.isInvalid) {
-            tileEntity.getGridNode(AEPartLocation.INTERNAL).updateState()
-          })
-        case _ =>
-      }
+      pendingServer += (() => tileEntity.updateGridNodeState())
     }
   }
 
