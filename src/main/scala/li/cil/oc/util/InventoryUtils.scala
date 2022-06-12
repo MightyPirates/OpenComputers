@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.BlockChest
+import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.entity.player.EntityPlayer
@@ -26,21 +27,33 @@ object InventoryUtils {
       (!checkNBT || ItemStack.areItemStackTagsEqual(stackA, stackB))
 
   /**
+   * Retrieves an actual inventory implementation for a specified world coordinate,
+   * complete with a reference to the source of said implementation.
+   * <br>
+   * This performs special handling for (double-)chests and also checks for
+   * mine carts with chests.
+   */
+  def inventorySourceAt(position: BlockPosition): Option[InventorySource] = position.world match {
+    case Some(world) if world.blockExists(position) => (world.getBlock(position), world.getTileEntity(position)) match {
+      case (block: BlockChest, chest: TileEntityChest) => Option(block.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord)).
+        map(a => BlockInventorySource(position, a))
+      case (_, inventory: IInventory) => Some(BlockInventorySource(position, inventory))
+      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
+        map(_.asInstanceOf[EntityMinecartContainer]).
+        find(!_.isDead).
+        map(a => EntityInventorySource(a, a))
+    }
+    case _ => None
+  }
+
+  /**
    * Retrieves an actual inventory implementation for a specified world coordinate.
    * <br>
    * This performs special handling for (double-)chests and also checks for
    * mine carts with chests.
    */
-  def inventoryAt(position: BlockPosition): Option[IInventory] = position.world match {
-    case Some(world) if world.blockExists(position) => (world.getBlock(position), world.getTileEntity(position)) match {
-      case (block: BlockChest, chest: TileEntityChest) => Option(block.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord))
-      case (_, inventory: IInventory) => Some(inventory)
-      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
-        map(_.asInstanceOf[EntityMinecartContainer]).
-        find(!_.isDead)
-    }
-    case _ => None
-  }
+  def inventoryAt(position: BlockPosition): Option[IInventory] = inventorySourceAt(position).
+    map(a => a.inventory)
 
   /**
    * Inserts a stack into an inventory.
@@ -408,3 +421,9 @@ object InventoryUtils {
     case _ => null
   }
 }
+
+sealed trait InventorySource {
+  def inventory: IInventory
+}
+final case class BlockInventorySource(position: BlockPosition, inventory: IInventory) extends InventorySource
+final case class EntityInventorySource(entity: Entity, inventory: IInventory) extends InventorySource
