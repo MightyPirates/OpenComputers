@@ -6,12 +6,12 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.prefab.ItemStackArrayValue
 import li.cil.oc.server.component.result
-import li.cil.oc.util.{BlockPosition, DatabaseAccess, InventoryUtils}
+import li.cil.oc.util.{BlockInventorySource, BlockPosition, DatabaseAccess, EntityInventorySource, InventorySource, InventoryUtils}
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.block.Block
+import net.minecraft.entity.EntityList
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.oredict.OreDictionary
@@ -102,8 +102,12 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
       }
       case _ => None
     }
-    withInventory(facing, inventory => blockAt(position.offset(facing)) match {
-      case Some(block) => result(block.getUnlocalizedName)
+    withInventorySource(facing, {
+      case BlockInventorySource(position, _) => blockAt(position) match {
+        case Some(block) => result(block.getUnlocalizedName)
+        case _ => result(Unit, "Unknown")
+      }
+      case EntityInventorySource(entity, _) => result(EntityList.getEntityString(entity))
       case _ => result(Unit, "Unknown")
     })
   }
@@ -122,9 +126,20 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
 
-  private def withInventory(side: ForgeDirection, f: IInventory => Array[AnyRef]) =
-    InventoryUtils.inventoryAt(position.offset(side)) match {
-      case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(position.offset(side), side.getOpposite) => f(inventory)
+  private def mayInteract(side: ForgeDirection, f: InventorySource): Boolean = {
+    if (!f.inventory.isUseableByPlayer(fakePlayer)) false
+    else f match {
+      case BlockInventorySource(pos, _) => mayInteract(pos, side.getOpposite)
+      case _ => true
+    }
+  }
+
+  private def withInventorySource(side: ForgeDirection, f: InventorySource => Array[AnyRef]) =
+    InventoryUtils.inventorySourceAt(position.offset(side)) match {
+      case Some(is) if mayInteract(side, is) => f(is)
       case _ => result(Unit, "no inventory")
     }
+
+  private def withInventory(side: ForgeDirection, f: IInventory => Array[AnyRef]) =
+    withInventorySource(side, is => f(is.inventory))
 }
