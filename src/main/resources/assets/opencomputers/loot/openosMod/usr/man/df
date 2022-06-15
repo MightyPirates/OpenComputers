@@ -1,0 +1,15 @@
+NAME
+  df - report file system disk space usage
+
+SYNOPSIS
+  df [FILE]...
+
+DESCRIPTION
+  `df` outputs disk space information for the file systems containing the specified files. If no file names are given it returns the information for all currently mounted file systems.
+
+EXAMPLES
+  df
+    Show global file system disk usage.
+
+  df /home /var
+    Show disk usage of file systems mounted at `/home` and `/var`.

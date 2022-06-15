@@ -1,0 +1,32 @@
+NAME
+  mount - mount a file system
+
+SYNOPSIS
+  mount
+  mount LABEL PATH
+  mount ADDRESS PATH
+  mount --bind PATH PATH
+
+OPTIONS
+  -r, --readonly  mount filesystem readonly 
+      --bind      mount a bind point (folder to folder)
+  -h, --help      print help message
+
+DESCRIPTION
+  All files accessible in OpenOS are arranged in one big tree, starting with the root node, '/'. The files are the leaves of the tree, directories are inner nodes of the tree. Files can be distributed across several devices (file system components, such as hard drives and floppies). The `mount` command is used to attach a file system to this tree. The `umount` command can be used to remove a mounted file system from the tree (note that `rm` works for this, too).
+
+EXAMPLES
+  mount
+    Display a list of all currently mounted file systems.
+
+  mount test /home
+    Mounts the file system labeled `test` at `/home`.
+
+  mount 56f /var
+    Mounts the file system of which the address starts with `56f` at `/var`.
+
+  mount --readonly tmpfs /tmp_ro
+    Mounts a readonly access path of tmpfs to /tmp_ro
+
+  mount --bind /mnt/fa4/home /home
+    Mounts /mnt/fa5/home to /home

@@ -1,0 +1,12 @@
+NAME
+  address - display the computer's address
+
+SYNOPSIS
+  address
+
+DESCRIPTION
+  `address` allows printing the computer's component address. This can be useful to quickly look up a computer's address without an Analyzer. Knowing a computer's address can be useful if you wish to directly send network messages between two computers.
+
+EXAMPLES
+  address
+    Displays the address of the computer the program is run on.

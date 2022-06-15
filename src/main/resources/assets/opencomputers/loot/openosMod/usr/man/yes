@@ -1,0 +1,24 @@
+NAME
+  yes - Automatically answers yes to every question.
+
+SYNOPSIS
+  yes [string]...
+  yes [-V/h]
+
+DESCRIPTION
+  Prints strings in command line arguments, if there is none, prints 'y'.
+  Followed by newline, until it is killed.
+
+  This might be used for programs which don't have force (-f) option
+  and require user interaction.
+
+EXAMPLES
+  yes
+    Says y on every line.
+
+  yes no
+    Says no on every line.
+
+  yes "yes: I'm great servant, but an evil master."
+    Repeats sentence.
+

@@ -1,0 +1,12 @@
+NAME
+  date - get the current time and date
+
+SYNOPSIS
+  date
+
+DESCRIPTION
+  Writes the current time and date to the standard output. Note that the time is measured in in-game time, with the date starting on the 1st of January 1970 as the time the world was created.
+
+EXAMPLES
+  date
+    Displays the current date and time.

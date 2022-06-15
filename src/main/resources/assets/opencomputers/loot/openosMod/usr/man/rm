@@ -1,0 +1,52 @@
+NAME
+  rm - remove files or directories
+
+SYNOPSIS
+  rm [OPTION]... FILE...
+
+DESCRIPTION
+  Removes all of the specified files, one by one. By default, it does not remove directories. To remove a mount, please use umount.
+
+  If the -I option is given, and there are more than three files or the -r, -R, or --recursive are given, the rm prompts the user for whether to proceed with the entire operation. If the response is not affirmative, the entire command is aborted.
+
+  Otherwise, if a file is unwritablle, standard input is a terminal, and the -f or --force option is not given, or the -i option is given, rm prompts the user for whether to remove the file. If the response is not affirmative, the file is skipped.
+
+OPTIONS
+  Remove (unlink) the FILE(s).
+
+  -f, --force
+         ignore nonexistent files and arguments, never prompt
+  
+  -i     prompt before every removal
+  
+  -I     prompt once before removing more than three files, or when removing recursively; less intrusive than -i, while still giving protection against most mistakes
+  
+  --one-file-system
+         when removing a hierarchy recursively, skip any directory that is on a file system different from that of the corresponding command line argument
+
+  --no-preserve-root
+         do not treat '/' specially
+
+  --preserve-root
+         do not remove '/' (default)
+
+  -r, -R, --recursive
+         remove directories and their contents recursively
+
+  -d, --dir
+         remove empty directories
+
+  -v, --verbose
+         explain what is being done
+
+  --help
+         display this help and exit.
+
+By default, rm does not remove directories.  Use the --recursive (-r or -R) option to remove each listed directory, too, along with all of its contents.
+
+To remove a file whose name starts with a '-', for example '-foo', use this command:
+  rm ./-foo
+
+EXAMPLES
+  rm a
+    Deletes the file `a`.

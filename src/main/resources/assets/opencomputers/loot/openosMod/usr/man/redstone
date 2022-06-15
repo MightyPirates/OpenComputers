@@ -1,0 +1,22 @@
+NAME
+  redstone - access to redstone input and output
+
+SYNOPSIS
+  redstone SIDE
+  redstone SIDE VALUE
+  redstone SIDE -b COLOR
+  redstone SIDE -b COLOR VALUE
+
+DESCRIPTION
+  This program allows manipulating redstone output of the computer via the shell, if it has a built-in redstone card or is connected to a redstone I/O block. It can also be used to just display the current in- and output. If another mod is installed that provides bundled redstone logic, such as RedLogic, MineFactory Reloaded (Rednet Cables) or Project: Red, it can also be used to interact with bundled signals by passing the `-b` flag.
+
+OPTIONS
+  -b
+    interact with bundled signals
+
+EXAMPLES
+  redstone front
+    Displays the simple in- and output on the front face of a computer with a redstone card.
+
+  redstone north -b lime 200
+    Sets the bundled `lime` output of a redstone I/O block's northern side to 200.

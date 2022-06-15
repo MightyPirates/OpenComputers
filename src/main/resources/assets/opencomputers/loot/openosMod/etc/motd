@@ -1,0 +1,55 @@
+local component = require("component")
+local computer = require("computer")
+local unicode = require("unicode")
+local tty = require("tty")
+local term = require("term")
+
+if not term.isAvailable() then return end
+local gpu = term.gpu()
+local rx, ry = gpu.getResolution()
+
+------------------------------------
+
+local f = io.open("/usr/misc/greetings.txt")
+local greeting = ""
+if f then
+    local greetings = {}
+      pcall(function()
+      for line in f:lines() do table.insert(greetings, line) end
+    end)
+    f:close()
+    greeting = greetings[math.random(1, math.max(#greetings, 1))] or ""
+end
+
+----------------------------------------------------------
+
+local oldb = gpu.getBackground()
+local oldf = gpu.getForeground()
+local depth = gpu.getDepth()
+
+if depth == 8 then
+    gpu.setBackground(0x777777)
+    gpu.setForeground(0xFFFFFF)
+elseif depth == 4 then
+    gpu.setBackground(0xAAAAAA)
+    gpu.setForeground(0xFFFFFF)
+else
+    gpu.setBackground(0xFFFFFF)
+    gpu.setForeground(0)
+end
+
+----------------------------------------------------------
+
+local function proPrint(str)
+    print(str .. string.rep(" ", rx - (unicode.len(str) % rx)))
+end
+
+term.write(string.rep("-", rx))
+proPrint(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
+proPrint(greeting)
+term.write(string.rep("-", rx))
+
+----------------------------------------------------------
+
+gpu.setBackground(oldb)
+gpu.setForeground(oldf)

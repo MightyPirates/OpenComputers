@@ -1,0 +1,15 @@
+NAME
+  unset - remove an environment variable
+
+SYNOPSIS
+  unset [VARNAME]
+
+DESCRIPTION
+  Removes an environment variable
+
+EXAMPLES
+  unset some_variable
+    Removes the environment variable some_variable
+
+SEE ALSO
+  set

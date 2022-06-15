@@ -1,0 +1,15 @@
+NAME
+  cat - concatenate files and print on the standard output
+
+SYNOPSIS
+  cat [FILE]...
+
+DESCRIPTION
+  `cat` allows concatenating files or standard input to standard output.
+
+EXAMPLES
+  cat
+    Copy standard input to standard output.
+
+  cat test.txt
+    Output contents of file test.txt.

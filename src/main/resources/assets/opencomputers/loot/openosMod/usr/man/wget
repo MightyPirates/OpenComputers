@@ -1,0 +1,23 @@
+NAME
+  wget - download files via http
+
+SYNOPSIS
+  wget URL [FILE]
+
+DESCRIPTION
+  The wget program allows downloading programs from the interwebs, given the URL to download from.
+
+  The wget program requires an internet card and internet access to be enabled in the mod's configuration.
+
+OPTIONS
+  -f
+    do not prompt before overwriting
+  -q
+    only print errors, no status messages
+
+EXAMPLES
+  wget http://example.com/data.zip
+    Downloads the file `data.zip` and saves it as `data.zip`.
+
+  wget http://example.com/data.zip blah.zip
+    Downloads the file `data.zip` and saves it as `blah.zip`.
