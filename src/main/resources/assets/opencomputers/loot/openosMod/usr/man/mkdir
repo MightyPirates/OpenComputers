@@ -1,0 +1,15 @@
+NAME
+  mkdir - make directories
+
+SYNOPSIS
+  mkdir DIRECTORY...
+
+DESCRIPTION
+  Create the specified directories, if they don't already exist.
+
+EXAMPLES
+  mkdir a
+    Create directory `a` in the current directory.
+
+  mkdir /a/b c
+    Create directory `/a` if it doesn't already exists, then create directory `/a/b` and create directory `c` in the current directory.

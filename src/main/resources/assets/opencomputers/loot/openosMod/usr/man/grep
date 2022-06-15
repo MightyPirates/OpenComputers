@@ -1,0 +1,34 @@
+NAME
+  grep - Search for PATTERN in each FILE or standard input. PATTERN is, by default, a Lua regular expression
+  Example: grep -i 'hello world' menu.lua main.lua
+
+OPTIONS
+Regexp selection and interpretation:
+  -e, --lua-regexp          PATTERN is a Lua regexp (default)
+  -F, --fixed-strings       PATTERN is a plain string
+      --file=FILE           use newline separated PATTERNs from FILE
+  -w, --word-regexp         force PATTERN to match only whole words
+  -x, --line-regexp         force PATTERN to match only whole lines
+  -i, --ignore-case         ignore case distinctions
+
+Miscellaneous:
+      --label=LABEL         use LABEL instead of (standard input) for stdin prefix
+  -s, --no-messages         suppress error messages
+  -v, --invert-match        select non-matching lines
+      --help                display help message and exit
+
+Output control:
+      --max-count=NUM       stop after NUM matches
+  -n, --line-number         print line number with output lines
+  -H, --with-filename       print the file name for each match
+  -h, --no-filename         suppress the file name prefix on output
+  -o, --only-matching       show only the part of a line matching PATTERN
+  -q, --quiet, --silent     suppress all normal output
+  -r, --recursive           search directories in FILEs recursively
+  -L, --files-without-match print only names of FILEs containing no match
+  -l, --files-with-matches  print only names of FILEs containing matches
+  -c, --count               print only a count of matching lines per FILE
+      --color, --colour     user markers to highlight the matching strings
+  -t, --trim                trim whitespace off results
+
+When FILE is -, read stdin. With no FILE, read - or ./ if a command line -r. If fewer than two FILEs are given, assume -h. Exit status is 0 if any line is selected, 1 otherwise. If any error occurs and -q is not given, the exit status is 2.

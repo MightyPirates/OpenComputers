@@ -1,0 +1,27 @@
+NAME
+  less - file viewer
+
+SYNOPSIS
+  less [FILE]
+
+DESCRIPTION
+  'less' is similar to `more`, but with buffering. This allows to you scroll back and forward a single line at a time.
+
+COMMANDS
+  q        quit
+  up       scroll up one line
+  down     scroll down one line
+  space
+  pgdown   scroll down one page
+  pgup     scroll up one page
+  home     scroll to the start of the buffer
+  end      scroll to the end of the buffer
+
+EXAMPLES
+  less example.txt
+    Displays the contents of file `example.txt`
+  find / | less
+    filter the output of `file /` through the 'less' pager
+
+SEE ALSO
+  more

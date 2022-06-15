@@ -1,0 +1,13 @@
+NAME
+  dmesg - display messages(events)
+    
+SYNOPIS
+  dmesg [EVENT]...
+
+EXAMPLES
+  dmesg
+    Shows all events.
+
+  dmesg touch
+    Shows only "touch" events.
+

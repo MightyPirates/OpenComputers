@@ -1,0 +1,35 @@
+NAME
+  rc - Manage services
+
+SYNOPSIS
+  rc SERVICE COMMAND [ARGS...]
+
+DESCRIPTION
+  Controls services in /etc/rc.d/
+  Common commands are start/stop/restart, there are also special commands enable/disable. A command is global function in executable file that is stored in /etc/rc.d/ directory. Services can define their own commands.
+
+COMMANDS
+  start
+    This command starts specified service, executed automatically for all enabled services when system boots.
+
+  stop
+    This command stops specified service.
+
+  restart
+    This command restarts specified service. This command doesn't have to be implemented by services when start and stop commands are present.
+
+  enable
+    This command enables specified service. Executing this command won't start the service. It's implemented by the rc library, but can be overridden by service.
+
+  disable
+    This command disables specified service. Executing this command won't stop the service. It's implemented by the rc library, but can be overridden by service.
+
+EXAMPLES
+  rc example
+    Lists commands of example service.
+
+  rc example start
+    Starts example service.
+
+  rc example enable
+    Makes example start on system boot.

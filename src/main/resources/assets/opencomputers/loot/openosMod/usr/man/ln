@@ -1,0 +1,19 @@
+NAME
+  ln - creates symbolic links
+
+SYNOPSIS
+  ln FILE [TARGET]
+
+DESCRIPTION
+  `ln` allows creating virtual symbolic links. A symbolic link is a reference in the file system that can be used to point to other nodes in the file system. For example, a symbolic link to a file will behave like that file: it can be opened and changed, where in reality the file the link references is changed. A symbolic link to a directory will behave as such.
+
+  Note that symbolic links can lead to cycles (recursion) in the file system structure.
+
+  Symbolic links in OpenOS are 'virtual'. They are not stored on any file system, and as such will not persist across a reboot of the computer. This also means that the can be created in virtual folders, and even on read-only file systems.
+
+EXAMPLES
+  ln /bin/ls.lua
+    Creates a symbolic link `ls.lua` to the file `/bin/ls.lua` in the current working directory.
+
+  ln /home/magic.lua /bin/magic.lua
+    Creates a symbolic link to file `/home/magic.lua` in the `/bin` directory.

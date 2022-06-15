@@ -1,0 +1,109 @@
+NAME
+  install - installs files from a source filesystem to a target filesystem
+
+SYNOPSIS
+  install [name] [OPTIONS]...
+
+DESCRIPTION
+  install builds a list of candidate source and target mounted filesystems. If there are multiple candidates, the user is prompted for selections. By default, install copies all files from the source filesystem's root to the target filesystem's root path. The source filesystem can define label, boot, and reboot behavior via .prop and a fully custom install experience via .install which supercedes install running cp from source to target filesystems. Developers creating their own .install files for devices should respect environment variables set by install as per options it is given, such as the root path. This manual page details those environment variables.
+
+OPTIONS
+  --from=ADDR
+    Specifies the source filesystem or its root path. ADDR can be the device uuid or a directory path. If this is a directory path, it represents a root path to install from. This option can also be used to specify source paths that would otherwise be ignored, those being devfs, tmpfs, and the rootfs. e.g. --from=/tmp . Note that if both --from and --label are used, install expects the source path to have a .prop defining the same label. See .prop for more details.
+
+  --to=ADDR
+    Same as --from but specifies the target filesystem by uuid or its root path. This option can also be used to specify filesystems that are otherwise ignored including tmpfs. i.e. --to=ADDR where ADDR matches the tmpfs device address or its mount point path. e.g. --to=/tmp
+
+  --fromDir=PATH
+    Install PATH from source. PATH is relative to the root of the source filesystem or path given by --from. The default is .
+
+  --root=PATH
+    Same as --fromDir but for the target filesystem.
+
+  --toDir=PATH
+    Same as --root. Either can be used. It is meaningless to specify both and is not documented which takes precedence in such a case.
+
+  -u, --update
+    Indicates that install should prompt the user before modifying files. This invokes -i and -u for /bin/cp.
+
+The following can override settings defined in .prop in the source filesystem.
+
+  --label=LABEL
+    use LABEL for label instead of any value specified by .prop
+
+  --nosetlabel
+    do not set target label. --nolabelset is deprecated
+
+  --nosetboot
+    do not set target as default boot device when rebooting. --noboot is deprecated
+
+  --noreboot
+    do not reboot after install
+
+.prop
+  .prop should have valid lua syntax for a table of keys and their values: e.g. "{label='OpenOS'}"
+  All fields are optional, as is the .prop file
+
+  label:string
+    Declares an identifying name of the installation. This is displayed by install during source selection and also can be used on the commandline: e.g. (where {label="tape"} is given) `install tape`. If setlabel is true, this value is used for the target filesystem label. --label overrides this value. Note that install uses a case insensitive search: e.g. install TAPE works the same as install tape.
+
+  setlabel:boolean
+    Determines whether the install should set the target filesystem's label. If .prop does not define a label and the user does not define a command line --label=LABEL, setlabel has no action. --nosetlabel overrides this value
+
+  setboot:boolean
+    Determines if the target filesystem should be set as the machine's default boot device. Default is false, overriden by --nosetboot
+
+  reboot:boolean
+    Determines if the machine should reboot after the install completes. Overriden by --noreboot
+
+  ignore:boolean
+    If true, the installer will skip the source filesystem and not include it for selection
+
+  EXAMPLE:
+    {label='OpenOS', setlabel=true, setboot=true, reboot=true}
+
+.install ENVIRONMENT
+  A loot disc can optionally provide a custom installation script at the root of the source filesytem selected for installation. The script must be named ".install"
+  When provided, the default install action is replaced by executation of this script. The default action is to copy all source files to the destination
+  A table of configuration options, named `install`, is provided in _ENV
+  These are the keys and their descriptions of that table
+
+  _ENV.install.from:
+    This is the path of the selected source filesystem to install from. It should be the path to the executing .install
+    example: /mnt/ABC/.install is executing, thus _ENV.install.from is "/mnt/ABC/"
+
+  _ENV.install.to:
+    This is the path of the selected target filesystem to install to.
+    example: "/"
+
+  _ENV.install.fromDir
+    This is the relative path to use in the source filesystem as passed by command line to install. If unspecified to install it defaults to "."
+    example: Perhaps the user executed `install --fromDir="bin"` with the intention that only files under /mnt/ABC/bin would be copied to their rootfs
+
+  _ENV.install.root
+    This is the relative path to use in the target filesystem as passed by command line to install. If unspecified to install it defaults to "."
+    example: The user prefers to install to usr/ and uses `install --root=usr` and here _ENV.install.root would be "usr"
+
+  _ENV.install.update
+    Assigned value of --update, see OPTIONS
+
+  _ENV.install.label
+    Assigned value of --label or .prop's label, see OPTIONS
+
+  _ENV.install.setlabel
+    Assigned value of .prop's setlabel unless --nosetlabel, see OPTIONS
+
+  _ENV.install.setboot
+    Assigned value of .prop's boot unless --nosetboot, see OPTIONS
+
+  _ENV.install.reboot
+    Assigned value of .prop's reboot unless --noreboot, see OPTIONS
+
+EXAMPLES
+  install
+    Searches all non rootfs filesystems to install from, and all non tmpfs filesystems to install to. Prompts the user for a selection, and copies. If .prop is defined in source, sets label and will prompt for reboot when completed.
+
+  install openos
+    Searches candidates source filesystems that have .prop's that define label="OpenOS" and prompts the user to confirm install to candidate target filesystems.
+
+

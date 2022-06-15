@@ -1,0 +1,13 @@
+NAME
+  more - primitive file viewer
+
+SYNOPSIS
+  more FILE
+
+DESCRIPTION
+  `more` allows viewing the contents of a file one screenful at a time.
+  There is no buffering which means you cannot scroll back, long lines will jump the view forward, but there is a small and fixed memory footprint even when piping long running programs with significant output
+
+EXAMPLES
+  more /home/a.txt
+    Displays the contents of file `/home/a.txt`

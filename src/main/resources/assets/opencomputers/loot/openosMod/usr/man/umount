@@ -1,0 +1,17 @@
+NAME
+  umount - remove a file system mount
+
+SYNOPSIS
+  umount PATH
+  umount -a LABEL
+  umount -a ADDRESS
+
+DESCRIPTION
+  Removes either a single mount point if given the path into a mount, or all mount points for a specified file system if given the label or address of the file system.
+
+EXAMPLES
+  umount /mnt/82f
+    Unmounts the automatically generated mountpoint at `/mnt/82f`.
+
+  umount -a 82f
+    Removes all mounts of the file system for which the address starts with `82f`.

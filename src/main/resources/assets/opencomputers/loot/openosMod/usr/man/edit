@@ -1,0 +1,19 @@
+NAME
+  edit - primitive file editor
+
+SYNOPSIS
+  edit FILE
+
+DESCRIPTION
+  A very simple text file editor. To create new files with `edit`, open a file in a writable file system that doesn't exist and save.
+
+OPTIONS
+  -r
+    opens file as read only
+
+EXAMPLES
+  edit /tmp/test.txt
+    Opens the file `/tmp/test.txt` for editing. If it doesn't exists, it will be created upon saving.
+
+  edit /bin/ls.lua
+    Opens the file `/bin/ls.lua`, which will be opened in read-only mode, assuming `/bin` is the default as provided by the read-only-memory.
