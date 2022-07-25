@@ -1,5 +1,7 @@
 package li.cil.oc
 
+import java.nio.file.Paths
+
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.common.init.Blocks
@@ -23,6 +25,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 import net.minecraftforge.fml.event.lifecycle._
 import net.minecraftforge.fml.event.server._
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
+import net.minecraftforge.fml.loading.FMLPaths
 import net.minecraftforge.fml.network.simple.SimpleChannel
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -76,6 +79,9 @@ class OpenComputers {
 
   FMLJavaModLoadingContext.get.getModEventBus.register(this)
   OpenComputers.instance = Some(this)
+
+  MinecraftForge.EVENT_BUS.register(OpenComputers.proxy)
+  Settings.load(FMLPaths.CONFIGDIR.get().resolve(Paths.get("opencomputers", "settings.conf")).toFile())
 
   @SubscribeEvent
   def registerBlocks(e: RegistryEvent.Register[Block]) {

@@ -1,6 +1,5 @@
 package li.cil.oc.common
 
-import java.nio.file.Paths
 import java.util.function.BiConsumer
 import java.util.function.Function
 import java.util.function.Predicate
@@ -40,7 +39,6 @@ import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.RegistryEvent.MissingMappings
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.event.lifecycle._
-import net.minecraftforge.fml.loading.FMLPaths
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.registries.ForgeRegistries
@@ -58,10 +56,6 @@ class Proxy {
   }
 
   def preInit(e: FMLCommonSetupEvent) {
-    Settings.load(FMLPaths.CONFIGDIR.get.resolve(Paths.get("opencomputers", "settings.conf")).toFile)
-
-    MinecraftForge.EVENT_BUS.register(this)
-
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
