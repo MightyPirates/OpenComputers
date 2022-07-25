@@ -52,7 +52,7 @@ class Proxy {
   def initExtraTags() {
     OpenComputers.log.debug("Initializing additional OreDict entries.")
 
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.item.Items.DIAMOND, "gemDiamond")
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, OpenComputers.ID + ":chip_diamond", net.minecraft.item.Items.DIAMOND, "forge:gems/diamond")
   }
 
   def preInit(e: FMLCommonSetupEvent) {
