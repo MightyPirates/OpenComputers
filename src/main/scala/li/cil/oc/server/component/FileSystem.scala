@@ -24,9 +24,9 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagIntArray
-import net.minecraft.nbt.NBTTagList
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.IntArrayNBT
+import net.minecraft.nbt.ListNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsJava._
@@ -303,10 +303,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
 
-    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((ownerNbt: NBTTagCompound) => {
+    nbt.getList("owners", NBT.TAG_COMPOUND).foreach((ownerNbt: CompoundNBT) => {
       val address = ownerNbt.getString("address")
       if (address != "") {
         owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
@@ -314,29 +314,29 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     })
 
     if (label != null) {
-      label.load(nbt)
+      label.loadData(nbt)
     }
-    fileSystem.load(nbt.getCompoundTag("fs"))
+    fileSystem.loadData(nbt.getCompound("fs"))
   }
 
-  override def save(nbt: NBTTagCompound) = fileSystem.synchronized {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = fileSystem.synchronized {
+    super.saveData(nbt)
 
     if (label != null) {
-      label.save(nbt)
+      label.saveData(nbt)
     }
 
     if (!SaveHandler.savingForClients) {
-      val ownersNbt = new NBTTagList()
+      val ownersNbt = new ListNBT()
       for ((address, handles) <- owners) {
-        val ownerNbt = new NBTTagCompound()
-        ownerNbt.setString("address", address)
-        ownerNbt.setTag("handles", new NBTTagIntArray(handles.toArray))
-        ownersNbt.appendTag(ownerNbt)
+        val ownerNbt = new CompoundNBT()
+        ownerNbt.putString("address", address)
+        ownerNbt.put("handles", new IntArrayNBT(handles.toArray))
+        ownersNbt.add(ownerNbt)
       }
-      nbt.setTag("owners", ownersNbt)
+      nbt.put("owners", ownersNbt)
 
-      nbt.setNewCompoundTag("fs", fileSystem.save)
+      nbt.setNewCompoundTag("fs", fileSystem.saveData)
     }
   }
 
@@ -395,16 +395,16 @@ final class HandleValue extends AbstractValue {
   private val OwnerTag = "owner"
   private val HandleTag = "handle"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT): Unit = {
+    super.loadData(nbt)
     owner = nbt.getString(OwnerTag)
-    handle = nbt.getInteger(HandleTag)
+    handle = nbt.getInt(HandleTag)
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    super.save(nbt)
-    nbt.setString(OwnerTag, owner)
-    nbt.setInteger(HandleTag, handle)
+  override def saveData(nbt: CompoundNBT): Unit = {
+    super.saveData(nbt)
+    nbt.putString(OwnerTag, owner)
+    nbt.putInt(HandleTag, handle)
   }
 
   override def toString: String = handle.toString

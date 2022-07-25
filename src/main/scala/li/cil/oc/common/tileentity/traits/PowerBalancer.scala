@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.SidedEnvironment
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 
 trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable {
   var globalBuffer, globalBufferSize = 0.0
@@ -12,7 +12,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && isConnected && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && isConnected && getLevel.getGameTime % Settings.get.tickFrequency == 0) {
       val nodes = connectors
       def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
       // Yeeeeah, so that just happened... it's not a beauty, but it works. This
@@ -55,7 +55,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment with Tickable
     (sumBuffer, sumSize)
   }
 
-  private def connectors = EnumFacing.values.view.map(sidedNode(_) match {
+  private def connectors = Direction.values.view.map(sidedNode(_) match {
     case connector: Connector => connector
     case _ => null
   })

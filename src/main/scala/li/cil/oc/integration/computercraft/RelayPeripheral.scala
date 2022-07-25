@@ -1,8 +1,11 @@
 package li.cil.oc.integration.computercraft
 
+import dan200.computercraft.api.lua.IArguments
 import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.lua.LuaException
+import dan200.computercraft.api.lua.MethodResult
 import dan200.computercraft.api.peripheral.IComputerAccess
+import dan200.computercraft.api.peripheral.IDynamicPeripheral
 import dan200.computercraft.api.peripheral.IPeripheral
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -10,13 +13,13 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
 import li.cil.oc.common.tileentity.Relay
 import li.cil.oc.util.ResultWrapper._
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class RelayPeripheral(val relay: Relay) extends IPeripheral {
+class RelayPeripheral(val relay: Relay) extends IDynamicPeripheral {
   private val methods = Map[String, (IComputerAccess, ILuaContext, Array[AnyRef]) => Array[AnyRef]](
     // Generic modem methods.
     "open" -> ((computer, context, arguments) => {
@@ -111,8 +114,8 @@ class RelayPeripheral(val relay: Relay) extends IPeripheral {
 
   override def getMethodNames = methodNames
 
-  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
-    try methods(methodNames(method))(computer, context, arguments) catch {
+  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: IArguments) =
+    try MethodResult.of(methods(methodNames(method))(computer, context, arguments.getAll)) catch {
       case e: LuaException => throw e
       case t: Throwable =>
         t.printStackTrace()
@@ -140,7 +143,7 @@ class RelayPeripheral(val relay: Relay) extends IPeripheral {
   }
 
   private def visibleComponents = {
-    EnumFacing.values().flatMap(side => {
+    Direction.values().flatMap(side => {
       val node = relay.sidedNode(side)
       node.reachableNodes.collect {
         case component: Component if component.canBeSeenFrom(node) => component

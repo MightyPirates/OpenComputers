@@ -18,14 +18,15 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption
 import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.WrapAsJava._
 
-class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo {
+class Assembler extends TileEntity(null) with traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
@@ -48,15 +49,15 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = side != EnumFacing.UP
+  @OnlyIn(Dist.CLIENT)
+  override def canConnect(side: Direction) = side != Direction.UP
 
-  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
+  override def sidedNode(side: Direction) = if (side != Direction.UP) node else null
 
-  @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = canConnect(side)
+  @OnlyIn(Dist.CLIENT)
+  override protected def hasConnector(side: Direction) = canConnect(side)
 
-  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
+  override protected def connector(side: Direction) = Option(if (side != Direction.UP) node else null)
 
   override def energyThroughput = Settings.get.assemblerRate
 
@@ -68,7 +69,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   // ----------------------------------------------------------------------- //
 
-  def canAssemble = AssemblerTemplates.select(getStackInSlot(0)) match {
+  def canAssemble = AssemblerTemplates.select(getItem(0)) match {
     case Some(template) => !isAssembling && output.isEmpty && template.validate(this)._1
     case _ => false
   }
@@ -82,11 +83,11 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   // ----------------------------------------------------------------------- //
 
   def start(finishImmediately: Boolean = false): Boolean = this.synchronized {
-    AssemblerTemplates.select(getStackInSlot(0)) match {
+    AssemblerTemplates.select(getItem(0)) match {
       case Some(template) if !isAssembling && output.isEmpty && template.validate(this)._1 =>
-        for (slot <- 0 until getSizeInventory) {
-          val stack = getStackInSlot(slot)
-          if (!stack.isEmpty && !isItemValidForSlot(slot, stack)) return false
+        for (slot <- 0 until getContainerSize) {
+          val stack = getItem(slot)
+          if (!stack.isEmpty && !canPlaceItem(slot, stack)) return false
         }
         val (stack, energy) = template.assemble(this)
         output = StackOption(stack)
@@ -99,8 +100,8 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
         requiredEnergy = totalRequiredEnergy
         ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
-        for (slot <- 0 until getSizeInventory) updateItems(slot, ItemStack.EMPTY)
-        markDirty()
+        for (slot <- 0 until getContainerSize) updateItems(slot, ItemStack.EMPTY)
+        setChanged()
 
         true
       case _ => false
@@ -112,7 +113,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   @Callback(doc = """function(): string, number or boolean -- The current state of the assembler, `busy' or `idle', followed by the progress or template validity, respectively.""")
   def status(context: Context, args: Arguments): Array[Object] = {
     if (isAssembling) result("busy", progress)
-    else AssemblerTemplates.select(getStackInSlot(0)) match {
+    else AssemblerTemplates.select(getItem(0)) match {
       case Some(template) if template.validate(this)._1 => result("idle", true)
       case _ => result("idle", false)
     }
@@ -125,12 +126,12 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def updateEntity() {
     super.updateEntity()
-    if (!output.isEmpty && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (!output.isEmpty && getLevel.getGameTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
       requiredEnergy -= have
       if (requiredEnergy <= 0) {
-        setInventorySlotContents(0, output.get)
+        setItem(0, output.get)
         output = EmptyStack
         requiredEnergy = 0
       }
@@ -145,47 +146,47 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   private final val TotalTag = Settings.namespace + "total"
   private final val RemainingTag = Settings.namespace + "remaining"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(OutputTag)) {
-      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTag)))
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
+    if (nbt.contains(OutputTag)) {
+      output = StackOption(ItemStack.of(nbt.getCompound(OutputTag)))
     }
-    else if (nbt.hasKey(OutputTagCompat)) {
-      output = StackOption(new ItemStack(nbt.getCompoundTag(OutputTagCompat)))
+    else if (nbt.contains(OutputTagCompat)) {
+      output = StackOption(ItemStack.of(nbt.getCompound(OutputTagCompat)))
     }
     totalRequiredEnergy = nbt.getDouble(TotalTag)
     requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag(OutputTag, output.get.writeToNBT)
-    nbt.setDouble(TotalTag, totalRequiredEnergy)
-    nbt.setDouble(RemainingTag, requiredEnergy)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
+    nbt.setNewCompoundTag(OutputTag, output.get.save)
+    nbt.putDouble(TotalTag, totalRequiredEnergy)
+    nbt.putDouble(RemainingTag, requiredEnergy)
   }
 
-  @SideOnly(Side.CLIENT) override
-  def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
+  @OnlyIn(Dist.CLIENT) override
+  def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
     requiredEnergy = nbt.getDouble(RemainingTag)
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    nbt.setDouble(RemainingTag, requiredEnergy)
+  override def saveForClient(nbt: CompoundNBT) {
+    super.saveForClient(nbt)
+    nbt.putDouble(RemainingTag, requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def getSizeInventory = 22
+  override def getContainerSize = 22
 
-  override def getInventoryStackLimit = 1
+  override def getMaxStackSize = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def canPlaceItem(slot: Int, stack: ItemStack) =
     if (slot == 0) {
       !isAssembling && AssemblerTemplates.select(stack).isDefined
     }
-    else AssemblerTemplates.select(getStackInSlot(0)) match {
+    else AssemblerTemplates.select(getItem(0)) match {
       case Some(template) =>
         val tplSlot =
           if ((1 until 4) contains slot) template.containerSlots(slot - 1)

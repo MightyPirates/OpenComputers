@@ -2,7 +2,6 @@ package li.cil.oc.integration.appeng
 
 import java.util
 
-import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.{IGridHost, IGridNode}
 import appeng.api.networking.crafting.{ICraftingJob, ICraftingLink, ICraftingRequester}
@@ -23,11 +22,15 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.RegistryKey
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.util.registry.{Registry => VanillaRegistry}
+import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -44,7 +47,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
   def node: Node
 
   private def aeCraftItem(aeItem: IAEItemStack): IAEItemStack = {
-    val patterns = AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCraftingFor(aeItem, null, 0, tile.getWorld)
+    val patterns = AEUtil.getGridCrafting(tile.getGridNode(pos).getGrid).getCraftingFor(aeItem, null, 0, tile.getLevel)
     patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(aeItem))) match {
       case Some(pattern) => pattern.getOutputs.find(_.isSameType(aeItem)).get
       case _ => aeItem.copy.setStackSize(0) // Should not be possible, but hey...
@@ -308,7 +311,7 @@ object NetworkControl {
       if (delayData != null) {
         result(Unit, "waiting for ae network to load")
       } else {
-        if (controller == null || controller.isInvalid) {
+        if (controller == null || controller.isRemoved) {
           result(Unit, "no controller")
         } else {
           f(controller)
@@ -347,7 +350,7 @@ object NetworkControl {
         val craftingGrid = AEUtil.getGridCrafting(gridNode.getGrid)
 
         val source = new MachineSource(controller)
-        val future = craftingGrid.beginCraftingJob(controller.getWorld, gridNode.getGrid, source, request, null)
+        val future = craftingGrid.beginCraftingJob(controller.getLevel, gridNode.getGrid, source, request, null)
         val cpu = if (!cpuName.isEmpty) {
           craftingGrid.getCpus.collectFirst({
             case c if cpuName.equals(c.getName) => c
@@ -392,19 +395,19 @@ object NetworkControl {
     private val MAX_BACKOFF_TICKS = 20 * 5 // 5 seconds
     private val BACKOFF_SCALE = 2 // multiply by this factor on each failure
 
-    private class EphemeralDelayData(val dimension: Int, val x: Int, val y: Int, val z: Int) {
+    private class EphemeralDelayData(val dimension: RegistryKey[World], val x: Int, val y: Int, val z: Int) {
       var delay: Int = 1
     }
     private var delayData: EphemeralDelayData = _ // null unless delay loading is active
 
     // return true when we do not want to try again, either because we completely failed or we succeeded
     // return false when things appears just not ready yet
-    private def tryLoadGrid(dimension: Int, x: Int, y: Int, z: Int): Boolean = {
-      val world = DimensionManager.getWorld(dimension)
+    private def tryLoadGrid(dimension: RegistryKey[World], x: Int, y: Int, z: Int): Boolean = {
+      val world = ServerLifecycleHooks.getCurrentServer.getLevel(dimension)
       if (world == null) {
         return false // maybe the dimension isn't loaded yet
       }
-      val tileEntity = world.getTileEntity(new BlockPos(x, y, z))
+      val tileEntity = world.getBlockEntity(new BlockPos(x, y, z))
       if (tileEntity == null) {
         return false // maybe the chunk isn't loaded yet
       }
@@ -442,17 +445,17 @@ object NetworkControl {
       }
     }
 
-    override def load(nbt: NBTTagCompound) {
-      super.load(nbt)
-      stack = AEUtil.itemStorageChannel.createStack(new ItemStack(nbt))
-      links ++= nbt.getTagList(LINKS_KEY, NBT.TAG_COMPOUND).map(
-        (nbt: NBTTagCompound) => LinkCache.store(AEApi.instance.storage.loadCraftingLink(nbt, this)))
+    override def loadData(nbt: CompoundNBT) {
+      super.loadData(nbt)
+      stack = AEUtil.itemStorageChannel.createStack(ItemStack.of(nbt))
+      links ++= nbt.getList(LINKS_KEY, NBT.TAG_COMPOUND).map(
+        (nbt: CompoundNBT) => LinkCache.store(AEUtil.aeApi.get.storage.loadCraftingLink(nbt, this)))
       pos = AEPartLocation.fromOrdinal(NbtDataStream.getOptInt(nbt, POS_KEY, AEPartLocation.INTERNAL.ordinal))
-      if (nbt.hasKey(DIMENSION_KEY)) {
-        val dimension = nbt.getInteger(DIMENSION_KEY)
-        val x = nbt.getInteger(X_KEY)
-        val y = nbt.getInteger(Y_KEY)
-        val z = nbt.getInteger(Z_KEY)
+      if (nbt.contains(DIMENSION_KEY)) {
+        val dimension = RegistryKey.create(VanillaRegistry.DIMENSION_REGISTRY, new ResourceLocation(nbt.getString(DIMENSION_KEY)))
+        val x = nbt.getInt(X_KEY)
+        val y = nbt.getInt(Y_KEY)
+        val z = nbt.getInt(Z_KEY)
         delayData = new EphemeralDelayData(dimension, x, y, z)
         // all of this delay load could have been done nested
         // but i don't want infinite lambda nesting in cases where the load is never ready
@@ -460,21 +463,21 @@ object NetworkControl {
       }
     }
 
-    override def save(nbt: NBTTagCompound) {
-      super.save(nbt)
-      stack.createItemStack().writeToNBT(nbt)
+    override def saveData(nbt: CompoundNBT) {
+      super.saveData(nbt)
+      stack.createItemStack().save(nbt)
       nbt.setNewTagList(LINKS_KEY, links.map((link) => {
-        val comp = new NBTTagCompound()
+        val comp = new CompoundNBT()
         link.writeToNBT(comp)
         comp
       }))
       if (pos != null)
-        nbt.setInteger(POS_KEY, pos.ordinal)
-      if (controller != null && !controller.isInvalid) {
-        nbt.setInteger(DIMENSION_KEY, controller.getWorld.provider.getDimension)
-        nbt.setInteger(X_KEY, controller.getPos.getX)
-        nbt.setInteger(Y_KEY, controller.getPos.getY)
-        nbt.setInteger(Z_KEY, controller.getPos.getZ)
+        nbt.putInt(POS_KEY, pos.ordinal)
+      if (controller != null && !controller.isRemoved) {
+        nbt.putString(DIMENSION_KEY, controller.getLevel.dimension.location.toString)
+        nbt.putInt(X_KEY, controller.getBlockPos.getX)
+        nbt.putInt(Y_KEY, controller.getBlockPos.getY)
+        nbt.putInt(Z_KEY, controller.getBlockPos.getZ)
       }
     }
   }
@@ -530,17 +533,17 @@ object NetworkControl {
     private val FAILED_KEY: String = "failed"
     private val REASON_KEY: String = "reason"
 
-    override def save(nbt: NBTTagCompound) {
-      super.save(nbt)
-      nbt.setBoolean(COMPUTING_KEY, isComputing)
+    override def saveData(nbt: CompoundNBT) {
+      super.saveData(nbt)
+      nbt.putBoolean(COMPUTING_KEY, isComputing)
       if (link.nonEmpty)
-        nbt.setString(LINK_ID_KEY, link.get.getCraftingID)
-      nbt.setBoolean(FAILED_KEY, failed)
-      nbt.setString(REASON_KEY, reason)
+        nbt.putString(LINK_ID_KEY, link.get.getCraftingID)
+      nbt.putBoolean(FAILED_KEY, failed)
+      nbt.putString(REASON_KEY, reason)
     }
 
-    override def load(nbt: NBTTagCompound) {
-      super.load(nbt)
+    override def loadData(nbt: CompoundNBT) {
+      super.loadData(nbt)
 
       isComputing = NbtDataStream.getOptBoolean(nbt, COMPUTING_KEY, isComputing)
       val id = NbtDataStream.getOptString(nbt, LINK_ID_KEY, "")

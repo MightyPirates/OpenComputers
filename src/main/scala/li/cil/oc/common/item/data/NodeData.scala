@@ -3,13 +3,13 @@ package li.cil.oc.common.item.data
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Visibility
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 // Generic one for items that are used as components; gets the items node info.
 class NodeData extends ItemData(null) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var address: Option[String] = None
@@ -18,31 +18,31 @@ class NodeData extends ItemData(null) {
 
   private final val DataTag = Settings.namespace + "data"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    val nodeNbt = nbt.getCompoundTag(DataTag).getCompoundTag(NodeData.NodeTag)
-    if (nodeNbt.hasKey(NodeData.AddressTag)) {
+  override def loadData(nbt: CompoundNBT): Unit = {
+    val nodeNbt = nbt.getCompound(DataTag).getCompound(NodeData.NodeTag)
+    if (nodeNbt.contains(NodeData.AddressTag)) {
       address = Option(nodeNbt.getString(NodeData.AddressTag))
     }
-    if (nodeNbt.hasKey(NodeData.BufferTag)) {
+    if (nodeNbt.contains(NodeData.BufferTag)) {
       buffer = Option(nodeNbt.getDouble(NodeData.BufferTag))
     }
-    if (nodeNbt.hasKey(NodeData.VisibilityTag)) {
-      visibility = Option(Visibility.values()(nodeNbt.getInteger(NodeData.VisibilityTag)))
+    if (nodeNbt.contains(NodeData.VisibilityTag)) {
+      visibility = Option(Visibility.values()(nodeNbt.getInt(NodeData.VisibilityTag)))
     }
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    if (!nbt.hasKey(DataTag)) {
-      nbt.setTag(DataTag, new NBTTagCompound())
+  override def saveData(nbt: CompoundNBT): Unit = {
+    if (!nbt.contains(DataTag)) {
+      nbt.put(DataTag, new CompoundNBT())
     }
-    val dataNbt = nbt.getCompoundTag(DataTag)
-    if (!dataNbt.hasKey(NodeData.NodeTag)) {
-      dataNbt.setTag(NodeData.NodeTag, new NBTTagCompound())
+    val dataNbt = nbt.getCompound(DataTag)
+    if (!dataNbt.contains(NodeData.NodeTag)) {
+      dataNbt.put(NodeData.NodeTag, new CompoundNBT())
     }
-    val nodeNbt = dataNbt.getCompoundTag(NodeData.NodeTag)
-    address.foreach(nodeNbt.setString(NodeData.AddressTag, _))
-    buffer.foreach(nodeNbt.setDouble(NodeData.BufferTag, _))
-    visibility.map(_.ordinal()).foreach(nodeNbt.setInteger(NodeData.VisibilityTag, _))
+    val nodeNbt = dataNbt.getCompound(NodeData.NodeTag)
+    address.foreach(nodeNbt.putString(NodeData.AddressTag, _))
+    buffer.foreach(nodeNbt.putDouble(NodeData.BufferTag, _))
+    visibility.map(_.ordinal()).foreach(nodeNbt.putInt(NodeData.VisibilityTag, _))
   }
 }
 

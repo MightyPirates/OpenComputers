@@ -26,11 +26,15 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.block.Block
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraft.world.World
+import net.minecraft.world.biome.Biome.RainType
+import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.common.MinecraftForge
 
 import scala.collection.convert.WrapAsJava._
@@ -55,7 +59,7 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  override protected def checkSideForAction(args: Arguments, n: Int): EnumFacing = {
+  override protected def checkSideForAction(args: Arguments, n: Int): Direction = {
     val side = args.checkSideAny(n)
     val is_uc = host.isInstanceOf[Microcontroller]
     host match {
@@ -69,15 +73,15 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
 
   override def position: BlockPosition = host match {
     case robot: EntityRobot => robot.proxy.position
-    case drone: EntityDrone => BlockPosition(drone.getPosition, drone.getEntityWorld)
+    case drone: EntityDrone => BlockPosition(drone.blockPosition, drone.level)
     case uc: Microcontroller => uc.position
     case tablet: TabletWrapper => BlockPosition(tablet.xPosition, tablet.yPosition, tablet.zPosition, tablet.world)
     case _ => BlockPosition(host)
   }
 
   private def canSeeSky: Boolean = {
-    val blockPos = position.offset(EnumFacing.UP)
-    !host.world.provider.isNether && host.world.canBlockSeeSky(blockPos.toBlockPos)
+    val blockPos = position.offset(Direction.UP)
+    host.world.dimension != World.NETHER && host.world.canSeeSkyFromBelowWater(blockPos.toBlockPos)
   }
 
   @Callback(doc = """function():boolean -- Returns whether there is a clear line of sight to the sky directly above.""")
@@ -87,11 +91,11 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
 
   @Callback(doc = """function():boolean -- Return whether the sun is currently visible directly above.""")
   def isSunVisible(computer: Context, args: Arguments): Array[AnyRef] = {
-    val blockPos = BlockPosition(host).offset(EnumFacing.UP)
+    val blockPos = BlockPosition(host).offset(Direction.UP)
     result(
-      host.world.isDaytime &&
+      host.world.isDay &&
       canSeeSky &&
-        (!host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering)))
+        (host.world.getBiome(blockPos.toBlockPos).getPrecipitation == RainType.NONE || (!host.world.isRaining && !host.world.isThundering)))
   }
 
   @Callback(doc = """function(x:number, z:number[, y:number, w:number, d:number, h:number][, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
@@ -168,13 +172,17 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
       return result(Unit, "not enough energy")
 
     val blockPos = BlockPosition(host).offset(globalSide)
-    val block = host.world.getBlock(blockPos)
-    val item = Item.getItemFromBlock(block)
+    val blockState = host.world.getBlockState(blockPos.toBlockPos)
+    val item = blockState.getBlock().asItem()
     if (item == null) result(Unit, "block has no registered item representation")
     else {
-      val metadata = host.world.getBlockMetadata(blockPos)
-      val damage = block.damageDropped(metadata)
-      val stack = new ItemStack(item, 1, damage)
+      val stacks = Block.getDrops(blockState, host.world.asInstanceOf[ServerWorld], blockPos.toBlockPos, host.world.getBlockEntity(blockPos.toBlockPos))
+      val stack = if (!stacks.isEmpty) {
+        val drop = stacks.find(s => s.getItem == item).getOrElse(stacks.get(0))
+        drop.setCount(1)
+        drop
+      }
+      else new ItemStack(item, 1)
       DatabaseAccess.withDatabase(node, args.checkString(1), database => {
         val toSlot = args.checkSlot(database.data, 2)
         val nonEmpty = database.getStackInSlot(toSlot) != ItemStack.EMPTY // not the same as isEmpty! zero size stacks!
@@ -188,14 +196,14 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: CompoundNBT, stack: ItemStack, player: PlayerEntity, blockPos: BlockPosition, side: Direction, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           if (node.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
             val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.toBlockPos)
             MinecraftForge.EVENT_BUS.post(event)
             if (!event.isCanceled) {
               for ((key, value) <- event.data) value match {
-                case number: java.lang.Number => nbt.setDouble(key, number.doubleValue())
-                case string: String if !string.isEmpty => nbt.setString(key, string)
+                case number: java.lang.Number => nbt.putDouble(key, number.doubleValue())
+                case string: String if !string.isEmpty => nbt.putString(key, string)
                 case _ => // Unsupported, ignore.
               }
             }

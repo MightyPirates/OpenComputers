@@ -10,7 +10,7 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
@@ -21,8 +21,8 @@ object DriverController extends DriverSidedTileEntity {
 
   def getTileEntityClass = AEUtil.controllerClass
 
-  def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileController])
+  def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment =
+    new Environment(world.getBlockEntity(pos).asInstanceOf[TileController])
 
   final class Environment(val tile: TileController) extends ManagedTileEntityEnvironment[TileController](tile, "me_controller") with NamedBlock with NetworkControl[TileController] {
     override def preferredName = "me_controller"

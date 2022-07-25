@@ -10,6 +10,7 @@ import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.item.ItemStack
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
@@ -22,5 +23,5 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 
   override def energyThroughput: Double = Settings.get.powerConverterRate
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.PowerConverter()
 }

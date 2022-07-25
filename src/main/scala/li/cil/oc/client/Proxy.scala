@@ -12,31 +12,35 @@ import li.cil.oc.client.renderer.block.ModelInitialization
 import li.cil.oc.client.renderer.block.NetSplitterModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
+import li.cil.oc.common
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.event.RackMountableRenderHandler
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraft.block.Block
+import net.minecraft.client.Minecraft
+import net.minecraft.client.entity.player.ClientPlayerEntity
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
+import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
-import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
-import net.minecraftforge.fml.common.network.NetworkRegistry
-import org.lwjgl.opengl.GLContext
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
+import net.minecraftforge.fml.network.NetworkRegistry
 
+@Deprecated
 private[oc] class Proxy extends CommonProxy {
-  override def preInit(e: FMLPreInitializationEvent) {
+  override def preInit(e: FMLCommonSetupEvent) {
     super.preInit(e)
 
     api.API.manual = client.Manual
-
-    CommandHandler.register()
 
     MinecraftForge.EVENT_BUS.register(Textures)
     MinecraftForge.EVENT_BUS.register(NetSplitterModel)
@@ -44,37 +48,35 @@ private[oc] class Proxy extends CommonProxy {
     ModelInitialization.preInit()
   }
 
-  override def init(e: FMLInitializationEvent) {
+  override def init(e: FMLCommonSetupEvent) {
     super.init(e)
 
-    OpenComputers.channel.register(client.PacketHandler)
+    CommonPacketHandler.clientHandler = PacketHandler
 
     ColorHandler.init()
 
-    RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
+    RenderingRegistry.registerEntityRenderingHandler(null, DroneRenderer) // TEMP
 
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Adapter], AdapterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], AssemblerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Charger], ChargerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.DiskDrive], DiskDriveRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
-    if (GLContext.getCapabilities.OpenGL15)
-      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
-    else
-      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRendererFallback)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Microcontroller], MicrocontrollerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.NetSplitter], NetSplitterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Printer], PrinterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], RelayRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Transposer], TransposerRenderer)
+    ClientRegistry.bindTileEntityRenderer(null, AdapterRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, AssemblerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, CaseRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, ChargerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, DisassemblerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, DiskDriveRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, GeolyzerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, HologramRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, MicrocontrollerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, NetSplitterRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, PowerDistributorRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, PrinterRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, RaidRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, RackRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, RelayRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, RobotRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, ScreenRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(null, TransposerRenderer) // TEMP
 
+    ClientRegistry.registerKeyBinding(KeyBindings.analyzeCopyAddr)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
@@ -86,13 +88,24 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(MFUTargetRenderer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
-    NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
-
     MinecraftForge.EVENT_BUS.register(Audio)
     MinecraftForge.EVENT_BUS.register(HologramRenderer)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBufferRenderCache)
+  }
+
+  override def getGuiHandler(): common.GuiHandler = client.GuiHandler
+
+  @Deprecated
+  override def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = {
+    player match {
+      case _: ClientPlayerEntity => {
+        val screen = getGuiHandler.getClientGuiElement(guiId, 0, player, world, x, y, z).asInstanceOf[Screen]
+        if (screen != null) Minecraft.getInstance.pushGuiLayer(screen)
+      }
+      case _ => super.openGui(player, guiId, world, x, y, z)
+    }
   }
 
   override def registerModel(instance: Delegate, id: String): Unit = ModelInitialization.registerModel(instance, id)

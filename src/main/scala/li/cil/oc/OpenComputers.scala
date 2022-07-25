@@ -2,16 +2,25 @@ package li.cil.oc
 
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
-import li.cil.oc.server.command.CommandHandler
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.Mod.EventHandler
-import net.minecraftforge.fml.common.SidedProxy
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
-import net.minecraftforge.fml.common.event._
-import net.minecraftforge.fml.common.network.FMLEventChannel
 import li.cil.oc.util.ThreadPoolFactory
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.RegisterCommandsEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.forgespi.Environment
+import net.minecraftforge.fml.InterModComms
+import net.minecraftforge.fml.ModContainer
+import net.minecraftforge.fml.ModLoadingContext
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.event.lifecycle._
+import net.minecraftforge.fml.event.server._
+import net.minecraftforge.fml.network.simple.SimpleChannel
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+
+import scala.collection.convert.WrapAsScala._
 
 @Mod(OpenComputers.ID)
 object OpenComputers {
@@ -19,45 +28,46 @@ object OpenComputers {
 
   final val Name = "OpenComputers"
 
-  def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
+  val Version = ModLoadingContext.get.getActiveContainer.getModInfo.getVersion
 
-  var logger: Option[Logger] = None
+  final val log: Logger = LogManager.getLogger(Name)
 
-  @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
-  var proxy: Proxy = null
+  lazy val proxy: Proxy = {
+    val cls = Environment.get.getDist match {
+      case Dist.CLIENT => Class.forName("li.cil.oc.client.Proxy")
+      case _ => Class.forName("li.cil.oc.common.Proxy")
+    }
+    cls.getConstructor().newInstance().asInstanceOf[Proxy]
+  }
 
-  var channel: FMLEventChannel = _
+  val modContainer: ModContainer = ModLoadingContext.get.getActiveContainer
 
-  @EventHandler
-  def preInit(e: FMLPreInitializationEvent) {
-    logger = Option(e.getModLog)
+  var channel: SimpleChannel = null
+
+  MinecraftForge.EVENT_BUS.register(this)
+
+  @Deprecated
+  def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = proxy.openGui(player, guiId, world, x, y, z)
+
+  @SubscribeEvent
+  def commonInit(e: FMLCommonSetupEvent): Unit = {
     proxy.preInit(e)
-    OpenComputers.log.info("Done with pre init phase.")
-  }
-
-  @EventHandler
-  def init(e: FMLInitializationEvent): Unit = {
     proxy.init(e)
-    OpenComputers.log.info("Done with init phase.")
   }
 
-  @EventHandler
-  def postInit(e: FMLPostInitializationEvent): Unit = {
-    proxy.postInit(e)
-    OpenComputers.log.info("Done with post init phase.")
-  }
-
-  @EventHandler
+  @SubscribeEvent
   def serverStart(e: FMLServerStartingEvent): Unit = {
-    CommandHandler.register(e)
     ThreadPoolFactory.safePools.foreach(_.newThreadPool())
   }
 
-  @EventHandler
+  @SubscribeEvent
   def serverStop(e: FMLServerStoppedEvent): Unit = {
     ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
   }
 
-  @EventHandler
-  def imc(e: IMCEvent): Unit = IMC.handleEvent(e)
+  @SubscribeEvent
+  def imc(e: InterModProcessEvent): Unit = InterModComms.getMessages(OpenComputers.ID).sequential.iterator.foreach(IMC.handleMessage)
+
+  @SubscribeEvent
+  def loadComplete(e: FMLLoadCompleteEvent): Unit = proxy.postInit(e)
 }

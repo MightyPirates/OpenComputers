@@ -18,7 +18,7 @@ object ServerTemplate {
     val info = new ServerInventory {
       override def container = stack
     }
-    Array(ingredients, (0 until info.getSizeInventory).map(info.getStackInSlot).filter(null !=).toArray)
+    Array(ingredients, (0 until info.getContainerSize).map(info.getItem).filter(null !=).toArray)
   }
 
   def register() {

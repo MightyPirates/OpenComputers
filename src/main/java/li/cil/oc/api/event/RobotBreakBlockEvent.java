@@ -3,7 +3,7 @@ package li.cil.oc.api.event;
 import li.cil.oc.api.internal.Agent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.eventbus.api.Cancelable;
 
 public abstract class RobotBreakBlockEvent extends RobotEvent {
     protected RobotBreakBlockEvent(Agent agent) {

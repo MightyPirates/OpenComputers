@@ -4,11 +4,11 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.util.Rarity
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Hand
 import net.minecraft.world.World
 
 class UpgradeDatabase(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
@@ -20,15 +20,15 @@ class UpgradeDatabase(val parent: Delegator, val tier: Int) extends traits.Deleg
 
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (!player.isSneaking) {
-      player.openGui(OpenComputers, GuiType.Database.id, world, 0, 0, 0)
-      player.swingArm(EnumHand.MAIN_HAND)
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    if (!player.isCrouching) {
+      OpenComputers.openGui(player, GuiType.Database.id, world, 0, 0, 0)
+      player.swing(Hand.MAIN_HAND)
     }
-    else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {
-      stack.setTagCompound(null)
-      player.swingArm(EnumHand.MAIN_HAND)
+    else {
+      stack.removeTagKey(Settings.namespace + "items")
+      player.swing(Hand.MAIN_HAND)
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 }

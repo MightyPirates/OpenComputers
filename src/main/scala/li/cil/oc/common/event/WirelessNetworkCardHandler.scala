@@ -3,7 +3,7 @@ package li.cil.oc.common.event
 import li.cil.oc.api
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.WirelessNetworkCard
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 

@@ -3,7 +3,7 @@ package li.cil.oc.common.item
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.util.Rarity
-import net.minecraft.item.EnumRarity
+import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
 
 class ComponentBus(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
@@ -11,7 +11,7 @@ class ComponentBus(val parent: Delegator, val tier: Int) extends traits.Delegate
 
   // Because the driver considers the creative bus to be tier 3, the superclass
   // will believe it has T3 rarity. We override that here.
-  override def rarity(stack: ItemStack): EnumRarity =
+  override def rarity(stack: ItemStack): item.Rarity =
     if (tier == Tier.Four) Rarity.byTier(Tier.Four)
     else super.rarity(stack)
 

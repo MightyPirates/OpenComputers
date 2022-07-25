@@ -7,8 +7,8 @@ import java.nio.channels.ReadableByteChannel
 
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.ListNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -58,10 +58,10 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
   private final val PathTag = "path"
   private final val PositionTag = "position"
 
-  override def load(nbt: NBTTagCompound) {
-    val handlesNbt = nbt.getTagList(InputTag, NBT.TAG_COMPOUND)
-    (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
-      val handle = handleNbt.getInteger(HandleTag)
+  override def loadData(nbt: CompoundNBT) {
+    val handlesNbt = nbt.getList(InputTag, NBT.TAG_COMPOUND)
+    (0 until handlesNbt.size).map(handlesNbt.getCompound).foreach(handleNbt => {
+      val handle = handleNbt.getInt(HandleTag)
       val path = handleNbt.getString(PathTag)
       val position = handleNbt.getLong(PositionTag)
       openInputChannel(path) match {
@@ -74,17 +74,17 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     })
   }
 
-  override def save(nbt: NBTTagCompound) = this.synchronized {
-    val handlesNbt = new NBTTagList()
+  override def saveData(nbt: CompoundNBT): Unit = this.synchronized {
+    val handlesNbt = new ListNBT()
     for (file <- handles.values) {
       assert(file.channel.isOpen)
-      val handleNbt = new NBTTagCompound()
-      handleNbt.setInteger(HandleTag, file.handle)
-      handleNbt.setString(PathTag, file.path)
-      handleNbt.setLong(PositionTag, file.position)
-      handlesNbt.appendTag(handleNbt)
+      val handleNbt = new CompoundNBT()
+      handleNbt.putInt(HandleTag, file.handle)
+      handleNbt.putString(PathTag, file.path)
+      handleNbt.putLong(PositionTag, file.position)
+      handlesNbt.add(handleNbt)
     }
-    nbt.setTag(InputTag, handlesNbt)
+    nbt.put(InputTag, handlesNbt)
   }
 
   // ----------------------------------------------------------------------- //

@@ -25,7 +25,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
@@ -328,15 +328,15 @@ object DataCard {
     private final val TypeTag = "Type"
     private final val DataTag = "Data"
 
-    override def load(nbt: NBTTagCompound): Unit = {
+    override def loadData(nbt: CompoundNBT): Unit = {
       val keyType = nbt.getString(TypeTag)
       val data = nbt.getByteArray(DataTag)
       value = ECUserdata.deserializeKey(keyType, data)
     }
 
-    override def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString(TypeTag, keyType)
-      nbt.setByteArray(DataTag, value.getEncoded)
+    override def saveData(nbt: CompoundNBT): Unit = {
+      nbt.putString(TypeTag, keyType)
+      nbt.putByteArray(DataTag, value.getEncoded)
     }
   }
 

@@ -38,15 +38,15 @@ object TabletTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory): Array[AnyRef] = {
-    val items = (1 until inventory.getSizeInventory).map(slot => inventory.getStackInSlot(slot))
+    val items = (1 until inventory.getContainerSize).map(slot => inventory.getItem(slot))
     val data = new TabletData()
-    data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
+    data.tier = ItemUtils.caseTier(inventory.getItem(0))
     data.container = items.headOption.getOrElse(ItemStack.EMPTY)
     data.items = Array(api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(!_.isEmpty)
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     val stack = api.Items.get(Constants.ItemName.Tablet).createItemStack(1)
-    data.save(stack)
+    data.saveData(stack)
     val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
 
     Array(stack, Double.box(energy))
@@ -152,5 +152,5 @@ object TabletTemplate extends Template {
 
   override protected def maxComplexity(inventory: IInventory) = super.maxComplexity(inventory) / 2 + 5
 
-  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
+  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getItem(0))
 }

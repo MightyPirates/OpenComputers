@@ -1,12 +1,14 @@
 package li.cil.oc.client.renderer.markdown
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.opengl.GL11
 
 import scala.collection.Iterable
@@ -61,14 +63,14 @@ object Document {
   /**
    * Line height for a normal line of text.
    */
-  def lineHeight(renderer: FontRenderer): Int = renderer.FONT_HEIGHT + 1
+  def lineHeight(renderer: FontRenderer): Int = renderer.lineHeight + 1
 
   /**
    * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
    * Returns the hovered interactive segment, if any.
    */
-  def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-    val mc = Minecraft.getMinecraft
+  def render(stack: MatrixStack, document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+    val window = Minecraft.getInstance.getWindow
 
     RenderState.pushAttrib()
 
@@ -76,30 +78,46 @@ object Document {
     // depth buffer correctly if alpha test is enabled. Guess how we found out?
     // By noticing that on those systems it only worked while chat messages
     // were visible. Yeah. I know.
-    GlStateManager.disableAlpha()
+    RenderSystem.disableAlphaTest()
 
     // Clear depth mask, then create masks in foreground above and below scroll area.
-    GlStateManager.color(1, 1, 1, 1)
-    GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT)
-    GlStateManager.enableDepth()
-    GlStateManager.depthFunc(GL11.GL_LEQUAL)
-    GlStateManager.depthMask(true)
-    GlStateManager.colorMask(false, false, false, false)
+    RenderSystem.color4f(1, 1, 1, 1)
+    RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, false)
+    RenderSystem.enableDepthTest()
+    RenderSystem.depthFunc(GL11.GL_LEQUAL)
+    RenderSystem.depthMask(true)
+    RenderSystem.colorMask(false, false, false, false)
 
-    GlStateManager.pushMatrix()
-    GlStateManager.translate(0, 0, 500)
+    stack.pushPose()
+    stack.translate(0, 0, 500)
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex2f(0, y)
-    GL11.glVertex2f(mc.displayWidth, y)
-    GL11.glVertex2f(mc.displayWidth, 0)
-    GL11.glVertex2f(0, 0)
-    GL11.glVertex2f(0, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, y + maxHeight)
-    GL11.glVertex2f(0, y + maxHeight)
+    val vec = new Vector4f(0, y, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(window.getGuiScaledWidth, y, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(window.getGuiScaledWidth, 0, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(0, 0, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(0, window.getGuiScaledHeight, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(window.getGuiScaledWidth, window.getGuiScaledHeight, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(window.getGuiScaledWidth, y + maxHeight, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(0, y + maxHeight, 0, 1)
+    vec.transform(stack.last.pose)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
     GL11.glEnd()
-    GlStateManager.popMatrix()
-    GlStateManager.colorMask(true, true, true, true)
+    stack.popPose()
+    RenderSystem.colorMask(true, true, true, true)
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
@@ -111,7 +129,7 @@ object Document {
     while (segment != null) {
       val segmentHeight = segment.nextY(indent, maxWidth, renderer)
       if (currentY + segmentHeight >= minY && currentY <= maxY) {
-        val result = segment.render(x, currentY, indent, maxWidth, renderer, mouseX, mouseY)
+        val result = segment.render(stack, x, currentY, indent, maxWidth, renderer, mouseX, mouseY)
         hovered = hovered.orElse(result)
       }
       currentY += segmentHeight
@@ -122,7 +140,7 @@ object Document {
     hovered.foreach(_.notifyHover())
 
     RenderState.popAttrib()
-    GlStateManager.bindTexture(0)
+    RenderSystem.bindTexture(0)
 
     hovered
   }

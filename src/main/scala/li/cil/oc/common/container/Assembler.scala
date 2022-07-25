@@ -5,25 +5,25 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.nbt.CompoundNBT
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends Player(playerInventory, assembler) {
+class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileentity.Assembler) extends Player(null, id, playerInventory, assembler) {
   // Computer case.
   {
-    val index = inventorySlots.size
-    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
-      @SideOnly(Side.CLIENT) override
-      def isEnabled = !isAssembling && super.isEnabled
+    val index = slots.size
+    addSlot(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
+      @OnlyIn(Dist.CLIENT) override
+      def isActive = !isAssembling && super.isActive
 
       override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })
   }
 
   private def slotInfo(slot: DynamicComponentSlot) = {
-    AssemblerTemplates.select(getSlot(0).getStack) match {
+    AssemblerTemplates.select(getSlot(0).getItem) match {
       case Some(template) =>
         val index = slot.getSlotIndex
         val tplSlot =
@@ -71,12 +71,12 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   def assemblyProgress = synchronizedData.getDouble("assemblyProgress")
 
-  def assemblyRemainingTime = synchronizedData.getInteger("assemblyRemainingTime")
+  def assemblyRemainingTime = synchronizedData.getInt("assemblyRemainingTime")
 
-  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setBoolean("isAssembling", assembler.isAssembling)
-    synchronizedData.setDouble("assemblyProgress", assembler.progress)
-    synchronizedData.setInteger("assemblyRemainingTime", assembler.timeRemaining)
+  override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
+    synchronizedData.putBoolean("isAssembling", assembler.isAssembling)
+    synchronizedData.putDouble("assemblyProgress", assembler.progress)
+    synchronizedData.putInt("assemblyRemainingTime", assembler.timeRemaining)
     super.detectCustomDataChanges(nbt)
   }
 }

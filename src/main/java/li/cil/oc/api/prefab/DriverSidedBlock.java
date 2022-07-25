@@ -1,14 +1,10 @@
 package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.driver.DriverBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * If you wish to create a block component for a third-party block, i.e. a block
@@ -22,36 +18,24 @@ import net.minecraftforge.oredict.OreDictionary;
  * You still have to provide the implementation for creating its environment, if
  * any.
  * <p/>
- * To limit sidedness, I recommend overriding {@link #worksWith(World, BlockPos, EnumFacing)}
+ * To limit sidedness, I recommend overriding {@link #worksWith(World, BlockPos, Direction)}
  * and calling <code>super.worksWith</code> in addition to the side check.
  *
  * @see li.cil.oc.api.network.ManagedEnvironment
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class DriverSidedBlock implements DriverBlock {
-    protected final ItemStack[] blocks;
+    protected final BlockState[] blocks;
 
-    protected DriverSidedBlock(final ItemStack... blocks) {
+    protected DriverSidedBlock(final BlockState... blocks) {
         this.blocks = blocks.clone();
     }
 
     @Override
-    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
-        final IBlockState state = world.getBlockState(pos);
-        final Block block = state.getBlock();
-        return worksWith(block, block.getMetaFromState(state));
-    }
-
-    protected boolean worksWith(final Block referenceBlock, final int referenceMetadata) {
-        for (ItemStack stack : blocks) {
-            if (!stack.isEmpty() && stack.getItem() instanceof ItemBlock) {
-                final ItemBlock item = (ItemBlock) stack.getItem();
-                final Block supportedBlock = item.getBlock();
-                final int supportedMetadata = item.getMetadata(stack.getItemDamage());
-                if (referenceBlock == supportedBlock && (referenceMetadata == supportedMetadata || stack.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
-                    return true;
-                }
-            }
+    public boolean worksWith(final World world, final BlockPos pos, final Direction side) {
+        final BlockState state = world.getBlockState(pos);
+        for (BlockState block : blocks) {
+            if (block == state) return true;
         }
         return false;
     }

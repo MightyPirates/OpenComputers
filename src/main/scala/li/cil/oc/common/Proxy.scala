@@ -1,6 +1,10 @@
 package li.cil.oc.common
 
-import java.io.File
+import java.nio.file.Paths
+import java.util.function.BiConsumer
+import java.util.function.Function
+import java.util.function.Predicate
+import java.util.function.Supplier
 
 import com.google.common.base.Strings
 import li.cil.oc._
@@ -10,34 +14,44 @@ import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.traits.Delegate
-import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
+import li.cil.oc.server
 import li.cil.oc.server._
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua52Architecture
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import net.minecraft.block.Block
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.inventory.container.Container
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.network.PacketBuffer
+import net.minecraft.tags.ItemTags
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.RegistryEvent.MissingMappings
-import net.minecraftforge.fml.common.FMLLog
-import net.minecraftforge.fml.common.event._
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.NetworkRegistry
-import net.minecraftforge.fml.common.registry.{EntityRegistry}
-import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.event.lifecycle._
+import net.minecraftforge.fml.loading.FMLPaths
+import net.minecraftforge.fml.network.NetworkEvent
+import net.minecraftforge.fml.network.NetworkRegistry
+import net.minecraftforge.registries.ForgeRegistries
 
 import scala.collection.convert.WrapAsScala._
 import scala.reflect.ClassTag
 
+@Deprecated
 class Proxy {
-  def preInit(e: FMLPreInitializationEvent) {
-    checkForBrokenJavaVersion()
-
-    Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
+  def preInit(e: FMLCommonSetupEvent) {
+    Settings.load(FMLPaths.CONFIGDIR.get.resolve(Paths.get("opencomputers", "settings.conf")).toFile)
 
     MinecraftForge.EVENT_BUS.register(this)
 
@@ -48,22 +62,7 @@ class Proxy {
 
     OpenComputers.log.debug("Initializing additional OreDict entries.")
 
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.PISTON)
-    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.STICKY_PISTON)
-    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.REDSTONE_TORCH)
-    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ENDER_PEARL)
-
-    // Make mods that use old wireless card name not have broken recipes
-    OreDictionary.registerOre("oc:wlanCard", Items.get(Constants.ItemName.WirelessNetworkCardTier2).createItemStack(1))
-
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.DIAMOND, "gemDiamond")
-
-    // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
-    // oredict entry, but not normal obsidian, breaking some recipes.
-    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.OBSIDIAN)
-
-    // To still allow using normal endstone for crafting drones.
-    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.END_STONE)
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.item.Items.DIAMOND, "gemDiamond")
 
     OpenComputers.log.info("Initializing OpenComputers API.")
 
@@ -101,20 +100,34 @@ class Proxy {
       else api.Machine.architectures.head
   }
 
-  def init(e: FMLInitializationEvent) {
-    OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
-    OpenComputers.channel.register(server.PacketHandler)
+  def init(e: FMLCommonSetupEvent) {
+    OpenComputers.channel = NetworkRegistry.newSimpleChannel(new ResourceLocation(OpenComputers.ID, "net_main"), new Supplier[String] {
+      override def get = ""
+    }, new Predicate[String] {
+      override def test(ver: String) = "".equals(ver)
+    }, new Predicate[String] {
+      override def test(ver: String) = "".equals(ver)
+    })
+    OpenComputers.channel.registerMessage(0, classOf[Array[Byte]], new BiConsumer[Array[Byte], PacketBuffer] {
+      override def accept(msg: Array[Byte], buff: PacketBuffer) = buff.writeByteArray(msg)
+    }, new Function[PacketBuffer, Array[Byte]] {
+      override def apply(buff: PacketBuffer) = buff.readByteArray()
+    }, new BiConsumer[Array[Byte], Supplier[NetworkEvent.Context]] {
+      override def accept(msg: Array[Byte], ctx: Supplier[NetworkEvent.Context]) = {
+        val context = ctx.get
+        context.enqueueWork(new Runnable {
+          override def run = PacketHandler.handlePacket(context.getDirection, msg, context.getSender)
+        })
+        context.setPacketHandled(true)
+      }
+    })
+    PacketHandler.serverHandler = server.PacketHandler
 
     Loot.init()
     Achievement.init()
 
-    EntityRegistry.registerModEntity(new ResourceLocation(Settings.resourceDomain, "drone"), classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
-
     OpenComputers.log.debug("Initializing mod integration.")
     Mods.init()
-
-    OpenComputers.log.debug("Initializing recipes.")
-    Recipes.init()
 
     OpenComputers.log.info("Initializing capabilities.")
     Capabilities.init()
@@ -122,7 +135,7 @@ class Proxy {
     api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
-  def postInit(e: FMLPostInitializationEvent) {
+  def postInit(e: FMLLoadCompleteEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
   }
@@ -130,13 +143,11 @@ class Proxy {
   def tryRegisterNugget[TItem <: Delegate : ClassTag](nuggetItemName: String, nuggetOredictName: String, ingotItem: Item, ingotOredictName: String): Unit = {
     val nugget = Items.get(nuggetItemName).createItemStack(1)
 
-    registerExclusive(nuggetOredictName, nugget)
-
     Delegator.subItem(nugget) match {
       case Some(subItem: TItem) =>
-        if (OreDictionary.getOres(nuggetOredictName).exists(nugget.isItemEqual)) {
-          Recipes.addSubItem(subItem, nuggetItemName)
-          Recipes.addItem(ingotItem, ingotOredictName)
+        if (ItemTags.getAllTags.getTagOrEmpty(new ResourceLocation(nuggetOredictName)).contains(nugget.getItem)) {
+          Items.registerItem(subItem, nuggetItemName)
+          Items.registerItem(ingotItem, ingotOredictName)
         }
         else {
           subItem.showInItemList = false
@@ -145,19 +156,29 @@ class Proxy {
     }
   }
 
+  def getGuiHandler(): common.GuiHandler = server.GuiHandler
+
+  @Deprecated
+  def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = {
+    player match {
+      case _: FakePlayer => {} // Ignore fake players.
+      case _: ServerPlayerEntity => {
+        player.openMenu(new INamedContainerProvider {
+          override def createMenu(id: Int, plrInv: PlayerInventory, plr: PlayerEntity): Container =
+            getGuiHandler.getServerGuiElement(guiId, id, plr, plr.level, x, y, z).asInstanceOf[Container]
+
+          override def getDisplayName(): ITextComponent = StringTextComponent.EMPTY
+        })
+      }
+      case _ => OpenComputers.log.error(s"Unsupported entity for openGui: ${player.getClass.getName}")
+    }
+  }
+
   def registerModel(instance: Delegate, id: String): Unit = {}
 
   def registerModel(instance: Item, id: String): Unit = {}
 
   def registerModel(instance: Block, id: String): Unit = {}
-
-  private def registerExclusive(name: String, items: ItemStack*) {
-    if (OreDictionary.getOres(name).isEmpty) {
-      for (item <- items) {
-        OreDictionary.registerOre(name, item)
-      }
-    }
-  }
 
   // Yes, this could be boiled down even further, but I like to keep it
   // explicit like this, because it makes it a) clearer, b) easier to
@@ -177,11 +198,11 @@ class Proxy {
 
   @SubscribeEvent
   def missingBlockMappings(e: MissingMappings[Block]) {
-    for (missing <- e.getMappings) {
-        blockRenames.get(missing.key.getResourcePath) match {
+    for (missing <- e.getMappings(OpenComputers.ID)) {
+        blockRenames.get(missing.key.getPath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(Block.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
+            else missing.remap(ForgeRegistries.BLOCKS.getValue(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
     }
@@ -189,27 +210,13 @@ class Proxy {
 
   @SubscribeEvent
   def missingItemMappings(e: MissingMappings[Item]) {
-    for (missing <- e.getMappings) {
-        itemRenames.get(missing.key.getResourcePath) match {
+    for (missing <- e.getMappings(OpenComputers.ID)) {
+        itemRenames.get(missing.key.getPath) match {
           case Some(name) =>
             if (Strings.isNullOrEmpty(name)) missing.ignore()
-            else missing.remap(Item.REGISTRY.getObject(new ResourceLocation(OpenComputers.ID, name)))
+            else missing.remap(ForgeRegistries.ITEMS.getValue(new ResourceLocation(OpenComputers.ID, name)))
           case _ => missing.warn()
         }
       }
-  }
-
-  // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.
-
-  private final val BrokenJavaVersions = Set("1.6.0_65, Apple Inc.")
-
-  def isBrokenJavaVersion = {
-    val javaVersion = System.getProperty("java.version") + ", " + System.getProperty("java.vendor")
-    BrokenJavaVersions.contains(javaVersion)
-  }
-
-  def checkForBrokenJavaVersion() = if (isBrokenJavaVersion) {
-    FMLLog.bigWarning("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
-    throw new Exception("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
   }
 }

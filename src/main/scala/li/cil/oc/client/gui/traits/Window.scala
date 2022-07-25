@@ -2,44 +2,39 @@ package li.cil.oc.client.gui.traits
 
 import java.util
 
-import li.cil.oc.util.OldScaledResolution
-import net.minecraft.client.gui.Gui
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.ScaledResolution
+import com.mojang.blaze3d.matrix.MatrixStack
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.AbstractGui
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.util.ResourceLocation
 
-trait Window extends GuiScreen {
-  var guiLeft = 0
-  var guiTop = 0
-  var xSize = 0
-  var ySize = 0
+trait Window extends Screen {
+  var leftPos = 0
+  var topPos = 0
+  var imageWidth = 0
+  var imageHeight = 0
 
   val windowWidth = 176
   val windowHeight = 166
 
   def backgroundImage: ResourceLocation
 
-  protected def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+  override def isPauseScreen = false
 
-  override def doesGuiPauseGame = false
+  override protected def init(): Unit = {
+    super.init()
 
-  override def initGui(): Unit = {
-    super.initGui()
-
-    val screenSize = new ScaledResolution(mc)
-    val guiSize = new OldScaledResolution(mc, windowWidth, windowHeight)
-    val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)
-    guiLeft = midX - guiSize.getScaledWidth / 2
-    guiTop = midY - guiSize.getScaledHeight / 2
-    xSize = guiSize.getScaledWidth
-    ySize = guiSize.getScaledHeight
+    imageWidth = windowWidth
+    imageHeight = windowHeight
+    leftPos = (width - imageWidth) / 2
+    topPos = (height - imageHeight) / 2
   }
 
-  override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
-    mc.renderEngine.bindTexture(backgroundImage)
-    Gui.drawModalRectWithCustomSizedTexture(guiLeft, guiTop, 0, 0, xSize, ySize, windowWidth, windowHeight)
-
-    super.drawScreen(mouseX, mouseY, dt)
+  override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float): Unit = {
+    super.render(stack, mouseX, mouseY, dt)
+    Minecraft.getInstance.getTextureManager.bind(backgroundImage)
+    // Texture width and height are intentionally backwards.
+    AbstractGui.blit(stack, leftPos, topPos, getBlitOffset, 0, 0, imageWidth, imageHeight, windowHeight, windowWidth)
   }
 
 }

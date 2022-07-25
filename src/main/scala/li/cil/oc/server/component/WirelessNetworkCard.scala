@@ -17,7 +17,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsJava._
 import scala.language.implicitConversions
@@ -100,7 +100,7 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
 
   override def update() {
     super.update()
-    if (world.getTotalWorldTime % 20 == 0) {
+    if (world.getGameTime % 20 == 0) {
       api.Network.updateWirelessNetwork(this)
     }
   }
@@ -114,7 +114,7 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node || !world.isBlockLoaded(position)) {
+    if (node == this.node || !world.isLoaded(position)) {
       api.Network.leaveWirelessNetwork(this)
     }
   }
@@ -123,16 +123,16 @@ abstract class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(ho
 
   private final val StrengthTag = "strength"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (nbt.hasKey(StrengthTag)) {
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (nbt.contains(StrengthTag)) {
       strength = nbt.getDouble(StrengthTag) max 0 min maxWirelessRange
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setDouble(StrengthTag, strength)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putDouble(StrengthTag, strength)
   }
 }
 

@@ -5,8 +5,8 @@ import java.io.IOException
 
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.ListNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -50,12 +50,12 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
   private final val HandleTag = "handle"
   private final val PathTag = "path"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
 
-    val handlesNbt = nbt.getTagList(OutputTag, NBT.TAG_COMPOUND)
-    (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
-      val handle = handleNbt.getInteger(HandleTag)
+    val handlesNbt = nbt.getList(OutputTag, NBT.TAG_COMPOUND)
+    (0 until handlesNbt.size).map(handlesNbt.getCompound).foreach(handleNbt => {
+      val handle = handleNbt.getInt(HandleTag)
       val path = handleNbt.getString(PathTag)
       openOutputHandle(handle, path, Mode.Append) match {
         case Some(fileHandle) => handles += handle -> fileHandle
@@ -64,18 +64,18 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     })
   }
 
-  override def save(nbt: NBTTagCompound) = this.synchronized {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = this.synchronized {
+    super.saveData(nbt)
 
-    val handlesNbt = new NBTTagList()
+    val handlesNbt = new ListNBT()
     for (file <- handles.values) {
       assert(!file.isClosed)
-      val handleNbt = new NBTTagCompound()
-      handleNbt.setInteger(HandleTag, file.handle)
-      handleNbt.setString(PathTag, file.path)
-      handlesNbt.appendTag(handleNbt)
+      val handleNbt = new CompoundNBT()
+      handleNbt.putInt(HandleTag, file.handle)
+      handleNbt.putString(PathTag, file.path)
+      handlesNbt.add(handleNbt)
     }
-    nbt.setTag(OutputTag, handlesNbt)
+    nbt.put(OutputTag, handlesNbt)
   }
 
   // ----------------------------------------------------------------------- //

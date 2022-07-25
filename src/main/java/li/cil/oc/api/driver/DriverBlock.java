@@ -2,7 +2,7 @@ package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 
 /**
@@ -44,7 +44,7 @@ public interface DriverBlock {
      * @param side  the side of the block to check.
      * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(World world, BlockPos pos, EnumFacing side);
+    boolean worksWith(World world, BlockPos pos, Direction side);
 
     /**
      * Create a new managed environment interfacing the specified block.
@@ -67,5 +67,5 @@ public interface DriverBlock {
      * @param side  the side of the block to check.
      * @return the environment for the block at that location.
      */
-    ManagedEnvironment createEnvironment(World world, BlockPos pos, EnumFacing side);
+    ManagedEnvironment createEnvironment(World world, BlockPos pos, Direction side);
 }

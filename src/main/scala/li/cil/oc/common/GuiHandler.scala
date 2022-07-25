@@ -5,80 +5,81 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.server.component.{DiskDriveMountable, Server}
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Hand
 import net.minecraft.world.World
-import net.minecraftforge.fml.common.network.IGuiHandler
 
-abstract class GuiHandler extends IGuiHandler {
-  override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
+@Deprecated
+abstract class GuiHandler {
+  def getServerGuiElement(id: Int, containerId: Int, player: PlayerEntity, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
+        world.getBlockEntity(BlockPosition(x, GuiType.extractY(y), z)) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
-            new container.Adapter(player.inventory, t)
+            new container.Adapter(containerId, player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
-            new container.Assembler(player.inventory, t)
+            new container.Assembler(containerId, player.inventory, t)
           case t: tileentity.Charger if id == GuiType.Charger.id =>
-            new container.Charger(player.inventory, t)
+            new container.Charger(containerId, player.inventory, t)
           case t: tileentity.Case if id == GuiType.Case.id =>
-            new container.Case(player.inventory, t)
+            new container.Case(containerId, player.inventory, t)
           case t: tileentity.Disassembler if id == GuiType.Disassembler.id =>
-            new container.Disassembler(player.inventory, t)
+            new container.Disassembler(containerId, player.inventory, t)
           case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
-            new container.DiskDrive(player.inventory, t)
+            new container.DiskDrive(containerId, player.inventory, t)
           case t: tileentity.Printer if id == GuiType.Printer.id =>
-            new container.Printer(player.inventory, t)
+            new container.Printer(containerId, player.inventory, t)
           case t: tileentity.Raid if id == GuiType.Raid.id =>
-            new container.Raid(player.inventory, t)
+            new container.Raid(containerId, player.inventory, t)
           case t: tileentity.Relay if id == GuiType.Relay.id =>
-            new container.Relay(player.inventory, t)
+            new container.Relay(containerId, player.inventory, t)
           case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
-            new container.Robot(player.inventory, t.robot)
+            new container.Robot(containerId, player.inventory, t.robot)
           case t: tileentity.Rack if id == GuiType.Rack.id =>
-            new container.Rack(player.inventory, t)
+            new container.Rack(containerId, player.inventory, t)
           case t: tileentity.Rack if id == GuiType.ServerInRack.id =>
             val slot = GuiType.extractSlot(y)
             val server = t.getMountable(slot).asInstanceOf[Server]
-            new container.Server(player.inventory, server, Option(server))
+            new container.Server(containerId, player.inventory, server, Option(server))
           case t: tileentity.Rack if id == GuiType.DiskDriveMountableInRack.id =>
             val slot = GuiType.extractSlot(y)
             val drive = t.getMountable(slot).asInstanceOf[DiskDriveMountable]
-            new container.DiskDrive(player.inventory, drive)
+            new container.DiskDrive(containerId, player.inventory, drive)
           case _ => null
         }
       case Some(GuiType.Category.Entity) =>
-        world.getEntityByID(x) match {
+        world.getEntity(x) match {
           case drone: entity.Drone if id == GuiType.Drone.id =>
-            new container.Drone(player.inventory, drone)
+            new container.Drone(containerId, player.inventory, drone)
           case _ => null
         }
       case Some(GuiType.Category.Item) => {
         val itemStackInUse = getItemStackInUse(id, player)
         Delegator.subItem(itemStackInUse) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
-            new container.Database(player.inventory, new DatabaseInventory {
+            new container.Database(containerId, player.inventory, new DatabaseInventory {
               override def container = itemStackInUse
 
-              override def isUsableByPlayer(player: EntityPlayer) = player == player
+              override def stillValid(player: PlayerEntity) = player == player
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
-            new container.Server(player.inventory, new ServerInventory {
+            new container.Server(containerId, player.inventory, new ServerInventory {
               override def container = itemStackInUse
 
-              override def isUsableByPlayer(player: EntityPlayer) = player == player
+              override def stillValid(player: PlayerEntity) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
             val stack = itemStackInUse
-            if (stack.hasTagCompound)
-              new container.Tablet(player.inventory, item.Tablet.get(stack, player))
+            if (stack.hasTag)
+              new container.Tablet(containerId, player.inventory, item.Tablet.get(stack, player))
             else
               null
           case Some(drive: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
-            new container.DiskDrive(player.inventory, new DiskDriveMountableInventory {
+            new container.DiskDrive(containerId, player.inventory, new DiskDriveMountableInventory {
               override def container: ItemStack = itemStackInUse
 
-              override def isUsableByPlayer(player: EntityPlayer) = player == player
+              override def stillValid(player: PlayerEntity) = player == player
             })
           case _ => null
         }
@@ -87,8 +88,10 @@ abstract class GuiHandler extends IGuiHandler {
     }
   }
 
-  def getItemStackInUse(id: Int, player: EntityPlayer): ItemStack = {
-    val mainItem: ItemStack = player.getHeldItemMainhand
+  def getClientGuiElement(id: Int, containerId: Int, player: PlayerEntity, world: World, x: Int, y: Int, z: Int): AnyRef = null
+
+  def getItemStackInUse(id: Int, player: PlayerEntity): ItemStack = {
+    val mainItem: ItemStack = player.getItemInHand(Hand.MAIN_HAND)
     Delegator.subItem(mainItem) match {
       case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id => mainItem
       case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id => mainItem
@@ -97,7 +100,7 @@ abstract class GuiHandler extends IGuiHandler {
       case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id => mainItem
       case Some(terminal: item.Terminal) if id == GuiType.Terminal.id => mainItem
       case Some(drive: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id => mainItem
-      case _ => player.inventory.offHandInventory.get(0)
+      case _ => player.getItemInHand(Hand.OFF_HAND)
     }
   }
 }

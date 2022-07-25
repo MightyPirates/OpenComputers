@@ -27,7 +27,7 @@ object RobotTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
-    val items = (1 until inventory.getSizeInventory).map(inventory.getStackInSlot)
+    val items = (1 until inventory.getContainerSize).map(inventory.getItem)
     val data = new RobotData()
     data.tier = caseTier(inventory)
     data.name = RobotData.randomName
@@ -187,5 +187,5 @@ object RobotTemplate extends Template {
       "li.cil.oc.common.template.RobotTemplate.disassemble")
   }
 
-  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
+  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getItem(0))
 }

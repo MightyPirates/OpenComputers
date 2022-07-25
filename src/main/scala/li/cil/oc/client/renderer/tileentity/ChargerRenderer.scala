@@ -1,17 +1,27 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
+import net.minecraft.util.math.vector.Vector3f
 import org.lwjgl.opengl.GL11
 
-object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
-  override def render(charger: Charger, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object ChargerRenderer extends Function[TileEntityRendererDispatcher, ChargerRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new ChargerRenderer(dispatch)
+}
+
+class ChargerRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[Charger](dispatch) {
+  override def render(charger: Charger, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (charger.chargeSpeed > 0) {
@@ -20,62 +30,62 @@ object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(1)
-      GlStateManager.color(1, 1, 1, 1)
+      RenderSystem.color4f(1, 1, 1, 1)
 
-      GlStateManager.pushMatrix()
+      stack.pushPose()
 
-      GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+      stack.translate(0.5, 0.5, 0.5)
 
       charger.yaw match {
-        case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
-        case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
-        case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
+        case Direction.WEST => stack.mulPose(Vector3f.YP.rotationDegrees(-90))
+        case Direction.NORTH => stack.mulPose(Vector3f.YP.rotationDegrees(180))
+        case Direction.EAST => stack.mulPose(Vector3f.YP.rotationDegrees(90))
         case _ => // No yaw.
       }
 
-      GlStateManager.translate(-0.5f, 0.5f, 0.5f)
-      GlStateManager.scale(1, -1, 1)
+      stack.translate(-0.5f, 0.5f, 0.5f)
+      stack.scale(1, -1, 1)
 
       val t = Tessellator.getInstance
-      val r = t.getBuffer
+      val r = t.getBuilder
 
       Textures.Block.bind()
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
       {
-        val inverse = 1 - charger.chargeSpeed
+        val inverse = 1 - charger.chargeSpeed.toFloat
         val icon = Textures.getSprite(Textures.Block.ChargerFrontOn)
-        r.pos(0, 1, 0.005).tex(icon.getMinU, icon.getMaxV).endVertex()
-        r.pos(1, 1, 0.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
-        r.pos(1, inverse, 0.005).tex(icon.getMaxU, icon.getInterpolatedV(inverse * 16)).endVertex()
-        r.pos(0, inverse, 0.005).tex(icon.getMinU, icon.getInterpolatedV(inverse * 16)).endVertex()
+        r.vertex(stack.last.pose, 0, 1, 0.005f).uv(icon.getU0, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, 1, 0.005f).uv(icon.getU1, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, inverse, 0.005f).uv(icon.getU1, icon.getV(inverse * 16)).endVertex()
+        r.vertex(stack.last.pose, 0, inverse, 0.005f).uv(icon.getU0, icon.getV(inverse * 16)).endVertex()
       }
 
       if (charger.hasPower) {
         val icon = Textures.getSprite(Textures.Block.ChargerSideOn)
 
-        r.pos(-0.005, 1, -1).tex(icon.getMinU, icon.getMaxV).endVertex()
-        r.pos(-0.005, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
-        r.pos(-0.005, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
-        r.pos(-0.005, 0, -1).tex(icon.getMinU, icon.getMinV).endVertex()
+        r.vertex(stack.last.pose, -0.005f, 1, -1).uv(icon.getU0, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, -0.005f, 1, 0).uv(icon.getU1, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, -0.005f, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
+        r.vertex(stack.last.pose, -0.005f, 0, -1).uv(icon.getU0, icon.getV0).endVertex()
 
-        r.pos(1, 1, -1.005).tex(icon.getMinU, icon.getMaxV).endVertex()
-        r.pos(0, 1, -1.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
-        r.pos(0, 0, -1.005).tex(icon.getMaxU, icon.getMinV).endVertex()
-        r.pos(1, 0, -1.005).tex(icon.getMinU, icon.getMinV).endVertex()
+        r.vertex(stack.last.pose, 1, 1, -1.005f).uv(icon.getU0, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 1, -1.005f).uv(icon.getU1, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 0, -1.005f).uv(icon.getU1, icon.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 0, -1.005f).uv(icon.getU0, icon.getV0).endVertex()
 
-        r.pos(1.005, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
-        r.pos(1.005, 1, -1).tex(icon.getMaxU, icon.getMaxV).endVertex()
-        r.pos(1.005, 0, -1).tex(icon.getMaxU, icon.getMinV).endVertex()
-        r.pos(1.005, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
+        r.vertex(stack.last.pose, 1.005f, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 1.005f, 1, -1).uv(icon.getU1, icon.getV1).endVertex()
+        r.vertex(stack.last.pose, 1.005f, 0, -1).uv(icon.getU1, icon.getV0).endVertex()
+        r.vertex(stack.last.pose, 1.005f, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
       }
 
-      t.draw()
+      t.end()
 
       RenderState.disableBlend()
       RenderState.enableEntityLighting()
 
-      GlStateManager.popMatrix()
+      stack.popPose()
       RenderState.popAttrib()
     }
 

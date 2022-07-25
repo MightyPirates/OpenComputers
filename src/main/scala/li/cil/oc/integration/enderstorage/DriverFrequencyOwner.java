@@ -12,7 +12,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;
@@ -24,8 +24,8 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment((TileFrequencyOwner) world.getTileEntity(pos));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final Direction side) {
+        return new Environment((TileFrequencyOwner) world.getBlockEntity(pos));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileFrequencyOwner> implements NamedBlock {
@@ -46,7 +46,7 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
         @Callback(doc = "function():table -- Get the currently set frequency. {left, middle, right}")
         public Object[] getFrequency(final Context context, final Arguments args) {
             Object[] frequencies = new Object[3];
-            Frequency frequency = tileEntity.frequency;
+            Frequency frequency = tileEntity.getFrequency();
             frequencies[0] = frequency.getLeft().ordinal();
             frequencies[1] = frequency.getMiddle().ordinal();
             frequencies[2] = frequency.getRight().ordinal();
@@ -79,18 +79,19 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
                         EnumColour.fromWoolMeta(left),
                         EnumColour.fromWoolMeta(middle),
                         EnumColour.fromWoolMeta(right),
-                        tileEntity.frequency.owner));
+                        tileEntity.getFrequency().owner,
+                        tileEntity.getFrequency().ownerName));
             return null;
         }
 
         @Callback(doc = "function():string -- Get the name of the owner, which is usually a player's name or 'global'.")
         public Object[] getOwner(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.frequency.owner};
+            return new Object[]{tileEntity.getFrequency().ownerName.getString()};
         }
 
         @Callback(doc = "function():table -- Get the currently set frequency as a table of color names.")
         public Object[] getFrequencyColors(final Context context, final Arguments args){
-            return new Object[]{tileEntity.frequency.toArray()};
+            return new Object[]{tileEntity.getFrequency().toArray()};
         }
 
         @Callback(doc = "function():table -- Get a table with the mapping of colors (as Minecraft names) to Frequency numbers. NB: Frequencies are zero based!")

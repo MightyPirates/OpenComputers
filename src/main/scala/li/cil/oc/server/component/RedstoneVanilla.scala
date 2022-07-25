@@ -16,7 +16,8 @@ import li.cil.oc.common.tileentity.traits.{RedstoneAware, RedstoneChangedEventAr
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.util.EnumFacing
+import li.cil.oc.util.RotationHelper
+import net.minecraft.util.Direction
 
 import scala.collection.convert.WrapAsJava._
 
@@ -36,7 +37,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  protected val SIDE_RANGE: Array[EnumFacing] = EnumFacing.values
+  protected val SIDE_RANGE: Array[Direction] = Direction.values
 
   // ----------------------------------------------------------------------- //
   @Callback(direct = true, doc = "function([side:number]):number or table -- Get the redstone input (all sides, or optionally on the specified side)")
@@ -59,7 +60,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     var ret: AnyRef = null
     if (getAssignment(args) match {
-      case (side: EnumFacing, value: Int) =>
+      case (side: Direction, value: Int) =>
         ret = new java.lang.Integer(redstone.getOutput(side))
         redstone.setOutput(side, value)
       case (value: util.Map[_, _], _) =>
@@ -78,7 +79,7 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
     val blockPos = BlockPosition(redstone).offset(side)
     if (redstone.world.blockExists(blockPos)) {
       val block = redstone.world.getBlock(blockPos)
-      if (block.hasComparatorInputOverride(redstone.world.getBlockState(blockPos.toBlockPos))) {
+      if (redstone.world.getBlockState(blockPos.toBlockPos).hasAnalogOutputSignal) {
         val comparatorOverride = block.getComparatorInputOverride(blockPos, side.getOpposite)
         return result(comparatorOverride)
       }
@@ -114,11 +115,11 @@ trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
     }
   }
 
-  protected def checkSide(args: Arguments, index: Int): EnumFacing = {
+  protected def checkSide(args: Arguments, index: Int): Direction = {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
-    redstone.toGlobal(EnumFacing.getFront(side))
+    redstone.toGlobal(Direction.from3DDataValue(side))
   }
 
   private def valuesToMap(ar: Array[Int]): Map[Int, Int] = SIDE_RANGE.map(_.ordinal).map{ case side if side < ar.length => side -> ar(side) }.toMap

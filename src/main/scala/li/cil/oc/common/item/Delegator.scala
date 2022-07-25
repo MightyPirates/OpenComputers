@@ -1,6 +1,8 @@
 package li.cil.oc.common.item
 
 import java.util
+
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver
@@ -12,24 +14,29 @@ import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.integration.opencomputers.{Item => OpenComputersItem}
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.item.ItemGroup
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumAction
-import net.minecraft.item.EnumRarity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
+import net.minecraft.item.ItemUseContext
+import net.minecraft.item.Rarity
+import net.minecraft.item.UseAction
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.util.NonNullList
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -37,27 +44,26 @@ import scala.collection.mutable.ArrayBuffer
 object Delegator {
   def subItem(stack: ItemStack): Option[Delegate] =
     if (!stack.isEmpty) stack.getItem match {
-      case delegator: Delegator => delegator.subItem(stack.getItemDamage)
+      case delegator: Delegator => delegator.subItem(stack.getDamageValue)
       case _ => None
     }
     else None
 }
 
-class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
-  setHasSubtypes(true)
-  setCreativeTab(CreativeTab)
+class Delegator extends Item(new Properties().tab(CreativeTab)) with driver.item.UpgradeRenderer with Chargeable {
 
   // ----------------------------------------------------------------------- //
   // SubItem
   // ----------------------------------------------------------------------- //
 
+  @Deprecated
   override def getItemStackLimit(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
       case Some(subItem) => OpenComputersItem.address(stack) match {
         case Some(address) => 1
         case _ => subItem.maxStackSize
       }
-      case _ => maxStackSize
+      case _ => super.getItemStackLimit(stack)
     }
 
   val subItems: ArrayBuffer[Delegate] = mutable.ArrayBuffer.empty[traits.Delegate]
@@ -74,12 +80,12 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => None
     }
 
-  override def getSubItems(tab: CreativeTabs, list: NonNullList[ItemStack]) {
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {
     // Workaround for MC's untyped lists...
-    if(isInCreativeTab(tab)){
+    if(allowdedIn(tab)){
       subItems.indices.filter(subItems(_).showInItemList).
         map(subItems(_).createItemStack()).
-        sortBy(_.getUnlocalizedName).
+        sortBy(_.getDescriptionId).
         foreach(list.add)
     }
   }
@@ -88,18 +94,23 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   // Item
   // ----------------------------------------------------------------------- //
 
-  override def getUnlocalizedName(stack: ItemStack): String =
+  @Deprecated
+  private var unlocalizedName = super.getDescriptionId()
+
+  @Deprecated
+  private[oc] def setUnlocalizedName(name: String): Unit = unlocalizedName = name
+
+  @Deprecated
+  override def getDescriptionId(stack: ItemStack): String =
     Delegator.subItem(stack) match {
       case Some(subItem) => "item.oc." + subItem.unlocalizedName
-      case _ => getUnlocalizedName
+      case _ => unlocalizedName
     }
 
-  override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
-
-  override def getRarity(stack: ItemStack): EnumRarity =
+  override def getRarity(stack: ItemStack): Rarity =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.rarity(stack)
-      case _ => EnumRarity.COMMON
+      case _ => Rarity.COMMON
     }
 
 //  override def getColorFromItemStack(stack: ItemStack, pass: Int) =
@@ -108,93 +119,99 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 //      case _ => super.getColorFromItemStack(stack, pass)
 //    }
 
-  override def getContainerItem(stack: ItemStack): ItemStack =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.getContainerItem(stack)
-      case _ => super.getContainerItem(stack)
-    }
-
-  override def hasContainerItem(stack: ItemStack): Boolean =
-    Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.hasContainerItem(stack)
-      case _ => super.hasContainerItem(stack)
-    }
-
   // ----------------------------------------------------------------------- //
 
-  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean =
+  override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.doesSneakBypassUse(world, pos, player)
       case _ => super.doesSneakBypassUse(stack, world, pos, player)
     }
 
-  override def onItemUseFirst(player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult =
-    player.getHeldItem(hand) match {
-      case stack:ItemStack => Delegator.subItem(stack) match {
-        case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
-        case _ => super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+  @Deprecated
+  override def onItemUseFirst(stack: ItemStack, ctx: ItemUseContext): ActionResultType =
+    if (stack != null) {
+      Delegator.subItem(stack) match {
+        case Some(subItem) => {
+          val pos = BlockPosition(ctx.getClickedPos, ctx.getLevel)
+          val hitPos = ctx.getClickLocation
+          subItem.onItemUseFirst(stack, ctx.getPlayer, pos, ctx.getClickedFace,
+            (hitPos.x - pos.x).toFloat, (hitPos.y - pos.y).toFloat, (hitPos.z - pos.z).toFloat)
+        }
+        case _ => super.onItemUseFirst(stack, ctx)
       }
-      case _ => super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
-  }
+    }
+    else super.onItemUseFirst(stack, ctx)
 
-  override def onItemUse(player: EntityPlayer, world: World, pos: BlockPos, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult =
-    player.getHeldItem(hand) match {
+  @Deprecated
+  def onItemUseFirst(player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand) = ActionResultType.PASS
+
+  override def useOn(ctx: ItemUseContext): ActionResultType =
+    ctx.getItemInHand match {
       case stack: ItemStack => Delegator.subItem(stack) match {
-        case Some(subItem) => if (subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)) EnumActionResult.SUCCESS else EnumActionResult.PASS
-        case _ => super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ)
+        case Some(subItem) => {
+          val world = ctx.getLevel
+          val pos = BlockPosition(ctx.getClickedPos, world)
+          val hitPos = ctx.getClickLocation
+          val success = subItem.onItemUse(ctx.getItemInHand, ctx.getPlayer, pos, ctx.getClickedFace,
+            (hitPos.x - pos.x).toFloat, (hitPos.y - pos.y).toFloat, (hitPos.z - pos.z).toFloat)
+          if (success) ActionResultType.sidedSuccess(world.isClientSide) else ActionResultType.PASS
+        }
+        case _ => super.useOn(ctx)
       }
-      case _ => super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ)
+      case _ => super.useOn(ctx)
     }
 
-  override def onItemRightClick(world: World, player: EntityPlayer, hand: EnumHand): ActionResult[ItemStack] =
-    player.getHeldItem(hand) match {
+  override def use(world: World, player: PlayerEntity, hand: Hand): ActionResult[ItemStack] =
+    player.getItemInHand(hand) match {
       case stack: ItemStack => Delegator.subItem(stack) match {
-        case Some(subItem) => subItem.onItemRightClick(stack, world, player)
-        case _ => super.onItemRightClick(world, player, hand)
+        case Some(subItem) => subItem.use(stack, world, player)
+        case _ => super.use(world, player, hand)
       }
-      case _ => super.onItemRightClick(world, player, hand)
+      case _ => super.use(world, player, hand)
     }
 
   // ----------------------------------------------------------------------- //
 
-  override def onItemUseFinish(stack: ItemStack, world: World, entity: EntityLivingBase): ItemStack =
+  override def finishUsingItem(stack: ItemStack, world: World, entity: LivingEntity): ItemStack =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFinish(stack, world, entity)
-      case _ => super.onItemUseFinish(stack, world, entity)
+      case Some(subItem) => subItem.finishUsingItem(stack, world, entity)
+      case _ => super.finishUsingItem(stack, world, entity)
     }
 
-  override def getItemUseAction(stack: ItemStack): EnumAction =
+  override def getUseAnimation(stack: ItemStack): UseAction =
     Delegator.subItem(stack) match {
-      case Some(subItem) => subItem.getItemUseAction(stack)
-      case _ => super.getItemUseAction(stack)
+      case Some(subItem) => subItem.getUseAnimation(stack)
+      case _ => super.getUseAnimation(stack)
     }
 
-  override def getMaxItemUseDuration(stack: ItemStack): Int =
+  override def getUseDuration(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.getMaxItemUseDuration(stack)
-      case _ => super.getMaxItemUseDuration(stack)
+      case _ => super.getUseDuration(stack)
     }
 
-  override def onPlayerStoppedUsing(stack: ItemStack, world: World, entity: EntityLivingBase, timeLeft: Int): Unit =
+  override def releaseUsing(stack: ItemStack, world: World, entity: LivingEntity, timeLeft: Int): Unit =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onPlayerStoppedUsing(stack, entity, timeLeft)
-      case _ => super.onPlayerStoppedUsing(stack, world, entity, timeLeft)
+      case _ => super.releaseUsing(stack, world, entity, timeLeft)
     }
 
-  def internalGetItemStackDisplayName(stack: ItemStack): String = super.getItemStackDisplayName(stack)
+  @Deprecated
+  def internalGetItemStackDisplayName(stack: ItemStack): String = super.getName(stack).getString
 
-  override def getItemStackDisplayName(stack: ItemStack): String =
+  @Deprecated
+  override def getName(stack: ItemStack): ITextComponent =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.displayName(stack) match {
-        case Some(name) => name
-        case _ => super.getItemStackDisplayName(stack)
+        case Some(name) => new StringTextComponent(name)
+        case _ => super.getName(stack)
       }
-      case _ => super.getItemStackDisplayName(stack)
+      case _ => super.getName(stack)
     }
 
-  @SideOnly(Side.CLIENT)
-  override def addInformation(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
-    super.addInformation(stack, world, tooltip, flag)
+  @OnlyIn(Dist.CLIENT)
+  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    super.appendHoverText(stack, world, tooltip, flag)
     Delegator.subItem(stack) match {
       case Some(subItem) => try subItem.tooltipLines(stack, world, tooltip, flag) catch {
         case t: Throwable => OpenComputers.log.warn("Error in item tooltip.", t)
@@ -215,13 +232,13 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => super.showDurabilityBar(stack)
     }
 
-  override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean): Unit =
+  override def inventoryTick(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean): Unit =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.update(stack, world, player, slot, selected)
-      case _ => super.onUpdate(stack, world, player, slot, selected)
+      case _ => super.inventoryTick(stack, world, player, slot, selected)
     }
 
-  override def toString: String = getUnlocalizedName
+  override def toString: String = getDescriptionId
 
   // ----------------------------------------------------------------------- //
 
@@ -241,5 +258,5 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 
   override def computePreferredMountPoint(stack: ItemStack, robot: Robot, availableMountPoints: util.Set[String]): String = UpgradeRenderer.preferredMountPoint(stack, availableMountPoints)
 
-  override def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
+  override def render(matrix: MatrixStack, stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(matrix, stack, mountPoint)
 }

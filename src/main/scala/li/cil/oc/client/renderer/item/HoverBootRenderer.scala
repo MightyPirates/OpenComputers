@@ -1,36 +1,39 @@
 package li.cil.oc.client.renderer.item
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Settings
 import li.cil.oc.util.RenderState
-import net.minecraft.client.model.ModelBase
-import net.minecraft.client.model.ModelBiped
-import net.minecraft.client.model.ModelRenderer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.model.Model
+import net.minecraft.client.renderer.model.ModelRenderer
+import net.minecraft.client.renderer.entity.model.BipedModel
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.Entity
+import net.minecraft.entity.LivingEntity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
-object HoverBootRenderer extends ModelBiped {
+object HoverBootRenderer extends BipedModel[LivingEntity](0.5f) {
   val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
 
-  val bootLeft = new ModelRenderer(this, "bootLeft")
-  val bootRight = new ModelRenderer(this, "bootRight")
-  val body = new ModelRenderer(this, "body")
-  val wing0 = new ModelRenderer(this, "wing0")
-  val wing1 = new ModelRenderer(this, "wing1")
-  val wing2 = new ModelRenderer(this, "wing2")
-  val wing3 = new ModelRenderer(this, "wing3")
-  val light0 = new LightModelRenderer(this, "light0")
-  val light1 = new LightModelRenderer(this, "light1")
-  val light2 = new LightModelRenderer(this, "light2")
-  val light3 = new LightModelRenderer(this, "light3")
+  val bootLeft = new ModelRenderer(this)
+  val bootRight = new ModelRenderer(this)
+  val droneBody = new ModelRenderer(this)
+  val wing0 = new ModelRenderer(this)
+  val wing1 = new ModelRenderer(this)
+  val wing2 = new ModelRenderer(this)
+  val wing3 = new ModelRenderer(this)
+  val light0 = new LightModelRenderer(this)
+  val light1 = new LightModelRenderer(this)
+  val light2 = new LightModelRenderer(this)
+  val light3 = new LightModelRenderer(this)
 
-  bootLeft.addChild(body)
+  bootLeft.addChild(droneBody)
   bootLeft.addChild(wing0)
   bootLeft.addChild(wing1)
 
-  bootRight.addChild(body)
+  bootRight.addChild(droneBody)
   bootRight.addChild(wing2)
   bootRight.addChild(wing3)
 
@@ -39,88 +42,69 @@ object HoverBootRenderer extends ModelBiped {
   wing2.addChild(light2)
   wing3.addChild(light3)
 
-  textureWidth = 64
-  textureHeight = 32
+  texWidth = 64
+  texHeight = 32
 
-  setTextureOffset("body.middle", 0, 23)
-  setTextureOffset("body.top", 0, 1)
-  setTextureOffset("body.bottom", 0, 17)
-  setTextureOffset("wing0.flap0", 0, 9)
-  setTextureOffset("wing0.pin0", 0, 27)
-  setTextureOffset("wing1.flap1", 0, 9)
-  setTextureOffset("wing1.pin1", 0, 27)
-  setTextureOffset("wing2.flap2", 0, 9)
-  setTextureOffset("wing2.pin2", 0, 27)
-  setTextureOffset("wing3.flap3", 0, 9)
-  setTextureOffset("wing3.pin3", 0, 27)
+  bootRight.y = 10.1f / 16
+  bootLeft.y = 10.11f / 16f
 
-  setTextureOffset("light0.flap0", 24, 0)
-  setTextureOffset("light1.flap1", 24, 0)
-  setTextureOffset("light2.flap2", 24, 0)
-  setTextureOffset("light3.flap3", 24, 0)
+  droneBody.texOffs(0, 23).addBox(-3, 1, -3, 6, 1, 6).yRot = math.toRadians(45).toFloat // top
+  droneBody.texOffs(0, 1).addBox(-1, 0, -1, 2, 1, 2).yRot = math.toRadians(45).toFloat // middle
+  droneBody.texOffs(0, 17).addBox(-2, -1, -2, 4, 1, 4).yRot = math.toRadians(45).toFloat // bottom
+  wing0.texOffs(0, 9).addBox(-1, 0, -7, 6, 1, 6) // flap0
+  wing0.texOffs(0, 27).addBox(0, -1, -3, 1, 3, 1) // pin0
+  wing1.texOffs(0, 9).addBox(-1, 0, 1, 6, 1, 6) // flap1
+  wing1.texOffs(0, 27).addBox(0, -1, 2, 1, 3, 1) // pin1
+  wing2.texOffs(0, 9).addBox(-5, 0, 1, 6, 1, 6) // flap2
+  wing2.texOffs(0, 27).addBox(-1, -1, 2, 1, 3, 1) // pin2
+  wing3.texOffs(0, 9).addBox(-5, 0, -7, 6, 1, 6) // flap3
+  wing3.texOffs(0, 27).addBox(-1, -1, -3, 1, 3, 1) // pin3
 
-  bootRight.offsetY = 10.1f / 16
-  bootLeft.offsetY = 10.11f / 16f
-
-  body.addBox("top", -3, 1, -3, 6, 1, 6).rotateAngleY = math.toRadians(45).toFloat
-  body.addBox("middle", -1, 0, -1, 2, 1, 2).rotateAngleY = math.toRadians(45).toFloat
-  body.addBox("bottom", -2, -1, -2, 4, 1, 4).rotateAngleY = math.toRadians(45).toFloat
-  wing0.addBox("flap0", -1, 0, -7, 6, 1, 6)
-  wing0.addBox("pin0", 0, -1, -3, 1, 3, 1)
-  wing1.addBox("flap1", -1, 0, 1, 6, 1, 6)
-  wing1.addBox("pin1", 0, -1, 2, 1, 3, 1)
-  wing2.addBox("flap2", -5, 0, 1, 6, 1, 6)
-  wing2.addBox("pin2", -1, -1, 2, 1, 3, 1)
-  wing3.addBox("flap3", -5, 0, -7, 6, 1, 6)
-  wing3.addBox("pin3", -1, -1, -3, 1, 3, 1)
-
-  light0.addBox("flap0", -1, 0, -7, 6, 1, 6)
-  light1.addBox("flap1", -1, 0, 1, 6, 1, 6)
-  light2.addBox("flap2", -5, 0, 1, 6, 1, 6)
-  light3.addBox("flap3", -5, 0, -7, 6, 1, 6)
+  light0.texOffs(24, 0).addBox(-1, 0, -7, 6, 1, 6) // flap0
+  light1.texOffs(24, 0).addBox(-1, 0, 1, 6, 1, 6) // flap1
+  light2.texOffs(24, 0).addBox(-5, 0, 1, 6, 1, 6) // flap2
+  light3.texOffs(24, 0).addBox(-5, 0, -7, 6, 1, 6) // flap3
 
   // No drone textured legs, thank you very much.
-  bipedLeftLeg.cubeList.clear()
-  bipedRightLeg.cubeList.clear()
+  leftLeg = leftLeg.createShallowCopy()
+  rightLeg = rightLeg.createShallowCopy()
 
-  bipedLeftLeg.addChild(bootLeft)
-  bipedRightLeg.addChild(bootRight)
+  leftLeg.addChild(bootLeft)
+  rightLeg.addChild(bootRight)
 
-  bipedHead.isHidden = true
-  bipedHeadwear.isHidden = true
-  bipedBody.isHidden = true
-  bipedRightArm.isHidden = true
-  bipedLeftArm.isHidden = true
+  head.visible = false
+  hat.visible = false
+  body.visible = false
+  rightArm.visible = false
+  leftArm.visible = false
 
   var lightColor = 0x66DD55
 
-  override def render(entity: Entity, f0: Float, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
+  override def setupAnim(entity: LivingEntity, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
+    super.setupAnim(entity, f1, f2, f3, f4, f5)
     // Because Forge is being a dummy...
-    isSneak = entity.isSneaking
+    crouching = entity.isCrouching
     // Because Forge is being an even bigger dummy...
-    isChild = false
-    super.render(entity, f0, f1, f2, f3, f4, f5)
+    young = false
   }
 
-  class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
-    override def render(dt: Float): Unit = {
+  class LightModelRenderer(modelBase: Model) extends ModelRenderer(modelBase) {
+    override def render(stack: MatrixStack, builder: IVertexBuilder, light: Int, overlay: Int, r: Float, g: Float, b: Float, a: Float): Unit = {
       RenderState.pushAttrib()
-      GlStateManager.disableLighting()
+      RenderSystem.disableLighting()
       RenderState.disableEntityLighting()
-      GlStateManager.depthFunc(GL11.GL_LEQUAL)
+      RenderSystem.depthFunc(GL11.GL_LEQUAL)
       RenderState.makeItBlend()
-      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      val r = ((lightColor >>> 16) & 0xFF) / 255f
-      val g = ((lightColor >>> 8) & 0xFF) / 255f
-      val b = ((lightColor >>> 0) & 0xFF) / 255f
-      GlStateManager.color(r, g, b)
+      RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      val rm = ((lightColor >>> 16) & 0xFF) / 255f
+      val gm = ((lightColor >>> 8) & 0xFF) / 255f
+      val bm = ((lightColor >>> 0) & 0xFF) / 255f
 
-      super.render(dt)
+      super.render(stack, builder, light, overlay, r * rm, g * gm, b * bm, a)
 
       RenderState.disableBlend()
-      GlStateManager.enableLighting()
+      RenderSystem.enableLighting()
       RenderState.enableEntityLighting()
-      GlStateManager.color(1, 1, 1)
       RenderState.popAttrib()
     }
   }

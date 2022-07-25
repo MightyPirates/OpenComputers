@@ -12,7 +12,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.PackedColor
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.{CompoundNBT, ListNBT}
 import li.cil.oc.common.component
 import li.cil.oc.common.component.GpuTextBuffer
 
@@ -449,8 +449,8 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 //    if (bufferIndex != RESERVED_SCREEN_INDEX && args.count() == 0) {
 //      return screen {
 //        case ram: GpuTextBuffer => {
-//          val nbt = new NBTTagCompound
-//          ram.data.save(nbt)
+//          val nbt = new CompoundNBT
+//          ram.data.saveData(nbt)
 //          result(nbt)
 //        }
 //      }
@@ -615,12 +615,12 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
   private final val NBT_PAGES: String = "pages"
   private final val NBT_PAGE_IDX: String = "page_idx"
   private final val NBT_PAGE_DATA: String = "page_data"
-  private val COMPOUND_ID = (new NBTTagCompound).getId
+  private val COMPOUND_ID = (new CompoundNBT).getId
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
 
-    if (nbt.hasKey(SCREEN_KEY)) {
+    if (nbt.contains(SCREEN_KEY)) {
       nbt.getString(SCREEN_KEY) match {
         case screen: String if !screen.isEmpty => screenAddress = Some(screen)
         case _ => screenAddress = None
@@ -628,50 +628,50 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
       screenInstance = None
     }
 
-    if (nbt.hasKey(BUFFER_INDEX_KEY)) {
-      bufferIndex = nbt.getInteger(BUFFER_INDEX_KEY)
+    if (nbt.contains(BUFFER_INDEX_KEY)) {
+      bufferIndex = nbt.getInt(BUFFER_INDEX_KEY)
     }
 
     removeAllBuffers() // JUST in case
-    if (nbt.hasKey(VIDEO_RAM_KEY)) {
-      val videoRamNbt = nbt.getCompoundTag(VIDEO_RAM_KEY)
-      val nbtPages = videoRamNbt.getTagList(NBT_PAGES, COMPOUND_ID)
-      for (i <- 0 until nbtPages.tagCount) {
-        val nbtPage = nbtPages.getCompoundTagAt(i)
-        val idx: Int = nbtPage.getInteger(NBT_PAGE_IDX)
-        val data = nbtPage.getCompoundTag(NBT_PAGE_DATA)
+    if (nbt.contains(VIDEO_RAM_KEY)) {
+      val videoRamNbt = nbt.getCompound(VIDEO_RAM_KEY)
+      val nbtPages = videoRamNbt.getList(NBT_PAGES, COMPOUND_ID)
+      for (i <- 0 until nbtPages.size) {
+        val nbtPage = nbtPages.getCompound(i)
+        val idx: Int = nbtPage.getInt(NBT_PAGE_IDX)
+        val data = nbtPage.getCompound(NBT_PAGE_DATA)
         loadBuffer(node.address, idx, data)
       }
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
 
     if (screenAddress.isDefined) {
-      nbt.setString(SCREEN_KEY, screenAddress.get)
+      nbt.putString(SCREEN_KEY, screenAddress.get)
     }
 
-    nbt.setInteger(BUFFER_INDEX_KEY, bufferIndex)
+    nbt.putInt(BUFFER_INDEX_KEY, bufferIndex)
 
-    val videoRamNbt = new NBTTagCompound
-    val nbtPages = new NBTTagList
+    val videoRamNbt = new CompoundNBT
+    val nbtPages = new ListNBT
 
     val indexes = bufferIndexes()
     for (idx: Int <- indexes) {
       getBuffer(idx) match {
         case Some(page) => {
-          val nbtPage = new NBTTagCompound
-          nbtPage.setInteger(NBT_PAGE_IDX, idx)
-          val data = new NBTTagCompound
-          page.data.save(data)
-          nbtPage.setTag(NBT_PAGE_DATA, data)
-          nbtPages.appendTag(nbtPage)
+          val nbtPage = new CompoundNBT
+          nbtPage.putInt(NBT_PAGE_IDX, idx)
+          val data = new CompoundNBT
+          page.data.saveData(data)
+          nbtPage.put(NBT_PAGE_DATA, data)
+          nbtPages.add(nbtPage)
         }
         case _ => // ignore
       }
     }
-    videoRamNbt.setTag(NBT_PAGES, nbtPages)
-    nbt.setTag(VIDEO_RAM_KEY, videoRamNbt)
+    videoRamNbt.put(NBT_PAGES, nbtPages)
+    nbt.put(VIDEO_RAM_KEY, videoRamNbt)
   }
 }

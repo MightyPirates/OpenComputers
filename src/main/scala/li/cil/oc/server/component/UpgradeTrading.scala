@@ -18,8 +18,8 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.Entity
-import net.minecraft.entity.IMerchant
-import net.minecraft.util.math.Vec3d
+import net.minecraft.entity.merchant.IMerchant
+import net.minecraft.util.math.vector.Vector3d
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -43,22 +43,22 @@ class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironme
 
   def maxRange = Settings.get.tradingRange
 
-  def isInRange(entity: Entity) = new Vec3d(entity.posX, entity.posY, entity.posZ).distanceTo(position.toVec3) <= maxRange
+  def isInRange(entity: Entity) = new Vector3d(entity.getX, entity.getY, entity.getZ).distanceTo(position.toVec3) <= maxRange
 
   @Callback(doc = "function():table -- Returns a table of trades in range as userdata objects.")
   def getTrades(context: Context, args: Arguments): Array[AnyRef] = {
-    val merchants = entitiesInBounds[Entity](classOf[Entity], position.bounds.grow(maxRange, maxRange, maxRange)).
+    val merchants = entitiesInBounds[Entity](classOf[Entity], position.bounds.inflate(maxRange, maxRange, maxRange)).
       filter(isInRange).
-      collect { case merchant: IMerchant => merchant }
+      collect { case merchant: Entity with IMerchant => merchant }
     var nextId = 1
     val idMap = mutable.Map[UUID, Int]()
-    for (id: UUID <- merchants.collect { case merchant: IMerchant => merchant.getPersistentID }.sorted) {
+    for (id: UUID <- merchants.collect { case merchant: IMerchant => merchant.getUUID }.sorted) {
       idMap.put(id, nextId)
       nextId += 1
     }
     // sorting the result is not necessary, but will help the merchant trades line up nicely by merchant
-    result(merchants.sortBy(m => m.getPersistentID).flatMap(merchant => merchant.getRecipes(null).indices.map(index => {
-      new Trade(this, merchant, index, idMap(merchant.getPersistentID))
+    result(merchants.sortBy(m => m.getUUID).flatMap(merchant => merchant.getOffers.indices.map(index => {
+      new Trade(this, merchant, index, idMap(merchant.getUUID))
     })))
   }
 }

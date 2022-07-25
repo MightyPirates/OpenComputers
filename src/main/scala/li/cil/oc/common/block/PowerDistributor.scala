@@ -1,9 +1,10 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class PowerDistributor extends SimpleBlock {
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerDistributor()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.PowerDistributor()
 }
 

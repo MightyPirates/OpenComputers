@@ -2,9 +2,10 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
 
-class MotionSensor extends traits.Environment with traits.Tickable {
+class MotionSensor extends TileEntity(null) with traits.Environment with traits.Tickable {
   val motionSensor = new component.MotionSensor(this)
 
   def node: Node = motionSensor.node
@@ -16,13 +17,13 @@ class MotionSensor extends traits.Environment with traits.Tickable {
     }
   }
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
-    motionSensor.load(nbt)
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
+    motionSensor.loadData(nbt)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
-    motionSensor.save(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
+    motionSensor.saveData(nbt)
   }
 }

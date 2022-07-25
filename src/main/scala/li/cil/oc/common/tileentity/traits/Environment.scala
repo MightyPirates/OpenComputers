@@ -6,13 +6,15 @@ import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraftforge.client.model.data.IModelData
+import net.minecraftforge.client.model.data.ModelProperty
 
-trait Environment extends TileEntity with network.Environment with network.EnvironmentHost {
+trait Environment extends TileEntity with network.Environment with network.EnvironmentHost with IModelData {
   protected var isChangeScheduled = false
 
-  override def world = getWorld
+  override def world = getLevel
 
   override def xPosition = x + 0.5
 
@@ -20,7 +22,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   override def zPosition = z + 0.5
 
-  override def markChanged() = if (this.isInstanceOf[Tickable]) isChangeScheduled = true else getWorld.markChunkDirty(getPos, this)
+  override def markChanged() = if (this.isInstanceOf[Tickable]) isChangeScheduled = true else getLevel.blockEntityChanged(getBlockPos, this)
 
   protected def isConnected = node != null && node.address != null && node.network != null
 
@@ -36,7 +38,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   override def updateEntity() {
     super.updateEntity()
     if (isChangeScheduled) {
-      getWorld.markChunkDirty(getPos, this)
+      getLevel.blockEntityChanged(getBlockPos, this)
       isChangeScheduled = false
     }
   }
@@ -46,7 +48,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
     if (isServer) {
       Option(node).foreach(_.remove)
       this match {
-        case sidedEnvironment: SidedEnvironment => for (side <- EnumFacing.values) {
+        case sidedEnvironment: SidedEnvironment => for (side <- Direction.values) {
           Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
         }
         case _ =>
@@ -58,17 +60,17 @@ trait Environment extends TileEntity with network.Environment with network.Envir
 
   private final val NodeTag = Settings.namespace + "node"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
     if (node != null && node.host == this) {
-      node.load(nbt.getCompoundTag(NodeTag))
+      node.loadData(nbt.getCompound(NodeTag))
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
     if (node != null && node.host == this) {
-      nbt.setNewCompoundTag(NodeTag, node.save)
+      nbt.setNewCompoundTag(NodeTag, node.saveData)
     }
   }
 
@@ -95,4 +97,18 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   // ----------------------------------------------------------------------- //
 
   protected def result(args: Any*) = li.cil.oc.util.ResultWrapper.result(args: _*)
+
+  // ----------------------------------------------------------------------- //
+
+  @Deprecated
+  override def getModelData() = this
+
+  @Deprecated
+  override def hasProperty(prop: ModelProperty[_]) = false
+
+  @Deprecated
+  override def getData[T](prop: ModelProperty[T]): T = null.asInstanceOf[T]
+
+  @Deprecated
+  override def setData[T](prop: ModelProperty[T], value: T): T = null.asInstanceOf[T]
 }

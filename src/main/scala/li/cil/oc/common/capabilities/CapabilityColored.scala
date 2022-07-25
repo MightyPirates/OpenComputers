@@ -2,25 +2,29 @@ package li.cil.oc.common.capabilities
 
 import li.cil.oc.api.internal.Colored
 import li.cil.oc.integration.Mods
-import net.minecraft.nbt.NBTBase
-import net.minecraft.nbt.NBTTagInt
+import net.minecraft.nbt.INBT
+import net.minecraft.nbt.IntNBT
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.common.util.NonNullSupplier
 
 object CapabilityColored {
   final val ProviderColored = new ResourceLocation(Mods.IDs.OpenComputers, "colored")
 
-  class Provider(val tileEntity: TileEntity with Colored) extends ICapabilityProvider with Colored {
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
-      capability == Capabilities.ColoredCapability
-    }
+  class Provider(val tileEntity: TileEntity with Colored) extends ICapabilityProvider with NonNullSupplier[Provider] with Colored {
+    private val wrapper = LazyOptional.of(this)
 
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-      if (hasCapability(capability, facing)) this.asInstanceOf[T]
-      else null.asInstanceOf[T]
+    def get = this
+
+    def invalidate() = wrapper.invalidate
+
+    override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
+      if (capability == Capabilities.ColoredCapability) wrapper.cast[T]
+      else LazyOptional.empty[T]
     }
 
     override def getColor = tileEntity.getColor
@@ -41,15 +45,15 @@ object CapabilityColored {
   }
 
   class DefaultStorage extends Capability.IStorage[Colored] {
-    override def writeNBT(capability: Capability[Colored], t: Colored, enumFacing: EnumFacing): NBTBase = {
+    override def writeNBT(capability: Capability[Colored], t: Colored, Direction: Direction): INBT = {
       val color = t.getColor
-      new NBTTagInt(color)
+      IntNBT.valueOf(color)
     }
 
-    override def readNBT(capability: Capability[Colored], t: Colored, enumFacing: EnumFacing, nbtBase: NBTBase): Unit = {
+    override def readNBT(capability: Capability[Colored], t: Colored, Direction: Direction, nbtBase: INBT): Unit = {
       nbtBase match {
-        case nbt: NBTTagInt =>
-          t.setColor(nbt.getInt)
+        case nbt: IntNBT =>
+          t.setColor(nbt.getAsInt)
         case _ =>
       }
     }

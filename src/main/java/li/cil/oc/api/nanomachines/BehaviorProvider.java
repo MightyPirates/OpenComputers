@@ -1,7 +1,7 @@
 package li.cil.oc.api.nanomachines;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 
 /**
  * Implemented by providers for behaviors.
@@ -26,12 +26,12 @@ public interface BehaviorProvider {
      * Note that this is only called on the server side when reconfiguring
      * nanomachines. If you have a behavior that actually acts client-only,
      * you still need to return it here, as it will be synchronized to the
-     * client using {@link #writeToNBT} and {@link #readFromNBT}.
+     * client using {@link #save} and {@link #load}.
      *
      * @param player the player the behaviors should be created for.
      * @return list of new behaviors, may be <tt>null</tt>.
      */
-    Iterable<Behavior> createBehaviors(EntityPlayer player);
+    Iterable<Behavior> createBehaviors(PlayerEntity player);
 
     /**
      * Write a behavior to NBT.
@@ -45,7 +45,7 @@ public interface BehaviorProvider {
      * @param behavior the behavior to serialize.
      * @return the serialized representation of the specified behavior.
      */
-    NBTTagCompound writeToNBT(Behavior behavior);
+    CompoundNBT save(Behavior behavior);
 
     /**
      * Restore a behavior from NBT.
@@ -62,5 +62,5 @@ public interface BehaviorProvider {
      * @param nbt    the tag to restore the behavior from.
      * @return the restored behavior, or <tt>null</tt> if unhandled.
      */
-    Behavior readFromNBT(EntityPlayer player, NBTTagCompound nbt);
+    Behavior load(PlayerEntity player, CompoundNBT nbt);
 }

@@ -16,10 +16,6 @@
  * implemented, but merely to allow accessing some mod internals in a regulated
  * fashion, such as {@link li.cil.oc.api.internal.Robot}.
  */
-@net.minecraftforge.fml.common.API(
-        owner = API.ID_OWNER,
-        provides = "opencomputersapi|machine",
-        apiVersion = API.VERSION)
 package li.cil.oc.api.machine;
 
 import li.cil.oc.api.API;

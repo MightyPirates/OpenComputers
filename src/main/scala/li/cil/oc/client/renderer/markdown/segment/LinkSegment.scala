@@ -8,6 +8,7 @@ import li.cil.oc.api
 import li.cil.oc.client.Manual
 import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.Minecraft
+import net.minecraft.util.Util
 
 private[markdown] class LinkSegment(parent: Segment, text: String, val url: String) extends TextSegment(parent, text) with InteractiveSegment {
   private final val normalColor = 0x66FF66
@@ -52,7 +53,7 @@ private[markdown] class LinkSegment(parent: Segment, text: String, val url: Stri
       desktop.getMethod("browse", classOf[URI]).invoke(instance, new URI(url))
     }
     catch {
-      case t: Throwable => Minecraft.getMinecraft.player.sendMessage(Localization.Chat.WarningLink(t.toString))
+      case t: Throwable => Minecraft.getInstance.player.sendMessage(Localization.Chat.WarningLink(t.toString), Util.NIL_UUID)
     }
   }
 

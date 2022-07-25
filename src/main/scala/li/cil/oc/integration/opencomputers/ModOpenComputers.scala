@@ -42,12 +42,13 @@ import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.world.ForgeChunkManager
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
@@ -91,7 +92,7 @@ object ModOpenComputers extends ModProxy {
     api.IMC.registerProgramDiskLabel("opl-flash", "openloader", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("oppm", "oppm", "Lua 5.2", "Lua 5.3", "LuaJ")
 
-    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
+    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers.ID, ChunkloaderUpgradeHandler)
 
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
@@ -100,7 +101,6 @@ object ModOpenComputers extends ModProxy {
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(BlockChangeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
@@ -337,9 +337,9 @@ object ModOpenComputers extends ModProxy {
     api.Nanomachines.addProvider(MagnetProvider)
   }
 
-  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
-    player.getHeldItemMainhand.getItem match {
-      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
+  def useWrench(player: PlayerEntity, pos: BlockPos, changeDurability: Boolean): Boolean = {
+    player.getItemInHand(Hand.MAIN_HAND).getItem match {
+      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.level, pos, !changeDurability)
       case _ => false
     }
   }

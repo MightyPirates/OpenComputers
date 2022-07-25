@@ -1,6 +1,6 @@
 package li.cil.oc.common.inventory
 
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.text.ITextComponent
@@ -12,59 +12,47 @@ trait InventoryProxy extends IInventory {
 
   override def isEmpty: Boolean = inventory.isEmpty
 
-  override def getSizeInventory: Int = inventory.getSizeInventory
+  override def getContainerSize: Int = inventory.getContainerSize
 
-  override def getInventoryStackLimit: Int = inventory.getInventoryStackLimit
+  override def getMaxStackSize: Int = inventory.getMaxStackSize
 
-  override def getName: String = inventory.getName
+  override def stillValid(player: PlayerEntity): Boolean = inventory.stillValid(player)
 
-  override def getDisplayName: ITextComponent = inventory.getDisplayName
-
-  override def hasCustomName: Boolean = inventory.hasCustomName
-
-  override def isUsableByPlayer(player: EntityPlayer): Boolean = inventory.isUsableByPlayer(player)
-
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = {
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = {
     val offsetSlot = slot + offset
-    isValidSlot(offsetSlot) && inventory.isItemValidForSlot(offsetSlot, stack)
+    isValidSlot(offsetSlot) && inventory.canPlaceItem(offsetSlot, stack)
   }
 
-  override def getStackInSlot(slot: Int): ItemStack = {
+  override def getItem(slot: Int): ItemStack = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.getStackInSlot(offsetSlot)
+    if (isValidSlot(offsetSlot)) inventory.getItem(offsetSlot)
     else ItemStack.EMPTY
   }
 
-  override def decrStackSize(slot: Int, amount: Int): ItemStack = {
+  override def removeItem(slot: Int, amount: Int): ItemStack = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.decrStackSize(offsetSlot, amount)
+    if (isValidSlot(offsetSlot)) inventory.removeItem(offsetSlot, amount)
     else ItemStack.EMPTY
   }
 
-  override def removeStackFromSlot(slot: Int): ItemStack = {
+  override def removeItemNoUpdate(slot: Int): ItemStack = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.removeStackFromSlot(offsetSlot)
+    if (isValidSlot(offsetSlot)) inventory.removeItemNoUpdate(offsetSlot)
     else ItemStack.EMPTY
   }
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
+  override def setItem(slot: Int, stack: ItemStack): Unit = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.setInventorySlotContents(offsetSlot, stack)
+    if (isValidSlot(offsetSlot)) inventory.setItem(offsetSlot, stack)
   }
 
-  override def markDirty(): Unit = inventory.markDirty()
+  override def setChanged(): Unit = inventory.setChanged()
 
-  override def openInventory(player: EntityPlayer): Unit = inventory.openInventory(player)
+  override def startOpen(player: PlayerEntity): Unit = inventory.startOpen(player)
 
-  override def closeInventory(player: EntityPlayer): Unit = inventory.closeInventory(player)
+  override def stopOpen(player: PlayerEntity): Unit = inventory.stopOpen(player)
 
-  override def setField(id: Int, value: Int): Unit = inventory.setField(id, value)
+  override def clearContent(): Unit = inventory.clearContent()
 
-  override def clear(): Unit = inventory.clear()
-
-  override def getFieldCount: Int = inventory.getFieldCount
-
-  override def getField(id: Int): Int = inventory.getField(id)
-
-  private def isValidSlot(slot: Int) = slot >= offset && slot < getSizeInventory + offset
+  private def isValidSlot(slot: Int) = slot >= offset && slot < getContainerSize + offset
 }

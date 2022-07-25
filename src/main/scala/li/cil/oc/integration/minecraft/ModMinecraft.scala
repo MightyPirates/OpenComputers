@@ -8,9 +8,9 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.block.BlockRedstoneWire
-import net.minecraft.init.Blocks
-import net.minecraft.util.EnumFacing
+import net.minecraft.block.Blocks
+import net.minecraft.block.RedstoneWireBlock
+import net.minecraft.util.Direction
 import net.minecraftforge.common.MinecraftForge
 
 object ModMinecraft extends ModProxy with RedstoneProvider {
@@ -50,20 +50,17 @@ object ModMinecraft extends ModProxy with RedstoneProvider {
     Driver.add(ConverterItemStack)
     Driver.add(ConverterNBT)
     Driver.add(ConverterWorld)
-    Driver.add(ConverterWorldProvider)
-
-    RecipeHandler.init()
 
     BundledRedstone.addProvider(this)
 
     MinecraftForge.EVENT_BUS.register(EventHandlerVanilla)
   }
 
-  override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
+  override def computeInput(pos: BlockPosition, side: Direction): Int = {
     val world = pos.world.get
     math.max(world.computeRedstoneSignal(pos, side),
-      if (world.getBlock(pos.offset(side)) == Blocks.REDSTONE_WIRE) world.getBlockMetadata(pos.offset(side)).getValue(BlockRedstoneWire.POWER).intValue() else 0)
+      if (world.getBlock(pos.offset(side)) == Blocks.REDSTONE_WIRE) world.getBlockState(pos.offset(side).toBlockPos).getValue(RedstoneWireBlock.POWER).intValue() else 0)
   }
 
-  override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = null
+  override def computeBundledInput(pos: BlockPosition, side: Direction): Array[Int] = null
 }

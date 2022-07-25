@@ -7,22 +7,19 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.PacketSender
 import net.minecraft.block.Block
-import net.minecraft.block.state.BlockStateContainer
-import net.minecraft.block.state.IBlockState
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.block.BlockState
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.state.StateContainer
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing)
-
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
-
-  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
+  protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
+    builder.add(PropertyRotatable.Facing)
 
   // ----------------------------------------------------------------------- //
 
@@ -30,18 +27,18 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateA
 
   override def guiType = GuiType.Charger
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Charger()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Charger()
 
   // ----------------------------------------------------------------------- //
 
-  override def canConnectRedstone(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = true
+  override def canConnectRedstone(state: BlockState, world: IBlockReader, pos: BlockPos, side: Direction): Boolean = true
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
-    if (Wrench.holdsApplicableWrench(player, pos)) world.getTileEntity(pos) match {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, heldItem: ItemStack, side: Direction, hitX: Float, hitY: Float, hitZ: Float) =
+    if (Wrench.holdsApplicableWrench(player, pos)) world.getBlockEntity(pos) match {
       case charger: tileentity.Charger =>
-        if (!world.isRemote) {
+        if (!world.isClientSide) {
           charger.invertSignal = !charger.invertSignal
           charger.chargeSpeed = 1.0 - charger.chargeSpeed
           PacketSender.sendChargerState(charger)
@@ -52,11 +49,12 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateA
     }
     else super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
 
-  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit = {
-    world.getTileEntity(pos) match {
+  @Deprecated
+  override def neighborChanged(state: BlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos, b: Boolean): Unit = {
+    world.getBlockEntity(pos) match {
       case charger: tileentity.Charger => charger.onNeighborChanged()
       case _ =>
     }
-    super.neighborChanged(state, world, pos, block, fromPos)
+    super.neighborChanged(state, world, pos, block, fromPos, b)
   }
 }

@@ -7,8 +7,9 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.registries.ForgeRegistries
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -219,11 +220,12 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     case _ => value.getClass.getSimpleName
   }
 
-  private def makeStack(name: String, damage: Int, tag: Option[NBTTagCompound]) = {
-    Item.REGISTRY.getObject(new ResourceLocation(name)) match {
+  private def makeStack(name: String, damage: Int, tag: Option[CompoundNBT]) = {
+    ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)) match {
       case item: Item =>
-        val stack = new ItemStack(item, 1, damage)
-        tag.foreach(stack.setTagCompound)
+        val stack = new ItemStack(item, 1)
+        stack.setDamageValue(damage)
+        tag.foreach(stack.setTag)
         stack
       case _ => throw new IllegalArgumentException("invalid item stack")
     }

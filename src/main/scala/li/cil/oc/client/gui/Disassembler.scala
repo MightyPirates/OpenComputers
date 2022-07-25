@@ -1,27 +1,25 @@
 package li.cil.oc.client.gui
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.entity.player.PlayerInventory
 
-class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentity.Disassembler) extends DynamicGuiContainer(new container.Disassembler(playerInventory, disassembler)) {
-  val progress = addWidget(new ProgressBar(18, 65))
+class Disassembler(id: Int, playerInventory: PlayerInventory, val disassembler: tileentity.Disassembler)
+  extends DynamicGuiContainer(new container.Disassembler(id, playerInventory, disassembler),
+    playerInventory, disassembler.getName) {
 
-  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    fontRenderer.drawString(
-      Localization.localizeImmediately(disassembler.getName),
-      8, 6, 0x404040)
-  }
+  val progress = addCustomWidget(new ProgressBar(18, 65))
 
-  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GlStateManager.color(1, 1, 1)
+  override def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {
+    RenderSystem.color3f(1, 1, 1)
     Textures.bind(Textures.GUI.Disassembler)
-    drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
+    blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
     progress.level = inventoryContainer.disassemblyProgress / 100.0
-    drawWidgets()
+    drawWidgets(stack)
   }
 }

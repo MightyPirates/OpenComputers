@@ -4,6 +4,7 @@ import java.io._
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 import java.security.SecureRandom
 import java.util.UUID
 
@@ -14,11 +15,11 @@ import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
+import net.minecraftforge.fml.loading.FMLPaths
 import org.apache.commons.codec.binary.Hex
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
-import net.minecraftforge.fml.common.versioning.VersionRange
 import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion
+import org.apache.maven.artifact.versioning.VersionRange
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -455,8 +456,7 @@ class Settings(val config: Config) {
     case "true" | "allow" | java.lang.Boolean.TRUE => DebugCardAccess.Allowed
     case "false" | "deny" | java.lang.Boolean.FALSE => DebugCardAccess.Forbidden
     case "whitelist" =>
-      val wlFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator +
-                              "debug_card_whitelist.txt")
+      val wlFile = FMLPaths.CONFIGDIR.get.resolve(Paths.get("opencomputers", "debug_card_whitelist.txt")).toFile()
 
       DebugCardAccess.Whitelist(wlFile)
 
@@ -483,7 +483,7 @@ class Settings(val config: Config) {
 }
 
 object Settings {
-  val resourceDomain = "opencomputers"
+  val resourceDomain = OpenComputers.ID
   val namespace = "oc:"
   val savePath = "opencomputers/"
   val scriptPath: String = "/assets/" + resourceDomain + "/lua/"
@@ -572,12 +572,12 @@ object Settings {
   // created by) against the current version to see if some hard changes
   // were made. If so, the new default values are copied over.
   private def patchConfig(config: Config, defaults: Config) = {
-    val mod = Loader.instance.activeModContainer
+    val modVersion = OpenComputers.modContainer.getModInfo.getVersion
     val prefix = "opencomputers."
     val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
     var patched = config
-    if (configVersion.compareTo(mod.getProcessedVersion) != 0) {
-      OpenComputers.log.info(s"Updating config from version '${configVersion.getVersionString}' to '${defaults.getString(prefix + "version")}'.")
+    if (!configVersion.equals(modVersion)) {
+      OpenComputers.log.info(s"Updating config from version '${configVersion}' to '${defaults.getString(prefix + "version")}'.")
       patched = patched.withValue(prefix + "version", defaults.getValue(prefix + "version"))
       for ((version, paths) <- configPatches if version.containsVersion(configVersion)) {
         for (path <- paths) {

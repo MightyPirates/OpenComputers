@@ -18,20 +18,20 @@ package li.cil.oc.api.network;
  * When a tile entity implements this interface a good way of connecting and
  * disconnecting is the following pattern:
  * <pre>
- *     void updateEntity() {
- *         super.updateEntity()
+ *     void tick() {
+ *         super.tick()
  *         if (node != null && node.network == null) {
  *             api.Network.joinOrCreateNetwork(this);
  *         }
  *     }
  *
- *     void onChunkUnload() {
- *         super.onChunkUnload()
+ *     void onChunkUnloaded() {
+ *         super.onChunkUnloaded()
  *         if (node != null) node.remove()
  *     }
  *
- *     void invalidate() {
- *         super.invalidate()
+ *     void setRemoved() {
+ *         super.setRemoved()
  *         if (node != null) node.remove()
  *     }
  * </pre>

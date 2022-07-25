@@ -10,17 +10,19 @@ import li.cil.oc.api.network.{Node, Visibility}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.init.SoundEvents
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import li.cil.oc.util.RotationHelper
+import net.minecraft.util.SoundEvents
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class NetSplitter extends traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment with DeviceInfo {
+class NetSplitter extends TileEntity(null) with traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment with DeviceInfo {
   private lazy val deviceInfo: util.Map[String, String] = Map(
     DeviceAttribute.Class -> DeviceClass.Network,
     DeviceAttribute.Description -> "Ethernet controller",
@@ -40,9 +42,9 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
 
   var isInverted = false
 
-  override def isSideOpen(side: EnumFacing): Boolean = if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
+  override def isSideOpen(side: Direction): Boolean = if (isInverted) !super.isSideOpen(side) else super.isSideOpen(side)
 
-  override def setSideOpen(side: EnumFacing, value: Boolean) {
+  override def setSideOpen(side: Direction, value: Boolean) {
     val previous = isSideOpen(side)
     super.setSideOpen(side, value)
     if (previous != isSideOpen(side)) {
@@ -50,21 +52,21 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
-        getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, false)
+        getLevel.playSound(null, getBlockPos, SoundEvents.PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, getLevel.random.nextFloat() * 0.25f + 0.7f)
+        getLevel.updateNeighborsAt(getBlockPos, getBlockState.getBlock)
       }
       else {
-        getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+        getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
       }
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def sidedNode(side: EnumFacing): Node = if (isSideOpen(side)) node else null
+  override def sidedNode(side: Direction): Node = if (isSideOpen(side)) node else null
 
-  @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing): Boolean = isSideOpen(side)
+  @OnlyIn(Dist.CLIENT)
+  override def canConnect(side: Direction): Boolean = isSideOpen(side)
 
   // ----------------------------------------------------------------------- //
 
@@ -84,10 +86,10 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
         node.remove()
         api.Network.joinOrCreateNetwork(this)
         ServerPacketSender.sendNetSplitterState(this)
-        getWorld.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, getWorld.rand.nextFloat() * 0.25f + 0.7f)
+        getLevel.playSound(null, getBlockPos, SoundEvents.PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, getLevel.random.nextFloat() * 0.25f + 0.7f)
       }
       else {
-        getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+        getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
       }
     }
   }
@@ -97,37 +99,37 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
   private final val IsInvertedTag = Settings.namespace + "isInverted"
   private final val OpenSidesTag = Settings.namespace + "openSides"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.readFromNBTForServer(nbt)
+  override def loadForServer(nbt: CompoundNBT): Unit = {
+    super.loadForServer(nbt)
     isInverted = nbt.getBoolean(IsInvertedTag)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForServer(nbt)
-    nbt.setBoolean(IsInvertedTag, isInverted)
+  override def saveForServer(nbt: CompoundNBT): Unit = {
+    super.saveForServer(nbt)
+    nbt.putBoolean(IsInvertedTag, isInverted)
   }
 
-  @SideOnly(Side.CLIENT) override
-  def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
-    super.readFromNBTForClient(nbt)
+  @OnlyIn(Dist.CLIENT) override
+  def loadForClient(nbt: CompoundNBT): Unit = {
+    super.loadForClient(nbt)
     isInverted = nbt.getBoolean(IsInvertedTag)
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForClient(nbt)
-    nbt.setBoolean(IsInvertedTag, isInverted)
+  override def saveForClient(nbt: CompoundNBT): Unit = {
+    super.saveForClient(nbt)
+    nbt.putBoolean(IsInvertedTag, isInverted)
   }
 
   // component api
   def currentStatus(): mutable.Map[Int, Boolean] = {
     val openStatus = mutable.Map[Int, Boolean]()
-    for (side <- EnumFacing.VALUES) {
+    for (side <- Direction.values) {
       openStatus += side.ordinal() -> isSideOpen(side)
     }
     openStatus
   }
 
-  def setSide(side: EnumFacing, state: Boolean): Boolean = {
+  def setSide(side: Direction, state: Boolean): Boolean = {
     val previous = isSideOpen(side) // isSideOpen uses inverter
     setSideOpen(side, if (isInverted) !state else state) // but setSideOpen does not
     previous != state
@@ -137,7 +139,7 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
   def setSides(context: Context, args: Arguments): Array[AnyRef] = {
     val settings = args.checkTable(0)
     val previous = currentStatus()
-    for (side <- EnumFacing.VALUES) {
+    for (side <- Direction.values) {
       val ordinal = side.ordinal()
       val value = if (settings.containsKey(ordinal)) {
         settings.get(ordinal) match {
@@ -157,7 +159,7 @@ class NetSplitter extends traits.Environment with traits.OpenSides with traits.R
     val sideIndex = args.checkInteger(0)
     if (sideIndex < 0 || sideIndex > 5)
       return result(Unit, "invalid direction")
-    val side = EnumFacing.getFront(sideIndex)
+    val side = Direction.from3DDataValue(sideIndex)
     result(setSide(side, value))
   }
 

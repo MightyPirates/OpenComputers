@@ -6,23 +6,27 @@ import com.google.common.base.Strings
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.block.{Print => PrintBlock}
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.init.SoundEvents
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util._
+import net.minecraft.util.SoundEvents
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.Direction
+import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.RayTraceResult
-import net.minecraft.util.math.Vec3d
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.util.math.vector.Vector3d
+import net.minecraft.world.server.ServerWorld
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import scala.collection.convert.WrapAsJava._
 
-class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit]) extends TileEntity(null) with traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
   def this() = this(None, None, None)
   def this(canToggle: () => Boolean, scheduleUpdate: Int => Unit, onStateChange: () => Unit) = this(Option(canToggle), Option(scheduleUpdate), Option(onStateChange))
 
@@ -38,72 +42,6 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   def noclip = if (state) data.noclipOn else data.noclipOff
   def shapes = if (state) data.stateOn else data.stateOff
 
-  def isSideSolid(side: EnumFacing): Boolean = {
-    for (shape <- shapes if !Strings.isNullOrEmpty(shape.texture)) {
-      val bounds = shape.bounds.rotateTowards(facing)
-      val fullX = bounds.minX == 0 && bounds.maxX == 1
-      val fullY = bounds.minY == 0 && bounds.maxY == 1
-      val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
-      if (side match {
-        case EnumFacing.DOWN => bounds.minY == 0 && fullX && fullZ
-        case EnumFacing.UP => bounds.maxY == 1 && fullX && fullZ
-        case EnumFacing.NORTH => bounds.minZ == 0 && fullX && fullY
-        case EnumFacing.SOUTH => bounds.maxZ == 1 && fullX && fullY
-        case EnumFacing.WEST => bounds.minX == 0 && fullY && fullZ
-        case EnumFacing.EAST => bounds.maxX == 1 && fullY && fullZ
-        case _ => false
-      }) return true
-    }
-    false
-  }
-
-  def addCollisionBoxesToList(mask: AxisAlignedBB, list: util.List[AxisAlignedBB], pos: BlockPos = BlockPos.ORIGIN): Unit = {
-    if (!noclip) {
-      if (shapes.isEmpty) {
-        val unitBounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(pos)
-        if (mask == null || unitBounds.intersects(mask)) {
-          list.add(unitBounds)
-        }
-      } else {
-        for (shape <- shapes) {
-          val bounds = shape.bounds.rotateTowards(facing).offset(pos)
-          if (mask == null || bounds.intersects(mask)) {
-            list.add(bounds)
-          }
-        }
-      }
-    }
-  }
-
-  def rayTrace(start: Vec3d, end: Vec3d, pos: BlockPos = BlockPos.ORIGIN): RayTraceResult = {
-    var closestDistance = Double.PositiveInfinity
-    var closest: Option[RayTraceResult] = None
-    if (shapes.isEmpty) {
-      val bounds = new AxisAlignedBB(0, 0, 0, 1, 1, 1).offset(pos)
-      val hit = bounds.calculateIntercept(start, end)
-      if (hit != null) {
-        val distance = hit.hitVec.distanceTo(start)
-        if (distance < closestDistance) {
-          closestDistance = distance
-          closest = Option(hit)
-        }
-      }
-    } else {
-      for (shape <- shapes) {
-        val bounds = shape.bounds.rotateTowards(facing).offset(pos)
-        val hit = bounds.calculateIntercept(start, end)
-        if (hit != null) {
-          val distance = hit.hitVec.distanceTo(start)
-          if (distance < closestDistance) {
-            closestDistance = distance
-            closest = Option(hit)
-          }
-        }
-      }
-    }
-    closest.map(hit => new RayTraceResult(hit.hitVec, hit.sideHit, pos)).orNull
-  }
-
   def activate(): Boolean = {
     if (data.hasActiveState) {
       if (!state || !data.isButtonMode) {
@@ -116,7 +54,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
 
   private def buildValueSet(value: Int): util.Map[AnyRef, AnyRef] = {
     val map: util.Map[AnyRef, AnyRef] = new util.HashMap[AnyRef, AnyRef]()
-    EnumFacing.values.foreach {
+    Direction.values.foreach {
       side => map.put(new java.lang.Integer(side.ordinal), new java.lang.Integer(value))
     }
     map
@@ -125,15 +63,15 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   def toggleState(): Unit = {
     if (canToggle.fold(true)(_.apply())) {
       state = !state
-      world.playSound(null, x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.BLOCKS, 0.3F, if (state) 0.6F else 0.5F)
-      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+      getLevel.playSound(null, getBlockPos, SoundEvents.LEVER_CLICK, SoundCategory.BLOCKS, 0.3F, if (state) 0.6F else 0.5F)
+      getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
       updateRedstone()
       if (state && data.isButtonMode) {
-        val block = api.Items.get(Constants.BlockName.Print).block()
-        val delay = block.tickRate(world)
+        val block = api.Items.get(Constants.BlockName.Print).block().asInstanceOf[PrintBlock]
+        val delay = block.tickRate(getLevel)
         scheduleUpdate match {
           case Some(callback) => callback(delay)
-          case _ => world.scheduleUpdate(getPos, block, delay)
+          case _ if !getLevel.isClientSide => getLevel.asInstanceOf[ServerWorld].getBlockTicks.scheduleTick(getBlockPos, block, delay)
         }
       }
       onStateChange.foreach(_.apply())
@@ -141,10 +79,10 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   }
 
   def updateBounds(): Unit = {
-    boundsOff = data.stateOff.drop(1).foldLeft(data.stateOff.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.union(b.bounds))
+    boundsOff = data.stateOff.drop(1).foldLeft(data.stateOff.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.minmax(b.bounds))
     if (boundsOff.volume == 0) boundsOff = ExtendedAABB.unitBounds
     else boundsOff = boundsOff.rotateTowards(facing)
-    boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.union(b.bounds))
+    boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.minmax(b.bounds))
     if (boundsOn.volume == 0) boundsOn = ExtendedAABB.unitBounds
     else boundsOn = boundsOn.rotateTowards(facing)
   }
@@ -170,44 +108,46 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
   // ----------------------------------------------------------------------- //
 
   private final val DataTag = Settings.namespace + "data"
+  @Deprecated
   private final val DataTagCompat = "data"
   private final val StateTag = Settings.namespace + "state"
+  @Deprecated
   private final val StateTagCompat = "state"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(DataTagCompat))
-      data.load(nbt.getCompoundTag(DataTagCompat))
+  override def loadForServer(nbt: CompoundNBT): Unit = {
+    super.loadForServer(nbt)
+    if (nbt.contains(DataTagCompat))
+      data.loadData(nbt.getCompound(DataTagCompat))
     else
-      data.load(nbt.getCompoundTag(DataTag))
-    if (nbt.hasKey(StateTagCompat))
+      data.loadData(nbt.getCompound(DataTag))
+    if (nbt.contains(StateTagCompat))
       state = nbt.getBoolean(StateTagCompat)
     else
       state = nbt.getBoolean(StateTag)
     updateBounds()
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag(DataTag, data.save)
-    nbt.setBoolean(StateTag, state)
+  override def saveForServer(nbt: CompoundNBT): Unit = {
+    super.saveForServer(nbt)
+    nbt.setNewCompoundTag(DataTag, data.saveData)
+    nbt.putBoolean(StateTag, state)
   }
 
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
-    super.readFromNBTForClient(nbt)
-    data.load(nbt.getCompoundTag(DataTag))
+  @OnlyIn(Dist.CLIENT)
+  override def loadForClient(nbt: CompoundNBT): Unit = {
+    super.loadForClient(nbt)
+    data.loadData(nbt.getCompound(DataTag))
     state = nbt.getBoolean(StateTag)
     updateBounds()
-    if (world != null) {
-      world.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
-      if (data.emitLight) world.checkLight(getPos)
+    if (getLevel != null) {
+      getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
+      if (data.emitLight) getLevel.getLightEngine.checkBlock(getBlockPos)
     }
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForClient(nbt)
-    nbt.setNewCompoundTag(DataTag, data.save)
-    nbt.setBoolean(StateTag, state)
+  override def saveForClient(nbt: CompoundNBT): Unit = {
+    super.saveForClient(nbt)
+    nbt.setNewCompoundTag(DataTag, data.saveData)
+    nbt.putBoolean(StateTag, state)
   }
 }

@@ -8,22 +8,25 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Hand
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 
 import scala.collection.mutable
+import scala.collection.convert.WrapAsScala._
 
 class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
   override val unlocalizedName: String = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override def rarity(stack: ItemStack): EnumRarity = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack): item.Rarity = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 
@@ -31,34 +34,36 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
     var container = ItemStack.EMPTY
   }
 
-  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]) {
     super.tooltipExtended(stack, tooltip)
     if (KeyBindings.showExtendedTooltips) {
       HelperInventory.container = stack
       HelperInventory.reinitialize()
       val stacks = mutable.Map.empty[String, Int]
-      for (aStack <- (0 until HelperInventory.getSizeInventory).map(HelperInventory.getStackInSlot) if !aStack.isEmpty) {
-        val displayName = aStack.getDisplayName
+      for (aStack <- (0 until HelperInventory.getContainerSize).map(HelperInventory.getItem) if !aStack.isEmpty) {
+        val displayName = aStack.getDisplayName.getString
         stacks += displayName -> (if (stacks.contains(displayName)) stacks(displayName) + 1 else 1)
       }
       if (stacks.nonEmpty) {
-        tooltip.addAll(Tooltip.get("server.Components"))
+        for (curr <- Tooltip.get("server.Components")) {
+          tooltip.add(new StringTextComponent(curr))
+        }
         for (itemName <- stacks.keys.toArray.sorted) {
-          tooltip.add("- " + stacks(itemName) + "x " + itemName)
+          tooltip.add(new StringTextComponent("- " + stacks(itemName) + "x " + itemName))
         }
       }
     }
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (!player.isSneaking) {
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    if (!player.isCrouching) {
       // Open the GUI immediately on the client, too, to avoid the player
       // changing the current slot before it actually opens, which can lead to
       // desynchronization of the player inventory.
-      player.openGui(OpenComputers, GuiType.Server.id, world, 0, 0, 0)
-      player.swingArm(EnumHand.MAIN_HAND)
+      OpenComputers.openGui(player, GuiType.Server.id, world, 0, 0, 0)
+      player.swing(Hand.MAIN_HAND)
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 
 }

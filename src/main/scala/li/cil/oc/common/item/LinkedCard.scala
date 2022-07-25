@@ -5,21 +5,29 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 
+import scala.collection.convert.WrapAsScala._
+
 class LinkedCard(val parent: Delegator) extends traits.Delegate with traits.ItemTier {
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-      if (data.hasKey(Settings.namespace + "tunnel")) {
+  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    if (stack.hasTag && stack.getTag.contains(Settings.namespace + "data")) {
+      val data = stack.getTag.getCompound(Settings.namespace + "data")
+      if (data.contains(Settings.namespace + "tunnel")) {
         val channel = data.getString(Settings.namespace + "tunnel")
         if (channel.length > 13) {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_channel", channel.substring(0, 13) + "..."))
+          for (curr <- Tooltip.get(unlocalizedName + "_channel", channel.substring(0, 13) + "...")) {
+            tooltip.add(new StringTextComponent(curr))
+          }
         }
         else {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_channel", channel))
+          for (curr <- Tooltip.get(unlocalizedName + "_channel", channel)) {
+            tooltip.add(new StringTextComponent(curr))
+          }
         }
       }
     }

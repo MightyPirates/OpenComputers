@@ -4,13 +4,14 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.Direction
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
+class PowerDistributor extends TileEntity(null) with traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null
 
   private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.None).
@@ -21,30 +22,30 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = true
+  @OnlyIn(Dist.CLIENT)
+  override def canConnect(side: Direction) = true
 
-  override def sidedNode(side: EnumFacing): Connector = nodes(side.ordinal)
+  override def sidedNode(side: Direction): Connector = nodes(side.ordinal)
 
   // ----------------------------------------------------------------------- //
 
   private final val ConnectorTag = Settings.namespace + "connector"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
-    nbt.getTagList(ConnectorTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
+    nbt.getList(ConnectorTag, NBT.TAG_COMPOUND).toTagArray[CompoundNBT].
       zipWithIndex.foreach {
-      case (tag, index) => nodes(index).load(tag)
+      case (tag, index) => nodes(index).loadData(tag)
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
       nbt.setNewTagList(ConnectorTag, nodes.map(connector => {
-        val connectorNbt = new NBTTagCompound()
-        connector.save(connectorNbt)
+        val connectorNbt = new CompoundNBT()
+        connector.saveData(connectorNbt)
         connectorNbt
       }))
     }

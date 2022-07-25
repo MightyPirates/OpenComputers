@@ -4,14 +4,14 @@ import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.server.component.Server
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object NetworkActivityHandler {
   @SubscribeEvent
   def onNetworkActivity(e: NetworkActivityEvent.Server) {
-    e.getTileEntity match {
+    e.getBlockEntity match {
       case t: Rack =>
-        for (slot <- 0 until t.getSizeInventory) {
+        for (slot <- 0 until t.getContainerSize) {
           t.getMountable(slot) match {
             case server: Server =>
               val containsNode = server.componentSlot(e.getNode.address) >= 0
@@ -28,7 +28,7 @@ object NetworkActivityHandler {
 
   @SubscribeEvent
   def onNetworkActivity(e: NetworkActivityEvent.Client) {
-    e.getTileEntity match {
+    e.getBlockEntity match {
       case t: Case => t.lastNetworkActivity = System.currentTimeMillis();
       case _ =>
     }

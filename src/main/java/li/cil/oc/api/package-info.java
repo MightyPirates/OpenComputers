@@ -15,7 +15,7 @@
  * Note that for tile entities you implement yourself, you will not have to
  * provide a driver, as long as you implement the necessary interface:
  * {@link li.cil.oc.api.network.Environment} and call {@link li.cil.oc.api.Network#joinOrCreateNetwork(net.minecraft.tileentity.TileEntity)}
- * in the first <tt>updateEntity()</tt> call. For items that should be installed
+ * in the first <tt>tick()</tt> call. For items that should be installed
  * in a computer you will always have to provide a driver.
  * </dd>
  * <dt>The {@link li.cil.oc.api.FileSystem} API</dt>
@@ -34,8 +34,4 @@
  * </dd>
  * </dl>
  */
-@net.minecraftforge.fml.common.API(
-        owner = API.ID_OWNER,
-        provides = "opencomputersapi|core",
-        apiVersion = API.VERSION)
 package li.cil.oc.api;

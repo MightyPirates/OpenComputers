@@ -8,8 +8,6 @@ object ModMekanism extends ModProxy {
   override def getMod = Mods.Mekanism
 
   override def initialize(): Unit = {
-    api.IMC.registerWrenchTool("li.cil.oc.integration.mekanism.EventHandlerMekanism.useWrench")
-    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.mekanism.EventHandlerMekanism.isWrench")
     api.Driver.add(ConverterGasStack)
   }
 }

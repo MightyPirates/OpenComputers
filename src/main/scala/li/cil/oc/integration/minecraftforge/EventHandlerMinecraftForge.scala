@@ -5,14 +5,16 @@ import li.cil.oc.common.tileentity.traits.PowerAcceptor
 import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.common.util.NonNullSupplier
 import net.minecraftforge.energy.CapabilityEnergy
 import net.minecraftforge.energy.IEnergyStorage
 import net.minecraftforge.event.AttachCapabilitiesEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object EventHandlerMinecraftForge {
 
@@ -20,39 +22,50 @@ object EventHandlerMinecraftForge {
   def onAttachCapabilities(event: AttachCapabilitiesEvent[TileEntity]): Unit = {
     event.getObject match {
       case tileEntity: PowerAcceptor =>
-        event.addCapability(ProviderEnergy, new Provider(tileEntity))
+        val provider = new Provider(tileEntity)
+        event.addCapability(ProviderEnergy, provider)
+        event.addListener(new Runnable {
+          override def run = provider.invalidate
+        })
       case _ =>
     }
   }
 
   def canCharge(stack: ItemStack): Boolean =
-    if (stack.hasCapability(CapabilityEnergy.ENERGY, null)) stack.getCapability(CapabilityEnergy.ENERGY, null) match {
+    stack.getCapability(CapabilityEnergy.ENERGY, null).orElse(null) match {
       case storage: IEnergyStorage => storage.canReceive
       case _ => false
-    } else false
+    }
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
-    if (stack.hasCapability(CapabilityEnergy.ENERGY, null)) stack.getCapability(CapabilityEnergy.ENERGY, null) match {
+    stack.getCapability(CapabilityEnergy.ENERGY, null).orElse(null) match {
       case storage: IEnergyStorage => amount - Power.fromRF(storage.receiveEnergy(Power.toRF(amount), simulate))
       case _ => amount
-    } else amount
+    }
 
   val ProviderEnergy: ResourceLocation = new ResourceLocation(OpenComputers.ID, "forgeenergy")
 
   class Provider(tile: PowerAcceptor) extends ICapabilityProvider {
 
-    private val providers = EnumFacing.VALUES.map(side => new EnergyStorageImpl(tile, side))
-    private val nullProvider = new EnergyStorageImpl(tile, null)
+    private val providers = Direction.values.map(side => LazyOptional.of(new NonNullSupplier[EnergyStorageImpl] {
+      override def get = new EnergyStorageImpl(tile, side)
+    }))
+    private val nullProvider = LazyOptional.of(new NonNullSupplier[EnergyStorageImpl] {
+      override def get = new EnergyStorageImpl(tile, null)
+    })
 
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = capability == CapabilityEnergy.ENERGY
-
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-      if (capability == CapabilityEnergy.ENERGY) {
-        (if (facing == null) nullProvider else providers(facing.getIndex)).asInstanceOf[T]
-      } else null.asInstanceOf[T]
+    def invalidate(): Unit = {
+      for (provider <- providers) provider.invalidate
+      nullProvider.invalidate
     }
 
-    class EnergyStorageImpl(val tile: PowerAcceptor, val side: EnumFacing) extends IEnergyStorage {
+    override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
+      if (capability == CapabilityEnergy.ENERGY) {
+        (if (facing == null) nullProvider.cast[T] else providers(facing.get3DDataValue)).cast[T]
+      } else LazyOptional.empty[T]
+    }
+
+    class EnergyStorageImpl(val tile: PowerAcceptor, val side: Direction) extends IEnergyStorage {
 
       override def getEnergyStored: Int = Power.toRF(tile.globalBuffer(side))
 

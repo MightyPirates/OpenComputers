@@ -16,7 +16,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.Tier
 import li.cil.oc.server.network.QuantumNetwork
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -88,17 +88,17 @@ class LinkedCard extends AbstractManagedEnvironment with QuantumNetwork.QuantumN
 
   private final val TunnelTag = Settings.namespace + "tunnel"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (nbt.hasKey(TunnelTag)) {
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (nbt.contains(TunnelTag)) {
       tunnel = nbt.getString(TunnelTag)
     }
     loadWakeMessage(nbt)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setString(TunnelTag, tunnel)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putString(TunnelTag, tunnel)
     saveWakeMessage(nbt)
   }
 }

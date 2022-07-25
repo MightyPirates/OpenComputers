@@ -83,11 +83,11 @@ object UpgradeInventoryController {
 
     @Callback(doc = """function():boolean -- Swaps the equipped tool with the content of the currently selected inventory slot.""")
     def equip(context: Context, args: Arguments): Array[AnyRef] = {
-      if (inventory.getSizeInventory > 0) {
-        val equipped = host.getStackInSlot(0)
-        val selected = inventory.getStackInSlot(selectedSlot)
-        host.setInventorySlotContents(0, selected)
-        inventory.setInventorySlotContents(selectedSlot, equipped)
+      if (inventory.getContainerSize > 0) {
+        val equipped = host.getItem(0)
+        val selected = inventory.getItem(selectedSlot)
+        host.setItem(0, selected)
+        inventory.setItem(selectedSlot, equipped)
         result(true)
       }
       else result(false)

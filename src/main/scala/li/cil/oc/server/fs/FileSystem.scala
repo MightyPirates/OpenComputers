@@ -15,16 +15,18 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.world.storage.FolderName
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive: Boolean = Settings.get.forceCaseInsensitive || (try {
     val uuid = UUID.randomUUID().toString
-    val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
-    val upperCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
+    val saveDir = ServerLifecycleHooks.getCurrentServer.getWorldPath(FolderName.ROOT).toFile
+    val lowerCase = new io.File(saveDir, uuid + "oc_rox")
+    val upperCase = new io.File(saveDir, uuid + "OC_ROX")
     // This should NEVER happen but could also lead to VERY weird bugs, so we
     // make sure the files don't exist.
     lowerCase.exists() && lowerCase.delete()
@@ -100,7 +102,7 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean): Capacity = {
-    val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
+    val path = ServerLifecycleHooks.getCurrentServer.getWorldPath(new FolderName(Settings.savePath + root)).toFile
     if (!path.isDirectory) {
       path.delete()
     }
@@ -116,10 +118,10 @@ object FileSystem extends api.detail.FileSystemAPI {
     Delegator.subItem(fsStack) match {
       case Some(drive: FileSystemLike) => {
         val data = li.cil.oc.integration.opencomputers.Item.dataTag(fsStack)
-        if (data.hasKey("node")) {
-          val nodeData = data.getCompoundTag("node")
-          if (nodeData.hasKey("address")) {
-            nodeData.removeTag("address")
+        if (data.contains("node")) {
+          val nodeData = data.getCompound("node")
+          if (nodeData.contains("address")) {
+            nodeData.remove("address")
             return true
           }
         }
@@ -167,11 +169,11 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     private final val LabelTag = Settings.namespace + "fs.label"
 
-    override def load(nbt: NBTTagCompound) {}
+    override def loadData(nbt: CompoundNBT) {}
 
-    override def save(nbt: NBTTagCompound) {
+    override def saveData(nbt: CompoundNBT) {
       if (label != null) {
-        nbt.setString(LabelTag, label)
+        nbt.putString(LabelTag, label)
       }
     }
   }

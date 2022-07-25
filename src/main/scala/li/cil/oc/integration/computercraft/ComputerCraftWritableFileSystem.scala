@@ -2,6 +2,7 @@ package li.cil.oc.integration.computercraft
 
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.channels.Channels
 
 import dan200.computercraft.api.filesystem.IWritableMount
 import li.cil.oc.api.fs.Mode
@@ -27,8 +28,8 @@ class ComputerCraftWritableFileSystem(override val mount: IWritableMount)
 
   override protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle] = try {
     Some(new ComputerCraftOutputHandle(mount, mode match {
-      case Mode.Append => mount.openForAppend(path)
-      case Mode.Write => mount.openForWrite(path)
+      case Mode.Append => Channels.newOutputStream(mount.openForAppend(path))
+      case Mode.Write => Channels.newOutputStream(mount.openForWrite(path))
       case _ => throw new IllegalArgumentException()
     }, this, id, path))
   } catch {

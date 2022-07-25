@@ -7,10 +7,6 @@
  * while leaving them in the same package with the same name and then ship them
  * with your mod!
  */
-@net.minecraftforge.fml.common.API(
-        owner = API.ID_OWNER,
-        provides = "opencomputersapi|prefab",
-        apiVersion = API.VERSION)
 package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.API;

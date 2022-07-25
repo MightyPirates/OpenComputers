@@ -1,14 +1,14 @@
 package li.cil.oc.common.item.traits
 
 import li.cil.oc.{Settings, api}
-import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.ModOpenComputers
-import net.minecraft.util.{EnumFacing, ResourceLocation}
-import net.minecraftforge.fml.common.Optional
+import net.minecraft.util.{Direction, ResourceLocation}
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.capabilities.{Capability, ICapabilityProvider}
 import net.minecraftforge.energy.{CapabilityEnergy, IEnergyStorage}
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.common.util.NonNullSupplier
 
 // TODO Forge power capabilities.
 trait Chargeable extends api.driver.item.Chargeable {
@@ -40,14 +40,16 @@ object Chargeable {
     unused
   }
 
-  class Provider(stack: ItemStack, item: li.cil.oc.common.item.traits.Chargeable) extends ICapabilityProvider with IEnergyStorage {
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
-      capability == CapabilityEnergy.ENERGY
-    }
+  class Provider(stack: ItemStack, item: li.cil.oc.common.item.traits.Chargeable) extends ICapabilityProvider with NonNullSupplier[Provider] with IEnergyStorage {
+    private val wrapper = LazyOptional.of(this)
 
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-      if (hasCapability(capability, facing)) this.asInstanceOf[T]
-      else null.asInstanceOf[T]
+    def get = this
+
+    def invalidate() = wrapper.invalidate
+
+    override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
+      if (capability == CapabilityEnergy.ENERGY) wrapper.cast[T]
+      else LazyOptional.empty[T]
     }
 
     def receiveEnergy(maxReceive: Int, simulate: Boolean): Int =

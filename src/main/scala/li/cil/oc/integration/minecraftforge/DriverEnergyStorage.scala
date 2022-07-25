@@ -11,7 +11,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.energy.CapabilityEnergy
@@ -22,13 +22,13 @@ import net.minecraftforge.energy.IEnergyStorage
   */
 object DriverEnergyStorage extends DriverBlock {
 
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean = world.getTileEntity(pos) match {
-    case tile: TileEntity if tile.hasCapability(CapabilityEnergy.ENERGY, side) => true
+  override def worksWith(world: World, pos: BlockPos, side: Direction): Boolean = world.getBlockEntity(pos) match {
+    case tile: TileEntity if tile.getCapability(CapabilityEnergy.ENERGY, side).isPresent => true
     case _ => false
   }
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment = world.getTileEntity(pos) match {
-    case tile: TileEntity if tile.hasCapability(CapabilityEnergy.ENERGY, side) => new Environment(tile.getCapability(CapabilityEnergy.ENERGY, side))
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment = world.getBlockEntity(pos) match {
+    case tile: TileEntity if tile.getCapability(CapabilityEnergy.ENERGY, side).isPresent => new Environment(tile.getCapability(CapabilityEnergy.ENERGY, side).orElse(null))
     case _ => null
   }
 

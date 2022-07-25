@@ -5,9 +5,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Node
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.nbt.CompoundNBT
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 trait TextBuffer extends Environment with Tickable {
   lazy val buffer: internal.TextBuffer = {
@@ -32,24 +32,24 @@ trait TextBuffer extends Environment with Tickable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.readFromNBTForServer(nbt)
-    buffer.load(nbt)
+  override def loadForServer(nbt: CompoundNBT): Unit = {
+    super.loadForServer(nbt)
+    buffer.loadData(nbt)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForServer(nbt)
-    buffer.save(nbt)
+  override def saveForServer(nbt: CompoundNBT): Unit = {
+    super.saveForServer(nbt)
+    buffer.saveData(nbt)
   }
 
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    buffer.load(nbt)
+  @OnlyIn(Dist.CLIENT)
+  override def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
+    buffer.loadData(nbt)
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    buffer.save(nbt)
+  override def saveForClient(nbt: CompoundNBT) {
+    super.saveForClient(nbt)
+    buffer.saveData(nbt)
   }
 }

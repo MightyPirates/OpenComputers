@@ -1,5 +1,7 @@
 package li.cil.oc.integration.computercraft
 
+import java.nio.channels.Channels
+
 import dan200.computercraft.api.filesystem.IMount
 import li.cil.oc.server.fs.InputStreamFileSystem
 
@@ -27,7 +29,7 @@ class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   protected def openInputChannel(path: String) = try {
-    Some(new InputStreamChannel(mount.openForRead(path)))
+    Some(new InputStreamChannel(Channels.newInputStream(mount.openForRead(path))))
   } catch {
     case _: Throwable => None
   }

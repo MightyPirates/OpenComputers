@@ -30,21 +30,22 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.network.Connector
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.world.World
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
+import net.minecraftforge.common.util.LazyOptional
 
 import scala.collection.convert.WrapAsJava._
 
 class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server with ICapabilityProvider with DeviceInfo {
   lazy val machine: api.machine.Machine = Machine.create(this)
 
-  val node: Node = if (!rack.world.isRemote) machine.node else null
+  val node: Node = if (!rack.world.isClientSide) machine.node else null
 
   var wasRunning = false
   var hadErrored = false
@@ -56,7 +57,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     DeviceAttribute.Description -> "Server",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "Blader",
-    DeviceAttribute.Capacity -> getSizeInventory.toString
+    DeviceAttribute.Capacity -> getContainerSize.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
@@ -81,25 +82,25 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
 
   private final val MachineTag = "machine"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (!rack.world.isRemote) {
-      machine.load(nbt.getCompoundTag(MachineTag))
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (!rack.world.isClientSide) {
+      machine.loadData(nbt.getCompound(MachineTag))
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    if (!rack.world.isRemote) {
-      nbt.setNewCompoundTag(MachineTag, machine.save)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    if (!rack.world.isClientSide) {
+      nbt.setNewCompoundTag(MachineTag, machine.saveData)
     }
   }
 
   // ----------------------------------------------------------------------- //
   // MachineHost
 
-  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case i if !getStackInSlot(i).isEmpty && isComponentSlot(i, getStackInSlot(i)) => getStackInSlot(i)
+  override def internalComponents(): Iterable[ItemStack] = (0 until getContainerSize).collect {
+    case i if !getItem(i).isEmpty && isComponentSlot(i, getItem(i)) => getItem(i)
   }
 
   override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
@@ -129,7 +130,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case _ => 0
   }
 
-  override def isUsableByPlayer(player: EntityPlayer): Boolean = rack.isUsableByPlayer(player)
+  override def stillValid(player: PlayerEntity): Boolean = rack.stillValid(player)
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
@@ -139,7 +140,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // ComponentInventory
 
-  override def container: ItemStack = rack.getStackInSlot(slot)
+  override def container: ItemStack = rack.getItem(slot)
 
   override protected def connectItemNode(node: Node) {
     if (node != null) {
@@ -150,7 +151,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
     super.onItemRemoved(slot, stack)
-    if (!rack.world.isRemote) {
+    if (!rack.world.isClientSide) {
       val slotType = InventorySlots.server(tier)(slot).slot
       if (slotType == Slot.CPU) {
         machine.stop()
@@ -161,12 +162,12 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // RackMountable
 
-  override def getData: NBTTagCompound = {
-    val nbt = new NBTTagCompound()
-    nbt.setBoolean("isRunning", wasRunning)
-    nbt.setBoolean("hasErrored", hadErrored)
-    nbt.setLong("lastFileSystemAccess", lastFileSystemAccess)
-    nbt.setLong("lastNetworkActivity", lastNetworkActivity)
+  override def getData: CompoundNBT = {
+    val nbt = new CompoundNBT()
+    nbt.putBoolean("isRunning", wasRunning)
+    nbt.putBoolean("hasErrored", hadErrored)
+    nbt.putLong("lastFileSystemAccess", lastFileSystemAccess)
+    nbt.putLong("lastNetworkActivity", lastNetworkActivity)
     nbt
   }
 
@@ -179,10 +180,10 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
-    if (!player.getEntityWorld.isRemote) {
-      if (player.isSneaking) {
-        if (!machine.isRunning && isUsableByPlayer(player)) {
+  override def onActivate(player: PlayerEntity, hand: Hand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
+    if (!player.level.isClientSide) {
+      if (player.isCrouching) {
+        if (!machine.isRunning && stillValid(player)) {
           wasRunning = false
           hadErrored = false
           machine.start()
@@ -190,7 +191,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
       }
       else {
         val position = BlockPosition(rack)
-        player.openGui(OpenComputers, GuiType.ServerInRack.id, world, position.x, GuiType.embedSlot(position.y, slot), position.z)
+        OpenComputers.openGui(player, GuiType.ServerInRack.id, world, position.x, GuiType.embedSlot(position.y, slot), position.z)
       }
     }
     true
@@ -202,7 +203,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    if (!rack.world.isRemote) {
+    if (!rack.world.isClientSide) {
       machine.update()
 
       val isRunning = machine.isRunning
@@ -229,17 +230,19 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 
   // ----------------------------------------------------------------------- //
   // ICapabilityProvider
 
-  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = components.exists {
-    case Some(component: ICapabilityProvider) => component.hasCapability(capability, host.toLocal(facing))
-    case _ => false
+  override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
+    for (curr <- components) curr match {
+      case Some(comp: ICapabilityProvider) => {
+        val cap = comp.getCapability(capability, host.toLocal(facing))
+        if (cap.isPresent) return cap
+      }
+      case _ =>
+    }
+    LazyOptional.empty[T]
   }
-
-  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = components.collectFirst {
-    case Some(component: ICapabilityProvider) if component.hasCapability(capability, host.toLocal(facing)) => component.getCapability[T](capability, host.toLocal(facing))
-  }.getOrElse(null.asInstanceOf[T])
 }

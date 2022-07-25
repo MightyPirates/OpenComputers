@@ -17,7 +17,7 @@ object ToolDurabilityProviders {
       if (!durability.isNaN) return Option(durability)
     }
     // Fall back to vanilla damage values.
-    if (stack.isItemStackDamageable) Option(1.0 - stack.getItemDamage.toDouble / stack.getMaxDamage.toDouble)
+    if (stack.getItem.canBeDepleted) Option(1.0 - stack.getDamageValue.toDouble / stack.getMaxDamage.toDouble)
     else None
   }
 }

@@ -2,7 +2,7 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.Persistable;
 import li.cil.oc.api.network.Environment;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 
 /**
  * This interface is implemented by the keyboard component, to allow more
@@ -42,6 +42,6 @@ public interface Keyboard extends Environment, Persistable {
          * @param player   the player to check for.
          * @return whether the keyboard is usable by the player.
          */
-        boolean isUsableByPlayer(Keyboard keyboard, EntityPlayer player);
+        boolean isUsableByPlayer(Keyboard keyboard, PlayerEntity player);
     }
 }

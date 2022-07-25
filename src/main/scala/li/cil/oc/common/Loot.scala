@@ -11,19 +11,23 @@ import li.cil.oc.api
 import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
-import net.minecraft.item.EnumDyeColor
+import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.world.World
+import net.minecraft.world.server.ServerWorld
+import net.minecraft.world.storage.FolderName
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.ModLoadingContext
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-//class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).item(), api.Items.get(Constants.ItemName.Floppy).createItemStack(1).getItemDamage, 1, 1, Settings.get.lootProbability) {
+//class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).item(), api.Items.get(Constants.ItemName.Floppy).createItemStack(1).getDamageValue, 1, 1, Settings.get.lootProbability) {
 //  override def generateChestContent(random: Random, newInventory: IInventory) =
 //    Loot.randomDisk(random) match {
 //      case Some(disk) =>
@@ -55,31 +59,29 @@ object Loot {
 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
 
-  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory", NBT.TAG_STRING)
+  def isLootDisk(stack: ItemStack): Boolean = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy) && stack.hasTag && stack.getTag.contains(Settings.namespace + "lootFactory", NBT.TAG_STRING)
 
   def randomDisk(rng: Random) =
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
     else None
 
-  def registerLootDisk(name: String, color: EnumDyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
-    val mod = Loader.instance.activeModContainer.getModId
+  def registerLootDisk(name: String, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    val mod = ModLoadingContext.get.getActiveContainer.getModId
 
     OpenComputers.log.debug(s"Registering loot disk '$name' from mod $mod.")
 
     val modSpecificName = mod + ":" + name
 
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", name)
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-
-    // Store this top level, so it won't get wiped on save.
-    nbt.setString(Settings.namespace + "lootFactory", modSpecificName)
-    nbt.setInteger(Settings.namespace + "color", color.getDyeDamage)
+    val data = new CompoundNBT()
+    data.putString(Settings.namespace + "fs.label", name)
 
     val stack = Items.get(Constants.ItemName.Floppy).createItemStack(1)
-    stack.setTagCompound(nbt)
+    val nbt = stack.getOrCreateTag
+    nbt.put(Settings.namespace + "data", data)
+
+    // Store this top level, so it won't get wiped on save.
+    nbt.putString(Settings.namespace + "lootFactory", modSpecificName)
+    nbt.putInt(Settings.namespace + "color", color.getId)
 
     Loot.factories += modSpecificName -> factory
 
@@ -103,13 +105,13 @@ object Loot {
   }
 
   @SubscribeEvent
-  def initForWorld(e: WorldEvent.Load): Unit = if (!e.getWorld.isRemote && e.getWorld.provider.getDimension == 0) {
-    worldDisks.clear()
-    disksForSampling.clear()
-    if (!e.getWorld.isRemote) {
-      val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")
+  def initForWorld(e: WorldEvent.Load): Unit = e.getWorld match {
+    case world: ServerWorld if world.dimension == World.OVERWORLD => {
+      worldDisks.clear()
+      disksForSampling.clear()
+      val path = world.getServer.getWorldPath(new FolderName(Settings.savePath)).toFile
       if (path.exists && path.isDirectory) {
-        val listFile = new io.File(path, "loot.properties")
+        val listFile = new io.File(path, "loot/loot.properties")
         if (listFile.exists && listFile.isFile) {
           try {
             val listStream = new io.FileInputStream(listFile)
@@ -123,13 +125,13 @@ object Loot {
           }
         }
       }
-    }
-    for (entry <- globalDisks if !worldDisks.contains(entry)) {
-      worldDisks += entry
-    }
-    for ((stack, count) <- worldDisks) {
-      for (i <- 0 until count) {
-        disksForSampling += stack
+      for (entry <- globalDisks if !worldDisks.contains(entry)) {
+        worldDisks += entry
+      }
+      for ((stack, count) <- worldDisks) {
+        for (i <- 0 until count) {
+          disksForSampling += stack
+        }
       }
     }
   }
@@ -151,14 +153,14 @@ object Loot {
     }
   }
 
-  def createLootDisk(name: String, path: String, external: Boolean, color: Option[EnumDyeColor] = None) = {
+  def createLootDisk(name: String, path: String, external: Boolean, color: Option[DyeColor] = None) = {
     val callable = if (external) new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.asReadOnly(api.FileSystem.fromSaveDirectory("loot/" + path, 0, false))
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
-    val stack = registerLootDisk(path, color.getOrElse(EnumDyeColor.SILVER), callable, doRecipeCycling = true)
-    stack.setStackDisplayName(name)
+    val stack = registerLootDisk(path, color.getOrElse(DyeColor.LIGHT_GRAY), callable, doRecipeCycling = true)
+    stack.setHoverName(new StringTextComponent(name))
     if (!external) {
       Items.registerStack(stack, path)
     }

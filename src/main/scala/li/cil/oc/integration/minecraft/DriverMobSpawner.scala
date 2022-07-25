@@ -10,33 +10,33 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
-import net.minecraft.init.Blocks
+import net.minecraft.block.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntityMobSpawner
-import net.minecraft.util.EnumFacing
+import net.minecraft.tileentity.MobSpawnerTileEntity
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverMobSpawner extends DriverSidedTileEntity {
-  override def getTileEntityClass: Class[_] = classOf[TileEntityMobSpawner]
+  override def getTileEntityClass: Class[_] = classOf[MobSpawnerTileEntity]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityMobSpawner])
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment =
+    new Environment(world.getBlockEntity(pos).asInstanceOf[MobSpawnerTileEntity])
 
-  final class Environment(tileEntity: TileEntityMobSpawner) extends ManagedTileEntityEnvironment[TileEntityMobSpawner](tileEntity, "mob_spawner") with NamedBlock {
+  final class Environment(tileEntity: MobSpawnerTileEntity) extends ManagedTileEntityEnvironment[MobSpawnerTileEntity](tileEntity, "mob_spawner") with NamedBlock {
     override def preferredName = "mob_spawner"
 
     override def priority = 0
 
     @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")
     def getSpawningMobName(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getSpawnerBaseLogic.getEntityId)
+      result(tileEntity.getSpawner.getEntityId)
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.MOB_SPAWNER)
+      if (!stack.isEmpty && Block.byItem(stack.getItem) == Blocks.SPAWNER)
         classOf[Environment]
       else null
     }

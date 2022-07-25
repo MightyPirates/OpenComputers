@@ -25,7 +25,7 @@ public class FontParserHex implements IGlyphProvider {
             glyphs[i] = null;
         }
         try {
-            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
+            final InputStream font = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
             try {
                 OpenComputers.log().info("Initializing unicode glyph provider.");
                 final BufferedReader input = new BufferedReader(new InputStreamReader(font));

@@ -6,8 +6,9 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.util.ExtendedArguments.TankProperties;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidTank;
 
@@ -18,8 +19,8 @@ public final class DriverFluidTank extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment((IFluidTank) world.getTileEntity(pos));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final Direction side) {
+        return new Environment((IFluidTank) world.getBlockEntity(pos));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IFluidTank> {
@@ -29,7 +30,7 @@ public final class DriverFluidTank extends DriverSidedTileEntity {
 
         @Callback(doc = "function():table -- Get some information about this tank.")
         public Object[] getInfo(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfo()};
+            return new Object[]{new TankProperties(tileEntity.getCapacity(), tileEntity.getFluid())};
         }
     }
 }

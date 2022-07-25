@@ -17,7 +17,7 @@ object DriverWirelessNetworkCard extends Item {
     api.Items.get(Constants.ItemName.WirelessNetworkCardTier2))
     
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else tier(stack) match {
       case Tier.One => new component.WirelessNetworkCard.Tier1(host)
       case Tier.Two => new component.WirelessNetworkCard.Tier2(host)

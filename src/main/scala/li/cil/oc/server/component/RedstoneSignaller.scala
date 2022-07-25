@@ -8,7 +8,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -53,13 +53,13 @@ trait RedstoneSignaller extends AbstractManagedEnvironment {
 
   private final val WakeThresholdNbt = "wakeThreshold"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    super.load(nbt)
-    wakeThreshold = nbt.getInteger(WakeThresholdNbt)
+  override def loadData(nbt: CompoundNBT): Unit = {
+    super.loadData(nbt)
+    wakeThreshold = nbt.getInt(WakeThresholdNbt)
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    super.save(nbt)
-    nbt.setInteger(WakeThresholdNbt, wakeThreshold)
+  override def saveData(nbt: CompoundNBT): Unit = {
+    super.saveData(nbt)
+    nbt.putInt(WakeThresholdNbt, wakeThreshold)
   }
 }

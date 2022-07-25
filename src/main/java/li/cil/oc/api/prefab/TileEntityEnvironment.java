@@ -5,8 +5,10 @@ import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 
 /**
  * TileEntities can implement the {@link li.cil.oc.api.network.Environment}
@@ -58,6 +60,10 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     protected Node node;
 
     // ----------------------------------------------------------------------- //
+    
+    public TileEntityEnvironment(TileEntityType<?> type) {
+        super(type);
+    }
 
     @Override
     public Node node() {
@@ -67,7 +73,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     @Override
     public void onConnect(final Node node) {
         // This is called when the call to Network.joinOrCreateNetwork(this) in
-        // updateEntity was successful, in which case `node == this`.
+        // tick was successful, in which case `node == this`.
         // This is also called for any other node that gets connected to the
         // network our node is in, in which case `node` is the added node.
         // If our node is added to an existing network, this is called for each
@@ -77,8 +83,8 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     @Override
     public void onDisconnect(final Node node) {
         // This is called when this node is removed from its network when the
-        // tile entity is removed from the world (see onChunkUnload() and
-        // invalidate()), in which case `node == this`.
+        // tile entity is removed from the world (see onChunkUnloaded() and
+        // setRemoved()), in which case `node == this`.
         // This is also called for each other node that gets removed from the
         // network our node is in, in which case `node` is the removed node.
         // If a net-split occurs this is called for each node that is no longer
@@ -100,16 +106,16 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void onChunkUnload() {
-        super.onChunkUnload();
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
         // Make sure to remove the node from its network when its environment,
         // meaning this tile entity, gets unloaded.
         if (node != null) node.remove();
     }
 
     @Override
-    public void invalidate() {
-        super.invalidate();
+    public void setRemoved() {
+        super.setRemoved();
         // Make sure to remove the node from its network when its environment,
         // meaning this tile entity, gets unloaded.
         if (node != null) node.remove();
@@ -118,8 +124,8 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void readFromNBT(final NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    public void load(final BlockState state, final CompoundNBT nbt) {
+        super.load(state, nbt);
         // The host check may be superfluous for you. It's just there to allow
         // some special cases, where getNode() returns some node managed by
         // some other instance (for example when you have multiple internal
@@ -129,18 +135,18 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
             // to continue working without interruption across loads. If the
             // node is a power connector this is also required to restore the
             // internal energy buffer of the node.
-            node.load(nbt.getCompoundTag(TAG_NODE));
+            node.loadData(nbt.getCompound(TAG_NODE));
         }
     }
 
     @Override
-    public NBTTagCompound writeToNBT(final NBTTagCompound nbt) {
-        super.writeToNBT(nbt);
-        // See readFromNBT() regarding host check.
+    public CompoundNBT save(final CompoundNBT nbt) {
+        super.save(nbt);
+        // See load() regarding host check.
         if (node != null && node.host() == this) {
-            final NBTTagCompound nodeNbt = new NBTTagCompound();
-            node.save(nodeNbt);
-            nbt.setTag(TAG_NODE, nodeNbt);
+            final CompoundNBT nodeNbt = new CompoundNBT();
+            node.saveData(nodeNbt);
+            nbt.put(TAG_NODE, nodeNbt);
         }
         return nbt;
     }

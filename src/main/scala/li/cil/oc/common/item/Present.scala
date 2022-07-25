@@ -7,11 +7,12 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.init.SoundEvents
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.util.SoundEvents
 import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.RecipeManager
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
+import net.minecraft.util.ActionResultType
 import net.minecraft.util.SoundCategory
 import net.minecraft.world.World
 
@@ -20,20 +21,23 @@ import scala.collection.mutable
 class Present(val parent: Delegator) extends traits.Delegate {
   showInItemList = false
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (stack.getCount > 0) {
       stack.shrink(1)
-      if (!world.isRemote) {
-        world.playSound(player, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 0.2f, 1f)
+      if (!world.isClientSide) {
+        world.playSound(player, player.getX, player.getY, player.getZ, SoundEvents.PLAYER_LEVELUP, SoundCategory.MASTER, 0.2f, 1f)
+        Present.recipeManager = world.getRecipeManager
         val present = Present.nextPresent()
         InventoryUtils.addToPlayerInventory(present, player)
       }
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 }
 
 object Present {
+  private var recipeManager: RecipeManager = null
+
   private lazy val Presents = {
     val result = mutable.ArrayBuffer.empty[ItemStack]
 
@@ -42,7 +46,7 @@ object Present {
       if (item != null) {
         val stack = item.createItemStack(1)
         // Only if it can be crafted (wasn't disabled in the config).
-        if (ItemUtils.getIngredients(stack).nonEmpty) {
+        if (ItemUtils.getIngredients(recipeManager, stack).nonEmpty) {
           for (i <- 0 until weight) result += stack
         }
       }
@@ -134,5 +138,5 @@ object Present {
 
   private val rng = new Random()
 
-  def nextPresent(): ItemStack = Presents(rng.nextInt(Presents.length)).copy()
+  private def nextPresent(): ItemStack = Presents(rng.nextInt(Presents.length)).copy()
 }

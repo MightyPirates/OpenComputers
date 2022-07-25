@@ -1,15 +1,17 @@
 package li.cil.oc.client
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.inventory.container.PlayerContainer
+import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.TextureStitchEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 import scala.collection.mutable
 
@@ -19,9 +21,10 @@ object Textures {
     val Aliased = L("chars_aliased")
     val AntiAliased = L("chars")
 
-    override protected def basePath = "textures/font/%s.png"
+    override protected def basePath = "font/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
   }
 
   object GUI extends TextureBundle {
@@ -65,9 +68,10 @@ object Textures {
     val UpgradeTab = L("upgrade_tab")
     val Waypoint = L("waypoint")
 
-    override protected def basePath = "textures/gui/%s.png"
+    override protected def basePath = "gui/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
   }
 
   object Icons extends TextureBundle {
@@ -78,9 +82,10 @@ object Textures {
 
     def get(tier: Int) = ForTier.get(tier).orNull
 
-    override protected def basePath = "textures/icons/%s.png"
+    override protected def basePath = "icons/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
   }
 
   object Model extends TextureBundle {
@@ -91,9 +96,10 @@ object Textures {
     val Drone = L("drone")
     val Robot = L("robot")
 
-    override protected def basePath = "textures/model/%s.png"
+    override protected def basePath = "model/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
   }
 
   object Item extends TextureBundle {
@@ -102,7 +108,7 @@ object Textures {
 
     override protected def basePath = "items/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) = e.addSprite(loc)
   }
 
   // These are kept in the block texture atlas to support animations.
@@ -526,61 +532,52 @@ object Textures {
 
     Screen.makeSureThisIsInitialized()
 
-    def bind(): Unit = Textures.bind(TextureMap.LOCATION_BLOCKS_TEXTURE)
+    def bind(): Unit = Textures.bind(PlayerContainer.BLOCK_ATLAS)
 
     override protected def basePath = "blocks/%s"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
+    override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) = e.addSprite(loc)
   }
 
   def bind(location: ResourceLocation): Unit = {
-    if (location == null) RenderState.bindTexture(0)
-    else {
-      val manager = Minecraft.getMinecraft.renderEngine
-      manager.bindTexture(location)
-      // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
-      // that has borked caching, so binding textures will sometimes fail,
-      // because it'll think the texture is already bound although it isn't.
-      // So we do it manually.
-      val texture = manager.getTexture(location)
-      if (texture != null) {
-        RenderState.bindTexture(texture.getGlTextureId)
-      }
-    }
+    val texture = if (location != null) Minecraft.getInstance.textureManager.getTexture(location) else null
+    if (texture != null) texture.bind()
+    else RenderState.bindTexture(0)
   }
 
-  def getSprite(location: String): TextureAtlasSprite = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location)
+  def getSprite(location: String): TextureAtlasSprite = getSprite(new ResourceLocation(location))
 
-  def getSprite(location: ResourceLocation): TextureAtlasSprite = getSprite(location.toString)
+  def getSprite(location: ResourceLocation): TextureAtlasSprite =
+    Minecraft.getInstance.getModelManager.getAtlas(PlayerContainer.BLOCK_ATLAS).getSprite(location)
 
   @SubscribeEvent
   def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {
-    Font.init(e.getMap)
-    GUI.init(e.getMap)
-    Icons.init(e.getMap)
-    Model.init(e.getMap)
-    Item.init(e.getMap)
-    Block.init(e.getMap)
+    if (e.getMap.location.equals(PlayerContainer.BLOCK_ATLAS)) {
+      Font.init(e)
+      GUI.init(e)
+      Icons.init(e)
+      Model.init(e)
+      Item.init(e)
+      Block.init(e)
+    }
   }
 
   abstract class TextureBundle {
     private val locations = mutable.ArrayBuffer.empty[ResourceLocation]
 
-    protected def textureManager = Minecraft.getMinecraft.getTextureManager
-
-    final def init(map: TextureMap): Unit = {
-      locations.foreach(loader(map, _))
+    final def init(e: TextureStitchEvent.Pre): Unit = {
+      locations.foreach(loader(e, _))
     }
 
     protected def L(name: String, load: Boolean = true) = {
-      val location = new ResourceLocation(Settings.resourceDomain, String.format(basePath, name))
+      val location = new ResourceLocation(OpenComputers.ID, String.format(basePath, name))
       if (load) locations += location
       location
     }
 
     protected def basePath: String
 
-    protected def loader(map: TextureMap, loc: ResourceLocation): Unit
+    protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation): Unit
   }
 
 }

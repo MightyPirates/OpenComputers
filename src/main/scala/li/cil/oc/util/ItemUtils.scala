@@ -11,37 +11,39 @@ import li.cil.oc.api
 import li.cil.oc.common.Tier
 import net.minecraft.block.Block
 import net.minecraft.item.Item
-import net.minecraft.item.ItemBlock
-import net.minecraft.item.ItemBucket
+import net.minecraft.item.BlockItem
+import net.minecraft.item.BucketItem
 import net.minecraft.item.ItemStack
-import net.minecraft.item.crafting.CraftingManager
+import net.minecraft.item.crafting.RecipeManager
+import net.minecraft.item.crafting.ICraftingRecipe
 import net.minecraft.item.crafting.IRecipe
+import net.minecraft.item.crafting.IRecipeType
 import net.minecraft.item.crafting.Ingredient
-import net.minecraft.item.crafting.ShapedRecipes
-import net.minecraft.item.crafting.ShapelessRecipes
+import net.minecraft.item.crafting.ShapedRecipe
+import net.minecraft.item.crafting.ShapelessRecipe
+import net.minecraft.inventory.CraftingInventory
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.oredict.ShapedOreRecipe
-import net.minecraftforge.oredict.ShapelessOreRecipe
+import net.minecraft.nbt.CompoundNBT
+import net.minecraftforge.registries.ForgeRegistries
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemUtils {
-  def getDisplayName(nbt: NBTTagCompound): Option[String] = {
-    if (nbt.hasKey("display")) {
-      val displayNbt = nbt.getCompoundTag("display")
-      if (displayNbt.hasKey("Name"))
+  def getDisplayName(nbt: CompoundNBT): Option[String] = {
+    if (nbt.contains("display")) {
+      val displayNbt = nbt.getCompound("display")
+      if (displayNbt.contains("Name"))
         return Option(displayNbt.getString("Name"))
     }
     None
   }
 
-  def setDisplayName(nbt: NBTTagCompound, name: String): Unit = {
-    if (!nbt.hasKey("display")) {
-      nbt.setTag("display", new NBTTagCompound())
+  def setDisplayName(nbt: CompoundNBT, name: String): Unit = {
+    if (!nbt.contains("display")) {
+      nbt.put("display", new CompoundNBT())
     }
-    nbt.getCompoundTag("display").setString("Name", name)
+    nbt.getCompound("display").putString("Name", name)
   }
 
   def caseTier(stack: ItemStack): Int = {
@@ -68,46 +70,44 @@ object ItemUtils {
 
   def caseNameWithTierSuffix(name: String, tier: Int): String = name + (if (tier == Tier.Four) "creative" else (tier + 1).toString)
 
-  def loadTag(data: Array[Byte]): NBTTagCompound = {
+  def loadTag(data: Array[Byte]): CompoundNBT = {
     val bais = new ByteArrayInputStream(data)
     CompressedStreamTools.readCompressed(bais)
   }
 
   def saveStack(stack: ItemStack): Array[Byte] = {
-    val tag = new NBTTagCompound()
-    stack.writeToNBT(tag)
+    val tag = new CompoundNBT()
+    stack.save(tag)
     saveTag(tag)
   }
 
-  def saveTag(tag: NBTTagCompound): Array[Byte] = {
+  def saveTag(tag: CompoundNBT): Array[Byte] = {
     val baos = new ByteArrayOutputStream()
     CompressedStreamTools.writeCompressed(tag, baos)
     baos.toByteArray
   }
 
-  def getIngredients(stack: ItemStack): Array[ItemStack] = try {
+  def getIngredients(manager: RecipeManager, stack: ItemStack): Array[ItemStack] = try {
     def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Int) = (inputs.filter(input =>
       !input.isEmpty &&
         input.getCount / outputSize > 0 &&
         // Strip out buckets, because those are returned when crafting, and
         // we have no way of returning the fluid only (and I can't be arsed
         // to make it output fluids into fluiducts or such, sorry).
-        !input.getItem.isInstanceOf[ItemBucket]).toArray, outputSize)
+        !input.getItem.isInstanceOf[BucketItem]).toArray, outputSize)
 
-    def getOutputSize(recipe: IRecipe) = recipe.getRecipeOutput.getCount
+    def getOutputSize(recipe: IRecipe[_]) = recipe.getResultItem.getCount
 
     def isInputBlacklisted(stack: ItemStack) = stack.getItem match {
-      case item: ItemBlock => Settings.get.disassemblerInputBlacklist.contains(Block.REGISTRY.getNameForObject(item.getBlock))
-      case item: Item => Settings.get.disassemblerInputBlacklist.contains(Item.REGISTRY.getNameForObject(item))
+      case item: BlockItem => Settings.get.disassemblerInputBlacklist.contains(ForgeRegistries.BLOCKS.getKey(item.getBlock))
+      case item: Item => Settings.get.disassemblerInputBlacklist.contains(ForgeRegistries.ITEMS.getKey(item))
       case _ => false
     }
 
-    val (ingredients, count) = CraftingManager.REGISTRY.
-      filter(recipe => !recipe.getRecipeOutput.isEmpty && recipe.getRecipeOutput.isItemEqual(stack)).collect {
-      case recipe: ShapedRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
-      case recipe: ShapelessRecipes => getFilteredInputs(resolveOreDictEntries(recipe.recipeItems), getOutputSize(recipe))
-      case recipe: ShapedOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
-      case recipe: ShapelessOreRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
+    val (ingredients, count) = manager.getAllRecipesFor[CraftingInventory, ICraftingRecipe](IRecipeType.CRAFTING).
+      filter(recipe => !recipe.getResultItem.isEmpty && recipe.getResultItem.sameItem(stack)).collect {
+      case recipe: ShapedRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
+      case recipe: ShapelessRecipe => getFilteredInputs(resolveOreDictEntries(recipe.getIngredients), getOutputSize(recipe))
     }.collectFirst {
       case (inputs, outputSize) if !inputs.exists(isInputBlacklisted) => (inputs, outputSize)
     } match {
@@ -116,13 +116,13 @@ object ItemUtils {
     }
 
     // Avoid positive feedback loops.
-    if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
+    if (ingredients.exists(ingredient => ingredient.sameItem(stack))) {
       return Array.empty[ItemStack]
     }
     // Merge equal items for size division by output size.
     val merged = mutable.ArrayBuffer.empty[ItemStack]
     for (ingredient <- ingredients) {
-      merged.find(_.isItemEqual(ingredient)) match {
+      merged.find(_.sameItem(ingredient)) match {
         case Some(entry) => entry.grow(ingredient.getCount)
         case _ => merged += ingredient.copy()
       }
@@ -148,7 +148,7 @@ object ItemUtils {
   private lazy val rng = new Random()
 
   private def resolveOreDictEntries[T](entries: Iterable[Ingredient]) = entries.collect {
-    case ing: Ingredient if ing.getMatchingStacks.nonEmpty => ing.getMatchingStacks()(rng.nextInt(ing.getMatchingStacks.length))
+    case ing: Ingredient if ing.getItems.nonEmpty => ing.getItems()(rng.nextInt(ing.getItems.length))
   }
 
 }

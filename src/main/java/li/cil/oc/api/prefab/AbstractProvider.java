@@ -2,8 +2,8 @@ package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.nanomachines.Behavior;
 import li.cil.oc.api.nanomachines.BehaviorProvider;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 
 /**
  * Example base implementation of nanomachine behavior provider.
@@ -38,7 +38,7 @@ public abstract class AbstractProvider implements BehaviorProvider {
      * @param behavior the behavior to persist.
      * @param nbt      the NBT tag to persist it to.
      */
-    protected void writeBehaviorToNBT(Behavior behavior, NBTTagCompound nbt) {
+    protected void writeBehaviorToNBT(Behavior behavior, CompoundNBT nbt) {
     }
 
     /**
@@ -51,20 +51,20 @@ public abstract class AbstractProvider implements BehaviorProvider {
      * @param nbt    the NBT tag to load restore the behavior from.
      * @return the restored behavior.
      */
-    protected abstract Behavior readBehaviorFromNBT(EntityPlayer player, NBTTagCompound nbt);
+    protected abstract Behavior readBehaviorFromNBT(PlayerEntity player, CompoundNBT nbt);
 
     // ----------------------------------------------------------------------- //
 
     @Override
-    public NBTTagCompound writeToNBT(Behavior behavior) {
-        NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setString("provider", id);
+    public CompoundNBT save(Behavior behavior) {
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.putString("provider", id);
         writeBehaviorToNBT(behavior, nbt);
         return nbt;
     }
 
     @Override
-    public Behavior readFromNBT(EntityPlayer player, NBTTagCompound nbt) {
+    public Behavior load(PlayerEntity player, CompoundNBT nbt) {
         if (id.equals(nbt.getString("provider"))) {
             return readBehaviorFromNBT(player, nbt);
         } else {

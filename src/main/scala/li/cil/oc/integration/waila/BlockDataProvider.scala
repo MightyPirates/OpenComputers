@@ -14,47 +14,50 @@ import li.cil.oc.common.tileentity.traits.NotAnalyzable
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption.SomeStack
 import mcp.mobius.waila.api._
-import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.StringNBT
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.math.BlockPos
+import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 
-object BlockDataProvider extends IWailaDataProvider {
-  val ConfigAddress = "oc.address"
-  val ConfigEnergy = "oc.energy"
-  val ConfigComponentName = "oc.componentName"
+@WailaPlugin
+object BlockDataProvider extends IWailaPlugin with IServerDataProvider[TileEntity] with IComponentProvider {
+  val ConfigAddress = new ResourceLocation(OpenComputers.ID, "oc.address")
+  val ConfigEnergy = new ResourceLocation(OpenComputers.ID, "oc.energy")
+  val ConfigComponentName = new ResourceLocation(OpenComputers.ID, "oc.componentName")
 
-  def init(registrar: IWailaRegistrar) {
-    registrar.registerBodyProvider(BlockDataProvider, classOf[SimpleBlock])
+  def register(registrar: IRegistrar) {
+    registrar.registerComponentProvider(this, TooltipPosition.BODY, classOf[SimpleBlock])
 
-    registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.Environment])
-    registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.SidedEnvironment])
+    registrar.registerBlockDataProvider(this, classOf[li.cil.oc.api.network.Environment])
+    registrar.registerBlockDataProvider(this, classOf[li.cil.oc.api.network.SidedEnvironment])
 
-    registrar.addConfig(OpenComputers.Name, ConfigAddress)
-    registrar.addConfig(OpenComputers.Name, ConfigEnergy)
-    registrar.addConfig(OpenComputers.Name, ConfigComponentName)
+    registrar.addConfig(ConfigAddress, true)
+    registrar.addConfig(ConfigEnergy, true)
+    registrar.addConfig(ConfigComponentName, true)
   }
 
-  override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, pos: BlockPos): NBTTagCompound = {
-    def writeNode(node: Node, tag: NBTTagCompound) = {
+  override def appendServerData(tag: CompoundNBT, player: ServerPlayerEntity, world: World, tileEntity: TileEntity): Unit = {
+    def writeNode(node: Node, tag: CompoundNBT) = {
       if (node != null && node.reachability != Visibility.None && !tileEntity.isInstanceOf[NotAnalyzable]) {
         if (node.address != null) {
-          tag.setString("address", node.address)
+          tag.putString("address", node.address)
         }
         node match {
           case connector: Connector =>
-            tag.setInteger("buffer", connector.localBuffer.toInt)
-            tag.setInteger("bufferSize", connector.localBufferSize.toInt)
+            tag.putInt("buffer", connector.localBuffer.toInt)
+            tag.putInt("bufferSize", connector.localBufferSize.toInt)
           case _ =>
         }
         node match {
           case component: Component =>
-            tag.setString("componentName", component.name)
+            tag.putString("componentName", component.name)
           case _ =>
         }
       }
@@ -63,9 +66,9 @@ object BlockDataProvider extends IWailaDataProvider {
 
     tileEntity match {
       case te: li.cil.oc.api.network.SidedEnvironment =>
-        tag.setNewTagList("nodes", EnumFacing.values.
+        tag.setNewTagList("nodes", Direction.values.
           map(te.sidedNode).
-          map(writeNode(_, new NBTTagCompound())))
+          map(writeNode(_, new CompoundNBT())))
       case te: li.cil.oc.api.network.Environment =>
         writeNode(te.node, tag)
       case _ =>
@@ -73,14 +76,14 @@ object BlockDataProvider extends IWailaDataProvider {
 
     // Override sided info (show info on all sides).
     def ignoreSidedness(node: Node): Unit = {
-      tag.removeTag("nodes")
-      val nodeTag = writeNode(node, new NBTTagCompound())
-      tag.setNewTagList("nodes", EnumFacing.values.map(_ => nodeTag))
+      tag.remove("nodes")
+      val nodeTag = writeNode(node, new CompoundNBT())
+      tag.setNewTagList("nodes", Direction.values.map(_ => nodeTag))
     }
 
     tileEntity match {
       case te: tileentity.Relay =>
-        tag.setDouble("signalStrength", te.strength)
+        tag.putDouble("signalStrength", te.strength)
         // this might be called by waila before the components have finished loading, thus the addresses may be null
         tag.setNewTagList("addresses", stringIterableToNbt(te.componentNodes.collect {
           case n if n.address != null => n
@@ -88,110 +91,102 @@ object BlockDataProvider extends IWailaDataProvider {
       case te: tileentity.Assembler =>
         ignoreSidedness(te.node)
         if (te.isAssembling) {
-          tag.setDouble("progress", te.progress)
-          tag.setInteger("timeRemaining", te.timeRemaining)
+          tag.putDouble("progress", te.progress)
+          tag.putInt("timeRemaining", te.timeRemaining)
           te.output match {
-            case SomeStack(output) => tag.setString("output", output.getUnlocalizedName)
+            case SomeStack(output) => tag.putString("output", output.getDescriptionId)
             case _ => // Huh...
           }
         }
       case te: tileentity.Charger =>
-        tag.setDouble("chargeSpeed", te.chargeSpeed)
+        tag.putDouble("chargeSpeed", te.chargeSpeed)
       case te: tileentity.DiskDrive =>
         // Override address with file system address.
-        tag.removeTag("address")
+        tag.remove("address")
         te.filesystemNode.foreach(writeNode(_, tag))
       case te: tileentity.Hologram => ignoreSidedness(te.node)
       case te: tileentity.Keyboard => ignoreSidedness(te.node)
       case te: tileentity.Screen => ignoreSidedness(te.node)
       case te: tileentity.Rack =>
-        tag.removeTag("nodes")
+        tag.remove("nodes")
         //tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
-        //tag.setByteArray("sideIndexes", EnumFacing.values.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
+        //tag.putByteArray("sideIndexes", Direction.values.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
         // TODO
       case _ =>
     }
-
-    tag
   }
 
-  override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = {
-    val tag = accessor.getNBTData
-    if (tag == null || tag.hasNoTags) return tooltip
+  override def appendBody(tooltip: util.List[ITextComponent], accessor: IDataAccessor, config: IPluginConfig): Unit = {
+    val tag = accessor.getServerData
+    if (tag == null || tag.isEmpty) return
 
     accessor.getTileEntity match {
       case _: tileentity.Relay =>
-        val address = tag.getTagList("addresses", NBT.TAG_STRING).getStringTagAt(accessor.getSide.ordinal)
+        val address = tag.getList("addresses", NBT.TAG_STRING).getString(accessor.getSide.ordinal)
         val signalStrength = tag.getDouble("signalStrength")
-        if (config.getConfig(ConfigAddress)) {
-          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+        if (config.get(ConfigAddress)) {
+          tooltip.add(Localization.Analyzer.Address(address))
         }
-        tooltip.add(Localization.Analyzer.WirelessStrength(signalStrength).getUnformattedText)
+        tooltip.add(Localization.Analyzer.WirelessStrength(signalStrength))
       case _: tileentity.Assembler =>
-        if (tag.hasKey("progress")) {
+        if (tag.contains("progress")) {
           val progress = tag.getDouble("progress")
-          val timeRemaining = formatTime(tag.getInteger("timeRemaining"))
-          tooltip.add(Localization.Assembler.Progress(progress, timeRemaining))
-          if (tag.hasKey("output")) {
+          val timeRemaining = formatTime(tag.getInt("timeRemaining"))
+          tooltip.add(new StringTextComponent(Localization.Assembler.Progress(progress, timeRemaining)))
+          if (tag.contains("output")) {
             val output = tag.getString("output")
-            tooltip.add("Building: " + Localization.localizeImmediately(output))
+            tooltip.add(new StringTextComponent("Building: " + Localization.localizeImmediately(output)))
           }
         }
       case _: tileentity.Charger =>
         val chargeSpeed = tag.getDouble("chargeSpeed")
-        tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed).getUnformattedText)
+        tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed))
       case te: tileentity.Rack =>
-//        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.getString).toArray
-//        val hitPos = accessor.getMOP.hitVec
+//        val servers = tag.getList("servers", NBT.TAG_STRING).map((t: StringNBT) => t.getAsString).toArray
+//        val hitPos = accessor.getMOP.getLocation
 //        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getMOP.getBlockPos.getX).toFloat, (hitPos.yCoord - accessor.getMOP.getBlockPos.getY).toFloat, (hitPos.zCoord - accessor.getMOP.getBlockPos.getZ).toFloat) match {
 //          case Some(slot) => servers(slot)
 //          case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
 //        }
-//        if (address.nonEmpty && config.getConfig(ConfigAddress)) {
-//          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+//        if (address.nonEmpty && config.get(ConfigAddress)) {
+//          tooltip.add(Localization.Analyzer.Address(address))
 //        }
         // TODO
       case _ =>
     }
 
-    def readNode(tag: NBTTagCompound) = {
-      if (config.getConfig(ConfigAddress) && tag.hasKey("address")) {
+    def readNode(tag: CompoundNBT) = {
+      if (config.get(ConfigAddress) && tag.contains("address")) {
         val address = tag.getString("address")
         if (address.nonEmpty) {
-          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+          tooltip.add(Localization.Analyzer.Address(address))
         }
       }
-      if (config.getConfig(ConfigEnergy) && tag.hasKey("buffer") && tag.hasKey("bufferSize")) {
-        val buffer = tag.getInteger("buffer")
-        val bufferSize = tag.getInteger("bufferSize")
+      if (config.get(ConfigEnergy) && tag.contains("buffer") && tag.contains("bufferSize")) {
+        val buffer = tag.getInt("buffer")
+        val bufferSize = tag.getInt("bufferSize")
         if (bufferSize > 0) {
-          tooltip.add(Localization.Analyzer.StoredEnergy(s"$buffer/$bufferSize").getUnformattedText)
+          tooltip.add(Localization.Analyzer.StoredEnergy(s"$buffer/$bufferSize"))
         }
       }
-      if (config.getConfig(ConfigComponentName) && tag.hasKey("componentName")) {
+      if (config.get(ConfigComponentName) && tag.contains("componentName")) {
         val componentName = tag.getString("componentName")
         if (componentName.nonEmpty) {
-          tooltip.add(Localization.Analyzer.ComponentName(componentName).getUnformattedText)
+          tooltip.add(Localization.Analyzer.ComponentName(componentName))
         }
       }
     }
 
     accessor.getTileEntity match {
       case te: li.cil.oc.api.network.SidedEnvironment =>
-        readNode(tag.getTagList("nodes", NBT.TAG_COMPOUND).getCompoundTagAt(accessor.getSide.ordinal))
+        readNode(tag.getList("nodes", NBT.TAG_COMPOUND).getCompound(accessor.getSide.ordinal))
       case te: li.cil.oc.api.network.Environment =>
         readNode(tag)
       case _ =>
     }
-
-    tooltip
   }
 
-  override def getWailaStack(accessor: IWailaDataAccessor, config: IWailaConfigHandler) = accessor.getStack
-
-  override def getWailaHead(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = tooltip
-
-  override def getWailaTail(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = tooltip
+  override def getStack(accessor: IDataAccessor, config: IPluginConfig) = accessor.getStack
 
   private def formatTime(seconds: Int) = {
     // Assembly times should not / rarely exceed one hour, so this is good enough.

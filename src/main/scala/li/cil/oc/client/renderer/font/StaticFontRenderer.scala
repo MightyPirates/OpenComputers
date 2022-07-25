@@ -6,6 +6,8 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.opengl.GL11
 
 import scala.io.Source
@@ -16,7 +18,7 @@ import scala.io.Source
  */
 class StaticFontRenderer extends TextureFontRenderer {
   protected val (chars, charWidth, charHeight) = try {
-    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
+    val lines = Source.fromInputStream(Minecraft.getInstance.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
     val chars = lines.next()
     val (w, h) = if (lines.hasNext) {
       val size = lines.next().split(" ", 2)
@@ -31,11 +33,11 @@ class StaticFontRenderer extends TextureFontRenderer {
   }
 
   private val cols = 256 / charWidth
-  private val uStep = charWidth / 256.0
+  private val uStep = charWidth / 256f
   private val uSize = uStep
-  private val vStep = (charHeight + 1) / 256.0
-  private val vSize = charHeight / 256.0
-  private val s = Settings.get.fontCharScale
+  private val vStep = (charHeight + 1) / 256f
+  private val vSize = charHeight / 256f
+  private val s = Settings.get.fontCharScale.toFloat
   private val dw = charWidth * s - charWidth
   private val dh = charHeight * s - charHeight
 
@@ -50,7 +52,7 @@ class StaticFontRenderer extends TextureFontRenderer {
     }
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  override protected def drawChar(matrix: Matrix4f, tx: Float, ty: Float, char: Char) {
     val index = 1 + (chars.indexOf(char) match {
       case -1 => chars.indexOf('?')
       case i => i
@@ -60,13 +62,21 @@ class StaticFontRenderer extends TextureFontRenderer {
     val u = x * uStep
     val v = y * vStep
     GL11.glTexCoord2d(u, v + vSize)
-    GL11.glVertex3d(tx - dw, ty + charHeight * s, 0)
+    val vec = new Vector4f(tx - dw, ty + charHeight * s, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
     GL11.glTexCoord2d(u + uSize, v + vSize)
-    GL11.glVertex3d(tx + charWidth * s, ty + charHeight * s, 0)
+    vec.set(tx + charWidth * s, ty + charHeight * s, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
     GL11.glTexCoord2d(u + uSize, v)
-    GL11.glVertex3d(tx + charWidth * s, ty - dh, 0)
+    vec.set(tx + charWidth * s, ty - dh, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
     GL11.glTexCoord2d(u, v)
-    GL11.glVertex3d(tx - dw, ty - dh, 0)
+    vec.set(tx - dw, ty - dh, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
   }
 
   override protected def generateChar(char: Char) {}

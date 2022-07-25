@@ -9,7 +9,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraftforge.items.IItemHandler
 
 trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideRestricted {
@@ -18,7 +18,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     val facing = checkSideForAction(args, 0)
     val count = args.optItemCount(2)
     val fromSide = args.optSideAny(3, facing.getOpposite)
-    val stack = inventory.getStackInSlot(selectedSlot)
+    val stack = inventory.getItem(selectedSlot)
     if (!stack.isEmpty && stack.getCount > 0) {
       withInventory(position.offset(facing), fromSide, inventory => {
         val slot = args.checkSlot(inventory, 1)
@@ -28,11 +28,11 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
         }
         else if (stack.getCount == 0) {
           // Dropped whole stack.
-          this.inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
+          this.inventory.setItem(selectedSlot, ItemStack.EMPTY)
         }
         else {
           // Dropped partial stack.
-          this.inventory.markDirty()
+          this.inventory.setChanged()
         }
 
         context.pause(Settings.get.dropDelay)
@@ -59,7 +59,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
     })
   }
 
-  private def withInventory(blockPos: BlockPosition, fromSide: EnumFacing, f: IItemHandler => Array[AnyRef]) =
+  private def withInventory(blockPos: BlockPosition, fromSide: Direction, f: IItemHandler => Array[AnyRef]) =
     InventoryUtils.inventoryAt(blockPos, fromSide) match {
       case Some(inventory) if mayInteract(blockPos, fromSide) => f(inventory)
       case _ => result(Unit, "no inventory")

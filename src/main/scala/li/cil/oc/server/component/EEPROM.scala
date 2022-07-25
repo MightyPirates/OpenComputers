@@ -15,7 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsJava._
 
@@ -121,21 +121,21 @@ class EEPROM extends AbstractManagedEnvironment with DeviceInfo {
   private final val ReadonlyTag = Settings.namespace + "readonly"
   private final val UserdataTag = Settings.namespace + "userdata"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
     codeData = nbt.getByteArray(EEPROMTag)
-    if (nbt.hasKey(LabelTag)) {
+    if (nbt.contains(LabelTag)) {
       label = nbt.getString(LabelTag)
     }
     readonly = nbt.getBoolean(ReadonlyTag)
     volatileData = nbt.getByteArray(UserdataTag)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setByteArray(EEPROMTag, codeData)
-    nbt.setString(LabelTag, label)
-    nbt.setBoolean(ReadonlyTag, readonly)
-    nbt.setByteArray(UserdataTag, volatileData)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putByteArray(EEPROMTag, codeData)
+    nbt.putString(LabelTag, label)
+    nbt.putBoolean(ReadonlyTag, readonly)
+    nbt.putByteArray(UserdataTag, volatileData)
   }
 }

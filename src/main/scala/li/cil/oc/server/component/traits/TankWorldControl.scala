@@ -7,7 +7,7 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.FluidUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.capability.IFluidTankProperties
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
 
 trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:number [, tank:number]):boolean -- Compare the fluid in the selected tank with the fluid in the specified tank on the specified side. Returns true if equal.")
@@ -17,8 +17,8 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
       case Some(stack) =>
         FluidUtils.fluidHandlerAt(position.offset(side), side.getOpposite) match {
           case Some(handler) => args.optTankProperties(handler, 1, null) match {
-            case properties: IFluidTankProperties => result(stack.isFluidEqual(properties.getContents))
-            case _ => result(Option(handler.getTankProperties).exists(_.exists(other => stack.isFluidEqual(other.getContents))))
+            case properties: TankProperties => result(stack.isFluidEqual(properties.contents))
+            case _ => result((0 until handler.getTanks).map(handler.getFluidInTank).exists(stack.isFluidEqual))
           }
           case _ => result(false)
         }
@@ -39,14 +39,14 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
-                  val drained = handler.drain(new FluidStack(stack, amount), true)
-                  if ((drained != null && drained.amount > 0) || amount == 0) {
-                    val filled = tank.fill(drained, true)
+                  val drained = handler.drain(new FluidStack(stack, amount), FluidAction.EXECUTE)
+                  if ((drained != null && drained.getAmount > 0) || amount == 0) {
+                    val filled = tank.fill(drained, FluidAction.EXECUTE)
                     result(true, filled)
                   }
                   else result(Unit, "incompatible or no fluid")
                 case _ =>
-                  val transferred = tank.fill(handler.drain(amount, true), true)
+                  val transferred = tank.fill(handler.drain(amount, FluidAction.EXECUTE), FluidAction.EXECUTE)
                   result(transferred > 0, transferred)
               }
             case _ => result(Unit, "incompatible or no fluid")
@@ -69,9 +69,9 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
             case Some(handler) =>
               tank.getFluid match {
                 case stack: FluidStack =>
-                  val filled = handler.fill(new FluidStack(stack, amount), true)
+                  val filled = handler.fill(new FluidStack(stack, amount), FluidAction.EXECUTE)
                   if (filled > 0 || amount == 0) {
-                    tank.drain(filled, true)
+                    tank.drain(filled, FluidAction.EXECUTE)
                     result(true, filled)
                   }
                   else result(Unit, "incompatible or no fluid")

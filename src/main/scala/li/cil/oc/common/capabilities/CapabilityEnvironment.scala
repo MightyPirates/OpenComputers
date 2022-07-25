@@ -6,25 +6,29 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.integration.Mods
-import net.minecraft.nbt.NBTBase
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.INBT
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.common.util.NonNullSupplier
 
 object CapabilityEnvironment {
   final val ProviderEnvironment = new ResourceLocation(Mods.IDs.OpenComputers, "environment")
 
-  class Provider(val tileEntity: TileEntity with Environment) extends ICapabilityProvider with Environment {
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
-      capability == Capabilities.EnvironmentCapability
-    }
+  class Provider(val tileEntity: TileEntity with Environment) extends ICapabilityProvider with NonNullSupplier[Provider] with Environment {
+    private val wrapper = LazyOptional.of(this)
 
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-      if (hasCapability(capability, facing)) this.asInstanceOf[T]
-      else null.asInstanceOf[T]
+    def get = this
+
+    def invalidate() = wrapper.invalidate
+
+    override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
+      if (capability == Capabilities.EnvironmentCapability) wrapper.cast[T]
+      else LazyOptional.empty[T]
     }
 
     override def node = tileEntity.node
@@ -47,21 +51,21 @@ object CapabilityEnvironment {
   }
 
   class DefaultStorage extends Capability.IStorage[Environment] {
-    override def writeNBT(capability: Capability[Environment], t: Environment, facing: EnumFacing): NBTBase = {
+    override def writeNBT(capability: Capability[Environment], t: Environment, facing: Direction): INBT = {
       val node = t.node
       if (node != null) {
-        val nbt = new NBTTagCompound()
-        node.save(nbt)
+        val nbt = new CompoundNBT()
+        node.saveData(nbt)
         nbt
       }
       else null
     }
 
-    override def readNBT(capability: Capability[Environment], t: Environment, facing: EnumFacing, nbtBase: NBTBase): Unit = {
+    override def readNBT(capability: Capability[Environment], t: Environment, facing: Direction, nbtBase: INBT): Unit = {
       nbtBase match {
-        case nbt: NBTTagCompound =>
+        case nbt: CompoundNBT =>
           val node = t.node
-          if (node != null) node.load(nbt)
+          if (node != null) node.loadData(nbt)
         case _ =>
       }
     }

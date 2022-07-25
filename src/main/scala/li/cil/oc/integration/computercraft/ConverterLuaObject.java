@@ -1,6 +1,7 @@
 package li.cil.oc.integration.computercraft;
 
-import dan200.computercraft.api.lua.ILuaObject;
+import dan200.computercraft.api.lua.IDynamicLuaObject;
+import dan200.computercraft.api.lua.ObjectArguments;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
@@ -12,13 +13,13 @@ import java.util.Map;
 public final class ConverterLuaObject implements Converter {
     @Override
     public void convert(final Object value, final Map<Object, Object> output) {
-        if (value instanceof ILuaObject) {
-            output.put("value", new LuaObjectValue((ILuaObject) value));
+        if (value instanceof IDynamicLuaObject) {
+            output.put("value", new LuaObjectValue((IDynamicLuaObject) value));
         }
     }
 
     public static final class LuaObjectValue extends AbstractValue implements ManagedPeripheral {
-        private final ILuaObject value;
+        private final IDynamicLuaObject value;
 
         protected final CallableHelper helper;
 
@@ -28,7 +29,7 @@ public final class ConverterLuaObject implements Converter {
             helper = null;
         }
 
-        public LuaObjectValue(final ILuaObject value) {
+        public LuaObjectValue(final IDynamicLuaObject value) {
             this.value = value;
             helper = new CallableHelper(value.getMethodNames());
         }
@@ -44,8 +45,8 @@ public final class ConverterLuaObject implements Converter {
         public Object[] invoke(final String method, final Context context, final Arguments args) throws Exception {
             if (value != null) {
                 final int index = helper.methodIndex(method);
-                final Object[] argArray = helper.convertArguments(args);
-                return value.callMethod(DriverPeripheral.Environment.UnsupportedLuaContext.instance(), index, argArray);
+                final Object[] argArray = CallableHelper.convertArguments(args);
+                return value.callMethod(DriverPeripheral.Environment.UnsupportedLuaContext.instance(), index, new ObjectArguments(argArray)).getResult();
             }
             return new Object[]{null, "ComputerCraft userdata cannot be persisted"};
         }

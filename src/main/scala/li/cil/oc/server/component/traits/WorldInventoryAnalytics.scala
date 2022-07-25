@@ -12,9 +12,10 @@ import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.block.Block
 import li.cil.oc.util.StackOption
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraftforge.items.IItemHandler
-import net.minecraftforge.oredict.OreDictionary
+
+import scala.collection.convert.WrapAsScala._
 
 trait WorldInventoryAnalytics extends WorldAware with SideRestricted with NetworkAware {
   @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the device.""")
@@ -68,12 +69,12 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
       val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
       result(stackA == stackB ||
         (!stackA.isEmpty && !stackB.isEmpty &&
-          OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty))
+          stackA.getItem.getTags.intersect(stackB.getItem.getTags).nonEmpty))
     })
   }
 
   @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the inventory on the specified side of the device.""")
-  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+  def getItem(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => result(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
@@ -122,7 +123,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
 
-  private def withInventory(side: EnumFacing, f: IItemHandler => Array[AnyRef]) =
+  private def withInventory(side: Direction, f: IItemHandler => Array[AnyRef]) =
     InventoryUtils.inventoryAt(position.offset(side), side.getOpposite) match {
       case Some(inventory) if mayInteract(position.offset(side), side.getOpposite, inventory) => f(inventory)
       case _ => result(Unit, "no inventory")

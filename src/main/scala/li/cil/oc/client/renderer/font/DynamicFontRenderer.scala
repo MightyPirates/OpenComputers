@@ -1,14 +1,17 @@
 package li.cil.oc.client.renderer.font
 
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.resources.IReloadableResourceManager
-import net.minecraft.client.resources.IResourceManager
-import net.minecraft.client.resources.IResourceManagerReloadListener
+import net.minecraft.client.renderer.texture.TextureUtil
+import net.minecraft.resources.IReloadableResourceManager
+import net.minecraft.resources.IResourceManager
+import net.minecraft.resources.IResourceManagerReloadListener
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 
@@ -31,7 +34,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
 
   initialize()
 
-  Minecraft.getMinecraft.getResourceManager match {
+  Minecraft.getInstance.getResourceManager match {
     case reloadable: IReloadableResourceManager => reloadable.registerReloadListener(this)
     case _ =>
   }
@@ -68,9 +71,9 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     charMap.getOrElseUpdate(char, createCharIcon(char))
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  override protected def drawChar(matrix: Matrix4f, tx: Float, ty: Float, char: Char) {
     charMap.get(char) match {
-      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
+      case Some(icon) if icon.texture == activeTexture => icon.draw(matrix, tx, ty)
       case _ =>
     }
   }
@@ -94,7 +97,7 @@ object DynamicFontRenderer {
   private val size = 256
 
   class CharTexture(val owner: DynamicFontRenderer) {
-    private val id = GlStateManager.generateTexture()
+    private val id = TextureUtil.generateTextureId()
     RenderState.bindTexture(id)
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -114,13 +117,13 @@ object DynamicFontRenderer {
     private val rows = size / cellHeight
     private val uStep = cellWidth / size.toDouble
     private val vStep = cellHeight / size.toDouble
-    private val pad = 1.0 / size
+    private val pad = 1f / size
     private val capacity = cols * rows
 
     private var chars = 0
 
     def delete() {
-      GlStateManager.deleteTexture(id)
+      RenderSystem.deleteTexture(id)
     }
 
     def bind() {
@@ -150,15 +153,23 @@ object DynamicFontRenderer {
   }
 
   class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
-    def draw(tx: Float, ty: Float) {
+    def draw(matrix: Matrix4f, tx: Float, ty: Float) {
       GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2f(tx, ty + h)
+      val vec = new Vector4f(tx, ty + h, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
       GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty + h)
+      vec.set(tx + w, ty + h, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
       GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty)
+      vec.set(tx + w, ty, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
       GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty)
+      vec.set(tx, ty, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
     }
   }
 

@@ -8,14 +8,18 @@ import li.cil.oc.client.Textures
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.registries.ForgeRegistries
 
 object ItemImageProvider extends ImageProvider {
   override def getImage(data: String): ImageRenderer = {
     val splitIndex = data.lastIndexOf('@')
     val (name, optMeta) = if (splitIndex > 0) data.splitAt(splitIndex) else (data, "")
-    val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
-    Item.REGISTRY.getObject(new ResourceLocation(name)) match {
-      case item: Item => new ItemStackImageRenderer(Array(new ItemStack(item, 1, meta)))
+    ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)) match {
+      case item: Item => {
+        val stack = new ItemStack(item, 1)
+        if (!Strings.isNullOrEmpty(optMeta)) stack.setDamageValue(Integer.parseInt(optMeta.drop(1)))
+        new ItemStackImageRenderer(Array(stack))
+      }
       case _ => new TextureImageRenderer(Textures.GUI.ManualMissingItem) with InteractiveImageRenderer {
         override def getTooltip(tooltip: String): String = "oc:gui.Manual.Warning.ItemMissing"
 

@@ -4,19 +4,21 @@ import java.util
 
 import li.cil.oc.Localization
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 trait ItemTier extends Delegate {
   self: Delegate =>
-  @SideOnly(Side.CLIENT)
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag) {
+  @OnlyIn(Dist.CLIENT)
+  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     super.tooltipLines(stack, world, tooltip, flag)
     if (flag.isAdvanced) {
-      tooltip.add(Localization.Tooltip.Tier(tierFromDriver(stack) + 1))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.Tier(tierFromDriver(stack) + 1)))
     }
   }
 }

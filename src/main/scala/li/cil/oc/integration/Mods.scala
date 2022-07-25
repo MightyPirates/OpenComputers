@@ -1,11 +1,13 @@
 package li.cil.oc.integration
 
+import java.util.Optional
+
 import li.cil.oc.Settings
 import li.cil.oc.integration
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.ModAPIManager
-import net.minecraftforge.fml.common.versioning.ArtifactVersion
-import net.minecraftforge.fml.common.versioning.VersionParser
+import net.minecraftforge.fml.ModList
+import net.minecraftforge.fml.ModContainer
+import net.minecraftforge.forgespi.language.MavenVersionAdapter
+import org.apache.maven.artifact.versioning.ArtifactVersion
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -25,7 +27,7 @@ object Mods {
   val Mekanism = new SimpleMod(IDs.Mekanism)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
-  val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
+  val TIS3D = new SimpleMod(IDs.TIS3D, version = "[0.9,)")
   val Waila = new SimpleMod(IDs.Waila)
   val ProjectRedTransmission = new SimpleMod((IDs.ProjectRedTransmission))
   val DraconicEvolution = new SimpleMod(IDs.DraconicEvolution)
@@ -86,6 +88,8 @@ object Mods {
 
   // ----------------------------------------------------------------------- //
 
+  private def optionToScala[T](opt: Optional[T]): Option[T] = if (opt.isPresent) Some(opt.get) else None
+
   trait ModBase extends Mod {
     knownMods += this
 
@@ -93,24 +97,22 @@ object Mods {
 
     def id: String
 
-    def container = Option(Loader.instance.getIndexedModList.get(id))
+    def container: Option[ModContainer] = optionToScala(ModList.get.getModContainerById(id))
 
-    def version: Option[ArtifactVersion] = container.map(_.getProcessedVersion)
+    def version: Option[ArtifactVersion] = container.map(_.getModInfo.getVersion)
   }
 
   class SimpleMod(val id: String, version: String = "") extends ModBase {
-    private lazy val isModAvailable_ = {
-      val version = VersionParser.parseVersionReference(id + this.version)
-      if (Loader.isModLoaded(version.getLabel))
-        version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
-      else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
+    private lazy val isModAvailable_ = optionToScala(ModList.get.getModContainerById(id)) match {
+      case Some(container) => version.isEmpty || MavenVersionAdapter.createFromVersionSpec(version).containsVersion(container.getModInfo.getVersion)
+      case _ => false
     }
 
     def isModAvailable: Boolean = isModAvailable_
   }
 
   class ClassBasedMod(val id: String, val classNames: String*) extends ModBase {
-    private lazy val isModAvailable_ = Loader.isModLoaded(id) && classNames.forall(className => try Class.forName(className) != null catch {
+    private lazy val isModAvailable_ = ModList.get.isLoaded(id) && classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })
 

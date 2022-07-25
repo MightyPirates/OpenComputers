@@ -1,6 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.AEApi
 import appeng.api.config.{Actionable, FuzzyMode, Settings, Upgrades}
 import appeng.api.implementations.IUpgradeableHost
 import appeng.api.implementations.tiles.ISegmentedInventory
@@ -22,19 +21,19 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.world.World
 import net.minecraft.util.math.BlockPos
 import net.minecraftforge.items.IItemHandler
 
 object DriverExportBus extends driver.DriverBlock {
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing) =
-    world.getTileEntity(pos) match {
-      case container: IPartHost => EnumFacing.VALUES.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isExportBus)
+  override def worksWith(world: World, pos: BlockPos, side: Direction) =
+    world.getBlockEntity(pos) match {
+      case container: IPartHost => Direction.values.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isExportBus)
       case _ => false
     }
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = new Environment(world.getTileEntity(pos).asInstanceOf[IPartHost])
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction) = new Environment(world.getBlockEntity(pos).asInstanceOf[IPartHost])
 
   final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_exportbus"

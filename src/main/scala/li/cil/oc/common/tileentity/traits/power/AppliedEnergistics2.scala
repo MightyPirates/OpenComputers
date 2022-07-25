@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 import java.util
 
-import appeng.api.AEApi
+import appeng.api._
 import appeng.api.config.Actionable
 import appeng.api.config.PowerMultiplier
 import appeng.api.networking._
@@ -10,10 +10,12 @@ import appeng.api.util.{AECableType, AEColor, AEPartLocation, DimensionalCoord}
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.appeng.AEUtil
 import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common._
 
@@ -27,12 +29,11 @@ trait AppliedEnergistics2 extends Common with IGridHost {
 
   override def updateEntity() {
     super.updateEntity()
-    if (useAppliedEnergistics2Power && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (useAppliedEnergistics2Power && getLevel.getGameTime % Settings.get.tickFrequency == 0) {
       updateEnergy()
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def updateEnergy() {
     tryAllSides((demand, _) => {
       val grid = getGridNode(AEPartLocation.INTERNAL).getGrid
@@ -47,37 +48,36 @@ trait AppliedEnergistics2 extends Common with IGridHost {
     }, Power.fromAE, Power.toAE)
   }
 
-  override def validate() {
-    super.validate()
+  override def clearRemoved() {
+    super.clearRemoved()
     if (useAppliedEnergistics2Power) EventHandler.scheduleAE2Add(this)
   }
 
-  override def invalidate() {
-    super.invalidate()
+  override def setRemoved() {
+    super.setRemoved()
     if (useAppliedEnergistics2Power) securityBreak()
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
+  override def onChunkUnloaded() {
+    super.onChunkUnloaded()
     if (useAppliedEnergistics2Power) securityBreak()
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
     if (useAppliedEnergistics2Power) loadNode(nbt)
   }
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  private def loadNode(nbt: NBTTagCompound): Unit = {
+  private def loadNode(nbt: CompoundNBT): Unit = {
     getGridNode(AEPartLocation.INTERNAL).loadFromNBT(Settings.namespace + "ae2power", nbt)
   }
 
-  override def setWorld(worldIn: World): Unit = {
-    if (getWorld == worldIn)
+  override def setLevelAndPosition(worldIn: World, pos: BlockPos): Unit = {
+    if (getLevel == worldIn)
       return
-    super.setWorld(worldIn)
+    super.setLevelAndPosition(worldIn, pos)
     if (worldIn != null && isServer && useAppliedEnergistics2Power) {
       val gridNode = getGridNode(AEPartLocation.INTERNAL)
       if (gridNode != null) {
@@ -86,32 +86,28 @@ trait AppliedEnergistics2 extends Common with IGridHost {
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
     if (useAppliedEnergistics2Power) saveNode(nbt)
   }
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  private def saveNode(nbt: NBTTagCompound): Unit = {
+  private def saveNode(nbt: CompoundNBT): Unit = {
     getGridNode(AEPartLocation.INTERNAL).saveToNBT(Settings.namespace + "ae2power", nbt)
   }
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def getGridNode(side: AEPartLocation): IGridNode = node match {
     case Some(gridNode: IGridNode) => gridNode
     case _ if isServer =>
-      val gridNode = AEApi.instance.grid.createGridNode(new AppliedEnergistics2GridBlock(this))
+      val gridNode = AEUtil.aeApi.get.grid.createGridNode(new AppliedEnergistics2GridBlock(this))
       node = Option(gridNode)
       gridNode
     case _ => null
   }
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def getCableConnectionType(side: AEPartLocation): AECableType = AECableType.SMART
 
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def securityBreak() {
     getGridNode(AEPartLocation.INTERNAL).destroy()
   }
@@ -130,12 +126,10 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def onGridNotification(p1: GridNotification): Unit = {}
 
-  override def setNetworkStatus(p1: IGrid, p2: Int): Unit = {}
-
-  override def getConnectableSides: util.EnumSet[EnumFacing] = {
-    val connectableSides = JavaConversions.asJavaCollection(EnumFacing.values.filter(tileEntity.canConnectPower))
+  override def getConnectableSides: util.EnumSet[Direction] = {
+    val connectableSides = JavaConversions.asJavaCollection(Direction.values.filter(tileEntity.canConnectPower))
     if (connectableSides.isEmpty) {
-      val s = util.EnumSet.copyOf(JavaConversions.asJavaCollection(EnumFacing.values))
+      val s = util.EnumSet.copyOf(JavaConversions.asJavaCollection(Direction.values))
       s.clear()
       s
     }

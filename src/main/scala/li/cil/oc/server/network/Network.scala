@@ -11,12 +11,14 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.util.Color
 import li.cil.oc.util.SideTracker
-import net.minecraft.item.EnumDyeColor
+import net.minecraft.item.DyeColor
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
+import net.minecraft.util.RegistryKey
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.IBlockReader
+import net.minecraft.world.World
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -442,14 +444,14 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
-  override def joinOrCreateNetwork(world: IBlockAccess, pos: BlockPos): Unit = {
-    val tileEntity = world.getTileEntity(pos)
-    if (tileEntity != null && !tileEntity.isInvalid && tileEntity.getWorld != null && !tileEntity.getWorld.isRemote) {
-      for (side <- EnumFacing.values) {
-        val npos = tileEntity.getPos.offset(side)
-        if (tileEntity.getWorld.isBlockLoaded(npos)) {
+  override def joinOrCreateNetwork(world: IBlockReader, pos: BlockPos): Unit = {
+    val tileEntity = world.getBlockEntity(pos)
+    if (tileEntity != null && !tileEntity.isRemoved && tileEntity.getLevel != null && !tileEntity.getLevel.isClientSide) {
+      for (side <- Direction.values) {
+        val npos = tileEntity.getBlockPos.relative(side)
+        if (tileEntity.getLevel.isLoaded(npos)) {
           val localNode = getNetworkNode(tileEntity, side)
-          val neighborTileEntity = tileEntity.getWorld.getTileEntity(npos)
+          val neighborTileEntity = tileEntity.getLevel.getBlockEntity(npos)
           val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
           localNode match {
             case Some(node: MutableNode) =>
@@ -473,8 +475,8 @@ object Network extends api.detail.NetworkAPI {
 
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit = {
     if (tileEntity != null) {
-      val world = tileEntity.getWorld
-      val pos = tileEntity.getPos
+      val world = tileEntity.getLevel
+      val pos = tileEntity.getBlockPos
       if (world != null && pos != null) {
         joinOrCreateNetwork(world, pos)
       }
@@ -487,15 +489,15 @@ object Network extends api.detail.NetworkAPI {
     case _ =>
   }
 
-  def getNetworkNode(tileEntity: TileEntity, side: EnumFacing): Option[ImmutableNode] = {
+  def getNetworkNode(tileEntity: TileEntity, side: Direction): Option[ImmutableNode] = {
     if (tileEntity != null) {
-      if (tileEntity.hasCapability(Capabilities.SidedEnvironmentCapability, side)) {
-        val host = tileEntity.getCapability(Capabilities.SidedEnvironmentCapability, side)
+      if (tileEntity.getCapability(Capabilities.SidedEnvironmentCapability, side).isPresent) {
+        val host = tileEntity.getCapability(Capabilities.SidedEnvironmentCapability, side).orElse(null)
         if (host != null) return Option(host.sidedNode(side))
       }
 
-      if (tileEntity.hasCapability(Capabilities.EnvironmentCapability, side)) {
-        val host = tileEntity.getCapability(Capabilities.EnvironmentCapability, side)
+      if (tileEntity.getCapability(Capabilities.EnvironmentCapability, side).isPresent) {
+        val host = tileEntity.getCapability(Capabilities.EnvironmentCapability, side).orElse(null)
         if (host != null) return Option(host.node)
       }
     }
@@ -505,21 +507,21 @@ object Network extends api.detail.NetworkAPI {
 
   private def getConnectionColor(tileEntity: TileEntity): Int = {
     if (tileEntity != null) {
-      if (tileEntity.hasCapability(Capabilities.ColoredCapability, null)) {
-        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null)
+      if (tileEntity.getCapability(Capabilities.ColoredCapability, null).isPresent) {
+        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null).orElse(null)
         if (colored != null && colored.controlsConnectivity) return colored.getColor
       }
     }
 
-    Color.rgbValues(EnumDyeColor.SILVER)
+    Color.rgbValues(DyeColor.LIGHT_GRAY)
   }
 
   private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
     val (c1, c2) = (getConnectionColor(te1), getConnectionColor(te2))
-    c1 == c2 || c1 == Color.rgbValues(EnumDyeColor.SILVER) || c2 == Color.rgbValues(EnumDyeColor.SILVER)
+    c1 == c2 || c1 == Color.rgbValues(DyeColor.LIGHT_GRAY) || c2 == Color.rgbValues(DyeColor.LIGHT_GRAY)
   }
 
-  private def canConnectFromSideIM(tileEntity: TileEntity, side: EnumFacing) =
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: Direction) =
     tileEntity match {
       case im: tileentity.traits.ImmibisMicroblock => im.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
@@ -539,7 +541,7 @@ object Network extends api.detail.NetworkAPI {
     WirelessNetwork.remove(endpoint)
   }
 
-  override def leaveWirelessNetwork(endpoint: WirelessEndpoint, dimension: Int) {
+  override def leaveWirelessNetwork(endpoint: WirelessEndpoint, dimension: RegistryKey[World]) {
     WirelessNetwork.remove(endpoint, dimension)
   }
 
@@ -565,21 +567,21 @@ object Network extends api.detail.NetworkAPI {
     packet
   }
 
-  override def newPacket(nbt: NBTTagCompound) = {
+  override def newPacket(nbt: CompoundNBT) = {
     val source = nbt.getString("source")
     val destination =
-      if (nbt.hasKey("dest")) null
+      if (nbt.contains("dest")) null
       else nbt.getString("dest")
-    val port = nbt.getInteger("port")
-    val ttl = nbt.getInteger("ttl")
-    val data = (for (i <- 0 until nbt.getInteger("dataLength")) yield {
-      if (nbt.hasKey("data" + i)) {
-        nbt.getTag("data" + i) match {
-          case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
-          case tag: NBTTagInt => Int.box(tag.getInt)
-          case tag: NBTTagDouble => Double.box(tag.getDouble)
-          case tag: NBTTagString => tag.getString: AnyRef
-          case tag: NBTTagByteArray => tag.getByteArray
+    val port = nbt.getInt("port")
+    val ttl = nbt.getInt("ttl")
+    val data = (for (i <- 0 until nbt.getInt("dataLength")) yield {
+      if (nbt.contains("data" + i)) {
+        nbt.get("data" + i) match {
+          case tag: ByteNBT => Boolean.box(tag.getAsByte == 1)
+          case tag: IntNBT => Int.box(tag.getAsInt)
+          case tag: DoubleNBT => Double.box(tag.getAsDouble)
+          case tag: StringNBT => tag.getAsString: AnyRef
+          case tag: ByteArrayNBT => tag.getAsByteArray
         }
       }
       else null
@@ -722,21 +724,21 @@ object Network extends api.detail.NetworkAPI {
 
     override def hop() = new Packet(source, destination, port, data, ttl - 1)
 
-    override def save(nbt: NBTTagCompound) {
-      nbt.setString("source", source)
+    override def saveData(nbt: CompoundNBT) {
+      nbt.putString("source", source)
       if (destination != null && !destination.isEmpty) {
-        nbt.setString("dest", destination)
+        nbt.putString("dest", destination)
       }
-      nbt.setInteger("port", port)
-      nbt.setInteger("ttl", ttl)
-      nbt.setInteger("dataLength", data.length)
+      nbt.putInt("port", port)
+      nbt.putInt("ttl", ttl)
+      nbt.putInt("dataLength", data.length)
       for (i <- data.indices) data(i) match {
         case null | Unit | None =>
-        case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
-        case value: java.lang.Integer => nbt.setInteger("data" + i, value)
-        case value: java.lang.Double => nbt.setDouble("data" + i, value)
-        case value: java.lang.String => nbt.setString("data" + i, value)
-        case value: Array[Byte] => nbt.setByteArray("data" + i, value)
+        case value: java.lang.Boolean => nbt.putBoolean("data" + i, value)
+        case value: java.lang.Integer => nbt.putInt("data" + i, value)
+        case value: java.lang.Double => nbt.putDouble("data" + i, value)
+        case value: java.lang.String => nbt.putString("data" + i, value)
+        case value: Array[Byte] => nbt.putByteArray("data" + i, value)
         case value => OpenComputers.log.warn("Unexpected type while saving network packet: " + value.getClass.getName)
       }
     }

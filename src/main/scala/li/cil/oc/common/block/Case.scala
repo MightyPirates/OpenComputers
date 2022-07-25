@@ -8,29 +8,35 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.BlockStateContainer
-import net.minecraft.block.state.IBlockState
+import net.minecraft.block.Block
+import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.fluid.FluidState
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.state.StateContainer
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
+import scala.collection.convert.WrapAsScala._
+
 class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  override def createBlockState() = new BlockStateContainer(this, PropertyRotatable.Facing, property.PropertyRunning.Running)
-
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta >> 1))
-
-  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex << 1 | (if (state.getValue(property.PropertyRunning.Running)) 1 else 0)
+  protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
+    builder.add(PropertyRotatable.Facing, property.PropertyRunning.Running)
 
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
-  override protected def tooltipBody(metadata: Int, stack: ItemStack, world: World, tooltip: util.List[String], advanced: ITooltipFlag) {
-    tooltip.addAll(Tooltip.get(getClass.getSimpleName.toLowerCase, slots))
+  override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
+    for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase, slots)) {
+      tooltip.add(new StringTextComponent(curr))
+    }
   }
 
   private def slots = tier match {
@@ -46,14 +52,14 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def guiType = GuiType.Case
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (player.isSneaking) {
-      if (!world.isRemote) world.getTileEntity(pos) match {
-        case computer: tileentity.Case if !computer.machine.isRunning && computer.isUsableByPlayer(player) => computer.machine.start()
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, heldItem: ItemStack, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (player.isCrouching) {
+      if (!world.isClientSide) world.getBlockEntity(pos) match {
+        case computer: tileentity.Case if !computer.machine.isRunning && computer.stillValid(player) => computer.machine.start()
         case _ =>
       }
       true
@@ -61,11 +67,11 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
     else super.localOnBlockActivated(world, pos, player, hand, heldItem, side, hitX, hitY, hitZ)
   }
 
-  override def removedByPlayer(state: IBlockState, world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean): Boolean =
-    world.getTileEntity(pos) match {
+  override def removedByPlayer(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, willHarvest: Boolean, fluid: FluidState): Boolean =
+    world.getBlockEntity(pos) match {
       case c: tileentity.Case =>
-        if (c.isCreative && (!player.capabilities.isCreativeMode || !c.canInteract(player.getName))) false
-        else c.canInteract(player.getName) && super.removedByPlayer(state, world, pos, player, willHarvest)
-      case _ => super.removedByPlayer(state, world, pos, player, willHarvest)
+        if (c.isCreative && (!player.isCreative || !c.canInteract(player.getName.getString))) false
+        else c.canInteract(player.getName.getString) && super.removedByPlayer(state, world, pos, player, willHarvest, fluid)
+      case _ => super.removedByPlayer(state, world, pos, player, willHarvest, fluid)
     }
 }

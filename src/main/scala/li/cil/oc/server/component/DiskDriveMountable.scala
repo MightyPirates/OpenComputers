@@ -25,11 +25,11 @@ import li.cil.oc.common.inventory.ItemStackInventory
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 
 import scala.collection.convert.WrapAsJava._
 
@@ -69,14 +69,14 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   @Callback(doc = """function([velocity:number]):boolean -- Eject the currently present medium from the drive.""")
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
-    val ejected = decrStackSize(0, 1)
+    val ejected = removeItem(0, 1)
     if (!ejected.isEmpty) {
       val entity = InventoryUtils.spawnStackInWorld(BlockPosition(rack), ejected, Option(rack.facing))
       if (entity != null) {
-        val vx = rack.facing.getFrontOffsetX * velocity
-        val vy = rack.facing.getFrontOffsetY * velocity
-        val vz = rack.facing.getFrontOffsetZ * velocity
-        entity.addVelocity(vx, vy, vz)
+        val vx = rack.facing.getStepX * velocity
+        val vy = rack.facing.getStepY * velocity
+        val vz = rack.facing.getStepZ * velocity
+        entity.push(vx, vy, vz)
       }
       result(true)
     }
@@ -86,7 +86,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = filesystemNode.fold(null: Array[Node])(Array(_))
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = filesystemNode.fold(null: Array[Node])(Array(_))
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
@@ -96,19 +96,19 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   // ----------------------------------------------------------------------- //
   // IInventory
 
-  override def getSizeInventory: Int = 1
+  override def getContainerSize: Int = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack))) match {
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack))) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Floppy
     case _ => false
   }
 
-  override def isUsableByPlayer(player: EntityPlayer): Boolean = rack.isUsableByPlayer(player)
+  override def stillValid(player: PlayerEntity): Boolean = rack.stillValid(player)
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory
 
-  override def container: ItemStack = rack.getStackInSlot(slot)
+  override def container: ItemStack = rack.getItem(slot)
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
@@ -118,7 +118,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
       }
       case _ =>
     }
-    if (!rack.world.isRemote) {
+    if (!rack.world.isClientSide) {
       rack.markChanged(this.slot)
       Sound.playDiskInsert(rack)
     }
@@ -126,7 +126,7 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    if (!rack.world.isRemote) {
+    if (!rack.world.isClientSide) {
       rack.markChanged(this.slot)
       Sound.playDiskEject(rack)
     }
@@ -140,24 +140,24 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
   // ----------------------------------------------------------------------- //
   // Persistable
 
-  override def load(nbt: NBTTagCompound) {
-    super[AbstractManagedEnvironment].load(nbt)
-    super[ComponentInventory].load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super[AbstractManagedEnvironment].loadData(nbt)
+    super[ComponentInventory].loadData(nbt)
     connectComponents()
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super[AbstractManagedEnvironment].save(nbt)
-    super[ComponentInventory].save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super[AbstractManagedEnvironment].saveData(nbt)
+    super[ComponentInventory].saveData(nbt)
   }
 
   // ----------------------------------------------------------------------- //
   // RackMountable
 
-  override def getData: NBTTagCompound = {
-    val nbt = new NBTTagCompound()
-    nbt.setLong("lastAccess", lastAccess)
-    nbt.setTag("disk", toNbt(getStackInSlot(0)))
+  override def getData: CompoundNBT = {
+    val nbt = new CompoundNBT()
+    nbt.putLong("lastAccess", lastAccess)
+    nbt.put("disk", toNbt(getItem(0)))
     nbt
   }
 
@@ -165,24 +165,24 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
-    if (player.isSneaking) {
-      val isDiskInDrive = !getStackInSlot(0).isEmpty
-      val isHoldingDisk = isItemValidForSlot(0, heldItem)
+  override def onActivate(player: PlayerEntity, hand: Hand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
+    if (player.isCrouching) {
+      val isDiskInDrive = !getItem(0).isEmpty
+      val isHoldingDisk = canPlaceItem(0, heldItem)
       if (isDiskInDrive) {
-        if (!rack.world.isRemote) {
+        if (!rack.world.isClientSide) {
           InventoryUtils.dropSlot(BlockPosition(rack), this, 0, 1, Option(rack.facing))
         }
       }
       if (isHoldingDisk) {
         // Insert the disk.
-        setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
+        setItem(0, player.inventory.removeItem(player.inventory.selected, 1))
       }
       isDiskInDrive || isHoldingDisk
     }
     else {
       val position = BlockPosition(rack)
-      player.openGui(OpenComputers, GuiType.DiskDriveMountableInRack.id, rack.world, position.x, GuiType.embedSlot(position.y, slot), position.z)
+      OpenComputers.openGui(player, GuiType.DiskDriveMountableInRack.id, rack.world, position.x, GuiType.embedSlot(position.y, slot), position.z)
       true
     }
   }

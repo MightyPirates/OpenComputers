@@ -22,7 +22,7 @@ object DriverRedstoneCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.RedstoneCardTier2))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else {
       val isAdvanced = tier(stack) == Tier.Two
       val hasBundled = BundledRedstone.isAvailable && isAdvanced

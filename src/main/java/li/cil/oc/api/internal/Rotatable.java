@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.DriverItem;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 
 /**
  * This interface is implemented by the computer case and robot tile entities
@@ -32,7 +32,7 @@ public interface Rotatable {
      *
      * @return the current facing.
      */
-    EnumFacing facing();
+    Direction facing();
 
     /**
      * Converts a facing relative to the block's <em>local</em> coordinate
@@ -45,7 +45,7 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    EnumFacing toGlobal(EnumFacing value);
+    Direction toGlobal(Direction value);
 
     /**
      * Converts a <tt>global</tt> orientation to a facing relative to the
@@ -58,5 +58,5 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    EnumFacing toLocal(EnumFacing value);
+    Direction toLocal(Direction value);
 }

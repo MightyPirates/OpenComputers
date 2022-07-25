@@ -9,20 +9,20 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.UpgradeHover
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraft.util.Direction
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object RobotCommonHandler {
   @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     e.agent match {
       case robot: internal.Robot =>
-        if (e.toolAfterUse.isItemStackDamageable) {
-          val damage = e.toolAfterUse.getItemDamage - e.toolBeforeUse.getItemDamage
+        if (e.toolAfterUse.isDamageableItem) {
+          val damage = e.toolAfterUse.getDamageValue - e.toolBeforeUse.getDamageValue
           if (damage > 0) {
             val actualDamage = damage * e.getDamageRate
-            val repairedDamage = if (e.agent.player.getRNG.nextDouble() > 0.5) damage - math.floor(actualDamage).toInt else damage - math.ceil(actualDamage).toInt
-            e.toolAfterUse.setItemDamage(e.toolAfterUse.getItemDamage - repairedDamage)
+            val repairedDamage = if (e.agent.player.getRandom.nextDouble() > 0.5) damage - math.floor(actualDamage).toInt else damage - math.ceil(actualDamage).toInt
+            e.toolAfterUse.setDamageValue(e.toolAfterUse.getDamageValue - repairedDamage)
           }
         }
       case _ =>
@@ -36,20 +36,23 @@ object RobotCommonHandler {
         val world = robot.world
         var maxFlyingHeight = Settings.get.limitFlightHeight
 
-        (0 until robot.equipmentInventory.getSizeInventory).
-          map(robot.equipmentInventory.getStackInSlot).
+        (0 until robot.equipmentInventory.getContainerSize).
+          map(robot.equipmentInventory.getItem).
           map(Delegator.subItem).
           collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
         (0 until robot.componentCount).
-          map(_ + robot.mainInventory.getSizeInventory + robot.equipmentInventory.getSizeInventory).
-          map(robot.getStackInSlot).
-          map(Delegator.subItem).
+          map(_ + robot.mainInventory.getContainerSize + robot.equipmentInventory.getContainerSize).
+          map(robot.getItem(_)).
+          map(Delegator.subItem(_)).
           collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
-        def isMovingDown = e.direction == EnumFacing.DOWN
-        def hasAdjacentBlock(pos: BlockPosition) = EnumFacing.values.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
-        def isWithinFlyingHeight(pos: BlockPosition) = maxFlyingHeight >= world.getHeight || (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(EnumFacing.DOWN, n)))
+        def isMovingDown = e.direction == Direction.DOWN
+        def hasAdjacentBlock(pos: BlockPosition) = Direction.values.exists(side => {
+          val sidePos = pos.offset(side).toBlockPos
+          world.getBlockState(sidePos).isFaceSturdy(world, sidePos, side.getOpposite)
+        })
+        def isWithinFlyingHeight(pos: BlockPosition) = maxFlyingHeight >= world.getHeight() || (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(Direction.DOWN, n)))
         val startPos = BlockPosition(robot)
         val targetPos = startPos.offset(e.direction)
         // New movement rules as of 1.5:

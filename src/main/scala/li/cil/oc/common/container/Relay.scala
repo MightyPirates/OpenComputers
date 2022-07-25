@@ -2,32 +2,32 @@ package li.cil.oc.common.container
 
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.nbt.CompoundNBT
 
-class Relay(playerInventory: InventoryPlayer, relay: tileentity.Relay) extends Player(playerInventory, relay) {
+class Relay(id: Int, playerInventory: PlayerInventory, relay: tileentity.Relay) extends Player(null, id, playerInventory, relay) {
   addSlotToContainer(151, 15, Slot.CPU)
   addSlotToContainer(151, 34, Slot.Memory)
   addSlotToContainer(151, 53, Slot.HDD)
   addSlotToContainer(178, 15, Slot.Card)
   addPlayerInventorySlots(8, 84)
 
-  def relayDelay = synchronizedData.getInteger("relayDelay")
+  def relayDelay = synchronizedData.getInt("relayDelay")
 
-  def relayAmount = synchronizedData.getInteger("relayAmount")
+  def relayAmount = synchronizedData.getInt("relayAmount")
 
-  def maxQueueSize = synchronizedData.getInteger("maxQueueSize")
+  def maxQueueSize = synchronizedData.getInt("maxQueueSize")
 
-  def packetsPerCycleAvg = synchronizedData.getInteger("packetsPerCycleAvg")
+  def packetsPerCycleAvg = synchronizedData.getInt("packetsPerCycleAvg")
 
-  def queueSize = synchronizedData.getInteger("queueSize")
+  def queueSize = synchronizedData.getInt("queueSize")
 
-  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setInteger("relayDelay", relay.relayDelay)
-    synchronizedData.setInteger("relayAmount", relay.relayAmount)
-    synchronizedData.setInteger("maxQueueSize", relay.maxQueueSize)
-    synchronizedData.setInteger("packetsPerCycleAvg", relay.packetsPerCycleAvg())
-    synchronizedData.setInteger("queueSize", relay.queue.size)
+  override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
+    synchronizedData.putInt("relayDelay", relay.relayDelay)
+    synchronizedData.putInt("relayAmount", relay.relayAmount)
+    synchronizedData.putInt("maxQueueSize", relay.maxQueueSize)
+    synchronizedData.putInt("packetsPerCycleAvg", relay.packetsPerCycleAvg())
+    synchronizedData.putInt("queueSize", relay.queue.size)
     super.detectCustomDataChanges(nbt)
   }
 }

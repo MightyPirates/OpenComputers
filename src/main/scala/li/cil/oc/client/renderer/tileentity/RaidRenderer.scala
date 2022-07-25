@@ -1,71 +1,81 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Raid
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.BufferBuilder
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
+import net.minecraft.util.math.vector.Vector3f
 import org.lwjgl.opengl.GL11
 
-object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
-  override def render(raid: Raid, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object RaidRenderer extends Function[TileEntityRendererDispatcher, RaidRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new RaidRenderer(dispatch)
+}
+
+class RaidRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[Raid](dispatch) {
+  override def render(raid: Raid, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
-    GlStateManager.color(1, 1, 1, 1)
+    RenderSystem.color4f(1, 1, 1, 1)
 
-    GlStateManager.pushMatrix()
+    stack.pushPose()
 
-    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+    stack.translate(0.5, 0.5, 0.5)
 
     raid.yaw match {
-      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
-      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
-      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
+      case Direction.WEST => stack.mulPose(Vector3f.YP.rotationDegrees(-90))
+      case Direction.NORTH => stack.mulPose(Vector3f.YP.rotationDegrees(180))
+      case Direction.EAST => stack.mulPose(Vector3f.YP.rotationDegrees(90))
       case _ => // No yaw.
     }
 
-    GlStateManager.translate(-0.5, 0.5, 0.505)
-    GlStateManager.scale(1, -1, 1)
+    stack.translate(-0.5, 0.5, 0.505)
+    stack.scale(1, -1, 1)
 
     val t = Tessellator.getInstance
-    val r = t.getBuffer
+    val r = t.getBuilder
 
     Textures.Block.bind()
     r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
     {
       val icon = Textures.getSprite(Textures.Block.RaidFrontError)
-      for (slot <- 0 until raid.getSizeInventory) {
+      for (slot <- 0 until raid.getContainerSize) {
         if (!raid.presence(slot)) {
-          renderSlot(r, slot, icon)
+          renderSlot(stack, r, slot, icon)
         }
       }
     }
 
     {
       val icon = Textures.getSprite(Textures.Block.RaidFrontActivity)
-      for (slot <- 0 until raid.getSizeInventory) {
-        if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.world.rand.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getSizeInventory) {
-          renderSlot(r, slot, icon)
+      for (slot <- 0 until raid.getContainerSize) {
+        if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.world.random.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getContainerSize) {
+          renderSlot(stack, r, slot, icon)
         }
       }
     }
 
-    t.draw()
+    t.end()
 
     RenderState.disableBlend()
     RenderState.enableEntityLighting()
 
-    GlStateManager.popMatrix()
+    stack.popPose()
     RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
@@ -74,12 +84,12 @@ object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
   private val u1 = 2 / 16f
   private val fs = 4 / 16f
 
-  private def renderSlot(r: BufferBuilder, slot: Int, icon: TextureAtlasSprite) {
+  private def renderSlot(stack: MatrixStack, r: BufferBuilder, slot: Int, icon: TextureAtlasSprite) {
     val l = u1 + slot * fs
     val h = u1 + (slot + 1) * fs
-    r.pos(l, 1, 0).tex(icon.getInterpolatedU(l * 16), icon.getMaxV).endVertex()
-    r.pos(h, 1, 0).tex(icon.getInterpolatedU(h * 16), icon.getMaxV).endVertex()
-    r.pos(h, 0, 0).tex(icon.getInterpolatedU(h * 16), icon.getMinV).endVertex()
-    r.pos(l, 0, 0).tex(icon.getInterpolatedU(l * 16), icon.getMinV).endVertex()
+    r.vertex(stack.last.pose, l, 1, 0).uv(icon.getU(l * 16), icon.getV1).endVertex()
+    r.vertex(stack.last.pose, h, 1, 0).uv(icon.getU(h * 16), icon.getV1).endVertex()
+    r.vertex(stack.last.pose, h, 0, 0).uv(icon.getU(h * 16), icon.getV0).endVertex()
+    r.vertex(stack.last.pose, l, 0, 0).uv(icon.getU(l * 16), icon.getV0).endVertex()
   }
 }

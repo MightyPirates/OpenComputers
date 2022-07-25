@@ -29,7 +29,7 @@ object MicrocontrollerTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory): Array[Object] = {
-    val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
+    val items = (0 until inventory.getContainerSize).map(inventory.getItem)
     val data = new MicrocontrollerData()
     data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(!_.isEmpty).toArray
@@ -133,5 +133,5 @@ object MicrocontrollerTemplate extends Template {
     else if (caseTier(inventory) == Tier.Four) 9001 // Creative
     else 4
 
-  override protected def caseTier(inventory: IInventory): Int = ItemUtils.caseTier(inventory.getStackInSlot(0))
+  override protected def caseTier(inventory: IInventory): Int = ItemUtils.caseTier(inventory.getItem(0))
 }

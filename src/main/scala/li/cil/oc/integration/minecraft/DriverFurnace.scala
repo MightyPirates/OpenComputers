@@ -10,53 +10,53 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
-import net.minecraft.init.Blocks
+import net.minecraft.block.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntityFurnace
-import net.minecraft.util.EnumFacing
+import net.minecraft.tileentity.FurnaceTileEntity
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverFurnace extends DriverSidedTileEntity {
-  override def getTileEntityClass: Class[_] = classOf[TileEntityFurnace]
+  override def getTileEntityClass: Class[_] = classOf[FurnaceTileEntity]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityFurnace])
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment =
+    new Environment(world.getBlockEntity(pos).asInstanceOf[FurnaceTileEntity])
 
-  final class Environment(tileEntity: TileEntityFurnace) extends ManagedTileEntityEnvironment[TileEntityFurnace](tileEntity, "furnace") with NamedBlock {
+  final class Environment(tileEntity: FurnaceTileEntity) extends ManagedTileEntityEnvironment[FurnaceTileEntity](tileEntity, "furnace") with NamedBlock {
     override def preferredName = "furnace"
 
     override def priority = 0
 
     @Callback(doc = "function():number -- The number of ticks that the furnace will keep burning from the last consumed fuel.")
     def getBurnTime(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getField(0))
+      result(tileEntity.litTime)
     }
 
     @Callback(doc = "function():number -- The number of ticks that the currently burning fuel lasts in total.")
     def getCurrentItemBurnTime(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getField(1))
+      result(tileEntity.litDuration)
     }
 
     @Callback(doc = "function():number -- The number of ticks that the current item has been cooking for.")
     def getCookTime(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getField(2))
+      result(tileEntity.cookingProgress)
     }
 
     @Callback(doc = "function():number -- The number of ticks that the current item needs to cook.")
     def getTotalCookTime(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.getField(3))
+      result(tileEntity.cookingTotalTime)
     }
 
     @Callback(doc = "function():boolean -- Get whether the furnace is currently active.")
     def isBurning(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.isBurning)
+      result(tileEntity.litTime > 0)
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.FURNACE)
+      if (!stack.isEmpty && Block.byItem(stack.getItem) == Blocks.FURNACE)
         classOf[Environment]
       else null
     }

@@ -11,7 +11,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.util.Lifecycle
 import li.cil.oc.integration.opencomputers.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -22,7 +22,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   def components: Array[Option[ManagedEnvironment]] = {
     if (_components == null && isSizeInventoryReady) {
-      _components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
+      _components = Array.fill[Option[ManagedEnvironment]](getContainerSize)(None)
     }
     if (_components == null) Array[Option[ManagedEnvironment]]() else _components
   }
@@ -53,8 +53,8 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   def connectComponents() {
-    for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
-      val stack = getStackInSlot(slot)
+    for (slot <- 0 until getContainerSize if slot >= 0 && slot < components.length) {
+      val stack = getItem(slot)
       if (!stack.isEmpty && components(slot).isEmpty && isComponentSlot(slot, stack)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
@@ -62,7 +62,7 @@ trait ComponentInventory extends Inventory with network.Environment {
               case Some(component) =>
                 applyLifecycleState(component, Lifecycle.LifecycleState.Constructing)
                 try {
-                  component.load(dataTag(driver, stack))
+                  component.loadData(dataTag(driver, stack))
                 }
                 catch {
                   case e: Throwable => OpenComputers.log.warn(s"An item component of type '${component.getClass.getName}' (provided by driver '${driver.getClass.getName}') threw an error while loading.", e)
@@ -99,20 +99,20 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) = {
+  override def saveData(nbt: CompoundNBT) {
     saveComponents()
-    super.save(nbt) // Save items after updating their tags.
+    super.saveData(nbt) // Save items after updating their tags.
   }
 
   def saveComponents() {
-    for (slot <- 0 until getSizeInventory) {
-      val stack = getStackInSlot(slot)
+    for (slot <- 0 until getContainerSize) {
+      val stack = getItem(slot)
       if (!stack.isEmpty) {
         if (slot >= components.length) {
           // isSizeInventoryReady was added to resolve issues where an inventory was used before its
           // nbt data had been parsed. See https://github.com/MightyPirates/OpenComputers/issues/2522
           // If this error is hit again, perhaps another subtype needs to handle nbt loading like Case does
-          OpenComputers.log.error(s"ComponentInventory components length ${components.length} does not accommodate inventory size ${getSizeInventory}")
+          OpenComputers.log.error(s"ComponentInventory components length ${components.length} does not accommodate inventory size ${getContainerSize}")
           return
         } else {
           components(slot) match {
@@ -128,7 +128,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def getInventoryStackLimit = 1
+  override def getMaxStackSize = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (slot >= 0 && slot < components.length && isComponentSlot(slot, stack)) {
     Option(Driver.driverFor(stack)).foreach(driver =>
@@ -137,7 +137,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           components(slot) = Some(component)
           applyLifecycleState(component, Lifecycle.LifecycleState.Constructing)
           try {
-            component.load(dataTag(driver, stack))
+            component.loadData(dataTag(driver, stack))
           } catch {
             case e: Throwable => OpenComputers.log.warn(s"An item component of type '${component.getClass.getName}' (provided by driver '${driver.getClass.getName}') threw an error while loading.", e)
           }
@@ -194,10 +194,10 @@ trait ComponentInventory extends Inventory with network.Environment {
       val tag = dataTag(driver, stack)
       // Clear the tag compound before saving to get the same behavior as
       // in tile entities (otherwise entries have to be cleared manually).
-      for (key <- tag.getKeySet.map(_.asInstanceOf[String])) {
-        tag.removeTag(key)
+      for (key <- tag.getAllKeys.map(_.asInstanceOf[String])) {
+        tag.remove(key)
       }
-      component.save(tag)
+      component.saveData(tag)
     } catch {
       case e: Throwable => OpenComputers.log.warn(s"An item component of type '${component.getClass.getName}' (provided by driver '${driver.getClass.getName}') threw an error while saving.", e)
     }

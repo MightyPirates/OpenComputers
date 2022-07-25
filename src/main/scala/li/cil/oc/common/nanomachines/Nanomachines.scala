@@ -6,7 +6,7 @@ import li.cil.oc.api.nanomachines.BehaviorProvider
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.PlayerUtils
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -14,38 +14,38 @@ import scala.collection.mutable
 object Nanomachines extends api.detail.NanomachinesAPI {
   val providers = mutable.Set.empty[BehaviorProvider]
 
-  val serverControllers: mutable.WeakHashMap[EntityPlayer, ControllerImpl] = mutable.WeakHashMap.empty[EntityPlayer, ControllerImpl]
-  val clientControllers: mutable.WeakHashMap[EntityPlayer, ControllerImpl] = mutable.WeakHashMap.empty[EntityPlayer, ControllerImpl]
+  val serverControllers: mutable.WeakHashMap[PlayerEntity, ControllerImpl] = mutable.WeakHashMap.empty[PlayerEntity, ControllerImpl]
+  val clientControllers: mutable.WeakHashMap[PlayerEntity, ControllerImpl] = mutable.WeakHashMap.empty[PlayerEntity, ControllerImpl]
 
-  def controllers(player: EntityPlayer): mutable.WeakHashMap[EntityPlayer, ControllerImpl] = if (player.getEntityWorld.isRemote) clientControllers else serverControllers
+  def controllers(player: PlayerEntity): mutable.WeakHashMap[PlayerEntity, ControllerImpl] = if (player.level.isClientSide) clientControllers else serverControllers
 
   override def addProvider(provider: BehaviorProvider): Unit = providers += provider
 
   override def getProviders: java.lang.Iterable[BehaviorProvider] = providers
 
-  def getController(player: EntityPlayer): Controller = {
+  def getController(player: PlayerEntity): Controller = {
     if (hasController(player)) controllers(player).getOrElseUpdate(player, new ControllerImpl(player))
     else null
   }
 
-  def hasController(player: EntityPlayer): Boolean = {
+  def hasController(player: PlayerEntity): Boolean = {
     PlayerUtils.persistedData(player).getBoolean(Settings.namespace + "hasNanomachines")
   }
 
-  def installController(player: EntityPlayer): Controller = {
+  def installController(player: PlayerEntity): Controller = {
     if (!hasController(player)) {
-      PlayerUtils.persistedData(player).setBoolean(Settings.namespace + "hasNanomachines", true)
+      PlayerUtils.persistedData(player).putBoolean(Settings.namespace + "hasNanomachines", true)
     }
     getController(player) // Initialize controller instance.
   }
 
-  override def uninstallController(player: EntityPlayer): Unit = {
+  override def uninstallController(player: PlayerEntity): Unit = {
     getController(player) match {
       case controller: ControllerImpl =>
         controller.dispose()
         controllers(player) -= player
-        PlayerUtils.persistedData(player).removeTag(Settings.namespace + "hasNanomachines")
-        if (!player.getEntityWorld.isRemote) {
+        PlayerUtils.persistedData(player).remove(Settings.namespace + "hasNanomachines")
+        if (!player.level.isClientSide) {
           PacketSender.sendNanomachineConfiguration(player)
         }
       case _ => // Doesn't have one anyway.

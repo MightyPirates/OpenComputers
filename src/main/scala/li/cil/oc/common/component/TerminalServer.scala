@@ -25,12 +25,12 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagString
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.StringNBT
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.WrapAsScala._
@@ -53,10 +53,10 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     val keyboardItem = api.Items.get(Constants.BlockName.Keyboard).createItemStack(1)
     val keyboard = api.Driver.driverFor(keyboardItem, getClass).createEnvironment(keyboardItem, this).asInstanceOf[api.internal.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
-      override def isUsableByPlayer(keyboard: api.internal.Keyboard, player: EntityPlayer) = {
-        val stack = player.getHeldItemMainhand
+      override def isUsableByPlayer(keyboard: api.internal.Keyboard, player: PlayerEntity) = {
+        val stack = player.getItemInHand(Hand.MAIN_HAND)
         Delegator.subItem(stack) match {
-          case Some(t: item.Terminal) if stack.hasTagCompound => sidedKeys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
+          case Some(t: item.Terminal) if stack.hasTag => sidedKeys.contains(stack.getTag.getString(Settings.namespace + "key"))
           case _ => false
         }
       }
@@ -71,7 +71,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     if (rack != null) {
       val data = rack.getMountableData(slot)
       if (data != null) {
-        return data.hasKey("terminalAddress")
+        return data.contains("terminalAddress")
       }
     }
     false
@@ -80,8 +80,8 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   def address: String = rack.getMountableData(slot).getString("terminalAddress")
 
   def sidedKeys = {
-    if (!rack.world.isRemote) keys
-    else rack.getMountableData(slot).getTagList("keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
+    if (!rack.world.isClientSide) keys
+    else rack.getMountableData(slot).getList("keys", NBT.TAG_STRING).map((tag: StringNBT) => tag.getAsString)
   }
 
   // ----------------------------------------------------------------------- //
@@ -133,12 +133,12 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // RackMountable
 
-  override def getData: NBTTagCompound = {
+  override def getData: CompoundNBT = {
     if (node.address == null) api.Network.joinNewNetwork(node)
 
-    val nbt = new NBTTagCompound()
+    val nbt = new CompoundNBT()
     nbt.setNewTagList("keys", keys)
-    nbt.setString("terminalAddress", node.address)
+    nbt.putString("terminalAddress", node.address)
     nbt
   }
 
@@ -146,25 +146,20 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
 
   override def getConnectableAt(index: Int): RackBusConnectable = null
 
-  override def onActivate(player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
+  override def onActivate(player: PlayerEntity, hand: Hand, heldItem: ItemStack, hitX: Float, hitY: Float): Boolean = {
     if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.Terminal)) {
-      if (!world.isRemote) {
+      if (!world.isClientSide) {
         val key = UUID.randomUUID().toString
-        if (!heldItem.hasTagCompound) {
-          heldItem.setTagCompound(new NBTTagCompound())
-        }
-        else {
-          keys -= heldItem.getTagCompound.getString(Settings.namespace + "key")
-        }
+        keys -= heldItem.getOrCreateTag.getString(Settings.namespace + "key")
         val maxSize = Settings.get.terminalsPerServer
         while (keys.length >= maxSize) {
           keys.remove(0)
         }
         keys += key
-        heldItem.getTagCompound.setString(Settings.namespace + "key", key)
-        heldItem.getTagCompound.setString(Settings.namespace + "server", node.address)
+        heldItem.getTag.putString(Settings.namespace + "key", key)
+        heldItem.getTag.putString(Settings.namespace + "server", node.address)
         rack.markChanged(slot)
-        player.inventory.markDirty()
+        player.inventory.setChanged()
       }
       true
     }
@@ -178,20 +173,20 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   private final val KeyboardTag = Settings.namespace + "keyboard"
   private final val KeysTag = Settings.namespace + "keys"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    if (!rack.world.isRemote) {
-      node.load(nbt)
+  override def loadData(nbt: CompoundNBT): Unit = {
+    if (!rack.world.isClientSide) {
+      node.loadData(nbt)
     }
-    buffer.load(nbt.getCompoundTag(BufferTag))
-    keyboard.load(nbt.getCompoundTag(KeyboardTag))
+    buffer.loadData(nbt.getCompound(BufferTag))
+    keyboard.loadData(nbt.getCompound(KeyboardTag))
     keys.clear()
-    nbt.getTagList(KeysTag, NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.getString)
+    nbt.getList(KeysTag, NBT.TAG_STRING).foreach((tag: StringNBT) => keys += tag.getAsString)
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    node.save(nbt)
-    nbt.setNewCompoundTag(BufferTag, buffer.save)
-    nbt.setNewCompoundTag(KeyboardTag, keyboard.save)
+  override def saveData(nbt: CompoundNBT): Unit = {
+    node.saveData(nbt)
+    nbt.setNewCompoundTag(BufferTag, buffer.saveData)
+    nbt.setNewCompoundTag(KeyboardTag, keyboard.saveData)
     nbt.setNewTagList(KeysTag, keys)
   }
 
@@ -201,7 +196,7 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    if (world.isRemote || (node.address != null && node.network != null)) {
+    if (world.isClientSide || (node.address != null && node.network != null)) {
       buffer.update()
     }
   }
@@ -216,12 +211,12 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(buffer.node, keyboard.node)
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = Array(buffer.node, keyboard.node)
 
   // ----------------------------------------------------------------------- //
   // LifeCycle
 
-  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.world.isRemote) state match {
+  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.world.isClientSide) state match {
     case Lifecycle.LifecycleState.Initialized =>
       TerminalServer.loaded.add(this)
     case Lifecycle.LifecycleState.Disposed =>

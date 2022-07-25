@@ -1,8 +1,9 @@
 package li.cil.oc.integration.appeng
 
+import java.util.Optional
 import javax.annotation.Nonnull
 
-import appeng.api.AEApi
+import appeng.api._
 import appeng.api.networking.IGrid
 import appeng.api.networking.crafting.ICraftingGrid
 import appeng.api.networking.energy.IEnergyGrid
@@ -12,57 +13,57 @@ import appeng.api.storage.data.{IAEFluidStack, IAEItemStack}
 import appeng.api.storage.IStorageHelper
 import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.versioning.VersionRange
-import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.ModList
+import net.minecraftforge.forgespi.language.MavenVersionAdapter
+import org.apache.maven.artifact.versioning.VersionRange
 
-object AEUtil {
-  val versionsWithNewItemDefinitionAPI: VersionRange = VersionRange.createFromVersionSpec("[rv6-stable-5,)")
+@AEAddon
+object AEUtil extends IAEAddon {
+  var aeApi: Option[IAppEngApi] = None
 
-  val itemStorageChannel: IItemStorageChannel = AEApi.instance.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
-  val fluidStorageChannel: IFluidStorageChannel = AEApi.instance.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
+  private def optionToScala[T](opt: Optional[T]): Option[T] = if (opt.isPresent) Some(opt.get) else None
 
-  def useNewItemDefinitionAPI: Boolean = versionsWithNewItemDefinitionAPI.containsVersion(
-    Loader.instance.getIndexedModList.get(Mods.AppliedEnergistics2.id).getProcessedVersion)
-
-  // ----------------------------------------------------------------------- //
-
-  def controllerClass: Class[_] = {
-    if (AEApi.instance != null) {
-      val maybe = AEApi.instance.definitions.blocks.controller.maybeEntity
-      if (maybe.isPresent)
-        maybe.get()
-      else
-        null: Class[_]
-    }
-    else null: Class[_]
+  def onAPIAvailable(aeApi: IAppEngApi) {
+    AEUtil.aeApi = Some(aeApi)
+    itemStorageChannel = aeApi.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
+    fluidStorageChannel = aeApi.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
   }
 
-  // ----------------------------------------------------------------------- //
+  val versionsWithNewItemDefinitionAPI: VersionRange = MavenVersionAdapter.createFromVersionSpec("[rv6-stable-5,)")
 
-  def interfaceClass: Class[_] =
-    if (AEApi.instance != null)
-      AEApi.instance.definitions.blocks.iface.maybeEntity.get()
-    else null: Class[_]
+  var itemStorageChannel: IItemStorageChannel = null
+  var fluidStorageChannel: IFluidStorageChannel = null
 
-  // ----------------------------------------------------------------------- //
-
-  def isController(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.blocks.controller.isSameAs(stack)
+  def useNewItemDefinitionAPI: Boolean = optionToScala(ModList.get.getModContainerById(Mods.AppliedEnergistics2.id)).
+    filter(container => versionsWithNewItemDefinitionAPI.containsVersion(container.getModInfo.getVersion)).isDefined
 
   // ----------------------------------------------------------------------- //
 
-  def isExportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.exportBus.isSameAs(stack)
+  def controllerClass: Class[_] = aeApi.flatMap(api => optionToScala(api.definitions.blocks.controller.maybeEntity)).orNull
 
   // ----------------------------------------------------------------------- //
 
-  def isImportBus(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.importBus.isSameAs(stack)
+  def interfaceClass: Class[_] = aeApi.map(api => api.definitions.blocks.iface.maybeEntity.get).orNull
 
   // ----------------------------------------------------------------------- //
 
-  def isBlockInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.blocks.iface.isSameAs(stack)
+  def isController(stack: ItemStack): Boolean = stack != null && aeApi.filter(_.definitions.blocks.controller.isSameAs(stack)).isDefined
 
   // ----------------------------------------------------------------------- //
 
-  def isPartInterface(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && AEApi.instance.definitions.parts.iface.isSameAs(stack)
+  def isExportBus(stack: ItemStack): Boolean = stack != null && aeApi.filter(_.definitions.parts.exportBus.isSameAs(stack)).isDefined
+
+  // ----------------------------------------------------------------------- //
+
+  def isImportBus(stack: ItemStack): Boolean = stack != null && aeApi.filter(_.definitions.parts.importBus.isSameAs(stack)).isDefined
+
+  // ----------------------------------------------------------------------- //
+
+  def isBlockInterface(stack: ItemStack): Boolean = stack != null && aeApi.filter(_.definitions.blocks.iface.isSameAs(stack)).isDefined
+
+  // ----------------------------------------------------------------------- //
+
+  def isPartInterface(stack: ItemStack): Boolean = stack != null && aeApi.filter(_.definitions.parts.iface.isSameAs(stack)).isDefined
 
   // ----------------------------------------------------------------------- //
 

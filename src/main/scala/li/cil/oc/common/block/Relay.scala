@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class Relay extends SimpleBlock with traits.GUI with traits.PowerAcceptor {
@@ -10,5 +11,5 @@ class Relay extends SimpleBlock with traits.GUI with traits.PowerAcceptor {
 
   override def energyThroughput = Settings.get.accessPointRate
 
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Relay()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Relay()
 }

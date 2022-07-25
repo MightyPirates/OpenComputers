@@ -10,13 +10,11 @@ object ConverterFluidStack extends api.driver.Converter {
   override def convert(value: scala.Any, output: util.Map[AnyRef, AnyRef]) =
     value match {
       case stack: net.minecraftforge.fluids.FluidStack =>
-        output += "amount" -> Int.box(stack.amount)
-        output += "hasTag" -> Boolean.box(stack.tag != null)
+        output += "amount" -> Int.box(stack.getAmount)
+        output += "hasTag" -> Boolean.box(stack.hasTag)
         val fluid = stack.getFluid
-        if (fluid != null) {
-          output += "name" -> fluid.getName
-          output += "label" -> fluid.getLocalizedName(stack)
-        }
+        output += "name" -> fluid.getRegistryName.toString
+        output += "label" -> fluid.getAttributes.getDisplayName(stack)
       case _ =>
     }
 }

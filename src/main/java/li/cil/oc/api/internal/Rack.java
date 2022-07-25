@@ -4,7 +4,7 @@ import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 /**
  * This interface is implemented by the rack tile entity.
@@ -48,7 +48,7 @@ public interface Rack extends SidedEnvironment, EnvironmentHost, Rotatable, IInv
      * @param slot the slot of the mountable to get the data for.
      * @return the data of the mountable in that slot, or <tt>null</tt>.
      */
-    NBTTagCompound getMountableData(int slot);
+    CompoundNBT getMountableData(int slot);
 
     /**
      * Mark the mountable in the specified slot as changed.

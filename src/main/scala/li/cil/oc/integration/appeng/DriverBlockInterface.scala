@@ -18,15 +18,15 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverBlockInterface extends DriverSidedTileEntity {
   def getTileEntityClass: Class[_] = AEUtil.interfaceClass
 
-  def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntity with ISegmentedInventory with IActionHost with IGridHost])
+  def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment =
+    new Environment(world.getBlockEntity(pos).asInstanceOf[TileEntity with ISegmentedInventory with IActionHost with IGridHost])
 
   final class Environment(val tile: TileEntity with ISegmentedInventory with IActionHost with IGridHost) extends ManagedTileEntityEnvironment[TileEntity with ISegmentedInventory with IActionHost](tile, "me_interface") with NamedBlock with NetworkControl[TileEntity with ISegmentedInventory with IActionHost with IGridHost] {
     override def preferredName = "me_interface"

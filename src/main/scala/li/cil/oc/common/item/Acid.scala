@@ -3,36 +3,37 @@ package li.cil.oc.common.item
 import javax.annotation.Nonnull
 
 import li.cil.oc.api
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumAction
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.UseAction
 import net.minecraft.item.ItemStack
-import net.minecraft.potion.Potion
-import net.minecraft.potion.PotionEffect
+import net.minecraft.potion.Effect
+import net.minecraft.potion.Effects
+import net.minecraft.potion.EffectInstance
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Hand
 import net.minecraft.world.World
 
 class Acid(val parent: Delegator) extends traits.Delegate {
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    player.setActiveHand(if (player.getHeldItemMainhand == stack) EnumHand.MAIN_HAND else EnumHand.OFF_HAND)
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    player.startUsingItem(if (player.getItemInHand(Hand.MAIN_HAND) == stack) Hand.MAIN_HAND else Hand.OFF_HAND)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 
-  override def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.DRINK
+  override def getUseAnimation(stack: ItemStack): UseAction = UseAction.DRINK
 
   override def getMaxItemUseDuration(stack: ItemStack): Int = 32
 
-  override def onItemUseFinish(stack: ItemStack, world: World, entity: EntityLivingBase): ItemStack = {
+  override def finishUsingItem(stack: ItemStack, world: World, entity: LivingEntity): ItemStack = {
     entity match {
-      case player: EntityPlayer =>
-        if (!world.isRemote) {
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("blindness"), 200))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("poison"), 100))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 600))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("nausea"), 1200))
-          player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("saturation"), 2000))
+      case player: PlayerEntity =>
+        if (!world.isClientSide) {
+          player.addEffect(new EffectInstance(Effects.BLINDNESS, 200))
+          player.addEffect(new EffectInstance(Effects.POISON, 100))
+          player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 600))
+          player.addEffect(new EffectInstance(Effects.CONFUSION, 1200))
+          player.addEffect(new EffectInstance(Effects.SATURATION, 2000))
 
           // Remove nanomachines if installed.
           api.Nanomachines.uninstallController(player)

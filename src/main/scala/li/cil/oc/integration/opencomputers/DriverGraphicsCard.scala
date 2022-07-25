@@ -19,7 +19,7 @@ object DriverGraphicsCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.GraphicsCardTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else tier(stack) match {
       case Tier.One => new component.GraphicsCard(Tier.One)
       case Tier.Two => new component.GraphicsCard(Tier.Two)

@@ -1,7 +1,7 @@
 package li.cil.oc.api.manual;
 
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Allows defining a renderer for a manual tab.
@@ -21,6 +21,6 @@ public interface TabIconRenderer {
      * This should render something in a 16x16 area. The OpenGL state has been
      * adjusted so that drawing starts at (0,0,0), and should go to (16,16,0).
      */
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     void render();
 }

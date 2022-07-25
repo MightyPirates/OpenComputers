@@ -29,7 +29,7 @@ class Tablet(val tablet: TabletWrapper) extends AbstractManagedEnvironment with 
     DeviceAttribute.Description -> "Tablet",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "Jogger",
-    DeviceAttribute.Capacity -> tablet.getSizeInventory.toString
+    DeviceAttribute.Capacity -> tablet.getContainerSize.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
@@ -37,8 +37,8 @@ class Tablet(val tablet: TabletWrapper) extends AbstractManagedEnvironment with 
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function():number -- Gets the pitch of the player holding the tablet.""")
-  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationPitch)
+  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.xRot)
   
   @Callback(doc = """function():number -- Gets the yaw of the player holding the tablet.""")
-  def getYaw(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationYaw)
+  def getYaw(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.yRot)
 }

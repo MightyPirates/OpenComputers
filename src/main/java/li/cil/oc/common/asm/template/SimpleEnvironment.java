@@ -2,14 +2,20 @@ package li.cil.oc.common.asm.template;
 
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Node;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 
 // This is a template implementation of methods injected into classes that are
 // marked for component functionality. These methods will be copied into tile
 // entities marked as simple components as necessary by the class transformer.
 @SuppressWarnings("unused")
 public abstract class SimpleEnvironment extends TileEntity implements SimpleComponentImpl {
+    public SimpleEnvironment(TileEntityType<?> type) {
+        super(type);
+    }
+    
     @Override
     public Node node() {
         return StaticSimpleEnvironment.node(this);
@@ -33,28 +39,28 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
     // instead of plain overwriting them.
 
     @Override
-    public void validate() {
+    public void clearRemoved() {
         StaticSimpleEnvironment.validate(this);
     }
 
     @Override
-    public void invalidate() {
+    public void setRemoved() {
         StaticSimpleEnvironment.invalidate(this);
     }
 
     @Override
-    public void onChunkUnload() {
-        StaticSimpleEnvironment.onChunkUnload(this);
+    public void onChunkUnloaded() {
+        StaticSimpleEnvironment.onChunkUnloaded(this);
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        StaticSimpleEnvironment.readFromNBT(this, nbt);
+    public void load(BlockState state, CompoundNBT nbt) {
+        StaticSimpleEnvironment.load(this, state, nbt);
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        return StaticSimpleEnvironment.writeToNBT(this, nbt);
+    public CompoundNBT save(CompoundNBT nbt) {
+        return StaticSimpleEnvironment.save(this, nbt);
     }
 
     // The following methods are only injected if their real versions do not
@@ -64,22 +70,22 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
     // them through an interface, and need no runtime reflection.
 
     public void validate_OpenComputers() {
-        super.validate();
+        super.clearRemoved();
     }
 
     public void invalidate_OpenComputers() {
-        super.invalidate();
+        super.setRemoved();
     }
 
-    public void onChunkUnload_OpenComputers() {
-        super.onChunkUnload();
+    public void onChunkUnloaded_OpenComputers() {
+        super.onChunkUnloaded();
     }
 
-    public void readFromNBT_OpenComputers(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    public void readFromNBT_OpenComputers(BlockState state, CompoundNBT nbt) {
+        super.load(state, nbt);
     }
 
-    public NBTTagCompound writeToNBT_OpenComputers(NBTTagCompound nbt) {
-        return super.writeToNBT(nbt);
+    public CompoundNBT writeToNBT_OpenComputers(CompoundNBT nbt) {
+        return super.save(nbt);
     }
 }

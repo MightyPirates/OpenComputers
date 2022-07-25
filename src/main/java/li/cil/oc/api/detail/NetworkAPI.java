@@ -5,14 +5,16 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Packet;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.network.WirelessEndpoint;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.World;
 
 public interface NetworkAPI {
     /**
-     * Convenience overload for {@link #joinOrCreateNetwork(IBlockAccess, BlockPos)}.
+     * Convenience overload for {@link #joinOrCreateNetwork(IBlockReader, BlockPos)}.
      * <p/>
      * If the tile entity implements {@link Environment} its one node will be
      * connected to any existing adjacent tile entity nodes. If none exist a
@@ -34,7 +36,7 @@ public interface NetworkAPI {
      * @param world the world containing the location to connect.
      * @param pos   the position at which to update the network.
      */
-    void joinOrCreateNetwork(IBlockAccess world, BlockPos pos);
+    void joinOrCreateNetwork(IBlockReader world, BlockPos pos);
 
     /**
      * Creates a new network with the specified node as its initial node.
@@ -101,7 +103,7 @@ public interface NetworkAPI {
      * @param endpoint  the endpoint to remove from the wireless network.
      * @param dimension the dimension with the wireless network to remove the endpoint from.
      */
-    void leaveWirelessNetwork(WirelessEndpoint endpoint, int dimension);
+    void leaveWirelessNetwork(WirelessEndpoint endpoint, RegistryKey<World> dimension);
 
     /**
      * Sends a packet via the wireless network.
@@ -182,5 +184,5 @@ public interface NetworkAPI {
      * @param nbt the tag to load the packet from.
      * @return the loaded packet.
      */
-    Packet newPacket(NBTTagCompound nbt);
+    Packet newPacket(CompoundNBT nbt);
 }

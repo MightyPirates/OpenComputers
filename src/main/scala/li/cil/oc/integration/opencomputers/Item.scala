@@ -10,7 +10,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.common.Tier
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.annotation.tailrec
 
@@ -18,13 +18,13 @@ trait Item extends DriverItem {
   def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
     worksWith(stack) && !Registry.blacklist.exists {
       case (blacklistedStack, blacklistedHost) =>
-        stack.isItemEqual(blacklistedStack) &&
+        stack.sameItem(blacklistedStack) &&
           blacklistedHost.exists(_.isAssignableFrom(host))
     }
 
   override def tier(stack: ItemStack) = Tier.One
 
-  override def dataTag(stack: ItemStack): NBTTagCompound = Item.dataTag(stack)
+  override def dataTag(stack: ItemStack): CompoundNBT = Item.dataTag(stack)
 
   protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*): Boolean = items.filter(_ != null).contains(api.Items.get(stack))
 
@@ -46,34 +46,31 @@ trait Item extends DriverItem {
 }
 
 object Item {
-  def dataTag(stack: ItemStack): NBTTagCompound = {
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
+  def dataTag(stack: ItemStack): CompoundNBT = {
+    val nbt = stack.getOrCreateTag
+    if (!nbt.contains(Settings.namespace + "data")) {
+      nbt.put(Settings.namespace + "data", new CompoundNBT())
     }
-    val nbt = stack.getTagCompound
-    if (!nbt.hasKey(Settings.namespace + "data")) {
-      nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
-    }
-    nbt.getCompoundTag(Settings.namespace + "data")
+    nbt.getCompound(Settings.namespace + "data")
   }
 
   @tailrec
-  private def getTag(tagCompound: NBTTagCompound, keys: Array[String]): Option[NBTTagCompound] = {
+  private def getTag(tagCompound: CompoundNBT, keys: Array[String]): Option[CompoundNBT] = {
     if (keys.length == 0) Option(tagCompound)
-    else if (!tagCompound.hasKey(keys(0))) None
-    else getTag(tagCompound.getCompoundTag(keys(0)), keys.drop(1))
+    else if (!tagCompound.contains(keys(0))) None
+    else getTag(tagCompound.getCompound(keys(0)), keys.drop(1))
   }
 
-  private def getTag(stack: ItemStack, keys: Array[String]): Option[NBTTagCompound] = {
+  private def getTag(stack: ItemStack, keys: Array[String]): Option[CompoundNBT] = {
     if (stack == null || stack.getCount == 0 || stack == ItemStack.EMPTY) None
-    else if (!stack.hasTagCompound) None
-    else getTag(stack.getTagCompound, keys)
+    else if (!stack.hasTag) None
+    else getTag(stack.getTag, keys)
   }
 
   def address(stack: ItemStack): Option[String] = {
     val addressKey = "address"
     getTag(stack, Array(Settings.namespace + "data", "node")) match {
-      case Some(tag) if tag.hasKey(addressKey) => Option(tag.getString(addressKey))
+      case Some(tag) if tag.contains(addressKey) => Option(tag.getString(addressKey))
       case _ => None
     }
   }

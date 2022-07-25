@@ -4,20 +4,22 @@ import java.util
 
 import li.cil.oc.Settings
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 class UpgradeTank(val parent: Delegator) extends traits.Delegate with traits.ItemTier {
-  @SideOnly(Side.CLIENT) override
-  def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag): Unit = {
-    if (stack.hasTagCompound) {
-      FluidStack.loadFluidStackFromNBT(stack.getTagCompound.getCompoundTag(Settings.namespace + "data")) match {
+  @OnlyIn(Dist.CLIENT) override
+  def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag): Unit = {
+    if (stack.hasTag) {
+      FluidStack.loadFluidStackFromNBT(stack.getTag.getCompound(Settings.namespace + "data")) match {
         case stack: FluidStack =>
-          tooltip.add(stack.getFluid.getLocalizedName(stack) + ": " + stack.amount + "/16000")
+          tooltip.add(new StringTextComponent(stack.getFluid.getAttributes.getDisplayName(stack).getString + ": " + stack.getAmount + "/16000"))
         case _ =>
       }
     }

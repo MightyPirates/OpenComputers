@@ -10,13 +10,14 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
-import net.minecraftforge.oredict.OreDictionary
+
+import scala.collection.convert.WrapAsScala._
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
   @Callback(doc = """function([slot:number]):table -- Get a description of the stack in the specified slot or the selected slot.""")
   def getStackInInternalSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val slot = optSlot(args, 0)
-    result(inventory.getStackInSlot(slot))
+    result(inventory.getItem(slot))
   }
   else result(Unit, "not enabled in config")
 
@@ -24,7 +25,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def isEquivalentTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (SomeStack(stackA), SomeStack(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
+      case (SomeStack(stackA), SomeStack(stackB)) => stackA.getItem.getTags.intersect(stackB.getItem.getTags).nonEmpty
       case (EmptyStack, EmptyStack) => true
       case _ => false
     })
@@ -34,7 +35,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def storeInternal(context: Context, args: Arguments): Array[AnyRef] = {
     val localSlot = args.checkSlot(inventory, 0)
     val dbAddress = args.checkString(1)
-    val localStack = inventory.getStackInSlot(localSlot)
+    val localStack = inventory.getItem(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
       val nonEmpty = database.getStackInSlot(dbSlot) != ItemStack.EMPTY // zero size stacks!
@@ -47,7 +48,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def compareToDatabase(context: Context, args: Arguments): Array[AnyRef] = {
     val localSlot = args.checkSlot(inventory, 0)
     val dbAddress = args.checkString(1)
-    val localStack = inventory.getStackInSlot(localSlot)
+    val localStack = inventory.getItem(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
       val dbStack = database.getStackInSlot(dbSlot)

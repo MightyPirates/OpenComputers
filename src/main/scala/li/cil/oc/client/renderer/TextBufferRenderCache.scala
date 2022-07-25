@@ -6,14 +6,14 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.event.TickEvent.ClientTickEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] {
@@ -34,12 +34,12 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  def render(buffer: TextBufferRenderData) {
+  def render(stack: MatrixStack, buffer: TextBufferRenderData) {
     currentBuffer = buffer
-    compileOrDraw(cache.get(currentBuffer, this))
+    compileOrDraw(stack, cache.get(currentBuffer, this))
   }
 
-  private def compileOrDraw(list: Int) = {
+  private def compileOrDraw(stack: MatrixStack, list: Int) = {
     if (currentBuffer.dirty) {
       RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
 
@@ -55,7 +55,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
         RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
       }
 
-      renderer.drawBuffer(currentBuffer.data, currentBuffer.viewport._1, currentBuffer.viewport._2)
+      renderer.drawBuffer(stack, currentBuffer.data, currentBuffer.viewport._1, currentBuffer.viewport._2)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
 
@@ -71,11 +71,11 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     }
     else {
       GL11.glCallList(list)
-      GlStateManager.enableTexture2D()
-      GlStateManager.depthMask(true)
-      GlStateManager.color(1, 1, 1, 1)
+      RenderSystem.enableTexture()
+      RenderSystem.depthMask(true)
+      RenderSystem.color4f(1, 1, 1, 1)
 
-      // Because display lists and the GlStateManager don't like each other, apparently.
+      // Because display lists and the RenderSystem don't like each other, apparently.
       GL11.glEnable(GL11.GL_TEXTURE_2D)
       RenderState.bindTexture(0)
       GL11.glDepthMask(true)
@@ -94,7 +94,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   def call = {
     RenderState.checkError(getClass.getName + ".call: entering (aka: wasntme)")
 
-    val list = GLAllocation.generateDisplayLists(1)
+    val list = GL11.glGenLists(1)
     currentBuffer.dirty = true // Force compilation.
 
     RenderState.checkError(getClass.getName + ".call: leaving")
@@ -105,7 +105,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   def onRemoval(e: RemovalNotification[TileEntity, Int]) {
     RenderState.checkError(getClass.getName + ".onRemoval: entering (aka: wasntme)")
 
-    GLAllocation.deleteDisplayLists(e.getValue)
+    GL11.glDeleteLists(e.getValue, 1)
 
     RenderState.checkError(getClass.getName + ".onRemoval: leaving")
   }

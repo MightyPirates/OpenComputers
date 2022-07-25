@@ -7,9 +7,13 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Hand
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.math.vector.Vector4f
+import net.minecraft.util.math.vector.Matrix4f
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
 object MFUTargetRenderer {
@@ -18,28 +22,30 @@ object MFUTargetRenderer {
 
   @SubscribeEvent
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
-    val mc = Minecraft.getMinecraft
+    val mc = Minecraft.getInstance
     val player = mc.player
     if (player == null) return
-    player.getHeldItemMainhand match {
-      case stack: ItemStack if api.Items.get(stack) == mfu && stack.hasTagCompound =>
-        val data = stack.getTagCompound
-        if (data.hasKey(Settings.namespace + "coord", NBT.TAG_INT_ARRAY)) {
-          val Array(x, y, z, dimension, side) = data.getIntArray(Settings.namespace + "coord")
-          if (player.getEntityWorld.provider.getDimension != dimension) return
-          if (player.getDistance(x, y, z) > 64) return
+    player.getItemInHand(Hand.MAIN_HAND) match {
+      case stack: ItemStack if api.Items.get(stack) == mfu && stack.hasTag =>
+        val data = stack.getTag
+        if (data.contains(Settings.namespace + "coord", NBT.TAG_INT_ARRAY)) {
+          val dimension = new ResourceLocation(data.getString(Settings.namespace + "dimension"))
+          if (!player.level.dimension.location.equals(dimension)) return
+          val Array(x, y, z, side) = data.getIntArray(Settings.namespace + "coord")
+          if (player.distanceToSqr(x, y, z) > 64 * 64) return
 
-          val bounds = BlockPosition(x, y, z).bounds.grow(0.1, 0.1, 0.1)
+          val bounds = BlockPosition(x, y, z).bounds.inflate(0.1, 0.1, 0.1)
 
-          val px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks
-          val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks
-          val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks
+          val px = player.xOld + (player.getX - player.xOld) * e.getPartialTicks
+          val py = player.yOld + (player.getY - player.yOld) * e.getPartialTicks
+          val pz = player.zOld + (player.getZ - player.zOld) * e.getPartialTicks
 
           RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
           GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-          GL11.glPushMatrix()
-          GL11.glTranslated(-px, -py, -pz)
+          val matrix = e.getMatrixStack
+          matrix.pushPose()
+          matrix.translate(-px, -py, -pz)
           RenderState.makeItBlend()
           GL11.glDisable(GL11.GL_LIGHTING)
           GL11.glDisable(GL11.GL_TEXTURE_2D)
@@ -52,11 +58,11 @@ object MFUTargetRenderer {
             ((color >> 0) & 0xFF) / 255f,
             0.25f)
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE)
-          drawBox(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ)
+          drawBox(matrix.last.pose, new Vector4f(), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat, bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat)
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
-          drawFace(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, side)
+          drawFace(matrix.last.pose, new Vector4f(), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat, bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat, side)
 
-          GL11.glPopMatrix()
+          matrix.popPose()
           GL11.glPopAttrib()
 
           RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
@@ -65,88 +71,94 @@ object MFUTargetRenderer {
     }
   }
 
-  private def drawBox(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double) {
+  def glVertex(matrix: Matrix4f, temp: Vector4f, x: Float, y: Float, z: Float) {
+    temp.set(x, y, z, 1)
+    temp.transform(matrix)
+    GL11.glVertex3f(temp.x, temp.y, temp.z)
+  }
+
+  def drawBox(matrix: Matrix4f, temp: Vector4f, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float) {
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(minX, minY, minZ)
-    GL11.glVertex3d(minX, minY, maxZ)
-    GL11.glVertex3d(maxX, minY, maxZ)
-    GL11.glVertex3d(maxX, minY, minZ)
+    glVertex(matrix, temp, minX, minY, minZ)
+    glVertex(matrix, temp, minX, minY, maxZ)
+    glVertex(matrix, temp, maxX, minY, maxZ)
+    glVertex(matrix, temp, maxX, minY, minZ)
     GL11.glEnd()
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(minX, minY, minZ)
-    GL11.glVertex3d(maxX, minY, minZ)
-    GL11.glVertex3d(maxX, maxY, minZ)
-    GL11.glVertex3d(minX, maxY, minZ)
+    glVertex(matrix, temp, minX, minY, minZ)
+    glVertex(matrix, temp, maxX, minY, minZ)
+    glVertex(matrix, temp, maxX, maxY, minZ)
+    glVertex(matrix, temp, minX, maxY, minZ)
     GL11.glEnd()
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(maxX, maxY, minZ)
-    GL11.glVertex3d(maxX, maxY, maxZ)
-    GL11.glVertex3d(minX, maxY, maxZ)
-    GL11.glVertex3d(minX, maxY, minZ)
+    glVertex(matrix, temp, maxX, maxY, minZ)
+    glVertex(matrix, temp, maxX, maxY, maxZ)
+    glVertex(matrix, temp, minX, maxY, maxZ)
+    glVertex(matrix, temp, minX, maxY, minZ)
     GL11.glEnd()
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(maxX, maxY, maxZ)
-    GL11.glVertex3d(maxX, minY, maxZ)
-    GL11.glVertex3d(minX, minY, maxZ)
-    GL11.glVertex3d(minX, maxY, maxZ)
+    glVertex(matrix, temp, maxX, maxY, maxZ)
+    glVertex(matrix, temp, maxX, minY, maxZ)
+    glVertex(matrix, temp, minX, minY, maxZ)
+    glVertex(matrix, temp, minX, maxY, maxZ)
     GL11.glEnd()
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(minX, minY, minZ)
-    GL11.glVertex3d(minX, maxY, minZ)
-    GL11.glVertex3d(minX, maxY, maxZ)
-    GL11.glVertex3d(minX, minY, maxZ)
+    glVertex(matrix, temp, minX, minY, minZ)
+    glVertex(matrix, temp, minX, maxY, minZ)
+    glVertex(matrix, temp, minX, maxY, maxZ)
+    glVertex(matrix, temp, minX, minY, maxZ)
     GL11.glEnd()
     GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex3d(maxX, minY, minZ)
-    GL11.glVertex3d(maxX, minY, maxZ)
-    GL11.glVertex3d(maxX, maxY, maxZ)
-    GL11.glVertex3d(maxX, maxY, minZ)
+    glVertex(matrix, temp, maxX, minY, minZ)
+    glVertex(matrix, temp, maxX, minY, maxZ)
+    glVertex(matrix, temp, maxX, maxY, maxZ)
+    glVertex(matrix, temp, maxX, maxY, minZ)
     GL11.glEnd()
   }
 
-  private def drawFace(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double, side: Int): Unit = {
+  private def drawFace(matrix: Matrix4f, temp: Vector4f, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, side: Int): Unit = {
     side match {
       case 0 => // Down
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(minX, minY, minZ)
-        GL11.glVertex3d(minX, minY, maxZ)
-        GL11.glVertex3d(maxX, minY, maxZ)
-        GL11.glVertex3d(maxX, minY, minZ)
+        glVertex(matrix, temp, minX, minY, minZ)
+        glVertex(matrix, temp, minX, minY, maxZ)
+        glVertex(matrix, temp, maxX, minY, maxZ)
+        glVertex(matrix, temp, maxX, minY, minZ)
         GL11.glEnd()
       case 1 => // Up
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(maxX, maxY, minZ)
-        GL11.glVertex3d(maxX, maxY, maxZ)
-        GL11.glVertex3d(minX, maxY, maxZ)
-        GL11.glVertex3d(minX, maxY, minZ)
+        glVertex(matrix, temp, maxX, maxY, minZ)
+        glVertex(matrix, temp, maxX, maxY, maxZ)
+        glVertex(matrix, temp, minX, maxY, maxZ)
+        glVertex(matrix, temp, minX, maxY, minZ)
         GL11.glEnd()
       case 2 => // North
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(minX, minY, minZ)
-        GL11.glVertex3d(maxX, minY, minZ)
-        GL11.glVertex3d(maxX, maxY, minZ)
-        GL11.glVertex3d(minX, maxY, minZ)
+        glVertex(matrix, temp, minX, minY, minZ)
+        glVertex(matrix, temp, maxX, minY, minZ)
+        glVertex(matrix, temp, maxX, maxY, minZ)
+        glVertex(matrix, temp, minX, maxY, minZ)
         GL11.glEnd()
       case 3 => // South
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(maxX, maxY, maxZ)
-        GL11.glVertex3d(maxX, minY, maxZ)
-        GL11.glVertex3d(minX, minY, maxZ)
-        GL11.glVertex3d(minX, maxY, maxZ)
+        glVertex(matrix, temp, maxX, maxY, maxZ)
+        glVertex(matrix, temp, maxX, minY, maxZ)
+        glVertex(matrix, temp, minX, minY, maxZ)
+        glVertex(matrix, temp, minX, maxY, maxZ)
         GL11.glEnd()
       case 4 => // East
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(minX, minY, minZ)
-        GL11.glVertex3d(minX, maxY, minZ)
-        GL11.glVertex3d(minX, maxY, maxZ)
-        GL11.glVertex3d(minX, minY, maxZ)
+        glVertex(matrix, temp, minX, minY, minZ)
+        glVertex(matrix, temp, minX, maxY, minZ)
+        glVertex(matrix, temp, minX, maxY, maxZ)
+        glVertex(matrix, temp, minX, minY, maxZ)
         GL11.glEnd()
       case 5 => // West
         GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex3d(maxX, minY, minZ)
-        GL11.glVertex3d(maxX, minY, maxZ)
-        GL11.glVertex3d(maxX, maxY, maxZ)
-        GL11.glVertex3d(maxX, maxY, minZ)
+        glVertex(matrix, temp, maxX, minY, minZ)
+        glVertex(matrix, temp, maxX, minY, maxZ)
+        glVertex(matrix, temp, maxX, maxY, maxZ)
+        glVertex(matrix, temp, maxX, maxY, minZ)
         GL11.glEnd()
       case _ => // WTF?
     }

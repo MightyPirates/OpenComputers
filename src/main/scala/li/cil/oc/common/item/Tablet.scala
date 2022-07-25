@@ -37,24 +37,32 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.block.model.ModelBakery
-import net.minecraft.client.renderer.block.model.ModelResourceLocation
+import net.minecraft.client.renderer.model.ModelBakery
+import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
-import net.minecraft.item.EnumRarity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.{PlayerEntity, ServerPlayerEntity}
+import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.server.integrated.IntegratedServer
-import net.minecraft.util._
+import net.minecraft.util.ActionResult
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Util
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.event.TickEvent.ClientTickEvent
+import net.minecraftforge.event.TickEvent.ServerTickEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -69,21 +77,23 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   // ----------------------------------------------------------------------- //
 
-  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
       val info = new TabletData(stack)
       // Ignore/hide the screen.
       val components = info.items.drop(1)
       if (components.length > 1) {
-        tooltip.addAll(Tooltip.get("server.Components"))
+        for (curr <- Tooltip.get("server.Components")) {
+          tooltip.add(new StringTextComponent(curr))
+        }
         components.collect {
-          case component if !component.isEmpty => tooltip.add("- " + component.getDisplayName)
+          case component if !component.isEmpty => tooltip.add(new StringTextComponent("- " + component.getDisplayName))
         }
       }
     }
   }
 
-  override def rarity(stack: ItemStack): EnumRarity = {
+  override def rarity(stack: ItemStack): item.Rarity = {
     val data = new TabletData(stack)
     Rarity.byTier(data.tier)
   }
@@ -91,7 +101,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   override def showDurabilityBar(stack: ItemStack) = true
 
   override def durability(stack: ItemStack): Double = {
-    if (stack.hasTagCompound) {
+    if (stack.hasTag) {
       val data = Tablet.Client.getWeak(stack) match {
         case Some(wrapper) => wrapper.data
         case _ => new TabletData(stack)
@@ -103,7 +113,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   private def modelLocationFromState(running: Option[Boolean]) = {
     val suffix = running match {
       case Some(state) => if (state) "_on" else "_off"
@@ -112,7 +122,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Tablet + suffix, "inventory")
   }
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
     modelLocationFromState(Tablet.Client.getWeak(stack) match {
       case Some(tablet: TabletWrapper) => Some(tablet.data.isRunning)
@@ -120,11 +130,11 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     })
   }
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def registerModelLocations(): Unit = {
     for (state <- Seq(None, Some(true), Some(false))) {
       val location = modelLocationFromState(state)
-      ModelBakery.registerItemVariants(parent, new ResourceLocation(location.getResourceDomain + ":" + location.getResourcePath))
+      ModelLoader.addSpecialModel(new ResourceLocation(location.getNamespace + ":" + location.getPath))
     }
   }
 
@@ -135,7 +145,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     val data = new TabletData(stack)
     traits.Chargeable.applyCharge(amount, data.energy, data.maxEnergy, used => if (!simulate) {
       data.energy += used
-      data.save(stack)
+      data.saveData(stack)
     })
   }
 
@@ -143,46 +153,46 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean): Unit =
     entity match {
-      case player: EntityPlayer =>
+      case player: PlayerEntity =>
         // Play an audio cue to let players know when they finished analyzing a block.
-        if (world.isRemote && player.getItemInUseCount == TimeToAnalyze && api.Items.get(player.getActiveItemStack) == api.Items.get(Constants.ItemName.Tablet)) {
-          Audio.play(player.posX.toFloat, player.posY.toFloat + 2, player.posZ.toFloat, ".")
+        if (world.isClientSide && player.getUseItemRemainingTicks == TimeToAnalyze && api.Items.get(player.getUseItem) == api.Items.get(Constants.ItemName.Tablet)) {
+          Audio.play(player.getX.toFloat, player.getY.toFloat + 2, player.getZ.toFloat, ".")
         }
         Tablet.get(stack, player).update(world, player, slot, selected)
       case _ =>
     }
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): EnumActionResult = {
+  override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float): ActionResultType = {
     Tablet.currentlyAnalyzing = Some((position, side, hitX, hitY, hitZ))
     super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    player.setActiveHand(if (player.getHeldItemMainhand == stack) EnumHand.MAIN_HAND else EnumHand.OFF_HAND)
+  override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    player.startUsingItem(if (player.getItemInHand(Hand.MAIN_HAND) == stack) Hand.MAIN_HAND else Hand.OFF_HAND)
     true
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    player.setActiveHand(if (player.getHeldItemMainhand == stack) EnumHand.MAIN_HAND else EnumHand.OFF_HAND)
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    player.startUsingItem(if (player.getItemInHand(Hand.MAIN_HAND) == stack) Hand.MAIN_HAND else Hand.OFF_HAND)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 
   override def getMaxItemUseDuration(stack: ItemStack): Int = 72000
 
-  override def onPlayerStoppedUsing(stack: ItemStack, entity: EntityLivingBase, duration: Int): Unit = {
+  override def onPlayerStoppedUsing(stack: ItemStack, entity: LivingEntity, duration: Int): Unit = {
     entity match {
-      case player: EntityPlayer =>
-        val world = player.getEntityWorld
+      case player: PlayerEntity =>
+        val world = player.level
         val didAnalyze = getMaxItemUseDuration(stack) - duration >= TimeToAnalyze
         if (didAnalyze) {
-          if (!world.isRemote) {
+          if (!world.isClientSide) {
             Tablet.currentlyAnalyzing match {
               case Some((position, side, hitX, hitY, hitZ)) => try {
                 val computer = Tablet.get(stack, player).machine
                 if (computer.isRunning) {
-                  val data = new NBTTagCompound()
+                  val data = new CompoundNBT()
                   computer.node.sendToReachable("tablet.use", data, stack, player, position, side, Float.box(hitX), Float.box(hitY), Float.box(hitZ))
-                  if (!data.hasNoTags) {
+                  if (!data.isEmpty) {
                     computer.signal("tablet_use", data)
                   }
                 }
@@ -195,26 +205,26 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
           }
         }
         else {
-          if (player.isSneaking) {
-            if (!world.isRemote) {
+          if (player.isCrouching) {
+            if (!world.isClientSide) {
               val tablet = Tablet.Server.get(stack, player)
               tablet.machine.stop()
               if (tablet.data.tier > Tier.One) {
-                player.openGui(OpenComputers, GuiType.TabletInner.id, world, 0, 0, 0)
+                OpenComputers.openGui(player, GuiType.TabletInner.id, world, 0, 0, 0)
               }
             }
           }
           else {
-            if (!world.isRemote) {
+            if (!world.isClientSide) {
               val computer = Tablet.get(stack, player).machine
               computer.start()
               computer.lastError match {
-                case message if message != null => player.sendMessage(Localization.Analyzer.LastError(message))
+                case message if message != null => player.sendMessage(Localization.Analyzer.LastError(message), Util.NIL_UUID)
                 case _ =>
               }
             }
             else {
-              player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
+              OpenComputers.openGui(player, GuiType.Tablet.id, world, 0, 0, 0)
             }
           }
         }
@@ -229,24 +239,24 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   override def setCharge(stack: ItemStack, amount: Double): Unit = {
     val data = new TabletData(stack)
     data.energy = (0.0 max amount) min maxCharge(stack)
-    data.save(stack)
+    data.saveData(stack)
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentInventory with MachineHost with internal.Tablet {
+class TabletWrapper(var stack: ItemStack, var player: PlayerEntity) extends ComponentInventory with MachineHost with internal.Tablet {
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.
-  val world: World = player.world
+  val world: World = player.level
 
-  lazy val machine: api.machine.Machine = if (world.isRemote) null else Machine.create(this)
+  lazy val machine: api.machine.Machine = if (world.isClientSide) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet: component.Tablet = if (world.isRemote) null else new component.Tablet(this)
+  val tablet: component.Tablet = if (world.isClientSide) null else new component.Tablet(this)
 
   //// Client side only
-  private var isInitialized = !world.isRemote
+  private var isInitialized = !world.isClientSide
 
   var timesChanged: Int = 0
 
@@ -263,48 +273,45 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   def items: Array[ItemStack] = data.items
 
-  override def facing: EnumFacing = RotationHelper.fromYaw(player.rotationYaw)
+  override def facing: Direction = RotationHelper.fromYaw(player.yRot)
 
-  override def toLocal(value: EnumFacing): EnumFacing =
-    RotationHelper.toLocal(EnumFacing.NORTH, facing, value)
+  override def toLocal(value: Direction): Direction =
+    RotationHelper.toLocal(Direction.NORTH, facing, value)
 
-  override def toGlobal(value: EnumFacing): EnumFacing =
-    RotationHelper.toGlobal(EnumFacing.NORTH, facing, value)
+  override def toGlobal(value: Direction): Direction =
+    RotationHelper.toGlobal(Direction.NORTH, facing, value)
 
   def readFromNBT() {
-    if (stack.hasTagCompound) {
-      val data = stack.getTagCompound
-      load(data)
-      if (!world.isRemote) {
-        tablet.load(data.getCompoundTag(Settings.namespace + "component"))
-        machine.load(data.getCompoundTag(Settings.namespace + "data"))
+    if (stack.hasTag) {
+      val data = stack.getTag
+      loadData(data)
+      if (!world.isClientSide) {
+        tablet.loadData(data.getCompound(Settings.namespace + "component"))
+        machine.loadData(data.getCompound(Settings.namespace + "data"))
       }
     }
   }
 
   def writeToNBT(clearState: Boolean = true) {
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
-    }
-    val data = stack.getTagCompound
-    if (!world.isRemote) {
-      if (!data.hasKey(Settings.namespace + "data")) {
-        data.setTag(Settings.namespace + "data", new NBTTagCompound())
+    val data = stack.getOrCreateTag
+    if (!world.isClientSide) {
+      if (!data.contains(Settings.namespace + "data")) {
+        data.put(Settings.namespace + "data", new CompoundNBT())
       }
-      data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
-      data.setNewCompoundTag(Settings.namespace + "data", machine.save)
+      data.setNewCompoundTag(Settings.namespace + "component", tablet.saveData(_))
+      data.setNewCompoundTag(Settings.namespace + "data", machine.saveData(_))
 
       if (clearState) {
         // Force tablets into stopped state to avoid errors when trying to
         // load deleted machine states.
-        data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+        data.getCompound(Settings.namespace + "data").remove("state")
       }
     }
-    save(data)
+    saveData(data)
   }
 
   readFromNBT()
-  if (!world.isRemote) {
+  if (!world.isClientSide) {
     api.Network.joinNewNetwork(machine.node)
     val charge = Math.max(0, this.data.energy - tablet.node.globalBuffer)
     tablet.node.changeBuffer(charge)
@@ -350,9 +357,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def host: TabletWrapper = this
 
-  override def getSizeInventory: Int = items.length
+  override def getContainerSize: Int = items.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = slot == getSizeInventory - 1 && (Option(Driver.driverFor(stack, getClass)) match {
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = slot == getContainerSize - 1 && (Option(Driver.driverFor(stack, getClass)) match {
     case Some(driver) =>
       // Same special cases, similar as in robot, but allow keyboards,
       // because clip-on keyboards kinda seem to make sense, I guess.
@@ -362,20 +369,20 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     case _ => false
   })
 
-  override def isUsableByPlayer(player: EntityPlayer): Boolean = machine != null && machine.canInteract(player.getName)
+  override def stillValid(player: PlayerEntity): Boolean = machine != null && machine.canInteract(player.getName.getString)
 
-  override def markDirty(): Unit = {
-    data.save(stack)
-    player.inventory.markDirty()
+  override def setChanged(): Unit = {
+    data.saveData(stack)
+    player.inventory.setChanged()
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def xPosition: Double = player.posX
+  override def xPosition: Double = player.getX
 
-  override def yPosition: Double = player.posY + player.getEyeHeight
+  override def yPosition: Double = player.getY + player.getEyeHeight
 
-  override def zPosition: Double = player.posZ
+  override def zPosition: Double = player.getZ
 
   override def markChanged() {}
 
@@ -395,8 +402,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       case _ => Tier.None
     }
 
-  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case slot if !getStackInSlot(slot).isEmpty && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
+  override def internalComponents(): Iterable[ItemStack] = (0 until getContainerSize).collect {
+    case slot if !getItem(slot).isEmpty && isComponentSlot(slot, getItem(slot)) => getItem(slot)
   }
 
   override def componentSlot(address: String): Int = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
@@ -411,7 +418,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  def update(world: World, player: EntityPlayer, slot: Int, selected: Boolean) {
+  def update(world: World, player: PlayerEntity, slot: Int, selected: Boolean) {
     this.player = player
     if (!isInitialized) {
       isInitialized = true
@@ -428,8 +435,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
       client.PacketSender.sendMachineItemStateRequest(stack)
     }
-    if (!world.isRemote) {
-      if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (!world.isClientSide) {
+      if (isCreative && world.getGameTime % Settings.get.tickFrequency == 0) {
         machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
       }
       machine.update()
@@ -440,10 +447,10 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
       if (lastRunning != machine.isRunning) {
         lastRunning = machine.isRunning
-        markDirty()
+        setChanged()
 
         player match {
-          case mp: EntityPlayerMP => server.PacketSender.sendMachineItemState(mp, stack, machine.isRunning)
+          case mp: ServerPlayerEntity => server.PacketSender.sendMachineItemState(mp, stack, machine.isRunning)
           case _ =>
         }
 
@@ -459,53 +466,50 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    data.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    data.loadData(nbt)
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def saveData(nbt: CompoundNBT) {
     saveComponents()
-    data.save(nbt)
+    data.saveData(nbt)
   }
 }
 
 object Tablet {
   // This is super-hacky, but since it's only used on the client we get away
   // with storing context information for analyzing a block in the singleton.
-  var currentlyAnalyzing: Option[(BlockPosition, EnumFacing, Float, Float, Float)] = None
+  var currentlyAnalyzing: Option[(BlockPosition, Direction, Float, Float, Float)] = None
 
   def getId(stack: ItemStack): String = {
-
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
+    val data = stack.getOrCreateTag
+    if (!data.contains(Settings.namespace + "tablet")) {
+      data.putString(Settings.namespace + "tablet", UUID.randomUUID().toString)
     }
-    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
-    }
-    stack.getTagCompound.getString(Settings.namespace + "tablet")
+    data.getString(Settings.namespace + "tablet")
   }
 
-  def get(stack: ItemStack, holder: EntityPlayer): TabletWrapper = {
-    if (holder.world.isRemote) Client.get(stack, holder)
+  def get(stack: ItemStack, holder: PlayerEntity): TabletWrapper = {
+    if (holder.level.isClientSide) Client.get(stack, holder)
     else Server.get(stack, holder)
   }
 
   @SubscribeEvent
   def onWorldSave(e: WorldEvent.Save) {
-    Server.saveAll(e.getWorld)
+    Server.saveAll(e.getWorld.asInstanceOf[World])
   }
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    Client.clear(e.getWorld)
-    Server.clear(e.getWorld)
+    Client.clear(e.getWorld.asInstanceOf[World])
+    Server.clear(e.getWorld.asInstanceOf[World])
   }
 
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
     Client.cleanUp()
-    FMLCommonHandler.instance.getMinecraftServerInstance match {
-      case integrated: IntegratedServer if Minecraft.getMinecraft.isGamePaused =>
+    ServerLifecycleHooks.getCurrentServer match {
+      case integrated: IntegratedServer if Minecraft.getInstance.isPaused =>
         // While the game is paused, manually keep all tablets alive, to avoid
         // them being cleared from the cache, causing them to stop.
         Client.keepAlive()
@@ -531,16 +535,16 @@ object Tablet {
     // To allow access in cache entry init.
     private var currentStack: ItemStack = _
 
-    private var currentHolder: EntityPlayer = _
+    private var currentHolder: PlayerEntity = _
 
-    def get(stack: ItemStack, holder: EntityPlayer): TabletWrapper = {
+    def get(stack: ItemStack, holder: PlayerEntity): TabletWrapper = {
       val id = getId(stack)
       cache.synchronized {
         currentStack = stack
         currentHolder = holder
 
         // if the item is still cached, we can detect if it is dirty (client side only)
-        if (holder.world.isRemote) {
+        if (holder.level.isClientSide) {
           Client.getWeak(stack) match {
             case Some(weak) =>
               val timesChanged = holder.inventory.getTimesChanged
@@ -559,7 +563,7 @@ object Tablet {
 
         // Force re-load on world change, in case some components store a
         // reference to the world object.
-        if (holder.world != wrapper.world) {
+        if (holder.level != wrapper.world) {
           wrapper.writeToNBT(clearState = false)
           wrapper.autoSave = false
           cache.invalidate(id)
@@ -590,7 +594,7 @@ object Tablet {
           node.remove()
         }
         if (tablet.autoSave) tablet.writeToNBT()
-        tablet.markDirty()
+        tablet.setChanged()
       }
     }
 
@@ -625,8 +629,8 @@ object Tablet {
     }
 
     def get(stack: ItemStack): Option[TabletWrapper] = {
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-        val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      if (stack.hasTag && stack.getTag.contains(Settings.namespace + "tablet")) {
+        val id = stack.getTag.getString(Settings.namespace + "tablet")
         cache.synchronized(Option(cache.getIfPresent(id)))
       }
       else None

@@ -5,14 +5,15 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
-import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.IntReferenceHolder
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
+class Robot(id: Int, playerInventory: PlayerInventory, robot: tileentity.Robot) extends Player(null, id, playerInventory, robot) {
   val hasScreen: Boolean = robot.components.exists {
     case Some(buffer: api.internal.TextBuffer) => true
     case _ => false
@@ -26,16 +27,20 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   addSlotToContainer(170 + 2 * slotSize, 232 - deltaY, robot.containerSlotType(2), robot.containerSlotTier(2))
   addSlotToContainer(170 + 3 * slotSize, 232 - deltaY, robot.containerSlotType(3), robot.containerSlotTier(3))
 
-  for (i <- 0 to 3) {
-    val y = 156 + i * slotSize - deltaY
-    for (j <- 0 to 3) {
-      val x = 170 + j * slotSize
-      addSlotToContainer(new InventorySlot(this, otherInventory, inventorySlots.size, x, y))
+  // Slot.x and Slot.y are final, so have to rebuild when scrolling
+  def generateSlotsFor(scroll: Int) {
+    for (i <- 0 to 15) {
+      val y = 156 + (i - scroll) * slotSize - deltaY
+      for (j <- 0 to 3) {
+        val x = 170 + j * slotSize
+        val slot = new InventorySlot(this, otherInventory, slots.size, x, y, i >= scroll && i < scroll + 4)
+        val idx = 4 + j + 4 * i
+        if (slots.size() <= idx) addSlot(slot)
+        else slots.set(idx, slot)
+      }
     }
   }
-  for (i <- 16 until 64) {
-    addSlotToContainer(new InventorySlot(this, otherInventory, inventorySlots.size, -10000, -10000))
-  }
+  generateSlotsFor(0)
 
   addPlayerInventorySlots(6, 174 - deltaY)
 
@@ -44,51 +49,32 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   // values as shorts over the net (for whatever reason).
   private val factor = 100
 
-  private var lastSentBuffer = -1
+  addDataSlot(new IntReferenceHolder {
+    override def get(): Int = robot.globalBuffer.toInt / factor
 
-  private var lastSentBufferSize = -1
+    override def set(value: Int): Unit = robot.globalBuffer = value * factor
+  })
 
-  @SideOnly(Side.CLIENT)
-  override def updateProgressBar(id: Int, value: Int) {
-    super.updateProgressBar(id, value)
-    if (id == 0) {
-      robot.globalBuffer = value * factor
-    }
+  addDataSlot(new IntReferenceHolder {
+    override def get(): Int = robot.globalBufferSize.toInt / factor
 
-    if (id == 1) {
-      robot.globalBufferSize = value * factor
-    }
-  }
+    override def set(value: Int): Unit = robot.globalBufferSize = value * factor
+  })
 
-  override def detectAndSendChanges() {
-    super.detectAndSendChanges()
-    if (SideTracker.isServer) {
-      val currentBuffer = robot.globalBuffer.toInt / factor
-      if (currentBuffer != lastSentBuffer) {
-        lastSentBuffer = currentBuffer
-        sendWindowProperty(0, lastSentBuffer)
-      }
+  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int, var enabled: Boolean)
+    extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
 
-      val currentBufferSize = robot.globalBufferSize.toInt / factor
-      if (currentBufferSize != lastSentBufferSize) {
-        lastSentBufferSize = currentBufferSize
-        sendWindowProperty(1, lastSentBufferSize)
-      }
-    }
-  }
-
-  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
     def isValid: Boolean = robot.isInventorySlot(getSlotIndex)
 
-    @SideOnly(Side.CLIENT) override
-    def isEnabled: Boolean = isValid && super.isEnabled
+    @OnlyIn(Dist.CLIENT) override
+    def isActive: Boolean = enabled && isValid && super.isActive
 
     override def getBackgroundLocation: ResourceLocation =
       if (isValid) super.getBackgroundLocation
       else Textures.Icons.get(common.Tier.None)
 
-    override def getStack: ItemStack = {
-      if (isValid) super.getStack
+    override def getItem: ItemStack = {
+      if (isValid) super.getItem
       else ItemStack.EMPTY
     }
   }

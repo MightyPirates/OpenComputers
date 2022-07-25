@@ -6,38 +6,41 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.item.minecart.MinecartEntity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.util.math.AxisAlignedBB
-import net.minecraft.world.WorldServer
+import net.minecraft.util.math.BlockRayTraceResult
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fml.common.eventhandler.Event.Result
+import net.minecraftforge.eventbus.api.Event.Result
+import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.wrapper.InvWrapper
+
+import scala.collection.convert.WrapAsScala._
 
 trait WorldAware {
   def position: BlockPosition
 
   def world = position.world.get
 
-  def fakePlayer: EntityPlayer = {
-    val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
-    player.posX = position.x + 0.5
-    player.posY = position.y + 0.5
-    player.posZ = position.z + 0.5
+  def fakePlayer: PlayerEntity = {
+    val player = FakePlayerFactory.get(world.asInstanceOf[ServerWorld], Settings.get.fakePlayerProfile)
+    player.setPos(position.x + 0.5, position.y + 0.5, position.z + 0.5)
     player
   }
 
-  def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
+  def mayInteract(blockPos: BlockPosition, face: Direction): Boolean = {
     try {
-      val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, blockPos.toBlockPos, face, null)
+      val trace = new BlockRayTraceResult(fakePlayer.position, face, blockPos.toBlockPos, false)
+      val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, Hand.MAIN_HAND, blockPos.toBlockPos, trace)
       MinecraftForge.EVENT_BUS.post(event)
       !event.isCanceled && event.getUseBlock != Result.DENY
     } catch {
@@ -47,50 +50,51 @@ trait WorldAware {
     }
   }
 
-  def mayInteract(blockPos: BlockPosition, side: EnumFacing, inventory: IItemHandler): Boolean = mayInteract(blockPos, side) && (inventory match {
-    case inv: InvWrapper if inv.getInv != null => inv.getInv.isUsableByPlayer(fakePlayer)
+  def mayInteract(blockPos: BlockPosition, side: Direction, inventory: IItemHandler): Boolean = mayInteract(blockPos, side) && (inventory match {
+    case inv: InvWrapper if inv.getInv != null => inv.getInv.stillValid(fakePlayer)
     case _ => true
   })
 
   def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {
-    world.getEntitiesWithinAABB(clazz, bounds)
+    world.getEntitiesOfClass(clazz, bounds)
   }
 
   def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition) = {
     entitiesInBounds(clazz, blockPos.bounds)
   }
 
-  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: Direction) = {
     entitiesInBlock(clazz, position.offset(side))
   }
 
-  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+  def closestEntity[Type <: Entity](clazz: Class[Type], side: Direction) = {
     val blockPos = position.offset(side)
-    Option(world.findNearestEntityWithinAABB(clazz, blockPos.bounds, fakePlayer))
+    val candidates = world.getEntitiesOfClass(clazz, blockPos.bounds, null)
+    if (!candidates.isEmpty) Some(candidates.minBy(e => fakePlayer.distanceToSqr(e))) else None
   }
 
-  def blockContent(side: EnumFacing) = {
+  def blockContent(side: Direction) = {
     closestEntity[Entity](classOf[Entity], side) match {
-      case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
+      case Some(_@(_: LivingEntity | _: MinecartEntity)) =>
         (true, "entity")
       case _ =>
         val blockPos = position.offset(side)
-        val block = world.getBlock(blockPos)
-        val metadata = world.getBlockMetadata(blockPos)
-        if (block.isAir(blockPos)) {
+        val state = world.getBlockState(blockPos.toBlockPos)
+        val block = state.getBlock
+        if (block.isAir(state, world, blockPos.toBlockPos)) {
           (false, "air")
         }
-        else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
+        else if (!block.isInstanceOf[IFluidBlock]) {
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, state, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "liquid")
         }
         else if (block.isReplaceable(blockPos)) {
-          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, state, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "replaceable")
         }
-        else if (block.getCollisionBoundingBoxFromPool(blockPos) == null) {
+        else if (state.getCollisionShape(world, blockPos.toBlockPos, ISelectionContext.empty).isEmpty) {
           (true, "passable")
         }
         else {

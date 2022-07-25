@@ -1,12 +1,13 @@
 package li.cil.oc.integration.jei
 
-import mezz.jei.api.gui.IDrawableAnimated
+import com.mojang.blaze3d.matrix.MatrixStack
 import mezz.jei.api.gui.ITickTimer
+import mezz.jei.api.gui.drawable.IDrawableAnimated
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.AbstractGui
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 /**
   * Used to simulate an animated texture.
@@ -21,21 +22,18 @@ class DrawableAnimatedIcon(resourceLocation: ResourceLocation, u: Int, v: Int, w
 
   override def getHeight: Int = height + paddingTop + paddingBottom
 
-  @SideOnly(Side.CLIENT)
-  override def draw(minecraft: Minecraft): Unit = draw(minecraft, 0, 0)
-
-  @SideOnly(Side.CLIENT)
-  override def draw(minecraft: Minecraft, xOffset: Int, yOffset: Int) {
+  @OnlyIn(Dist.CLIENT)
+  override def draw(stack: MatrixStack, xOffset: Int, yOffset: Int) {
     val animationValue = tickTimer.getValue
 
     val uOffsetTotal = uOffset * animationValue
     val vOffsetTotal = vOffset * animationValue
 
-    minecraft.getTextureManager.bindTexture(resourceLocation)
+    Minecraft.getInstance.getTextureManager.bind(resourceLocation)
     val x = xOffset + this.paddingLeft
     val y = yOffset + this.paddingTop
     val u = this.u + uOffsetTotal
     val v = this.v + vOffsetTotal
-    Gui.drawModalRectWithCustomSizedTexture(x, y, u, v, width, height, textureWidth, textureHeight)
+    AbstractGui.blit(stack, x, y, u, v, width, height, textureWidth, textureHeight)
   }
 }

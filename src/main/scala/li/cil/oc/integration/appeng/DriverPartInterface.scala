@@ -12,29 +12,29 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverPartInterface extends driver.DriverBlock {
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean =
-    world.getTileEntity(pos) match {
+  override def worksWith(world: World, pos: BlockPos, side: Direction): Boolean =
+    world.getBlockEntity(pos) match {
       case container: IPartHost => {
-        EnumFacing.VALUES.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isPartInterface)
+        Direction.values.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isPartInterface)
       }
       case _ => false
     }
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): DriverPartInterface.Environment = {
-    val host: IPartHost = world.getTileEntity(pos).asInstanceOf[IPartHost]
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction): DriverPartInterface.Environment = {
+    val host: IPartHost = world.getBlockEntity(pos).asInstanceOf[IPartHost]
     val tile = host.asInstanceOf[TileEntity with IPartHost with ISegmentedInventory with IActionHost with IGridHost]
     val aePos: AEPartLocation = side match {
-      case EnumFacing.EAST => AEPartLocation.WEST
-      case EnumFacing.WEST => AEPartLocation.EAST
-      case EnumFacing.NORTH => AEPartLocation.SOUTH
-      case EnumFacing.SOUTH => AEPartLocation.NORTH
-      case EnumFacing.UP => AEPartLocation.DOWN
-      case EnumFacing.DOWN => AEPartLocation.UP
+      case Direction.EAST => AEPartLocation.WEST
+      case Direction.WEST => AEPartLocation.EAST
+      case Direction.NORTH => AEPartLocation.SOUTH
+      case Direction.SOUTH => AEPartLocation.NORTH
+      case Direction.UP => AEPartLocation.DOWN
+      case Direction.DOWN => AEPartLocation.UP
     }
     new Environment(host, tile, aePos)
   }

@@ -1,10 +1,13 @@
 package li.cil.oc.client.renderer.font
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.opengl.GL11
 
 /**
@@ -26,19 +29,19 @@ abstract class TextureFontRenderer {
     * be generated inside the draw call.
     */
   def generateChars(chars: Array[Char]) {
-    GlStateManager.enableTexture2D()
+    RenderSystem.enableTexture()
     for (char <- chars) {
       generateChar(char)
     }
   }
 
-  def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
+  def drawBuffer(stack: MatrixStack, buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
     val format = buffer.format
 
-    GlStateManager.pushMatrix()
+    stack.pushPose()
     RenderState.pushAttrib()
 
-    GlStateManager.scale(0.5f, 0.5f, 1)
+    stack.scale(0.5f, 0.5f, 1)
 
     GL11.glDepthMask(false)
     RenderState.makeItBlend()
@@ -56,14 +59,14 @@ abstract class TextureFontRenderer {
       var width = 0
       for (col <- color.map(PackedColor.unpackBackground(_, format)) if x + width < viewportWidth) {
         if (col != cbg) {
-          drawQuad(cbg, x, y, width)
+          drawQuad(stack.last.pose, cbg, x, y, width)
           cbg = col
           x += width
           width = 0
         }
         width = width + 1
       }
-      drawQuad(cbg, x, y, width)
+      drawQuad(stack.last.pose, cbg, x, y, width)
     }
     GL11.glEnd()
 
@@ -99,7 +102,7 @@ abstract class TextureFontRenderer {
           }
           // Don't render whitespace.
           if (ch != ' ') {
-            drawChar(tx, ty, ch)
+            drawChar(stack.last.pose, tx, ty, ch)
           }
           tx += charWidth
         }
@@ -109,23 +112,23 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
-    GlStateManager.bindTexture(0)
+    RenderSystem.bindTexture(0)
     GL11.glDepthMask(true)
     GL11.glColor3f(1, 1, 1)
     RenderState.disableBlend()
     RenderState.popAttrib()
-    GlStateManager.popMatrix()
+    stack.popPose()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
   }
 
-  def drawString(s: String, x: Int, y: Int): Unit = {
-    GlStateManager.pushMatrix()
+  def drawString(stack: MatrixStack, s: String, x: Int, y: Int): Unit = {
+    stack.pushPose()
     RenderState.pushAttrib()
 
-    GlStateManager.translate(x, y, 0)
-    GlStateManager.scale(0.5f, 0.5f, 1)
-    GlStateManager.depthMask(false)
+    stack.translate(x, y, 0)
+    stack.scale(0.5f, 0.5f, 1)
+    RenderSystem.depthMask(false)
 
     for (i <- 0 until textureCount) {
       bindTexture(i)
@@ -135,7 +138,7 @@ abstract class TextureFontRenderer {
         val ch = s.charAt(n)
         // Don't render whitespace.
         if (ch != ' ') {
-          drawChar(tx, 0, ch)
+          drawChar(stack.last.pose, tx, 0, ch)
         }
         tx += charWidth
       }
@@ -143,8 +146,8 @@ abstract class TextureFontRenderer {
     }
 
     RenderState.popAttrib()
-    GlStateManager.popMatrix()
-    GlStateManager.color(1, 1, 1)
+    stack.popPose()
+    RenderSystem.color3f(1, 1, 1)
   }
 
   protected def charWidth: Int
@@ -157,20 +160,28 @@ abstract class TextureFontRenderer {
 
   protected def generateChar(char: Char): Unit
 
-  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
+  protected def drawChar(matrix: Matrix4f, tx: Float, ty: Float, char: Char): Unit
 
-  private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
+  private def drawQuad(matrix: Matrix4f, color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
     val x0 = x * charWidth
     val x1 = (x + width) * charWidth
     val y0 = y * charHeight
     val y1 = (y + 1) * charHeight
-    GlStateManager.color(
+    RenderSystem.color3f(
       ((color >> 16) & 0xFF) / 255f,
       ((color >> 8) & 0xFF) / 255f,
       (color & 0xFF) / 255f)
-    GL11.glVertex3d(x0, y1, 0)
-    GL11.glVertex3d(x1, y1, 0)
-    GL11.glVertex3d(x1, y0, 0)
-    GL11.glVertex3d(x0, y0, 0)
+    val vec = new Vector4f(x0, y1, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(x1, y1, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(x1, y0, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
+    vec.set(x0, y0, 0, 1)
+    vec.transform(matrix)
+    GL11.glVertex3f(vec.x, vec.y, vec.z)
   }
 }

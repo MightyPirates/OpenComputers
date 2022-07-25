@@ -1,6 +1,6 @@
 package li.cil.oc.api.network;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 /**
  * These packets represent messages sent using a network card or wireless
@@ -65,5 +65,5 @@ public interface Packet {
      * Restore a packet saved like this using the factory method in the
      * {@link li.cil.oc.api.Network} class.
      */
-    void save(NBTTagCompound nbt);
+    void saveData(CompoundNBT nbt);
 }

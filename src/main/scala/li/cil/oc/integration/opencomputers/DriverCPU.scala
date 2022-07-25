@@ -11,7 +11,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -41,8 +41,8 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
   override def allArchitectures = api.Machine.architectures.toList
 
   override def architecture(stack: ItemStack): Class[_ <: api.machine.Architecture] = {
-    if (stack.hasTagCompound) {
-      val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass") match {
+    if (stack.hasTag) {
+      val archClass = stack.getTag.getString(Settings.namespace + "archClass") match {
         case clazz if clazz == classOf[NativeLuaArchitecture].getName =>
           // Migrate old saved CPUs to new versions (since the class they refer still
           // exists, but is abstract, which would lead to issues).
@@ -52,8 +52,8 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
       if (!archClass.isEmpty) try return Class.forName(archClass).asSubclass(classOf[api.machine.Architecture]) catch {
         case t: Throwable =>
           OpenComputers.log.warn("Failed getting class for CPU architecture. Resetting CPU to use the default.", t)
-          stack.getTagCompound.removeTag(Settings.namespace + "archClass")
-          stack.getTagCompound.removeTag(Settings.namespace + "archName")
+          stack.getTag.remove(Settings.namespace + "archClass")
+          stack.getTag.remove(Settings.namespace + "archName")
       }
     }
     api.Machine.architectures.headOption.orNull
@@ -61,9 +61,9 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
 
   override def setArchitecture(stack: ItemStack, architecture: Class[_ <: api.machine.Architecture]): Unit = {
     if (!worksWith(stack)) throw new IllegalArgumentException("Unsupported processor type.")
-    if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound())
-    stack.getTagCompound.setString(Settings.namespace + "archClass", architecture.getName)
-    stack.getTagCompound.setString(Settings.namespace + "archName", api.Machine.getArchitectureName(architecture))
+    val data = stack.getOrCreateTag
+    data.putString(Settings.namespace + "archClass", architecture.getName)
+    data.putString(Settings.namespace + "archName", api.Machine.getArchitectureName(architecture))
   }
 
   override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)

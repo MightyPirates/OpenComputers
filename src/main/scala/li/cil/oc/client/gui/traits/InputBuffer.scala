@@ -1,16 +1,19 @@
 package li.cil.oc.client.gui.traits
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.RenderState
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screen.inventory.ContainerScreen
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import org.lwjgl.input.Keyboard
+import net.minecraft.client.util.InputMappings
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
@@ -24,102 +27,119 @@ trait InputBuffer extends DisplayBuffer {
 
   protected def hasKeyboard: Boolean
 
-  private val pressedKeys = mutable.Map.empty[Int, Char]
+  private val pressedKeys = mutable.Set.empty[Int]
 
   private var showKeyboardMissing = 0L
 
-  override def doesGuiPauseGame = false
+  override def isPauseScreen = false
 
-  override def initGui() = {
-    super.initGui()
-    Keyboard.enableRepeatEvents(true)
+  override protected def init() = {
+    super.init()
+    Minecraft.getInstance.keyboardHandler.setSendRepeatsToGui(true)
   }
 
-  override protected def drawBufferLayer() {
-    super.drawBufferLayer()
+  override protected def drawBufferLayer(stack: MatrixStack) {
+    super.drawBufferLayer(stack)
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
       Textures.bind(Textures.GUI.KeyboardMissing)
-      GlStateManager.disableDepth()
+      RenderSystem.disableDepthTest()
 
       val x = bufferX + buffer.renderWidth - 16
       val y = bufferY + buffer.renderHeight - 16
 
       val t = Tessellator.getInstance
-      val r = t.getBuffer
+      val r = t.getBuilder
       r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
-      r.pos(x, y + 16, 0).tex(0, 1).endVertex()
-      r.pos(x + 16, y + 16, 0).tex(1, 1).endVertex()
-      r.pos(x + 16, y, 0).tex(1, 0).endVertex()
-      r.pos(x, y, 0).tex(0, 0).endVertex()
-      t.draw()
+      r.vertex(stack.last.pose, x, y + 16, 0).uv(0, 1).endVertex()
+      r.vertex(stack.last.pose, x + 16, y + 16, 0).uv(1, 1).endVertex()
+      r.vertex(stack.last.pose, x + 16, y, 0).uv(1, 0).endVertex()
+      r.vertex(stack.last.pose, x, y, 0).uv(0, 0).endVertex()
+      t.end()
 
-      GlStateManager.enableDepth()
+      RenderSystem.enableDepthTest()
 
       RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
     }
   }
 
-  override def onGuiClosed() = {
-    super.onGuiClosed()
-    if (buffer != null) for ((code, char) <- pressedKeys) {
-      buffer.keyUp(char, code, null)
+  override def removed() = {
+    super.removed()
+    Minecraft.getInstance.keyboardHandler.setSendRepeatsToGui(false)
+    if (buffer != null) for (code <- pressedKeys) {
+      buffer.keyUp('\u0000', code, null)
     }
-    Keyboard.enableRepeatEvents(false)
   }
 
-  override def handleKeyboardInput() {
-    super.handleKeyboardInput()
+  def onInput(input: InputMappings.Input): Boolean = {
+    if (KeyBindings.clipboardPaste.isActiveAndMatches(input)) {
+      if (buffer != null) {
+        if (hasKeyboard) buffer.clipboard(Minecraft.getInstance.keyboardHandler.getClipboard, null)
+        else showKeyboardMissing = System.currentTimeMillis()
+      }
+      return true
+    }
+    false
+  }
 
-    if (this.isInstanceOf[GuiContainer] && ItemSearch.isInputFocused) return
+  override def charTyped(codePt: Char, mods: Int): Boolean = {
+    if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
+      if (buffer != null) {
+        if (hasKeyboard) {
+          buffer.keyDown(codePt, 0, null)
+          buffer.keyUp(codePt, 0, null)
+        }
+        else showKeyboardMissing = System.currentTimeMillis()
+        return true
+      }
+    }
+    super.charTyped(codePt, mods)
+  }
 
-    val code = Keyboard.getEventKey
-    if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
-      if (hasKeyboard) {
-        if (Keyboard.getEventKeyState) {
-          val char = Keyboard.getEventCharacter
-          if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
-            buffer.keyDown(char, code, null)
-            pressedKeys += code -> char
+  override def keyPressed(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
+    if (onInput(InputMappings.getKey(keyCode, scanCode))) return true
+    if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
+      if (buffer != null && keyCode != GLFW.GLFW_KEY_UNKNOWN) {
+        if (hasKeyboard) {
+          if (pressedKeys.add(keyCode) || !ignoreRepeat(keyCode)) {
+            buffer.keyDown('\u0000', keyCode, null)
           }
         }
-        else pressedKeys.remove(code) match {
-          case Some(char) => buffer.keyUp(char, code, null)
-          case _ => // Wasn't pressed while viewing the screen.
-        }
-
-        if (KeyBindings.isPastingClipboard) {
-          buffer.clipboard(GuiScreen.getClipboardString, null)
-        }
-      }
-      else {
-        showKeyboardMissing = System.currentTimeMillis()
+        else showKeyboardMissing = System.currentTimeMillis()
+        return true
       }
     }
+    super.keyPressed(keyCode, scanCode, mods)
   }
 
-  override protected def mouseClicked(x: Int, y: Int, button: Int) {
+  override def keyReleased(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
+    if (pressedKeys.remove(keyCode)) {
+      buffer.keyUp('\u0000', keyCode, null)
+      return true
+    }
+    // Wasn't pressed while viewing the screen.
+    super.keyReleased(keyCode, scanCode, mods)
+  }
+
+  override def mouseClicked(x: Double, y: Double, button: Int): Boolean = {
+    if (onInput(InputMappings.Type.MOUSE.getOrCreate(button))) return true
+    if (buffer != null && button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+      if (hasKeyboard) buffer.clipboard(Minecraft.getInstance.keyboardHandler.getClipboard, null)
+      else showKeyboardMissing = System.currentTimeMillis()
+      return true
+    }
     super.mouseClicked(x, y, button)
-    val isMiddleMouseButton = button == 2
-    val isBoundMouseButton = KeyBindings.isPastingClipboard
-    if (buffer != null && (isMiddleMouseButton || isBoundMouseButton)) {
-      if (hasKeyboard) {
-        buffer.clipboard(GuiScreen.getClipboardString, null)
-      }
-      else {
-        showKeyboardMissing = System.currentTimeMillis()
-      }
-    }
   }
 
-  private def ignoreRepeat(char: Char, code: Int) = {
-    code == Keyboard.KEY_LCONTROL ||
-      code == Keyboard.KEY_RCONTROL ||
-      code == Keyboard.KEY_LMENU ||
-      code == Keyboard.KEY_RMENU ||
-      code == Keyboard.KEY_LSHIFT ||
-      code == Keyboard.KEY_RSHIFT ||
-      code == Keyboard.KEY_LMETA ||
-      code == Keyboard.KEY_RMETA
+  private def ignoreRepeat(keyCode: Int) = {
+    keyCode == GLFW.GLFW_KEY_LEFT_CONTROL ||
+      keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL ||
+      keyCode == GLFW.GLFW_KEY_MENU ||
+      keyCode == GLFW.GLFW_KEY_LEFT_ALT ||
+      keyCode == GLFW.GLFW_KEY_RIGHT_ALT ||
+      keyCode == GLFW.GLFW_KEY_LEFT_SHIFT ||
+      keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT ||
+      keyCode == GLFW.GLFW_KEY_LEFT_SUPER ||
+      keyCode == GLFW.GLFW_KEY_RIGHT_SUPER
   }
 }

@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import li.cil.oc.common.Tier
 import li.cil.oc.util.Rarity
-import net.minecraft.item.EnumRarity
+import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
 
 import scala.language.existentials
@@ -10,7 +10,7 @@ import scala.language.existentials
 class APU(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with traits.CPULike with traits.GPULike {
   override val unlocalizedName = super[Delegate].unlocalizedName + tier
 
-  override def rarity(stack: ItemStack): EnumRarity =
+  override def rarity(stack: ItemStack): item.Rarity =
     if (tier == Tier.Three) Rarity.byTier(Tier.Four)
     else super.rarity(stack)
 

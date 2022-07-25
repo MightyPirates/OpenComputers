@@ -6,13 +6,13 @@ import li.cil.oc.api
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller) extends ItemData(itemName) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var tier = Tier.One
@@ -25,11 +25,11 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
   private final val ComponentsTag = Settings.namespace + "components"
   private final val StoredEnergyTag = Settings.namespace + "storedEnergy"
 
-  override def load(nbt: NBTTagCompound) {
+  override def loadData(nbt: CompoundNBT) {
     tier = nbt.getByte(TierTag)
-    components = nbt.getTagList(ComponentsTag, NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(new ItemStack(_)).filter(!_.isEmpty)
-    storedEnergy = nbt.getInteger(StoredEnergyTag)
+    components = nbt.getList(ComponentsTag, NBT.TAG_COMPOUND).
+      toTagArray[CompoundNBT].map(ItemStack.of(_)).filter(!_.isEmpty)
+    storedEnergy = nbt.getInt(StoredEnergyTag)
 
     // Reserve slot for EEPROM if necessary, avoids having to resize the
     // components array in the MCU tile entity, which isn't possible currently.
@@ -38,16 +38,16 @@ class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    nbt.setByte(TierTag, tier.toByte)
+  override def saveData(nbt: CompoundNBT) {
+    nbt.putByte(TierTag, tier.toByte)
     nbt.setNewTagList(ComponentsTag, components.filter(!_.isEmpty).toIterable)
-    nbt.setInteger(StoredEnergyTag, storedEnergy)
+    nbt.putInt(StoredEnergyTag, storedEnergy)
   }
 
   def copyItemStack(): ItemStack = {
     val stack = createItemStack()
     val newInfo = new MicrocontrollerData(stack)
-    newInfo.save(stack)
+    newInfo.saveData(stack)
     stack
   }
 }

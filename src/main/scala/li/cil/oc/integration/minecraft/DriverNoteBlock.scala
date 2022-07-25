@@ -1,37 +1,47 @@
 package li.cil.oc.integration.minecraft
 
+import li.cil.oc.api.Network
+import li.cil.oc.api.driver.DriverBlock
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverSidedTileEntity
-import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
-import net.minecraft.block.material.Material
-import net.minecraft.init.Blocks
+import net.minecraft.block.Blocks
+import net.minecraft.block.NoteBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntityNote
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-object DriverNoteBlock extends DriverSidedTileEntity {
-  override def getTileEntityClass: Class[_] = classOf[TileEntityNote]
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
-    new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityNote])
+object DriverNoteBlock extends DriverBlock {
+  override def worksWith(world: World, pos: BlockPos, side: Direction) = world.getBlockState(pos).is(Blocks.NOTE_BLOCK)
 
-  final class Environment(tileEntity: TileEntityNote) extends ManagedTileEntityEnvironment[TileEntityNote](tileEntity, "note_block") with NamedBlock {
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction): ManagedEnvironment =
+    new Environment(world, pos)
+
+  final class Environment(val world: World, val pos: BlockPos) extends AbstractManagedEnvironment with NamedBlock {
+    setNode(Network.newNode(this, Visibility.Network).
+      withComponent(preferredName).
+      create())
+
     override def preferredName = "note_block"
 
     override def priority = 0
 
     @Callback(direct = true, doc = "function():number -- Get the currently set pitch on this note block.")
     def getPitch(context: Context, args: Arguments): Array[AnyRef] = {
-      result(tileEntity.note + 1)
+      val state = world.getBlockState(pos)
+      if (!state.is(Blocks.NOTE_BLOCK)) {
+        throw new IllegalArgumentException("block removed")
+      }
+      result(state.getValue(NoteBlock.NOTE).intValue + 1)
     }
 
     @Callback(doc = "function(value:number) -- Set the pitch for this note block. Must be in the interval [1, 25].")
@@ -45,26 +55,34 @@ object DriverNoteBlock extends DriverSidedTileEntity {
       if (args.count > 0 && args.checkAny(0) != null) {
         setPitch(args.checkInteger(0))
       }
-      val world = tileEntity.getWorld
-      val pos = tileEntity.getPos
-      val material = world.getBlockState(pos.add(0, 1, 0)).getMaterial
-      val canTrigger = material == Material.AIR
-      tileEntity.triggerNote(world, pos)
+      else {
+        val state = world.getBlockState(pos)
+        if (!state.is(Blocks.NOTE_BLOCK)) {
+          throw new IllegalArgumentException("block removed")
+        }
+      }
+      val canTrigger = world.isEmptyBlock(pos.above)
+      if (canTrigger) world.blockEvent(pos, Blocks.NOTE_BLOCK, 0, 0)
       result(canTrigger)
     }
 
     private def setPitch(value: Int): Unit = {
-      if (value < 1 || value > 25) {
+      val pitch = Int.box(value - 1)
+      if (!NoteBlock.NOTE.getPossibleValues.contains(pitch)) {
         throw new IllegalArgumentException("invalid pitch")
       }
-      tileEntity.note = (value - 1).toByte
-      tileEntity.markDirty()
+      val state = world.getBlockState(pos)
+      if (!state.is(Blocks.NOTE_BLOCK)) {
+        throw new IllegalArgumentException("block removed")
+      }
+      val newState = state.setValue(NoteBlock.NOTE, pitch)
+      if (newState != state) world.setBlock(pos, newState, 3)
     }
   }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] = {
-      if (!stack.isEmpty && Block.getBlockFromItem(stack.getItem) == Blocks.NOTEBLOCK)
+      if (!stack.isEmpty && Block.byItem(stack.getItem) == Blocks.NOTE_BLOCK)
         classOf[Environment]
       else null
     }

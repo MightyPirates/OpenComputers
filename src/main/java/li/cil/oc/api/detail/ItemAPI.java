@@ -1,7 +1,7 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.FileSystem;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -59,7 +59,7 @@ public interface ItemAPI {
      * @return an item stack representing the registered loot disk, to allow
      * adding a recipe for your loot disk, for example.
      */
-    ItemStack registerFloppy(String name, EnumDyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling);
+    ItemStack registerFloppy(String name, DyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling);
 
     /**
      * Register a single custom EEPROM.

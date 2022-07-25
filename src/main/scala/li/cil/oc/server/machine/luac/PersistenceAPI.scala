@@ -5,7 +5,7 @@ import java.util.UUID
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua.LuaState
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.mutable
 
@@ -90,16 +90,16 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     }
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (nbt.hasKey("persistKey")) {
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (nbt.contains("persistKey")) {
       persistKey = nbt.getString("persistKey")
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setString("persistKey", persistKey)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putString("persistKey", persistKey)
   }
 
   def configure() {

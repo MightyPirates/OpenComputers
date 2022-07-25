@@ -1,5 +1,8 @@
 package li.cil.oc.client.gui.widget
 
+import com.mojang.blaze3d.matrix.MatrixStack
+
+@Deprecated
 abstract class Widget {
   var owner: WidgetContainer = _
 
@@ -11,5 +14,5 @@ abstract class Widget {
 
   def height: Int
 
-  def draw(): Unit
+  def draw(stack: MatrixStack): Unit
 }

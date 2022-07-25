@@ -6,9 +6,9 @@ import li.cil.oc.api.driver.InventoryProvider;
 import li.cil.oc.api.driver.DriverItem;
 import li.cil.oc.api.driver.DriverBlock;
 import li.cil.oc.api.network.EnvironmentHost;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
@@ -95,7 +95,7 @@ public interface DriverAPI {
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
     @Nullable
-    DriverBlock driverFor(World world, BlockPos pos, EnumFacing side);
+    DriverBlock driverFor(World world, BlockPos pos, Direction side);
 
     /**
      * Looks up a driver for the specified item stack.
@@ -167,7 +167,7 @@ public interface DriverAPI {
      * @param player the player holding the item. May be <tt>null</tt>.
      * @return the IItemHandler implementation interfacing the stack, or <tt>null</tt>.
      */
-    IItemHandler itemHandlerFor(ItemStack stack, EntityPlayer player);
+    IItemHandler itemHandlerFor(ItemStack stack, PlayerEntity player);
 
     /**
      * Get a list of all registered item drivers.

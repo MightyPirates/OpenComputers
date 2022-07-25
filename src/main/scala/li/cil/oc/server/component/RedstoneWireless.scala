@@ -14,12 +14,11 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fml.common.Optional
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.convert.WrapAsJava._
 
-trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice with DeviceInfo {
+trait RedstoneWireless extends RedstoneSignaller with DeviceInfo {
   def redstone: EnvironmentHost
 
   var wirelessFrequency = 0
@@ -118,17 +117,17 @@ trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice wi
   private final val WirelessInputTag = "wirelessInput"
   private final val WirelessOutputTag = "wirelessOutput"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    wirelessFrequency = nbt.getInteger(WirelessFrequencyTag)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    wirelessFrequency = nbt.getInt(WirelessFrequencyTag)
     wirelessInput = nbt.getBoolean(WirelessInputTag)
     wirelessOutput = nbt.getBoolean(WirelessOutputTag)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setInteger(WirelessFrequencyTag, wirelessFrequency)
-    nbt.setBoolean(WirelessInputTag, wirelessInput)
-    nbt.setBoolean(WirelessOutputTag, wirelessOutput)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putInt(WirelessFrequencyTag, wirelessFrequency)
+    nbt.putBoolean(WirelessInputTag, wirelessInput)
+    nbt.putBoolean(WirelessOutputTag, wirelessOutput)
   }
 }

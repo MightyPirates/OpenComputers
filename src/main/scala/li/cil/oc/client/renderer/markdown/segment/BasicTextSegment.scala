@@ -78,5 +78,5 @@ trait BasicTextSegment extends Segment {
     pos
   }
 
-  protected def computeWrapIndent(renderer: FontRenderer) = if (lists.contains(rootPrefix)) renderer.getStringWidth(rootPrefix) else 0
+  protected def computeWrapIndent(renderer: FontRenderer) = if (lists.contains(rootPrefix)) renderer.width(rootPrefix) else 0
 }

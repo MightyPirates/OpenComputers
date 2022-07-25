@@ -31,7 +31,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
     }
     traits.Chargeable.applyCharge(amount, buffer, Settings.get.bufferCapacitorUpgrades(tier), used => if (!simulate) {
       data.buffer = Option(buffer + used)
-      data.save(stack)
+      data.saveData(stack)
     })
   }
 
@@ -42,7 +42,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
   override def setCharge(stack: ItemStack, amount: Double): Unit = {
     val data = new NodeData(stack)
     data.buffer = Option((0.0 max amount) min maxCharge(stack))
-    data.save(stack)
+    data.saveData(stack)
   }
 
   override def canExtract(stack: ItemStack): Boolean = true

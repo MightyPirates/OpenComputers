@@ -7,12 +7,15 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.integration.opencomputers.DriverCPU
 import li.cil.oc.util.Tooltip
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumHand
-import net.minecraft.util.text.TextComponentTranslation
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Hand
+import net.minecraft.util.Util
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.util.text.TranslationTextComponent
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsScala._
@@ -23,13 +26,15 @@ trait CPULike extends Delegate {
 
   override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTier))
 
-  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
-    tooltip.addAll(Tooltip.get("cpu.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack))))
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]) {
+    for (curr <- Tooltip.get("cpu.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack)))) {
+      tooltip.add(new StringTextComponent(curr))
+    }
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (player.isSneaking) {
-      if (!world.isRemote) {
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    if (player.isCrouching) {
+      if (!world.isClientSide) {
         api.Driver.driverFor(stack) match {
           case driver: MutableProcessor =>
             val architectures = driver.allArchitectures.toList
@@ -39,13 +44,13 @@ trait CPULike extends Delegate {
               val archClass = architectures(newIndex)
               val archName = api.Machine.getArchitectureName(archClass)
               driver.setArchitecture(stack, archClass)
-              player.sendMessage(new TextComponentTranslation(Settings.namespace + "tooltip.cpu.Architecture", archName))
+              player.sendMessage(new TranslationTextComponent(Settings.namespace + "tooltip.cpu.Architecture", archName), Util.NIL_UUID)
             }
-            player.swingArm(EnumHand.MAIN_HAND)
+            player.swing(Hand.MAIN_HAND)
           case _ => // No known driver for this processor.
         }
       }
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 }

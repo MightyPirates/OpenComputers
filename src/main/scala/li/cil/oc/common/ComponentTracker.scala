@@ -3,9 +3,10 @@ package li.cil.oc.common
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import li.cil.oc.api.network.ManagedEnvironment
+import net.minecraft.util.RegistryKey
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -17,10 +18,10 @@ import scala.collection.mutable
  * containers. For now this is only used for screens / text buffer components.
  */
 abstract class ComponentTracker {
-  private val worlds = mutable.Map.empty[Int, Cache[String, ManagedEnvironment]]
+  private val worlds = mutable.Map.empty[RegistryKey[World], Cache[String, ManagedEnvironment]]
 
   private def components(world: World) = {
-    worlds.getOrElseUpdate(world.provider.getDimension,
+    worlds.getOrElseUpdate(world.dimension,
       com.google.common.cache.CacheBuilder.newBuilder().
         weakValues().
         asInstanceOf[CacheBuilder[String, ManagedEnvironment]].
@@ -46,7 +47,9 @@ abstract class ComponentTracker {
   }
 
   @SubscribeEvent
-  def onWorldUnload(e: WorldEvent.Unload): Unit = clear(e.getWorld)
+  def onWorldUnload(e: WorldEvent.Unload): Unit = e.getWorld match {
+    case world: World => clear(world)
+  }
 
   protected def clear(world: World): Unit = this.synchronized {
     components(world).invalidateAll()

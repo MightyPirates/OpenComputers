@@ -7,7 +7,8 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.common.asm.SimpleComponentTickHandler;
 import li.cil.oc.util.SideTracker;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 
 import java.util.HashMap;
@@ -61,8 +62,8 @@ public final class StaticSimpleEnvironment {
         }
     }
 
-    public static void onChunkUnload(final SimpleComponentImpl self) {
-        self.onChunkUnload_OpenComputers();
+    public static void onChunkUnloaded(final SimpleComponentImpl self) {
+        self.onChunkUnloaded_OpenComputers();
         final Node node = node(self);
         if (node != null) {
             node.remove();
@@ -70,21 +71,21 @@ public final class StaticSimpleEnvironment {
         }
     }
 
-    public static void readFromNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
-        self.readFromNBT_OpenComputers(nbt);
+    public static void load(final SimpleComponentImpl self, BlockState state, CompoundNBT nbt) {
+        self.readFromNBT_OpenComputers(state, nbt);
         final Node node = node(self);
         if (node != null) {
-            node.load(nbt.getCompoundTag("oc:node"));
+            node.loadData(nbt.getCompound("oc:node"));
         }
     }
 
-    public static NBTTagCompound writeToNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
+    public static CompoundNBT save(final SimpleComponentImpl self, CompoundNBT nbt) {
         nbt = self.writeToNBT_OpenComputers(nbt);
         final Node node = node(self);
         if (node != null) {
-            final NBTTagCompound nodeNbt = new NBTTagCompound();
-            node.save(nodeNbt);
-            nbt.setTag("oc:node", nodeNbt);
+            final CompoundNBT nodeNbt = new CompoundNBT();
+            node.saveData(nodeNbt);
+            nbt.put("oc:node", nodeNbt);
         }
         return nbt;
     }
