@@ -12,7 +12,7 @@ import net.minecraft.util.Direction
 import net.minecraftforge.common.util.Constants.NBT
 import java.util
 
-trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
+trait BundledRedstoneAware extends RedstoneAware {
 
   protected[tileentity] val _bundledInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))
 
@@ -183,8 +183,4 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
 
     nbt.setNewTagList(RednetInputTag, _rednetInput.view)
   }
-
-  override def canConnectBundled(side: Int): Boolean = isOutputEnabled
-
-  override def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(Direction.from3DDataValue(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

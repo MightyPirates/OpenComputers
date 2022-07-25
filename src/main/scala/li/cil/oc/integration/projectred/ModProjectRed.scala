@@ -8,6 +8,7 @@ import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
 import li.cil.oc.util.BlockPosition
 import mrtjp.projectred.api.ProjectRedAPI
 import net.minecraft.util.Direction
+import net.minecraft.world.World
 
 object ModProjectRed extends ModProxy with RedstoneProvider {
   override def getMod = Mods.ProjectRedTransmission
@@ -17,6 +18,7 @@ object ModProjectRed extends ModProxy with RedstoneProvider {
     api.IMC.registerWrenchToolCheck("li.cil.oc.integration.projectred.EventHandlerProjectRed.isWrench")
 
     BundledRedstone.addProvider(this)
+    BundledProviderProjectRed.install()
   }
 
   override def computeInput(pos: BlockPosition, side: Direction): Int = 0
