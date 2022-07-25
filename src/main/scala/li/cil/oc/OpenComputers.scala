@@ -2,9 +2,14 @@ package li.cil.oc
 
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
+import li.cil.oc.common.init.Blocks
+import li.cil.oc.common.init.Items
 import li.cil.oc.util.ThreadPoolFactory
+import net.minecraft.block.Block
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
 import net.minecraft.world.World
+import net.minecraftforge.event.RegistryEvent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegisterCommandsEvent
@@ -71,6 +76,17 @@ class OpenComputers {
 
   FMLJavaModLoadingContext.get.getModEventBus.register(this)
   OpenComputers.instance = Some(this)
+
+  @SubscribeEvent
+  def registerBlocks(e: RegistryEvent.Register[Block]) {
+    Blocks.init()
+  }
+
+  @SubscribeEvent
+  def registerItems(e: RegistryEvent.Register[Item]) {
+    Items.init()
+    OpenComputers.proxy.initExtraTags()
+  }
 
   @SubscribeEvent
   def commonInit(e: FMLCommonSetupEvent): Unit = {

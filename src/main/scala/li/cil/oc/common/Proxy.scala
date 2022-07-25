@@ -50,19 +50,17 @@ import scala.reflect.ClassTag
 
 @Deprecated
 class Proxy {
+  @Deprecated
+  def initExtraTags() {
+    OpenComputers.log.debug("Initializing additional OreDict entries.")
+
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.item.Items.DIAMOND, "gemDiamond")
+  }
+
   def preInit(e: FMLCommonSetupEvent) {
     Settings.load(FMLPaths.CONFIGDIR.get.resolve(Paths.get("opencomputers", "settings.conf")).toFile)
 
     MinecraftForge.EVENT_BUS.register(this)
-
-    OpenComputers.log.debug("Initializing blocks and items.")
-
-    Blocks.init()
-    Items.init()
-
-    OpenComputers.log.debug("Initializing additional OreDict entries.")
-
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.item.Items.DIAMOND, "gemDiamond")
 
     OpenComputers.log.info("Initializing OpenComputers API.")
 
