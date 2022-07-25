@@ -115,14 +115,16 @@ object EventHandler {
     }
   }
 
-  def scheduleAE2Add(tileEntity: power.AppliedEnergistics2): Unit = {
-    if (SideTracker.isServer) pendingServer.synchronized {
-      tileEntity match {
-        case tile: IGridBlock =>
-          pendingServer += (() => if (!tileEntity.isRemoved) {
-            tileEntity.getGridNode(AEPartLocation.INTERNAL).updateState()
-          })
-        case _ =>
+  object AE2 {
+    def scheduleAE2Add(tileEntity: power.AppliedEnergistics2): Unit = {
+      if (SideTracker.isServer) pendingServer.synchronized {
+        tileEntity match {
+          case tile: IGridBlock =>
+            pendingServer += (() => if (!tileEntity.isRemoved) {
+              tileEntity.getGridNode(AEPartLocation.INTERNAL).updateState()
+            })
+          case _ =>
+        }
       }
     }
   }

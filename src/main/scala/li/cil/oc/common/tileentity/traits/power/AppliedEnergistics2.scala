@@ -50,7 +50,7 @@ trait AppliedEnergistics2 extends Common with IGridHost {
 
   override def clearRemoved() {
     super.clearRemoved()
-    if (useAppliedEnergistics2Power) EventHandler.scheduleAE2Add(this)
+    if (useAppliedEnergistics2Power) EventHandler.AE2.scheduleAE2Add(this)
   }
 
   override def setRemoved() {
