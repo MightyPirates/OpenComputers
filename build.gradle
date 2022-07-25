@@ -157,13 +157,11 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.simpleVersion
-    inputs.property "mcversion", config.minecraft.version
-    inputs.property "fversion", config.forge.version
+    def reducedForgeVer = config.forge.version.replaceAll(/(\d+\.\d+)(\.\d+)/, "\$1")
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"
         include 'META-INF/mods.toml'
-        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':config.forge.version
+        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':reducedForgeVer
     }
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"
