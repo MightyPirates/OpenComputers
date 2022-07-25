@@ -14,7 +14,7 @@ import net.minecraft.nbt.{CompoundNBT, ListNBT, StringNBT}
 import net.minecraft.tags.ItemTags
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object ConverterItemStack extends api.driver.Converter {

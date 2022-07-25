@@ -17,11 +17,10 @@ import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
 import net.minecraftforge.fml.loading.FMLPaths
 import org.apache.commons.codec.binary.Hex
-import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.apache.maven.artifact.versioning.VersionRange
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 import scala.io.Codec
 import scala.io.Source
@@ -530,7 +529,6 @@ object Settings {
     try {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val nl = sys.props("line.separator")
-      val nle = StringEscapeUtils.escapeJava(nl)
       file.getParentFile.mkdirs()
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
@@ -539,7 +537,7 @@ object Settings {
         // Finalize the string.
         filter(_ != "").mkString(nl).
         // Newline after values.
-        replaceAll(s"((?:\\s*#.*$nle)(?:\\s*[^#\\s].*$nle)+)", "$1" + nl))
+        replaceAll(s"((?:\\s*#.*$nl)(?:\\s*[^#\\s].*$nl)+)", "$1" + nl))
       out.close()
     }
     catch {
@@ -576,7 +574,7 @@ object Settings {
     val prefix = "opencomputers."
     val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
     var patched = config
-    if (!configVersion.equals(modVersion)) {
+    if (configVersion.compareTo(modVersion) != 0) {
       OpenComputers.log.info(s"Updating config from version '${configVersion}' to '${defaults.getString(prefix + "version")}'.")
       patched = patched.withValue(prefix + "version", defaults.getValue(prefix + "version"))
       for ((version, paths) <- configPatches if version.containsVersion(configVersion)) {

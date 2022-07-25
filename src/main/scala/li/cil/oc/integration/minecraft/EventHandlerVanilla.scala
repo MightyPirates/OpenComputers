@@ -13,7 +13,7 @@ import net.minecraft.block.Blocks
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fluids.IFluidBlock
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object EventHandlerVanilla {
   @SubscribeEvent

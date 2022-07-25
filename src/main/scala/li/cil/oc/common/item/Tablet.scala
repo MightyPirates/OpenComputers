@@ -64,8 +64,9 @@ import net.minecraftforge.event.TickEvent.ServerTickEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.asJavaIterable
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel with traits.Chargeable {
   final val TimeToAnalyze = 10

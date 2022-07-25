@@ -19,7 +19,7 @@ import net.minecraft.nbt.ListNBT
 import net.minecraft.util.Direction
 import net.minecraft.world.server.ServerWorld
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeBarcodeReader(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).

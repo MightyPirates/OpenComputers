@@ -17,7 +17,7 @@ import net.minecraft.world.IBlockReader
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Hologram(val tier: Int) extends SimpleBlock {
   val bounds = new AxisAlignedBB(0, 0, 0, 1, 0.5f, 1)

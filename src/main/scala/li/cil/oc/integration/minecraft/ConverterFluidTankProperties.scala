@@ -5,7 +5,7 @@ import java.util
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedArguments.TankProperties
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterFluidTankProperties extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =

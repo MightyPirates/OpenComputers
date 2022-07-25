@@ -33,8 +33,8 @@ import net.minecraft.util.Direction
 import net.minecraft.util.Hand
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.collection.convert.WrapAsScala._
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToScala._
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
 class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle with DeviceInfo {

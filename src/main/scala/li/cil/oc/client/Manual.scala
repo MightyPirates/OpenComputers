@@ -16,8 +16,9 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.annotation.tailrec
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.asJavaIterable
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object Manual extends ManualAPI {
@@ -37,7 +38,7 @@ object Manual extends ManualAPI {
 
   val imageProviders = mutable.Buffer.empty[(String, ImageProvider)]
 
-  val history = new mutable.Stack[History]
+  val history = new mutable.ArrayStack[History]
 
   reset()
 

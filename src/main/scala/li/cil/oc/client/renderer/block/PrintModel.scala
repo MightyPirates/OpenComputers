@@ -25,7 +25,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraftforge.client.model.data.IModelData
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 object PrintModel extends SmartBlockModelBase {

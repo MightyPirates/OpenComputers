@@ -18,11 +18,12 @@ import net.minecraft.util.math.{AxisAlignedBB, BlockPos, RayTraceResult}
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeBlock
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.CustomDrops[tileentity.Cable] {
+class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with IForgeBlock with traits.CustomDrops[tileentity.Cable] {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 

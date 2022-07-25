@@ -24,7 +24,7 @@ import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.wrapper.InvWrapper
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait WorldAware {
   def position: BlockPosition

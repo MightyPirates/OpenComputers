@@ -43,7 +43,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.ToolType
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).strength(2, 5)) extends ContainerBlock(props.isValidSpawn(new IExtendedPositionPredicate[EntityType[_]] {
   override def test(state: BlockState, world: IBlockReader, pos: BlockPos, entity: EntityType[_]) = state.getBlock.asInstanceOf[SimpleBlock].isValidSpawn(state, world, pos, entity)

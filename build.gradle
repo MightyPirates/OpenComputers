@@ -121,7 +121,7 @@ dependencies {
     
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
     implementation "com.typesafe:config:1.2.1"
-    implementation "org.scala-lang:scala-library:2.11.12"
+    implementation "org.scala-lang:scala-library:2.12.+"
 
     compileOnly fg.deobf("li.cil.tis3d:tis3d-1.16.5-forge:${config.tis3d.version}")
     compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${config.hwyla.version}:api")

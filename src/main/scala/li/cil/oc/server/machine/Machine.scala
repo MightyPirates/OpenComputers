@@ -46,8 +46,9 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.Array.canBuildFrom
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.mapAsJavaMap
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class Machine(val host: MachineHost) extends AbstractManagedEnvironment with machine.Machine with Runnable with DeviceInfo {
@@ -152,7 +153,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
 
-  override def components: util.Map[String, String] = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
+  override def components: util.Map[String, String] = mapAsJavaMap(_components)
 
   def componentCount: Int = (_components.foldLeft(0.0)((acc, entry) => entry match {
     case (_, name) => acc + (if (name != "filesystem") 1.0 else 0.25)

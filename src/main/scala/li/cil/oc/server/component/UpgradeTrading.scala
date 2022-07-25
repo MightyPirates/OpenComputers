@@ -21,8 +21,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.merchant.IMerchant
 import net.minecraft.util.math.vector.Vector3d
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class UpgradeTrading(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {

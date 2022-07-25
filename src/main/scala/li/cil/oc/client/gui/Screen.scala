@@ -6,12 +6,13 @@ import li.cil.oc.api
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
+import net.minecraft.client.gui.INestedGuiEventHandler
 import net.minecraft.client.gui.screen
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 
 class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean)
-  extends screen.Screen(StringTextComponent.EMPTY) with traits.InputBuffer {
+  extends screen.Screen(StringTextComponent.EMPTY) with traits.InputBuffer with INestedGuiEventHandler {
 
   override protected def hasKeyboard = hasKeyboardCallback()
 

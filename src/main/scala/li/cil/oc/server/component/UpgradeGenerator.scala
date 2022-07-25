@@ -24,7 +24,7 @@ import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.common.ForgeHooks
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).

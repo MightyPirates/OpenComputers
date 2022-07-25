@@ -16,7 +16,7 @@ import net.minecraft.util.Direction
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.opengl.GL11
 
-import scala.collection.convert.WrapAsJava.asJavaCollection
+import scala.collection.JavaConverters.asJavaCollection
 
 class Rack(id: Int, playerInventory: PlayerInventory, val rack: tileentity.Rack)
   extends DynamicGuiContainer(new container.Rack(id, playerInventory, rack),

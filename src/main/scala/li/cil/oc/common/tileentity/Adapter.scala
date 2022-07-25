@@ -25,7 +25,7 @@ import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
 class Adapter extends TileEntity(null) with traits.Environment with traits.ComponentInventory with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {

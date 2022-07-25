@@ -6,10 +6,10 @@ import mezz.jei.api.runtime.IIngredientManager
 import mezz.jei.api.runtime.IJeiRuntime
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsJava.seqAsJavaList
+import scala.collection.JavaConverters.seqAsJavaList
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ModJEI {
   var runtime: Option[IJeiRuntime] = None

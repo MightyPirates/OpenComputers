@@ -18,7 +18,7 @@ import li.cil.repack.com.naef.jnlua._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 @Architecture.Name("Lua 5.2")
 class NativeLua52Architecture(machine: api.machine.Machine) extends NativeLuaArchitecture(machine) {

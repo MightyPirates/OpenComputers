@@ -11,8 +11,8 @@ import net.minecraft.entity.passive.{OcelotEntity, SheepEntity}
 import net.minecraft.util.DamageSource
 import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class CarpetedCapacitor extends Capacitor with traits.Tickable {
   private final lazy val deviceInfo = Map(

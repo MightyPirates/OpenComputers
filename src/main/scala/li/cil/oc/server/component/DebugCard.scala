@@ -69,7 +69,8 @@ import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.ForgeRegistry
 import net.minecraftforge.registries.IForgeRegistry
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.{collectionAsScalaIterable, mapAsScalaMap}
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with DebugNode {

@@ -16,7 +16,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 trait RedstoneWireless extends RedstoneSignaller with DeviceInfo {
   def redstone: EnvironmentHost

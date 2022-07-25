@@ -20,7 +20,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraftforge.client.model.data.IModelData
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.seqAsJavaList
+import scala.collection.convert.ImplicitConversionsToJava._
 
 object ScreenModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride

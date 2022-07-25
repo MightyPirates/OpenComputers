@@ -37,8 +37,9 @@ import net.minecraft.world.biome.Biome.RainType
 import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.common.MinecraftForge
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.mapAsJavaMap
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.language.existentials
 
 class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.WorldControl with DeviceInfo {

@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
 
-import scala.collection.convert.WrapAsJava.asJavaCollection
+import scala.collection.JavaConverters.asJavaCollection
 
 class Server(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, val rack: Option[tileentity.Rack] = None, val slot: Int = 0)
   extends DynamicGuiContainer(new container.Server(id, playerInventory, serverInventory),

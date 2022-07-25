@@ -22,7 +22,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3d
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 /**
   * Mostly stolen from {@link li.cil.oc.common.tileentity.Adapter}

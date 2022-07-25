@@ -22,7 +22,7 @@ import net.minecraft.inventory.{CraftResultInventory, IInventory}
 import net.minecraft.inventory.container.Container
 import net.minecraft.inventory.container.CraftingResultSlot
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).

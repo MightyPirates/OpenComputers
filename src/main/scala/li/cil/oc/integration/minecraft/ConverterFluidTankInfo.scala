@@ -5,7 +5,7 @@ import java.util
 import li.cil.oc.api
 import net.minecraftforge.fluids
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterFluidTankInfo extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =

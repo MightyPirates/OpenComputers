@@ -11,7 +11,7 @@ import li.cil.oc.server.component
 import net.minecraft.util.Util
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ExperienceUpgradeHandler {
   @SubscribeEvent

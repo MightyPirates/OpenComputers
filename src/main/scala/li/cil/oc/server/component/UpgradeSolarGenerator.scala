@@ -17,7 +17,7 @@ import net.minecraft.util.Direction
 import net.minecraft.world.World
 import net.minecraft.world.biome.Biome.RainType
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeSolarGenerator(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).

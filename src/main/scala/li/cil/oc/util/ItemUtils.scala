@@ -26,7 +26,7 @@ import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.CompoundNBT
 import net.minecraftforge.registries.ForgeRegistries
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object ItemUtils {

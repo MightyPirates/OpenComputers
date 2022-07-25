@@ -9,7 +9,7 @@ import li.cil.oc.api
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterWorld extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) = {

@@ -20,10 +20,11 @@ import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.reflect.ClassTag
 
-class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with IForgeBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)
 

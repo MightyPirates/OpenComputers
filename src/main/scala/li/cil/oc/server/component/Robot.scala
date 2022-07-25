@@ -27,7 +27,7 @@ import net.minecraft.nbt.CompoundNBT
 import net.minecraft.particles.ParticleTypes
 import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with Agent with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).

@@ -32,7 +32,7 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.{IBlockReader, World}
 import net.minecraftforge.api.distmarker.{Dist, OnlyIn}
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Screen(val tier: Int) extends RedstoneAware {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =

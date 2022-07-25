@@ -41,7 +41,7 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 10).noOcclusion()) extends RedstoneAware(props) with traits.StateAware {
   setCreativeTab(null)

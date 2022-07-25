@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.material.PushReaction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 protected object PistonTraits {
   trait ExtendAware {

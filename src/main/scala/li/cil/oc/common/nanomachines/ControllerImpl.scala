@@ -31,8 +31,8 @@ import net.minecraft.potion.EffectInstance
 import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class ControllerImpl(val player: PlayerEntity) extends Controller with WirelessEndpoint {

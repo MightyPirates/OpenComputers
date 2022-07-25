@@ -3,7 +3,7 @@ package li.cil.oc.server.machine.luac
 import li.cil.oc.api.network.Component
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {

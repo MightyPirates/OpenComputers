@@ -24,9 +24,10 @@ import net.minecraft.potion.EffectInstance
 import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.common.extensions.IForgeItem
 
 class HoverBoots(props: Properties = new Properties().tab(CreativeTab).setNoRepair())
-  extends ArmorItem(ArmorMaterial.DIAMOND, EquipmentSlotType.FEET, props) with traits.SimpleItem with traits.Chargeable {
+  extends ArmorItem(ArmorMaterial.DIAMOND, EquipmentSlotType.FEET, props) with IForgeItem with traits.SimpleItem with traits.Chargeable {
 
   override def getRarity(stack: ItemStack): Rarity = Rarity.UNCOMMON
 

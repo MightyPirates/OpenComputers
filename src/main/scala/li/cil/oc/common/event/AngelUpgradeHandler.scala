@@ -5,7 +5,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.server.component.UpgradeAngel
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object AngelUpgradeHandler {
   @SubscribeEvent

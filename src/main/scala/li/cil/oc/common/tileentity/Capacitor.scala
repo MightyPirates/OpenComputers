@@ -14,7 +14,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Capacitor extends TileEntity(null) with traits.Environment with DeviceInfo {
   // Start with maximum theoretical capacity, gets reduced after validation.

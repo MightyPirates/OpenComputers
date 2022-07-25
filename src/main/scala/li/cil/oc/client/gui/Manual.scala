@@ -17,8 +17,9 @@ import net.minecraft.util.text.ITextProperties
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.{asJavaIterable, seqAsJavaList}
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window {
   final val documentMaxWidth = 230

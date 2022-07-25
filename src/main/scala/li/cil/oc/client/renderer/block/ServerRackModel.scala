@@ -20,7 +20,7 @@ import net.minecraft.util.math.vector.Vector3d
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.client.model.data.IModelData
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 class ServerRackModel(val parent: IBakedModel) extends SmartBlockModelBase {

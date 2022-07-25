@@ -15,8 +15,9 @@ import li.cil.oc.common.tileentity.Relay
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.mapAsJavaMap
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class RelayPeripheral(val relay: Relay) extends IDynamicPeripheral {

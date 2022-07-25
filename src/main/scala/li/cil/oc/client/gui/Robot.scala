@@ -15,6 +15,7 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
+import net.minecraft.client.gui.INestedGuiEventHandler
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -23,12 +24,13 @@ import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.asJavaCollection
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Robot)
   extends DynamicGuiContainer(new container.Robot(id, playerInventory, robot),
     playerInventory, StringTextComponent.EMPTY)
-  with traits.InputBuffer {
+  with traits.InputBuffer with INestedGuiEventHandler {
 
   override protected val buffer: TextBuffer = robot.components.collect {
     case Some(buffer: api.internal.TextBuffer) => buffer

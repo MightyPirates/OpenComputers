@@ -16,7 +16,7 @@ import net.minecraft.nbt.{CompoundNBT, ListNBT}
 import li.cil.oc.common.component
 import li.cil.oc.common.component.GpuTextBuffer
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.util.matching.Regex
 
 // IMPORTANT: usually methods with side effects should *not* be direct

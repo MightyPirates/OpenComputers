@@ -18,7 +18,7 @@ import net.minecraft.util.text.ITextProperties
 import net.minecraft.util.text.LanguageMap
 import net.minecraft.util.text.StringTextComponent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 // Workaround because certain other mods *cough*TMI*cough* do base class
 // transformations that break things! Such fun. Many annoyed. And yes, this

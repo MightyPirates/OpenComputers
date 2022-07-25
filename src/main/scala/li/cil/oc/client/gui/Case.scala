@@ -10,7 +10,8 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.asJavaCollection
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Case(id: Int, playerInventory: PlayerInventory, val computer: tileentity.Case)
   extends DynamicGuiContainer(new container.Case(id, playerInventory, computer),

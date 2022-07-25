@@ -20,7 +20,7 @@ import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.data.IModelData
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 object NetSplitterModel extends SmartBlockModelBase {

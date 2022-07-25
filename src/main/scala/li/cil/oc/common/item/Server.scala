@@ -19,7 +19,7 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 
 import scala.collection.mutable
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
   override val unlocalizedName: String = super.unlocalizedName + tier

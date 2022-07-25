@@ -25,7 +25,7 @@ import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait SimpleItem extends Item {
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)

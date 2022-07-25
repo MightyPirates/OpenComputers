@@ -12,7 +12,7 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.eventbus.api.{EventPriority, SubscribeEvent}
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object PlayerInteractionManagerHelper {
 

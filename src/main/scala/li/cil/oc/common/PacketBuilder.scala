@@ -24,7 +24,7 @@ import net.minecraftforge.fml.network.PacketDistributor
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 import net.minecraftforge.registries._
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stream) {
   def writeRegistryEntry[T <: IForgeRegistryEntry[T]](registry: IForgeRegistry[T], value: T): Unit =

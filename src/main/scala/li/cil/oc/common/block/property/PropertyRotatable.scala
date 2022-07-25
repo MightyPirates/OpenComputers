@@ -5,7 +5,7 @@ import com.google.common.base.Predicates
 import net.minecraft.state.DirectionProperty
 import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 object PropertyRotatable {
   final val Facing = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL.asInstanceOf[Predicate[Direction]])

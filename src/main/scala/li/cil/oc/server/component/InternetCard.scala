@@ -34,8 +34,8 @@ import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
@@ -203,7 +203,6 @@ object InternetCard {
 
           selector.select()
 
-          import scala.collection.JavaConversions._
           val selectedKeys = selector.selectedKeys
           val readableKeys = mutable.HashSet[SelectionKey]()
           selectedKeys.filter(_.isReadable).foreach(key => {

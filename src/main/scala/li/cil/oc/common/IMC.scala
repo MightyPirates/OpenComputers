@@ -22,7 +22,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.InterModComms.IMCMessage
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object IMC {
   def handleMessage(message: IMCMessage): Unit = {

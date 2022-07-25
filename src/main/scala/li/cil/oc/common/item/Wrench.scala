@@ -18,12 +18,13 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
 import net.minecraftforge.common.ToolType
+import net.minecraftforge.common.extensions.IForgeItem
 
 object Wrench {
   val WrenchType: ToolType = ToolType.get("wrench")
 }
 
-class Wrench(props: Properties = new Properties().stacksTo(1).addToolType(Wrench.WrenchType, 1).tab(CreativeTab)) extends Item(props) with traits.SimpleItem with api.internal.Wrench {
+class Wrench(props: Properties = new Properties().stacksTo(1).addToolType(Wrench.WrenchType, 1).tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with api.internal.Wrench {
   override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = true
 
   override def onItemUseFirst(player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {

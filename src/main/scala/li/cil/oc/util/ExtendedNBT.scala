@@ -6,7 +6,8 @@ import net.minecraft.nbt._
 import net.minecraft.util.Direction
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.mapAsScalaMap
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls

@@ -9,7 +9,7 @@ import mekanism.api.chemical.gas.Gas
 import mekanism.api.chemical.gas.GasStack
 import net.minecraftforge.registries.ForgeRegistry
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterGasStack extends api.driver.Converter {
   override def convert(value: scala.Any, output: util.Map[AnyRef, AnyRef]) =

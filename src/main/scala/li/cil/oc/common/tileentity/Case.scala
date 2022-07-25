@@ -24,7 +24,7 @@ import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Case(var tier: Int) extends TileEntity(null) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
   def this() = {

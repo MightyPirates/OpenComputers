@@ -5,7 +5,7 @@ import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.WirelessNetworkCard
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object WirelessNetworkCardHandler {
   @SubscribeEvent

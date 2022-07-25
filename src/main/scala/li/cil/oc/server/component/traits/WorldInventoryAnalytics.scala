@@ -15,7 +15,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraftforge.items.IItemHandler
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait WorldInventoryAnalytics extends WorldAware with SideRestricted with NetworkAware {
   @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the device.""")

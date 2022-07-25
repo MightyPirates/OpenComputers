@@ -11,7 +11,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
   @Callback(doc = """function([slot:number]):table -- Get a description of the stack in the specified slot or the selected slot.""")

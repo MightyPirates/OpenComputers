@@ -62,7 +62,7 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -280,8 +280,9 @@ object EventHandler {
         val server = ServerLifecycleHooks.getCurrentServer
         if (server.getPlayerList.isOp(player.getGameProfile)) {
           Future {
-            UpdateCheck.info onSuccess {
+            UpdateCheck.info foreach {
               case Some(release) => player.sendMessage(Localization.Chat.InfoNewVersion(release.tag_name), Util.NIL_UUID)
+              case _ =>
             }
           }
         }

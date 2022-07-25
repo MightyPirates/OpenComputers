@@ -19,7 +19,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common._
 
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters
 
 trait AppliedEnergistics2 extends Common with IGridHost {
   private lazy val useAppliedEnergistics2Power = isServer && Mods.AppliedEnergistics2.isModAvailable
@@ -127,9 +127,9 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
   override def onGridNotification(p1: GridNotification): Unit = {}
 
   override def getConnectableSides: util.EnumSet[Direction] = {
-    val connectableSides = JavaConversions.asJavaCollection(Direction.values.filter(tileEntity.canConnectPower))
+    val connectableSides = JavaConverters.asJavaCollection(Direction.values.filter(tileEntity.canConnectPower))
     if (connectableSides.isEmpty) {
-      val s = util.EnumSet.copyOf(JavaConversions.asJavaCollection(Direction.values))
+      val s = util.EnumSet.copyOf(JavaConverters.asJavaCollection(Direction.values))
       s.clear()
       s
     }

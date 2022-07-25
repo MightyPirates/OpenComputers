@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3d
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 object DroneModel extends SmartBlockModelBase {

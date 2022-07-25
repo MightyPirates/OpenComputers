@@ -31,12 +31,13 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
+import net.minecraftforge.common.extensions.IForgeBlock
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware(Properties.of(Material.METAL).strength(1, 5).noOcclusion())
-  with traits.CustomDrops[tileentity.Print] {
+  with IForgeBlock with traits.CustomDrops[tileentity.Print] {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 

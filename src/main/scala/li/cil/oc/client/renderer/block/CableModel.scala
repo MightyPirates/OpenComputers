@@ -23,7 +23,8 @@ import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraftforge.client.model.data.IModelData
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.bufferAsJavaList
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
 object CableModel extends CableModel

@@ -55,7 +55,8 @@ import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.fluids.IFluidTank
 import net.minecraftforge.fml.network.NetworkHooks
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.asJavaIterable
+import scala.collection.convert.ImplicitConversionsToJava._
 
 object Drone {
   val DataRunning: DataParameter[lang.Boolean] = EntityDataManager.defineId(classOf[Drone], DataSerializers.BOOLEAN)

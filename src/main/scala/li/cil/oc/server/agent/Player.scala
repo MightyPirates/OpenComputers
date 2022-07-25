@@ -59,7 +59,7 @@ import net.minecraftforge.eventbus.api.{Event, EventPriority, SubscribeEvent}
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.wrapper._
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object Player {
   def profileFor(agent: internal.Agent): GameProfile = {

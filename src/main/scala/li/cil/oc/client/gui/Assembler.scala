@@ -17,8 +17,8 @@ import net.minecraft.inventory.container.Slot
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileentity.Assembler)
   extends DynamicGuiContainer(new container.Assembler(id, playerInventory, assembler),

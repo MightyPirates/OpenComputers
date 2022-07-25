@@ -20,7 +20,8 @@ import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.opengl.GL11
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.asJavaCollection
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
   extends DynamicGuiContainer(new container.Drone(id, playerInventory, drone),

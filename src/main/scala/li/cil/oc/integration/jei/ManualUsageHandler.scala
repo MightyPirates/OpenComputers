@@ -20,8 +20,8 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.client.gui.widget.button.Button
 import org.lwjgl.glfw.GLFW
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ManualUsageHandler {
 

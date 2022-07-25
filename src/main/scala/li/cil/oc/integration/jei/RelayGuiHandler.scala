@@ -6,7 +6,7 @@ import li.cil.oc.client.gui.Relay
 import mezz.jei.api.gui.handlers.IGuiContainerHandler
 import net.minecraft.client.renderer.Rectangle2d
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 object RelayGuiHandler extends IGuiContainerHandler[Relay] {
 

@@ -19,7 +19,7 @@ import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RotationHelper
 import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 trait RedstoneVanilla extends RedstoneSignaller with DeviceInfo {
   def redstone: EnvironmentHost with RedstoneAware

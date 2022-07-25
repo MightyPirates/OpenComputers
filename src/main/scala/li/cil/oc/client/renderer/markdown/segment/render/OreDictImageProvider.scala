@@ -9,7 +9,7 @@ import net.minecraft.tags._
 import net.minecraft.util.ResourceLocation
 
 import scala.collection.mutable
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object OreDictImageProvider extends ImageProvider {
   override def getImage(data: String): ImageRenderer = {

@@ -15,14 +15,14 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.util.UpgradeExperience
+import li.cil.oc.util.{UpgradeExperience => ExperienceUtil}
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.ExperienceOrbEntity
 import net.minecraft.item.Items
 import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
   final val MaxLevel = 30
@@ -46,7 +46,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
 
   var level = 0
 
-  def xpForNextLevel: Double = UpgradeExperience.xpForLevel(level + 1)
+  def xpForNextLevel: Double = ExperienceUtil.xpForLevel(level + 1)
 
   def addExperience(value: Double) {
     if (level < MaxLevel) {
@@ -66,7 +66,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
     val oldLevel = level
-    level = UpgradeExperience.calculateLevelFromExperience(experience)
+    level = ExperienceUtil.calculateLevelFromExperience(experience)
     if (node != null) {
       if (level != oldLevel) {
         updateClient()
@@ -77,7 +77,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
 
   @Callback(direct = true, doc = """function():number -- The current level of experience stored in this experience upgrade.""")
   def level(context: Context, args: Arguments): Array[AnyRef] =
-    result(UpgradeExperience.calculateExperienceLevel(level, experience))
+    result(ExperienceUtil.calculateExperienceLevel(level, experience))
 
   @Callback(doc = """function():boolean -- Tries to consume an enchanted item to add experience to the upgrade.""")
   def consume(context: Context, args: Arguments): Array[AnyRef] = {
@@ -117,12 +117,12 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
 
   override def saveData(nbt: CompoundNBT) {
     super.saveData(nbt)
-    UpgradeExperience.setExperience(nbt, experience)
+    ExperienceUtil.setExperience(nbt, experience)
   }
 
   override def loadData(nbt: CompoundNBT) {
     super.loadData(nbt)
-    experience = UpgradeExperience.getExperience(nbt)
+    experience = ExperienceUtil.getExperience(nbt)
     updateXpInfo()
   }
 }
