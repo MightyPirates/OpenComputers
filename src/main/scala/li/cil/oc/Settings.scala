@@ -570,7 +570,7 @@ object Settings {
   // created by) against the current version to see if some hard changes
   // were made. If so, the new default values are copied over.
   private def patchConfig(config: Config, defaults: Config) = {
-    val modVersion = OpenComputers.modContainer.getModInfo.getVersion
+    val modVersion = OpenComputers.get.Version
     val prefix = "opencomputers."
     val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
     var patched = config

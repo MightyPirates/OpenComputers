@@ -21,7 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 class Manual(val parent: Delegator) extends traits.Delegate {
   @OnlyIn(Dist.CLIENT)
   override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag): Unit = {
-    tooltip.add(new StringTextComponent(TextFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version))
+    tooltip.add(new StringTextComponent(TextFormatting.DARK_GRAY.toString + "v" + OpenComputers.get.Version))
     super.tooltipLines(stack, world, tooltip, flag)
   }
 

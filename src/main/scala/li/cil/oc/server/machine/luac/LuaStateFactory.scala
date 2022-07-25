@@ -179,7 +179,7 @@ abstract class LuaStateFactory {
       return
     }
 
-    val tmpLibName = s"OpenComputersMod-${OpenComputers.Version}-$version-$libraryName"
+    val tmpLibName = s"OpenComputersMod-${OpenComputers.get.Version}-$version-$libraryName"
     val tmpBasePath = if (Settings.get.nativeInTmpDir) {
       val path = System.getProperty("java.io.tmpdir")
       if (path == null) ""
