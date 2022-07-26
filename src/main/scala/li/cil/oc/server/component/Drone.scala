@@ -97,7 +97,7 @@ class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Age
 
   @Callback(doc = "function():number -- Get the current velocity in m/s.")
   def getVelocity(context: Context, args: Arguments): Array[AnyRef] =
-    result(math.sqrt(agent.motionX * agent.motionX + agent.motionY * agent.motionY + agent.motionZ * agent.motionZ) * 20) // per second
+    result(agent.getDeltaMovement.length * 20) // per second
 
   @Callback(doc = "function():number -- Get the maximum velocity, in m/s.")
   def getV1elocity(context: Context, args: Arguments): Array[AnyRef] = {

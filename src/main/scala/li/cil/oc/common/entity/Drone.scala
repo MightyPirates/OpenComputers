@@ -34,6 +34,7 @@ import net.minecraft.block.BlockState
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntitySize
+import net.minecraft.entity.EntityType
 import net.minecraft.entity.MoverType
 import net.minecraft.entity.Pose
 import net.minecraft.entity.item.ItemEntity
@@ -75,7 +76,7 @@ object Drone {
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(world: World) extends Entity(null, world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
+class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
   override def world: World = level
 
   // Some basic constants.
@@ -85,14 +86,6 @@ class Drone(world: World) extends Entity(null, world) with MachineHost with inte
   val maxAcceleration = 0.1f
   val maxVelocity = 0.4f
   val maxInventorySize = 8
-
-  @Deprecated
-  private val size = EntitySize.fixed(12 / 16f, 6 / 16f)
-  @Deprecated
-  override def getDimensions(pose: Pose) = size
-
-  @Deprecated
-  override def fireImmune = true
 
   // Rendering stuff, purely eyecandy.
   val targetFlapAngles: Array[Array[Float]] = Array.fill(4, 2)(0f)
@@ -225,15 +218,6 @@ class Drone(world: World) extends Entity(null, world) with MachineHost with inte
     targetY = value.y.toFloat
     targetZ = value.z.toFloat
   }
-
-  @Deprecated
-  def motionX = getDeltaMovement.x
-
-  @Deprecated
-  def motionY = getDeltaMovement.y
-
-  @Deprecated
-  def motionZ = getDeltaMovement.z
 
   override def getVelocity = getDeltaMovement
 
@@ -449,7 +433,7 @@ class Drone(world: World) extends Entity(null, world) with MachineHost with inte
     if (isRunning) {
       val toTarget = new Vector3d(targetX - getX, targetY - getY, targetZ - getZ)
       val distance = toTarget.length()
-      val velocity = new Vector3d(motionX, motionY, motionZ)
+      val velocity = getDeltaMovement
       if (distance > 0 && (distance > 0.005f || velocity.dot(velocity) > 0.005f)) {
         val acceleration = math.min(targetAcceleration.floatValue(), distance) / distance
         val velocityX = velocity.x + toTarget.x * acceleration

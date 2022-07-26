@@ -52,7 +52,7 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
   override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     if (!world.isClientSide) {
-      val drone = new entity.Drone(world)
+      val drone = entity.EntityTypes.DRONE.create(world)
       player match {
         case fakePlayer: agent.Player =>
           drone.ownerName = fakePlayer.agent.ownerName

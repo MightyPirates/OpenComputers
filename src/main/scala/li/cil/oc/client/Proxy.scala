@@ -1,5 +1,7 @@
 package li.cil.oc.client
 
+import com.mojang.blaze3d.systems.IRenderCall
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.client
@@ -17,6 +19,7 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
+import li.cil.oc.common.entity.EntityTypes
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.event.RackMountableRenderHandler
 import li.cil.oc.common.item.traits.Delegate
@@ -55,7 +58,7 @@ private[oc] class Proxy extends CommonProxy {
 
     ColorHandler.init()
 
-    RenderingRegistry.registerEntityRenderingHandler(null, DroneRenderer) // TEMP
+    RenderingRegistry.registerEntityRenderingHandler(EntityTypes.DRONE, DroneRenderer)
 
     ClientRegistry.bindTileEntityRenderer(null, AdapterRenderer) // TEMP
     ClientRegistry.bindTileEntityRenderer(null, AssemblerRenderer) // TEMP
@@ -87,12 +90,15 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(MFUTargetRenderer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
-
     MinecraftForge.EVENT_BUS.register(Audio)
     MinecraftForge.EVENT_BUS.register(HologramRenderer)
-    MinecraftForge.EVENT_BUS.register(PetRenderer)
-    MinecraftForge.EVENT_BUS.register(Sound)
-    MinecraftForge.EVENT_BUS.register(TextBufferRenderCache)
+
+    runOnRenderThread(() => MinecraftForge.EVENT_BUS.register(TextBufferRenderCache))
+  }
+
+  def runOnRenderThread(call: IRenderCall) {
+    if (RenderSystem.isOnRenderThreadOrInit) call.execute()
+    else RenderSystem.recordRenderCall(call)
   }
 
   override def getGuiHandler(): common.GuiHandler = client.GuiHandler
