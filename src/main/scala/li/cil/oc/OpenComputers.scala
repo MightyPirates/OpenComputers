@@ -82,6 +82,7 @@ class OpenComputers {
 
   MinecraftForge.EVENT_BUS.register(OpenComputers.proxy)
   Settings.load(FMLPaths.CONFIGDIR.get().resolve(Paths.get("opencomputers", "settings.conf")).toFile())
+  OpenComputers.proxy.preInit()
 
   @SubscribeEvent
   def registerBlocks(e: RegistryEvent.Register[Block]) {
@@ -96,7 +97,6 @@ class OpenComputers {
 
   @SubscribeEvent
   def commonInit(e: FMLCommonSetupEvent): Unit = {
-    OpenComputers.proxy.preInit(e)
     OpenComputers.proxy.init(e)
   }
 

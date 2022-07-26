@@ -37,19 +37,19 @@ import net.minecraftforge.fml.network.NetworkRegistry
 
 @Deprecated
 private[oc] class Proxy extends CommonProxy {
-  override def preInit(e: FMLCommonSetupEvent) {
-    super.preInit(e)
+  override def preInit() {
+    super.preInit()
 
     api.API.manual = client.Manual
 
     MinecraftForge.EVENT_BUS.register(Textures)
     MinecraftForge.EVENT_BUS.register(NetSplitterModel)
-
-    ModelInitialization.preInit()
   }
 
   override def init(e: FMLCommonSetupEvent) {
     super.init(e)
+
+    ModelInitialization.preInit()
 
     CommonPacketHandler.clientHandler = PacketHandler
 

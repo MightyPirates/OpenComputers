@@ -55,7 +55,7 @@ class Proxy {
     tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, OpenComputers.ID + ":chip_diamond", net.minecraft.item.Items.DIAMOND, "forge:gems/diamond")
   }
 
-  def preInit(e: FMLCommonSetupEvent) {
+  def preInit() {
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
