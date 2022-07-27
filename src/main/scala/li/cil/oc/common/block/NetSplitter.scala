@@ -14,7 +14,7 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class NetSplitter extends RedstoneAware {
-  override def newBlockEntity(world: IBlockReader) = new tileentity.NetSplitter()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.NetSplitter(tileentity.TileEntityTypes.NET_SPLITTER)
 
   // ----------------------------------------------------------------------- //
 

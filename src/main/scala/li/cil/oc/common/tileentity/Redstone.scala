@@ -12,9 +12,10 @@ import li.cil.oc.server.component.RedstoneVanilla
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 
-class Redstone extends TileEntity(null) with traits.Environment with traits.BundledRedstoneAware with traits.Tickable {
+class Redstone(selfType: TileEntityType[_ <: Redstone]) extends TileEntity(selfType) with traits.Environment with traits.BundledRedstoneAware with traits.Tickable {
   val instance: RedstoneVanilla =
     if (BundledRedstone.isAvailable)
       new component.Redstone.Bundled(this)

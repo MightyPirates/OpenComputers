@@ -14,5 +14,5 @@ class Assembler extends SimpleBlock with traits.PowerAcceptor with traits.StateA
 
   override def guiType = GuiType.Assembler
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Assembler()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Assembler(tileentity.TileEntityTypes.ASSEMBLER)
 }

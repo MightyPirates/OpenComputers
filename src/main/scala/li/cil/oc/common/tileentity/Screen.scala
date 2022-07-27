@@ -15,6 +15,7 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.projectile.ArrowEntity
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.api.distmarker.Dist
@@ -23,8 +24,8 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import scala.collection.mutable
 import scala.language.postfixOps
 
-class Screen(var tier: Int) extends TileEntity(null) with traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
-  def this() = this(0)
+class Screen(selfType: TileEntityType[_ <: Screen], var tier: Int) extends TileEntity(selfType) with traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
+  def this(selfType: TileEntityType[_ <: Screen]) = this(selfType, 0)
 
   // Enable redstone functionality.
   _isOutputEnabled = true

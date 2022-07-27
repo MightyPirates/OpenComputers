@@ -60,24 +60,24 @@ private[oc] class Proxy extends CommonProxy {
 
     RenderingRegistry.registerEntityRenderingHandler(EntityTypes.DRONE, DroneRenderer)
 
-    ClientRegistry.bindTileEntityRenderer(null, AdapterRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, AssemblerRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, CaseRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, ChargerRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, DisassemblerRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, DiskDriveRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, GeolyzerRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, HologramRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, MicrocontrollerRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, NetSplitterRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, PowerDistributorRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, PrinterRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, RaidRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, RackRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, RelayRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, RobotRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, ScreenRenderer) // TEMP
-    ClientRegistry.bindTileEntityRenderer(null, TransposerRenderer) // TEMP
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.ADAPTER, AdapterRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.ASSEMBLER, AssemblerRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.CASE, CaseRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.CHARGER, ChargerRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.DISASSEMBLER, DisassemblerRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.DISK_DRIVE, DiskDriveRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.GEOLYZER, GeolyzerRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.HOLOGRAM, HologramRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.MICROCONTROLLER, MicrocontrollerRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.NET_SPLITTER, NetSplitterRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.POWER_DISTRIBUTOR, PowerDistributorRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.PRINTER, PrinterRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.RAID, RaidRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.RACK, RackRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.RELAY, RelayRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.ROBOT, RobotRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.SCREEN, ScreenRenderer)
+    ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.TRANSPOSER, TransposerRenderer)
 
     ClientRegistry.registerKeyBinding(KeyBindings.analyzeCopyAddr)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)

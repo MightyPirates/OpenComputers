@@ -5,5 +5,5 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class MotionSensor extends SimpleBlock {
-  override def newBlockEntity(world: IBlockReader) = new tileentity.MotionSensor()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.MotionSensor(tileentity.TileEntityTypes.MOTION_SENSOR)
 }

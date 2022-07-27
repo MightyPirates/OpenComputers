@@ -10,8 +10,9 @@ import li.cil.oc.util.ItemColorizer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 
-class Cable extends TileEntity(null) with traits.Environment with traits.NotAnalyzable with traits.ImmibisMicroblock with traits.Colored {
+class Cable(selfType: TileEntityType[_ <: Cable]) extends TileEntity(selfType) with traits.Environment with traits.NotAnalyzable with traits.ImmibisMicroblock with traits.Colored {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   setColor(Color.rgbValues(DyeColor.LIGHT_GRAY))

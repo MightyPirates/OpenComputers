@@ -8,5 +8,5 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
 class Transposer extends SimpleBlock {
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Transposer()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Transposer(tileentity.TileEntityTypes.TRANSPOSER)
 }

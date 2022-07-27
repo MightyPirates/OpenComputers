@@ -16,7 +16,7 @@ class Capacitor extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Capacitor()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Capacitor(tileentity.TileEntityTypes.CAPACITOR)
 
   // ----------------------------------------------------------------------- //
 

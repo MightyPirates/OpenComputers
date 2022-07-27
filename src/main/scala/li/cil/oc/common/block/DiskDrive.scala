@@ -40,7 +40,7 @@ class DiskDrive extends SimpleBlock with traits.GUI {
 
   override def guiType = GuiType.DiskDrive
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.DiskDrive()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.DiskDrive(tileentity.TileEntityTypes.DISK_DRIVE)
 
   // ----------------------------------------------------------------------- //
 

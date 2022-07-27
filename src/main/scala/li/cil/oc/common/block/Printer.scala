@@ -11,5 +11,5 @@ import net.minecraft.world.World
 class Printer extends SimpleBlock with traits.StateAware with traits.GUI {
   override def guiType = GuiType.Printer
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Printer()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Printer(tileentity.TileEntityTypes.PRINTER)
 }

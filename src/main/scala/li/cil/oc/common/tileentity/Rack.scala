@@ -28,12 +28,15 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.nbt.IntArrayNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Rack extends TileEntity(null) with traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
+class Rack(selfType: TileEntityType[_ <: Rack]) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Hub with traits.PowerBalancer
+  with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
+
   var isRelayEnabled = false
   val lastData = new Array[CompoundNBT](getContainerSize)
   val hasChanged: Array[Boolean] = Array.fill(getContainerSize)(true)

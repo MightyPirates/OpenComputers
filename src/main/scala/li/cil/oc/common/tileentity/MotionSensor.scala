@@ -4,8 +4,9 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 
-class MotionSensor extends TileEntity(null) with traits.Environment with traits.Tickable {
+class MotionSensor(selfType: TileEntityType[_ <: MotionSensor]) extends TileEntity(selfType) with traits.Environment with traits.Tickable {
   val motionSensor = new component.MotionSensor(this)
 
   def node: Node = motionSensor.node

@@ -10,13 +10,14 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network._
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class PowerConverter extends TileEntity(null) with traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo {
+class PowerConverter(selfType: TileEntityType[_ <: PowerConverter]) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()

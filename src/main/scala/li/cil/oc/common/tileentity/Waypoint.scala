@@ -11,11 +11,12 @@ import li.cil.oc.server.network.Waypoints
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.particles.ParticleTypes
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Waypoint extends TileEntity(null) with traits.Environment with traits.Rotatable with traits.RedstoneAware with traits.Tickable {
+class Waypoint(selfType: TileEntityType[_ <: Waypoint]) extends TileEntity(selfType) with traits.Environment with traits.Rotatable with traits.RedstoneAware with traits.Tickable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("waypoint").
     create()

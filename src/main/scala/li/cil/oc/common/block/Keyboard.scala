@@ -59,7 +59,7 @@ class Keyboard(props: Properties = Properties.of(Material.STONE).strength(2, 5).
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Keyboard()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Keyboard(tileentity.TileEntityTypes.KEYBOARD)
 
   // ----------------------------------------------------------------------- //
 

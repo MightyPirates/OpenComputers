@@ -27,7 +27,7 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateA
 
   override def guiType = GuiType.Charger
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Charger()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Charger(tileentity.TileEntityTypes.CHARGER)
 
   // ----------------------------------------------------------------------- //
 

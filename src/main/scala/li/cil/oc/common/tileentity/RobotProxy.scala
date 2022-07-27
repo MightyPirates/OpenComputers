@@ -29,14 +29,17 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidTank
 
-class RobotProxy(val robot: Robot) extends TileEntity(null) with traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
-  def this() = this(new Robot())
+class RobotProxy(selfType: TileEntityType[_ <: RobotProxy], val robot: Robot) extends TileEntity(selfType)
+  with traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
+
+  def this(selfType: TileEntityType[_ <: RobotProxy]) = this(selfType, new Robot())
 
   // ----------------------------------------------------------------------- //
 

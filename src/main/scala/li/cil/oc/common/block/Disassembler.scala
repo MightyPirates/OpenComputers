@@ -30,5 +30,5 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.Sta
 
   override def guiType = GuiType.Disassembler
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Disassembler()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Disassembler(tileentity.TileEntityTypes.DISASSEMBLER)
 }

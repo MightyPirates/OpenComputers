@@ -22,7 +22,7 @@ class Waypoint extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Waypoint()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Waypoint(tileentity.TileEntityTypes.WAYPOINT)
 
   // ----------------------------------------------------------------------- //
 

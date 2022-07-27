@@ -18,11 +18,12 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Raid extends TileEntity(null) with traits.Environment with traits.Inventory with traits.Rotatable with Analyzable {
+class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   var filesystem: Option[FileSystem] = None

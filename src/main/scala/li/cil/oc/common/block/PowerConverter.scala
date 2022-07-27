@@ -23,5 +23,5 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 
   override def energyThroughput: Double = Settings.get.powerConverterRate
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.PowerConverter()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.PowerConverter(tileentity.TileEntityTypes.POWER_CONVERTER)
 }

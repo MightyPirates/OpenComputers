@@ -52,7 +52,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def guiType = GuiType.Case
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Case(tier)
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Case(tileentity.TileEntityTypes.CASE, tier)
 
   // ----------------------------------------------------------------------- //
 

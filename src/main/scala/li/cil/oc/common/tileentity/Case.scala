@@ -20,15 +20,16 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Case(var tier: Int) extends TileEntity(null) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
-  def this() = {
-    this(0)
+class Case(selfType: TileEntityType[_ <: Case], var tier: Int) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
+  def this(selfType: TileEntityType[_ <: Case]) = {
+    this(selfType, 0)
     // If no tier was defined when constructing this case, then we don't yet know the inventory size
     // this is set back to true when the nbt data is loaded
     isSizeInventoryReady = false

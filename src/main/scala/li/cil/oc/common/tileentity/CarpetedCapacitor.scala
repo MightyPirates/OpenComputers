@@ -8,13 +8,14 @@ import li.cil.oc.api.driver.DeviceInfo.DeviceClass
 import li.cil.oc.Settings
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.passive.{OcelotEntity, SheepEntity}
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.DamageSource
 import net.minecraft.util.Direction
 
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class CarpetedCapacitor extends Capacitor with traits.Tickable {
+class CarpetedCapacitor(selfType: TileEntityType[_ <: CarpetedCapacitor]) extends Capacitor(selfType) with traits.Tickable {
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.Power,
     DeviceAttribute.Description -> "Battery",

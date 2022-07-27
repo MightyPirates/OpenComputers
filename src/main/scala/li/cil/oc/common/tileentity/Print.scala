@@ -15,6 +15,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.util.SoundEvents
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.AxisAlignedBB
@@ -26,9 +27,12 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit]) extends TileEntity(null) with traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
-  def this() = this(None, None, None)
-  def this(canToggle: () => Boolean, scheduleUpdate: Int => Unit, onStateChange: () => Unit) = this(Option(canToggle), Option(scheduleUpdate), Option(onStateChange))
+class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit])
+  extends TileEntity(selfType) with traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+
+  def this(selfType: TileEntityType[_ <: Print]) = this(selfType, None, None, None)
+  def this(selfType: TileEntityType[_ <: Print], canToggle: () => Boolean, scheduleUpdate: Int => Unit, onStateChange: () => Unit) =
+    this(selfType, Option(canToggle), Option(scheduleUpdate), Option(onStateChange))
 
   _isOutputEnabled = true
 

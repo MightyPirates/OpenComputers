@@ -25,13 +25,14 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class DiskDrive extends TileEntity(null) with traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
+class DiskDrive(selfType: TileEntityType[_ <: DiskDrive]) extends TileEntity(selfType) with traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 

@@ -138,8 +138,8 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
 
   override def newBlockEntity(world: IBlockReader): tileentity.RobotProxy = {
     moving.get match {
-      case Some(robot) => new tileentity.RobotProxy(robot)
-      case _ => new tileentity.RobotProxy()
+      case Some(robot) => new tileentity.RobotProxy(tileentity.TileEntityTypes.ROBOT, robot)
+      case _ => new tileentity.RobotProxy(tileentity.TileEntityTypes.ROBOT)
     }
   }
 

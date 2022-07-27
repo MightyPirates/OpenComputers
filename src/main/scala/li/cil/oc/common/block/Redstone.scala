@@ -26,5 +26,5 @@ class Redstone extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Redstone()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Redstone(tileentity.TileEntityTypes.REDSTONE_IO)
 }

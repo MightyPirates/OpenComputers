@@ -52,7 +52,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Screen(tier)
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Screen(tileentity.TileEntityTypes.SCREEN, tier)
 
   // ----------------------------------------------------------------------- //
 

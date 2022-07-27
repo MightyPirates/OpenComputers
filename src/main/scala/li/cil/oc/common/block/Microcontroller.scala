@@ -71,7 +71,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override def energyThroughput: Double = Settings.get.caseRate(Tier.One)
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Microcontroller()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Microcontroller(tileentity.TileEntityTypes.MICROCONTROLLER)
 
   // ----------------------------------------------------------------------- //
 

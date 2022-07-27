@@ -3,8 +3,9 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.server.component
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 
-class Transposer extends TileEntity(null) with traits.Environment {
+class Transposer(selfType: TileEntityType[_ <: Transposer]) extends TileEntity(selfType) with traits.Environment {
   val transposer = new component.Transposer.Block(this)
 
   def node = transposer.node

@@ -17,7 +17,7 @@ import net.minecraft.world.World
 class Adapter extends SimpleBlock with traits.GUI {
   override def guiType = GuiType.Adapter
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Adapter()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Adapter(tileentity.TileEntityTypes.ADAPTER)
 
   // ----------------------------------------------------------------------- //
 

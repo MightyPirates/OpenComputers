@@ -121,7 +121,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def newBlockEntity(worldIn: IBlockReader) = new tileentity.Print()
+  override def newBlockEntity(worldIn: IBlockReader) = new tileentity.Print(tileentity.TileEntityTypes.PRINT)
 
   // ----------------------------------------------------------------------- //
 

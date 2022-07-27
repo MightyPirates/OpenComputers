@@ -11,5 +11,5 @@ class Relay extends SimpleBlock with traits.GUI with traits.PowerAcceptor {
 
   override def energyThroughput = Settings.get.accessPointRate
 
-  override def newBlockEntity(world: IBlockReader) = new tileentity.Relay()
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Relay(tileentity.TileEntityTypes.RELAY)
 }

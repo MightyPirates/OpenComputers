@@ -14,6 +14,7 @@ import li.cil.oc.util.RotationHelper
 import net.minecraft.util.SoundEvents
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
 import net.minecraftforge.api.distmarker.Dist
@@ -22,7 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
-class NetSplitter extends TileEntity(null) with traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment with DeviceInfo {
+class NetSplitter(selfType: TileEntityType[_ <: NetSplitter]) extends TileEntity(selfType) with traits.Environment with traits.OpenSides with traits.RedstoneAware with api.network.SidedEnvironment with DeviceInfo {
   private lazy val deviceInfo: util.Map[String, String] = Map(
     DeviceAttribute.Class -> DeviceClass.Network,
     DeviceAttribute.Description -> "Ethernet controller",

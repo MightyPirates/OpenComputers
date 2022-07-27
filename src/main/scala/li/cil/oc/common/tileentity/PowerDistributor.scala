@@ -6,12 +6,13 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class PowerDistributor extends TileEntity(null) with traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
+class PowerDistributor(selfType: TileEntityType[_ <: PowerDistributor]) extends TileEntity(selfType) with traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null
 
   private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.None).

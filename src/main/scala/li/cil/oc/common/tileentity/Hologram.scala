@@ -16,6 +16,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.vector.Vector3d
@@ -25,8 +26,8 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
-class Hologram(var tier: Int) extends TileEntity(null) with traits.Environment with SidedEnvironment with Analyzable with traits.RotatableTile with traits.Tickable with DeviceInfo {
-  def this() = this(0)
+class Hologram(selfType: TileEntityType[_ <: Hologram], var tier: Int) extends TileEntity(selfType) with traits.Environment with SidedEnvironment with Analyzable with traits.RotatableTile with traits.Tickable with DeviceInfo {
+  def this(selfType: TileEntityType[_ <: Hologram]) = this(selfType, 0)
 
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("hologram").
