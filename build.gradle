@@ -72,6 +72,12 @@ minecraft {
 
 repositories {
     maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven {
         url "https://maven.cil.li/"
         content {
             includeGroup "li.cil.tis3d"
@@ -81,12 +87,6 @@ repositories {
         url "https://dvs1.progwml6.com/files/maven"
         content {
             includeGroup "mezz.jei"
-        }
-    }
-    maven {
-        url "https://maven.tehnut.info/"
-        content {
-            includeGroup "mcp.mobius.waila"
         }
     }
     maven {
@@ -109,6 +109,7 @@ repositories {
             includeGroup "mekanism"
         }
     }
+    mavenCentral()
 }
 
 configurations {
@@ -120,11 +121,11 @@ dependencies {
     var jeiSlug = "jei-${config.minecraft.version}"
     
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
-    implementation "com.typesafe:config:1.2.1"
-    implementation "org.scala-lang:scala-library:2.12.+"
+    embedded "com.typesafe:config:1.2.1"
+    embedded "org.scala-lang:scala-library:2.12.+"
 
     compileOnly fg.deobf("li.cil.tis3d:tis3d-1.16.5-forge:${config.tis3d.version}")
-    compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${config.hwyla.version}:api")
+    compileOnly fg.deobf("curse.maven:hwyla-${config.hwyla.projectId}:${config.hwyla.fileId}")
     compileOnly fg.deobf("org.squiddev:cc-tweaked-${config.minecraft.version}:${config.cct.version}")
 
     compileOnly ("appeng:appliedenergistics2:${config.ae2.version}:api") {
@@ -181,7 +182,7 @@ allprojects {
 jar {
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
+            exclude '*', 'META-INF', 'META-INF/**'
         }
     }
     manifest {
