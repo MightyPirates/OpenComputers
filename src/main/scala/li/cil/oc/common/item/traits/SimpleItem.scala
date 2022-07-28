@@ -34,7 +34,7 @@ trait SimpleItem extends Item {
   private var unlocalizedName = super.getDescriptionId()
 
   @Deprecated
-  private[oc] def setUnlocalizedName(name: String): Unit = unlocalizedName = name
+  private[oc] def setUnlocalizedName(name: String): Unit = unlocalizedName = "item." + name
 
   override def getDescriptionId = unlocalizedName
 

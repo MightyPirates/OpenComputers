@@ -7,8 +7,6 @@ import net.minecraft.util.text.event.HoverEvent
 import scala.util.matching.Regex
 
 object Localization {
-  private val nl = Regex.quote("[nl]")
-
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
   def canLocalize(key: String): Boolean = LanguageMap.getInstance.has(key)
@@ -21,14 +19,14 @@ object Localization {
     val k = resolveKey(formatKey)
     var lm = LanguageMap.getInstance
     if (!lm.has(k)) return k
-    String.format(lm.getOrDefault(k), values: _*).split(nl).map(_.trim).mkString("\n")
+    String.format(lm.getOrDefault(k), values: _*).lines.map(_.trim).mkString("\n")
   }
 
   def localizeImmediately(key: String): String = {
     val k = resolveKey(key)
     var lm = LanguageMap.getInstance
     if (!lm.has(k)) return k
-    lm.getOrDefault(k).split(nl).map(_.trim).mkString("\n")
+    lm.getOrDefault(k).lines.map(_.trim).mkString("\n")
   }
 
   object Analyzer {

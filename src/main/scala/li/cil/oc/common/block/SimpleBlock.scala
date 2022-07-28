@@ -63,7 +63,7 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
   private var unlocalizedName = super.getDescriptionId()
 
   @Deprecated
-  private[oc] def setUnlocalizedName(name: String): Unit = unlocalizedName = name
+  private[oc] def setUnlocalizedName(name: String): Unit = unlocalizedName = "tile." + name
 
   @Deprecated
   override def getDescriptionId = unlocalizedName
