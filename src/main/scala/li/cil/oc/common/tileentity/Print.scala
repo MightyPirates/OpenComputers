@@ -76,6 +76,7 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
         scheduleUpdate match {
           case Some(callback) => callback(delay)
           case _ if !getLevel.isClientSide => getLevel.asInstanceOf[ServerWorld].getBlockTicks.scheduleTick(getBlockPos, block, delay)
+          case _ =>
         }
       }
       onStateChange.foreach(_.apply())

@@ -59,6 +59,7 @@ object PacketHandler {
     // This will usually be stuff like typing while in screen GUIs.
     player match {
       case mp: ServerPlayerEntity => mp.resetLastActionTime()
+      case _ =>
     }
   }
 }

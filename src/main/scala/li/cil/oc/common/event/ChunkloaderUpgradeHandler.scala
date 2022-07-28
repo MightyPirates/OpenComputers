@@ -88,6 +88,7 @@ object ChunkloaderUpgradeHandler extends LoadingValidationCallback {
       }
       restoredTickets.clear()
     }
+    case _ =>
   }
 
   // Note: it might be necessary to use pre move to force load the target chunk
@@ -136,6 +137,7 @@ object ChunkloaderUpgradeHandler extends LoadingValidationCallback {
           loader.ticket = Some(centerChunk)
         }
       }
+      case _ =>
     }
   }
 }

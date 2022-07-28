@@ -134,6 +134,7 @@ object Loot {
         }
       }
     }
+    case _ =>
   }
 
   private def parseLootDisks(list: java.util.Properties, acc: mutable.ArrayBuffer[(ItemStack, Int)], external: Boolean) {

@@ -222,7 +222,7 @@ object ModelInitialization {
           }
           registry.put(originalLocation, fake)
         }
-        case null =>
+        case _ =>
       }
     }
   }

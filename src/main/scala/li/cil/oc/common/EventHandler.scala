@@ -510,6 +510,7 @@ object EventHandler {
               collect { case server: Server if server.machine != null => server.machine.stop() }
         })
       }
+      case _ =>
     }
   }
 }

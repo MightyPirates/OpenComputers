@@ -50,6 +50,7 @@ abstract class ComponentTracker {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload): Unit = e.getWorld match {
     case world: World => clear(world)
+    case _ =>
   }
 
   protected def clear(world: World): Unit = this.synchronized {
