@@ -6,8 +6,6 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.CustomModel
-import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.traits.Delegate
 import net.minecraft.block.BlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BlockModelShapes
@@ -18,11 +16,9 @@ import net.minecraft.client.world.ClientWorld
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Direction
 import net.minecraft.util.IItemProvider
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Direction
 import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
-import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
@@ -43,9 +39,6 @@ object ModelInitialization {
   final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "normal")
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
-  private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
-  private val itemDelegatesCustom = mutable.ArrayBuffer.empty[Delegate with CustomModel]
-  private val delegatorOverrides = mutable.Map.empty[Delegator, ItemStack => ModelResourceLocation]
   private val modelRemappings = mutable.Map.empty[ModelResourceLocation, ModelResourceLocation]
 
   def preInit(): Unit = {
@@ -61,18 +54,9 @@ object ModelInitialization {
   @SubscribeEvent
   def onModelRegistration(event: ModelRegistryEvent): Unit = {
     registerItems()
-    registerSubItems()
-    registerSubItemsCustom()
   }
 
   // ----------------------------------------------------------------------- //
-
-  def registerModel(instance: Delegate, id: String): Unit = {
-    instance match {
-      case customModel: CustomModel => itemDelegatesCustom += customModel
-      case _ => itemDelegates += id -> instance
-    }
-  }
 
   def registerModel(instance: IItemProvider, id: String): Unit = {
     meshableItems += instance.asItem
@@ -95,50 +79,19 @@ object ModelInitialization {
   private def registerItems(): Unit = {
     val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
     for (item <- meshableItems) {
-      Option(api.Items.get(new ItemStack(item))) match {
-        case Some(descriptor) =>
-          val location = Settings.resourceDomain + ":" + descriptor.name()
-          shaper.register(item, new ModelResourceLocation(location, "inventory"))
-        case _ =>
+      item match {
+        case custom: CustomModel => custom.registerModelLocations()
+        case _ => {
+          Option(api.Items.get(new ItemStack(item))) match {
+            case Some(descriptor) =>
+              val location = Settings.resourceDomain + ":" + descriptor.name()
+              shaper.register(item, new ModelResourceLocation(location, "inventory"))
+            case _ =>
+          }
+        }
       }
     }
     meshableItems.clear()
-  }
-
-  private def registerSubItems(): Unit = {
-    for ((id, item) <- itemDelegates) {
-      val location = Settings.resourceDomain + ":" + id
-      delegatorOverrides.get(item.parent) match {
-        case Some(func) => delegatorOverrides.put(item.parent, stack => {
-            if (stack.getDamageValue != item.itemId) func(stack)
-            else new ModelResourceLocation(location, "inventory")
-          })
-        case _ => delegatorOverrides.put(item.parent, stack => {
-            if (stack.getDamageValue != item.itemId) null
-            else new ModelResourceLocation(location, "inventory")
-          })
-      }
-    }
-  }
-
-  private def registerSubItemsCustom(): Unit = {
-    for (item <- itemDelegatesCustom) {
-      delegatorOverrides.get(item.parent) match {
-        case Some(func) => delegatorOverrides.put(item.parent, stack => {
-            Delegator.subItem(stack) match {
-              case Some(subItem: CustomModel) => subItem.getModelLocation(stack)
-              case _ => func(stack)
-            }
-          })
-        case _ => delegatorOverrides.put(item.parent, stack => {
-            Delegator.subItem(stack) match {
-              case Some(subItem: CustomModel) => subItem.getModelLocation(stack)
-              case _ => null
-            }
-          })
-      }
-      item.registerModelLocations()
-    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -158,12 +111,42 @@ object ModelInitialization {
     registry.put(RobotAfterimageBlockLocation, NullModel)
     registry.put(RobotAfterimageItemLocation, NullModel)
 
-    for ((id, item) <- itemDelegates) {
-      val location = Settings.resourceDomain + ":" + id
-      ModelLoader.addSpecialModel(new ResourceLocation(location))
-    }
-    for (item <- itemDelegatesCustom) {
-      item.bakeModels(e)
+    for (item <- meshableItems) item match {
+      case custom: CustomModel => {
+        custom.bakeModels(e)
+        val originalLocation = new ModelResourceLocation(custom.getRegistryName, "inventory")
+        registry.get(originalLocation) match {
+          case original: IBakedModel => {
+            val overrides = new ItemOverrideList {
+              override def resolve(base: IBakedModel, stack: ItemStack, world: ClientWorld, holder: LivingEntity) =
+                Option(custom.getModelLocation(stack)).map(registry).getOrElse(original)
+            }
+            val fake = new IBakedModel {
+              @Deprecated
+              override def getQuads(state: BlockState, dir: Direction, rand: Random) = original.getQuads(state, dir, rand)
+        
+              override def useAmbientOcclusion() = original.useAmbientOcclusion
+        
+              override def isGui3d() = original.isGui3d
+        
+              override def usesBlockLight() = original.usesBlockLight
+        
+              override def isCustomRenderer() = original.isCustomRenderer
+        
+              @Deprecated
+              override def getParticleIcon() = original.getParticleIcon
+        
+              @Deprecated
+              override def getTransforms() = original.getTransforms
+        
+              override def getOverrides() = overrides
+            }
+            registry.put(originalLocation, fake)
+          }
+          case _ =>
+        }
+      }
+      case _ =>
     }
 
     val modelOverrides = Map[String, IBakedModel => IBakedModel](
@@ -189,41 +172,6 @@ object ModelInitialization {
         }
       }
       case _ =>
-    }
-
-    // Temporary hack to apply model overrides from registerModel calls.
-    for ((delegator, handler) <- delegatorOverrides) {
-      val originalLocation = new ModelResourceLocation(delegator.getRegistryName, "inventory")
-      registry.get(originalLocation) match {
-        case original: IBakedModel => {
-          val overrides = new ItemOverrideList {
-            override def resolve(base: IBakedModel, stack: ItemStack, world: ClientWorld, holder: LivingEntity) =
-              Option(handler(stack)).map(registry).getOrElse(original.getOverrides.resolve(base, stack, world, holder))
-          }
-          val fake = new IBakedModel {
-            @Deprecated
-            override def getQuads(state: BlockState, dir: Direction, rand: Random) = original.getQuads(state, dir, rand)
-
-            override def useAmbientOcclusion() = original.useAmbientOcclusion
-
-            override def isGui3d() = original.isGui3d
-
-            override def usesBlockLight() = original.usesBlockLight
-
-            override def isCustomRenderer() = original.isCustomRenderer
-
-            @Deprecated
-            override def getParticleIcon() = original.getParticleIcon
-
-            @Deprecated
-            override def getTransforms() = original.getTransforms
-
-            override def getOverrides() = overrides
-          }
-          registry.put(originalLocation, fake)
-        }
-        case _ =>
-      }
     }
   }
 }

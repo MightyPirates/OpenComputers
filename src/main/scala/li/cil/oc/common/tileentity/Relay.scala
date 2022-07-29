@@ -25,7 +25,6 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverLinkedCard
 import li.cil.oc.server.network.QuantumNetwork
@@ -231,8 +230,8 @@ class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) w
       case Some(driver) if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade).toInt)
       case Some(driver) if driver.slot(stack) == Slot.Memory =>
-        relayAmount = math.max(1, relayBaseAmount + (Delegator.subItem(stack) match {
-          case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
+        relayAmount = math.max(1, relayBaseAmount + (stack.getItem match {
+          case ram: item.Memory => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
       case Some(driver) if driver.slot(stack) == Slot.HDD =>

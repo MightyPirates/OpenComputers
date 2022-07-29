@@ -11,7 +11,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
@@ -115,8 +114,8 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   def removeAddress(fsStack: ItemStack): Boolean = {
-    Delegator.subItem(fsStack) match {
-      case Some(drive: FileSystemLike) => {
+    fsStack.getItem match {
+      case drive: FileSystemLike => {
         val data = li.cil.oc.integration.opencomputers.Item.dataTag(fsStack)
         if (data.contains("node")) {
           val nodeData = data.getCompound("node")

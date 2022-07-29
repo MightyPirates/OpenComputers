@@ -150,17 +150,6 @@ object EventHandler {
               override def run = provider.invalidate
             })
           }
-          case _: li.cil.oc.api.driver.item.Chargeable =>
-            li.cil.oc.common.item.Delegator.subItem(stack) match {
-              case Some(subItem: traits.Chargeable) => {
-                val provider = new traits.Chargeable.Provider(stack, subItem)
-                event.addCapability(traits.Chargeable.KEY, provider)
-                event.addListener(new Runnable {
-                  override def run = provider.invalidate
-                })
-              }
-              case _ =>
-            }
           case _ =>
         }
         case _ =>

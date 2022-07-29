@@ -7,7 +7,6 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -27,14 +26,14 @@ object DriverAPU extends DriverCPU with HostAware {
     }
 
   override def cpuTier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(apu: common.item.APU) => apu.cpuTier
+    stack.getItem match {
+      case apu: common.item.APU => apu.cpuTier
       case _ => Tier.One
     }
 
   def gpuTier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(apu: common.item.APU) => apu.gpuTier
+    stack.getItem match {
+      case apu: common.item.APU => apu.gpuTier
       case _ => Tier.One
     }
 

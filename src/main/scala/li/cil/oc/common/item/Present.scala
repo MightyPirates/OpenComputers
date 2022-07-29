@@ -3,23 +3,29 @@ package li.cil.oc.common.item
 import java.util.Random
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.util.SoundEvents
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.RecipeManager
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
+import net.minecraft.util.NonNullList
 import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvents
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 
 import scala.collection.mutable
 
-class Present(val parent: Delegator) extends traits.Delegate {
-  showInItemList = false
+class Present(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {}
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (stack.getCount > 0) {

@@ -1,3 +1,8 @@
 package li.cil.oc.common.item
 
-class DiamondChip(val parent: Delegator) extends traits.Delegate
+import li.cil.oc.CreativeTab
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
+
+class DiamondChip(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem

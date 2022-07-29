@@ -5,7 +5,6 @@ import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.Robot
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.UpgradeHover
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -37,15 +36,13 @@ object RobotCommonHandler {
         var maxFlyingHeight = Settings.get.limitFlightHeight
 
         (0 until robot.equipmentInventory.getContainerSize).
-          map(robot.equipmentInventory.getItem).
-          map(Delegator.subItem).
-          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
+          map(robot.equipmentInventory.getItem(_).getItem).
+          collect { case item: UpgradeHover => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
         (0 until robot.componentCount).
           map(_ + robot.mainInventory.getContainerSize + robot.equipmentInventory.getContainerSize).
-          map(robot.getItem(_)).
-          map(Delegator.subItem(_)).
-          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
+          map(robot.getItem(_).getItem).
+          collect { case item: UpgradeHover => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
         def isMovingDown = e.direction == Direction.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = Direction.values.exists(side => {

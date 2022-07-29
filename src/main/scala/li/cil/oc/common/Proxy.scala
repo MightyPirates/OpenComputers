@@ -11,8 +11,6 @@ import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.integration.Mods
 import li.cil.oc.server
 import li.cil.oc.server._
@@ -48,13 +46,6 @@ import scala.reflect.ClassTag
 
 @Deprecated
 class Proxy {
-  @Deprecated
-  def initExtraTags() {
-    OpenComputers.log.debug("Initializing additional OreDict entries.")
-
-    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, OpenComputers.ID + ":chip_diamond", net.minecraft.item.Items.DIAMOND, "forge:gems/diamond")
-  }
-
   def preInit() {
     OpenComputers.log.info("Initializing OpenComputers API.")
 
@@ -132,22 +123,6 @@ class Proxy {
     driver.Registry.locked = true
   }
 
-  def tryRegisterNugget[TItem <: Delegate : ClassTag](nuggetItemName: String, nuggetOredictName: String, ingotItem: Item, ingotOredictName: String): Unit = {
-    val nugget = Items.get(nuggetItemName).createItemStack(1)
-
-    Delegator.subItem(nugget) match {
-      case Some(subItem: TItem) =>
-        if (ItemTags.getAllTags.getTagOrEmpty(new ResourceLocation(nuggetOredictName)).contains(nugget.getItem)) {
-          Items.registerItem(subItem, nuggetItemName)
-          Items.registerItem(ingotItem, ingotOredictName)
-        }
-        else {
-          subItem.showInItemList = false
-        }
-      case _ =>
-    }
-  }
-
   def getGuiHandler(): common.GuiHandler = server.GuiHandler
 
   @Deprecated
@@ -165,8 +140,6 @@ class Proxy {
       case _ => OpenComputers.log.error(s"Unsupported entity for openGui: ${player.getClass.getName}")
     }
   }
-
-  def registerModel(instance: Delegate, id: String): Unit = {}
 
   def registerModel(instance: Item, id: String): Unit = {}
 

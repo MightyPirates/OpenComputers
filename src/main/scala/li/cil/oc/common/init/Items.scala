@@ -13,13 +13,11 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
-import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import net.minecraft.block.Block
@@ -85,30 +83,12 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerItem[T <: Delegate](delegate: T, id: String): T = {
-    if (!descriptors.contains(id)) {
-      OpenComputers.proxy.registerModel(delegate, id)
-      descriptors += id -> new ItemInfo {
-        override def name: String = id
-
-        override def block = null
-
-        override def item: Delegator = delegate.parent
-
-        override def createItemStack(size: Int): ItemStack = delegate.createItemStack(size)
-      }
-      names += delegate -> id
-    }
-    delegate
-  }
-
   def registerItem(instance: Item, id: String): Item = {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleItem =>
-          simple.setUnlocalizedName("oc." + id)
           GameData.register_impl(simple.setRegistryName(new ResourceLocation(Settings.resourceDomain, id)))
-          OpenComputers.proxy.registerModel(instance, id)
+          OpenComputers.proxy.registerModel(simple, id)
         case _ =>
       }
       descriptors += id -> new ItemInfo {
@@ -148,10 +128,10 @@ object Items extends ItemAPI {
 
   private def getBlockOrItem(stack: ItemStack): Any =
     if (stack.isEmpty) null
-    else Delegator.subItem(stack).getOrElse(stack.getItem match {
+    else stack.getItem match {
       case block: BlockItem => block.getBlock
       case item => item
-    })
+    }
 
   // ----------------------------------------------------------------------- //
 
@@ -338,177 +318,165 @@ object Items extends ItemAPI {
 
   // Crafting materials.
   private def initMaterials(): Unit = {
-    val materials = newItem(new item.Delegator(), "material")
+    registerItem(new item.CuttingWire(), Constants.ItemName.CuttingWire)
+    registerItem(new item.Acid(), Constants.ItemName.Acid)
+    registerItem(new item.RawCircuitBoard(), Constants.ItemName.RawCircuitBoard)
+    registerItem(new item.CircuitBoard(), Constants.ItemName.CircuitBoard)
+    registerItem(new item.PrintedCircuitBoard(), Constants.ItemName.PrintedCircuitBoard)
+    registerItem(new item.CardBase(), Constants.ItemName.Card)
+    registerItem(new item.Transistor(), Constants.ItemName.Transistor)
+    registerItem(new item.Microchip(Tier.One), Constants.ItemName.ChipTier1)
+    registerItem(new item.Microchip(Tier.Two), Constants.ItemName.ChipTier2)
+    registerItem(new item.Microchip(Tier.Three), Constants.ItemName.ChipTier3)
+    registerItem(new item.ALU(), Constants.ItemName.Alu)
+    registerItem(new item.ControlUnit(), Constants.ItemName.ControlUnit)
+    registerItem(new item.Disk(), Constants.ItemName.Disk)
+    registerItem(new item.Interweb(), Constants.ItemName.Interweb)
+    registerItem(new item.ButtonGroup(), Constants.ItemName.ButtonGroup)
+    registerItem(new item.ArrowKeys(), Constants.ItemName.ArrowKeys)
+    registerItem(new item.NumPad(), Constants.ItemName.NumPad)
 
-    registerItem(new item.CuttingWire(materials), Constants.ItemName.CuttingWire)
-    registerItem(new item.Acid(materials), Constants.ItemName.Acid)
-    registerItem(new item.RawCircuitBoard(materials), Constants.ItemName.RawCircuitBoard)
-    registerItem(new item.CircuitBoard(materials), Constants.ItemName.CircuitBoard)
-    registerItem(new item.PrintedCircuitBoard(materials), Constants.ItemName.PrintedCircuitBoard)
-    registerItem(new item.CardBase(materials), Constants.ItemName.Card)
-    registerItem(new item.Transistor(materials), Constants.ItemName.Transistor)
-    registerItem(new item.Microchip(materials, Tier.One), Constants.ItemName.ChipTier1)
-    registerItem(new item.Microchip(materials, Tier.Two), Constants.ItemName.ChipTier2)
-    registerItem(new item.Microchip(materials, Tier.Three), Constants.ItemName.ChipTier3)
-    registerItem(new item.ALU(materials), Constants.ItemName.Alu)
-    registerItem(new item.ControlUnit(materials), Constants.ItemName.ControlUnit)
-    registerItem(new item.Disk(materials), Constants.ItemName.Disk)
-    registerItem(new item.Interweb(materials), Constants.ItemName.Interweb)
-    registerItem(new item.ButtonGroup(materials), Constants.ItemName.ButtonGroup)
-    registerItem(new item.ArrowKeys(materials), Constants.ItemName.ArrowKeys)
-    registerItem(new item.NumPad(materials), Constants.ItemName.NumPad)
+    registerItem(new item.TabletCase(Tier.One), Constants.ItemName.TabletCaseTier1)
+    registerItem(new item.TabletCase(Tier.Two), Constants.ItemName.TabletCaseTier2)
+    registerItem(new item.TabletCase(Tier.Four), Constants.ItemName.TabletCaseCreative)
+    registerItem(new item.MicrocontrollerCase(Tier.One), Constants.ItemName.MicrocontrollerCaseTier1)
+    registerItem(new item.MicrocontrollerCase(Tier.Two), Constants.ItemName.MicrocontrollerCaseTier2)
+    registerItem(new item.MicrocontrollerCase(Tier.Four), Constants.ItemName.MicrocontrollerCaseCreative)
+    registerItem(new item.DroneCase(Tier.One), Constants.ItemName.DroneCaseTier1)
+    registerItem(new item.DroneCase(Tier.Two), Constants.ItemName.DroneCaseTier2)
+    registerItem(new item.DroneCase(Tier.Four), Constants.ItemName.DroneCaseCreative)
 
-    registerItem(new item.TabletCase(materials, Tier.One), Constants.ItemName.TabletCaseTier1)
-    registerItem(new item.TabletCase(materials, Tier.Two), Constants.ItemName.TabletCaseTier2)
-    registerItem(new item.TabletCase(materials, Tier.Four), Constants.ItemName.TabletCaseCreative)
-    registerItem(new item.MicrocontrollerCase(materials, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1)
-    registerItem(new item.MicrocontrollerCase(materials, Tier.Two), Constants.ItemName.MicrocontrollerCaseTier2)
-    registerItem(new item.MicrocontrollerCase(materials, Tier.Four), Constants.ItemName.MicrocontrollerCaseCreative)
-    registerItem(new item.DroneCase(materials, Tier.One), Constants.ItemName.DroneCaseTier1)
-    registerItem(new item.DroneCase(materials, Tier.Two), Constants.ItemName.DroneCaseTier2)
-    registerItem(new item.DroneCase(materials, Tier.Four), Constants.ItemName.DroneCaseCreative)
+    registerItem(new item.InkCartridgeEmpty(), Constants.ItemName.InkCartridgeEmpty)
+    registerItem(new item.InkCartridge(), Constants.ItemName.InkCartridge)
+    registerItem(new item.Chamelium(), Constants.ItemName.Chamelium)
 
-    registerItem(new item.InkCartridgeEmpty(materials), Constants.ItemName.InkCartridgeEmpty)
-    registerItem(new item.InkCartridge(materials), Constants.ItemName.InkCartridge)
-    registerItem(new item.Chamelium(materials), Constants.ItemName.Chamelium)
-
-    registerItem(new item.DiamondChip(materials), Constants.ItemName.DiamondChip)
+    registerItem(new item.DiamondChip(), Constants.ItemName.DiamondChip)
   }
 
   // All kinds of tools.
   private def initTools(): Unit = {
-    val tools = newItem(new item.Delegator(), "tool")
-
-    registerItem(new item.Analyzer(tools), Constants.ItemName.Analyzer)
-    registerItem(new item.Debugger(tools), Constants.ItemName.Debugger)
-    registerItem(new item.Terminal(tools), Constants.ItemName.Terminal)
-    registerItem(new item.TexturePicker(tools), Constants.ItemName.TexturePicker)
-    registerItem(new item.Manual(tools), Constants.ItemName.Manual)
+    registerItem(new item.Analyzer(), Constants.ItemName.Analyzer)
+    registerItem(new item.Debugger(), Constants.ItemName.Debugger)
+    registerItem(new item.Terminal(), Constants.ItemName.Terminal)
+    registerItem(new item.TexturePicker(), Constants.ItemName.TexturePicker)
+    registerItem(new item.Manual(), Constants.ItemName.Manual)
     registerItem(new item.Wrench(), Constants.ItemName.Wrench)
 
     // 1.5.11
     registerItem(new item.HoverBoots(), Constants.ItemName.HoverBoots)
 
     // 1.5.18
-    registerItem(new item.Nanomachines(tools), Constants.ItemName.Nanomachines)
+    registerItem(new item.Nanomachines(), Constants.ItemName.Nanomachines)
   }
 
   // General purpose components.
   private def initComponents(): Unit = {
-    val components = newItem(new item.Delegator(), "component")
+    registerItem(new item.CPU(Tier.One), Constants.ItemName.CPUTier1)
+    registerItem(new item.CPU(Tier.Two), Constants.ItemName.CPUTier2)
+    registerItem(new item.CPU(Tier.Three), Constants.ItemName.CPUTier3)
 
-    registerItem(new item.CPU(components, Tier.One), Constants.ItemName.CPUTier1)
-    registerItem(new item.CPU(components, Tier.Two), Constants.ItemName.CPUTier2)
-    registerItem(new item.CPU(components, Tier.Three), Constants.ItemName.CPUTier3)
+    registerItem(new item.ComponentBus(Tier.One), Constants.ItemName.ComponentBusTier1)
+    registerItem(new item.ComponentBus(Tier.Two), Constants.ItemName.ComponentBusTier2)
+    registerItem(new item.ComponentBus(Tier.Three), Constants.ItemName.ComponentBusTier3)
 
-    registerItem(new item.ComponentBus(components, Tier.One), Constants.ItemName.ComponentBusTier1)
-    registerItem(new item.ComponentBus(components, Tier.Two), Constants.ItemName.ComponentBusTier2)
-    registerItem(new item.ComponentBus(components, Tier.Three), Constants.ItemName.ComponentBusTier3)
+    registerItem(new item.Memory(Tier.One), Constants.ItemName.RAMTier1)
+    registerItem(new item.Memory(Tier.Two), Constants.ItemName.RAMTier2)
+    registerItem(new item.Memory(Tier.Three), Constants.ItemName.RAMTier3)
+    registerItem(new item.Memory(Tier.Four), Constants.ItemName.RAMTier4)
+    registerItem(new item.Memory(Tier.Five), Constants.ItemName.RAMTier5)
+    registerItem(new item.Memory(Tier.Six), Constants.ItemName.RAMTier6)
 
-    registerItem(new item.Memory(components, Tier.One), Constants.ItemName.RAMTier1)
-    registerItem(new item.Memory(components, Tier.Two), Constants.ItemName.RAMTier2)
-    registerItem(new item.Memory(components, Tier.Three), Constants.ItemName.RAMTier3)
-    registerItem(new item.Memory(components, Tier.Four), Constants.ItemName.RAMTier4)
-    registerItem(new item.Memory(components, Tier.Five), Constants.ItemName.RAMTier5)
-    registerItem(new item.Memory(components, Tier.Six), Constants.ItemName.RAMTier6)
-
-    registerItem(new item.Server(components, Tier.Four), Constants.ItemName.ServerCreative)
-    registerItem(new item.Server(components, Tier.One), Constants.ItemName.ServerTier1)
-    registerItem(new item.Server(components, Tier.Two), Constants.ItemName.ServerTier2)
-    registerItem(new item.Server(components, Tier.Three), Constants.ItemName.ServerTier3)
+    registerItem(new item.Server(Tier.Four), Constants.ItemName.ServerCreative)
+    registerItem(new item.Server(Tier.One), Constants.ItemName.ServerTier1)
+    registerItem(new item.Server(Tier.Two), Constants.ItemName.ServerTier2)
+    registerItem(new item.Server(Tier.Three), Constants.ItemName.ServerTier3)
 
     // 1.5.10
-    registerItem(new item.APU(components, Tier.One), Constants.ItemName.APUTier1)
-    registerItem(new item.APU(components, Tier.Two), Constants.ItemName.APUTier2)
+    registerItem(new item.APU(Tier.One), Constants.ItemName.APUTier1)
+    registerItem(new item.APU(Tier.Two), Constants.ItemName.APUTier2)
 
     // 1.5.12
-    registerItem(new item.APU(components, Tier.Three), Constants.ItemName.APUCreative)
+    registerItem(new item.APU(Tier.Three), Constants.ItemName.APUCreative)
 
     // 1.6
-    registerItem(new item.TerminalServer(components), Constants.ItemName.TerminalServer)
-    registerItem(new item.DiskDriveMountable(components), Constants.ItemName.DiskDriveMountable)
+    registerItem(new item.TerminalServer(), Constants.ItemName.TerminalServer)
+    registerItem(new item.DiskDriveMountable(), Constants.ItemName.DiskDriveMountable)
   }
 
   // Card components.
   private def initCards(): Unit = {
-    val cards = newItem(new item.Delegator(), "card")
-
-    registerItem(new item.DebugCard(cards), Constants.ItemName.DebugCard)
-    registerItem(new item.GraphicsCard(cards, Tier.One), Constants.ItemName.GraphicsCardTier1)
-    registerItem(new item.GraphicsCard(cards, Tier.Two), Constants.ItemName.GraphicsCardTier2)
-    registerItem(new item.GraphicsCard(cards, Tier.Three), Constants.ItemName.GraphicsCardTier3)
-    registerItem(new item.RedstoneCard(cards, Tier.One), Constants.ItemName.RedstoneCardTier1)
-    registerItem(new item.RedstoneCard(cards, Tier.Two), Constants.ItemName.RedstoneCardTier2)
-    registerItem(new item.NetworkCard(cards), Constants.ItemName.NetworkCard)
-    registerItem(new item.WirelessNetworkCard(cards, Tier.Two), Constants.ItemName.WirelessNetworkCardTier2)
-    registerItem(new item.InternetCard(cards), Constants.ItemName.InternetCard)
-    registerItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard)
+    registerItem(new item.DebugCard(), Constants.ItemName.DebugCard)
+    registerItem(new item.GraphicsCard(Tier.One), Constants.ItemName.GraphicsCardTier1)
+    registerItem(new item.GraphicsCard(Tier.Two), Constants.ItemName.GraphicsCardTier2)
+    registerItem(new item.GraphicsCard(Tier.Three), Constants.ItemName.GraphicsCardTier3)
+    registerItem(new item.RedstoneCard(Tier.One), Constants.ItemName.RedstoneCardTier1)
+    registerItem(new item.RedstoneCard(Tier.Two), Constants.ItemName.RedstoneCardTier2)
+    registerItem(new item.NetworkCard(), Constants.ItemName.NetworkCard)
+    registerItem(new item.WirelessNetworkCard(Tier.Two), Constants.ItemName.WirelessNetworkCardTier2)
+    registerItem(new item.InternetCard(), Constants.ItemName.InternetCard)
+    registerItem(new item.LinkedCard(), Constants.ItemName.LinkedCard)
 
     // 1.5.13
-    registerItem(new item.DataCard(cards, Tier.One), Constants.ItemName.DataCardTier1)
+    registerItem(new item.DataCard(Tier.One), Constants.ItemName.DataCardTier1)
 
     // 1.5.15
-    registerItem(new item.DataCard(cards, Tier.Two), Constants.ItemName.DataCardTier2)
-    registerItem(new item.DataCard(cards, Tier.Three), Constants.ItemName.DataCardTier3)
+    registerItem(new item.DataCard(Tier.Two), Constants.ItemName.DataCardTier2)
+    registerItem(new item.DataCard(Tier.Three), Constants.ItemName.DataCardTier3)
   }
 
   // Upgrade components.
   private def initUpgrades(): Unit = {
-    val upgrades = newItem(new item.Delegator(), "upgrade")
-
-    registerItem(new item.UpgradeAngel(upgrades), Constants.ItemName.AngelUpgrade)
-    registerItem(new item.UpgradeBattery(upgrades, Tier.One), Constants.ItemName.BatteryUpgradeTier1)
-    registerItem(new item.UpgradeBattery(upgrades, Tier.Two), Constants.ItemName.BatteryUpgradeTier2)
-    registerItem(new item.UpgradeBattery(upgrades, Tier.Three), Constants.ItemName.BatteryUpgradeTier3)
-    registerItem(new item.UpgradeChunkloader(upgrades), Constants.ItemName.ChunkloaderUpgrade)
-    registerItem(new item.UpgradeContainerCard(upgrades, Tier.One), Constants.ItemName.CardContainerTier1)
-    registerItem(new item.UpgradeContainerCard(upgrades, Tier.Two), Constants.ItemName.CardContainerTier2)
-    registerItem(new item.UpgradeContainerCard(upgrades, Tier.Three), Constants.ItemName.CardContainerTier3)
-    registerItem(new item.UpgradeContainerUpgrade(upgrades, Tier.One), Constants.ItemName.UpgradeContainerTier1)
-    registerItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Two), Constants.ItemName.UpgradeContainerTier2)
-    registerItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Three), Constants.ItemName.UpgradeContainerTier3)
-    registerItem(new item.UpgradeCrafting(upgrades), Constants.ItemName.CraftingUpgrade)
-    registerItem(new item.UpgradeDatabase(upgrades, Tier.One), Constants.ItemName.DatabaseUpgradeTier1)
-    registerItem(new item.UpgradeDatabase(upgrades, Tier.Two), Constants.ItemName.DatabaseUpgradeTier2)
-    registerItem(new item.UpgradeDatabase(upgrades, Tier.Three), Constants.ItemName.DatabaseUpgradeTier3)
-    registerItem(new item.UpgradeExperience(upgrades), Constants.ItemName.ExperienceUpgrade)
-    registerItem(new item.UpgradeGenerator(upgrades), Constants.ItemName.GeneratorUpgrade)
-    registerItem(new item.UpgradeInventory(upgrades), Constants.ItemName.InventoryUpgrade)
-    registerItem(new item.UpgradeInventoryController(upgrades), Constants.ItemName.InventoryControllerUpgrade)
-    registerItem(new item.UpgradeNavigation(upgrades), Constants.ItemName.NavigationUpgrade)
-    registerItem(new item.UpgradePiston(upgrades), Constants.ItemName.PistonUpgrade)
-    registerItem(new item.UpgradeSign(upgrades), Constants.ItemName.SignUpgrade)
-    registerItem(new item.UpgradeSolarGenerator(upgrades), Constants.ItemName.SolarGeneratorUpgrade)
-    registerItem(new item.UpgradeTank(upgrades), Constants.ItemName.TankUpgrade)
-    registerItem(new item.UpgradeTankController(upgrades), Constants.ItemName.TankControllerUpgrade)
-    registerItem(new item.UpgradeTractorBeam(upgrades), Constants.ItemName.TractorBeamUpgrade)
-    registerItem(new item.UpgradeLeash(upgrades), Constants.ItemName.LeashUpgrade)
+    registerItem(new item.UpgradeAngel(), Constants.ItemName.AngelUpgrade)
+    registerItem(new item.UpgradeBattery(Tier.One), Constants.ItemName.BatteryUpgradeTier1)
+    registerItem(new item.UpgradeBattery(Tier.Two), Constants.ItemName.BatteryUpgradeTier2)
+    registerItem(new item.UpgradeBattery(Tier.Three), Constants.ItemName.BatteryUpgradeTier3)
+    registerItem(new item.UpgradeChunkloader(), Constants.ItemName.ChunkloaderUpgrade)
+    registerItem(new item.UpgradeContainerCard(Tier.One), Constants.ItemName.CardContainerTier1)
+    registerItem(new item.UpgradeContainerCard(Tier.Two), Constants.ItemName.CardContainerTier2)
+    registerItem(new item.UpgradeContainerCard(Tier.Three), Constants.ItemName.CardContainerTier3)
+    registerItem(new item.UpgradeContainerUpgrade(Tier.One), Constants.ItemName.UpgradeContainerTier1)
+    registerItem(new item.UpgradeContainerUpgrade(Tier.Two), Constants.ItemName.UpgradeContainerTier2)
+    registerItem(new item.UpgradeContainerUpgrade(Tier.Three), Constants.ItemName.UpgradeContainerTier3)
+    registerItem(new item.UpgradeCrafting(), Constants.ItemName.CraftingUpgrade)
+    registerItem(new item.UpgradeDatabase(Tier.One), Constants.ItemName.DatabaseUpgradeTier1)
+    registerItem(new item.UpgradeDatabase(Tier.Two), Constants.ItemName.DatabaseUpgradeTier2)
+    registerItem(new item.UpgradeDatabase(Tier.Three), Constants.ItemName.DatabaseUpgradeTier3)
+    registerItem(new item.UpgradeExperience(), Constants.ItemName.ExperienceUpgrade)
+    registerItem(new item.UpgradeGenerator(), Constants.ItemName.GeneratorUpgrade)
+    registerItem(new item.UpgradeInventory(), Constants.ItemName.InventoryUpgrade)
+    registerItem(new item.UpgradeInventoryController(), Constants.ItemName.InventoryControllerUpgrade)
+    registerItem(new item.UpgradeNavigation(), Constants.ItemName.NavigationUpgrade)
+    registerItem(new item.UpgradePiston(), Constants.ItemName.PistonUpgrade)
+    registerItem(new item.UpgradeSign(), Constants.ItemName.SignUpgrade)
+    registerItem(new item.UpgradeSolarGenerator(), Constants.ItemName.SolarGeneratorUpgrade)
+    registerItem(new item.UpgradeTank(), Constants.ItemName.TankUpgrade)
+    registerItem(new item.UpgradeTankController(), Constants.ItemName.TankControllerUpgrade)
+    registerItem(new item.UpgradeTractorBeam(), Constants.ItemName.TractorBeamUpgrade)
+    registerItem(new item.UpgradeLeash(), Constants.ItemName.LeashUpgrade)
 
     // 1.5.8
-    registerItem(new item.UpgradeHover(upgrades, Tier.One), Constants.ItemName.HoverUpgradeTier1)
-    registerItem(new item.UpgradeHover(upgrades, Tier.Two), Constants.ItemName.HoverUpgradeTier2)
+    registerItem(new item.UpgradeHover(Tier.One), Constants.ItemName.HoverUpgradeTier1)
+    registerItem(new item.UpgradeHover(Tier.Two), Constants.ItemName.HoverUpgradeTier2)
 
     // 1.6
-    registerItem(new item.UpgradeTrading(upgrades), Constants.ItemName.TradingUpgrade)
-    registerItem(new item.UpgradeMF(upgrades), Constants.ItemName.MFU)
+    registerItem(new item.UpgradeTrading(), Constants.ItemName.TradingUpgrade)
+    registerItem(new item.UpgradeMF(), Constants.ItemName.MFU)
 
     // 1.7.2
-    registerItem(new item.WirelessNetworkCard(upgrades, Tier.One), Constants.ItemName.WirelessNetworkCardTier1)
-    registerItem(new item.ComponentBus(upgrades, Tier.Four), Constants.ItemName.ComponentBusCreative)
+    registerItem(new item.WirelessNetworkCard(Tier.One), Constants.ItemName.WirelessNetworkCardTier1)
+    registerItem(new item.ComponentBus(Tier.Four), Constants.ItemName.ComponentBusCreative)
 
     // 1.8
-    registerItem(new item.UpgradeStickyPiston(upgrades), Constants.ItemName.StickyPistonUpgrade)
+    registerItem(new item.UpgradeStickyPiston(), Constants.ItemName.StickyPistonUpgrade)
   }
 
   // Storage media of all kinds.
   private def initStorage(): Unit = {
-    val storage = newItem(new item.Delegator(), "storage")
-
-    registerItem(new item.EEPROM(storage), Constants.ItemName.EEPROM)
-    registerItem(new item.FloppyDisk(storage), Constants.ItemName.Floppy)
-    registerItem(new item.HardDiskDrive(storage, Tier.One), Constants.ItemName.HDDTier1)
-    registerItem(new item.HardDiskDrive(storage, Tier.Two), Constants.ItemName.HDDTier2)
-    registerItem(new item.HardDiskDrive(storage, Tier.Three), Constants.ItemName.HDDTier3)
+    registerItem(new item.EEPROM(), Constants.ItemName.EEPROM)
+    registerItem(new item.FloppyDisk(), Constants.ItemName.Floppy)
+    registerItem(new item.HardDiskDrive(Tier.One), Constants.ItemName.HDDTier1)
+    registerItem(new item.HardDiskDrive(Tier.Two), Constants.ItemName.HDDTier2)
+    registerItem(new item.HardDiskDrive(Tier.Three), Constants.ItemName.HDDTier3)
 
     val luaBios = {
       val code = new Array[Byte](4 * 1024)
@@ -521,31 +489,17 @@ object Items extends ItemAPI {
 
   // Special purpose items that don't fit into any other category.
   private def initSpecial(): Unit = {
-    val misc = newItem(new item.Delegator() {
-      private def configuredItems = Array(
-        Items.createConfiguredDrone(),
-        Items.createConfiguredMicrocontroller(),
-        Items.createConfiguredRobot(),
-        Items.createConfiguredTablet(),
-        Items.createChargedHoverBoots()
-      ) ++ Loot.disksForClient ++ registeredItems
-
-      override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]): Unit = {
-        super.fillItemCategory(tab, list)
-        if(this.allowdedIn(tab)){
-          configuredItems.foreach(list.add)
-        }
-      }
-    }, "misc")
-
-    registerItem(new item.Tablet(misc), Constants.ItemName.Tablet)
-    registerItem(new item.Drone(misc), Constants.ItemName.Drone)
-    registerItem(new item.Present(misc), Constants.ItemName.Present)
+    registerItem(new item.Tablet(), Constants.ItemName.Tablet)
+    registerItem(new item.Drone(), Constants.ItemName.Drone)
+    registerItem(new item.Present(), Constants.ItemName.Present)
   }
 
-  private def newItem[T <: item.Delegator](delegator: T, name: String): T = {
-    delegator.setUnlocalizedName("oc." + name)
-    GameData.register_impl(delegator.setRegistryName(new ResourceLocation(Settings.resourceDomain, name)))
-    delegator
+  def decorateCreativeTab(list: NonNullList[ItemStack]) {
+    list.add(Items.createConfiguredDrone())
+    list.add(Items.createConfiguredMicrocontroller())
+    list.add(Items.createConfiguredRobot())
+    list.add(Items.createConfiguredTablet())
+    Loot.disksForClient.foreach(list.add)
+    registeredItems.foreach(list.add)
   }
 }

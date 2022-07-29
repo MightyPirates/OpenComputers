@@ -1,7 +1,6 @@
 package li.cil.oc.common
 
 import li.cil.oc.common.inventory.{DatabaseInventory, DiskDriveMountableInventory, ServerInventory}
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.server.component.{DiskDriveMountable, Server}
@@ -56,26 +55,26 @@ abstract class GuiHandler {
         }
       case Some(GuiType.Category.Item) => {
         val itemStackInUse = getItemStackInUse(id, player)
-        Delegator.subItem(itemStackInUse) match {
-          case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
+        itemStackInUse.getItem match {
+          case database: item.UpgradeDatabase if id == GuiType.Database.id =>
             new container.Database(containerId, player.inventory, new DatabaseInventory {
               override def container = itemStackInUse
 
               override def stillValid(player: PlayerEntity) = player == player
             })
-          case Some(server: item.Server) if id == GuiType.Server.id =>
+          case server: item.Server if id == GuiType.Server.id =>
             new container.Server(containerId, player.inventory, new ServerInventory {
               override def container = itemStackInUse
 
               override def stillValid(player: PlayerEntity) = player == player
             })
-          case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
+          case tablet: item.Tablet if id == GuiType.TabletInner.id =>
             val stack = itemStackInUse
             if (stack.hasTag)
               new container.Tablet(containerId, player.inventory, item.Tablet.get(stack, player))
             else
               null
-          case Some(drive: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
+          case drive: item.DiskDriveMountable if id == GuiType.DiskDriveMountable.id =>
             new container.DiskDrive(containerId, player.inventory, new DiskDriveMountableInventory {
               override def container: ItemStack = itemStackInUse
 
@@ -92,14 +91,14 @@ abstract class GuiHandler {
 
   def getItemStackInUse(id: Int, player: PlayerEntity): ItemStack = {
     val mainItem: ItemStack = player.getItemInHand(Hand.MAIN_HAND)
-    Delegator.subItem(mainItem) match {
-      case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id => mainItem
-      case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id => mainItem
-      case Some(server: item.Server) if id == GuiType.Server.id => mainItem
-      case Some(tablet: item.Tablet) if id == GuiType.Tablet.id => mainItem
-      case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id => mainItem
-      case Some(terminal: item.Terminal) if id == GuiType.Terminal.id => mainItem
-      case Some(drive: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id => mainItem
+    mainItem.getItem match {
+      case drive: item.traits.FileSystemLike if id == GuiType.Drive.id => mainItem
+      case database: item.UpgradeDatabase if id == GuiType.Database.id => mainItem
+      case server: item.Server if id == GuiType.Server.id => mainItem
+      case tablet: item.Tablet if id == GuiType.Tablet.id => mainItem
+      case tablet: item.Tablet if id == GuiType.TabletInner.id => mainItem
+      case terminal: item.Terminal if id == GuiType.Terminal.id => mainItem
+      case drive: item.DiskDriveMountable if id == GuiType.DiskDriveMountable.id => mainItem
       case _ => player.getItemInHand(Hand.OFF_HAND)
     }
   }

@@ -22,7 +22,6 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.entity.EntityTypes
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.event.RackMountableRenderHandler
-import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Audio
 import net.minecraft.block.Block
@@ -113,8 +112,6 @@ private[oc] class Proxy extends CommonProxy {
       case _ => super.openGui(player, guiId, world, x, y, z)
     }
   }
-
-  override def registerModel(instance: Delegate, id: String): Unit = ModelInitialization.registerModel(instance, id)
 
   override def registerModel(instance: Item, id: String): Unit = ModelInitialization.registerModel(instance, id)
 

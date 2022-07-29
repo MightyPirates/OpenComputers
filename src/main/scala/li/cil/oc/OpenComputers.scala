@@ -92,7 +92,6 @@ class OpenComputers {
   @SubscribeEvent
   def registerItems(e: RegistryEvent.Register[Item]) {
     Items.init()
-    OpenComputers.proxy.initExtraTags()
   }
 
   @SubscribeEvent

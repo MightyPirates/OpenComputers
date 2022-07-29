@@ -11,7 +11,7 @@ import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.item.{Delegator, Tablet, TabletWrapper}
+import li.cil.oc.common.item.{Tablet, TabletWrapper}
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
@@ -102,8 +102,8 @@ object PacketHandler extends CommonPacketHandler {
   def onDriveLock(p: PacketParser): Unit = p.player match {
     case player: ServerPlayerEntity => {
       val heldItem = player.getItemInHand(Hand.MAIN_HAND)
-      Delegator.subItem(heldItem) match {
-        case Some(drive: FileSystemLike) => DriveData.lock(heldItem, player)
+      heldItem.getItem match {
+        case drive: FileSystemLike => DriveData.lock(heldItem, player)
         case _ => // Invalid packet
       }
     }
@@ -115,8 +115,8 @@ object PacketHandler extends CommonPacketHandler {
     p.player match {
       case player: ServerPlayerEntity =>
         val heldItem = player.getItemInHand(Hand.MAIN_HAND)
-        Delegator.subItem(heldItem) match {
-          case Some(drive: FileSystemLike) => DriveData.setUnmanaged(heldItem, unmanaged)
+        heldItem.getItem match {
+          case drive: FileSystemLike => DriveData.setUnmanaged(heldItem, unmanaged)
           case _ => // Invalid packet.
         }
       case _ => // Invalid packet.

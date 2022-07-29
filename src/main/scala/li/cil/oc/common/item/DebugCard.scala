@@ -2,11 +2,14 @@ package li.cil.oc.common.item
 
 import java.util
 
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.item.data.DebugCardData
 import li.cil.oc.server.component.{DebugCard => CDebugCard}
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
@@ -15,8 +18,9 @@ import net.minecraft.util.Util
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 
-class DebugCard(val parent: Delegator) extends traits.Delegate {
+class DebugCard(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]): Unit = {
     super.tooltipExtended(stack, tooltip)
     val data = new DebugCardData(stack)

@@ -1,6 +1,7 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -13,11 +14,14 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Direction
 import net.minecraft.util.Util
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
@@ -101,7 +105,7 @@ object Analyzer {
   }
 }
 
-class Analyzer(val parent: Delegator) extends traits.Delegate {
+class Analyzer(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (player.isCrouching && stack.hasTag) {
       stack.removeTagKey(Settings.namespace + "clipboard")

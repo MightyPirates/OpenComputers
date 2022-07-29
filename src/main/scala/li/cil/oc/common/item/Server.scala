@@ -2,6 +2,7 @@ package li.cil.oc.common.item
 
 import java.util
 
+import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
@@ -10,6 +11,8 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item // Rarity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
@@ -17,16 +20,19 @@ import net.minecraft.util.Hand
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 
 import scala.collection.mutable
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
-  override val unlocalizedName: String = super.unlocalizedName + tier
+class Server(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
 
-  override protected def tooltipName = Option(super.unlocalizedName)
+  override protected def tooltipName = Option(unlocalizedName)
 
-  override def rarity(stack: ItemStack): item.Rarity = Rarity.byTier(tier)
+  @Deprecated
+  override def getRarity(stack: ItemStack): item.Rarity = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 

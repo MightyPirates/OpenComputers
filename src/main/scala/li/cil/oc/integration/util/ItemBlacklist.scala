@@ -1,6 +1,6 @@
 package li.cil.oc.integration.util
 
-import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.common.item.traits.SimpleItem
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 
@@ -15,7 +15,7 @@ object ItemBlacklist {
 
   def hide(block: Block): Unit = hiddenItems += (() => new ItemStack(block))
 
-  def hide(item: Delegate): Unit = hiddenItems += (() => item.createItemStack())
+  def hide(item: SimpleItem): Unit = hiddenItems += (() => item.createItemStack())
 
   def apply(): Unit = {
     for (consumer <- consumers) {

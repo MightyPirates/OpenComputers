@@ -1,22 +1,26 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.util.Color
 import net.minecraft.client.renderer.model.ModelBakery
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockReader
+import net.minecraft.world.IWorldReader
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.common.extensions.IForgeItem
 
-class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel with traits.FileSystemLike {
+class FloppyDisk(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel with traits.FileSystemLike {
   // Necessary for anonymous subclasses used for loot disks.
-  override def unlocalizedName = "floppydisk"
+  unlocalizedName = "floppydisk"
 
   val kiloBytes = Settings.get.floppySize
 
@@ -43,5 +47,5 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
     }
   }
 
-  override def doesSneakBypassUse(world: IBlockReader, pos: BlockPos, player: PlayerEntity): Boolean = true
+  override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = true
 }

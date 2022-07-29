@@ -3,29 +3,32 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.DroneModel
-import li.cil.oc.common.entity
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.common.entity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.client.event.ModelBakeEvent
+import net.minecraftforge.common.extensions.IForgeItem
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
+class Drone(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
   ItemBlacklist.hide(this)
-
-  showInItemList = false
 
   @OnlyIn(Dist.CLIENT)
   override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Drone, "inventory")
@@ -44,7 +47,8 @@ class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
     }
   }
 
-  override def rarity(stack: ItemStack) = {
+  @Deprecated
+  override def getRarity(stack: ItemStack) = {
     val data = new DroneData(stack)
     Rarity.byTier(data.tier)
   }

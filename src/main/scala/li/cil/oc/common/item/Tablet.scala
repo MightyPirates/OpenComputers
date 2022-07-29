@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.collect.ImmutableMap
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -43,6 +44,9 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.{PlayerEntity, ServerPlayerEntity}
 import net.minecraft.item // Rarity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.server.integrated.IntegratedServer
@@ -50,14 +54,17 @@ import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
+import net.minecraft.util.NonNullList
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Util
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.common.extensions.IForgeItem
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.event.TickEvent.ClientTickEvent
 import net.minecraftforge.event.TickEvent.ServerTickEvent
@@ -68,11 +75,8 @@ import scala.collection.JavaConverters.asJavaIterable
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel with traits.Chargeable {
+class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel with traits.Chargeable {
   final val TimeToAnalyze = 10
-
-  // Must be assembled to be usable so we hide it in the item list.
-  showInItemList = false
 
   override def maxStackSize = 1
 
@@ -94,14 +98,15 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     }
   }
 
-  override def rarity(stack: ItemStack): item.Rarity = {
+  @Deprecated
+  override def getRarity(stack: ItemStack): item.Rarity = {
     val data = new TabletData(stack)
     Rarity.byTier(data.tier)
   }
 
   override def showDurabilityBar(stack: ItemStack) = true
 
-  override def durability(stack: ItemStack): Double = {
+  override def getDurabilityForDisplay(stack: ItemStack): Double = {
     if (stack.hasTag) {
       val data = Tablet.Client.getWeak(stack) match {
         case Some(wrapper) => wrapper.data
@@ -152,7 +157,10 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
 
   // ----------------------------------------------------------------------- //
 
-  override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean): Unit =
+  // Must be assembled to be usable so we hide it in the item list.
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {}
+
+  override def inventoryTick(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean): Unit =
     entity match {
       case player: PlayerEntity =>
         // Play an audio cue to let players know when they finished analyzing a block.
@@ -163,9 +171,9 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
       case _ =>
     }
 
-  override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float): ActionResultType = {
-    Tablet.currentlyAnalyzing = Some((position, side, hitX, hitY, hitZ))
-    super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)
+  override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {
+    Tablet.currentlyAnalyzing = Some((BlockPosition(pos, world), side, hitX, hitY, hitZ))
+    super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
   override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
@@ -178,13 +186,12 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 
-  override def getMaxItemUseDuration(stack: ItemStack): Int = 72000
+  override def getUseDuration(stack: ItemStack): Int = 72000
 
-  override def onPlayerStoppedUsing(stack: ItemStack, entity: LivingEntity, duration: Int): Unit = {
+  override def releaseUsing(stack: ItemStack, world: World, entity: LivingEntity, duration: Int): Unit = {
     entity match {
       case player: PlayerEntity =>
-        val world = player.level
-        val didAnalyze = getMaxItemUseDuration(stack) - duration >= TimeToAnalyze
+        val didAnalyze = getUseDuration(stack) - duration >= TimeToAnalyze
         if (didAnalyze) {
           if (!world.isClientSide) {
             Tablet.currentlyAnalyzing match {

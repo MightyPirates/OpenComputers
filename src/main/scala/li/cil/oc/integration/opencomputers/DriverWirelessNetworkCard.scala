@@ -7,7 +7,6 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -27,8 +26,8 @@ object DriverWirelessNetworkCard extends Item {
   override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(card: common.item.WirelessNetworkCard) => card.tier
+    stack.getItem match {
+      case card: common.item.WirelessNetworkCard => card.tier
       case _ => Tier.One
     }
 

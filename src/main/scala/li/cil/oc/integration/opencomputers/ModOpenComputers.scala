@@ -24,7 +24,6 @@ import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.nanomachines.provider.DisintegrationProvider
@@ -313,10 +312,7 @@ object ModOpenComputers extends ModProxy {
     // redstone card availability here, after all other mods were inited.
     if (BundledRedstone.isAvailable) {
       OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
-      Delegator.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
-        case Some(redstone: RedstoneCard) => redstone.showInItemList = true
-        case _ =>
-      }
+      ModOpenComputers.hasRedstoneCardT2 = true
     }
 
     api.Manual.addProvider(DefinitionPathProvider)
@@ -336,6 +332,8 @@ object ModOpenComputers extends ModProxy {
     api.Nanomachines.addProvider(PotionProvider)
     api.Nanomachines.addProvider(MagnetProvider)
   }
+
+  protected[oc] var hasRedstoneCardT2 = false
 
   def useWrench(player: PlayerEntity, pos: BlockPos, changeDurability: Boolean): Boolean = {
     player.getItemInHand(Hand.MAIN_HAND).getItem match {

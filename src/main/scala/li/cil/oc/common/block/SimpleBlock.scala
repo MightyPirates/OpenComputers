@@ -48,8 +48,6 @@ import scala.collection.convert.ImplicitConversionsToScala._
 abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).strength(2, 5)) extends ContainerBlock(props.isValidSpawn(new IExtendedPositionPredicate[EntityType[_]] {
   override def test(state: BlockState, world: IBlockReader, pos: BlockPos, entity: EntityType[_]) = state.getBlock.asInstanceOf[SimpleBlock].isValidSpawn(state, world, pos, entity)
 })) {
-  var showInItemList = true
-
   @Deprecated
   private var creativeTab: ItemGroup = CreativeTab
 

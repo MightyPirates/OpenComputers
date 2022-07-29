@@ -8,7 +8,6 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -30,8 +29,8 @@ object DriverGraphicsCard extends Item with HostAware {
   override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(gpu: common.item.GraphicsCard) => gpu.gpuTier
+    stack.getItem match {
+      case gpu: common.item.GraphicsCard => gpu.gpuTier
       case _ => Tier.One
     }
 

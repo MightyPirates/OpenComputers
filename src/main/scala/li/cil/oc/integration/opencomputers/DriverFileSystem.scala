@@ -8,7 +8,6 @@ import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Slot
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.common.item.data.DriveData
@@ -30,22 +29,22 @@ object DriverFileSystem extends Item {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (host.world != null && host.world.isClientSide) null
-    else Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
+    else stack.getItem match {
+      case hdd: HardDiskDrive => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
+      case disk: FloppyDisk => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
       case _ => null
     }
 
   override def slot(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => Slot.HDD
-      case Some(disk: FloppyDisk) => Slot.Floppy
+    stack.getItem match {
+      case hdd: HardDiskDrive => Slot.HDD
+      case disk: FloppyDisk => Slot.Floppy
       case _ => throw new IllegalArgumentException()
     }
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => hdd.tier
+    stack.getItem match {
+      case hdd: HardDiskDrive => hdd.tier
       case _ => 0
     }
 

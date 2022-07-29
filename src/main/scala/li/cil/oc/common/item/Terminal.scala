@@ -3,6 +3,7 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
@@ -10,6 +11,8 @@ import net.minecraft.client.renderer.model.ModelBakery
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
@@ -20,15 +23,16 @@ import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.common.extensions.IForgeItem
 
-class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
+class Terminal(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
   override def maxStackSize = 1
 
   def hasServer(stack: ItemStack) = stack.hasTag && stack.getTag.contains(Settings.namespace + "server")
 
   @OnlyIn(Dist.CLIENT)
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
-    super.tooltipLines(stack, world, tooltip, flag)
+  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    super.appendHoverText(stack, world, tooltip, flag)
     if (hasServer(stack)) {
       val server = stack.getTag.getString(Settings.namespace + "server")
       tooltip.add(new StringTextComponent("§8" + server.substring(0, 13) + "...§7"))

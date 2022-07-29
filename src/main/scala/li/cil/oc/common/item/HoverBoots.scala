@@ -3,24 +3,28 @@ package li.cil.oc.common.item
 import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.util.ItemColorizer
+import net.minecraft.block.Blocks
 import net.minecraft.block.CauldronBlock
 import net.minecraft.client.renderer.entity.model.BipedModel
+import net.minecraft.inventory.EquipmentSlotType
+import net.minecraft.item.ArmorItem
+import net.minecraft.item.ArmorMaterial
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraft.item.ItemGroup
+import net.minecraft.item.ItemStack
+import net.minecraft.item.Rarity
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.item.ItemEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.block.Blocks
-import net.minecraft.inventory.EquipmentSlotType
-import net.minecraft.item.ArmorItem
-import net.minecraft.item.ArmorMaterial
-import net.minecraft.item.Item.Properties
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Rarity
 import net.minecraft.potion.Effect
 import net.minecraft.potion.Effects
 import net.minecraft.potion.EffectInstance
+import net.minecraft.util.NonNullList
 import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
@@ -29,6 +33,7 @@ import net.minecraftforge.common.extensions.IForgeItem
 class HoverBoots(props: Properties = new Properties().tab(CreativeTab).setNoRepair())
   extends ArmorItem(ArmorMaterial.DIAMOND, EquipmentSlotType.FEET, props) with IForgeItem with traits.SimpleItem with traits.Chargeable {
 
+  @Deprecated
   override def getRarity(stack: ItemStack): Rarity = Rarity.UNCOMMON
 
   override def maxCharge(stack: ItemStack): Double = Settings.get.bufferHoverBoots
@@ -50,6 +55,11 @@ class HoverBoots(props: Properties = new Properties().tab(CreativeTab).setNoRepa
       data.charge += used
       data.saveData(stack)
     })
+  }
+
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]): Unit = {
+    super.fillItemCategory(tab, list)
+    if (allowdedIn(tab)) list.add(Items.createChargedHoverBoots())
   }
 
   @OnlyIn(Dist.CLIENT)

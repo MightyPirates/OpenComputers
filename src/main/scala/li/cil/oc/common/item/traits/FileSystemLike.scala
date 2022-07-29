@@ -16,13 +16,17 @@ import net.minecraft.util.Hand
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-trait FileSystemLike extends Delegate {
+trait FileSystemLike extends SimpleItem {
   override protected def tooltipName = None
 
   def kiloBytes: Int
 
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag): Unit = {
+  @OnlyIn(Dist.CLIENT)
+  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    super.appendHoverText(stack, world, tooltip, flag)
     if (stack.hasTag) {
       val nbt = stack.getTag
       if (nbt.contains(Settings.namespace + "data")) {
@@ -42,7 +46,6 @@ trait FileSystemLike extends Delegate {
       tooltip.add(new StringTextComponent(Localization.Tooltip.DiskMode(data.isUnmanaged)))
       tooltip.add(new StringTextComponent(Localization.Tooltip.DiskLock(data.lockInfo)))
     }
-    super.tooltipLines(stack, world, tooltip, flag)
   }
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {

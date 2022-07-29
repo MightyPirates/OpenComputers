@@ -1,25 +1,31 @@
 package li.cil.oc.common.item
 
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockReader
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
+import net.minecraft.world.IWorldReader
+import net.minecraftforge.common.extensions.IForgeItem
 
-class EEPROM(val parent: Delegator) extends traits.Delegate {
-  override def displayName(stack: ItemStack): Option[String] = {
+class EEPROM(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+  override def getName(stack: ItemStack): ITextComponent = {
     if (stack.hasTag) {
       val tag = stack.getTag
       if (tag.contains(Settings.namespace + "data")) {
         val data = tag.getCompound(Settings.namespace + "data")
         if (data.contains(Settings.namespace + "label")) {
-          return Some(data.getString(Settings.namespace + "label"))
+          return new StringTextComponent(data.getString(Settings.namespace + "label"))
         }
       }
     }
-    super.displayName(stack)
+    super.getName(stack)
   }
 
-  override def doesSneakBypassUse(world: IBlockReader, pos: BlockPos, player: PlayerEntity): Boolean = true
+  override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = true
 }

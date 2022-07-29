@@ -1,9 +1,15 @@
 package li.cil.oc.common.item
 
-class UpgradeContainerUpgrade(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
-  override val unlocalizedName = super.unlocalizedName + tier
+import li.cil.oc.CreativeTab
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
 
-  override protected def tooltipName = Option(super.unlocalizedName)
+class UpgradeContainerUpgrade(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
+
+  override protected def tooltipName = Option(unlocalizedName)
 
   override protected def tooltipData = Seq(tier + 1)
 }

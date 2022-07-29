@@ -21,7 +21,7 @@ import net.minecraft.world.World
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.language.existentials
 
-trait CPULike extends Delegate {
+trait CPULike extends SimpleItem {
   def cpuTier: Int
 
   override protected def tooltipData: Seq[Any] = Seq(Settings.get.cpuComponentSupport(cpuTier))

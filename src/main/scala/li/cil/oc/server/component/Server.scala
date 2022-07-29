@@ -26,7 +26,6 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.network.Connector
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -125,8 +124,8 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // ServerInventory
 
-  override def tier: Int = Delegator.subItem(container) match {
-    case Some(server: item.Server) => server.tier
+  override def tier: Int = container.getItem match {
+    case server: item.Server => server.tier
     case _ => 0
   }
 

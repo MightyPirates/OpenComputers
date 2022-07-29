@@ -23,7 +23,6 @@ import li.cil.oc.api.util.StateAware
 import li.cil.oc.api.util.StateAware.State
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -55,8 +54,8 @@ class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environ
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.internal.Keyboard, player: PlayerEntity) = {
         val stack = player.getItemInHand(Hand.MAIN_HAND)
-        Delegator.subItem(stack) match {
-          case Some(t: item.Terminal) if stack.hasTag => sidedKeys.contains(stack.getTag.getString(Settings.namespace + "key"))
+        stack.getItem match {
+          case t: item.Terminal if stack.hasTag => sidedKeys.contains(stack.getTag.getString(Settings.namespace + "key"))
           case _ => false
         }
       }

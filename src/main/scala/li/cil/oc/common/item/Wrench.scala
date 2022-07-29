@@ -27,7 +27,7 @@ object Wrench {
 class Wrench(props: Properties = new Properties().stacksTo(1).addToolType(Wrench.WrenchType, 1).tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with api.internal.Wrench {
   override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = true
 
-  override def onItemUseFirst(player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {
+  override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {
     if (world.isLoaded(pos) && world.mayInteract(player, pos)) {
       val state = world.getBlockState(pos)
       state.getBlock match {
@@ -42,10 +42,10 @@ class Wrench(props: Properties = new Properties().stacksTo(1).addToolType(Wrench
             player.swing(hand)
             if (!world.isClientSide) ActionResultType.sidedSuccess(world.isClientSide) else ActionResultType.PASS
           }
-          else super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+          else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
       }
     }
-    else super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+    else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
   def useWrenchOnBlock(player: PlayerEntity, world: World, pos: BlockPos, simulate: Boolean): Boolean = {

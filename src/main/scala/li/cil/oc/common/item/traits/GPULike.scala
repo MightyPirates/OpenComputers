@@ -3,7 +3,7 @@ package li.cil.oc.common.item.traits
 import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 
-trait GPULike extends Delegate {
+trait GPULike extends SimpleItem {
   def gpuTier: Int
 
   override protected def tooltipData: Seq[Any] = {

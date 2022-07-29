@@ -9,7 +9,6 @@ import li.cil.oc.common.component
 import li.cil.oc.common.entity
 import li.cil.oc.common.inventory.{DatabaseInventory, DiskDriveMountableInventory, ServerInventory}
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
@@ -76,22 +75,22 @@ object GuiHandler extends CommonGuiHandler {
         }
       case Some(GuiType.Category.Item) => {
         val itemStackInUse = getItemStackInUse(id, player)
-        Delegator.subItem(itemStackInUse) match {
-          case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id =>
+        itemStackInUse.getItem match {
+          case drive: item.traits.FileSystemLike if id == GuiType.Drive.id =>
             new gui.Drive(player.inventory, () => itemStackInUse)
-          case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
+          case database: item.UpgradeDatabase if id == GuiType.Database.id =>
             new gui.Database(containerId, player.inventory, new DatabaseInventory {
               override def container = itemStackInUse
 
               override def stillValid(player: PlayerEntity) = player == player
             })
-          case Some(server: item.Server) if id == GuiType.Server.id =>
+          case server: item.Server if id == GuiType.Server.id =>
             new gui.Server(containerId, player.inventory, new ServerInventory {
               override def container = itemStackInUse
 
               override def stillValid(player: PlayerEntity) = player == player
             })
-          case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
+          case tablet: item.Tablet if id == GuiType.Tablet.id =>
             val stack = itemStackInUse
             if (stack.hasTag) {
               item.Tablet.get(stack, player).components.collect {
@@ -102,18 +101,18 @@ object GuiHandler extends CommonGuiHandler {
               }
             }
             else null
-          case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
+          case tablet: item.Tablet if id == GuiType.TabletInner.id =>
             val stack = itemStackInUse
             if (stack.hasTag) {
               new gui.Tablet(containerId, player.inventory, item.Tablet.get(stack, player))
             }
             else null
-          case Some(_: item.DiskDriveMountable) if id == GuiType.DiskDriveMountable.id =>
+          case _: item.DiskDriveMountable if id == GuiType.DiskDriveMountable.id =>
             new gui.DiskDrive(containerId, player.inventory, new DiskDriveMountableInventory {
               override def container = itemStackInUse
               override def stillValid(activePlayer : PlayerEntity): Boolean = activePlayer == player
             })
-          case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
+          case terminal: item.Terminal if id == GuiType.Terminal.id =>
             val stack = itemStackInUse
             if (stack.hasTag) {
               val address = stack.getTag.getString(Settings.namespace + "server")
