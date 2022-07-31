@@ -139,8 +139,7 @@ class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item
   @OnlyIn(Dist.CLIENT)
   override def registerModelLocations(): Unit = {
     for (state <- Seq(None, Some(true), Some(false))) {
-      val location = modelLocationFromState(state)
-      ModelLoader.addSpecialModel(new ResourceLocation(location.getNamespace + ":" + location.getPath))
+      ModelLoader.addSpecialModel(modelLocationFromState(state))
     }
   }
 

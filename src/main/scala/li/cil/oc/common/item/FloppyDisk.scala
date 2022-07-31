@@ -26,7 +26,7 @@ class FloppyDisk(props: Properties = new Properties().tab(CreativeTab)) extends 
 
   @OnlyIn(Dist.CLIENT)
   private def modelLocationFromDyeName(name: String) = {
-    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Floppy + "_" + name, "inventory")
+    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Floppy + "_" + name.toLowerCase, "inventory")
   }
 
   @OnlyIn(Dist.CLIENT)

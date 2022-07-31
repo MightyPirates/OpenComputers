@@ -52,8 +52,7 @@ class Terminal(props: Properties = new Properties().tab(CreativeTab)) extends It
   @OnlyIn(Dist.CLIENT)
   override def registerModelLocations(): Unit = {
     for (state <- Seq(true, false)) {
-      val location = modelLocationFromState(state)
-      ModelLoader.addSpecialModel(new ResourceLocation(location.getNamespace + ":" + location.getPath))
+      ModelLoader.addSpecialModel(modelLocationFromState(state))
     }
   }
 

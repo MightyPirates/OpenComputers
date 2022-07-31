@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.block
 import java.util.Random
 
 import li.cil.oc.Constants
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.CustomModel
@@ -18,13 +19,16 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IItemProvider
 import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
+@Mod.EventBusSubscriber(value = Array(Dist.CLIENT), modid = OpenComputers.ID, bus = Bus.MOD)
 object ModelInitialization {
   final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
   final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
@@ -42,8 +46,6 @@ object ModelInitialization {
   private val modelRemappings = mutable.Map.empty[ModelResourceLocation, ModelResourceLocation]
 
   def preInit(): Unit = {
-    MinecraftForge.EVENT_BUS.register(this)
-
     registerModel(Constants.BlockName.Cable, CableBlockLocation, CableItemLocation)
     registerModel(Constants.BlockName.NetSplitter, NetSplitterBlockLocation, NetSplitterItemLocation)
     registerModel(Constants.BlockName.Print, PrintBlockLocation, PrintItemLocation)
@@ -53,7 +55,20 @@ object ModelInitialization {
 
   @SubscribeEvent
   def onModelRegistration(event: ModelRegistryEvent): Unit = {
-    registerItems()
+    val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
+    for (item <- meshableItems) {
+      item match {
+        case custom: CustomModel => custom.registerModelLocations()
+        case _ => {
+          Option(api.Items.get(new ItemStack(item))) match {
+            case Some(descriptor) =>
+              val location = Settings.resourceDomain + ":" + descriptor.name()
+              shaper.register(item, new ModelResourceLocation(location, "inventory"))
+            case _ =>
+          }
+        }
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -74,24 +89,6 @@ object ModelInitialization {
     block.getStateDefinition.getPossibleStates.foreach {
       modelRemappings += BlockModelShapes.stateToModelLocation(_) -> blockLocation
     }
-  }
-
-  private def registerItems(): Unit = {
-    val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
-    for (item <- meshableItems) {
-      item match {
-        case custom: CustomModel => custom.registerModelLocations()
-        case _ => {
-          Option(api.Items.get(new ItemStack(item))) match {
-            case Some(descriptor) =>
-              val location = Settings.resourceDomain + ":" + descriptor.name()
-              shaper.register(item, new ModelResourceLocation(location, "inventory"))
-            case _ =>
-          }
-        }
-      }
-    }
-    meshableItems.clear()
   }
 
   // ----------------------------------------------------------------------- //
@@ -148,6 +145,7 @@ object ModelInitialization {
       }
       case _ =>
     }
+    meshableItems.clear()
 
     val modelOverrides = Map[String, IBakedModel => IBakedModel](
       Constants.BlockName.ScreenTier1 -> (_ => ScreenModel),

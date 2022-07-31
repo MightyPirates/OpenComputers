@@ -60,6 +60,7 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.collection.convert.ImplicitConversionsToScala._
@@ -438,18 +439,10 @@ object EventHandler {
     else false
   }
 
-  private lazy val getChunks = try {
-    val m = classOf[ChunkManager].getDeclaredMethod("getChunks") // getChunks
-    m.setAccessible(true)
-    m
-  }
-  catch {
-    case e: Throwable =>
-      throw new Error("Could not access server chunk list", e)
-  }
+  private val getChunks = ObfuscationReflectionHelper.findMethod(classOf[ChunkManager], "getChunks")
 
   private def getChunks(world: ServerWorld): Iterable[ChunkHolder] = try {
-    getChunks.invoke(world.getChunkSource.chunkMap).asInstanceOf[Iterable[ChunkHolder]]
+    getChunks.invoke(world.getChunkSource.chunkMap).asInstanceOf[java.lang.Iterable[ChunkHolder]]
   }
   catch {
     case e: Throwable =>
