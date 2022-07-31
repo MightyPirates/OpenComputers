@@ -58,7 +58,6 @@ object Items extends ItemAPI {
           simple.setUnlocalizedName("oc." + id)
           simple.setRegistryName(OpenComputers.ID, id)
           GameData.register_impl[Block](simple)
-          OpenComputers.proxy.registerModel(simple, id)
 
           val item : Item = new common.block.Item(simple)
           item.setRegistryName(OpenComputers.ID, id)
