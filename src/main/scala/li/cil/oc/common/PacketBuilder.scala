@@ -77,7 +77,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     val server = ServerLifecycleHooks.getCurrentServer
     val manager = server.getPlayerList
     for (player <- manager.getPlayers if player.level == world) {
-      val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[ServerPlayerEntity], player, "renderDistance").asInstanceOf[Integer]
+      val playerRenderDistance = 16
       val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.distanceToSqr(x, y, z) < playerSpecificRange * playerSpecificRange) {
         sendToPlayer(player)

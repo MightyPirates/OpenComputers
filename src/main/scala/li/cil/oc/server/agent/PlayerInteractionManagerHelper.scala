@@ -15,10 +15,11 @@ import net.minecraftforge.eventbus.api.{EventPriority, SubscribeEvent}
 import scala.collection.convert.ImplicitConversionsToScala._
 
 object PlayerInteractionManagerHelper {
+  private val isDestroyingBlock = ObfuscationReflectionHelper.findField(classOf[PlayerInteractionManager], "field_73088_d")
 
   private def isDestroyingBlock(player: Player): Boolean = {
     try {
-      ObfuscationReflectionHelper.getPrivateValue(classOf[PlayerInteractionManager], player.gameMode, "isDestroyingBlock").asInstanceOf[Boolean]
+      isDestroyingBlock.getBoolean(player.gameMode)
     } catch {
       case _: Exception => true
     }

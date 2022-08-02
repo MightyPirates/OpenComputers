@@ -10,7 +10,6 @@ import net.minecraft.util.math.vector.Matrix4f
 import net.minecraft.world.World
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import org.lwjgl.opengl.GL11
 
 object WirelessNetworkDebugRenderer {

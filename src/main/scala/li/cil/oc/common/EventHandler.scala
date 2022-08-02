@@ -439,7 +439,7 @@ object EventHandler {
     else false
   }
 
-  private val getChunks = ObfuscationReflectionHelper.findMethod(classOf[ChunkManager], "getChunks")
+  private val getChunks = ObfuscationReflectionHelper.findMethod(classOf[ChunkManager], "func_223491_f")
 
   private def getChunks(world: ServerWorld): Iterable[ChunkHolder] = try {
     getChunks.invoke(world.getChunkSource.chunkMap).asInstanceOf[java.lang.Iterable[ChunkHolder]]

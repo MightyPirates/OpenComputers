@@ -62,6 +62,13 @@ import net.minecraftforge.items.wrapper._
 import scala.collection.convert.ImplicitConversionsToScala._
 
 object Player {
+  // These use unobfuscated names because they're added by forge (LazyOptional / capabilities).
+  private val playerMainHandler = ObfuscationReflectionHelper.findField(classOf[PlayerEntity], "playerMainHandler")
+
+  private val playerEquipmentHandler = ObfuscationReflectionHelper.findField(classOf[PlayerEntity], "playerEquipmentHandler")
+
+  private val playerJoinedHandler = ObfuscationReflectionHelper.findField(classOf[PlayerEntity], "playerJoinedHandler")
+
   def profileFor(agent: internal.Agent): GameProfile = {
     val uuid = agent.ownerUUID
     val randomId = (agent.world.random.nextInt(0xFFFFFF) + 1).toString
@@ -163,15 +170,15 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     this.containerMenu = this.inventoryMenu
 
     try {
-      ObfuscationReflectionHelper.setPrivateValue(classOf[PlayerEntity], this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
+      Player.playerMainHandler.set(this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
         override def get = new PlayerMainInvWrapper(inventory)
-      }), "playerMainHandler")
-      ObfuscationReflectionHelper.setPrivateValue(classOf[PlayerEntity], this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
+      }))
+      Player.playerEquipmentHandler.set(this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
         override def get = new CombinedInvWrapper(new PlayerArmorInvWrapper(inventory), new PlayerOffhandInvWrapper(inventory))
-      }), "playerEquipmentHandler")
-      ObfuscationReflectionHelper.setPrivateValue(classOf[PlayerEntity], this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
+      }))
+      Player.playerJoinedHandler.set(this, LazyOptional.of(new NonNullSupplier[IItemHandler] {
         override def get = new PlayerInvWrapper(inventory)
-      }), "playerJoinedHandler")
+      }))
     } catch {
       case _: Exception =>
     }
