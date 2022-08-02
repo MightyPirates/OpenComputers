@@ -18,8 +18,10 @@ import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
+import net.minecraft.util.NonNullList
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.client.event.ModelBakeEvent
@@ -52,6 +54,9 @@ class Drone(props: Properties = new Properties().tab(CreativeTab)) extends Item(
     val data = new DroneData(stack)
     Rarity.byTier(data.tier)
   }
+
+  // Must be assembled to be usable so we hide it in the item list.
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {}
 
   override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
