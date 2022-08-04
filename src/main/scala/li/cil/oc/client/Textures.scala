@@ -10,11 +10,15 @@ import net.minecraft.inventory.container.PlayerContainer
 import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 
 import scala.collection.mutable
 
+@Mod.EventBusSubscriber(value = Array(Dist.CLIENT), modid = OpenComputers.ID, bus = Bus.MOD)
 object Textures {
 
   object Font extends TextureBundle {
@@ -24,7 +28,7 @@ object Textures {
     override protected def basePath = "font/%s"
 
     override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
-      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(new ResourceLocation(loc.getNamespace, s"textures/${loc.getPath}.png")))
   }
 
   object GUI extends TextureBundle {
@@ -71,7 +75,7 @@ object Textures {
     override protected def basePath = "gui/%s"
 
     override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
-      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(new ResourceLocation(loc.getNamespace, s"textures/${loc.getPath}.png")))
   }
 
   object Icons extends TextureBundle {
@@ -85,7 +89,7 @@ object Textures {
     override protected def basePath = "icons/%s"
 
     override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
-      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(new ResourceLocation(loc.getNamespace, s"textures/${loc.getPath}.png")))
   }
 
   object Model extends TextureBundle {
@@ -99,7 +103,7 @@ object Textures {
     override protected def basePath = "model/%s"
 
     override protected def loader(e: TextureStitchEvent.Pre, loc: ResourceLocation) =
-      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(loc))
+      Minecraft.getInstance.textureManager.register(loc, new SimpleTexture(new ResourceLocation(loc.getNamespace, s"textures/${loc.getPath}.png")))
   }
 
   object Item extends TextureBundle {
@@ -124,14 +128,14 @@ object Textures {
     val ChargerSideOn = L("overlay/charger_side_on")
     val DisassemblerSideOn = L("overlay/disassembler_side_on")
     val DisassemblerTopOn = L("overlay/disassembler_top_on")
-    val DiskDriveFrontActivity = L("overlay/diskDrive_front_activity")
+    val DiskDriveFrontActivity = L("overlay/diskdrive_front_activity")
     val GeolyzerTopOn = L("overlay/geolyzer_top_on")
     val MicrocontrollerFrontLight = L("overlay/microcontroller_front_light")
     val MicrocontrollerFrontOn = L("overlay/microcontroller_front_on")
     val MicrocontrollerFrontError = L("overlay/microcontroller_front_error")
-    val NetSplitterOn = L("overlay/netSplitter_on")
-    val PowerDistributorSideOn = L("overlay/powerDistributor_side_on")
-    val PowerDistributorTopOn = L("overlay/powerDistributor_top_on")
+    val NetSplitterOn = L("overlay/netsplitter_on")
+    val PowerDistributorSideOn = L("overlay/powerdistributor_side_on")
+    val PowerDistributorTopOn = L("overlay/powerdistributor_top_on")
     val RackDiskDrive = L("rack_disk_drive")
     val RackDiskDriveActivity = L("overlay/rack_disk_drive_activity")
     val RackServer = L("rack_server")
@@ -149,10 +153,10 @@ object Textures {
     val TransposerOn = L("overlay/transposer_on")
 
     val Cable = L("cable")
-    val CableCap = L("cableCap")
+    val CableCap = L("cablecap")
     val GenericTop = L("generic_top", load = false)
-    val NetSplitterSide = L("netSplitter_side")
-    val NetSplitterTop = L("netSplitter_top")
+    val NetSplitterSide = L("netsplitter_side")
+    val NetSplitterTop = L("netsplitter_top")
     val RackFront = L("rack_front", load = false)
     val RackSide = L("rack_side", load = false)
 

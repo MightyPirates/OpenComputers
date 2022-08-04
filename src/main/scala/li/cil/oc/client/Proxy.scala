@@ -11,7 +11,6 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.ModelInitialization
-import li.cil.oc.client.renderer.block.NetSplitterModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common
@@ -43,9 +42,6 @@ private[oc] class Proxy extends CommonProxy {
     super.preInit()
 
     api.API.manual = client.Manual
-
-    MinecraftForge.EVENT_BUS.register(Textures)
-    MinecraftForge.EVENT_BUS.register(NetSplitterModel)
   }
 
   override def init(e: FMLCommonSetupEvent) {

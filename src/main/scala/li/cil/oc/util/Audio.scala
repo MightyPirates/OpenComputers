@@ -12,7 +12,6 @@ import net.minecraft.util.SoundCategory
 import net.minecraft.util.SoundEvent
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.vector.Vector3d
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.event.TickEvent.ClientTickEvent
 import org.lwjgl.BufferUtils
@@ -182,8 +181,6 @@ object Audio {
       throw new OpenALException(errorCode)
     }
   }
-
-  MinecraftForge.EVENT_BUS.register(this)
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {

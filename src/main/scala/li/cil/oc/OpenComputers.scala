@@ -22,7 +22,7 @@ import net.minecraftforge.fml.ModContainer
 import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
-import net.minecraftforge.fml.event.lifecycle._
+import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent
 import net.minecraftforge.fml.event.server._
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.fml.loading.FMLPaths
@@ -81,6 +81,7 @@ class OpenComputers {
   OpenComputers.instance = Some(this)
 
   MinecraftForge.EVENT_BUS.register(OpenComputers.proxy)
+  FMLJavaModLoadingContext.get.getModEventBus.register(OpenComputers.proxy)
   Settings.load(FMLPaths.CONFIGDIR.get().resolve(Paths.get("opencomputers", "settings.conf")).toFile())
   OpenComputers.proxy.preInit()
 
@@ -95,13 +96,5 @@ class OpenComputers {
   }
 
   @SubscribeEvent
-  def commonInit(e: FMLCommonSetupEvent): Unit = {
-    OpenComputers.proxy.init(e)
-  }
-
-  @SubscribeEvent
   def imc(e: InterModProcessEvent): Unit = InterModComms.getMessages(OpenComputers.ID).sequential.iterator.foreach(IMC.handleMessage)
-
-  @SubscribeEvent
-  def loadComplete(e: FMLLoadCompleteEvent): Unit = OpenComputers.proxy.postInit(e)
 }

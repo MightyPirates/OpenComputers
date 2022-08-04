@@ -36,7 +36,8 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.RegistryEvent.MissingMappings
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.event.lifecycle._
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.registries.ForgeRegistries
@@ -83,6 +84,7 @@ class Proxy {
       else api.Machine.architectures.head
   }
 
+  @SubscribeEvent
   def init(e: FMLCommonSetupEvent) {
     OpenComputers.channel = NetworkRegistry.newSimpleChannel(new ResourceLocation(OpenComputers.ID, "net_main"), new Supplier[String] {
       override def get = ""
@@ -118,6 +120,7 @@ class Proxy {
     api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
+  @SubscribeEvent
   def postInit(e: FMLLoadCompleteEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
