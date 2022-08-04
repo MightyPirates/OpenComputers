@@ -9,14 +9,30 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent
+import net.minecraftforge.fml.event.server.FMLServerStoppedEvent
 
 import scala.collection.mutable
 
+@Mod.EventBusSubscriber(modid = OpenComputers.ID, bus = Bus.FORGE)
 object ThreadPoolFactory {
   val priority = {
     val custom = Settings.get.threadPriority
     if (custom < 1) Thread.MIN_PRIORITY + (Thread.NORM_PRIORITY - Thread.MIN_PRIORITY) / 2
     else custom max Thread.MIN_PRIORITY min Thread.MAX_PRIORITY
+  }
+
+  @SubscribeEvent
+  def serverStart(e: FMLServerStartingEvent): Unit = {
+    ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+  }
+
+  @SubscribeEvent
+  def serverStop(e: FMLServerStoppedEvent): Unit = {
+    ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
   }
 
   def create(name: String, threads: Int) = Executors.newScheduledThreadPool(threads,
