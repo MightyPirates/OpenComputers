@@ -9,8 +9,10 @@ import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.material.Material
 import net.minecraft.state.EnumProperty
 import net.minecraft.item.DyeColor
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.loot.LootContext
+import net.minecraft.util.NonNullList
 import net.minecraft.state.StateContainer
 
 object ChameliumBlock {
@@ -28,5 +30,11 @@ class ChameliumBlock(props: Properties = Properties.of(Material.STONE).strength(
     val stack = new ItemStack(this, 1)
     stack.setDamageValue(state.getValue(ChameliumBlock.Color).getId)
     Collections.singletonList(stack)
+  }
+
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {
+    val stack = new ItemStack(this, 1)
+    stack.setDamageValue(defaultBlockState.getValue(ChameliumBlock.Color).getId)
+    list.add(stack)
   }
 }

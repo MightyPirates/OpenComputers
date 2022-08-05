@@ -24,7 +24,7 @@ trait SmartBlockModelBase extends IBakedModel {
 
   override def usesBlockLight = true
 
-  override def isCustomRenderer = true
+  override def isCustomRenderer = false
 
   // Note: we don't care about the actual texture here, we just need the block
   // texture atlas. So any of our textures we know is loaded into it will do.
@@ -190,7 +190,7 @@ trait SmartBlockModelBase extends IBakedModel {
       getFaceShadeColor(face, colorRGB),
       java.lang.Float.floatToRawIntBits(u),
       java.lang.Float.floatToRawIntBits(v),
-      vx | (vy << 0x08) | (vz << 0x10)
+      0, vx | (vy << 0x08) | (vz << 0x10)
     )
   }
 

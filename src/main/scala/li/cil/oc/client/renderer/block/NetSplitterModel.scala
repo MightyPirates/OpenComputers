@@ -110,13 +110,9 @@ object NetSplitterModel extends SmartBlockModelBase {
     faces ++= bakeQuads(makeBox(new Vector3d(11 / 16f, 5 / 16f, 5 / 16f), new Vector3d(if (east) 16 / 16f else 14 / 16f, 11 / 16f, 11 / 16f)), splitterTexture(None), None)
   }
 
-  class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    val data = new PrintData(stack)
-
+  object ItemModel extends SmartBlockModelBase {
     override def getQuads(state: BlockState, side: Direction, rand: util.Random): util.List[BakedQuad] = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
-
-      Textures.Block.bind()
 
       faces ++= BaseModel
       addSideQuads(faces, Direction.values().map(_ => false))
@@ -126,7 +122,7 @@ object NetSplitterModel extends SmartBlockModelBase {
   }
 
   object ItemOverride extends ItemOverrideList {
-    override def resolve(originalModel: IBakedModel, stack: ItemStack, world: ClientWorld, entity: LivingEntity): IBakedModel = new ItemModel(stack)
+    override def resolve(originalModel: IBakedModel, stack: ItemStack, world: ClientWorld, entity: LivingEntity): IBakedModel = ItemModel
   }
 
 }
