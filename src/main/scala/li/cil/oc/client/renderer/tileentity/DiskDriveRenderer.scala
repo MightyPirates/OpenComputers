@@ -80,7 +80,7 @@ class DiskDriveRenderer(dispatch: TileEntityRendererDispatcher) extends TileEnti
       RenderState.enableEntityLighting()
     }
 
-    matrix.pushPose()
+    matrix.popPose()
     RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
