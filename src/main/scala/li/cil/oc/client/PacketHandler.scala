@@ -868,5 +868,5 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  protected override def createParser(stream: InputStream, player: PlayerEntity) = new PacketParser(stream, player)
+  protected override def createParser(stream: InputStream, player: PlayerEntity) = new PacketParser(stream, Minecraft.getInstance.player)
 }
