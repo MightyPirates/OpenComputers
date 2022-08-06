@@ -77,10 +77,10 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
 
   // https://github.com/MinecraftForge/MinecraftForge/issues/2321
   val NORMAL_3F = new VertexFormatElement(0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.NORMAL, 3)
-  val POSITION_TEX_NORMALF = new VertexFormat(ImmutableList.builder()
+  val POSITION_TEX_NORMAL = new VertexFormat(ImmutableList.builder()
     .add(DefaultVertexFormats.ELEMENT_POSITION)
     .add(DefaultVertexFormats.ELEMENT_UV0)
-    .add(NORMAL_3F)
+    .add(DefaultVertexFormats.ELEMENT_NORMAL)
     .build())
 
   private implicit def extendWorldRenderer(self: IVertexBuilder): ExtendedWorldRenderer = new ExtendedWorldRenderer(self)
@@ -96,7 +96,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
     val t = Tessellator.getInstance
     val r = t.getBuilder
 
-    r.begin(GL11.GL_TRIANGLE_FAN, POSITION_TEX_NORMALF)
+    r.begin(GL11.GL_TRIANGLE_FAN, POSITION_TEX_NORMAL)
 
     r.vertex(stack.last.pose, 0.5f, 1, 0.5f).uv(0.25f, 0.25f).normal(stack.last.normal, new Vector3d(0, 0.2, 1)).endVertex()
     r.vertex(stack.last.pose, l, gt, h).uv(0, 0.5f).normal(stack.last.normal, new Vector3d(0, 0.2, 1)).endVertex()
@@ -107,7 +107,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
 
     t.end()
 
-    r.begin(GL11.GL_QUADS, POSITION_TEX_NORMALF)
+    r.begin(GL11.GL_QUADS, POSITION_TEX_NORMAL)
 
     r.vertex(stack.last.pose, l, gt, h).uv(0, 1).normal(stack.last.normal, 0, -1, 0).endVertex()
     r.vertex(stack.last.pose, l, gt, l).uv(0, 0.5f).normal(stack.last.normal, 0, -1, 0).endVertex()
@@ -121,7 +121,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
     val t = Tessellator.getInstance
     val r = t.getBuilder
 
-    r.begin(GL11.GL_TRIANGLE_FAN, POSITION_TEX_NORMALF)
+    r.begin(GL11.GL_TRIANGLE_FAN, POSITION_TEX_NORMAL)
 
     r.vertex(stack.last.pose, 0.5f, 0.03f, 0.5f).uv(0.75f, 0.25f).normal(stack.last.normal, new Vector3d(0, -0.2, 1)).endVertex()
     r.vertex(stack.last.pose, l, gb, l).uv(0.5f, 0).normal(stack.last.normal, new Vector3d(0, -0.2, 1)).endVertex()
@@ -132,7 +132,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
 
     t.end()
 
-    r.begin(GL11.GL_QUADS, POSITION_TEX_NORMALF)
+    r.begin(GL11.GL_QUADS, POSITION_TEX_NORMAL)
 
     r.vertex(stack.last.pose, l, gb, l).uv(0, 0.5f).normal(stack.last.normal, 0, 1, 0).endVertex()
     r.vertex(stack.last.pose, l, gb, h).uv(0, 1).normal(stack.last.normal, 0, 1, 0).endVertex()
