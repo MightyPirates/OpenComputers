@@ -61,12 +61,21 @@ object FileSystem extends api.detail.FileSystemAPI {
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
 
-    val codeSource = clazz.getProtectionDomain.getCodeSource.getLocation.getPath
+    val codeSource = clazz.getProtectionDomain.getCodeSource
+    val codePath = if (codeSource != null) codeSource.getLocation.getPath else {
+      val name = clazz.getName.replace('.', '/').concat(".class")
+      val resource = clazz.getClassLoader.getResource(name)
+      if (resource == null) throw new IllegalArgumentException(s"Could not locate ${clazz}")
+      resource.getPath
+    }
     val (codeUrl, isArchive) =
-      if (codeSource.contains(".zip!") || codeSource.contains(".jar!"))
-        (codeSource.substring(0, codeSource.lastIndexOf('!')), true)
-      else
-        (codeSource, false)
+      if (codePath.contains(".zip!") || codePath.contains(".jar!"))
+        (codePath.substring(0, codePath.lastIndexOf('!')), true)
+      else {
+        val name = clazz.getName.replace('.', '/').concat(".class")
+        if (!codePath.endsWith(name)) throw new IllegalArgumentException(s"Mismatched ${clazz} to '${codePath}'")
+        (codePath, false)
+      }
 
     val url = Try {
       new URL(codeUrl)
@@ -77,7 +86,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
     val file = url.map(url => new io.File(url.toURI)).recoverWith {
       case _: URISyntaxException => url.map(url => new io.File(url.getPath))
-    }.getOrElse(new io.File(codeSource))
+    }.getOrElse(new io.File(codePath))
 
     if (isArchive) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
