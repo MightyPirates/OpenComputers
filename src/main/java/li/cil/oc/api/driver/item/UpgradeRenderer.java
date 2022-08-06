@@ -3,6 +3,7 @@ package li.cil.oc.api.driver.item;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import li.cil.oc.api.event.RobotRenderEvent;
 import li.cil.oc.api.internal.Robot;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -73,7 +74,7 @@ public interface UpgradeRenderer {
      * @param robot      the robot the upgrade is rendered on.
      * @param pt         partial tick time, e.g. for animations.
      */
-    void render(MatrixStack matrix, ItemStack stack, RobotRenderEvent.MountPoint mountPoint, Robot robot, float pt);
+    void render(MatrixStack matrix, IRenderTypeBuffer buffer, ItemStack stack, RobotRenderEvent.MountPoint mountPoint, Robot robot, float pt);
 
     /**
      * Mount point names for {@link #computePreferredMountPoint}.

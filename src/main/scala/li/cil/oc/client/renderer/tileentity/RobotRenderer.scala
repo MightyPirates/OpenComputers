@@ -396,7 +396,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
           val (stack, renderer) = info
           matrix.pushPose()
           matrix.translate(0.5f, 0.5f, 0.5f)
-          renderer.render(matrix, stack, mountPoint, robot, f)
+          renderer.render(matrix, buffer, stack, mountPoint, robot, f)
           matrix.popPose()
         }
         catch {

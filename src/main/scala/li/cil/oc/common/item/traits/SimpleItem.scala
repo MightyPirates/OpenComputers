@@ -13,6 +13,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.opencomputers.{Item => OpenComputersItem}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.BlockItemUseContext
@@ -140,5 +141,5 @@ trait SimpleItem extends Item with api.driver.item.UpgradeRenderer {
 
   override def computePreferredMountPoint(stack: ItemStack, robot: Robot, availableMountPoints: util.Set[String]): String = UpgradeRenderer.preferredMountPoint(stack, availableMountPoints)
 
-  override def render(matrix: MatrixStack, stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(matrix, stack, mountPoint)
+  override def render(matrix: MatrixStack, buffer: IRenderTypeBuffer, stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(matrix, buffer, stack, mountPoint)
 }
