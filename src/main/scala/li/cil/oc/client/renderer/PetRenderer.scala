@@ -87,7 +87,7 @@ object PetRenderer {
     stack.scale(0.3f, 0.3f, 0.3f)
     stack.translate(0, hover, 0)
 
-    RobotRenderer.renderChassis(stack, offset, isRunningOverride = true)
+    RobotRenderer.renderChassis(stack, e.getBuffers, e.getLight, offset, isRunningOverride = true)
 
     RenderSystem.disableRescaleNormal()
 
