@@ -13,6 +13,7 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.IExtendedPositionPredicate
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
+import net.minecraft.block.BlockRenderType
 import net.minecraft.block.ContainerBlock
 import net.minecraft.block.material.Material
 import net.minecraft.client.util.ITooltipFlag
@@ -47,7 +48,7 @@ import scala.collection.convert.ImplicitConversionsToScala._
 
 abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).strength(2, 5)) extends ContainerBlock(props.isValidSpawn(new IExtendedPositionPredicate[EntityType[_]] {
   override def test(state: BlockState, world: IBlockReader, pos: BlockPos, entity: EntityType[_]) = state.getBlock.asInstanceOf[SimpleBlock].isValidSpawn(state, world, pos, entity)
-})) {
+}).noOcclusion) {
   @Deprecated
   private var creativeTab: ItemGroup = CreativeTab
 
@@ -71,6 +72,8 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 
   override def newBlockEntity(world: IBlockReader): TileEntity = null
+
+  override def getRenderShape(state: BlockState): BlockRenderType = BlockRenderType.MODEL
 
   // ----------------------------------------------------------------------- //
   // BlockItem
