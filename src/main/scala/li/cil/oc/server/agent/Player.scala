@@ -100,7 +100,8 @@ object Player {
     val yaw = Math.toDegrees(-Math.atan2(direction.x, direction.z)).toFloat
     val pitch = Math.toDegrees(-Math.atan2(direction.y, Math.sqrt((direction.x * direction.x) + (direction.z * direction.z)))).toFloat * 0.99f
     player.setPos(player.agent.xPosition, player.agent.yPosition, player.agent.zPosition)
-    player.setRot(yaw, pitch)
+    player.xRot = pitch % 360f
+    player.yRot = yaw % 360f
     player.xRotO = player.xRot
     player.yRotO = player.yRot
   }
