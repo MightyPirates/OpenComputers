@@ -46,7 +46,7 @@ class Screen(val tier: Int) extends RedstoneAware {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase, w, h, depth)) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

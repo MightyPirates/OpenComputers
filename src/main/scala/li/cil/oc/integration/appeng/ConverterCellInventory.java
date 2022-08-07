@@ -30,7 +30,7 @@ public final class ConverterCellInventory implements Converter {
             //output.put("getPreformattedItems",cell.getConfigInventory());
 
             output.put("fuzzyMode", cell.getFuzzyMode().toString());
-            output.put("name", cell.getItemStack().getDisplayName());
+            output.put("name", cell.getItemStack().getDisplayName().getString());
         } else if (value instanceof ICellInventoryHandler) {
             convert(((ICellInventoryHandler<?>) value).getCellInv(), output);
         } else if ((value instanceof ItemStack) && (((ItemStack)value).getItem() instanceof IStorageCell)) {

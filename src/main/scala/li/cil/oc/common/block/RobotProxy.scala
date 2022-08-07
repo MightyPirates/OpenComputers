@@ -92,7 +92,7 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
 
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     for (curr <- Tooltip.get("robot")) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 
@@ -103,10 +103,10 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
       val components = info.containers ++ info.components
       if (components.length > 0) {
         for (curr <- Tooltip.get("server.Components")) {
-          tooltip.add(new StringTextComponent(curr))
+          tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
         }
         for (component <- components if !component.isEmpty) {
-          tooltip.add(new StringTextComponent("- " + component.getDisplayName))
+          tooltip.add(new StringTextComponent("- " + component.getHoverName.getString).setStyle(Tooltip.DefaultStyle))
         }
       }
     }
@@ -119,7 +119,7 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
         val level = Math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
         if (level > 0) {
           for (curr <- Tooltip.get(getDescriptionId + "_level", level)) {
-            tooltip.add(new StringTextComponent(curr))
+            tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
           }
         }
       }
@@ -127,7 +127,7 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
         val energy = stack.getTag.getInt(Settings.namespace + "storedEnergy")
         if (energy > 0) {
           for (curr <- Tooltip.get(getDescriptionId + "_storedenergy", energy)) {
-            tooltip.add(new StringTextComponent(curr))
+            tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
           }
         }
       }

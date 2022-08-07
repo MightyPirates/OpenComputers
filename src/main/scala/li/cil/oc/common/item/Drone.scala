@@ -14,6 +14,7 @@ import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
@@ -44,7 +45,7 @@ class Drone(props: Properties = new Properties().tab(CreativeTab)) extends Item(
     if (KeyBindings.showExtendedTooltips) {
       val info = new DroneData(stack)
       for (component <- info.components if !component.isEmpty) {
-        tooltip.add(new StringTextComponent("- " + component.getDisplayName))
+        tooltip.add(new StringTextComponent("- " + component.getHoverName.getString).setStyle(Tooltip.DefaultStyle))
       }
     }
   }

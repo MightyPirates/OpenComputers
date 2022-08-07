@@ -113,13 +113,13 @@ trait SimpleItem extends Item with api.driver.item.UpgradeRenderer {
   override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     if (tooltipName.isDefined) {
       for (curr <- Tooltip.get(tooltipName.get, tooltipData: _*)) {
-        tooltip.add(new StringTextComponent(curr))
+        tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
       }
       tooltipExtended(stack, tooltip)
     }
     else {
       for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase)) {
-        tooltip.add(new StringTextComponent(curr))
+        tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
       }
     }
     tooltipCosts(stack, tooltip)

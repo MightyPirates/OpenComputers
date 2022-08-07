@@ -7,6 +7,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -33,7 +34,7 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
     if (KeyBindings.showExtendedTooltips) {
       val data = new RaidData(stack)
       for (disk <- data.disks if !disk.isEmpty) {
-        tooltip.add(new StringTextComponent("- " + disk.getDisplayName))
+        tooltip.add(new StringTextComponent("- " + disk.getHoverName.getString).setStyle(Tooltip.DefaultStyle))
       }
     }
   }

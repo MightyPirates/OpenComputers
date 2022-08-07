@@ -74,6 +74,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.SCREEN, ScreenRenderer)
     ClientRegistry.bindTileEntityRenderer(tileentity.TileEntityTypes.TRANSPOSER, TransposerRenderer)
 
+    ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.analyzeCopyAddr)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 

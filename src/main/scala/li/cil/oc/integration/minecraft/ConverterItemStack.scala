@@ -57,7 +57,7 @@ object ConverterItemStack extends api.driver.Converter {
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTag)
         output += "name" -> stack.getItem.getRegistryName
-        output += "label" -> stack.getDisplayName
+        output += "label" -> stack.getDisplayName.getString
 
         // custom mod tags
         if (stack.hasTag) {

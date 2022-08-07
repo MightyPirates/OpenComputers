@@ -29,12 +29,12 @@ class LinkedCard(props: Properties = new Properties().tab(CreativeTab)) extends 
         val channel = data.getString(Settings.namespace + "tunnel")
         if (channel.length > 13) {
           for (curr <- Tooltip.get(unlocalizedName + "_channel", channel.substring(0, 13) + "...")) {
-            tooltip.add(new StringTextComponent(curr))
+            tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
           }
         }
         else {
           for (curr <- Tooltip.get(unlocalizedName + "_channel", channel)) {
-            tooltip.add(new StringTextComponent(curr))
+            tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
           }
         }
       }

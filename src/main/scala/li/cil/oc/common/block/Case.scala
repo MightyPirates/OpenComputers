@@ -35,7 +35,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase, slots)) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

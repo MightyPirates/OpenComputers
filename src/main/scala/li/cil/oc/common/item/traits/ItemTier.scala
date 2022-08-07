@@ -3,6 +3,7 @@ package li.cil.oc.common.item.traits
 import java.util
 
 import li.cil.oc.Localization
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -17,7 +18,7 @@ trait ItemTier extends SimpleItem {
   override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     super.appendHoverText(stack, world, tooltip, flag)
     if (flag.isAdvanced) {
-      tooltip.add(new StringTextComponent(Localization.Tooltip.Tier(tierFromDriver(stack) + 1)))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.Tier(tierFromDriver(stack) + 1)).setStyle(Tooltip.DefaultStyle))
     }
   }
 }

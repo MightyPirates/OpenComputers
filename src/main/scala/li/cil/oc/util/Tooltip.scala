@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.util.text.CharacterManager.ISliceAcceptor
 import net.minecraft.util.text.Style
+import net.minecraft.util.text.TextFormatting
 
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
@@ -15,6 +16,8 @@ object Tooltip {
   private val maxWidth = 220
 
   private def font = Minecraft.getInstance.font
+
+  val DefaultStyle = Style.EMPTY.applyFormat(TextFormatting.GRAY)
 
   def get(name: String, args: Any*): java.util.List[String] = {
     if (!Localization.canLocalize(Settings.namespace + "tooltip." + name)) return Seq.empty[String]

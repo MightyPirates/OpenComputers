@@ -36,15 +36,6 @@ object Item {
 }
 
 class Item(value: Block, props: Properties = new Properties()) extends BlockItem(value, Item.setCreativeTab(value, props)) {
-  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
-    super.appendHoverText(stack, world, tooltip, flag)
-    getBlock match {
-      case (simple: SimpleBlock) =>
-        simple.appendHoverText(stack, world, tooltip, flag)
-      case _ =>
-    }
-  }
-
   override def getRarity(stack: ItemStack): Rarity = getBlock match {
     case simple: SimpleBlock => simple.rarity(stack)
     case _ => Rarity.COMMON

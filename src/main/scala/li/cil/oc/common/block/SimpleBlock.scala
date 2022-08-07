@@ -93,7 +93,7 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
 
   protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase)) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

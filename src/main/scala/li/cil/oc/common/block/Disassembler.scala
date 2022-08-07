@@ -20,7 +20,7 @@ import scala.collection.convert.ImplicitConversionsToScala._
 class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase, (Settings.get.disassemblerBreakChance * 100).toInt.toString)) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

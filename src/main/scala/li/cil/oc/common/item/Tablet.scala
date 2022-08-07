@@ -89,10 +89,10 @@ class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item
       val components = info.items.drop(1)
       if (components.length > 1) {
         for (curr <- Tooltip.get("server.Components")) {
-          tooltip.add(new StringTextComponent(curr))
+          tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
         }
         components.collect {
-          case component if !component.isEmpty => tooltip.add(new StringTextComponent("- " + component.getDisplayName))
+          case component if !component.isEmpty => tooltip.add(new StringTextComponent("- " + component.getHoverName.getString).setStyle(Tooltip.DefaultStyle))
         }
       }
     }

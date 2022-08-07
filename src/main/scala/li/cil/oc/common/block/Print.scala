@@ -9,6 +9,7 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
 import net.minecraft.block.material.Material
@@ -49,20 +50,20 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) = {
     super.tooltipBody(stack, world, tooltip, advanced)
     val data = new PrintData(stack)
-    data.tooltip.foreach(s => tooltip.addAll(s.lines.map(new StringTextComponent(_)).toIterable))
+    data.tooltip.foreach(s => tooltip.addAll(s.lines.map(new StringTextComponent(_).setStyle(Tooltip.DefaultStyle)).toIterable))
   }
 
   override protected def tooltipTail(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) = {
     super.tooltipTail(stack, world, tooltip, advanced)
     val data = new PrintData(stack)
     if (data.isBeaconBase) {
-      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintBeaconBase))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintBeaconBase).setStyle(Tooltip.DefaultStyle))
     }
     if (data.emitRedstone) {
-      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel)))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel)).setStyle(Tooltip.DefaultStyle))
     }
     if (data.emitLight) {
-      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintLightValue(data.lightLevel)))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.PrintLightValue(data.lightLevel)).setStyle(Tooltip.DefaultStyle))
     }
   }
 

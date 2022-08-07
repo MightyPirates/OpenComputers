@@ -14,7 +14,7 @@ object ConverterFluidStack extends api.driver.Converter {
         output += "hasTag" -> Boolean.box(stack.hasTag)
         val fluid = stack.getFluid
         output += "name" -> fluid.getRegistryName.toString
-        output += "label" -> fluid.getAttributes.getDisplayName(stack)
+        output += "label" -> fluid.getAttributes.getDisplayName(stack).getString
       case _ =>
     }
 }

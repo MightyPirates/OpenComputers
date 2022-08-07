@@ -24,7 +24,7 @@ class APU(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) 
 
   override def gpuTier = tier
 
-  override protected def tooltipName = Option(super.getDescriptionId)
+  override protected def tooltipName = Option(unlocalizedName)
 
   override protected def tooltipData: Seq[Any] = {
     super[CPULike].tooltipData ++ super[GPULike].tooltipData

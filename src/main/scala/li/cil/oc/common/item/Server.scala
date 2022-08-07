@@ -47,15 +47,15 @@ class Server(val tier: Int, props: Properties = new Properties().tab(CreativeTab
       HelperInventory.reinitialize()
       val stacks = mutable.Map.empty[String, Int]
       for (aStack <- (0 until HelperInventory.getContainerSize).map(HelperInventory.getItem) if !aStack.isEmpty) {
-        val displayName = aStack.getDisplayName.getString
+        val displayName = aStack.getHoverName.getString
         stacks += displayName -> (if (stacks.contains(displayName)) stacks(displayName) + 1 else 1)
       }
       if (stacks.nonEmpty) {
         for (curr <- Tooltip.get("server.Components")) {
-          tooltip.add(new StringTextComponent(curr))
+          tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
         }
         for (itemName <- stacks.keys.toArray.sorted) {
-          tooltip.add(new StringTextComponent("- " + stacks(itemName) + "x " + itemName))
+          tooltip.add(new StringTextComponent("- " + stacks(itemName) + "x " + itemName).setStyle(Tooltip.DefaultStyle))
         }
       }
     }

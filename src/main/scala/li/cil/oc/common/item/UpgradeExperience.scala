@@ -4,6 +4,7 @@ import java.util
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
+import li.cil.oc.util.Tooltip
 import li.cil.oc.util.{UpgradeExperience => ExperienceUtil}
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.item.Item
@@ -24,7 +25,7 @@ class UpgradeExperience(props: Properties = new Properties().tab(CreativeTab)) e
       val experience = ExperienceUtil.getExperience(nbt)
       val level = ExperienceUtil.calculateLevelFromExperience(experience)
       val reportedLevel = ExperienceUtil.calculateExperienceLevel(level, experience)
-      tooltip.add(new StringTextComponent(Localization.Tooltip.ExperienceLevel(reportedLevel)))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.ExperienceLevel(reportedLevel)).setStyle(Tooltip.DefaultStyle))
     }
   }
 }

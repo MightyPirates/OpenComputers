@@ -28,7 +28,7 @@ trait CPULike extends SimpleItem {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]) {
     for (curr <- Tooltip.get("cpu.Architecture", api.Machine.getArchitectureName(DriverCPU.architecture(stack)))) {
-      tooltip.add(new StringTextComponent(curr))
+      tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

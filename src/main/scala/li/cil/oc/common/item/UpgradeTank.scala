@@ -4,6 +4,7 @@ import java.util
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
@@ -24,7 +25,7 @@ class UpgradeTank(props: Properties = new Properties().tab(CreativeTab)) extends
     if (stack.hasTag) {
       FluidStack.loadFluidStackFromNBT(stack.getTag.getCompound(Settings.namespace + "data")) match {
         case stack: FluidStack =>
-          tooltip.add(new StringTextComponent(stack.getFluid.getAttributes.getDisplayName(stack).getString + ": " + stack.getAmount + "/16000"))
+          tooltip.add(new StringTextComponent(stack.getFluid.getAttributes.getDisplayName(stack).getString + ": " + stack.getAmount + "/16000").setStyle(Tooltip.DefaultStyle))
         case _ =>
       }
     }

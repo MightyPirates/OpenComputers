@@ -6,6 +6,7 @@ import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
@@ -35,6 +36,6 @@ class UpgradeMF(props: Properties = new Properties().tab(CreativeTab)) extends I
     tooltip.add(new StringTextComponent(Localization.Tooltip.MFULinked(stack.getTag match {
       case data: CompoundNBT => data.contains(Settings.namespace + "coord")
       case _ => false
-    })))
+    })).setStyle(Tooltip.DefaultStyle))
   }
 }

@@ -15,6 +15,7 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.StackOption._
+import li.cil.oc.util.Tooltip
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -57,7 +58,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
     if (KeyBindings.showExtendedTooltips) {
       val info = new MicrocontrollerData(stack)
       for (component <- info.components if !component.isEmpty) {
-        tooltip.add(new StringTextComponent("- " + component.getDisplayName))
+        tooltip.add(new StringTextComponent("- " + component.getHoverName.getString).setStyle(Tooltip.DefaultStyle))
       }
     }
   }

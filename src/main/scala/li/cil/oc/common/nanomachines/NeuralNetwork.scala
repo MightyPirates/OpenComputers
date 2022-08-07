@@ -103,7 +103,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       case playerMP: ServerPlayerEntity => (s: String) => PacketSender.sendClientLog(s, playerMP)
       case _ => (s: String) => OpenComputers.log.info(s)
     }
-    log(s"Creating debug configuration for nanomachines in player ${controller.player.getDisplayName}.")
+    log(s"Creating debug configuration for nanomachines in player ${controller.player.getDisplayName.getString}.")
 
     behaviors.clear()
     behaviors ++= api.Nanomachines.getProviders.
