@@ -39,7 +39,8 @@ object PetRenderer {
     "076541f1-f10a-46de-a127-dfab8adfbb75" ->(0.2, 1.0, 0.1), // vifino
     "e7e90198-0ccf-4662-a827-192ec8f4419d" ->(0.0, 0.2, 0.6), // Izaya
     "f514ee69-7bbb-4e46-9e94-d8176324cec2" ->(0.098, 0.471, 0.784), // Wobbo
-    "f812c043-78ba-4324-82ae-e8f05c52ae6e" ->(0.1, 0.8, 0.5) // payonel
+    "f812c043-78ba-4324-82ae-e8f05c52ae6e" ->(0.1, 0.8, 0.5), // payonel
+    "1db17ee7-8830-4bac-8018-de154340aae6" ->(0.0, 0.5, 1.0) // Kosmos
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
@@ -66,21 +67,12 @@ object PetRenderer {
 
     val stack = e.getMatrixStack
     stack.pushPose()
-    RenderState.pushAttrib()
     val self = Minecraft.getInstance.player
-    val lx = self.xOld + (self.getX - self.xOld) * e.getPartialRenderTick
-    val ly = self.xOld + (self.getX - self.xOld) * e.getPartialRenderTick + self.getEyeHeight(self.getPose)
-    val lz = self.xOld + (self.getX - self.xOld) * e.getPartialRenderTick
     val other = e.getPlayer
     val px = other.xOld + (other.getX - other.xOld) * e.getPartialRenderTick
-    val py = other.xOld + (other.getX - other.xOld) * e.getPartialRenderTick + other.getEyeHeight(other.getPose)
-    val pz = other.xOld + (other.getX - other.xOld) * e.getPartialRenderTick
-    stack.translate(px - lx, py - ly, pz - lz)
-
-    RenderState.enableEntityLighting()
-    RenderSystem.disableBlend()
-    RenderSystem.enableRescaleNormal()
-    RenderSystem.color4f(1, 1, 1, 1)
+    val py = other.yOld + (other.getY - other.yOld) * e.getPartialRenderTick + other.getEyeHeight(other.getPose)
+    val pz = other.zOld + (other.getZ - other.zOld) * e.getPartialRenderTick
+    stack.translate(px - self.getX, py - self.getY, pz - self.getZ)
 
     location.applyInterpolatedTransformations(stack, e.getPartialRenderTick)
 
@@ -89,9 +81,6 @@ object PetRenderer {
 
     RobotRenderer.renderChassis(stack, e.getBuffers, e.getLight, offset, isRunningOverride = true)
 
-    RenderSystem.disableRescaleNormal()
-
-    RenderState.popAttrib()
     stack.popPose()
 
     rendering = None
@@ -100,7 +89,10 @@ object PetRenderer {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onRobotRender(e: RobotRenderEvent) {
     rendering match {
-      case Some((r, g, b)) => RenderSystem.color3f(r.toFloat, g.toFloat, b.toFloat)
+      case Some((r, g, b)) => {
+        e.setLightColor(r.toFloat, g.toFloat, b.toFloat)
+        e.multiplyColors(r.toFloat, g.toFloat, b.toFloat)
+      }
       case _ =>
     }
   }

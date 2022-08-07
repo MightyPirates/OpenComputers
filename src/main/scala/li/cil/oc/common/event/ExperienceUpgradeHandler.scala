@@ -81,13 +81,10 @@ object ExperienceUpgradeHandler {
       case _ => 0
     }
     if (level > 19) {
-      RenderSystem.color3f(0.4f, 1, 1)
+      e.multiplyColors(0.4f, 1, 1)
     }
     else if (level > 9) {
-      RenderSystem.color3f(1, 1, 0.4f)
-    }
-    else {
-      RenderSystem.color3f(0.5f, 0.5f, 0.5f)
+      e.multiplyColors(1, 1, 0.4f)
     }
   }
 

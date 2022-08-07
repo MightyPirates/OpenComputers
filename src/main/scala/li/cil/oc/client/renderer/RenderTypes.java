@@ -20,18 +20,10 @@ public class RenderTypes extends RenderType {
         .add(DefaultVertexFormats.ELEMENT_PADDING)
         .build());
 
-    public static final VertexFormat POSITION_TEX_UV2_NORMAL = new VertexFormat(new ImmutableList.Builder<VertexFormatElement>()
-        .add(DefaultVertexFormats.ELEMENT_POSITION)
-        .add(DefaultVertexFormats.ELEMENT_UV0)
-        .add(DefaultVertexFormats.ELEMENT_UV2)
-        .add(DefaultVertexFormats.ELEMENT_NORMAL)
-        .add(DefaultVertexFormats.ELEMENT_PADDING)
-        .build());
-
     public static final TextureState ROBOT_CHASSIS_TEXTURE = new TextureState(Textures.Model$.MODULE$.Robot(), false, false);
 
     public static final RenderType ROBOT_CHASSIS = create(OpenComputers.ID() + ":robot_chassis",
-        POSITION_TEX_UV2_NORMAL, GL11.GL_TRIANGLES, 1024, State.builder()
+        DefaultVertexFormats.BLOCK, GL11.GL_TRIANGLES, 1024, State.builder()
             .setTextureState(ROBOT_CHASSIS_TEXTURE)
             .setDiffuseLightingState(DIFFUSE_LIGHTING)
             .setLightmapState(LIGHTMAP)
