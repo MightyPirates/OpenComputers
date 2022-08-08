@@ -1,8 +1,11 @@
 package li.cil.oc.client.renderer;
 
+import java.util.OptionalDouble;
+
 import com.google.common.collect.ImmutableList;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.client.Textures;
+import net.minecraft.client.renderer.RenderState.LineState;
 import net.minecraft.client.renderer.RenderState.TextureState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.State;
@@ -47,6 +50,23 @@ public class RenderTypes extends RenderType {
     public static final RenderType UPGRADE_GENERATOR = createUpgrade("generator", Textures.Model$.MODULE$.UpgradeGenerator());
 
     public static final RenderType UPGRADE_INVENTORY = createUpgrade("inventory", Textures.Model$.MODULE$.UpgradeInventory());
+
+    public static final RenderType MFU_LINES = create(OpenComputers.ID() + ":mfu_lines",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_LINES, 1024, State.builder()
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setDepthTestState(NO_DEPTH_TEST)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .setLineState(new LineState(OptionalDouble.of(2.0)))
+                .createCompositeState(false));
+
+    public static final RenderType MFU_QUADS = create(OpenComputers.ID() + ":mfu_quads",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256, State.builder()
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setDepthTestState(NO_DEPTH_TEST)
+                .setCullState(NO_CULL)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .setWriteMaskState(COLOR_WRITE)
+                .createCompositeState(false));
 
     private RenderTypes() {
         super(null, null, 0, 0, false, false, null, null);

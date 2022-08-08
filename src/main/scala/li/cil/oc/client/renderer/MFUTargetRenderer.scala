@@ -1,11 +1,14 @@
 package li.cil.oc.client.renderer
 
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Hand
 import net.minecraft.util.ResourceLocation
@@ -14,10 +17,10 @@ import net.minecraft.util.math.vector.Matrix4f
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import org.lwjgl.opengl.GL11
 
 object MFUTargetRenderer {
-  private val color = 0x00FF00
+  private val (drawRed, drawGreen, drawBlue) = (0.0f, 1.0f, 0.0f)
+
   private lazy val mfu = api.Items.get(Constants.ItemName.MFU)
 
   @SubscribeEvent
@@ -36,34 +39,22 @@ object MFUTargetRenderer {
 
           val bounds = BlockPosition(x, y, z).bounds.inflate(0.1, 0.1, 0.1)
 
-          val px = player.xOld + (player.getX - player.xOld) * e.getPartialTicks
-          val py = player.yOld + (player.getY - player.yOld) * e.getPartialTicks
-          val pz = player.zOld + (player.getZ - player.zOld) * e.getPartialTicks
-
           RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
-          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
           val matrix = e.getMatrixStack
           matrix.pushPose()
-          matrix.translate(-px, -py, -pz)
-          RenderState.makeItBlend()
-          GL11.glDisable(GL11.GL_LIGHTING)
-          GL11.glDisable(GL11.GL_TEXTURE_2D)
-          GL11.glDisable(GL11.GL_DEPTH_TEST)
-          GL11.glDisable(GL11.GL_CULL_FACE)
+          val camPos = Minecraft.getInstance.gameRenderer.getMainCamera.getPosition
+          matrix.translate(-camPos.x, -camPos.y, -camPos.z)
 
-          GL11.glColor4f(
-            ((color >> 16) & 0xFF) / 255f,
-            ((color >> 8) & 0xFF) / 255f,
-            ((color >> 0) & 0xFF) / 255f,
-            0.25f)
-          GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE)
-          drawBox(matrix.last.pose, new Vector4f(), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat, bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat)
-          GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
-          drawFace(matrix.last.pose, new Vector4f(), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat, bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat, side)
+          RenderSystem.disableDepthTest() // Default state for depth test is disabled, but it's enabled here so we have to change it manually.
+          val buffer = Minecraft.getInstance.renderBuffers.bufferSource
+          drawBox(matrix.last.pose, buffer.getBuffer(RenderTypes.MFU_LINES), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat,
+            bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat, drawRed, drawGreen, drawBlue)
+          drawFace(matrix.last.pose, buffer.getBuffer(RenderTypes.MFU_QUADS), bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat,
+            bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat, side, drawRed, drawGreen, drawBlue)
+          buffer.endBatch()
 
           matrix.popPose()
-          GL11.glPopAttrib()
 
           RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
         }
@@ -71,95 +62,70 @@ object MFUTargetRenderer {
     }
   }
 
-  def glVertex(matrix: Matrix4f, temp: Vector4f, x: Float, y: Float, z: Float) {
-    temp.set(x, y, z, 1)
-    temp.transform(matrix)
-    GL11.glVertex3f(temp.x, temp.y, temp.z)
+  def drawBox(matrix: Matrix4f, builder: IVertexBuilder, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, r: Float, g: Float, b: Float) {
+    // Bottom square.
+    builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+
+    // Vertical bars.
+    builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+
+    // Top square.
+    builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
+    builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.5f).endVertex()
   }
 
-  def drawBox(matrix: Matrix4f, temp: Vector4f, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float) {
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, minX, minY, minZ)
-    glVertex(matrix, temp, minX, minY, maxZ)
-    glVertex(matrix, temp, maxX, minY, maxZ)
-    glVertex(matrix, temp, maxX, minY, minZ)
-    GL11.glEnd()
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, minX, minY, minZ)
-    glVertex(matrix, temp, maxX, minY, minZ)
-    glVertex(matrix, temp, maxX, maxY, minZ)
-    glVertex(matrix, temp, minX, maxY, minZ)
-    GL11.glEnd()
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, maxX, maxY, minZ)
-    glVertex(matrix, temp, maxX, maxY, maxZ)
-    glVertex(matrix, temp, minX, maxY, maxZ)
-    glVertex(matrix, temp, minX, maxY, minZ)
-    GL11.glEnd()
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, maxX, maxY, maxZ)
-    glVertex(matrix, temp, maxX, minY, maxZ)
-    glVertex(matrix, temp, minX, minY, maxZ)
-    glVertex(matrix, temp, minX, maxY, maxZ)
-    GL11.glEnd()
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, minX, minY, minZ)
-    glVertex(matrix, temp, minX, maxY, minZ)
-    glVertex(matrix, temp, minX, maxY, maxZ)
-    glVertex(matrix, temp, minX, minY, maxZ)
-    GL11.glEnd()
-    GL11.glBegin(GL11.GL_QUADS)
-    glVertex(matrix, temp, maxX, minY, minZ)
-    glVertex(matrix, temp, maxX, minY, maxZ)
-    glVertex(matrix, temp, maxX, maxY, maxZ)
-    glVertex(matrix, temp, maxX, maxY, minZ)
-    GL11.glEnd()
-  }
-
-  private def drawFace(matrix: Matrix4f, temp: Vector4f, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, side: Int): Unit = {
+  private def drawFace(matrix: Matrix4f, builder: IVertexBuilder, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, side: Int, r: Float, g: Float, b: Float): Unit = {
     side match {
       case 0 => // Down
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, minX, minY, minZ)
-        glVertex(matrix, temp, minX, minY, maxZ)
-        glVertex(matrix, temp, maxX, minY, maxZ)
-        glVertex(matrix, temp, maxX, minY, minZ)
-        GL11.glEnd()
+        builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.25f).endVertex()
       case 1 => // Up
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, maxX, maxY, minZ)
-        glVertex(matrix, temp, maxX, maxY, maxZ)
-        glVertex(matrix, temp, minX, maxY, maxZ)
-        glVertex(matrix, temp, minX, maxY, minZ)
-        GL11.glEnd()
+        builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
       case 2 => // North
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, minX, minY, minZ)
-        glVertex(matrix, temp, maxX, minY, minZ)
-        glVertex(matrix, temp, maxX, maxY, minZ)
-        glVertex(matrix, temp, minX, maxY, minZ)
-        GL11.glEnd()
+        builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
       case 3 => // South
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, maxX, maxY, maxZ)
-        glVertex(matrix, temp, maxX, minY, maxZ)
-        glVertex(matrix, temp, minX, minY, maxZ)
-        glVertex(matrix, temp, minX, maxY, maxZ)
-        GL11.glEnd()
+        builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
       case 4 => // East
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, minX, minY, minZ)
-        glVertex(matrix, temp, minX, maxY, minZ)
-        glVertex(matrix, temp, minX, maxY, maxZ)
-        glVertex(matrix, temp, minX, minY, maxZ)
-        GL11.glEnd()
+        builder.vertex(matrix, minX, minY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, minX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
       case 5 => // West
-        GL11.glBegin(GL11.GL_QUADS)
-        glVertex(matrix, temp, maxX, minY, minZ)
-        glVertex(matrix, temp, maxX, minY, maxZ)
-        glVertex(matrix, temp, maxX, maxY, maxZ)
-        glVertex(matrix, temp, maxX, maxY, minZ)
-        GL11.glEnd()
+        builder.vertex(matrix, maxX, minY, minZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, minY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, maxY, maxZ).color(r, g, b, 0.25f).endVertex()
+        builder.vertex(matrix, maxX, maxY, minZ).color(r, g, b, 0.25f).endVertex()
       case _ => // WTF?
     }
   }
