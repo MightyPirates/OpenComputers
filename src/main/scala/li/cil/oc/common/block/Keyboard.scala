@@ -17,6 +17,7 @@ import net.minecraft.block.Blocks
 import net.minecraft.block.BlockState
 import net.minecraft.block.material.Material
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
@@ -77,19 +78,26 @@ class Keyboard(props: Properties = Properties.of(Material.STONE).strength(2, 5).
     world.getBlockTicks.scheduleTick(pos, this, 10)
   }
 
-  override def canSurvive(state: BlockState, world: IWorldReader, pos: BlockPos) = {
-    world.getBlockEntity(pos) match {
-      case keyboard: tileentity.Keyboard => {
-        val side = keyboard.facing
-        val sidePos = pos.relative(side.getOpposite)
-        world.getBlockState(sidePos).isFaceSturdy(world, sidePos, side) &&
-          (world.getBlockEntity(pos.relative(side.getOpposite)) match {
-            case screen: tileentity.Screen => screen.facing != side
-            case _ => true
-          })
-      }
-      case _ => false
+  override def getStateForPlacement(ctx: BlockItemUseContext): BlockState = {
+    val (pitch, yaw) = ctx.getClickedFace match {
+      case side@(Direction.DOWN | Direction.UP) => (side, ctx.getHorizontalDirection)
+      case side => (Direction.NORTH, side)
     }
+    super.getStateForPlacement(ctx).setValue(PropertyRotatable.Pitch, pitch).setValue(PropertyRotatable.Yaw, yaw)
+  }
+
+  override def canSurvive(state: BlockState, world: IWorldReader, pos: BlockPos) = {
+    // Check without the TE because this is called to check if the block may be placed.
+    val side = state.getValue(PropertyRotatable.Pitch) match {
+      case pitch@(Direction.UP | Direction.DOWN) => pitch
+      case _ => state.getValue(PropertyRotatable.Yaw)
+    }
+    val sidePos = pos.relative(side.getOpposite)
+    world.getBlockState(sidePos).isFaceSturdy(world, sidePos, side) &&
+      (world.getBlockEntity(pos.relative(side.getOpposite)) match {
+        case screen: tileentity.Screen => screen.facing != side
+        case _ => true
+      })
   }
 
   @Deprecated

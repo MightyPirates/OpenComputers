@@ -90,9 +90,7 @@ class Item(value: Block, props: Properties = new Properties()) extends BlockItem
     if (super.placeBlock(ctxToUse, newState)) {
       // If it's a rotatable block try to make it face the player.
       ctx.getLevel.getBlockEntity(ctxToUse.getClickedPos) match {
-        case keyboard: tileentity.Keyboard =>
-          keyboard.setFromEntityPitchAndYaw(ctxToUse.getPlayer)
-          keyboard.setFromFacing(ctxToUse.getClickedFace)
+        case keyboard: tileentity.Keyboard => // Ignore.
         case rotatable: tileentity.traits.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(ctxToUse.getPlayer)
           if (!rotatable.validFacings.contains(rotatable.pitch)) {
