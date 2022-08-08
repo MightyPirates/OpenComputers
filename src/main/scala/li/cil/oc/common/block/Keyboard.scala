@@ -21,13 +21,17 @@ import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.util.math.shapes.VoxelShape
+import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.state.StateContainer
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 class Keyboard(props: Properties = Properties.of(Material.STONE).strength(2, 5).noOcclusion()) extends SimpleBlock(props) {
   // For Immibis Microblock support.
@@ -38,25 +42,22 @@ class Keyboard(props: Properties = Properties.of(Material.STONE).strength(2, 5).
 
   // ----------------------------------------------------------------------- //
 
-  override def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB =
-    world.getBlockEntity(pos) match {
-      case keyboard: tileentity.Keyboard =>
-        val (pitch, yaw) = (keyboard.pitch, keyboard.yaw)
-        val (forward, up) = pitch match {
-          case side@(Direction.DOWN | Direction.UP) => (side, yaw)
-          case _ => (yaw, Direction.UP)
-        }
-        val side = forward.getRotation(up)
-        val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
-        val x0 = -up.getStepX * sizes(1) - side.getStepX * sizes(2) - forward.getStepX * sizes(0)
-        val x1 = up.getStepX * sizes(1) + side.getStepX * sizes(2) - forward.getStepX * 0.5f
-        val y0 = -up.getStepY * sizes(1) - side.getStepY * sizes(2) - forward.getStepY * sizes(0)
-        val y1 = up.getStepY * sizes(1) + side.getStepY * sizes(2) - forward.getStepY * 0.5f
-        val z0 = -up.getStepZ * sizes(1) - side.getStepZ * sizes(2) - forward.getStepZ * sizes(0)
-        val z1 = up.getStepZ * sizes(1) + side.getStepZ * sizes(2) - forward.getStepZ * 0.5f
-        new AxisAlignedBB(x0, y0, z0, x1, y1, z1).move(0.5, 0.5, 0.5)
-      case _ => super.getBoundingBox(state, world, pos)
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = {
+    val (pitch, yaw) = (state.getValue(PropertyRotatable.Pitch), state.getValue(PropertyRotatable.Yaw))
+    val (forward, up) = pitch match {
+      case side@(Direction.DOWN | Direction.UP) => (side, yaw)
+      case _ => (yaw, Direction.UP)
     }
+    val side = forward.getRotation(up)
+    val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
+    val x0 = -up.getStepX * sizes(1) - side.getStepX * sizes(2) - forward.getStepX * sizes(0)
+    val x1 = up.getStepX * sizes(1) + side.getStepX * sizes(2) - forward.getStepX * 0.5f
+    val y0 = -up.getStepY * sizes(1) - side.getStepY * sizes(2) - forward.getStepY * sizes(0)
+    val y1 = up.getStepY * sizes(1) + side.getStepY * sizes(2) - forward.getStepY * 0.5f
+    val z0 = -up.getStepZ * sizes(1) - side.getStepZ * sizes(2) - forward.getStepZ * sizes(0)
+    val z1 = up.getStepZ * sizes(1) + side.getStepZ * sizes(2) - forward.getStepZ * 0.5f
+    VoxelShapes.box(0.5 + x0, 0.5 + y0, 0.5 + z0, 0.5 + x1, 0.5 + y1, 0.5 + z1)
+  }
 
   // ----------------------------------------------------------------------- //
 
