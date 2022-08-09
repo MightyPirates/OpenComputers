@@ -221,6 +221,7 @@ class Screen(selfType: TileEntityType[_ <: Screen], var tier: Int) extends TileE
             queue += screen
         }
       }
+      if (isClient) updateMergedModels()
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen => {
         val buffer = screen.buffer
@@ -256,6 +257,16 @@ class Screen(selfType: TileEntityType[_ <: Screen], var tier: Int) extends TileE
         }
       }
       arrows.clear()
+    }
+  }
+
+  private def updateMergedModels() {
+    if (getLevel == Minecraft.getInstance.level) {
+      val renderer = Minecraft.getInstance.levelRenderer
+      screens.foreach(screen => {
+        val pos = screen.getBlockPos
+        renderer.setSectionDirty(pos.getX >> 4, pos.getY >> 4, pos.getZ >> 4)
+      })
     }
   }
 
