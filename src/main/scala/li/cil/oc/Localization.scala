@@ -95,8 +95,6 @@ object Localization {
 
     def WarningClassTransformer: ITextComponent = new StringTextComponent("§aOpenComputers§f: ").append(localizeLater("gui.Chat.WarningClassTransformer"))
 
-    def WarningSimpleComponent: ITextComponent = new StringTextComponent("§aOpenComputers§f: ").append(localizeLater("gui.Chat.WarningSimpleComponent"))
-
     def WarningLink(url: String): ITextComponent = new StringTextComponent("§aOpenComputers§f: ").append(localizeLater("gui.Chat.WarningLink", url))
 
     def InfoNewVersion(version: String): ITextComponent = new StringTextComponent("§aOpenComputers§f: ").append(localizeLater("gui.Chat.NewVersion", version))

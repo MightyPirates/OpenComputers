@@ -188,7 +188,6 @@
     "oc:gui.Chat.WarningLuaFallback": "Die native Lua-Implementierung ist nicht verfügbar. Computer können ihren Ausführungszustand nicht speichern. Sie werden automatisch neu starten, sobald ein Chunk neu geladen wird.",
     "oc:gui.Chat.WarningProjectRed": "Die verwendete Version von Project: Red ist nicht mit OpenComputers kompatibel. Aktualisiere bitte deine Version von Project: Red.",
     "oc:gui.Chat.WarningRecipes": "Es gab Fehler beim Laden eines oder mehrerer Rezepte. Einige Gegenstände können unter Umständen nicht gefertigt werden. Bitte wirf einen Blick in deine Log-Datei für weitere Informationen.",
-    "oc:gui.Chat.WarningSimpleComponent": "Eine Erweiterung (deine?) welche das §aSimpleComponent§f-Interface verwendet, hat etwas §efalsch gemacht§f. Komponentenlogik konnte nicht eingefügt werden. Bitte wirf einen Blick in deine Log-Datei für weitere Informationen.",
     "oc:gui.Drive.Managed": "Managed",
     "oc:gui.Drive.Unmanaged": "Unmanaged",
     "oc:gui.Drive.ReadOnlyLock": "Sperre",

@@ -178,7 +178,6 @@
     "oc:gui.Chat.WarningLuaFallback": "Les bibliothèques natives Lua ne sont pas disponibles, les ordinateurs ne pourront pas persister en leur état. Ils réamorceront sur la recharge des chunks.",
     "oc:gui.Chat.WarningProjectRed": "Vous utilisez une version de Project: Red qui est incompatible avec OpenComputers. Essayez de mettre à jour votre version de Project: Red.",
     "oc:gui.Chat.WarningRecipes": "il y a des erreurs au lancement de recettes. Certains éléments doivent être infabricables. Veuillez vérifier votre fichier log pour plus d'information.",
-    "oc:gui.Chat.WarningSimpleComponent": "Un ajout (le votre ?) utilisant l'interface §aComposant Simple§f produit §equelquechose de mauvais§f. Le composant logique ne peut être inséré. Veuillez vérifier votre fichier log pour plus d'information.",
     "oc:gui.Error.ComponentOverflow": "Beaucoup trop de composants connectés à l'ordinateur.",
     "oc:gui.Error.InternalError": "Erreur interne, Veuillez lire le fichier log. Ceci est probablement une erreur.",
     "oc:gui.Error.NoCPU": "Pas d'UCP installé dans cet ordinateur.",

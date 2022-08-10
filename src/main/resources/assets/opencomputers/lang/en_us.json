@@ -189,7 +189,6 @@
     "oc:gui.Chat.WarningLuaFallback": "Native Lua libraries are not available, computers will not be able to persist their state. They will reboot on chunk reloads.",
     "oc:gui.Chat.WarningProjectRed": "You are using a version of Project: Red that is incompatible with OpenComputers. Try updating your version of Project: Red.",
     "oc:gui.Chat.WarningRecipes": "There were errors loading one or more recipes. Some items may be uncraftable. Please check your log file for more information.",
-    "oc:gui.Chat.WarningSimpleComponent": "An addon (yours?) using the §aSimpleComponent§f interface did §esomething wrong§f. Component logic could not be injected. Please check your log file for more information.",
     "oc:gui.Drive.Managed": "Managed",
     "oc:gui.Drive.Unmanaged": "Unmanaged",
     "oc:gui.Drive.ReadOnlyLock": "Lock",

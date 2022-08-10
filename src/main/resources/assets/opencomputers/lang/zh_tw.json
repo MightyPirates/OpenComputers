@@ -183,7 +183,6 @@
     "oc:gui.Chat.WarningLuaFallback": "本機 LUA 函式庫無法使用,電腦將無法維持狀態,他會重新啟動並且載入區塊",
     "oc:gui.Chat.WarningProjectRed": "你正在使用的 Project: Red 模組與 OpenComputers 不相容. 請嘗試更新 Project: Red.",
     "oc:gui.Chat.WarningRecipes": "There were errors loading one or more recipes. Some items may be uncraftable. Please check your log file for more information.",
-    "oc:gui.Chat.WarningSimpleComponent": "An addon (yours?) using the §aSimpleComponent§f interface did §esomething wrong§f. Component logic could not be injected. Please check your log file for more information.",
     "oc:gui.Drive.Managed": "受管",
     "oc:gui.Drive.Unmanaged": "非受管",
     "oc:gui.Drive.Warning": "§l警告§r: 切換模式會導致目前儲存在硬碟上的所有資料遺失！",

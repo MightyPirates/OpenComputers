@@ -188,7 +188,6 @@
     "oc:gui.Chat.WarningLuaFallback": "Orijinal Lua kütüphaneleri bulunamadı ve bilgisayarlar durumlarını koruyamayacak. Bölümler yeniden yüklenince bilgisayarlar yeniden başlayacak. (Yedek kütüphaneler kullanılıyor)",
     "oc:gui.Chat.WarningProjectRed": "OpenComputers'ı desteklemeyen bir Project: Red sürümünü kullanıyorsunuz. Project: Red'i güncellemeyi deneyin.",
     "oc:gui.Chat.WarningRecipes": "Bir veya birden fazla tarifi yüklerken hata oluştu. Bazı nesneler üretilemeyebilir. Daha fazla bilgi için kayıt defteri dosyanızı bakın.",
-    "oc:gui.Chat.WarningSimpleComponent": " §aSimpleComponent§f arayüzünü kullanan bir mod eklentisi (acep sizin mi?) §eyanlış bir şeyler§f yaptı. Parça mantığı enjekte edilemedi. Daha fazla bilgi için kayıt defteri dosyanıza bakın.",
     "oc:gui.Drive.Managed": "Denetimli",
     "oc:gui.Drive.Unmanaged": "Denetimsiz",
     "oc:gui.Drive.Warning": "§lUyarı§r: kip değiştirmek disk üzerindeki bütün verinin kaybına sebep olur.",

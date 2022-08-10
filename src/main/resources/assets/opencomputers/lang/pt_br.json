@@ -190,7 +190,6 @@
     "oc:gui.Chat.WarningLuaFallback": "Bibliotecas nativas do Lua não disponíveis, computadores não serão capazes de persistir seus estados. Eles reinicializarão quando chunks descarregarem.",
     "oc:gui.Chat.WarningProjectRed": "Você está usando uma versão do Project: Red que é incompativel com OpenComputers. Tente atualizar sua versão do Project: Red.",
     "oc:gui.Chat.WarningRecipes": "Houve erros ao carregar uma ou mais receitas. Alguns itens não poderão ser construídos. Verifique seu arquivo de log para mais informações.",
-    "oc:gui.Chat.WarningSimpleComponent": "Um addon (seu?) usa a interface §aSimpleComponent§f que faz §ealgo errado§f. A lógica de componente não pode ser injetada. Por favor verifique seu arquivo de log para mais informações.",
     "oc:gui.Drive.Managed": "Gerenciado",
     "oc:gui.Drive.Unmanaged": "Não Gerenciado",
     "oc:gui.Drive.ReadOnlyLock": "Bloqueado",

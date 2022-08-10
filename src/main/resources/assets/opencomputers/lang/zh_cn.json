@@ -188,7 +188,6 @@
     "oc:gui.Chat.WarningLuaFallback": "无法使用原生 Lua 库，电脑无法持久化当前状态。它们会在区块载入时重启。",
     "oc:gui.Chat.WarningProjectRed": "你目前使用的 Project:Red 版本不兼容 OpenComputers，请更新 Project:Red。",
     "oc:gui.Chat.WarningRecipes": "加载合成表时遇到一个或多个错误。部分物品或因此无法合成。查阅日志文件以获取详细信息。",
-    "oc:gui.Chat.WarningSimpleComponent": "某个扩展 Mod 使用了 §aSimpleComponent§f 接口但§e做错了一些事情§f，导致组件逻辑无法注入。查阅日志文件以获取详细信息。",
     "oc:gui.Drive.Managed": "受管理",
     "oc:gui.Drive.Unmanaged": "不受管理",
     "oc:gui.Drive.ReadOnlyLock": "只读锁定",
