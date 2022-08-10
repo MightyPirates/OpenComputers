@@ -53,6 +53,8 @@ import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.fluids.IFluidTank
 import net.minecraftforge.fml.network.NetworkHooks
 
@@ -236,6 +238,10 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
   override def zPosition: Double = getZ
 
   override def markChanged() {}
+
+  @OnlyIn(Dist.CLIENT)
+  override def getRopeHoldPosition(dt: Float): Vector3d =
+    getPosition(dt).add(0.0, -0.056, 0.0) // Offset: height * 0.85 * 0.7 - 0.25
 
   // ----------------------------------------------------------------------- //
 
