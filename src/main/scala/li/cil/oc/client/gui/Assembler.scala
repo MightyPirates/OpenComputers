@@ -21,7 +21,7 @@ import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 
 class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileentity.Assembler)
-  extends DynamicGuiContainer(new container.Assembler(id, playerInventory, assembler),
+  extends DynamicGuiContainer(new container.Assembler(container.ContainerTypes.ASSEMBLER, id, playerInventory, assembler),
     playerInventory, StringTextComponent.EMPTY) {
 
   imageWidth = 176

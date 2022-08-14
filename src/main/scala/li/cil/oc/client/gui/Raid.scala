@@ -9,7 +9,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
 
 class Raid(id: Int, playerInventory: PlayerInventory, val raid: tileentity.Raid)
-  extends DynamicGuiContainer(new container.Raid(id, playerInventory, raid),
+  extends DynamicGuiContainer(new container.Raid(container.ContainerTypes.RAID, id, playerInventory, raid),
     playerInventory, raid.getName) {
 
   override def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {

@@ -12,7 +12,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.PlayerInventory
 
 class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity.Printer)
-  extends DynamicGuiContainer(new container.Printer(id, playerInventory, printer),
+  extends DynamicGuiContainer(new container.Printer(container.ContainerTypes.PRINTER, id, playerInventory, printer),
     playerInventory, printer.getName) {
 
   imageWidth = 176

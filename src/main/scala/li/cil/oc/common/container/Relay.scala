@@ -3,9 +3,13 @@ package li.cil.oc.common.container
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.nbt.CompoundNBT
 
-class Relay(id: Int, playerInventory: PlayerInventory, relay: tileentity.Relay) extends Player(null, id, playerInventory, relay) {
+class Relay(selfType: ContainerType[_ <: Relay], id: Int, playerInventory: PlayerInventory, relay: IInventory)
+  extends Player(selfType, id, playerInventory, relay) {
+
   addSlotToContainer(151, 15, Slot.CPU)
   addSlotToContainer(151, 34, Slot.Memory)
   addSlotToContainer(151, 53, Slot.HDD)
@@ -23,11 +27,16 @@ class Relay(id: Int, playerInventory: PlayerInventory, relay: tileentity.Relay) 
   def queueSize = synchronizedData.getInt("queueSize")
 
   override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
-    synchronizedData.putInt("relayDelay", relay.relayDelay)
-    synchronizedData.putInt("relayAmount", relay.relayAmount)
-    synchronizedData.putInt("maxQueueSize", relay.maxQueueSize)
-    synchronizedData.putInt("packetsPerCycleAvg", relay.packetsPerCycleAvg())
-    synchronizedData.putInt("queueSize", relay.queue.size)
+    relay match {
+      case te: tileentity.Relay => {
+        synchronizedData.putInt("relayDelay", te.relayDelay)
+        synchronizedData.putInt("relayAmount", te.relayAmount)
+        synchronizedData.putInt("maxQueueSize", te.maxQueueSize)
+        synchronizedData.putInt("packetsPerCycleAvg", te.packetsPerCycleAvg())
+        synchronizedData.putInt("queueSize", te.queue.size)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

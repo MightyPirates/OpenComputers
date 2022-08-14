@@ -5,11 +5,14 @@ import li.cil.oc.common
 import li.cil.oc.common.entity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Drone(id: Int, playerInventory: PlayerInventory, drone: entity.Drone) extends Player(null, id, playerInventory, drone.mainInventory) {
+class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: PlayerInventory, droneInv: IInventory)
+  extends Player(selfType, id, playerInventory, droneInv) {
+
   val deltaY = 0
 
   for (i <- 0 to 1) {
@@ -23,7 +26,7 @@ class Drone(id: Int, playerInventory: PlayerInventory, drone: entity.Drone) exte
   addPlayerInventorySlots(8, 66)
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
-    def isValid = (0 until drone.mainInventory.getContainerSize).contains(getSlotIndex)
+    def isValid = (0 until droneInv.getContainerSize).contains(getSlotIndex)
 
     @OnlyIn(Dist.CLIENT) override
     def isActive = isValid && super.isActive

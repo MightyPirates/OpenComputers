@@ -24,7 +24,7 @@ import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
 class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
-  extends DynamicGuiContainer(new container.Drone(id, playerInventory, drone),
+  extends DynamicGuiContainer(new container.Drone(container.ContainerTypes.DRONE, id, playerInventory, drone.mainInventory),
     playerInventory, StringTextComponent.EMPTY)
   with traits.DisplayBuffer {
 

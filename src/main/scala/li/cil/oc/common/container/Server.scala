@@ -5,37 +5,47 @@ import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.server.component
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.nbt.CompoundNBT
 
-class Server(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, val server: Option[component.Server] = None) extends Player(null, id, playerInventory, serverInventory) {
+class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: IInventory, tier: Int, val server: Option[component.Server])
+  extends Player(selfType, id, playerInventory, serverInventory) {
+
+  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: IInventory, tier: Int) =
+    this(selfType, id, playerInventory, serverInventory, tier, None)
+
+  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, server: Option[component.Server] = None) =
+    this(selfType, id, playerInventory, serverInventory, serverInventory.tier, server)
+
   for (i <- 0 to 1) {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
-  val verticalSlots = math.min(3, 1 + serverInventory.tier)
+  val verticalSlots = math.min(3, 1 + tier)
   for (i <- 0 to verticalSlots) {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(100, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 0 to verticalSlots) {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(124, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 0 to verticalSlots) {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(148, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 2 to verticalSlots) {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   {
-    val slot = InventorySlots.server(serverInventory.tier)(getItems.size)
+    val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(26, 34, slot.slot, slot.tier)
   }
 

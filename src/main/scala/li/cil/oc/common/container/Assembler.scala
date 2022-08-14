@@ -5,12 +5,16 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.IInventory
 import net.minecraft.nbt.CompoundNBT
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileentity.Assembler) extends Player(null, id, playerInventory, assembler) {
+class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventory: PlayerInventory, val assembler: IInventory)
+  extends Player(selfType, id, playerInventory, assembler) {
+
   // Computer case.
   {
     val index = slots.size
@@ -74,9 +78,14 @@ class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileen
   def assemblyRemainingTime = synchronizedData.getInt("assemblyRemainingTime")
 
   override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
-    synchronizedData.putBoolean("isAssembling", assembler.isAssembling)
-    synchronizedData.putDouble("assemblyProgress", assembler.progress)
-    synchronizedData.putInt("assemblyRemainingTime", assembler.timeRemaining)
+    assembler match {
+      case te: tileentity.Assembler => {
+        synchronizedData.putBoolean("isAssembling", te.isAssembling)
+        synchronizedData.putDouble("assemblyProgress", te.progress)
+        synchronizedData.putInt("assemblyRemainingTime", te.timeRemaining)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

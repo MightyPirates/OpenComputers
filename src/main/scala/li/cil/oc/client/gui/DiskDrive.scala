@@ -7,5 +7,5 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
 
 class DiskDrive(id: Int, playerInventory: PlayerInventory, val drive: SimpleInventory)
-  extends DynamicGuiContainer(new container.DiskDrive(id, playerInventory, drive), playerInventory, drive.getName) {
+  extends DynamicGuiContainer(new container.DiskDrive(container.ContainerTypes.DISK_DRIVE, id, playerInventory, drive), playerInventory, drive.getName) {
 }

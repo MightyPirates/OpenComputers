@@ -10,7 +10,7 @@ import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.StringTextComponent
 
 class Database(id: Int, playerInventory: PlayerInventory, val databaseInventory: DatabaseInventory)
-  extends DynamicGuiContainer(new container.Database(id, playerInventory, databaseInventory),
+  extends DynamicGuiContainer(new container.Database(container.ContainerTypes.DATABASE, id, playerInventory, databaseInventory),
     playerInventory, StringTextComponent.EMPTY)
   with traits.LockedHotbar[container.Database] {
 

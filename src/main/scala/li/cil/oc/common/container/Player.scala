@@ -24,7 +24,7 @@ import net.minecraftforge.common.util.FakePlayer
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
-abstract class Player(cType: ContainerType[_ <: Player], id: Int, val playerInventory: PlayerInventory, val otherInventory: IInventory) extends Container(cType, id) {
+abstract class Player(selfType: ContainerType[_ <: Player], id: Int, val playerInventory: PlayerInventory, val otherInventory: IInventory) extends Container(selfType, id) {
   /** Number of player inventory slots to display horizontally. */
   protected val playerInventorySizeX = math.min(9, PlayerInventory.getSelectionSize)
 

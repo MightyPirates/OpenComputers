@@ -15,7 +15,7 @@ import net.minecraft.entity.player.PlayerInventory
 import scala.collection.JavaConverters.asJavaCollection
 
 class Server(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, val rack: Option[tileentity.Rack] = None, val slot: Int = 0)
-  extends DynamicGuiContainer(new container.Server(id, playerInventory, serverInventory),
+  extends DynamicGuiContainer(new container.Server(container.ContainerTypes.SERVER, id, playerInventory, serverInventory),
     playerInventory, serverInventory.getName)
   with traits.LockedHotbar[container.Server] {
 

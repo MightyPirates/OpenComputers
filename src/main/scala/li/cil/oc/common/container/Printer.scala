@@ -3,9 +3,13 @@ package li.cil.oc.common.container
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.nbt.CompoundNBT
 
-class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity.Printer) extends Player(null, id, playerInventory, printer) {
+class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: PlayerInventory, val printer: IInventory)
+  extends Player(selfType, id, playerInventory, printer) {
+
   addSlotToContainer(18, 19, Slot.Filtered)
   addSlotToContainer(18, 51, Slot.Filtered)
   addSlotToContainer(152, 35)
@@ -20,9 +24,14 @@ class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity
   def amountInk = synchronizedData.getInt("amountInk")
 
   override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
-    synchronizedData.putDouble("progress", if (printer.isPrinting) printer.progress / 100.0 else 0)
-    synchronizedData.putInt("amountMaterial", printer.amountMaterial)
-    synchronizedData.putInt("amountInk", printer.amountInk)
+    printer match {
+      case te: tileentity.Printer => {
+        synchronizedData.putDouble("progress", if (te.isPrinting) te.progress / 100.0 else 0)
+        synchronizedData.putInt("amountMaterial", te.amountMaterial)
+        synchronizedData.putInt("amountInk", te.amountInk)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

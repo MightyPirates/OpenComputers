@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL11
 import scala.collection.JavaConverters.asJavaCollection
 
 class Rack(id: Int, playerInventory: PlayerInventory, val rack: tileentity.Rack)
-  extends DynamicGuiContainer(new container.Rack(id, playerInventory, rack),
+  extends DynamicGuiContainer(new container.Rack(container.ContainerTypes.RACK, id, playerInventory, rack),
     playerInventory, rack.getName) {
 
   imageHeight = 210

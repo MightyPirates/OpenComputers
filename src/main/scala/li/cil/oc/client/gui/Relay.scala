@@ -16,7 +16,7 @@ import net.minecraft.entity.player.PlayerInventory
 import org.lwjgl.opengl.GL11
 
 class Relay(id: Int, playerInventory: PlayerInventory, val relay: tileentity.Relay)
-  extends DynamicGuiContainer(new container.Relay(id, playerInventory, relay),
+  extends DynamicGuiContainer(new container.Relay(container.ContainerTypes.RELAY, id, playerInventory, relay),
     playerInventory, relay.getName) {
 
   private val format = new DecimalFormat("#.##hz")

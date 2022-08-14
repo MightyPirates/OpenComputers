@@ -3,14 +3,20 @@ package li.cil.oc.common.container
 import li.cil.oc.common.inventory.DatabaseInventory
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.inventory._
+import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ClickType
+import net.minecraft.inventory.container.ContainerType
 import net.minecraft.inventory.container.Slot
 import net.minecraft.item.ItemStack
 
-class Database(id: Int, playerInventory: PlayerInventory, databaseInventory: DatabaseInventory) extends Player(null, id, playerInventory, databaseInventory) {
+class Database(selfType: ContainerType[_ <: Database], id: Int, playerInventory: PlayerInventory, databaseInventory: IInventory, tier: Int)
+  extends Player(selfType, id, playerInventory, databaseInventory) {
+
+  def this(selfType: ContainerType[_ <: Database], id: Int, playerInventory: PlayerInventory, databaseInventory: DatabaseInventory) =
+    this(selfType, id, playerInventory, databaseInventory, databaseInventory.tier)
+
   val rows = math.sqrt(databaseInventory.getContainerSize).ceil.toInt
-  val offset = 8 + Array(3, 2, 0)(databaseInventory.tier) * slotSize
+  val offset = 8 + Array(3, 2, 0)(tier) * slotSize
 
   for (row <- 0 until rows; col <- 0 until rows) {
     addSlotToContainer(offset + col * slotSize, offset + row * slotSize)

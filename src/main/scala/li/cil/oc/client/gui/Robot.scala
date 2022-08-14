@@ -28,7 +28,7 @@ import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
 class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Robot)
-  extends DynamicGuiContainer(new container.Robot(id, playerInventory, robot),
+  extends DynamicGuiContainer(new container.Robot(container.ContainerTypes.ROBOT, id, playerInventory, robot),
     playerInventory, StringTextComponent.EMPTY)
   with traits.InputBuffer with INestedGuiEventHandler {
 

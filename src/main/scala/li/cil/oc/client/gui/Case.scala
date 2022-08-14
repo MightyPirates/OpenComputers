@@ -14,7 +14,7 @@ import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
 class Case(id: Int, playerInventory: PlayerInventory, val computer: tileentity.Case)
-  extends DynamicGuiContainer(new container.Case(id, playerInventory, computer),
+  extends DynamicGuiContainer(new container.Case(container.ContainerTypes.CASE, id, playerInventory, computer, computer.tier),
     playerInventory, computer.getName) {
 
   protected var powerButton: ImageButton = _
