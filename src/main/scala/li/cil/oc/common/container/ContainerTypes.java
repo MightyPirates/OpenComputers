@@ -1,6 +1,7 @@
 package li.cil.oc.common.container;
 
 import li.cil.oc.OpenComputers;
+import net.minecraft.item.ItemStack;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.util.ResourceLocation;
@@ -43,9 +44,10 @@ public final class ContainerTypes {
         });
         register(e.getRegistry(), "charger", (id, plr, buff) -> new Charger(CHARGER, id, plr, new Inventory(1)));
         register(e.getRegistry(), "database", (id, plr, buff) -> {
+            ItemStack containerStack = buff.readItem();
             int invSize = buff.readVarInt();
             int tier = buff.readVarInt();
-            return new Database(DATABASE, id, plr, new Inventory(invSize), tier);
+            return new Database(DATABASE, id, plr, containerStack, new Inventory(invSize), tier);
         });
         register(e.getRegistry(), "disassembler", (id, plr, buff) -> new Disassembler(DISASSEMBLER, id, plr, new Inventory(1)));
         register(e.getRegistry(), "disk_drive", (id, plr, buff) -> new DiskDrive(DISK_DRIVE, id, plr, new Inventory(1)));
@@ -62,15 +64,18 @@ public final class ContainerTypes {
             return new Robot(ROBOT, id, plr, new Inventory(100), info);
         });
         register(e.getRegistry(), "server", (id, plr, buff) -> {
+            ItemStack containerStack = buff.readItem();
             int invSize = buff.readVarInt();
             int tier = buff.readVarInt();
-            return new Server(SERVER, id, plr, new Inventory(invSize), tier);
+            int rackSlot = buff.readVarInt() - 1;
+            return new Server(SERVER, id, plr, containerStack, new Inventory(invSize), tier, rackSlot);
         });
         register(e.getRegistry(), "tablet", (id, plr, buff) -> {
+            ItemStack containerStack = buff.readItem();
             int invSize = buff.readVarInt();
             String slot1 = buff.readUtf(32);
             int tier1 = buff.readVarInt();
-            return new Tablet(TABLET, id, plr, new Inventory(invSize), slot1, tier1);
+            return new Tablet(TABLET, id, plr, containerStack, new Inventory(invSize), slot1, tier1);
         });
     }
 

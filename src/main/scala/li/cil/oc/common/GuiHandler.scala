@@ -41,7 +41,7 @@ abstract class GuiHandler {
           case t: tileentity.Rack if id == GuiType.ServerInRack.id =>
             val slot = GuiType.extractSlot(y)
             val server = t.getMountable(slot).asInstanceOf[Server]
-            new container.Server(ContainerTypes.SERVER, containerId, player.inventory, server, Option(server))
+            new container.Server(ContainerTypes.SERVER, containerId, player.inventory, server, slot)
           case t: tileentity.Rack if id == GuiType.DiskDriveMountableInRack.id =>
             val slot = GuiType.extractSlot(y)
             val drive = t.getMountable(slot).asInstanceOf[DiskDriveMountable]

@@ -129,7 +129,7 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
     case _ => 0
   }
 
-  override def stillValid(player: PlayerEntity): Boolean = rack.stillValid(player)
+  override def stillValid(player: PlayerEntity): Boolean = rack.stillValid(player) && rack.indexOfMountable(this) >= 0
 
   // ----------------------------------------------------------------------- //
   // ItemStackInventory

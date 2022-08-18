@@ -13,11 +13,16 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.Rectangle2d
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 import org.lwjgl.opengl.GL11
 
-class Relay(id: Int, playerInventory: PlayerInventory, val relay: tileentity.Relay)
-  extends DynamicGuiContainer(new container.Relay(container.ContainerTypes.RELAY, id, playerInventory, relay),
-    playerInventory, relay.getName) {
+object Relay {
+  def of(id: Int, playerInventory: PlayerInventory, relay: tileentity.Relay)
+    = new Relay(new container.Relay(container.ContainerTypes.RELAY, id, playerInventory, relay), playerInventory, relay.getName)
+}
+
+class Relay(state: container.Relay, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   private val format = new DecimalFormat("#.##hz")
 

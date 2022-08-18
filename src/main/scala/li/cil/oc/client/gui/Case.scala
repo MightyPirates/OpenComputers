@@ -9,35 +9,39 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Case(id: Int, playerInventory: PlayerInventory, val computer: tileentity.Case)
-  extends DynamicGuiContainer(new container.Case(container.ContainerTypes.CASE, id, playerInventory, computer, computer.tier),
-    playerInventory, computer.getName) {
+object Case {
+  def of(id: Int, playerInventory: PlayerInventory, computer: tileentity.Case) =
+    new Case(new container.Case(container.ContainerTypes.CASE, id, playerInventory, computer, computer.tier), playerInventory, computer.getName)
+}
+
+class Case(state: container.Case, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   protected var powerButton: ImageButton = _
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float) {
-    powerButton.toggled = computer.isRunning
+    powerButton.toggled = inventoryContainer.isRunning
     super.render(stack, mouseX, mouseY, dt)
   }
 
   override protected def init() {
     super.init()
     powerButton = new ImageButton(leftPos + 70, topPos + 33, 18, 18, new Button.IPressable {
-      override def onPress(b: Button) = ClientPacketSender.sendComputerPower(computer, !computer.isRunning)
+      override def onPress(b: Button) = ClientPacketSender.sendComputerPower(inventoryContainer, !inventoryContainer.isRunning)
     }, Textures.GUI.ButtonPower, canToggle = true)
     addButton(powerButton)
   }
 
   override protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(stack, mouseX, mouseY)
-    font.draw(stack, computer.getName, 8, 6, 0x404040)
     if (powerButton.isMouseOver(mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.addAll(asJavaCollection(if (computer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
+      tooltip.addAll(asJavaCollection(if (inventoryContainer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
   }

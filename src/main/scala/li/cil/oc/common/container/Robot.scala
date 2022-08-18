@@ -3,23 +3,27 @@ package li.cil.oc.common.container
 import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.common
+import li.cil.oc.common.ComponentTracker
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ContainerType
 import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketBuffer
+import net.minecraft.world.World
 import net.minecraft.util.IntReferenceHolder
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 object RobotInfo {
-  def hasScreen(robot: tileentity.Robot) = robot.components.exists {
-    case Some(buffer: api.internal.TextBuffer) => true
-    case _ => false
+  def getScreenBuffer(robot: tileentity.Robot): Option[String] = robot.components.collectFirst {
+    case Some(buffer: api.internal.TextBuffer) if buffer.node != null => buffer.node.address
   }
+
+  def hasKeyboard(robot: tileentity.Robot) = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
 
   def readRobotInfo(buff: PacketBuffer): RobotInfo = {
     val mainInvSize = buff.readVarInt()
@@ -29,8 +33,12 @@ object RobotInfo {
     val tier2 = buff.readVarInt()
     val slot3 = buff.readUtf(32)
     val tier3 = buff.readVarInt()
-    val hasScreen = buff.readBoolean()
-    new RobotInfo(mainInvSize, slot1, tier1, slot2, tier2, slot3, tier3, hasScreen)
+    val screenBuffer = buff.readBoolean() match {
+      case true => Some(buff.readUtf())
+      case false => None
+    }
+    val hasKeyboard = buff.readBoolean()
+    new RobotInfo(mainInvSize, slot1, tier1, slot2, tier2, slot3, tier3, screenBuffer, hasKeyboard)
   }
   
   def writeRobotInfo(buff: PacketBuffer, info: RobotInfo) {
@@ -41,19 +49,27 @@ object RobotInfo {
     buff.writeVarInt(info.tier2)
     buff.writeUtf(info.slot3, 32)
     buff.writeVarInt(info.tier3)
-    buff.writeBoolean(info.hasScreen)
+    info.screenBuffer match {
+      case Some(addr) => {
+        buff.writeBoolean(true)
+        buff.writeUtf(addr)
+      }
+      case _ => buff.writeBoolean(false)
+    }
+    buff.writeBoolean(info.hasKeyboard)
   }
 }
 
 class RobotInfo(val mainInvSize: Int, val slot1: String, val tier1: Int,
-    val slot2: String, val tier2: Int, val slot3: String, val tier3: Int, val hasScreen: Boolean) {
+    val slot2: String, val tier2: Int, val slot3: String, val tier3: Int,
+    val screenBuffer: Option[String], val hasKeyboard: Boolean) {
 
   def this(robot: tileentity.Robot) = this(robot.mainInventory.getContainerSize, robot.containerSlotType(1), robot.containerSlotTier(1),
     robot.containerSlotType(2), robot.containerSlotTier(2), robot.containerSlotType(3), robot.containerSlotTier(3),
-    RobotInfo.hasScreen(robot))
+    RobotInfo.getScreenBuffer(robot), RobotInfo.hasKeyboard(robot))
 }
 
-class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: PlayerInventory, robot: IInventory, info: RobotInfo)
+class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: PlayerInventory, robot: IInventory, val info: RobotInfo)
   extends Player(selfType, id, playerInventory, robot) {
 
   def this(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: PlayerInventory, robot: tileentity.Robot) =
@@ -61,7 +77,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
 
   private val withScreenHeight = 256
   private val noScreenHeight = 108
-  val deltaY: Int = if (info.hasScreen) 0 else withScreenHeight - noScreenHeight
+  val deltaY: Int = if (info.screenBuffer.isDefined) 0 else withScreenHeight - noScreenHeight
 
   addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, common.Slot.Tool)
   addSlotToContainer(170 + 1 * slotSize, 232 - deltaY, info.slot1, info.tier1)
@@ -90,7 +106,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   // values as shorts over the net (for whatever reason).
   private val factor = 100
 
-  val globalBuffer = robot match {
+  private val globalBufferData = robot match {
     case te: tileentity.Robot => {
       addDataSlot(new IntReferenceHolder {
         override def get(): Int = te.globalBuffer.toInt / factor
@@ -100,8 +116,9 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
     }
     case _ => addDataSlot(IntReferenceHolder.standalone)
   }
+  def globalBuffer = globalBufferData.get * factor
 
-  val globalBufferSize = robot match {
+  private val globalBufferSizeData = robot match {
     case te: tileentity.Robot => {
       addDataSlot(new IntReferenceHolder {
         override def get(): Int = te.globalBufferSize.toInt / factor
@@ -111,6 +128,31 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
     }
     case _ => addDataSlot(IntReferenceHolder.standalone)
   }
+  def globalBufferSize = globalBufferSizeData.get * factor
+
+  private val runningData = robot match {
+    case te: tileentity.Robot => {
+      addDataSlot(new IntReferenceHolder {
+        override def get(): Int = if (te.isRunning) 1 else 0
+
+        override def set(value: Int): Unit = te.setRunning(value != 0)
+      })
+    }
+    case _ => addDataSlot(IntReferenceHolder.standalone)
+  }
+  def isRunning = runningData.get != 0
+
+  private val selectedSlotData = robot match {
+    case te: tileentity.Robot => {
+      addDataSlot(new IntReferenceHolder {
+        override def get(): Int = te.selectedSlot
+
+        override def set(value: Int): Unit = te.setSelectedSlot(value)
+      })
+    }
+    case _ => addDataSlot(IntReferenceHolder.standalone)
+  }
+  def selectedSlot = selectedSlotData.get
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int, var enabled: Boolean)
     extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {

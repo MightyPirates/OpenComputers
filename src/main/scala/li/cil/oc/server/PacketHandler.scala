@@ -10,7 +10,9 @@ import li.cil.oc.api.network.Connector
 import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.container
 import li.cil.oc.common.entity.Drone
+import li.cil.oc.common.entity.DroneInventory
 import li.cil.oc.common.item.{Tablet, TabletWrapper}
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.traits.FileSystemLike
@@ -60,33 +62,32 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onComputerPower(p: PacketParser): Unit = {
-    val entity = p.readBlockEntity[Computer]()
+    val containerId = p.readInt()
     val setPower = p.readBoolean()
-    entity match {
-      case Some(t) => p.player match {
-        case player: ServerPlayerEntity => trySetComputerPower(t.machine, setPower, player)
-        case _ =>
+    p.player.containerMenu match {
+      case computer: container.Case if computer.containerId == containerId => {
+        (computer.otherInventory, p.player) match {
+          case (te: Computer, player: ServerPlayerEntity) => trySetComputerPower(te.machine, setPower, player)
+          case _ =>
+        }
       }
-      case _ => // Invalid packet.
+      case _ => // Invalid packet or container closed early.
     }
   }
 
   def onServerPower(p: PacketParser): Unit = {
-    val entity = p.readBlockEntity[Rack]()
+    val containerId = p.readInt()
     val index = p.readInt()
     val setPower = p.readBoolean()
-    entity match {
-      case Some(t) => {
-        val mountableIndex = index
-        t.getMountable(mountableIndex) match {
-          case server: Server => p.player match {
-            case player: ServerPlayerEntity => trySetComputerPower(server.machine, setPower, player)
-            case _ => // Invalid packet.
-          }
+    p.player.containerMenu match {
+      case server: container.Server if server.containerId == containerId => {
+        (server.otherInventory, p.player) match {
+          case (comp: component.Server, player: ServerPlayerEntity) if comp.rack.getMountable(index) == comp =>
+            trySetComputerPower(comp.machine, setPower, player)
           case _ => // Invalid packet.
         }
       }
-      case _ => // Invalid packet.
+      case _ => // Invalid packet or container closed early.
     }
   }
 
@@ -124,18 +125,16 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onDronePower(p: PacketParser): Unit = {
-    val entity = p.readEntity[Drone]()
+    val containerId = p.readInt()
     val power = p.readBoolean()
-    entity match {
-      case Some(drone) => p.player match {
-        case player: ServerPlayerEntity =>
-          if (power) {
-            drone.preparePowerUp()
-          }
-          trySetComputerPower(drone.machine, power, player)
-        case _ =>
+    p.player.containerMenu match {
+      case drone: container.Drone if drone.containerId == containerId => {
+        (drone.otherInventory, p.player) match {
+          case (droneInv: DroneInventory, player: ServerPlayerEntity) => trySetComputerPower(droneInv.drone.machine, power, player)
+          case _ =>
+        }
       }
-      case _ => // Invalid packet.
+      case _ => // Invalid packet or container closed early.
     }
   }
 
@@ -242,42 +241,51 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onRackMountableMapping(p: PacketParser): Unit = {
-    val entity = p.readBlockEntity[Rack]()
+    val containerId = p.readInt()
     val mountableIndex = p.readInt()
     val nodeIndex = p.readInt()
     val side = p.readDirection()
-    entity match {
-      case Some(t) => p.player match {
-        case player: ServerPlayerEntity if t.stillValid(player) =>
-          t.connect(mountableIndex, nodeIndex, side)
-        case _ =>
+    p.player.containerMenu match {
+      case rack: container.Rack if rack.containerId == containerId => {
+        (rack.otherInventory, p.player) match {
+          case (t: Rack, player: ServerPlayerEntity) if t.stillValid(player) =>
+            t.connect(mountableIndex, nodeIndex, side)
+          case _ =>
+        }
       }
-      case _ => // Invalid packet.
+      case _ => // Invalid packet or container closed early.
     }
   }
 
   def onRackRelayState(p: PacketParser): Unit = {
-    val entity = p.readBlockEntity[Rack]()
+    val containerId = p.readInt()
     val enabled = p.readBoolean()
-    entity match {
-      case Some(t) => p.player match {
-        case player: ServerPlayerEntity if t.stillValid(player) =>
+    p.player.containerMenu match {
+      case rack: container.Rack if rack.containerId == containerId => {
+        (rack.otherInventory, p.player) match {
+          case (t: Rack, player: ServerPlayerEntity) if t.stillValid(player) =>
           t.isRelayEnabled = enabled
-        case _ =>
+          case _ =>
+        }
       }
-      case _ => // Invalid packet.
+      case _ => // Invalid packet or container closed early.
     }
   }
 
   def onRobotAssemblerStart(p: PacketParser): Unit = {
-    val entity = p.readBlockEntity[Assembler]()
-    entity match {
-      case Some(assembler) =>
-        if (assembler.start(p.player match {
-          case player: ServerPlayerEntity => player.isCreative
-          case _ => false
-        })) assembler.output.foreach(stack => Achievement.onAssemble(stack, p.player))
-      case _ => // Invalid packet.
+    val containerId = p.readInt()
+    p.player.containerMenu match {
+      case assembler: container.Assembler if assembler.containerId == containerId => {
+        assembler.assembler match {
+          case te: Assembler =>
+            if (te.start(p.player match {
+              case player: ServerPlayerEntity => player.isCreative
+              case _ => false
+            })) te.output.foreach(stack => Achievement.onAssemble(stack, p.player))
+          case _ =>
+        }
+      }
+      case _ => // Invalid packet or container closed early.
     }
   }
 

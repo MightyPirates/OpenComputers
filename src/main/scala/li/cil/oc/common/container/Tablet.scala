@@ -5,12 +5,13 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ContainerType
+import net.minecraft.item.ItemStack
 
-class Tablet(selfType: ContainerType[_ <: Tablet], id: Int, playerInventory: PlayerInventory, tablet: IInventory, slot1: String, tier1: Int)
+class Tablet(selfType: ContainerType[_ <: Tablet], id: Int, playerInventory: PlayerInventory, val stack: ItemStack, tablet: IInventory, slot1: String, tier1: Int)
   extends Player(selfType, id, playerInventory, tablet) {
 
   def this(selfType: ContainerType[_ <: Tablet], id: Int, playerInventory: PlayerInventory, tablet: TabletWrapper) =
-    this(selfType, id, playerInventory, tablet, tablet.containerSlotType, tablet.containerSlotTier)
+    this(selfType, id, playerInventory, tablet.stack, tablet, tablet.containerSlotType, tablet.containerSlotTier)
 
   addSlot(new StaticComponentSlot(this, otherInventory, otherInventory.getContainerSize - 1, 80, 35, slot1, tier1))
 

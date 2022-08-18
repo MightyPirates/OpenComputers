@@ -75,6 +75,8 @@ object Drone {
   val DataLightColor: DataParameter[Integer] = EntityDataManager.defineId(classOf[Drone], DataSerializers.INT)
 }
 
+abstract class DroneInventory(val drone: Drone) extends Inventory
+
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
@@ -140,7 +142,7 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
 
     override def stillValid(player: PlayerEntity) = false
   }
-  val mainInventory = new Inventory {
+  val mainInventory = new DroneInventory(this) {
     val items: Array[ItemStack] = Array.fill[ItemStack](8)(ItemStack.EMPTY)
 
     override def getContainerSize: Int = inventorySize
@@ -151,7 +153,7 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
 
     override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = slot >= 0 && slot < getContainerSize
 
-    override def stillValid(player: PlayerEntity): Boolean = player.distanceToSqr(Drone.this) < 64
+    override def stillValid(player: PlayerEntity): Boolean = player.distanceToSqr(drone) < 64
   }
   val tank = new MultiTank {
     override def tankCount: Int = components.components.count {

@@ -7,10 +7,15 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
-class Raid(id: Int, playerInventory: PlayerInventory, val raid: tileentity.Raid)
-  extends DynamicGuiContainer(new container.Raid(container.ContainerTypes.RAID, id, playerInventory, raid),
-    playerInventory, raid.getName) {
+object Raid {
+  def of(id: Int, playerInventory: PlayerInventory, raid: tileentity.Raid) =
+    new Raid(new container.Raid(container.ContainerTypes.RAID, id, playerInventory, raid), playerInventory, raid.getName)
+}
+
+class Raid(state: container.Raid, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   override def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {
     RenderSystem.color3f(1, 1, 1) // Required under Linux.

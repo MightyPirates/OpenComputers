@@ -5,7 +5,13 @@ import li.cil.oc.common.container
 import li.cil.oc.common.inventory.SimpleInventory
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
-class DiskDrive(id: Int, playerInventory: PlayerInventory, val drive: SimpleInventory)
-  extends DynamicGuiContainer(new container.DiskDrive(container.ContainerTypes.DISK_DRIVE, id, playerInventory, drive), playerInventory, drive.getName) {
+object DiskDrive {
+  def of(id: Int, playerInventory: PlayerInventory, drive: SimpleInventory) =
+    new DiskDrive(new container.DiskDrive(container.ContainerTypes.DISK_DRIVE, id, playerInventory, drive), playerInventory, drive.getName)
+}
+
+class DiskDrive(state: container.DiskDrive, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 }

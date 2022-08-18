@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ContainerType
+import net.minecraft.util.IntReferenceHolder
 import net.minecraft.util.text.ITextComponent
 
 class Case(selfType: ContainerType[_ <: Case], id: Int, playerInventory: PlayerInventory, computer: IInventory, tier: Int)
@@ -49,6 +50,18 @@ class Case(selfType: ContainerType[_ <: Case], id: Int, playerInventory: PlayerI
 
   // Show the player's inventory.
   addPlayerInventorySlots(8, 84)
+
+  private val runningData = computer match {
+    case te: tileentity.Case => {
+      addDataSlot(new IntReferenceHolder {
+        override def get(): Int = if (te.isRunning) 1 else 0
+
+        override def set(value: Int): Unit = te.setRunning(value != 0)
+      })
+    }
+    case _ => addDataSlot(IntReferenceHolder.standalone)
+  }
+  def isRunning = runningData.get != 0
 
   override def stillValid(player: PlayerEntity) =
     super.stillValid(player) && (computer match {

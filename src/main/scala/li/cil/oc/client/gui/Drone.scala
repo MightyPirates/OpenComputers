@@ -17,15 +17,20 @@ import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
-  extends DynamicGuiContainer(new container.Drone(container.ContainerTypes.DRONE, id, playerInventory, drone.mainInventory),
-    playerInventory, StringTextComponent.EMPTY)
+object Drone {
+  def of(id: Int, playerInventory: PlayerInventory, drone: entity.Drone) =
+    new Drone(new container.Drone(container.ContainerTypes.DRONE, id, playerInventory, drone.mainInventory), playerInventory, StringTextComponent.EMPTY)
+}
+
+class Drone(state: container.Drone, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name)
   with traits.DisplayBuffer {
 
   imageWidth = 176
@@ -61,8 +66,8 @@ class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
   private val selectionStepV = 1 / selectionsStates.toFloat
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float) {
-    powerButton.toggled = drone.isRunning
-    bufferRenderer.dirty = drone.statusText.lines.zipWithIndex.exists {
+    powerButton.toggled = inventoryContainer.isRunning
+    bufferRenderer.dirty = inventoryContainer.statusText.lines.zipWithIndex.exists {
       case (line, i) => buffer.set(0, i, line, vertical = false)
     }
     super.render(stack, mouseX, mouseY, dt)
@@ -71,7 +76,7 @@ class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
   override protected def init() {
     super.init()
     powerButton = new ImageButton(leftPos + 7, topPos + 45, 18, 18, new Button.IPressable {
-      override def onPress(b: Button) = ClientPacketSender.sendDronePower(drone, !drone.isRunning)
+      override def onPress(b: Button) = ClientPacketSender.sendDronePower(inventoryContainer, !inventoryContainer.isRunning)
     }, Textures.GUI.ButtonPower, canToggle = true)
     addButton(powerButton)
   }
@@ -97,14 +102,13 @@ class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
-        drone.globalBuffer * 100 / math.max(drone.globalBufferSize, 1),
-        drone.globalBuffer,
-        drone.globalBufferSize))
+        inventoryContainer.globalBuffer * 100 / math.max(inventoryContainer.globalBufferSize, 1),
+        inventoryContainer.globalBuffer, inventoryContainer.globalBufferSize))
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     if (powerButton.isMouseOver(mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
+      tooltip.addAll(asJavaCollection(if (inventoryContainer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     RenderState.popAttrib()
@@ -114,9 +118,9 @@ class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
     RenderSystem.color3f(1, 1, 1)
     Textures.bind(Textures.GUI.Drone)
     blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
-    power.level = drone.globalBuffer.toFloat / math.max(drone.globalBufferSize.toFloat, 1.0f)
+    power.level = inventoryContainer.globalBuffer.toFloat / math.max(inventoryContainer.globalBufferSize.toFloat, 1.0f)
     drawWidgets(stack)
-    if (drone.mainInventory.getContainerSize > 0) {
+    if (inventoryContainer.otherInventory.getContainerSize > 0) {
       drawSelection(stack)
     }
 
@@ -127,7 +131,7 @@ class Drone(id: Int, playerInventory: PlayerInventory, val drone: entity.Drone)
   override protected def drawSlotBackground(stack: MatrixStack, x: Int, y: Int) {}
 
   private def drawSelection(stack: MatrixStack) {
-    val slot = drone.selectedSlot
+    val slot = inventoryContainer.selectedSlot
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
       Textures.bind(Textures.GUI.RobotSelection)

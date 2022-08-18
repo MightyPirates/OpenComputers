@@ -8,10 +8,15 @@ import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
-class Disassembler(id: Int, playerInventory: PlayerInventory, val disassembler: tileentity.Disassembler)
-  extends DynamicGuiContainer(new container.Disassembler(container.ContainerTypes.DISASSEMBLER, id, playerInventory, disassembler),
-    playerInventory, disassembler.getName) {
+object Disassembler {
+  def of(id: Int, playerInventory: PlayerInventory, disassembler: tileentity.Disassembler) =
+    new Disassembler(new container.Disassembler(container.ContainerTypes.DISASSEMBLER, id, playerInventory, disassembler), playerInventory, disassembler.getName)
+}
+
+class Disassembler(state: container.Disassembler, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   val progress = addCustomWidget(new ProgressBar(18, 65))
 

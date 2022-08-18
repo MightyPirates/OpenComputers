@@ -7,16 +7,14 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ContainerType
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 
-class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: IInventory, tier: Int, val server: Option[component.Server])
+class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, val stack: ItemStack, serverInventory: IInventory, tier: Int, val rackSlot: Int)
   extends Player(selfType, id, playerInventory, serverInventory) {
 
-  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: IInventory, tier: Int) =
-    this(selfType, id, playerInventory, serverInventory, tier, None)
-
-  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, server: Option[component.Server] = None) =
-    this(selfType, id, playerInventory, serverInventory, serverInventory.tier, server)
+  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, rackSlot: Int = -1) =
+    this(selfType, id, playerInventory, serverInventory.container, serverInventory, serverInventory.tier, rackSlot)
 
   for (i <- 0 to 1) {
     val slot = InventorySlots.server(tier)(slots.size)
@@ -53,8 +51,10 @@ class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: Pla
   addPlayerInventorySlots(8, 84)
 
   override def stillValid(player: PlayerEntity) = {
-    if (server.isDefined) super.stillValid(player)
-    else player == playerInventory.player
+    otherInventory match {
+      case _: component.Server => super.stillValid(player)
+      case _ => player == playerInventory.player
+    }
   }
 
   var isRunning = false
@@ -68,8 +68,8 @@ class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: Pla
 
   override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
     super.detectCustomDataChanges(nbt)
-    server match {
-      case Some(s) => nbt.putBoolean("isRunning", s.machine.isRunning)
+    otherInventory match {
+      case s: component.Server => nbt.putBoolean("isRunning", s.machine.isRunning)
       case _ => nbt.putBoolean("isItem", true)
     }
   }

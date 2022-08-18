@@ -11,27 +11,24 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
 import scala.collection.JavaConverters.asJavaCollection
 
-class Server(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, val rack: Option[tileentity.Rack] = None, val slot: Int = 0)
-  extends DynamicGuiContainer(new container.Server(container.ContainerTypes.SERVER, id, playerInventory, serverInventory),
-    playerInventory, serverInventory.getName)
+object Server {
+  def of(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, slot: Int = -1)
+    = new Server(new container.Server(container.ContainerTypes.SERVER, id, playerInventory, serverInventory, slot), playerInventory, serverInventory.getName)
+}
+
+class Server(state: container.Server, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name)
   with traits.LockedHotbar[container.Server] {
 
   protected var powerButton: ImageButton = _
 
-  override def lockedStack = serverInventory.container
+  override def lockedStack = inventoryContainer.stack
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float) {
-    // Close GUI if item is removed from rack.
-    rack match {
-      case Some(t) if t.getItem(slot) != serverInventory.container =>
-        onClose()
-        return
-      case _ =>
-    }
-
     powerButton.visible = !inventoryContainer.isItem
     powerButton.toggled = inventoryContainer.isRunning
     super.render(stack, mouseX, mouseY, dt)
@@ -40,9 +37,8 @@ class Server(id: Int, playerInventory: PlayerInventory, serverInventory: ServerI
   override protected def init() {
     super.init()
     powerButton = new ImageButton(leftPos + 48, topPos + 33, 18, 18, new Button.IPressable {
-      override def onPress(b: Button) = rack match {
-        case Some(t) => ClientPacketSender.sendServerPower(t, slot, !inventoryContainer.isRunning)
-        case _ =>
+      override def onPress(b: Button) = if (inventoryContainer.rackSlot >= 0) {
+        ClientPacketSender.sendServerPower(inventoryContainer, inventoryContainer.rackSlot, !inventoryContainer.isRunning)
       }
     }, Textures.GUI.ButtonPower, canToggle = true)
     addButton(powerButton)

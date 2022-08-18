@@ -19,7 +19,11 @@ class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: P
 
   def progress = synchronizedData.getDouble("progress")
 
+  def maxAmountMaterial = synchronizedData.getInt("maxAmountMaterial")
+
   def amountMaterial = synchronizedData.getInt("amountMaterial")
+
+  def maxAmountInk = synchronizedData.getInt("maxAmountInk")
 
   def amountInk = synchronizedData.getInt("amountInk")
 
@@ -27,7 +31,9 @@ class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: P
     printer match {
       case te: tileentity.Printer => {
         synchronizedData.putDouble("progress", if (te.isPrinting) te.progress / 100.0 else 0)
+        synchronizedData.putInt("maxAmountMaterial", te.maxAmountMaterial)
         synchronizedData.putInt("amountMaterial", te.amountMaterial)
+        synchronizedData.putInt("maxAmountInk", te.amountInk)
         synchronizedData.putInt("amountInk", te.amountInk)
       }
       case _ =>

@@ -20,9 +20,13 @@ import net.minecraft.util.text.StringTextComponent
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileentity.Assembler)
-  extends DynamicGuiContainer(new container.Assembler(container.ContainerTypes.ASSEMBLER, id, playerInventory, assembler),
-    playerInventory, StringTextComponent.EMPTY) {
+object Assembler {
+  def of(id: Int, playerInventory: PlayerInventory, assembler: tileentity.Assembler) =
+    new Assembler(new container.Assembler(container.ContainerTypes.ASSEMBLER, id, playerInventory, assembler), playerInventory, StringTextComponent.EMPTY)
+}
+
+class Assembler(state: container.Assembler, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   imageWidth = 176
   imageHeight = 192
@@ -51,7 +55,7 @@ class Assembler(id: Int, playerInventory: PlayerInventory, val assembler: tileen
   override protected def init() {
     super.init()
     runButton = new ImageButton(leftPos + 7, topPos + 89, 18, 18, new Button.IPressable {
-      override def onPress(b: Button) = if (canBuild) ClientPacketSender.sendRobotAssemblerStart(assembler)
+      override def onPress(b: Button) = if (canBuild) ClientPacketSender.sendRobotAssemblerStart(inventoryContainer)
     }, Textures.GUI.ButtonRun, canToggle = true)
     addButton(runButton)
   }

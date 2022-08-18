@@ -7,16 +7,21 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.DatabaseInventory
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 
-class Database(id: Int, playerInventory: PlayerInventory, val databaseInventory: DatabaseInventory)
-  extends DynamicGuiContainer(new container.Database(container.ContainerTypes.DATABASE, id, playerInventory, databaseInventory),
-    playerInventory, StringTextComponent.EMPTY)
+object Database {
+  def of(id: Int, playerInventory: PlayerInventory, databaseInventory: DatabaseInventory) =
+    new Database(new container.Database(container.ContainerTypes.DATABASE, id, playerInventory, databaseInventory), playerInventory, StringTextComponent.EMPTY)
+}
+
+class Database(state: container.Database, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name)
   with traits.LockedHotbar[container.Database] {
 
   imageHeight = 256
 
-  override def lockedStack = databaseInventory.container
+  override def lockedStack = inventoryContainer.container
 
   override def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
 
@@ -25,12 +30,12 @@ class Database(id: Int, playerInventory: PlayerInventory, val databaseInventory:
     Textures.bind(Textures.GUI.Database)
     blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
 
-    if (databaseInventory.tier > Tier.One) {
+    if (inventoryContainer.tier > Tier.One) {
       Textures.bind(Textures.GUI.Database1)
       blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
     }
 
-    if (databaseInventory.tier > Tier.Two) {
+    if (inventoryContainer.tier > Tier.Two) {
       Textures.bind(Textures.GUI.Database2)
       blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
     }

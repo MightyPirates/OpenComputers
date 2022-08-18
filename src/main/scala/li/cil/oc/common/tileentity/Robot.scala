@@ -393,7 +393,7 @@ class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with 
     super.dispose()
     if (isClient) {
       Minecraft.getInstance.screen match {
-        case robotGui: gui.Robot if robotGui.robot == this =>
+        case robotGui: gui.Robot if robotGui.inventoryContainer.otherInventory == this =>
           robotGui.onClose()
         case _ =>
       }
@@ -600,7 +600,7 @@ class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with 
     }
     else if (isClient) {
       Minecraft.getInstance.screen match {
-        case robotGui: gui.Robot if robotGui.robot == this =>
+        case robotGui: gui.Robot if robotGui.inventoryContainer.otherInventory == this =>
           robotGui.onClose()
         case _ =>
       }

@@ -6,6 +6,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal.TextBuffer
+import li.cil.oc.client.ComponentTracker
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -13,13 +14,14 @@ import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.INestedGuiEventHandler
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
@@ -27,16 +29,22 @@ import org.lwjgl.opengl.GL11
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Robot)
-  extends DynamicGuiContainer(new container.Robot(container.ContainerTypes.ROBOT, id, playerInventory, robot),
-    playerInventory, StringTextComponent.EMPTY)
+object Robot {
+  def of(id: Int, playerInventory: PlayerInventory, robot: tileentity.Robot) =
+    new Robot(new container.Robot(container.ContainerTypes.ROBOT, id, playerInventory, robot), playerInventory, StringTextComponent.EMPTY)
+}
+
+class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name)
   with traits.InputBuffer with INestedGuiEventHandler {
 
-  override protected val buffer: TextBuffer = robot.components.collect {
-    case Some(buffer: api.internal.TextBuffer) => buffer
-  }.headOption.orNull
+  override protected val buffer: TextBuffer = inventoryContainer.info.screenBuffer
+    .map(ComponentTracker.get(Minecraft.getInstance.level, _))
+    .collectFirst {
+      case buffer: TextBuffer => buffer
+    }.orNull
 
-  override protected val hasKeyboard: Boolean = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
+  override protected val hasKeyboard: Boolean = inventoryContainer.info.hasKeyboard
 
   private val withScreenHeight = 256
   private val noScreenHeight = 108
@@ -53,9 +61,9 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
   // Scroll offset for robot inventory.
   private var inventoryOffset = 0
 
-  private def canScroll = robot.inventorySize > 16
+  private def canScroll = inventoryContainer.otherInventory.getContainerSize > 16
 
-  private def maxOffset = robot.inventorySize / 4 - 4
+  private def maxOffset = inventoryContainer.otherInventory.getContainerSize / 4 - 4
 
   private val slotSize = 18
 
@@ -85,11 +93,11 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
   private val selectionStepV = 1 / selectionsStates.toFloat
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float) {
-    powerButton.toggled = robot.isRunning
+    powerButton.toggled = inventoryContainer.isRunning
     scrollButton.active = canScroll
     scrollButton.hoverOverride = isDragging
-    if (robot.inventorySize < 16 + inventoryOffset * 4) {
-      scrollTo(0)
+    if (inventoryContainer.otherInventory.getContainerSize < 16 + inventoryOffset * 4) {
+      if (inventoryOffset != 0) scrollTo(0)
     }
     super.render(stack, mouseX, mouseY, dt)
   }
@@ -97,7 +105,7 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
   override protected def init() {
     super.init()
     powerButton = new ImageButton(leftPos + 5, topPos + 153 - deltaY, 18, 18, new Button.IPressable {
-      override def onPress(b: Button) = ClientPacketSender.sendComputerPower(robot, !robot.isRunning)
+      override def onPress(b: Button) = ClientPacketSender.sendRobotPower(inventoryContainer, !inventoryContainer.isRunning)
     }, Textures.GUI.ButtonPower, canToggle = true)
     scrollButton = new ImageButton(leftPos + scrollX + 1, topPos + scrollY + 1, 6, 13, new Button.IPressable {
       override def onPress(b: Button) = Unit
@@ -138,14 +146,13 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
-        ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
-        robot.globalBuffer.toInt,
-        robot.globalBufferSize.toInt))
+        100 * inventoryContainer.globalBuffer / inventoryContainer.globalBufferSize,
+        inventoryContainer.globalBuffer, inventoryContainer.globalBufferSize))
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     if (powerButton.isMouseOver(mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.addAll(asJavaCollection(if (robot.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
+      tooltip.addAll(asJavaCollection(if (inventoryContainer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     RenderState.popAttrib()
@@ -156,9 +163,9 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
     if (buffer != null) Textures.bind(Textures.GUI.Robot)
     else Textures.bind(Textures.GUI.RobotNoScreen)
     blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
-    power.level = robot.globalBuffer / robot.globalBufferSize
+    power.level = inventoryContainer.globalBuffer.toDouble / inventoryContainer.globalBufferSize
     drawWidgets(stack)
-    if (robot.inventorySize > 0) {
+    if (inventoryContainer.otherInventory.getContainerSize > 0) {
       drawSelection(stack)
     }
 
@@ -231,7 +238,7 @@ class Robot(id: Int, playerInventory: PlayerInventory, val robot: tileentity.Rob
   }
 
   private def drawSelection(stack: MatrixStack) {
-    val slot = robot.selectedSlot - inventoryOffset * 4
+    val slot = inventoryContainer.selectedSlot - inventoryOffset * 4
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
       Textures.bind(Textures.GUI.RobotSelection)

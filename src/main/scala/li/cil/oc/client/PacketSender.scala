@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.CompressedPacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.SimplePacketBuilder
+import li.cil.oc.common.container
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
@@ -21,10 +22,19 @@ object PacketSender {
   // avoid spamming large packets on key repeat.
   protected var clipboardCooldown = 0L
 
-  def sendComputerPower(t: Computer, power: Boolean) {
+  def sendComputerPower(computer: container.Case, power: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ComputerPower)
 
-    pb.writeTileEntity(t)
+    pb.writeInt(computer.containerId)
+    pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
+
+  def sendRobotPower(robot: container.Robot, power: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.ComputerPower)
+
+    pb.writeInt(robot.containerId)
     pb.writeBoolean(power)
 
     pb.sendToServer()
@@ -44,10 +54,10 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendDronePower(e: Drone, power: Boolean) {
+  def sendDronePower(drone: container.Drone, power: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.DronePower)
 
-    pb.writeEntity(e)
+    pb.writeInt(drone.containerId)
     pb.writeBoolean(power)
 
     pb.sendToServer()
@@ -157,10 +167,10 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRackMountableMapping(t: Rack, mountableIndex: Int, nodeIndex: Int, side: Option[Direction]) {
+  def sendRackMountableMapping(rack: container.Rack, mountableIndex: Int, nodeIndex: Int, side: Option[Direction]) {
     val pb = new SimplePacketBuilder(PacketType.RackMountableMapping)
 
-    pb.writeTileEntity(t)
+    pb.writeInt(rack.containerId)
     pb.writeInt(mountableIndex)
     pb.writeInt(nodeIndex)
     pb.writeDirection(side)
@@ -168,19 +178,19 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRackRelayState(t: Rack, enabled: Boolean) {
+  def sendRackRelayState(rack: container.Rack, enabled: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.RackRelayState)
 
-    pb.writeTileEntity(t)
+    pb.writeInt(rack.containerId)
     pb.writeBoolean(enabled)
 
     pb.sendToServer()
   }
 
-  def sendRobotAssemblerStart(t: Assembler) {
+  def sendRobotAssemblerStart(assembler: container.Assembler) {
     val pb = new SimplePacketBuilder(PacketType.RobotAssemblerStart)
 
-    pb.writeTileEntity(t)
+    pb.writeInt(assembler.containerId)
 
     pb.sendToServer()
   }
@@ -196,10 +206,10 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerPower(t: Rack, mountableIndex: Int, power: Boolean) {
+  def sendServerPower(server: container.Server, mountableIndex: Int, power: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ServerPower)
 
-    pb.writeTileEntity(t)
+    pb.writeInt(server.containerId)
     pb.writeInt(mountableIndex)
     pb.writeBoolean(power)
 

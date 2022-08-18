@@ -10,10 +10,15 @@ import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
-class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity.Printer)
-  extends DynamicGuiContainer(new container.Printer(container.ContainerTypes.PRINTER, id, playerInventory, printer),
-    playerInventory, printer.getName) {
+object Printer {
+  def of(id: Int, playerInventory: PlayerInventory, printer: tileentity.Printer)
+    = new Printer(new container.Printer(container.ContainerTypes.PRINTER, id, playerInventory, printer), playerInventory, printer.getName)
+}
+
+class Printer(state: container.Printer, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name) {
 
   imageWidth = 176
   imageHeight = 166
@@ -45,12 +50,12 @@ class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity
     RenderState.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
+      tooltip.add(inventoryContainer.amountMaterial + "/" + inventoryContainer.maxAmountMaterial)
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     if (isPointInRegion(inkBar.x, inkBar.y, inkBar.width, inkBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
+      tooltip.add(inventoryContainer.amountInk + "/" + inventoryContainer.maxAmountInk)
       copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
     }
     RenderState.popAttrib()
@@ -60,8 +65,8 @@ class Printer(id: Int, playerInventory: PlayerInventory, val printer: tileentity
     RenderSystem.color3f(1, 1, 1)
     Textures.bind(Textures.GUI.Printer)
     blit(stack, leftPos, topPos, 0, 0, imageWidth, imageHeight)
-    materialBar.level = inventoryContainer.amountMaterial / printer.maxAmountMaterial.toDouble
-    inkBar.level = inventoryContainer.amountInk / printer.maxAmountInk.toDouble
+    materialBar.level = inventoryContainer.amountMaterial / inventoryContainer.maxAmountMaterial.toDouble
+    inkBar.level = inventoryContainer.amountInk / inventoryContainer.maxAmountInk.toDouble
     progressBar.level = inventoryContainer.progress
     drawWidgets(stack)
     drawInventorySlots(stack)
