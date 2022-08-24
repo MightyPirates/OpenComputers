@@ -6,7 +6,6 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.renderer.Tessellator
@@ -18,11 +17,6 @@ import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConverters.asJavaCollection
-
-object Rack {
-  def of(id: Int, playerInventory: PlayerInventory, rack: tileentity.Rack) =
-    new Rack(new container.Rack(container.ContainerTypes.RACK, id, playerInventory, rack), playerInventory, rack.getName)
-}
 
 class Rack(state: container.Rack, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name) {

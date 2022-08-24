@@ -3,9 +3,11 @@ package li.cil.oc.common.item
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.util.Rarity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
@@ -28,7 +30,14 @@ class UpgradeDatabase(val tier: Int, props: Properties = new Properties().tab(Cr
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (!player.isCrouching) {
-      OpenComputers.openGui(player, GuiType.Database.id, world, 0, 0, 0)
+      if (!world.isClientSide) player match {
+        case srvPlr: ServerPlayerEntity => ContainerTypes.openDatabaseGui(srvPlr, new DatabaseInventory {
+            override def container = stack
+
+            override def stillValid(player: PlayerEntity) = player == srvPlr
+          })
+        case _ =>
+      }
       player.swing(Hand.MAIN_HAND)
     }
     else {

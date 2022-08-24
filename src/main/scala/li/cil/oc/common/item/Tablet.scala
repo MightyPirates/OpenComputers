@@ -24,9 +24,11 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.{client, server}
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.common.GuiType
+import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
@@ -42,7 +44,8 @@ import net.minecraft.client.renderer.model.ModelBakery
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.{PlayerEntity, ServerPlayerEntity}
+import net.minecraft.entity.player.{PlayerEntity, PlayerInventory, ServerPlayerEntity}
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item // Rarity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
@@ -216,8 +219,9 @@ class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item
             if (!world.isClientSide) {
               val tablet = Tablet.Server.get(stack, player)
               tablet.machine.stop()
-              if (tablet.data.tier > Tier.One) {
-                OpenComputers.openGui(player, GuiType.TabletInner.id, world, 0, 0, 0)
+              if (tablet.data.tier > Tier.One) player match {
+                case srvPlr: ServerPlayerEntity => ContainerTypes.openTabletGui(srvPlr, Tablet.get(stack, player))
+                case _ =>
               }
             }
           }
@@ -231,7 +235,12 @@ class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item
               }
             }
             else {
-              OpenComputers.openGui(player, GuiType.Tablet.id, world, 0, 0, 0)
+              Tablet.get(stack, player).components.collect {
+                case Some(buffer: api.internal.TextBuffer) => buffer
+              }.headOption match {
+                case Some(buffer: api.internal.TextBuffer) => Minecraft.getInstance.pushGuiLayer(new gui.Screen(buffer, true, () => true, () => buffer.isRenderingEnabled))
+                case _ =>
+              }
             }
           }
         }
@@ -250,7 +259,7 @@ class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var player: PlayerEntity) extends ComponentInventory with MachineHost with internal.Tablet {
+class TabletWrapper(var stack: ItemStack, var player: PlayerEntity) extends ComponentInventory with MachineHost with internal.Tablet with INamedContainerProvider {
   // Remember our *original* world, so we know which tablets to clear on dimension
   // changes of players holding tablets - since the player entity instance may be
   // kept the same and components are not required to properly handle world changes.
@@ -324,6 +333,13 @@ class TabletWrapper(var stack: ItemStack, var player: PlayerEntity) extends Comp
     tablet.node.changeBuffer(charge)
     writeToNBT()
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDisplayName = getName
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Tablet(ContainerTypes.TABLET, id, playerInventory, stack, this, containerSlotType, containerSlotTier)
 
   // ----------------------------------------------------------------------- //
 

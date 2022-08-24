@@ -13,12 +13,17 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.util.StateAware
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption
 import li.cil.oc.util.StackOption._
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.ISidedInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -30,7 +35,9 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Printer(selfType: TileEntityType[_ <: Printer]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo {
+class Printer(selfType: TileEntityType[_ <: Printer]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable
+  with SidedEnvironment with traits.StateAware with traits.Tickable with ISidedInventory with DeviceInfo with INamedContainerProvider {
+
   val node: ComponentConnector = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
@@ -367,6 +374,11 @@ class Printer(selfType: TileEntityType[_ <: Printer]) extends TileEntity(selfTyp
     else if (slot == slotInk)
       PrintData.inkValue(stack) > 0
     else false
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Printer(ContainerTypes.PRINTER, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
 

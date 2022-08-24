@@ -13,9 +13,6 @@ import net.minecraft.nbt.CompoundNBT
 class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, val stack: ItemStack, serverInventory: IInventory, tier: Int, val rackSlot: Int)
   extends Player(selfType, id, playerInventory, serverInventory) {
 
-  def this(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, rackSlot: Int = -1) =
-    this(selfType, id, playerInventory, serverInventory.container, serverInventory, serverInventory.tier, rackSlot)
-
   for (i <- 0 to 1) {
     val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)

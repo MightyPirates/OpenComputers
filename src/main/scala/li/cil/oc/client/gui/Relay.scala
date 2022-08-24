@@ -7,7 +7,6 @@ import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.Rectangle2d
@@ -15,11 +14,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
 import org.lwjgl.opengl.GL11
-
-object Relay {
-  def of(id: Int, playerInventory: PlayerInventory, relay: tileentity.Relay)
-    = new Relay(new container.Relay(container.ContainerTypes.RELAY, id, playerInventory, relay), playerInventory, relay.getName)
-}
 
 class Relay(state: container.Relay, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name) {

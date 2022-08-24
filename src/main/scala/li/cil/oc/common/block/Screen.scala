@@ -6,7 +6,7 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.common.GuiType
+import li.cil.oc.client.gui
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
@@ -72,11 +72,11 @@ class Screen(val tier: Int) extends RedstoneAware {
     else if (api.Items.get(heldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getBlockEntity(pos) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isCrouching == screen.origin.invertTouchMode) =>
-        // Yep, this GUI is actually purely client side. We could skip this
-        // if, but it is clearer this way (to trigger it from the server we
-        // would have to give screens a "container", which we do not want).
+        // Yep, this GUI is actually purely client side (to trigger it from
+        // the server we would have to give screens a "container", which we
+        // do not want).
         if (world.isClientSide) {
-          OpenComputers.openGui(player, GuiType.Screen.id, world, pos.getX, pos.getY, pos.getZ)
+          Minecraft.getInstance.pushGuiLayer(new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled))
         }
         true
       case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>

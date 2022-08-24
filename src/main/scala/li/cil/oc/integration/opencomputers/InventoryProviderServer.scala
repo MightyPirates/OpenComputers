@@ -11,5 +11,7 @@ object InventoryProviderServer extends InventoryProvider {
 
   override def getInventory(stack: ItemStack, player: PlayerEntity): IInventory = new ServerInventory {
     override def container: ItemStack = stack
+
+    override def rackSlot = -1
   }
 }

@@ -72,9 +72,6 @@ class RobotInfo(val mainInvSize: Int, val slot1: String, val tier1: Int,
 class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: PlayerInventory, robot: IInventory, val info: RobotInfo)
   extends Player(selfType, id, playerInventory, robot) {
 
-  def this(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: PlayerInventory, robot: tileentity.Robot) =
-    this(selfType, id, playerInventory, robot, new RobotInfo(robot))
-
   private val withScreenHeight = 256
   private val noScreenHeight = 108
   val deltaY: Int = if (info.screenBuffer.isDefined) 0 else withScreenHeight - noScreenHeight

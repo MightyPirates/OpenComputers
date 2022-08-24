@@ -5,15 +5,8 @@ import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
 import li.cil.oc.common.Tier
 import li.cil.oc.common.container
-import li.cil.oc.common.inventory.DatabaseInventory
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
-
-object Database {
-  def of(id: Int, playerInventory: PlayerInventory, databaseInventory: DatabaseInventory) =
-    new Database(new container.Database(container.ContainerTypes.DATABASE, id, playerInventory, databaseInventory), playerInventory, StringTextComponent.EMPTY)
-}
 
 class Database(state: container.Database, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name)

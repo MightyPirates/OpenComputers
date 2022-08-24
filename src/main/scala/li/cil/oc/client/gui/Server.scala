@@ -6,19 +6,12 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.tileentity
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
 
 import scala.collection.JavaConverters.asJavaCollection
-
-object Server {
-  def of(id: Int, playerInventory: PlayerInventory, serverInventory: ServerInventory, slot: Int = -1)
-    = new Server(new container.Server(container.ContainerTypes.SERVER, id, playerInventory, serverInventory, slot), playerInventory, serverInventory.getName)
-}
 
 class Server(state: container.Server, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name)

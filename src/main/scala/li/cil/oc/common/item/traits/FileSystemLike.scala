@@ -5,11 +5,13 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.client.gui
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
@@ -51,7 +53,10 @@ trait FileSystemLike extends SimpleItem {
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (!player.isCrouching && (!stack.hasTag || !stack.getTag.contains(Settings.namespace + "lootFactory"))) {
-      OpenComputers.openGui(player, GuiType.Drive.id, world, 0, 0, 0)
+      if (!world.isClientSide) player match {
+        case srvPlr: ServerPlayerEntity => Minecraft.getInstance.pushGuiLayer(new gui.Drive(player.inventory, () => stack))
+        case _ =>
+      }
       player.swing(Hand.MAIN_HAND)
     }
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)

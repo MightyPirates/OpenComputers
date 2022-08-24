@@ -14,12 +14,16 @@ import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
 import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.Slot
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.particles.ParticleTypes
@@ -35,7 +39,9 @@ import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
-class Charger(selfType: TileEntityType[_ <: Charger]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with traits.Tickable with Analyzable with traits.StateAware with DeviceInfo {
+class Charger(selfType: TileEntityType[_ <: Charger]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor with traits.RedstoneAware
+  with traits.Rotatable with traits.ComponentInventory with traits.Tickable with Analyzable with traits.StateAware with DeviceInfo with INamedContainerProvider {
+
   val node: Connector = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -222,6 +228,11 @@ class Charger(selfType: TileEntityType[_ <: Charger]) extends TileEntity(selfTyp
     case (0, Some(driver)) if driver.slot(stack) == Slot.Tablet => true
     case _ => ItemCharge.canCharge(stack)
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Charger(ContainerTypes.CHARGER, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
 

@@ -13,7 +13,6 @@ import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.INestedGuiEventHandler
@@ -22,17 +21,11 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
-
-object Robot {
-  def of(id: Int, playerInventory: PlayerInventory, robot: tileentity.Robot) =
-    new Robot(new container.Robot(container.ContainerTypes.ROBOT, id, playerInventory, robot), playerInventory, StringTextComponent.EMPTY)
-}
 
 class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name)

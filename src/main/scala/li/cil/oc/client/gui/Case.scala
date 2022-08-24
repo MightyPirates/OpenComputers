@@ -6,18 +6,12 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
 
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
-
-object Case {
-  def of(id: Int, playerInventory: PlayerInventory, computer: tileentity.Case) =
-    new Case(new container.Case(container.ContainerTypes.CASE, id, playerInventory, computer, computer.tier), playerInventory, computer.getName)
-}
 
 class Case(state: container.Case, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name) {

@@ -14,6 +14,8 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
@@ -36,8 +38,10 @@ import net.minecraft.block.Blocks
 import net.minecraft.block.FlowingFluidBlock
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.fluid.Fluid
 import net.minecraft.inventory.EquipmentSlotType
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -47,6 +51,7 @@ import net.minecraft.util.SoundEvents
 import net.minecraft.util.Util
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.util.LazyOptional
@@ -66,7 +71,9 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with traits.PowerInformation with traits.RotatableTile with IFluidHandler with internal.Robot with InventorySelection with TankSelection {
+class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with traits.PowerInformation with traits.RotatableTile
+  with IFluidHandler with internal.Robot with InventorySelection with TankSelection with INamedContainerProvider {
+
   var proxy: RobotProxy = _
 
   val info = new RobotData()
@@ -762,6 +769,13 @@ class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with 
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDisplayName = StringTextComponent.EMPTY
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Robot(ContainerTypes.ROBOT, id, playerInventory, this, new container.RobotInfo(this))
 
   // ----------------------------------------------------------------------- //
 

@@ -24,12 +24,16 @@ import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.item
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverLinkedCard
 import li.cil.oc.server.network.QuantumNetwork
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -40,7 +44,9 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) with traits.Hub with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
+class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) with traits.Hub with traits.ComponentInventory
+  with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode with INamedContainerProvider {
+
   lazy final val WirelessNetworkCardTier1: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
   lazy final val WirelessNetworkCardTier2: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
   lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
@@ -275,6 +281,11 @@ class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) w
         api.Items.get(stack) == WirelessNetworkCardTier2 || api.Items.get(stack) == LinkedCard else true
       tierSatisfied && cardTypeSatisfied
     })
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Relay(ContainerTypes.RELAY, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
 

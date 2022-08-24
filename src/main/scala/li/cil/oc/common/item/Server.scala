@@ -5,11 +5,12 @@ import java.util
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item // Rarity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
@@ -38,6 +39,8 @@ class Server(val tier: Int, props: Properties = new Properties().tab(CreativeTab
 
   private object HelperInventory extends ServerInventory {
     var container = ItemStack.EMPTY
+
+    override def rackSlot = -1
   }
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]) {
@@ -63,10 +66,16 @@ class Server(val tier: Int, props: Properties = new Properties().tab(CreativeTab
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (!player.isCrouching) {
-      // Open the GUI immediately on the client, too, to avoid the player
-      // changing the current slot before it actually opens, which can lead to
-      // desynchronization of the player inventory.
-      OpenComputers.openGui(player, GuiType.Server.id, world, 0, 0, 0)
+      if (!world.isClientSide) player match {
+        case srvPlr: ServerPlayerEntity => ContainerTypes.openServerGui(srvPlr, new ServerInventory {
+            override def container = stack
+
+            override def rackSlot = -1
+
+            override def stillValid(player: PlayerEntity) = player == srvPlr
+          }, -1)
+        case _ =>
+      }
       player.swing(Hand.MAIN_HAND)
     }
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)

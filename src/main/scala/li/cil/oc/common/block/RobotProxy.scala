@@ -7,7 +7,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
@@ -24,6 +24,7 @@ import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.fluid.FluidState
 import net.minecraft.item
 import net.minecraft.item.ItemStack
@@ -193,10 +194,10 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
         // We only send slot changes to nearby players, so if there was no slot
         // change since this player got into range he might have the wrong one,
         // so we send him the current one just in case.
-        world.getBlockEntity(pos) match {
-          case proxy: tileentity.RobotProxy if proxy.robot.node.network != null =>
+        (player, world.getBlockEntity(pos)) match {
+          case (srvPlr: ServerPlayerEntity, proxy: tileentity.RobotProxy) if proxy.robot.node.network != null =>
             PacketSender.sendRobotSelectedSlotChange(proxy.robot)
-            OpenComputers.openGui(player, GuiType.Robot.id, world, pos.getX, pos.getY, pos.getZ)
+            ContainerTypes.openRobotGui(srvPlr, proxy.robot)
           case _ =>
         }
       }

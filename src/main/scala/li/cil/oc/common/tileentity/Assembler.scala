@@ -12,22 +12,30 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption
 import li.cil.oc.util.StackOption._
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
+import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Assembler(selfType: TileEntityType[_ <: Assembler]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo {
+class Assembler(selfType: TileEntityType[_ <: Assembler]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor
+  with traits.Inventory with SidedEnvironment with traits.StateAware with traits.Tickable with DeviceInfo with INamedContainerProvider {
+
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
@@ -197,4 +205,11 @@ class Assembler(selfType: TileEntityType[_ <: Assembler]) extends TileEntity(sel
         tplSlot.validate(this, slot, stack)
       case _ => false
     }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDisplayName = StringTextComponent.EMPTY
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Assembler(ContainerTypes.ASSEMBLER, id, playerInventory, this)
 }

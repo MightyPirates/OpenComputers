@@ -8,7 +8,6 @@ import li.cil.oc.api.manual.ImageProvider
 import li.cil.oc.api.manual.ImageRenderer
 import li.cil.oc.api.manual.PathProvider
 import li.cil.oc.api.manual.TabIconRenderer
-import li.cil.oc.common.GuiType
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -109,7 +108,8 @@ object Manual extends ManualAPI {
 
   override def openFor(player: PlayerEntity): Unit = {
     if (player.level.isClientSide) {
-      OpenComputers.openGui(player, GuiType.Manual.id, player.level, 0, 0, 0)
+      val mc = Minecraft.getInstance
+      if (player == mc.player) mc.pushGuiLayer(new gui.Manual())
     }
   }
 

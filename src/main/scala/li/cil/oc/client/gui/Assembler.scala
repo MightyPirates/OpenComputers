@@ -9,21 +9,14 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.container.Slot
 import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
 
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
-
-object Assembler {
-  def of(id: Int, playerInventory: PlayerInventory, assembler: tileentity.Assembler) =
-    new Assembler(new container.Assembler(container.ContainerTypes.ASSEMBLER, id, playerInventory, assembler), playerInventory, StringTextComponent.EMPTY)
-}
 
 class Assembler(state: container.Assembler, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name) {

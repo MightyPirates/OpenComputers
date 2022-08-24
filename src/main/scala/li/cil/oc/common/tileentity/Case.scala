@@ -15,8 +15,12 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRunning
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -27,7 +31,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class Case(selfType: TileEntityType[_ <: Case], var tier: Int) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
+class Case(selfType: TileEntityType[_ <: Case], var tier: Int) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo with INamedContainerProvider {
   def this(selfType: TileEntityType[_ <: Case]) = {
     this(selfType, 0)
     // If no tier was defined when constructing this case, then we don't yet know the inventory size
@@ -142,4 +146,9 @@ class Case(selfType: TileEntityType[_ <: Case], var tier: Int) extends TileEntit
       val provided = InventorySlots.computer(tier)(slot)
       driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Case(ContainerTypes.CASE, id, playerInventory, this, tier)
 }

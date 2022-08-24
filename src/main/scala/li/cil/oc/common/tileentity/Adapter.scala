@@ -14,9 +14,12 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.util.SoundEvents
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.nbt.ListNBT
@@ -24,12 +27,15 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
+import net.minecraft.util.SoundEvents
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
-class Adapter(selfType: TileEntityType[_ <: Adapter]) extends TileEntity(selfType) with traits.Environment with traits.ComponentInventory with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo {
+class Adapter(selfType: TileEntityType[_ <: Adapter]) extends TileEntity(selfType) with traits.Environment with traits.ComponentInventory
+  with traits.Tickable with traits.OpenSides with Analyzable with internal.Adapter with DeviceInfo with INamedContainerProvider {
+
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, DriverBlock)]](6)(None)
@@ -184,6 +190,11 @@ class Adapter(selfType: TileEntityType[_ <: Adapter]) extends TileEntity(selfTyp
     case (0, Some(driver)) => driver.slot(stack) == Slot.Upgrade
     case _ => false
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Adapter(ContainerTypes.ADAPTER, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
 

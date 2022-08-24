@@ -19,10 +19,10 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -30,6 +30,7 @@ import li.cil.oc.server.network.Connector
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.Direction
@@ -124,6 +125,8 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
   // ----------------------------------------------------------------------- //
   // ServerInventory
 
+  override def rackSlot = slot
+
   override def tier: Int = container.getItem match {
     case server: item.Server => server.tier
     case _ => 0
@@ -189,8 +192,10 @@ class Server(val rack: api.internal.Rack, val slot: Int) extends Environment wit
         }
       }
       else {
-        val position = BlockPosition(rack)
-        OpenComputers.openGui(player, GuiType.ServerInRack.id, world, position.x, GuiType.embedSlot(position.y, slot), position.z)
+        player match {
+          case srvPlr: ServerPlayerEntity => ContainerTypes.openServerGui(srvPlr, this, slot)
+          case _ =>
+        }
       }
     }
     true

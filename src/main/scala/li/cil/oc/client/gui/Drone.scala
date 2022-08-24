@@ -9,7 +9,6 @@ import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
-import li.cil.oc.common.entity
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
@@ -18,16 +17,10 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConverters.asJavaCollection
 import scala.collection.convert.ImplicitConversionsToJava._
-
-object Drone {
-  def of(id: Int, playerInventory: PlayerInventory, drone: entity.Drone) =
-    new Drone(new container.Drone(container.ContainerTypes.DRONE, id, playerInventory, drone.mainInventory), playerInventory, StringTextComponent.EMPTY)
-}
 
 class Drone(state: container.Drone, playerInventory: PlayerInventory, name: ITextComponent)
   extends DynamicGuiContainer(state, playerInventory, name)

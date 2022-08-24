@@ -51,9 +51,6 @@ object OpenComputers {
     case Some(oc) => oc
     case _ => throw new IllegalStateException("not initialized")
   }
-
-  @Deprecated
-  def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = proxy.openGui(player, guiId, world, x, y, z)
 }
 
 @Mod(OpenComputers.ID)

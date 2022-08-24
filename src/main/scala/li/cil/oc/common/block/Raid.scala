@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
@@ -13,6 +13,7 @@ import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
@@ -41,7 +42,10 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   // ----------------------------------------------------------------------- //
 
-  override def guiType = GuiType.Raid
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Raid => ContainerTypes.openRaidGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Raid(tileentity.TileEntityTypes.RAID)
 

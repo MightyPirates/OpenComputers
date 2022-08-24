@@ -1,12 +1,13 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.GuiType
+import li.cil.oc.client.gui
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RotationHelper
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.state.StateContainer
 import net.minecraft.util.ActionResultType
@@ -28,8 +29,9 @@ class Waypoint extends RedstoneAware {
 
   override def use(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, trace: BlockRayTraceResult): ActionResultType = {
     if (!player.isCrouching) {
-      if (world.isClientSide) {
-        OpenComputers.openGui(player, GuiType.Waypoint.id, world, pos.getX, pos.getY, pos.getZ)
+      if (world.isClientSide) world.getBlockEntity(pos) match {
+        case t: tileentity.Waypoint => Minecraft.getInstance.pushGuiLayer(new gui.Waypoint(t))
+        case _ =>
       }
       ActionResultType.sidedSuccess(world.isClientSide)
     }

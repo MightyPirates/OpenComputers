@@ -17,6 +17,8 @@ object ServerTemplate {
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new ServerInventory {
       override def container = stack
+
+      override def rackSlot = -1
     }
     Array(ingredients, (0 until info.getContainerSize).map(info.getItem).filter(null !=).toArray)
   }

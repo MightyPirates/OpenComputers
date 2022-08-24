@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Rarity
@@ -12,6 +12,7 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.fluid.FluidState
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
@@ -50,7 +51,10 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
-  override def guiType = GuiType.Case
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Case => ContainerTypes.openCaseGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Case(tileentity.TileEntityTypes.CASE, tier)
 

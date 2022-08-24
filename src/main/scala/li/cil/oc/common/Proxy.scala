@@ -126,24 +126,6 @@ class Proxy {
     driver.Registry.locked = true
   }
 
-  def getGuiHandler(): common.GuiHandler = server.GuiHandler
-
-  @Deprecated
-  def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = {
-    player match {
-      case _: FakePlayer => {} // Ignore fake players.
-      case _: ServerPlayerEntity => {
-        player.openMenu(new INamedContainerProvider {
-          override def createMenu(id: Int, plrInv: PlayerInventory, plr: PlayerEntity): Container =
-            getGuiHandler.getServerGuiElement(guiId, id, plr, plr.level, x, y, z).asInstanceOf[Container]
-
-          override def getDisplayName(): ITextComponent = StringTextComponent.EMPTY
-        })
-      }
-      case _ => OpenComputers.log.error(s"Unsupported entity for openGui: ${player.getClass.getName}")
-    }
-  }
-
   def registerModel(instance: Item, id: String): Unit = {}
 
   def registerModel(instance: Block, id: String): Unit = {}

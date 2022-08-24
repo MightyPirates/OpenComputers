@@ -2,7 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -11,6 +11,7 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
@@ -38,7 +39,10 @@ class DiskDrive extends SimpleBlock with traits.GUI {
 
   // ----------------------------------------------------------------------- //
 
-  override def guiType = GuiType.DiskDrive
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.DiskDrive => ContainerTypes.openDiskDriveGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.DiskDrive(tileentity.TileEntityTypes.DISK_DRIVE)
 

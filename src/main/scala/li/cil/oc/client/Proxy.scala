@@ -97,19 +97,6 @@ private[oc] class Proxy extends CommonProxy {
     else RenderSystem.recordRenderCall(call)
   }
 
-  override def getGuiHandler(): common.GuiHandler = client.GuiHandler
-
-  @Deprecated
-  override def openGui(player: PlayerEntity, guiId: Int, world: World, x: Int, y: Int, z: Int): Unit = {
-    player match {
-      case _: ClientPlayerEntity => {
-        val screen = getGuiHandler.getClientGuiElement(guiId, 0, player, world, x, y, z).asInstanceOf[Screen]
-        if (screen != null) Minecraft.getInstance.pushGuiLayer(screen)
-      }
-      case _ => super.openGui(player, guiId, world, x, y, z)
-    }
-  }
-
   override def registerModel(instance: Item, id: String): Unit = ModelInitialization.registerModel(instance, id)
 
   override def registerModel(instance: Block, id: String): Unit = ModelInitialization.registerModel(instance, id)

@@ -19,7 +19,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.item.data.DroneData
@@ -39,6 +40,9 @@ import net.minecraft.entity.MoverType
 import net.minecraft.entity.Pose
 import net.minecraft.entity.item.ItemEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.network.datasync.DataParameter
@@ -51,6 +55,7 @@ import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.api.distmarker.Dist
@@ -487,6 +492,14 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
     super.skipAttackInteraction(entity)
   }
 
+  // Not implemented in Drone itself because spectators would open this via vanilla PlayerEntity.openMenu (without extra data).
+  val containerProvider = new INamedContainerProvider {
+    override def getDisplayName = StringTextComponent.EMPTY
+
+    override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+      new container.Drone(ContainerTypes.DRONE, id, playerInventory, mainInventory)
+  }
+
   override def interact(player: PlayerEntity, hand: Hand): ActionResultType = {
     if (!isAlive) return ActionResultType.PASS
     if (player.isCrouching) {
@@ -499,8 +512,9 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
         start()
       }
     }
-    else if (!world.isClientSide) {
-      OpenComputers.openGui(player, GuiType.Drone.id, world, getId, 0, 0)
+    else player match {
+      case srvPlr: ServerPlayerEntity if !world.isClientSide => ContainerTypes.openDroneGui(srvPlr, this)
+      case _ =>
     }
     ActionResultType.sidedSuccess(world.isClientSide)
   }

@@ -18,10 +18,14 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -32,7 +36,9 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class DiskDrive(selfType: TileEntityType[_ <: DiskDrive]) extends TileEntity(selfType) with traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
+class DiskDrive(selfType: TileEntityType[_ <: DiskDrive]) extends TileEntity(selfType) with traits.Environment
+  with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo with INamedContainerProvider {
+
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
@@ -101,6 +107,12 @@ class DiskDrive(selfType: TileEntityType[_ <: DiskDrive]) extends TileEntity(sel
     case (0, Some(driver)) => driver.slot(stack) == Slot.Floppy
     case _ => false
   }
+
+  // ----------------------------------------------------------------------- //
+  // INamedContainerProvider
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.DiskDrive(ContainerTypes.DISK_DRIVE, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory

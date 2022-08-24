@@ -8,13 +8,17 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.Slot
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.component.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -23,7 +27,7 @@ import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable with Analyzable {
+class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable with Analyzable with INamedContainerProvider {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   var filesystem: Option[FileSystem] = None
@@ -119,6 +123,11 @@ class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) wit
     })
     case (acc, ItemStack.EMPTY) => acc
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Raid(ContainerTypes.RAID, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
 

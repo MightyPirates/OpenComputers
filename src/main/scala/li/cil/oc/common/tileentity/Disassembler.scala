@@ -11,6 +11,8 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.util.StateAware
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -18,6 +20,8 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
@@ -31,7 +35,9 @@ import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-class Disassembler(selfType: TileEntityType[_ <: Disassembler]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable with DeviceInfo {
+class Disassembler(selfType: TileEntityType[_ <: Disassembler]) extends TileEntity(selfType) with traits.Environment with traits.PowerAcceptor
+  with traits.Inventory with traits.StateAware with traits.PlayerInputAware with traits.Tickable with DeviceInfo with INamedContainerProvider {
+
   val node: Connector = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -201,4 +207,9 @@ class Disassembler(selfType: TileEntityType[_ <: Disassembler]) extends TileEnti
       disassembleNextInstantly = !stack.isEmpty && slot == 0 && player.isCreative
     }
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Disassembler(ContainerTypes.DISASSEMBLER, id, playerInventory, this)
 }

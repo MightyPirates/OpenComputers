@@ -2,8 +2,10 @@ package li.cil.oc.common.item
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.inventory.DiskDriveMountableInventory
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
@@ -15,10 +17,14 @@ class DiskDriveMountable(props: Properties = new Properties().tab(CreativeTab)) 
   override def maxStackSize = 1
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity) = {
-    // Open the GUI immediately on the client, too, to avoid the player
-    // changing the current slot before it actually opens, which can lead to
-    // desynchronization of the player inventory.
-    OpenComputers.openGui(player, GuiType.DiskDriveMountable.id, world, 0, 0, 0)
+    if (!world.isClientSide) player match {
+      case srvPlr: ServerPlayerEntity => ContainerTypes.openDiskDriveGui(srvPlr, new DiskDriveMountableInventory {
+        override def container: ItemStack = stack
+
+        override def stillValid(player: PlayerEntity) = player == srvPlr
+      })
+      case _ =>
+    }
     player.swing(Hand.MAIN_HAND)
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }

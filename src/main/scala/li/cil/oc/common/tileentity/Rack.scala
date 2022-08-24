@@ -16,6 +16,8 @@ import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.util.StateAware
 import li.cil.oc.common.Slot
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.tileentity.traits.RedstoneChangedEventArgs
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -23,7 +25,9 @@ import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.RotationHelper
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.nbt.IntArrayNBT
@@ -35,7 +39,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 class Rack(selfType: TileEntityType[_ <: Rack]) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Hub with traits.PowerBalancer
-  with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
+  with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware with INamedContainerProvider {
 
   var isRelayEnabled = false
   val lastData = new Array[CompoundNBT](getContainerSize)
@@ -338,6 +342,12 @@ class Rack(selfType: TileEntityType[_ <: Rack]) extends TileEntity(selfType) wit
       getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
     }
   }
+
+  // ----------------------------------------------------------------------- //
+  // INamedContainerProvider
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Rack(ContainerTypes.RACK, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory

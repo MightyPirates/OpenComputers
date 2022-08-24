@@ -3,13 +3,15 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
@@ -28,7 +30,10 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.Sta
 
   override def energyThroughput = Settings.get.disassemblerRate
 
-  override def guiType = GuiType.Disassembler
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Disassembler => ContainerTypes.openDisassemblerGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Disassembler(tileentity.TileEntityTypes.DISASSEMBLER)
 }

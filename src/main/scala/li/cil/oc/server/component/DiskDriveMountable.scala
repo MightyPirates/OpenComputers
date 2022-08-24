@@ -19,21 +19,27 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.common.{GuiType, Slot, Sound}
+import li.cil.oc.common.{Slot, Sound}
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.container.{DiskDrive => DiskDriveContainer}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ItemStackInventory
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
+import net.minecraft.util.text.StringTextComponent
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
-class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo {
+class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends AbstractManagedEnvironment with ItemStackInventory with ComponentInventory with RackMountable with Analyzable with DeviceInfo with INamedContainerProvider {
   // Stored for filling data packet when queried.
   var lastAccess = 0L
 
@@ -180,12 +186,22 @@ class DiskDriveMountable(val rack: api.internal.Rack, val slot: Int) extends Abs
       }
       isDiskInDrive || isHoldingDisk
     }
-    else {
-      val position = BlockPosition(rack)
-      OpenComputers.openGui(player, GuiType.DiskDriveMountableInRack.id, rack.world, position.x, GuiType.embedSlot(position.y, slot), position.z)
-      true
+    else player match {
+      case srvPlr: ServerPlayerEntity => {
+        srvPlr.openMenu(this)
+        true
+      }
+      case _ => false
     }
   }
+
+  // ----------------------------------------------------------------------- //
+  // INamedContainerProvider
+
+  override def getDisplayName = StringTextComponent.EMPTY
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new DiskDriveContainer(ContainerTypes.DISK_DRIVE, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
   // StateAware

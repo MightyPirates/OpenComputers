@@ -2,12 +2,18 @@ package li.cil.oc.common.item
 
 import java.util
 
+import com.google.common.base.Strings
 import li.cil.oc.Constants
 import li.cil.oc.CreativeTab
+import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.api
+import li.cil.oc.client.gui
+import li.cil.oc.common.component
+import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.model.ModelBakery
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.client.util.ITooltipFlag
@@ -63,7 +69,32 @@ class Terminal(props: Properties = new Properties().tab(CreativeTab)) extends It
       val server = stack.getTag.getString(Settings.namespace + "server")
       if (key != null && !key.isEmpty && server != null && !server.isEmpty) {
         if (world.isClientSide) {
-          OpenComputers.openGui(player, GuiType.Terminal.id, world, 0, 0, 0)
+          if (stack.hasTag) {
+            val address = stack.getTag.getString(Settings.namespace + "server")
+            val key = stack.getTag.getString(Settings.namespace + "key")
+            if (!Strings.isNullOrEmpty(key) && !Strings.isNullOrEmpty(address)) {
+              component.TerminalServer.loaded.find(address) match {
+                case Some(term) if term != null && term.rack != null => term.rack match {
+                  case rack: TileEntity with api.internal.Rack => {
+                    def inRange = player.isAlive && !rack.isRemoved && player.distanceToSqr(rack.x + 0.5, rack.y + 0.5, rack.z + 0.5) < term.range * term.range
+                    if (inRange) {
+                      if (term.sidedKeys.contains(key)) Minecraft.getInstance.pushGuiLayer(new gui.Screen(term.buffer, true, () => true, () => {
+                        // Check if someone else bound a term to our server.
+                        if (stack.getTag.getString(Settings.namespace + "key") != key) Minecraft.getInstance.popGuiLayer
+                        // Check whether we're still in range.
+                        if (!inRange) Minecraft.getInstance.popGuiLayer
+                        true
+                      }))
+                      else player.displayClientMessage(Localization.Terminal.InvalidKey, true)
+                    }
+                    else player.displayClientMessage(Localization.Terminal.OutOfRange, true)
+                  }
+                  case _ => // Eh?
+                }
+                case _ => player.displayClientMessage(Localization.Terminal.OutOfRange, true)
+              }
+            }
+          }
         }
         player.swing(Hand.MAIN_HAND)
       }

@@ -2,12 +2,13 @@ package li.cil.oc.common.block
 
 import li.cil.oc.Settings
 import li.cil.oc.api.component.RackMountable
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
@@ -29,7 +30,10 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
 
   override def energyThroughput = Settings.get.serverRackRate
 
-  override def guiType = GuiType.Rack
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Rack => ContainerTypes.openRackGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Rack(tileentity.TileEntityTypes.RACK)
 

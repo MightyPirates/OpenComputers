@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
@@ -9,6 +9,7 @@ import li.cil.oc.server.PacketSender
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
@@ -25,7 +26,10 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateA
 
   override def energyThroughput = Settings.get.chargerRate
 
-  override def guiType = GuiType.Charger
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Charger => ContainerTypes.openChargerGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Charger(tileentity.TileEntityTypes.CHARGER)
 

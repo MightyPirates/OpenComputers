@@ -1,11 +1,12 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
@@ -15,7 +16,10 @@ import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
 
 class Adapter extends SimpleBlock with traits.GUI {
-  override def guiType = GuiType.Adapter
+  override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
+    case te: tileentity.Adapter => ContainerTypes.openAdapterGui(player, te)
+    case _ =>
+  }
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Adapter(tileentity.TileEntityTypes.ADAPTER)
 
