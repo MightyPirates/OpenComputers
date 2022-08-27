@@ -131,7 +131,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
       case (key, value) => hash += key -> value
     }
     hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
-    hash.update("size", Int.box(aeItem.getStackSize.toInt))
+    hash.update("size", Long.box(aeItem.getStackSize))
     hash
   }
 

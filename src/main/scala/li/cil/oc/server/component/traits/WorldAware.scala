@@ -2,15 +2,14 @@ package li.cil.oc.server.component.traits
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.{BlockInventorySource, BlockPosition, EntityInventorySource, InventorySource}
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.util.{EnumActionResult, EnumFacing, EnumHand}
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
@@ -35,7 +34,7 @@ trait WorldAware {
     player
   }
 
-  def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
+  private def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
     try {
       val event = new PlayerInteractEvent.RightClickBlock(fakePlayer, EnumHand.MAIN_HAND, blockPos.toBlockPos, face, null)
       MinecraftForge.EVENT_BUS.post(event)
@@ -47,8 +46,24 @@ trait WorldAware {
     }
   }
 
-  def mayInteract(blockPos: BlockPosition, side: EnumFacing, inventory: IItemHandler): Boolean = mayInteract(blockPos, side) && (inventory match {
+  private def mayInteract(entity: Entity): Boolean = {
+    try {
+      val event = new PlayerInteractEvent.EntityInteract(fakePlayer, EnumHand.MAIN_HAND, entity)
+      MinecraftForge.EVENT_BUS.post(event)
+      !event.isCanceled
+    } catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Some event handler threw up while checking for permission to access an entity.", t)
+        true
+    }
+  }
+
+  def mayInteract(inv: InventorySource): Boolean = (inv.inventory match {
     case inv: InvWrapper if inv.getInv != null => inv.getInv.isUsableByPlayer(fakePlayer)
+    case _ => true
+  }) && (inv match {
+    case inv: BlockInventorySource => mayInteract(inv.position, inv.side)
+    case inv: EntityInventorySource => mayInteract(inv.entity)
     case _ => true
   })
 

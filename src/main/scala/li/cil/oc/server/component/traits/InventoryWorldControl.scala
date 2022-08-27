@@ -44,9 +44,9 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val stack = inventory.getStackInSlot(selectedSlot)
     if (!stack.isEmpty && stack.getCount > 0) {
       val blockPos = position.offset(facing)
-      InventoryUtils.inventoryAt(blockPos, facing.getOpposite) match {
-        case Some(inv) if mayInteract(blockPos, facing.getOpposite, inv) =>
-          if (!InventoryUtils.insertIntoInventory(stack, inv, count)) {
+      InventoryUtils.inventorySourceAt(blockPos, facing.getOpposite) match {
+        case Some(inv) if mayInteract(inv) =>
+          if (!InventoryUtils.insertIntoInventory(stack, inv.inventory, count)) {
             // Cannot drop into that inventory.
             return result(false, "inventory full")
           }
@@ -103,9 +103,9 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val count = args.optItemCount(1)
 
     val blockPos = position.offset(facing)
-    var extracted: Int = InventoryUtils.inventoryAt(blockPos, facing.getOpposite) match {
-      case Some(inventory) => mayInteract(blockPos, facing.getOpposite)
-        InventoryUtils.extractAnyFromInventory((is, sim) => InventoryUtils.insertIntoInventory(is, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots), simulate = sim), inventory, count)
+    var extracted: Int = InventoryUtils.inventorySourceAt(blockPos, facing.getOpposite) match {
+      case Some(inventory) => mayInteract(inventory)
+        InventoryUtils.extractAnyFromInventory((is, sim) => InventoryUtils.insertIntoInventory(is, InventoryUtils.asItemHandler(this.inventory), slots = Option(insertionSlots), simulate = sim), inventory.inventory, count)
       case _ => 0
     }
     if (extracted <= 0) {

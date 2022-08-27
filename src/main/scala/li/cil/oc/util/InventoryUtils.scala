@@ -40,32 +40,39 @@ object InventoryUtils {
       (!checkNBT || ItemStack.areItemStackTagsEqual(stackA, stackB))
 
   /**
-   * Retrieves an actual inventory implementation for a specified world coordinate.
-   * <br>
-   * This performs special handling for (double-)chests and also checks for
-   * mine carts with chests.
+   * Retrieves an actual inventory implementation for a specified world coordinate,
+   * complete with a reference to the source of said implementation.
    */
-  def inventoryAt(position: BlockPosition, side: EnumFacing): Option[IItemHandler] = position.world match {
+  def inventorySourceAt(position: BlockPosition, side: EnumFacing): Option[InventorySource] = position.world match {
     case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
-      case tile: TileEntity if tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side) => Option(tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
-      case tile: IInventory => Option(asItemHandler(tile, side))
+      case tile: TileEntity if tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side) => Option(BlockInventorySource(position, side, tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side)))
+      case tile: IInventory => Option(BlockInventorySource(position, side, asItemHandler(tile, side)))
       case _ => world.getEntitiesWithinAABB(classOf[Entity], position.bounds)
         .filter(e => !e.isDead && e.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
-        .map(_.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side))
-        .find(_ != null)
+        .map(a => EntityInventorySource(a, side, a.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side)))
+        .find(a => a != null && a.inventory != null)
     }
     case _ => None
   }
 
-  def anyInventoryAt(position: BlockPosition): Option[IItemHandler] = {
+  /**
+   * Retrieves an actual inventory implementation for a specified world coordinate.
+   */
+  def inventoryAt(position: BlockPosition, side: EnumFacing): Option[IItemHandler] = inventorySourceAt(position, side)
+    .map(a => a.inventory)
+
+  def anyInventorySourceAt(position: BlockPosition): Option[InventorySource] = {
     for(side <- null :: EnumFacing.VALUES.toList) {
-      inventoryAt(position, side) match {
-        case inv: Some[IItemHandler] => return inv
+      inventorySourceAt(position, side) match {
+        case inv: Some[InventorySource] => return inv
         case _ =>
       }
     }
     None
   }
+
+  def anyInventoryAt(position: BlockPosition): Option[IItemHandler] = anyInventorySourceAt(position)
+    .map(a => a.inventory)
 
   /**
    * Inserts a stack into an inventory.
@@ -397,3 +404,10 @@ object InventoryUtils {
     case _ => null
   }
 }
+
+sealed trait InventorySource {
+  def side: EnumFacing
+  def inventory: IItemHandler
+}
+final case class BlockInventorySource(position: BlockPosition, side: EnumFacing, inventory: IItemHandler) extends InventorySource
+final case class EntityInventorySource(entity: Entity, side: EnumFacing, inventory: IItemHandler) extends InventorySource

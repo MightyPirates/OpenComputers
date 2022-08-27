@@ -6,13 +6,13 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.prefab.ItemStackArrayValue
 import li.cil.oc.server.component.result
-import li.cil.oc.util.{BlockPosition, DatabaseAccess, InventoryUtils}
+import li.cil.oc.util.{BlockInventorySource, BlockPosition, DatabaseAccess, EntityInventorySource, InventorySource, InventoryUtils, StackOption}
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.block.Block
-import li.cil.oc.util.StackOption
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common.registry.EntityRegistry
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.oredict.OreDictionary
 
@@ -102,8 +102,12 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
       }
       case _ => None
     }
-    withInventory(facing, inventory => blockAt(position.offset(facing)) match {
-      case Some(block) => result(block.getRegistryName)
+    withInventorySource(facing, {
+      case BlockInventorySource(position, _, _) => blockAt(position) match {
+        case Some(block) => result(block.getRegistryName)
+        case _ => result(Unit, "Unknown")
+      }
+      case EntityInventorySource(entity, _, _) => result(EntityRegistry.getEntry(entity.getClass).getRegistryName)
       case _ => result(Unit, "Unknown")
     })
   }
@@ -122,9 +126,12 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
 
-  private def withInventory(side: EnumFacing, f: IItemHandler => Array[AnyRef]) =
-    InventoryUtils.inventoryAt(position.offset(side), side.getOpposite) match {
-      case Some(inventory) if mayInteract(position.offset(side), side.getOpposite, inventory) => f(inventory)
+  private def withInventorySource(side: EnumFacing, f: InventorySource => Array[AnyRef]) =
+    InventoryUtils.inventorySourceAt(position.offset(side), side.getOpposite) match {
+      case Some(inventory) if mayInteract(inventory) => f(inventory)
       case _ => result(Unit, "no inventory")
     }
+
+  private def withInventory(side: EnumFacing, f: IItemHandler => Array[AnyRef]) =
+    withInventorySource(side, is => f(is.inventory))
 }
