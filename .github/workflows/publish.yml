@@ -48,7 +48,7 @@ jobs:
           asset_paths: '["./build/libs/*.jar"]'
 
       - name: Publish to Github Packages
-        run: gradle -Pmod_version='${{ steps.split_tag.outputs._1 }}' publish
+        run: ./gradlew -Pmod_version='${{ steps.split_tag.outputs._1 }}' publish
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
