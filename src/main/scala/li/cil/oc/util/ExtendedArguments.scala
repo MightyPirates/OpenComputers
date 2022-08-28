@@ -51,10 +51,11 @@ object ExtendedArguments {
 
     def checkTankProperties(handler: IFluidHandler, n: Int) = {
       val tank = args.checkInteger(n) - 1
-      if (tank < 0 || tank >= handler.getTankProperties.length) {
+      val tankInfo = handler.getTankProperties
+      if (tankInfo == null || tank < 0 || tank >= tankInfo.length) {
         throw new IllegalArgumentException("invalid tank index")
       }
-      handler.getTankProperties()(tank)
+      tankInfo(tank)
     }
 
     def optTankProperties(handler: IFluidHandler, n: Int, default: IFluidTankProperties) = {

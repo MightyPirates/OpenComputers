@@ -41,13 +41,16 @@
 * Fixed: [#2911] Inconsistent values used by getGameType() and setGameType() in Debug Card.
 * (1.12.2) Fixed: [#3472] Incorrect 3D print lighting.
 * Fixed: [#3226] Incorrect Hard Drive reported maximum stack size when formatted.
+* Fixed: [#3084] Incorrect parsing of the 'maxSignalQueueSize' configuration option.
 * Fixed: [#3184] Incorrect redstone card sides inside racks and computers.
 * Fixed: [#3182] Incorrect reporting of entity inventory names in Transposer, plus other Transposer interaction issues.
 * Fixed: Missing null check for Blood Magic integration.
 * Fixed: [#3336] Missing null check for GregTech data stick NBTs.
 * Fixed: [#3249] NullPointerException when remote terminal is missing.
+* Fixed: Potential edge case crash with the Tank Controller Upgrade.
 * Fixed: [#3401] 'rawSetForeground', 'rawSetBackground' not working correctly.
 * Fixed: [#3265] Relay 'setStrength' unlimited upper bound. (JamesOrdner)
+* (1.7.10) Fixed: [#3540] Server-side crash with Motion Sensor
 * Fixed: [#1999] 'string.gsub' patterns now allow numbers.
 * Fixed: [#3195] Tier 1 Wireless Cards not receiving messages.
 * (1.7.10) Fixed: [#3239] Unnecessary/unwanted canEntityDestroy check in OpenComputers fake player.
