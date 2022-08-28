@@ -111,7 +111,7 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.ManagedEnvironment 
       // is pseudo-infrared driven (it only works for *living* entities, after
       // all), so I think it makes more sense for it to work in the dark, too.
       /* entity.getBrightness(0) > 0.2 && */ {
-      val target = entity.getPosition(1.0F)
+      val target = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ)
       isClearPath(target) || isClearPath(target.addVector(0, entity.getEyeHeight, 0))
     }
 
