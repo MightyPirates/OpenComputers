@@ -46,10 +46,11 @@ object ExtendedArguments {
 
     def checkTankInfo(handler: IFluidHandler, side: ForgeDirection, n: Int) = {
       val tank = args.checkInteger(n) - 1
-      if (tank < 0 || tank >= handler.getTankInfo(side).length) {
+      val tankInfo = handler.getTankInfo(side)
+      if (tankInfo == null || tank < 0 || tank >= tankInfo.length) {
         throw new IllegalArgumentException("invalid tank index")
       }
-      handler.getTankInfo(side)(tank)
+      tankInfo(tank)
     }
 
     def optTankInfo(handler: IFluidHandler, side: ForgeDirection, n: Int, default: FluidTankInfo) = {

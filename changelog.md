@@ -47,6 +47,7 @@
 * Fixed: Missing null check for Blood Magic integration.
 * Fixed: [#3336] Missing null check for GregTech data stick NBTs.
 * Fixed: [#3249] NullPointerException when remote terminal is missing.
+* Fixed: Potential edge case crash with the Tank Controller Upgrade.
 * Fixed: [#3401] 'rawSetForeground', 'rawSetBackground' not working correctly.
 * Fixed: [#3265] Relay 'setStrength' unlimited upper bound. (JamesOrdner)
 * (1.7.10) Fixed: [#3540] Server-side crash with Motion Sensor
