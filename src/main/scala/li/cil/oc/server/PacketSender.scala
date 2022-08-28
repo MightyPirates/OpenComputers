@@ -618,14 +618,14 @@ object PacketSender {
     pb.writeInt(value.ordinal)
   }
 
-  def appendTextBufferFill(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, c: Char) {
+  def appendTextBufferFill(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, c: Int) {
     pb.writePacketType(PacketType.TextBufferMultiFill)
 
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
     pb.writeInt(h)
-    pb.writeChar(c)
+    pb.writeMedium(c)
   }
 
   def appendTextBufferPaletteChange(pb: PacketBuilder, index: Int, color: Int) {
@@ -692,7 +692,7 @@ object PacketSender {
     pb.writeInt(id)
   }
 
-  def appendTextBufferRawSetText(pb: PacketBuilder, col: Int, row: Int, text: Array[Array[Char]]) {
+  def appendTextBufferRawSetText(pb: PacketBuilder, col: Int, row: Int, text: Array[Array[Int]]) {
     pb.writePacketType(PacketType.TextBufferMultiRawSetText)
 
     pb.writeInt(col)
@@ -702,7 +702,7 @@ object PacketSender {
       val line = text(y)
       pb.writeShort(line.length.toShort)
       for (x <- 0 until line.length.toShort) {
-        pb.writeChar(line(x))
+        pb.writeMedium(line(x))
       }
     }
   }

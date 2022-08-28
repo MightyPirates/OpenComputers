@@ -1,9 +1,7 @@
 package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
-import li.cil.oc.util.PackedColor
-import li.cil.oc.util.RenderState
-import li.cil.oc.util.TextBuffer
+import li.cil.oc.util.{ExtendedUnicodeHelper, PackedColor, RenderState, TextBuffer}
 import org.lwjgl.opengl.GL11
 
 /**
@@ -25,6 +23,12 @@ abstract class TextureFontRenderer {
    * be generated inside the draw call.
    */
   def generateChars(chars: Array[Char]) {
+    for (char <- chars) {
+      generateChar(char)
+    }
+  }
+
+  def generateChars(chars: Array[Int]) {
     for (char <- chars) {
       generateChar(char)
     }
@@ -113,6 +117,8 @@ abstract class TextureFontRenderer {
   }
 
   def drawString(s: String, x: Int, y: Int): Unit = {
+    val sLength = ExtendedUnicodeHelper.length(s)
+
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
@@ -124,13 +130,15 @@ abstract class TextureFontRenderer {
       bindTexture(i)
       GL11.glBegin(GL11.GL_QUADS)
       var tx = 0f
-      for (n <- 0 until s.length) {
-        val ch = s.charAt(n)
+      var cx = 0
+      for (n <- 0 until sLength) {
+        val ch = s.codePointAt(cx)
         // Don't render whitespace.
         if (ch != ' ') {
           drawChar(tx, 0, ch)
         }
         tx += charWidth
+        cx = s.offsetByCodePoints(cx, 1)
       }
       GL11.glEnd()
     }
@@ -147,9 +155,9 @@ abstract class TextureFontRenderer {
 
   protected def bindTexture(index: Int): Unit
 
-  protected def generateChar(char: Char): Unit
+  protected def generateChar(char: Int): Unit
 
-  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
+  protected def drawChar(tx: Float, ty: Float, char: Int): Unit
 
   private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
     val x0 = x * charWidth

@@ -1,7 +1,8 @@
 package li.cil.oc.server.machine.luac
 
+import java.util.function.IntUnaryOperator
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.util.FontUtils
+import li.cil.oc.util.{ExtendedUnicodeHelper, FontUtils}
 
 class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -9,13 +10,16 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.newTable()
 
     lua.pushScalaFunction(lua => {
-      lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+      val builder = new java.lang.StringBuilder()
+      (1 to lua.getTop).map(lua.checkInteger).foreach(builder.appendCodePoint)
+      lua.pushString(builder.toString)
       1
     })
     lua.setField(-2, "char")
 
     lua.pushScalaFunction(lua => {
-      lua.pushInteger(lua.checkString(1).length)
+      val s = lua.checkString(1)
+      lua.pushInteger(ExtendedUnicodeHelper.length(s))
       1
     })
     lua.setField(-2, "len")
@@ -27,22 +31,23 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "lower")
 
     lua.pushScalaFunction(lua => {
-      lua.pushString(lua.checkString(1).reverse)
+      lua.pushString(ExtendedUnicodeHelper.reverse(lua.checkString(1)))
       1
     })
     lua.setField(-2, "reverse")
 
     lua.pushScalaFunction(lua => {
       val string = lua.checkString(1)
-      val start = math.max(0, lua.checkInteger(2) match {
-        case i if i < 0 => string.length + i
-        case i => i - 1
-      })
+      val sLength = ExtendedUnicodeHelper.length(string)
+      val start = lua.checkInteger(2) match {
+        case i if i < 0 => string.offsetByCodePoints(string.length, math.max(i, -sLength))
+        case i => string.offsetByCodePoints(0, math.min(i - 1, sLength))
+      }
       val end =
-        if (lua.getTop > 2) math.min(string.length, lua.checkInteger(3) match {
-          case i if i < 0 => string.length + i + 1
-          case i => i
-        })
+        if (lua.getTop > 2) lua.checkInteger(3) match {
+          case i if i < 0 => string.offsetByCodePoints(string.length, math.max(i + 1, -sLength))
+          case i => string.offsetByCodePoints(0, math.min(i, sLength))
+        }
         else string.length
       if (end <= start) lua.pushString("")
       else lua.pushString(string.substring(start, end))
@@ -70,7 +75,9 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.checkString(1)
-      lua.pushInteger(value.toCharArray.map(ch => math.max(1, FontUtils.wcwidth(ch))).sum)
+      lua.pushInteger(value.codePoints().map(new IntUnaryOperator {
+        override def applyAsInt(ch: Int): Int = math.max(1, FontUtils.wcwidth(ch))
+      }).sum)
       1
     })
     lua.setField(-2, "wlen")
@@ -81,8 +88,8 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       var width = 0
       var end = 0
       while (width < count) {
-        width += math.max(1, FontUtils.wcwidth(value(end)))
-        end += 1
+        width += math.max(1, FontUtils.wcwidth(value.codePointAt(end)))
+        end = value.offsetByCodePoints(end, 1)
       }
       if (end > 1) lua.pushString(value.substring(0, end - 1))
       else lua.pushString("")

@@ -58,6 +58,12 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     }
   }
 
+  def writeMedium(v: Int) = {
+    writeByte(v & 0xFF)
+    writeByte((v >> 8) & 0xFF)
+    writeByte((v >> 16) & 0xFF)
+  }
+
   def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
