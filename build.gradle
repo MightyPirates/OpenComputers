@@ -299,6 +299,7 @@ modrinth {
     versionType = System.getenv('MODRINTH_RELEASE_TYPE') ?: "alpha"
     uploadFile = jar
     gameVersions = [config.minecraft.version]
+    loaders = ["forge"]
 }
 
 // this is needed for IntelliJ so we don't have to copy over the assets manually every time
