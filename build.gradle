@@ -297,4 +297,5 @@ modrinth {
     versionType = System.getenv('MODRINTH_RELEASE_TYPE') ?: "alpha"
     uploadFile = jar
     gameVersions = [config.minecraft.version]
+    loaders = ["forge"]
 }
