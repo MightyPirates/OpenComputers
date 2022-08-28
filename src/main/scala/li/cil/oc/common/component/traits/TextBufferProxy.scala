@@ -3,7 +3,7 @@ package li.cil.oc.common.component.traits
 import li.cil.oc.util
 import li.cil.oc.api
 import li.cil.oc.api.internal.TextBuffer
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{ExtendedUnicodeHelper, PackedColor}
 
 trait TextBufferProxy extends api.internal.TextBuffer {
   def data: util.TextBuffer
@@ -70,32 +70,47 @@ trait TextBufferProxy extends api.internal.TextBuffer {
     if (data.copy(col, row, w, h, tx, ty))
       onBufferCopy(col, row, w, h, tx, ty)
 
-  def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = {}
+  def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int): Unit = {}
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit =
+    fill(col, row, w, h, c.toInt)
+
+  def fill(col: Int, row: Int, w: Int, h: Int, c: Int): Unit =
     if (data.fill(col, row, w, h, c))
       onBufferFill(col, row, w, h, c)
 
   def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean): Unit = {}
 
-  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit =
-    if (col < data.width && (col >= 0 || -col < s.length)) {
+  private def truncate(s: String, sLength: Int, leftOffset: Int, maxWidth: Int): String = {
+    val subFrom = s.offsetByCodePoints(0, leftOffset)
+    val width = math.min(sLength, maxWidth)
+    if (width <= 0) ""
+    else if ((sLength - leftOffset) <= width) s
+    else s.substring(subFrom, s.offsetByCodePoints(subFrom, width))
+  }
+
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit = {
+    val sLength = ExtendedUnicodeHelper.length(s)
+    if (col < data.width && (col >= 0 || -col < sLength)) {
       // Make sure the string isn't longer than it needs to be, in particular to
       // avoid sending too much data to our clients.
       val (x, y, truncated) =
       if (vertical) {
-        if (row < 0) (col, 0, s.substring(-row))
-        else (col, row, s.substring(0, math.min(s.length, data.height - row)))
+        if (row < 0) (col, 0, truncate(s, sLength, -row, data.height))
+        else (col, row, truncate(s, sLength, 0, data.height - row))
       }
       else {
-        if (col < 0) (0, row, s.substring(-col))
-        else (col, row, s.substring(0, math.min(s.length, data.width - col)))
+        if (col < 0) (0, row, truncate(s, sLength, -col, data.width))
+        else (col, row, truncate(s, sLength, 0, data.width - col))
       }
       if (data.set(x, y, truncated, vertical))
         onBufferSet(x, row, truncated, vertical)
     }
+  }
 
-  def get(col: Int, row: Int): Char = data.get(col, row)
+  def get(col: Int, row: Int): Char = data.get(col, row).toChar
+
+  def getCodePoint(col: Int, row: Int): Int = data.get(col, row)
 
   override def getForegroundColor(column: Int, row: Int): Int =
     if (isForegroundFromPalette(column, row)) {
@@ -120,6 +135,13 @@ trait TextBufferProxy extends api.internal.TextBuffer {
     data.format.isFromPalette(PackedColor.extractBackground(color(column, row)))
 
   override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
+    for (y <- row until ((row + text.length) min data.height)) {
+      val line = text(y - row)
+      Array.copy(line, 0, data.buffer(y), col, line.length min data.width)
+    }
+  }
+
+  override def rawSetText(col: Int, row: Int, text: Array[Array[Int]]): Unit = {
     for (y <- row until ((row + text.length) min data.height)) {
       val line = text(y - row)
       Array.copy(line, 0, data.buffer(y), col, line.length min data.width)

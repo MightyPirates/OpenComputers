@@ -1,7 +1,6 @@
 package li.cil.oc.server.component
 
 import java.util
-
 import li.cil.oc.{Constants, Localization, Settings, api}
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
@@ -11,7 +10,7 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context, LimitReachedExceptio
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{ExtendedUnicodeHelper, PackedColor}
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import li.cil.oc.common.component
 import li.cil.oc.common.component.GpuTextBuffer
@@ -476,7 +475,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (bgValue, Unit)
         }
 
-      result(s.get(x, y), fgColor, bgColor, fgIndex, bgIndex)
+      result(new java.lang.StringBuilder().appendCodePoint(s.getCodePoint(x, y)).toString, fgColor, bgColor, fgIndex, bgIndex)
     })
   }
 
@@ -488,7 +487,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val vertical = args.optBoolean(3, false)
 
     screen(s => {
-      if (resolveInvokeCosts(bufferIndex, context, setCosts(tier), value.length, Settings.get.gpuSetCost)) {
+      if (resolveInvokeCosts(bufferIndex, context, setCosts(tier), ExtendedUnicodeHelper.length(value), Settings.get.gpuSetCost)) {
         s.set(x, y, value, vertical)
         result(true)
       } else result(Unit, "not enough energy")
@@ -519,11 +518,11 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val w = math.max(0, args.checkInteger(2))
     val h = math.max(0, args.checkInteger(3))
     val value = args.checkString(4)
-    if (value.length == 1) screen(s => {
-      val c = value.charAt(0)
+    if (ExtendedUnicodeHelper.length(value) == 1) screen(s => {
+      val c = value.codePointAt(0)
       val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
       if (resolveInvokeCosts(bufferIndex, context, fillCosts(tier), w * h, cost)) {
-        s.fill(x, y, w, h, value.charAt(0))
+        s.fill(x, y, w, h, c)
         result(true)
       }
       else {
@@ -560,7 +559,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
             if (s.getColorDepth.ordinal > api.internal.TextBuffer.ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
-            s.fill(0, 0, w, h, ' ')
+            s.fill(0, 0, w, h, 0x20)
             try {
               val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
               val lines = wrapRegEx.replaceAllIn(Localization.localizeImmediately(machine.lastError).replace("\t", "  ") + "\n", m => Regex.quoteReplacement(m.group(1) + "\n")).lines.toArray
@@ -581,7 +580,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
             }
           case _ =>
             s.setBackgroundColor(0x000000)
-            s.fill(0, 0, w, h, ' ')
+            s.fill(0, 0, w, h, 0x20)
         }
         null // For screen()
       })

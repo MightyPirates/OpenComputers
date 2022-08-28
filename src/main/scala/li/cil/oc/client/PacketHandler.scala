@@ -696,7 +696,7 @@ object PacketHandler extends CommonPacketHandler {
     val row = p.readInt()
     val w = p.readInt()
     val h = p.readInt()
-    val c = p.readChar()
+    val c = p.readMedium()
     buffer.fill(col, row, w, h, c)
   }
 
@@ -765,12 +765,12 @@ object PacketHandler extends CommonPacketHandler {
     val row = p.readInt()
 
     val rows = p.readShort()
-    val text = new Array[Array[Char]](rows)
+    val text = new Array[Array[Int]](rows)
     for (y <- 0 until rows) {
       val cols = p.readShort()
-      val line = new Array[Char](cols)
+      val line = new Array[Int](cols)
       for (x <- 0 until cols) {
-        line(x) = p.readChar()
+        line(x) = p.readMedium()
       }
       text(y) = line
     }
