@@ -227,19 +227,13 @@ processResources {
     inputs.property "mcversion", config.minecraft.version
     inputs.property "fversion", config.forge.version
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
+    filesMatching(['mcmod.info']) {
         expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':config.forge.version
     }
-    from(sourceSets.main.resources.srcDirs) {
-        include 'application.conf'
+    filesMatching(['application.conf']) {
         filter { line ->
             line.replaceAll("@VERSION@", project.simpleVersion)
         }
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-        exclude 'application.conf'
     }
 
     // Move access transformer to META-INF
