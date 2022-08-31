@@ -24,8 +24,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getBlockType match {
-    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
+  def pitch = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getWorld.getBlockState(getPos) match {
+    case rotatable if rotatable.getProperties.containsKey(PropertyRotatable.Pitch) => rotatable.getValue(PropertyRotatable.Pitch)
     case _ => EnumFacing.NORTH
   } else null
 
@@ -35,9 +35,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => EnumFacing.NORTH
     }, yaw)
 
-  def yaw = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getBlockType match {
-    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
-    case rotatable if getWorld.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => getWorld.getBlockState(getPos).getValue(PropertyRotatable.Facing)
+  def yaw = if (getWorld != null && getWorld.isBlockLoaded(getPos)) getWorld.getBlockState(getPos) match {
+    case rotatable if rotatable.getProperties.containsKey(PropertyRotatable.Yaw) => rotatable.getValue(PropertyRotatable.Yaw)
+    case rotatable if rotatable.getProperties.containsKey(PropertyRotatable.Facing) => rotatable.getValue(PropertyRotatable.Facing)
     case _ => EnumFacing.SOUTH
   } else null
 
