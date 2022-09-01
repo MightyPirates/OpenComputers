@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL14
@@ -26,11 +28,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 
   private var screen: Screen = null
-
-  private lazy val screens = Set(
-    api.Items.get(Constants.BlockName.ScreenTier1),
-    api.Items.get(Constants.BlockName.ScreenTier2),
-    api.Items.get(Constants.BlockName.ScreenTier3))
 
   private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
 
@@ -125,11 +122,19 @@ object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
     GlStateManager.scale(1, -1, 1)
   }
 
+  private def isScreen(stack: ItemStack): Boolean = api.Items.get(stack) match {
+    case i: ItemInfo => i.block() match {
+      case _: li.cil.oc.common.block.Screen => true
+      case _ => false
+    }
+    case _ => false
+  }
+
   private def drawOverlay() = if (screen.facing == EnumFacing.UP || screen.facing == EnumFacing.DOWN) {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getMinecraft.player.getHeldItemMainhand
     if (!stack.isEmpty) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.player, screen.getPos) || screens.contains(api.Items.get(stack))) {
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.player, screen.getPos) || isScreen(stack)) {
         GlStateManager.pushMatrix()
         transform()
         GlStateManager.depthMask(false)

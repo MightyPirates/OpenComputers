@@ -5,9 +5,9 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.entity.Render
+import net.minecraft.client.renderer.entity.{Render, RenderManager}
 
-object DroneRenderer extends Render[Drone](Minecraft.getMinecraft.getRenderManager) {
+class DroneRenderer(manager: RenderManager) extends Render[Drone](manager) {
   val model = new ModelQuadcopter()
 
   override def doRender(entity: Drone, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {

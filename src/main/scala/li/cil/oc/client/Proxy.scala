@@ -21,10 +21,10 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraft.block.Block
+import net.minecraft.client.renderer.entity.{Render, RenderManager}
 import net.minecraft.item.Item
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.client.registry.ClientRegistry
-import net.minecraftforge.fml.client.registry.RenderingRegistry
+import net.minecraftforge.fml.client.registry.{ClientRegistry, IRenderFactory, RenderingRegistry}
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -42,6 +42,10 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(NetSplitterModel)
 
     ModelInitialization.preInit()
+
+    RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], new IRenderFactory[Drone] {
+      override def createRenderFor(manager: RenderManager): Render[_ >: Drone] = new DroneRenderer(manager)
+    })
   }
 
   override def init(e: FMLInitializationEvent) {
@@ -50,8 +54,6 @@ private[oc] class Proxy extends CommonProxy {
     OpenComputers.channel.register(client.PacketHandler)
 
     ColorHandler.init()
-
-    RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Adapter], AdapterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], AssemblerRenderer)

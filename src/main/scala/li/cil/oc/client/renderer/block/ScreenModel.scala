@@ -2,12 +2,12 @@ package li.cil.oc.client.renderer.block
 
 import java.util
 import java.util.Collections
-
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block
+import li.cil.oc.common.block.Screen
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import net.minecraft.block.state.IBlockState
@@ -82,9 +82,8 @@ object ScreenModel extends SmartBlockModelBase {
   private def xy2part(value: Int, high: Int) = if (value == 0) 2 else if (value == high) 0 else 1
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    val color = api.Items.get(stack).name() match {
-      case Constants.BlockName.ScreenTier2 => Color.byTier(Tier.Two)
-      case Constants.BlockName.ScreenTier3 => Color.byTier(Tier.Three)
+    val color = api.Items.get(stack).block() match {
+      case screen: Screen => Color.byTier(screen.tier)
       case _ => Color.byTier(Tier.One)
     }
 
