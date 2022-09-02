@@ -1,7 +1,8 @@
 package li.cil.oc.common.block
 
-import java.util
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 
+import java.util
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -64,14 +65,15 @@ class Item(value: Block) extends ItemBlock(value) {
     case _ => Settings.namespace + "tile"
   }
 
-  override def getDamage(stack: ItemStack): Int = {
+  @SideOnly(Side.CLIENT)
+  override def getColorFromItemStack(stack: ItemStack, v: Int) = {
     if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
       if (ItemColorizer.hasColor(stack)) {
         ItemColorizer.getColor(stack)
       }
       else Color.LightGray
     }
-    else super.getDamage(stack)
+    else super.getColorFromItemStack(stack, v)
   }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false

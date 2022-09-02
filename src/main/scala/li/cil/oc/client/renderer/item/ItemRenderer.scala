@@ -6,7 +6,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.client.renderer.block.Print
+import li.cil.oc.client.renderer.block.{Cable, Hologram, Print}
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.util.Color
@@ -14,6 +14,7 @@ import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
 import net.minecraft.client.renderer.entity.RenderItem
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.texture.TextureMap
@@ -35,6 +36,7 @@ object ItemRenderer extends IItemRenderer {
   lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
   lazy val lootDisk = api.Items.get(Constants.ItemName.LootDisk)
   lazy val print = api.Items.get(Constants.BlockName.Print)
+  lazy val cable = api.Items.get(Constants.BlockName.Cable)
 
   lazy val nullShape = new PrintData.Shape(ExtendedAABB.unitBounds, Settings.resourceDomain + ":White", Some(Color.Lime))
 
@@ -44,12 +46,14 @@ object ItemRenderer extends IItemRenderer {
     val descriptor = api.Items.get(stack)
     (renderType == ItemRenderType.INVENTORY && isFloppy(api.Items.get(stack))) ||
       ((renderType == ItemRenderType.INVENTORY || renderType == ItemRenderType.ENTITY || renderType == ItemRenderType.EQUIPPED || renderType == ItemRenderType.EQUIPPED_FIRST_PERSON) && descriptor == drone) ||
+      ((renderType == ItemRenderType.INVENTORY || renderType == ItemRenderType.ENTITY || renderType == ItemRenderType.EQUIPPED || renderType == ItemRenderType.EQUIPPED_FIRST_PERSON) && descriptor == cable) ||
       ((renderType == ItemRenderType.INVENTORY || renderType == ItemRenderType.ENTITY || renderType == ItemRenderType.EQUIPPED || renderType == ItemRenderType.EQUIPPED_FIRST_PERSON) && api.Items.get(stack) == print)
   }
 
   override def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
     if (renderType == ItemRenderType.ENTITY) true
     else if (renderType == ItemRenderType.INVENTORY && api.Items.get(stack) == print) helper == ItemRendererHelper.INVENTORY_BLOCK
+    else if (api.Items.get(stack) == cable) true
     // Note: it's easier to revert changes introduced by this "helper" than by
     // the code that applies if no helper is used...
     else helper == ItemRendererHelper.EQUIPPED_BLOCK
@@ -137,6 +141,28 @@ object ItemRenderer extends IItemRenderer {
       if (state.isEmpty) {
         drawShape(nullShape) // Avoid tessellator erroring.
       }
+
+      GL11.glPopMatrix()
+      GL11.glPopAttrib()
+
+      RenderState.checkError("ItemRenderer.renderItem: print")
+    }
+
+    else if (descriptor == cable) {
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GL11.glPushMatrix()
+
+      Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
+
+      GL11.glScalef(1.5f, 1.5f, 1.5f)
+      if (renderType == ItemRenderType.ENTITY) {
+        GL11.glTranslatef(-0.5f, 0, -0.5f)
+      }
+
+      Tessellator.instance.startDrawingQuads()
+      Tessellator.instance.setColorOpaque_I(stack.getItem.getColorFromItemStack(stack, 0))
+      Cable.render(stack, data(0).asInstanceOf[RenderBlocks])
+      Tessellator.instance.draw()
 
       GL11.glPopMatrix()
       GL11.glPopAttrib()

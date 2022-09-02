@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import java.util
-
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.JNormalOcclusion
 import codechicken.multipart.NormalOcclusionTest
@@ -17,7 +16,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.fmp.CablePart
-import li.cil.oc.util.Color
+import li.cil.oc.util.{Color, ItemColorizer}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.{Entity, EntityLivingBase}
@@ -62,9 +61,6 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  @SideOnly(Side.CLIENT)
-  override def getRenderColor(metadata: Int) = metadata
 
   // ----------------------------------------------------------------------- //
 
