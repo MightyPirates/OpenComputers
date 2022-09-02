@@ -26,7 +26,7 @@ object RobotCommonHandler {
 
   @SubscribeEvent
   def onRobotMove(e: RobotMoveEvent.Pre): Unit = {
-    if (Settings.get.limitFlightHeight < 256) e.agent match {
+    if (Settings.get.limitFlightHeight >= 0) e.agent match {
       case robot: Robot =>
         val world = robot.world
         var maxFlyingHeight = Settings.get.limitFlightHeight
@@ -43,8 +43,9 @@ object RobotCommonHandler {
           collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
         def isMovingDown = e.direction == ForgeDirection.DOWN
+        def bypassesFlightLimit = maxFlyingHeight >= world.getHeight
         def hasAdjacentBlock(pos: BlockPosition) = ForgeDirection.VALID_DIRECTIONS.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
-        def isWithinFlyingHeight(pos: BlockPosition) = maxFlyingHeight >= world.getHeight || (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(ForgeDirection.DOWN, n)))
+        def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(ForgeDirection.DOWN, n)))
         val startPos = BlockPosition(robot)
         val targetPos = startPos.offset(e.direction)
         // New movement rules as of 1.5:
@@ -53,6 +54,7 @@ object RobotCommonHandler {
         // 3. Positions up to <flightHeight> above a block are valid (limited flight capabilities).
         // 4. Any position that has an adjacent block with a solid face towards the position is valid (robots can "climb").
         val validMove = isMovingDown ||
+          bypassesFlightLimit ||
           hasAdjacentBlock(startPos) ||
           hasAdjacentBlock(targetPos) ||
           isWithinFlyingHeight(startPos)

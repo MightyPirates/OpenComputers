@@ -6,13 +6,11 @@ import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.UUID
-
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.DefaultArtifactVersion
-import cpw.mods.fml.common.versioning.VersionRange
+import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
@@ -101,7 +99,7 @@ class Settings(val config: Config) {
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
-  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max 0
+  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max -1
   val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
@@ -568,6 +566,10 @@ object Settings {
       "misc.maxWirelessRange",
       "misc.maxOpenPorts",
       "computer.cpuComponentCount"
+    ),
+    // Upgrading to version 1.8.0, changed meaning of limitFlightHeight value.
+    VersionRange.createFromVersionSpec("[0.0, 1.8.0)") -> Array(
+      "computer.robot.limitFlightHeight"
     )
   )
 
