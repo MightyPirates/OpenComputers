@@ -2,7 +2,6 @@ package li.cil.oc.util
 
 import java.io.InputStreamReader
 import java.net.URL
-
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import cpw.mods.fml.common.Loader
@@ -10,6 +9,7 @@ import cpw.mods.fml.common.versioning.ComparableVersion
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 
+import java.util.Objects
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,7 +32,18 @@ object UpdateCheck {
         while (reader.hasNext) {
           val release: Release = new Gson().fromJson(reader, classOf[Release])
           if (!release.prerelease) {
-            candidates += release
+            // Handle the newer version format: mcVersion/release
+            var versionMatch = true
+            if (release.tag_name.contains("/")) {
+              val tagNameParts = release.tag_name.split("/", 2)
+              if (tagNameParts.length >= 2) {
+                release.tag_name = tagNameParts(1)
+                versionMatch = Objects.equals(OpenComputers.McVersion, tagNameParts(0))
+              }
+            }
+            if (versionMatch) {
+              candidates += release
+            }
           }
         }
         reader.endArray()
