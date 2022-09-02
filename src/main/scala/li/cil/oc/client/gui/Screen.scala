@@ -8,6 +8,7 @@ import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.INestedGuiEventHandler
 import net.minecraft.client.gui.screen
+import net.minecraft.client.settings.KeyBinding
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 
@@ -96,6 +97,12 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
     val bh = buffer.getViewportHeight
     if (bx >= 0 && by >= 0 && bx < bw && by < bh) Some((bx, by))
     else None
+  }
+
+  override protected def init(): Unit = {
+    super.init()
+    minecraft.mouseHandler.releaseMouse()
+    KeyBinding.releaseAll()
   }
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float): Unit = {

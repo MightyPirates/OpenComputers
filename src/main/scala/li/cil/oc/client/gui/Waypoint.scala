@@ -7,6 +7,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.screen
 import net.minecraft.client.gui.widget.TextFieldWidget
+import net.minecraft.client.settings.KeyBinding
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
 
@@ -23,7 +24,7 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends screen.Screen(StringTe
     super.tick()
     textField.tick()
     if (minecraft.player.distanceToSqr(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) > 64) {
-      minecraft.player.closeContainer()
+      onClose()
     }
   }
 
@@ -31,6 +32,8 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends screen.Screen(StringTe
 
   override protected def init(): Unit = {
     super.init()
+    minecraft.mouseHandler.releaseMouse()
+    KeyBinding.releaseAll()
     leftPos = (width - imageWidth) / 2
     topPos = (height - imageHeight) / 2
 
@@ -61,8 +64,8 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends screen.Screen(StringTe
   }
 
   override def removed(): Unit = {
-    super.removed()
     minecraft.keyboardHandler.setSendRepeatsToGui(false)
+    super.removed()
   }
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float): Unit = {

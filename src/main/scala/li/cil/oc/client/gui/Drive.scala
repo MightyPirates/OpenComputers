@@ -7,6 +7,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.item.data.DriveData
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.gui.screen
+import net.minecraft.client.settings.KeyBinding
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.text.StringTextComponent
@@ -30,6 +31,8 @@ class Drive(playerInventory: PlayerInventory, val driveStack: () => ItemStack) e
 
   override protected def init(): Unit = {
     super.init()
+    minecraft.mouseHandler.releaseMouse()
+    KeyBinding.releaseAll()
     managedButton = new ImageButton(leftPos + 11, topPos + 11, 74, 18, new Button.IPressable {
       override def onPress(b: Button) = {
         ClientPacketSender.sendDriveMode(unmanaged = false)

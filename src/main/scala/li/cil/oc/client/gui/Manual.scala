@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen
 import net.minecraft.client.gui.widget.button.Button
 import net.minecraft.client.util.InputMappings
+import net.minecraft.client.settings.KeyBinding
 import net.minecraft.util.text.ITextProperties
 import net.minecraft.util.text.StringTextComponent
 import org.lwjgl.glfw.GLFW
@@ -79,12 +80,14 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
       refreshPage()
     }
     else {
-      minecraft.player.closeContainer()
+      onClose()
     }
   }
 
   override protected def init(): Unit = {
     super.init()
+    minecraft.mouseHandler.releaseMouse()
+    KeyBinding.releaseAll()
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val x = leftPos + tabPosX
