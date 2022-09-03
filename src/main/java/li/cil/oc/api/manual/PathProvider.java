@@ -16,7 +16,7 @@ import net.minecraft.world.World;
  * <p/>
  * Note that you can use the special variable <tt>%LANGUAGE%</tt> in your
  * paths, for language agnostic paths. These will be resolved to the currently
- * set language, falling back to <tt>en_US</tt>, during actual content lookup.
+ * set language, falling back to <tt>en_us</tt>, during actual content lookup.
  */
 public interface PathProvider {
     /**

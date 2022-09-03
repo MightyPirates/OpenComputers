@@ -90,7 +90,7 @@ public interface ManualAPI {
      * <p/>
      * The provided path may contain the special variable <tt>%LANGUAGE%</tt>,
      * which will be resolved to the currently set language, falling back to
-     * <tt>en_US</tt>.
+     * <tt>en_us</tt>.
      *
      * @param path the path of the page to get the content of.
      * @return the content of the page, or <tt>null</tt> if none exists.

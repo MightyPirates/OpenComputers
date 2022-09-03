@@ -23,7 +23,7 @@ import scala.collection.mutable
 object Manual extends ManualAPI {
   final val LanguageKey = "%LANGUAGE%"
 
-  final val FallbackLanguage = "en_US"
+  final val FallbackLanguage = "en_us"
 
   class History(val path: String, var offset: Int = 0)
 
