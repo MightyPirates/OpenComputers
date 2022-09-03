@@ -21,6 +21,8 @@ object OpenComputers {
 
   final val Name = "OpenComputers"
 
+  final val McVersion = "1.12.2-forge"
+
   final val Version = "@VERSION@"
 
   def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
