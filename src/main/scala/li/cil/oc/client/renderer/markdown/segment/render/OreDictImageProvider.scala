@@ -13,7 +13,7 @@ import scala.collection.convert.ImplicitConversionsToScala._
 
 object OreDictImageProvider extends ImageProvider {
   override def getImage(data: String): ImageRenderer = {
-    val desired = new ResourceLocation(data)
+    val desired = new ResourceLocation(data.toLowerCase)
     val stacks = mutable.ArrayBuffer.empty[ItemStack]
     ItemTags.getWrappers.find(t => desired.equals(t.getName)).foreach {
       stacks ++= _.getValues.map(new ItemStack(_))
@@ -22,7 +22,7 @@ object OreDictImageProvider extends ImageProvider {
       stacks ++= _.getValues.map(new ItemStack(_))
     }
     if (stacks.nonEmpty) new ItemStackImageRenderer(stacks.toArray)
-    else new TextureImageRenderer(Textures.GUI.ManualMissingItem) with InteractiveImageRenderer {
+    else new TextureImageRenderer(TextureImageProvider.ManualMissingItem) with InteractiveImageRenderer {
       override def getTooltip(tooltip: String): String = "oc:gui.Manual.Warning.OreDictMissing"
 
       override def onMouseClick(mouseX: Int, mouseY: Int): Boolean = false

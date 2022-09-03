@@ -23,7 +23,7 @@ class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer
     manager.getTexture(location) match {
       case image: ImageTexture => image
       case other =>
-        other.releaseId()
+        if (other != null) other.releaseId()
         val image = new ImageTexture(location)
         manager.register(location, image)
         image
@@ -70,14 +70,17 @@ class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer
         val resource = manager.getResource(location)
         is = resource.getInputStream
         val bi = ImageIO.read(is)
-        bind()
         val data = MemoryUtil.memAllocInt(bi.getWidth * bi.getHeight)
         val tempArr = Array.ofDim[Int]((1024 * 1024) min data.capacity)
         val dy = tempArr.length / bi.getWidth
-        for (y0 <- 0 until data.capacity by dy) {
-          bi.getRGB(0, y0, bi.getWidth, dy max (bi.getHeight - y0), tempArr, 0, bi.getWidth)
-          data.put(tempArr, 0, bi.getWidth * dy)
+        for (y0 <- 0 until bi.getHeight by dy) {
+          val currH = dy min (bi.getHeight - y0 - 1)
+          bi.getRGB(0, y0, bi.getWidth, currH, tempArr, 0, bi.getWidth)
+          data.put(tempArr, 0, bi.getWidth * currH)
         }
+
+        bind()
+        data.flip()
         TextureUtil.initTexture(data, bi.getWidth, bi.getHeight)
         width = bi.getWidth
         height = bi.getHeight
