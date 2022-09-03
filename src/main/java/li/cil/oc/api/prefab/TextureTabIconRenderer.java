@@ -1,8 +1,9 @@
 package li.cil.oc.api.prefab;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.client.Minecraft;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -24,15 +25,15 @@ public class TextureTabIconRenderer implements TabIconRenderer {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void render() {
+    public void render(MatrixStack stack) {
         Minecraft.getInstance().getTextureManager().bind(location);
         final Tessellator t = Tessellator.getInstance();
         final BufferBuilder r = t.getBuilder();
         r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-        r.vertex(0, 16, 0).uv(0, 1).endVertex();
-        r.vertex(16, 16, 0).uv(1, 1).endVertex();
-        r.vertex(16, 0, 0).uv(1, 0).endVertex();
-        r.vertex(0, 0, 0).uv(0, 0).endVertex();
+        r.vertex(stack.last().pose(), 0, 16, 0).uv(0, 1).endVertex();
+        r.vertex(stack.last().pose(), 16, 16, 0).uv(1, 1).endVertex();
+        r.vertex(stack.last().pose(), 16, 0, 0).uv(1, 0).endVertex();
+        r.vertex(stack.last().pose(), 0, 0, 0).uv(0, 0).endVertex();
         t.end();
     }
 }

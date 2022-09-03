@@ -115,7 +115,7 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
       val button = buttons.get(i).asInstanceOf[ImageButton]
       stack.pushPose()
       stack.translate(button.x + 5, button.y + 5, getBlitOffset)
-      tab.renderer.render()
+      tab.renderer.render(stack)
       stack.popPose()
     }
 
