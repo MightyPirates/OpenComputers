@@ -5,7 +5,8 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.IBlockAccess
@@ -52,7 +53,10 @@ object Cable {
     }
   }
 
-  def render(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def render(stack: ItemStack, renderer: RenderBlocks) {
+    val block = stack.getItem.asInstanceOf[ItemBlock].field_150939_a
+    val metadata = 0
+
     val previousRenderAllFaces = renderer.renderAllFaces
     renderer.renderAllFaces = true
 

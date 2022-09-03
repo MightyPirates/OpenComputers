@@ -31,14 +31,6 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
-      case _: common.block.Cable =>
-        GL11.glScalef(1.6f, 1.6f, 1.6f)
-        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
-        Cable.render(block, metadata, renderer)
-        Tessellator.instance.draw()
-
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
       case _: common.block.Hologram =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()

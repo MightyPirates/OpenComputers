@@ -603,25 +603,25 @@ object Settings {
   val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
 
   class AddressValidator(val value: String) {
-    val validator = try cidrPattern.findFirstIn(value) match {
+    val validator: (InetAddress, String) => Option[Boolean] = try cidrPattern.findFirstIn(value) match {
       case Some(cidrPattern(address, prefix)) =>
         val addr = InetAddresses.coerceToInteger(InetAddresses.forString(address))
         val mask = 0xFFFFFFFF << (32 - prefix.toInt)
         val min = addr & mask
         val max = min | ~mask
-        (inetAddress: InetAddress, host: String) => inetAddress match {
+        (inetAddress: InetAddress, host: String) => Some(inetAddress match {
           case v4: Inet4Address =>
             val numeric = InetAddresses.coerceToInteger(v4)
             min <= numeric && numeric <= max
           case _ => true // Can't check IPv6 addresses so we pass them.
-        }
+        })
       case _ =>
         val address = InetAddress.getByName(value)
-        (inetAddress: InetAddress, host: String) => host == value || inetAddress == address
+        (inetAddress: InetAddress, host: String) => Some(host == value || inetAddress == address)
     } catch {
       case t: Throwable =>
         OpenComputers.log.warn("Invalid entry in internet blacklist / whitelist: " + value, t)
-        (inetAddress: InetAddress, host: String) => true
+        (inetAddress: InetAddress, host: String) => None
     }
 
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
