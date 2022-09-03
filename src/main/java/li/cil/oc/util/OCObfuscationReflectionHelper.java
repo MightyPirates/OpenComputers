@@ -18,6 +18,6 @@ public final class OCObfuscationReflectionHelper {
 	public static <T, E> void setPrivateValue(Class<? super T> classToAccess, T instance, E value, String srgName) {
 		// HACK: Don't break compatibility with older Forge versions.
 		// This also works around a Scala compiler crash: "trying to do lub/glb of typevar ?E".
-		ObfuscationReflectionHelper.setPrivateValue(classToAccess, instance, new String[]{srgName});
+		ObfuscationReflectionHelper.setPrivateValue(classToAccess, instance, value, new String[]{srgName});
 	}
 }

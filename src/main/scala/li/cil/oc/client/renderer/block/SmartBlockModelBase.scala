@@ -192,7 +192,7 @@ trait SmartBlockModelBase extends IBakedModel {
   protected def getFaceShadeColor(face: EnumFacing, colorRGB: Int): Int = {
     if (ForgeModContainer.forgeLightPipelineEnabled) {
       // Forge's light pipeline uses a separate lighting stage.
-      0xFF000000 | colorRGB
+      0xFF000000 | (colorRGB & 0xFF00) | ((colorRGB & 0xFF) << 16) | ((colorRGB & 0xFF0000) >> 16)
     } else {
       // See FaceBakery.
       // TODO: This still doesn't look right on non-solid blocks (compare print3d/stairs.3dm).

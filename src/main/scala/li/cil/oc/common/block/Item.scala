@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import java.util
-
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -21,6 +20,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
@@ -52,27 +52,6 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getTranslationKey: String = block match {
     case simple: SimpleBlock => simple.getTranslationKey
     case _ => Settings.namespace + "tile"
-  }
-
-  override def getDamage(stack: ItemStack): Int = {
-    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
-      if (ItemColorizer.hasColor(stack)) {
-        ItemColorizer.getColor(stack)
-      }
-      else Color.rgbValues(EnumDyeColor.SILVER)
-    }
-    else super.getDamage(stack)
-  }
-
-  override def setDamage(stack: ItemStack, damage: Int): Unit = {
-    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
-      if(damage != Color.rgbValues(EnumDyeColor.SILVER)) {
-        ItemColorizer.setColor(stack, damage)
-      } else {
-        ItemColorizer.removeColor(stack)
-      }
-    }
-    else super.setDamage(stack, damage)
   }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false

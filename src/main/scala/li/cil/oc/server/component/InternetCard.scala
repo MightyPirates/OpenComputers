@@ -360,10 +360,10 @@ object InternetCard {
   }
 
   def checkLists(inetAddress: InetAddress, host: String) {
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_ (inetAddress, host))) {
+    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(i => i.apply(inetAddress, host).getOrElse(false))) {
       throw new FileNotFoundException("address is not whitelisted")
     }
-    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_ (inetAddress, host))) {
+    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(i => i.apply(inetAddress, host).getOrElse(true))) {
       throw new FileNotFoundException("address is blacklisted")
     }
   }
