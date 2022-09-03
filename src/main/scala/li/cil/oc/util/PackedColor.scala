@@ -119,6 +119,20 @@ object PackedColor {
     private val greens = 8
     private val blues = 5
 
+    private val staticPalette = new Array[Int](240)
+
+    {
+      for (index <- staticPalette.indices) {
+        val idxB = index % blues
+        val idxG = (index / blues) % greens
+        val idxR = (index / blues / greens) % reds
+        val r = (idxR * 0xFF / (reds - 1.0) + 0.5).toInt
+        val g = (idxG * 0xFF / (greens - 1.0) + 0.5).toInt
+        val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
+        staticPalette(index) = (r << rShift32) | (g << gShift32) | (b << bShift32)
+      }
+    }
+
     // Initialize palette to grayscale, excluding black and white, because
     // those are already contained in the normal color cube.
     for (i <- palette.indices) {
@@ -130,16 +144,7 @@ object PackedColor {
 
     override def inflate(value: Int) =
       if (isFromPalette(value)) super.inflate(value)
-      else {
-        val index = value - palette.length
-        val idxB = index % blues
-        val idxG = (index / blues) % greens
-        val idxR = (index / blues / greens) % reds
-        val r = (idxR * 0xFF / (reds - 1.0) + 0.5).toInt
-        val g = (idxG * 0xFF / (greens - 1.0) + 0.5).toInt
-        val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
-        (r << rShift32) | (g << gShift32) | (b << bShift32)
-      }
+      else staticPalette((value - palette.length) % 240)
 
     override def deflate(value: Color) = {
       val paletteIndex = super.deflate(value)
