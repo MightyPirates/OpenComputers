@@ -54,7 +54,6 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends screen.Screen(StringTe
     textField.setMaxLength(32)
     textField.setBordered(false)
     textField.setCanLoseFocus(false)
-    textField.setFocus(true)
     textField.setTextColor(0xFFFFFF)
     textField.setValue(waypoint.label)
     addWidget(textField)
