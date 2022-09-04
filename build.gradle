@@ -39,6 +39,10 @@ file "build.properties" withReader {
 }
 
 version = "${mod_version}"
+if (version.endsWith("-snapshot")) {
+    version += "-" + (new Date().format('yyyyMMdd'))
+}
+
 group = "li.cil.oc"
 archivesBaseName = "OpenComputers"
 
@@ -169,19 +173,19 @@ dependencies {
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
 
-    replace "@VERSION@", project.simpleVersion
+    replace "@VERSION@", "${mod_version}"
     replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version},${config.minecraft.version}+)\""
 }
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+        expand 'version': "${mod_version}", 'mcversion': config.minecraft.version
     }
     from(sourceSets.main.resources.srcDirs) {
         include 'application.conf'
         filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
+            line.replaceAll("@VERSION@", "${mod_version}")
         }
     }
     from(sourceSets.main.resources.srcDirs) {
