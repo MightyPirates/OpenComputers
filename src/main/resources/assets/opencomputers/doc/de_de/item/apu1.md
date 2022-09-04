@@ -1,6 +1,6 @@
 # Beschleunigter Prozessor (APU)
 
-![Ausgereiftesteste Physik United.](oredict:oc:apu1)
+![Ausgereiftesteste Physik United.](oredict:opencomputers:apu1)
 
 APUs sind eine Mischung aus [CPUs](cpu1.md) und [Grafikkarten](graphicsCard1.md). Diese zu nutzen ermöglicht es einen Kartenslot mehr zu verwenden. Wie eine normale CPU definiert es die Architektur des [Computers](../general/computer.md) und die Nummer der Komponenten die verwendet werden können. Es ermöglicht zudem auch grundlegende Grafikberechnungen.
 

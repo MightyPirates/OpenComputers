@@ -1,6 +1,6 @@
 # Chargeur
 
-![LEEROOOOOOOOOY](oredict:oc:charger)
+![LEEROOOOOOOOOY](oredict:opencomputers:charger)
 
 Le chargeur est utilisé pour charger des appareils comme les [robots](robot.md), les [drones](../item/drone.md) et les [tablettes](../item/tablet.md). Un chargeur doit être activé en lui appliquant un signal de redstone. La vitesse de charge est basée sur la force du signal de redstone appliqué, avec une force de 15 donnant une vitesse de charge de 100%.
 

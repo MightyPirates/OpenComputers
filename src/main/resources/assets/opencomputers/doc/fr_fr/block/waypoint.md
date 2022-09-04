@@ -1,6 +1,6 @@
 # Point de passage
 
-!["Par là !" - "Non, par là !"](oredict:oc:waypoint)
+!["Par là !" - "Non, par là !"](oredict:opencomputers:waypoint)
 
 Le point de passage n'a aucune utilité en soi, mais dans la façon dont il peut être utilisé. Les [améliorations de navigation](../item/navigationUpgrade.md) peuvent détecter les points de passage, ainsi les appareils équipés d'une amélioration de navigation peuvent utiliser ces points de passage pour parcourir le monde. C'est particulièrement utile pour écrire des programmes facilement ré-utilisables par des appreils comme les [robots](robot.md) et les [drones](../item/drone.md).
 

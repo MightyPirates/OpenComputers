@@ -1,6 +1,6 @@
 # Terminal à distance
 
-![Accès à distance.](oredict:oc:terminal)
+![Accès à distance.](oredict:opencomputers:terminal)
 
 Le terminal à distance peut être utilisé pour contrôler à distance des [serveurs](server1.md). Pour l'utiliser, faites un clic droit en étant accroupi sur un serveur installé dans un [support de serveur](../block/serverRack.md) (cliquez sur le bloc du [support de serveur](../block/serverRack.md), en visant le [serveur](server1.md) pour y lier le terminal).
 

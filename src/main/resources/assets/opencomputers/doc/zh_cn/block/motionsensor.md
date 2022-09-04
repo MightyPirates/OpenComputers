@@ -1,6 +1,6 @@
 # 运动传感器
 
-![不，要，眨，眼。](oredict:oc:motionSensor)
+![不，要，眨，眼。](oredict:opencomputers:motionSensor)
 
 运动传感器允许[电脑](../general/computer.md)探测生物的移动。如果生物的移动速度超过阈值，相连的[电脑](../general/computer.md)就会收到一个信号。阈值可在相连电脑上用其组件 API 调整。
 

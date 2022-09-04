@@ -1,6 +1,6 @@
 # Manual
 
-![A good read.](oredict:oc:manual)
+![A good read.](oredict:opencomputers:manual)
 
 The thing you're reading right now! The manual contains a wealth of information about OpenComputers (and possibly more). If you need information on an item or block in the mod, look no further! Scroll down to learn how to use (mouse wheel or the scroll bar to the right).
 

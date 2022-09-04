@@ -1,6 +1,6 @@
 # CPU
 
-![脑——子——](oredict:oc:cpu1)
+![脑——子——](oredict:opencomputers:cpu1)
 
 中央处理器是[电脑](../general/computer.md)和[服务器](server1.md)的核心，定义了[电脑](../general/computer.md)的架构，并决定了可连接组件的数量。级别越高，每 tick 可以进行的函数调用越多。一言以蔽之，级别越高跑得越快。
 

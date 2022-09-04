@@ -1,6 +1,6 @@
 # Boîtier d'ordinateur
 
-![Ah qu'est-ce qu'on est serré...](oredict:oc:case1)
+![Ah qu'est-ce qu'on est serré...](oredict:opencomputers:case1)
 
 Les boîtiers d'ordinateur existent en 3 niveaux différents, ce qui limite les composants qui peuvent y être insérés. Un niveau supplémentaire existe aussi, seulement pour le mode créatif. Les boîtiers d'ordinateur peuvent également être placés dans un [assembleur électronique](assembler.md) pour construire des [robots](robot.md).
 

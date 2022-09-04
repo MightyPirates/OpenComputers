@@ -1,6 +1,6 @@
 # Datenbank-Upgrade
 
-![Living in the database.](oredict:oc:databaseUpgrade1)
+![Living in the database.](oredict:opencomputers:databaseUpgrade1)
 
 Das Datenbank-Upgrade kann konfiguriert werden um eine Liste von Itemstack-Repräsentationen zu speichern. Die können von anderen Komponenten verwendet werden. Das ist besonders nützlich für Items die mit ihren NBT-Daten sortiert werden. 
 

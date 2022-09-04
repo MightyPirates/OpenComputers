@@ -1,6 +1,6 @@
 # Bildschirme
 
-![Kannst du das sehen?](oredict:oc:screen1)
+![Kannst du das sehen?](oredict:opencomputers:screen1)
 
 Ein Bildschirm wird in Kombinationen mit [Grafikkarten](../item/graphicsCard1.md) verwendet, um mit [Computern](../general/computer.md) Text darzustellen. Verschiedene Stufen haben unterschiedliche Fähigkeiten, wie die Unterstützung verschiedener Auflösungen und Farbtiefen. Sie reichen von geringauflösenden Monochromdisplays zu hochauflösenden Displays mit bis zu 256 Farben.
 

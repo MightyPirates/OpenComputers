@@ -1,6 +1,6 @@
 # 充电机
 
-![All right, let's do this.](oredict:oc:charger)
+![All right, let's do this.](oredict:opencomputers:charger)
 
 充电机可为[机器人](robot.md)、[无人机](../item/drone.md)和[平板](../item/tablet.md)这样的设备充能。需要用红石信号激活方能工作。充能速度被红石信号强度决定，信号强度为 15 时它会全速为设备充能。
 

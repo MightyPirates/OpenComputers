@@ -1,6 +1,6 @@
 # 转运器
 
-![Such a poser.](oredict:oc:transposer)
+![Such a poser.](oredict:opencomputers:transposer)
 
 转运器连接了红石控制的漏斗和[机器人](robot.md)，这样[电脑](../general/computer.md)就能控制物品和流体在相邻方块之间的传输了。
 

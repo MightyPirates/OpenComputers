@@ -1,6 +1,6 @@
 # 接入点
 
-![AAA](oredict:oc:accessPoint)
+![AAA](oredict:opencomputers:accessPoint)
 
 *本方块已废弃，将会在未来版本被移除* 请在工作台中将其合成为[中继器](relay.md)以避免丢失。
 

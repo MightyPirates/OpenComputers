@@ -1,6 +1,6 @@
 # Block of Chamelium
 
-![So... blank.](oredict:oc:chameliumBlock)
+![So... blank.](oredict:opencomputers:chameliumBlock)
 
 A few pieces of [chamelium](../item/chamelium.md) can be combined to provide a monochrome block for decorative purposes. Chamelium blocks can also be dyed with any of the 16 Minecraft colors. 
 

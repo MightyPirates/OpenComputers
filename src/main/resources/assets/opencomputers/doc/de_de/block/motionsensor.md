@@ -1,6 +1,6 @@
 # Bewegungssensor
 
-![Nicht. Blinzeln.](oredict:oc:motionSensor)
+![Nicht. Blinzeln.](oredict:opencomputers:motionSensor)
 
 Der Bewegungssensor erlaubt es [Computern](../general/computer.md) Bewegungen von lebenden Entities zu erkennen. Wenn die Geschwindigkeit eines Lebewesens einen Schwellenwert überschreitet wird ein Signal zum angeschlossenen Computer gesendet. Der Schwellwert kann mittels der Komponenten-API welche der Bewegungssensor bereitstellt verändert werden.
 

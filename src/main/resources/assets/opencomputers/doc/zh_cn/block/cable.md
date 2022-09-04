@@ -1,6 +1,6 @@
 # 线缆
 
-![沙拉。](oredict:oc:cable)
+![沙拉。](oredict:opencomputers:cable)
 
 用于连接相距甚远的[电脑](../general/computer.md)和设备。如果你的设备群足够紧凑，你大概不需要这玩意。
 

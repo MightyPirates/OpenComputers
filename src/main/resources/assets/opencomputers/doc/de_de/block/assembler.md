@@ -1,6 +1,6 @@
 # Elektronik-Werkbank
 
-![Harder, better, faster, stronger.](oredict:oc:assembler)
+![Harder, better, faster, stronger.](oredict:opencomputers:assembler)
 
 Die Elektronik-Werkbank ist eine fortgeschrittene Maschine welche verwendet werden kann, um komplexere elektronische Geräte wie [Roboter](robot.md), [Drohnen](../item/drone.md) oder [Tablets](../item/tablet.md) zu bauen. Sie benötigen eine große Menge an Energie um Geräte zu montieren, daher wird empfohlen, sie mittels einer [Kondensatorbank (capacitor bank)](capacitor.md) mit Energie zu versorgen.
 

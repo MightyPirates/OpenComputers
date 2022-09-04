@@ -1,6 +1,6 @@
 # CPU
 
-![Gehirrrrrn.](oredict:oc:cpu1)
+![Gehirrrrrn.](oredict:opencomputers:cpu1)
 
 Die zentrale Recheneinheit ist das Herz eines jeden [Computers](../general/computer.md) oder [Servers](server1.md). Sie definiert die Architektur des Gerätes und die Anzahl der Komponenten die maximal mit dem Gerät verbunden werden können bevor er zu funktionieren aufhört. Hochstufige CPUs ermöglich außerdem eine schnellere Ausführung.
 

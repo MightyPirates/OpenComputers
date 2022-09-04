@@ -6,7 +6,7 @@ Also know as "how to build your first computer". To get your first [computer](co
 
 First off, you will need a [computer case](../block/case1.md). This is the block which will contain all of the components, defining the behavior of the computer you are building.
 
-![A tier two computer case.](oredict:oc:case2)
+![A tier two computer case.](oredict:opencomputers:case2)
 
 For example, you will need to choose what tier of [graphics card](../item/graphicsCard1.md) you wish to use, if you need a [network card](../item/lanCard.md), a [redstone card](../item/redstoneCard1.md) or, if you're just playing around in creative mode, maybe even a [debug card](../item/debugCard.md).
 
@@ -37,7 +37,7 @@ Now, if you used a tier 2 [computer case](../block/case2.md) as in the screensho
 It lives! Or should, anyway. If it doesn't something went wrong, and you'll want to investigate using the [analyzer](../item/analyzer.md). But assuming it's running now, you're pretty much done. The hardest part is over. All that's left is to make it take input and show some output.
 
 To allow the [computer](computer.md) to show some output, you'll want to grab a [screen](../block/screen1.md) and a [graphics card](../item/graphicsCard1.md).
-![No, it's not a flatscreen.](oredict:oc:screen2)
+![No, it's not a flatscreen.](oredict:opencomputers:screen2)
 
 Place the [screen](../block/screen1.md) adjacent to your [computer case](../block/case1.md), or, again, connect it using some [cable](../block/cable.md). Then place a [graphics card](../item/graphicsCard1.md) of your choice into the [computer case](../block/case1.md). You should now see a blinking cursor on the [screen](../block/screen1.md). Finally, place a [keyboard](../block/keyboard.md) either on the [screen](../block/screen1.md) itself, or in a way so that it faces the [screen](../block/screen1.md), to enable [keyboard](../block/keyboard.md) input.
 

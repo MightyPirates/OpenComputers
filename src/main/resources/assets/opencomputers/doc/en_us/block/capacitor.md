@@ -1,6 +1,6 @@
 # Capacitor
 
-![It's over 9000.](oredict:oc:capacitor)
+![It's over 9000.](oredict:opencomputers:capacitor)
 
 The capacitor stores energy to be used by the network, acting as an energy buffer when needed. Unlike conversion from other mod's energy to OpenComputers' internal energy type (using a [power converter](powerConverter.md) for example), transferring energy inside a single subnetwork is instantaneous. Having an internal energy buffer will be useful for tasks that require a lot of energy, such as [assembling](assembler.md) and/or [charging](charger.md) devices such as [robots](robot.md) or [drones](../item/drone.md). 
 

@@ -1,6 +1,6 @@
 # Hologrammprojektor
 
-![Is this the real life? Is this just fantasy?](oredict:oc:hologram1)
+![Is this the real life? Is this just fantasy?](oredict:opencomputers:hologram1)
 
 Der Hologrammprojektor ist ein 3D-Display, das bedeutet es stellt ein dreidimensionales Array von "Voxeln" bereit, die von einem Computer einzeln aktiviert oder deaktiviert können. Der Stufe-2-Projektor hat dieselbe Auflösung, unterstützt allerdings die Darstellung in drei verschiedenen Farben.
 

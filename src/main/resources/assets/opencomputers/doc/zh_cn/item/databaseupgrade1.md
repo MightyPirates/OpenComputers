@@ -1,6 +1,6 @@
 # 数据库升级
 
-![住在数据库里。](oredict:oc:databaseUpgrade1)
+![住在数据库里。](oredict:opencomputers:databaseUpgrade1)
 
 数据库升级可以通过配置来存储一系列物品信息，进而被其他组件所使用。对于仅仅通过 NBT 数据来区分的物品极为有用，因为它们在回调中并不会作为物品描述符的一部分。
 

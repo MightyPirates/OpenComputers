@@ -1,6 +1,6 @@
 # 组件总线
 
-![再——来——一——打——](oredict:oc:componentBus1)
+![再——来——一——打——](oredict:opencomputers:componentBus1)
 
 组件总线是[服务器](server1.md)专用的升级，允许[服务器](server1.md)和更多的组件同时通讯。和 CPU 一样，高级的组件总线可以连接更多的组件。更高级的[服务器](server1.md)能连接的组件总线也越多，这样一来服务器能连接的组件也就更多了。
 

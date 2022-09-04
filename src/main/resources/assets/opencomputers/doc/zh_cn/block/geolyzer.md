@@ -1,6 +1,6 @@
 # 地质分析仪
 
-![It rocks.](oredict:oc:geolyzer)
+![It rocks.](oredict:opencomputers:geolyzer)
 
 地质分析仪让电脑能扫描其周边的地形，并描述周边的方块硬度分布。其扫描结果可借助[全息投影机](hologram1.md)显示成地图，或用来寻找有价值的方块，因为矿石的硬度往往比石头大。地质分析仪的扫描结果中有些许干扰，理论上可以通过反复扫描来提高精确度。
 

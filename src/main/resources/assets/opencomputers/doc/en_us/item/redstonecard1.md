@@ -1,6 +1,6 @@
 # Redstone Card
 
-![Seeing red.](oredict:oc:redstoneCard1)
+![Seeing red.](oredict:opencomputers:redstoneCard1)
 
 The redstone card allows [computers](../general/computer.md) to read and emit analog redstone signal in adjacent blocks. When an incoming signal strength changes, a signal is injected into the [computer](../general/computer.md).
 

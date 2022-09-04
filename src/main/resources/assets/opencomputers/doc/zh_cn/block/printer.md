@@ -1,6 +1,6 @@
 # 3D 打印机
 
-![2D 打印过时了。](oredict:oc:printer)
+![2D 打印过时了。](oredict:opencomputers:printer)
 
 3D 打印机允许你在任何方块上用任何纹理打印出你想要的样子。首先你需要在电脑边放一台打印机，这样电脑就能使用 `printer3d` 这个 API，通过这个 API 就能控制打印机打印出[模型](print.md)了。
 

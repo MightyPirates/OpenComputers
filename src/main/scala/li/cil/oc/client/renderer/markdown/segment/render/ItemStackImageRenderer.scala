@@ -24,8 +24,12 @@ private[markdown] class ItemStackImageRenderer(val stacks: Array[ItemStack]) ext
     val stack = stacks(index)
 
     matrix.scale(getWidth / 16, getHeight / 16, getWidth / 16)
+    // Translate manually because ItemRenderer generally can't take a MatrixStack.
+    RenderSystem.pushMatrix()
+    RenderSystem.multMatrix(matrix.last().pose())
     RenderSystem.enableRescaleNormal()
     RenderSystem.glMultiTexCoord2f(GL13.GL_TEXTURE1, 240, 240)
     mc.getItemRenderer.renderAndDecorateItem(stack, 0, 0)
+    RenderSystem.popMatrix()
   }
 }

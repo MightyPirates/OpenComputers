@@ -1,6 +1,6 @@
 # Handbuch
 
-![Ein gutes Buch.](oredict:oc:manual)
+![Ein gutes Buch.](oredict:opencomputers:manual)
 
 Das Ding das du gerade liest! Das Handbuch enthält eine Vielfalt von Informationen über OpenComputers (und vielleicht mehr). Wenn du mehr Informatonen über ein Item oder einen Block im Mod benötigst, bist du hier genau richtig! Scrolle herunter für mehr Informationen (Mausrad oder Scrollbar auf der rechten Seite).
 

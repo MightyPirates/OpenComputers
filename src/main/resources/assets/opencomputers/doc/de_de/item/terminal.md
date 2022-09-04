@@ -1,6 +1,6 @@
 # Fernbedienungsterminal
 
-![Fernzugriff.](oredict:oc:terminal)
+![Fernzugriff.](oredict:opencomputers:terminal)
 
 Das Fernbedienungsterminal kann verwendet werden um [Server](server1.md) fernzusteuern. Um es zu verwenden reicht ein Rechtsklick (im Schleichen) auf einen Server in einem [Serverschrank](../block/serverRack.md). (Dabei muss auf den Server im Block gezeigt werden. Das Terminal wird dann auf den Server gebunden):
 

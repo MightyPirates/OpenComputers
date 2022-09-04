@@ -1,6 +1,6 @@
 # 路径点
 
-![“这边！”“不，那边！”](oredict:oc:waypoint)
+![“这边！”“不，那边！”](oredict:opencomputers:waypoint)
 
 路径点重点不在本身，而是如何使用。[导航升级](../item/navigationUpgrade.md)可以探测路径点，因此安装了这种升级的设备就可以通过路径点来导航。这在编写适用于[机器人](robot.md)和[无人机](../item/drone.md)的高度可重用程序时很有用。
 

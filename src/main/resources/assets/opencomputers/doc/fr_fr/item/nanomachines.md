@@ -1,6 +1,6 @@
 # Nanomachines
 
-![Nanomachines, son.](oredict:oc:nanomachines)
+![Nanomachines, son.](oredict:opencomputers:nanomachines)
 
 Ces petits bonhommes créent une interface avec votre système nerveux pour vous faire aller toujours plus loin, toujours plus haut, toujours plus fort ! Ou vous tuer. Parfois les deux en même temps ! En clair, les nanomachines fournissent un système basé sur de l'énergie pour appliquer des effets (bons ou mauvais) sur le joueur dans lequel elles résident. Pour "installer" des nanomachines, mangez les !
 

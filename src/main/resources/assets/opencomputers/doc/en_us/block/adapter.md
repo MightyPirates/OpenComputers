@@ -1,6 +1,6 @@
 # Adapter
 
-![Now with 100% more everything.](oredict:oc:adapter)
+![Now with 100% more everything.](oredict:opencomputers:adapter)
 
 The adapter allows [computers](../general/computer.md) to interact with blocks from vanilla Minecraft or other mods. Supported blocks adjacent to the adapter will show up as components in [computers](../general/computer.md) connected to the adapter.
 

@@ -1,6 +1,6 @@
 # Tabletgehäuse
 
-![Verbiegt sich nicht.](oredict:oc:tabletCase1)
+![Verbiegt sich nicht.](oredict:opencomputers:tabletCase1)
 
 Das Tabletgehäuse ist das grundlegende Teil um [Tablets](tablet.md) in der [Elektronik-Werkbank](../block/assembler.md) zu bauen. Tablets sind sehr kompakte, tragbare [Computer](../general/computer.md). Sie können eine kleine Nummer von ausgewählten Upgrades halten und nicht mit der Welt interagieren (wie [Computergehäuse](../block/case1.md) mit [Netzwerkkarten](lanCard.md) oder [Redstonekarten](redstoneCard1.md) es können).
 

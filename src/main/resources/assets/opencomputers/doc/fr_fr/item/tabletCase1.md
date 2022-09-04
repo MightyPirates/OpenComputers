@@ -1,6 +1,6 @@
 # Boitier de tablette
 
-![Il ne se plie pas.](oredict:oc:tabletCase1)
+![Il ne se plie pas.](oredict:opencomputers:tabletCase1)
 
 Le boitier de tablette est la base de construction des [tablettes](tablet.md), grâce à l'[assembleur](../block/assembler.md). Les [tablettes](tablet.md) sont des [ordinateurs](../general/computer.md) portables très compacts. Elles peuvent accueillir un petit nombre d'améliorations, mais ne peuvent pas interagir avec le monde de la même manière qu'un [boitier d'ordinateur](../block/case1.md) (ce n'est pas aussi simple qu'avec une [carte réseau](lanCard.md) ou une [carte redstone](redstoneCard1.md) par exemple).
 

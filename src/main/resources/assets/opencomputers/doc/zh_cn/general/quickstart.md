@@ -6,7 +6,7 @@
 
 首先你需要一个[机箱](../block/case1.md)。你所有的电脑配件都要装这里面，它将决定你电脑的行为。
 
-![一个 T2 机箱](oredict:oc:case2)
+![一个 T2 机箱](oredict:opencomputers:case2)
 
 比如你要挑一个适合你的[显卡](../item/graphicsCard1.md)，还可能需要一个[网卡](../item/lanCard.md)、一块[红石卡](../item/redstoneCard1.md)、甚至是创造模式下调试时需要的[调试卡](../item/debugCard.md)。
 
@@ -37,7 +37,7 @@
 好的，它启动了。如果还有什么问题的话，可以使用[分析仪](../item/analyzer.md)排查。不过我们的电脑应该跑起来了。最难的部分已经过去了，剩下就是如何让电脑输出信息，并且让电脑接受输入。
 
 你需要给电脑配[屏幕](../block/screen1.md)和[显卡](../item/graphicsCard1.md)。
-![不是平板屏幕哦](oredict:oc:screen2)
+![不是平板屏幕哦](oredict:opencomputers:screen2)
 
 [屏幕](../block/screen1.md)可以直接放在机箱一侧，或是通过[线缆](../block/cable.md)相连。[显卡](../item/graphicsCard1.md)自然是要装机箱里。现在你应该能看到[屏幕](../block/screen1.md)上闪烁的光标了。最后，[键盘](../block/keyboard.md)应安装在[屏幕](../block/screen1.md)上，或直接冲着[屏幕](../block/screen1.md)放置。
 

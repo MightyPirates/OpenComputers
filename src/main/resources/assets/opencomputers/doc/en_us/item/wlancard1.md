@@ -1,6 +1,6 @@
 # WLAN Card
 
-![May cause cancer. May not.](oredict:oc:wlanCard2)
+![May cause cancer. May not.](oredict:opencomputers:wlanCard2)
 
 The wireless network card is an upgraded [network card](lanCard.md) that can send and receive wireless network messages. Tier two cards can also send and receive wired messages. The signal strength directly controls the distance up to which a sent message can be received, where the strength is equal to the distance in blocks.
 

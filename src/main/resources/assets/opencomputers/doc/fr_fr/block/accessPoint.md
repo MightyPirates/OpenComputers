@@ -1,6 +1,6 @@
 # Point d'accès
 
-![AAA](oredict:oc:accessPoint)
+![AAA](oredict:opencomputers:accessPoint)
 
 *Ce bloc est déprécié et sera retiré dans une version future.* Transformez les en [relai](relay.md) pour éviter de les perdre.
 

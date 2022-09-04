@@ -1,6 +1,6 @@
 # 中继器
 
-![桥接。](oredict:oc:relay)
+![桥接。](oredict:opencomputers:relay)
 
 中继器能在不把组件暴露给其他网络的[电脑](../general/computer.md)的前提下，让子网间进行网络通信。把组件限制在本地网络是个好主意，这样就不用担心[电脑](../general/computer.md)接错屏幕，或者电脑因组件过多崩溃并拒绝启动这样的怪事发生了。
 

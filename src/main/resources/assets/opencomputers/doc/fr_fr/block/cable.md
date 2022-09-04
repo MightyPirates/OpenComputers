@@ -1,6 +1,6 @@
 # Câble
 
-![Salade de câbles.](oredict:oc:cable)
+![Salade de câbles.](oredict:opencomputers:cable)
 
 Le câble à connecter des [ordinateurs](../general/computer.md) et des machines éloignés les uns des autres. Si vous avez un système compact où tous les composants sont en contact (directement ou indirectement, la plupart des blocs du mod se comportent également de la même manière que les câbles), vous n'aurez généralement pas besoin de câbles.
 

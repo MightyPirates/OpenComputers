@@ -1,6 +1,6 @@
 # Точка доступа
 
-![AAA](oredict:oc:accessPoint)
+![AAA](oredict:opencomputers:accessPoint)
 
 *Этот блок устарел и будет удален в следующих версиях.* Замените его на [ретранслятор](relay.md).
 

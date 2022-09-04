@@ -1,6 +1,6 @@
 # Amélioration du contrôleur d'inventaire
 
-![J'ai le contrôle.](oredict:oc:inventoryControllerUpgrade)
+![J'ai le contrôle.](oredict:opencomputers:inventoryControllerUpgrade)
 
 L'amélioration du contrôleur d'inventaire donne aux [robots](../block/robot.md) et aux [drones](drone.md) des capacités d'interactions étendues avec les inventaires. Elle permet à un appareil de viser spécifiquement un emplacement dans un inventaire externe quand il lâche ou ramasse un objet. Elle permet également à un appareil de lire des informations détaillées à propos d'un objet. Enfin, elle fournit aux [robots](../block/robot.md) un moyen de changer leur outil équipé sans aide extérieure.
 

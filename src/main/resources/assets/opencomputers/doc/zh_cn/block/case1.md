@@ -1,6 +1,6 @@
 # 机箱
 
-![Just in case.](oredict:oc:case1)
+![Just in case.](oredict:opencomputers:case1)
 
 机箱有数个型号，决定了能装什么配件。相比于其他配件的等级，机箱还多一个用于创造模式下调试的等级。机箱还用于在[装配器](assembler.md)中组装[机器人](robot.md)。
 

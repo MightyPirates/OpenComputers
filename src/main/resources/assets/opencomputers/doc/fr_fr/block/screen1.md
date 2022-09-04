@@ -1,6 +1,6 @@
 # Ecrans
 
-![Tu vois ça ?](oredict:oc:screen1)
+![Tu vois ça ?](oredict:opencomputers:screen1)
 
 Un écran est utilisé en combinaison avec une [carte graphique](../item/graphicsCard1.md), pour permettre aux [ordinateurs](../general/computer.md) d'afficher du texte. Les différents niveaux d'écrans ont différentes capacités, comme le support de différentes résolutions et couleurs. La qualité des écrans va d'une faible résolution en affichage monochrome à une haute résolution en 256 couleurs.
 

@@ -1,6 +1,6 @@
 # Speicher (RAM)
 
-![Do you remember, dancing in September~](oredict:oc:ram1)
+![Do you remember, dancing in September~](oredict:opencomputers:ram1)
 
 Der Random Access Memory ist, wie die [CPU](cpu1.md) ein grundlegendes Teil in allen [Computern](../general/computer.md). Je nach der Architektur der CPU hat der RAM einen großen Effekt darauf, was ein Computer kann und was er nicht kann. In der standardmäßigen LUA-Architektur kontrolliert es die tatsächliche Menge von Memory die LUA-Scripts verwenden können. Um größere und speicherintensivere Programme zu schreiben wird mehr Speicher verwendet.
 

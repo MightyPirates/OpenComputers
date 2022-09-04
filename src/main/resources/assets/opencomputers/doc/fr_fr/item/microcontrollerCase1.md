@@ -1,6 +1,6 @@
 # Boitier de microcontrôleur
 
-![Qu'il est mignon !](oredict:oc:microcontrollerCase1)
+![Qu'il est mignon !](oredict:opencomputers:microcontrollerCase1)
 
 Le boitier de microcontrôleur est la base de construction des [microcontrôleurs](../block/microcontroller.md) grâce à l'[assembleur](../block/assembler.md). Les [microcontrôleurs](../block/microcontroller.md) sont des [ordinateurs](../general/computer.md) très primitifs. Ils peuvent seulement contenir une quantité très limitée de composants, et sont faits pour être avoir une utilisation très spécifique, comme la transformation de signaux de redstone, ou le traitement de messages réseaux.
 

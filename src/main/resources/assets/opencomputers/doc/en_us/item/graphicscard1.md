@@ -1,6 +1,6 @@
 # Graphics Card
 
-![Fancy images.](oredict:oc:graphicsCard1)
+![Fancy images.](oredict:opencomputers:graphicsCard1)
 
 The graphics card is an essential part for most [computers](../general/computer.md) and allows the [computer](../general/computer.md) to display text on a connected [screen](../block/screen1.md). Graphics cards come in several tiers, and like [screens](../block/screen1.md), support different resolutions and color depths.
 

@@ -1,6 +1,6 @@
 # Adaptateur
 
-![Maintenant, avec 100% de plus de tout.](oredict:oc:adapter)
+![Maintenant, avec 100% de plus de tout.](oredict:opencomputers:adapter)
 
 L'adaptateur permet aux [ordinateurs](../general/computer.md) d'interagir avec des blocs de Minecraft Vanilla ou d'autres mods. Les blocs supportés placés contre l'adaptateur s'afficheront en tant que composants sur les [ordinateurs](../general/computer.md) connectés à l'adaptateur.
 

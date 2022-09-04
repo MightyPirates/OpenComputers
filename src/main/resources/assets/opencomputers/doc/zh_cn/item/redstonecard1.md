@@ -1,6 +1,6 @@
 # 红石卡
 
-![红牌。](oredict:oc:redstoneCard1)
+![红牌。](oredict:opencomputers:redstoneCard1)
 
 红石卡让[电脑](../general/computer.md)可以收发邻近方块的红石信号。输入信号强度变化时，信号将输入[电脑](../general/computer.md)。
 

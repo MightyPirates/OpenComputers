@@ -1,6 +1,6 @@
 # Raid
 
-![Une instance à 40.](oredict:oc:raid)
+![Une instance à 40.](oredict:opencomputers:raid)
 
 Le bloc de RAID peut accueillir 3 [disques dur](../item/hdd1.md) qui seront combinés en un seul système de fichiers. Ce système de fichiers combinés a la taille de la somme des capacités des [disques dur](../item/hdd1.md) individuels, et est disponible pour tous les [ordinateurs](../general/computer.md) connectés au RAID.
 

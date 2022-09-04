@@ -1,6 +1,6 @@
 # Amélioration de vol plané
 
-![Flotter comme une plume.](oredict:oc:hoverUpgrade1)
+![Flotter comme une plume.](oredict:opencomputers:hoverUpgrade1)
 
 L'amélioration de vol plané permet aux [robots](../block/robot.md) de voler beaucoup plus au dessus du sol que ce qu'ils pourraient le faire normalement. Contrairement aux [drones](drone.md), ils sont limités par défaut à une hauteur de vol de 8 blocs. Ca n'est généralement pas un problème, parce qu'ils peuvent tout de même monter aux murs. Leurs règles de déplacement peuvent être résumées ainsi :
 - Les robots peuvent seulement bouger si la position de départ ou d'arrivée est valide (par exemple pour un pont).

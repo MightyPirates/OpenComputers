@@ -1,6 +1,6 @@
 # CPU
 
-![Braaainz.](oredict:oc:cpu1)
+![Braaainz.](oredict:opencomputers:cpu1)
 
 The central processing unit is a core part for each [computer](../general/computer.md) or [server](server1.md). It defines the architecture of the [computer](../general/computer.md), and the number of components that can be connected to the [computer](../general/computer.md) before it stops working. Higher tier CPUs also provide a higher per-tick direct call limit to the [computer](../general/computer.md) - in simpler terms: better CPUs run faster.
 

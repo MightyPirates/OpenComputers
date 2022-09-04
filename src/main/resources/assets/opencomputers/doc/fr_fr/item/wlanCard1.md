@@ -1,6 +1,6 @@
 # Carte de réseau sans-fil
 
-![Peut provoquer le cancer. Ou pas.](oredict:oc:wlanCard2)
+![Peut provoquer le cancer. Ou pas.](oredict:opencomputers:wlanCard2)
 
 La carte de réseau sans fil est une [carte réseau](lanCard.md) améliorée qui, en plus de gérer les messages réseaux filaires, peut également envoyer et recevoir des messages réseaux sans fil. La force du signal contrôle directement la distance jusqu'à laquelle un message peut être reçu, avec cette force étant égale à la distance en blocs.
 

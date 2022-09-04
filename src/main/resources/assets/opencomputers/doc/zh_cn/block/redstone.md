@@ -1,6 +1,6 @@
 # 红石 I/O 端口
 
-![Hi Red.](oredict:oc:redstone)
+![Hi Red.](oredict:opencomputers:redstone)
 
 红石 I/O 端口可用来远程读取和发射红石信号。它就像是 T1 和 T2 [红石卡](../item/redstoneCard1.md)的合体，可以收发简单的模拟信号及捆绑信号，但是无法收发无线红石信号。
 

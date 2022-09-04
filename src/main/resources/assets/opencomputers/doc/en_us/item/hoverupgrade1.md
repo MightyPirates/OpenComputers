@@ -1,6 +1,6 @@
 # Hover Upgrade
 
-![Float like a feather.](oredict:oc:hoverUpgrade1)
+![Float like a feather.](oredict:opencomputers:hoverUpgrade1)
 
 The hover upgrade allows [robots](../block/robot.md) to fly much higher above the ground than they normally could. Unlike [drones](drone.md), they are by default limited to a flight height of 8. This is usually not a big problem, because they can still move up or along walls. Their general movement rules can be summarized like this:
 - Robots may only move if the start or target position is valid (e.g. to allow building bridges).

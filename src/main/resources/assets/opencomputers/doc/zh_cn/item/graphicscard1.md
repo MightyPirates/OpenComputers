@@ -1,6 +1,6 @@
 # 显卡
 
-![炫彩图像](oredict:oc:graphicsCard1)
+![炫彩图像](oredict:opencomputers:graphicsCard1)
 
 显卡对大多数计算机都非常重要[computers](../general/computer.md)，因为显卡允许[计算机](../general/computer.md)在相连的[屏幕](../block/screen1.md)上显示字符。显卡分若干等级，如同[显示屏](../block/screen1.md)那样支持不同的分辨率和色深。
 

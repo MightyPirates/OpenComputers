@@ -1,6 +1,6 @@
 # 储罐控制器
 
-![流体路由。](oredict:oc:tankControllerUpgrade)
+![流体路由。](oredict:opencomputers:tankControllerUpgrade)
 
 储罐控制器可用来控制储罐，用于查询内部储罐和外部的信息。实际上它就是流体版的[物品栏控制器升级](inventoryControllerUpgrade.md)。
 

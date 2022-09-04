@@ -1,6 +1,6 @@
 # Grafikkarten
 
-![Schicke Bilder.](oredict:oc:graphicsCard1)
+![Schicke Bilder.](oredict:opencomputers:graphicsCard1)
 
 Die Grafikkarte ist essenziell für die meisten [Computer](../general/computer.md). Damit können sie Text auf einem verbundenen [Bildschirm](../block/screen1.md) darstellen. Grafikkarten kommen in verschiedenen Stufen, die zusammen mit dem Bildschirm unterschiedliche Auflösungen und Farbtiefen unterstützen.
 

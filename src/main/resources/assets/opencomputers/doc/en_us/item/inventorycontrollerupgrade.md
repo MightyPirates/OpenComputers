@@ -1,6 +1,6 @@
 # Inventory Controller
 
-![I'm in control.](oredict:oc:inventoryControllerUpgrade)
+![I'm in control.](oredict:opencomputers:inventoryControllerUpgrade)
 
 The inventory controller upgrade provides extended inventory interaction to [robots](../block/robot.md) and [drones](drone.md). It allows the device to explicitly target slots in external inventories when dropping or sucking items. It also allows devices to read detailed information about item stacks. Lastly it provides [robots](../block/robot.md) with a means to change their equipped tool without external help.
 

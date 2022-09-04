@@ -1,6 +1,6 @@
 # Analyseur
 
-![Je... ne dois pas... faire... de... mauvaises blagues...](oredict:oc:analyzer)
+![Je... ne dois pas... faire... de... mauvaises blagues...](oredict:opencomputers:analyzer)
 
 L'analyseur est un outil très pratique pour afficher des informations les blocs liés à OpenComputers. Cliquez simplement sur un bloc (en étant éventuellement accroupi) pour afficher quelques informations dans la zone de chat. Cela va de choses basiques comme l'adresse des composants, aux niveaux d'énergie du sous-réseau dont le bloc fait partie, jusqu'aux informations sur l'erreur qui a mené un [ordinateur](../general/computer.md) à planter, par exemple.
 

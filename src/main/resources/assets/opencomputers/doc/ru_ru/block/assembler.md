@@ -1,6 +1,6 @@
 # Сборщик роботов
 
-![Harder, better, faster, stronger.](oredict:oc:assembler)
+![Harder, better, faster, stronger.](oredict:opencomputers:assembler)
 
 Сборщик роботов - это продвинутая рабочая станция, позволяющая собирать такие сложные устройства, как [роботы](robot.md), [дроны](../item/drone.md) и [планшеты](../item/tablet.md). Они требуют для сборки большое количество энергии, поэтому рекомендуется использовать их совместно с [конденсатором энергии](capacitor.md).
 

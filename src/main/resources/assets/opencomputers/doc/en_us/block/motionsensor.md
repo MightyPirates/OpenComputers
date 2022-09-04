@@ -1,6 +1,6 @@
 # Motion Sensor
 
-![Don't. Blink.](oredict:oc:motionSensor)
+![Don't. Blink.](oredict:opencomputers:motionSensor)
 
 The motion sensor allows [computers](../general/computer.md) to detect movement of living entities. If an entity moves faster than a set threshold, a signal will be injected into [computers](../general/computer.md) connected to the motion sensor. The threshold can be configured using the component API that the motion sensor exposes to connected computers.
 

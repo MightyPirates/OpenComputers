@@ -1,6 +1,6 @@
 # APU
 
-![Awesomest Probability Unifier.](oredict:oc:apu1)
+![Awesomest Probability Unifier.](oredict:opencomputers:apu1)
 
 [CPU](cpu1.md) 和[显卡](graphicsCard1.md)的完美结合，可以为你省下整整一个插槽。和普通的 CPU 一样，它决定了一台[电脑](../general/computer.md)的架构和这台[电脑](../general/computer.md)最多能够支持多少组件。同时，APU 还提供了基本的图形功能。
 

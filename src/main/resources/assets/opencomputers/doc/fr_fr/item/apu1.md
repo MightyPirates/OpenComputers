@@ -1,6 +1,6 @@
 # Unité de Traitement Accélérée (UTA)
 
-![Unificateur de Tabourets Acrobates.](oredict:oc:apu1)
+![Unificateur de Tabourets Acrobates.](oredict:opencomputers:apu1)
 
 Cet élément est la parfaite union d'un [processeur](cpu1.md) et d'une [carte graphique](graphicsCard1.md). En utiliser une revient à vous laisser un emplacement de carte supplémentaire. Comme un processeur normal, elle définit l'architecture de l'[ordinateur](../general/computer.md), et le nombre de composants qui peuvent être connectés à l'[ordinateur](../general/computer.md) avant qu'il ne puisse plus fonctionner. De plus, elle fournit des fonctionnalités graphiques de base.
 

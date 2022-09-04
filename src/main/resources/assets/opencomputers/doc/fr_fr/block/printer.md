@@ -1,6 +1,6 @@
 # Imprimante 3D
 
-![L'impression en 2D, c'est tellement dépassé.](oredict:oc:printer)
+![L'impression en 2D, c'est tellement dépassé.](oredict:opencomputers:printer)
 
 Les imprimantes 3D vous permettent d'imprimer n'importe quel bloc de n'importe forme, avec n'importe quelle texture. Pour démarrer avec les imprimantes 3D, vous devrez placer un bloc d'imprimante 3D à côté d'un ordinateur. Cela vous donnera accès à l'API de composant `printer3d`, ce qui permet de paramétrer et d'imprimer des [modèles](print.md) en utilisant les fonction fournies.
 

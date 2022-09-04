@@ -1,6 +1,6 @@
 # Nanomachines
 
-![Nanomachines, son.](oredict:oc:nanomachines)
+![Nanomachines, son.](oredict:opencomputers:nanomachines)
 
 These little guys interface with your nervous system to make you harder, better, faster, stronger, or kill you. Sometimes both at the same time! Put simply, nanomachines provide a power driven system for applying buffs (and debuffs) to the player they reside in. To "install" nanomachines, eat them!
 

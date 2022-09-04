@@ -1,6 +1,6 @@
 # Redstone I/O
 
-![Hi Red.](oredict:oc:redstone)
+![Hi Red.](oredict:opencomputers:redstone)
 
 The redstone I/O block can be used to remotely read and emit redstone signals. It behaves like a hybrid of a tier 1 and 2 [redstone card](../item/redstoneCard1.md): it can read and emit simple analog as well as bundled signals, but cannot read or emit wireless redstone signals.
 

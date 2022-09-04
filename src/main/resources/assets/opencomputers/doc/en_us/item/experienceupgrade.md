@@ -1,6 +1,6 @@
 # Experience Upgrade
 
-![This makes no sense, but it's cool.](oredict:oc:experienceUpgrade)
+![This makes no sense, but it's cool.](oredict:opencomputers:experienceUpgrade)
 
 The experience upgrade is a very special upgrade, as it allows [robots](../block/robot.md) and [drones](drone.md) to collect experience by performing various actions, such as digging up ores and killing entities. A single upgrade can store up to 30 levels, providing passive bonuses with each level, including faster harvest speeds and increased energy buffer capacity.
 

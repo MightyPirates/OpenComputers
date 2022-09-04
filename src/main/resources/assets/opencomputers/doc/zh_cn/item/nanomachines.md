@@ -1,6 +1,6 @@
 # 纳米机器
 
-![这是纳米机器，我的儿子。](oredict:oc:nanomachines)
+![这是纳米机器，我的儿子。](oredict:opencomputers:nanomachines)
 
 这些跟你的神经系统打交道的玩意能让你变得更快、更高、更强，或者干掉你。甚至有时候这些是同时发生的！简单来说，纳米机器的用途就是往宿主玩家上加 buff 和 debuff。“安装”方法：吃下去！
 

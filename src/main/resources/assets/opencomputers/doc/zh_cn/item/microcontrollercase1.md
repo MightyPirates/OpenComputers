@@ -1,6 +1,6 @@
 # 微控制器盒
 
-![超可爱的。](oredict:oc:microcontrollerCase1)
+![超可爱的。](oredict:opencomputers:microcontrollerCase1)
 
 微控制器盒是在[装配机](../block/assembler.md)中制造[微控制器](../block/microcontroller.md)的基础。 [微控制器](../block/microcontroller.md)是种极其简化的[电脑](../general/computer.md)，只有少量组件，通常设计为特定用途，比如转发或者处理红石信号以及处理网路消息。
 

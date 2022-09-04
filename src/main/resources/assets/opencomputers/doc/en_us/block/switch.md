@@ -1,6 +1,6 @@
 # Switch
 
-![Building bridges.](oredict:oc:switch)
+![Building bridges.](oredict:opencomputers:switch)
 
 *This block is deprecated and will be removed in a future version.* Craft it into a [relay](relay.md) to avoid losing it.
 
