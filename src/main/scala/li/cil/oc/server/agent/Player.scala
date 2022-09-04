@@ -327,9 +327,14 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       val block = world.getBlock(x, y, z)
       val metadata = world.getBlockMetadata(x, y, z)
       val mayClickBlock = block != null
+      /**
+       * block.canCollideCheck seems to be false for air, liquids, fire, and "hidden" blocks of various kinds.
+       * block.getCollisionBoundingBox is null for selectable blocks too, like signs - so it's not an option.
+       */
       val canClickBlock = mayClickBlock &&
         !block.isAir(world, x, y, z) &&
-        FluidRegistry.lookupFluidForBlock(block) == null
+        block.canCollideCheck(metadata, false);
+
       if (!canClickBlock) {
         return 0
       }
