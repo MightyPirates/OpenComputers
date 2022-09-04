@@ -792,7 +792,7 @@ sandbox = {
   tonumber = tonumber,
   tostring = tostring,
   type = type,
-  _VERSION = _VERSION:match("Luaj") and "Luaj" or _VERSION:match("5.3") and "Lua 5.3" or "Lua 5.2",
+  _VERSION = _VERSION:match("Luaj") and "Luaj" or _VERSION:match("5.4") and "Lua 5.4" or _VERSION:match("5.3") and "Lua 5.3" or "Lua 5.2",
   xpcall = function(f, msgh, ...)
     local handled = false
     checkArg(2, msgh, "function")

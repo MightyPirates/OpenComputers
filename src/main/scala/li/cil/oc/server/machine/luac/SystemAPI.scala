@@ -11,7 +11,7 @@ class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       println((1 to lua.getTop).map(i => lua.`type`(i) match {
         case LuaType.NIL => "nil"
         case LuaType.BOOLEAN => lua.toBoolean(i)
-        case LuaType.NUMBER => lua.toNumber(i)
+        case LuaType.NUMBER => if (lua.isInteger(i)) lua.toInteger(i) else lua.toNumber(i)
         case LuaType.STRING => lua.toString(i)
         case LuaType.TABLE => "table"
         case LuaType.FUNCTION => "function"

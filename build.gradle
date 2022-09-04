@@ -44,6 +44,10 @@ file "build.properties" withReader {
 }
 
 version = "${mod_version}"
+if (version.endsWith("-snapshot")) {
+    version += "-" + (new Date().format('yyyyMMdd'))
+}
+
 group = config.mod.group
 archivesBaseName = config.mod.name
 
@@ -102,7 +106,7 @@ minecraft {
 task replaceSourceTokensScala(type: Sync) {
     from sourceSets.main.scala
     filter { line -> line
-            .replaceAll('@VERSION@', project.simpleVersion)
+            .replaceAll('@VERSION@', "${mod_version}")
             .replaceAll("/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\"") }
     into "$buildDir/srcReplaced/scala"
 }
@@ -215,7 +219,9 @@ dependencies {
         exclude module: "ForgeMultipart"
     }
 
-    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
+    embedded name: 'OC-LuaJ', version: '20220904.0', ext: 'jar'
+    embedded name: 'OC-JNLua', version: '20220904.0', ext: 'jar'
+    embedded name: 'OC-JNLua-Natives', version: '20220904.0', ext: 'jar'
 
     testImplementation("org.mockito:mockito-all:1.10.19")
 
@@ -223,16 +229,16 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.simpleVersion
+    inputs.property "version", "${mod_version}"
     inputs.property "mcversion", config.minecraft.version
     inputs.property "fversion", config.forge.version
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     filesMatching(['mcmod.info']) {
-        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':config.forge.version
+        expand 'version':"${mod_version}", 'mcversion':config.minecraft.version, 'fversion':config.forge.version
     }
     filesMatching(['application.conf']) {
         filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
+            line.replaceAll("@VERSION@", "${mod_version}")
         }
     }
 

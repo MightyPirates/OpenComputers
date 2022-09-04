@@ -6,7 +6,6 @@ import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.UUID
-
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
@@ -85,6 +84,7 @@ class Settings(val config: Config) {
   val allowGC = config.getBoolean("computer.lua.allowGC")
   val enableLua53 = config.getBoolean("computer.lua.enableLua53")
   val defaultLua53 = config.getBoolean("computer.lua.defaultLua53")
+  val enableLua54 = config.getBoolean("computer.lua.enableLua54")
   val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
@@ -100,7 +100,7 @@ class Settings(val config: Config) {
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
-  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max 0
+  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max -1
   val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
@@ -565,6 +565,10 @@ object Settings {
       "misc.maxWirelessRange",
       "misc.maxOpenPorts",
       "computer.cpuComponentCount"
+    ),
+    // Upgrading to version 1.8.0, changed meaning of limitFlightHeight value,
+    VersionRange.createFromVersionSpec("[0.0, 1.8.0)") -> Array(
+      "computer.robot.limitFlightHeight"
     )
   )
 

@@ -39,11 +39,11 @@ object ExtendedLuaState {
         }) match {
           case null | Unit | _: BoxedUnit => lua.pushNil()
           case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
-          case value: java.lang.Byte => lua.pushNumber(value.byteValue)
+          case value: java.lang.Byte => lua.pushInteger(value.byteValue)
           case value: java.lang.Character => lua.pushString(String.valueOf(value))
-          case value: java.lang.Short => lua.pushNumber(value.shortValue)
-          case value: java.lang.Integer => lua.pushNumber(value.intValue)
-          case value: java.lang.Long => lua.pushNumber(value.longValue)
+          case value: java.lang.Short => lua.pushInteger(value.shortValue)
+          case value: java.lang.Integer => lua.pushInteger(value.intValue)
+          case value: java.lang.Long => lua.pushInteger(value.longValue)
           case value: java.lang.Float => lua.pushNumber(value.floatValue)
           case value: java.lang.Double => lua.pushNumber(value.doubleValue)
           case value: java.lang.String => lua.pushString(value)
@@ -108,7 +108,7 @@ object ExtendedLuaState {
 
     def toSimpleJavaObject(index: Int): AnyRef = lua.`type`(index) match {
       case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
-      case LuaType.NUMBER => Double.box(lua.toNumber(index))
+      case LuaType.NUMBER => if (lua.isInteger(index)) Long.box(lua.toInteger(index)) else Double.box(lua.toNumber(index))
       case LuaType.STRING => lua.toByteArray(index)
       case LuaType.TABLE => lua.toJavaObject(index, classOf[java.util.Map[_, _]])
       case LuaType.USERDATA => lua.toJavaObjectRaw(index)

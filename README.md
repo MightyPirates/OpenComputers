@@ -12,7 +12,7 @@ A few useful links:
 * [Community Forums][forums]
 
 ### Experimental Builds
-You can find experimental builds [on the build server][jenkins]. Expect these to be generally more unstable than builds marked as releases. Use these **at your own risk**, but - when using the latest one - please *do* report bugs you encounter using them. Thanks!
+You can find experimental builds [on the build server][github-actions]. Expect these to be generally more unstable than builds marked as releases. Use these **at your own risk**, but - when using the latest one - please *do* report bugs you encounter using them. Thanks!
 
 ## License / Use in Modpacks
 This mod is [licensed under the **MIT license**](https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/LICENSE). All **assets are public domain**, unless otherwise stated; all are free to be distributed as long as the license / source credits are kept. This means you can use this mod in any mod pack **as you please**. I'd be happy to hear about you using it, though, just out of curiosity.
@@ -54,7 +54,7 @@ Also, and this should go without saying, your contributed code will also fall un
 
 ## Extending
 ### In your own mod
-To use [the API][api] in your own mod, either get the API JAR from the [build server][jenkins], or if you're using [Gradle](http://gradle.org/), add a dependency to the maven repo:
+To use [the API][api] in your own mod, either get the API JAR from the [build server][github-actions], or if you're using [Gradle](http://gradle.org/), add a dependency to the maven repo:
 ```groovy
 repositories {
     maven { url = "http://maven.cil.li/" }
@@ -96,9 +96,9 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 [code conventions]: https://ocdoc.cil.li/lua_conventions
 [dev-jar]: https://ci.cil.li/view/OpenComputers/job/OpenComputers-MC1.7.10/
 [forums]: https://oc.cil.li/
+[github-actions]: https://github.com/MightyPirates/OpenComputers/actions
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open
-[jenkins]: http://ci.cil.li/
 [localizations]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/lang
 [loot]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/loot
 [manpages]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/loot/OpenOS/usr/man

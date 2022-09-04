@@ -85,8 +85,8 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       lua.getGlobal("_G") /* ... perms uperms k v */
 
       flattenAndStore() /* ... perms uperms */
-      lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
-      lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
+      lua.setField(lua.getRegistryIndex, "uperms") /* ... perms */
+      lua.setField(lua.getRegistryIndex, "perms") /* ... */
     }
   }
 
@@ -126,7 +126,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "persist") // ... eris persist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
+          lua.getField(lua.getRegistryIndex, "perms") // ... eris persist perms
           lua.pushValue(index) // ... eris persist perms obj
           try {
             lua.call(2, 1) // ... eris str?
@@ -159,7 +159,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "unpersist") // ... eris unpersist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
+          lua.getField(lua.getRegistryIndex, "uperms") // ... eris persist uperms
           lua.pushByteArray(value) // ... eris unpersist uperms str
           lua.call(2, 1) // ... eris obj
           lua.insert(-2) // ... obj eris

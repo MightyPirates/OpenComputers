@@ -1,7 +1,11 @@
 {
-    "parent": "block/cube_column",
+    "parent": "block/cube",
     "textures": {
-        "end": "opencomputers:blocks/redstone_top",
-        "side": "opencomputers:blocks/redstone_side"
+        "down": "opencomputers:blocks/redstone_bottom",
+        "up": "opencomputers:blocks/redstone_top",
+        "north": "opencomputers:blocks/redstone_north",
+        "south": "opencomputers:blocks/redstone_south",
+        "west": "opencomputers:blocks/redstone_west",
+        "east": "opencomputers:blocks/redstone_east"
     }
 }
