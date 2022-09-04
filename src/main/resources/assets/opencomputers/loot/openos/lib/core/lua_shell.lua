@@ -86,7 +86,7 @@ local read_handler = {hint = function(line, index)
   return hints
 end}
 
-io.write("\27[37m".._VERSION .. " Copyright (C) 1994-2017 Lua.org, PUC-Rio\n")
+io.write("\27[37m".._VERSION .. " Copyright (C) 1994-2022 Lua.org, PUC-Rio\n")
 io.write("\27[33mEnter a statement and hit enter to evaluate it.\n")
 io.write("Prefix an expression with '=' to show its value.\n")
 io.write("Press Ctrl+D to exit the interpreter.\n\27[37m")

@@ -312,7 +312,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   def convertArg(param: Any): AnyRef = {
     param match {
       case arg: java.lang.Boolean => arg
-      case arg: java.lang.Character => Double.box(arg.toDouble)
+      case arg: java.lang.Character => Integer.valueOf(arg.toInt)
+      case arg: java.lang.Byte => arg
+      case arg: java.lang.Short => arg
+      case arg: java.lang.Integer => arg
       case arg: java.lang.Long => arg
       case arg: java.lang.Number => Double.box(arg.doubleValue)
       case arg: java.lang.String => arg

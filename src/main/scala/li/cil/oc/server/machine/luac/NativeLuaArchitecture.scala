@@ -30,6 +30,11 @@ class NativeLua53Architecture(machine: api.machine.Machine) extends NativeLuaArc
   override def factory = LuaStateFactory.Lua53
 }
 
+@Architecture.Name("Lua 5.4")
+class NativeLua54Architecture(machine: api.machine.Machine) extends NativeLuaArchitecture(machine) {
+  override def factory = LuaStateFactory.Lua54
+}
+
 abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   protected def factory: LuaStateFactory
 

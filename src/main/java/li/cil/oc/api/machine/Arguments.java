@@ -69,6 +69,19 @@ public interface Arguments extends Iterable<Object> {
     int checkInteger(int index);
 
     /**
+     * Try to get a long value at the specified index.
+     * <br>
+     * Throws an error if there are too few arguments.
+     *
+     * @param index the index from which to get the argument.
+     * @return the long value at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a number.
+     * @since OpenComputers 1.8.0
+     */
+    long checkLong(int index);
+
+    /**
      * Try to get a double value at the specified index.
      * <br>
      * Throws an error if there are too few arguments.
@@ -189,6 +202,19 @@ public interface Arguments extends Iterable<Object> {
     int optInteger(int index, int def);
 
     /**
+     * Try to get a long value at the specified index.
+     * <br>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkLong(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the long value at the specified index.
+     * @throws IllegalArgumentException if the argument exists but is not a number.
+     * @since OpenComputers 1.8.0
+     */
+    long optLong(int index, long def);
+
+    /**
      * Try to get a double value at the specified index.
      * <br>
      * Return the specified default value if there is no such element, behaves
@@ -272,6 +298,17 @@ public interface Arguments extends Iterable<Object> {
      * @return true if the argument is an integer; false otherwise.
      */
     boolean isInteger(int index);
+
+    /**
+     * Tests whether the argument at the specified index is a long value.
+     * <br>
+     * This will return false if there is <em>no</em> argument at the specified
+     * index, i.e. if there are too few arguments.
+     *
+     * @param index the index to check.
+     * @return true if the argument is a long; false otherwise.
+     */
+    boolean isLong(int index);
 
     /**
      * Tests whether the argument at the specified index is a double value.

@@ -70,6 +70,19 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     else checkInteger(index)
   }
 
+  def checkLong(index: Int) = {
+    checkIndex(index, "number")
+    args(index) match {
+      case value: java.lang.Number => value.longValue
+      case value => throw typeError(index, value, "number")
+    }
+  }
+
+  def optLong(index: Int, default: Long) = {
+    if (!isDefined(index)) default
+    else checkLong(index)
+  }
+
   def checkString(index: Int) = {
     checkIndex(index, "string")
     args(index) match {
@@ -159,6 +172,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
       case _ => false
     })
 
+  def isLong(index: Int) = isInteger(index)
+
   def isString(index: Int) =
     index >= 0 && index < count && (args(index) match {
       case value: java.lang.String => true
@@ -210,6 +225,10 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   private def typeName(value: AnyRef): String = value match {
     case null | Unit | None => "nil"
     case _: java.lang.Boolean => "boolean"
+    case _: java.lang.Byte => "integer"
+    case _: java.lang.Short => "integer"
+    case _: java.lang.Integer => "integer"
+    case _: java.lang.Long => "integer"
     case _: java.lang.Number => "double"
     case _: java.lang.String => "string"
     case _: Array[Byte] => "string"

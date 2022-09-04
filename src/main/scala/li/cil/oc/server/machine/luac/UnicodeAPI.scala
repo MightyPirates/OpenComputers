@@ -11,7 +11,7 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val builder = new java.lang.StringBuilder()
-      (1 to lua.getTop).map(lua.checkInteger).foreach(builder.appendCodePoint)
+      (1 to lua.getTop).map(lua.checkInt32).foreach(builder.appendCodePoint)
       lua.pushString(builder.toString)
       1
     })
@@ -39,12 +39,12 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       val string = lua.checkString(1)
       val sLength = ExtendedUnicodeHelper.length(string)
-      val start = lua.checkInteger(2) match {
+      val start = lua.checkInt32(2) match {
         case i if i < 0 => string.offsetByCodePoints(string.length, math.max(i, -sLength))
         case i => string.offsetByCodePoints(0, math.min(i - 1, sLength))
       }
       val end =
-        if (lua.getTop > 2) lua.checkInteger(3) match {
+        if (lua.getTop > 2) lua.checkInt32(3) match {
           case i if i < 0 => string.offsetByCodePoints(string.length, math.max(i + 1, -sLength))
           case i => string.offsetByCodePoints(0, math.min(i, sLength))
         }
