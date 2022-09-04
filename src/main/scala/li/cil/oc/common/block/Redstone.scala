@@ -11,12 +11,12 @@ import net.minecraft.world.World
 
 class Redstone extends RedstoneAware {
   override protected def customTextures = Array(
+    Some("RedstoneBottom"),
     Some("RedstoneTop"),
-    Some("RedstoneTop"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide")
+    Some("RedstoneNorth"),
+    Some("RedstoneSouth"),
+    Some("RedstoneWest"),
+    Some("RedstoneEast")
   )
 
   // ----------------------------------------------------------------------- //
