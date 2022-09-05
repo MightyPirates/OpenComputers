@@ -132,6 +132,8 @@ class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITex
     }
   }
 
+  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
+
   override protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {
     drawBufferLayer(stack)
     RenderState.pushAttrib()

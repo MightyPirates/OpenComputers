@@ -13,6 +13,10 @@ class Disassembler(state: container.Disassembler, playerInventory: PlayerInvento
 
   val progress = addCustomWidget(new ProgressBar(18, 65))
 
+  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {
+    font.draw(stack, title, titleLabelX, titleLabelY, 0x404040);
+  }
+
   override def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {
     RenderSystem.color3f(1, 1, 1)
     Textures.bind(Textures.GUI.Disassembler)

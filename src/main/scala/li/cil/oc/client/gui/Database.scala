@@ -16,6 +16,8 @@ class Database(state: container.Database, playerInventory: PlayerInventory, name
 
   override def lockedStack = inventoryContainer.container
 
+  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
+
   override def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
 
   override protected def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {

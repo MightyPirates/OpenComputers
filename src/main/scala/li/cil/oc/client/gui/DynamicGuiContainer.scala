@@ -30,11 +30,13 @@ abstract class DynamicGuiContainer[C <: Container](container: C, inv: PlayerInve
 
   protected var hoveredStackNEI: StackOption = EmptyStack
 
-  protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {
-    font.drawShadow(stack,
-      Localization.localizeImmediately("container.inventory"),
-      8, imageHeight - 96 + 2, 0x404040)
+  override protected def init() {
+    super.init()
+    // imageHeight is set in the body of the extending class, so it's not available in ours.
+    inventoryLabelY = imageHeight - 96 + 2
   }
+
+  protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
 
   override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {
     super.renderLabels(stack, mouseX, mouseY)
