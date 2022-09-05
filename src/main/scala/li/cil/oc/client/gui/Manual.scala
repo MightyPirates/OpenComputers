@@ -40,6 +40,7 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
 
   override def backgroundImage = Textures.GUI.Manual
 
+  var isScrolling = false
   var document: Segment = null
   var documentHeight = 0
   var currentSegment = None: Option[InteractiveSegment]
@@ -109,7 +110,7 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
     super.render(stack, mouseX, mouseY, dt)
 
     scrollButton.active = canScroll
-    scrollButton.hoverOverride = isDragging
+    scrollButton.hoverOverride = isScrolling
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttons.get(i).asInstanceOf[ImageButton]
@@ -125,7 +126,7 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
       seqAsJavaList(lines.toSeq)
     }
 
-    if (!isDragging) currentSegment match {
+    if (!isScrolling) currentSegment match {
       case Some(segment) =>
         segment.tooltip match {
           case Some(text) if text.nonEmpty => renderWrappedToolTip(stack, localizeAndWrap(text), mouseX, mouseY, font)
@@ -134,14 +135,14 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
       case _ =>
     }
 
-    if (!isDragging) for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
+    if (!isScrolling) for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttons.get(i).asInstanceOf[ImageButton]
       if (mouseX > button.x && mouseX < button.x + tabWidth && mouseY > button.y && mouseY < button.y + tabHeight) tab.tooltip.foreach(text => {
         renderWrappedToolTip(stack, localizeAndWrap(text), mouseX, mouseY, font)
       })
     }
 
-    if (canScroll && (isCoordinateOverScrollBar(mouseX - leftPos, mouseY - topPos) || isDragging)) {
+    if (canScroll && (isCoordinateOverScrollBar(mouseX - leftPos, mouseY - topPos) || isScrolling)) {
       val lines = seqAsJavaList(Seq(new StringTextComponent(s"${100 * offset / maxOffset}%")))
       renderWrappedToolTip(stack, lines, leftPos + scrollPosX + scrollWidth, scrollButton.y + scrollButton.getHeight + 1, font)
     }
@@ -167,14 +168,16 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
   }
 
   override def mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean = {
-    if (canScroll && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && isCoordinateOverScrollBar(mouseX.asInstanceOf[Int] - leftPos, mouseY.asInstanceOf[Int] - topPos)) {
-      setDragging(true)
+    val (mcx, mcy) = (mouseX.asInstanceOf[Int] - leftPos, mouseY.asInstanceOf[Int] - topPos)
+    if (canScroll && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && isCoordinateOverScrollBar(mcx, mcy)) {
+      isScrolling = true
       scrollMouse(mouseY)
       return true
     }
-    if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-      currentSegment.foreach(_.onMouseClick(mouseX.asInstanceOf[Int], mouseY.asInstanceOf[Int]))
-      return true
+    if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && isCoordinateOverContent(mcx, mcy)) {
+      if (currentSegment.exists(_.onMouseClick(mouseX.asInstanceOf[Int], mouseY.asInstanceOf[Int]))) {
+        return true
+      }
     }
     if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
       popPage()
@@ -184,12 +187,12 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
   }
 
   override def mouseMoved(mouseX: Double, mouseY: Double): Unit = {
-    if (isDragging) scrollMouse(mouseY)
+    if (isScrolling) scrollMouse(mouseY)
     super.mouseMoved(mouseX, mouseY)
   }
 
   override def mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean = {
-    if (isDragging) {
+    if (isScrolling) {
       scrollMouse(mouseY)
       return true
     }
@@ -197,8 +200,8 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
   }
 
   override def mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean = {
-    if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-      setDragging(false)
+    if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && isScrolling) {
+      isScrolling = false
       return true
     }
     super.mouseReleased(mouseX, mouseY, button)
@@ -223,7 +226,11 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
     }
   }
 
+  private def isCoordinateOverContent(x: Int, y: Int) =
+    x >= 8 && x < 8 + documentMaxWidth &&
+      y >= 8 && y < 8 + documentMaxHeight
+
   private def isCoordinateOverScrollBar(x: Int, y: Int) =
-    x > scrollPosX && x < scrollPosX + scrollWidth &&
+    x >= scrollPosX && x < scrollPosX + scrollWidth &&
       y >= scrollPosY && y < scrollPosY + scrollHeight
 }
