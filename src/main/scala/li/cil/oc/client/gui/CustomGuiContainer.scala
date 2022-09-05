@@ -92,14 +92,15 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C, inv
 
       stack.pushPose()
       stack.translate(0, 0, 400)
-      val renderType = IRenderTypeBuffer.immediate(Tessellator.getInstance.getBuilder())
+      val buffer = IRenderTypeBuffer.immediate(Tessellator.getInstance.getBuilder())
       for ((line, index) <- text.zipWithIndex) {
-        font.drawInBatch(LanguageMap.getInstance.getVisualOrder(line), posX, posY, -1, true, stack.last.pose, renderType, false, 0, 15728880)
+        font.drawInBatch(LanguageMap.getInstance.getVisualOrder(line), posX, posY, -1, true, stack.last.pose, buffer, false, 0, 15728880)
         if (index == 0) {
           posY += 2
         }
         posY += 10
       }
+      buffer.endBatch()
       stack.popPose()
       setBlitOffset(0)
       itemRenderer.blitOffset = 0f
