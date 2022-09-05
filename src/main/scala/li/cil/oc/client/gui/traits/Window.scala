@@ -31,10 +31,11 @@ trait Window extends Screen {
   }
 
   override def render(stack: MatrixStack, mouseX: Int, mouseY: Int, dt: Float): Unit = {
-    super.render(stack, mouseX, mouseY, dt)
     Minecraft.getInstance.getTextureManager.bind(backgroundImage)
     // Texture width and height are intentionally backwards.
     AbstractGui.blit(stack, leftPos, topPos, getBlitOffset, 0, 0, imageWidth, imageHeight, windowHeight, windowWidth)
+
+    super.render(stack, mouseX, mouseY, dt)
   }
 
 }
