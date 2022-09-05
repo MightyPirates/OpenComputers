@@ -7,7 +7,7 @@ Voici un peu de texte de test pour la version de Markdown supportée par le syst
 ![C'est rendu en direct.](oredict:opencomputers:assembler)
 ## Entête plus petite [avec un *lien* aussi mais cette __fois__ plus long](../block/adapter.md)
 
-![Ceci est une autre info-bulle.](item:opencomputers:item@23)
+![Ceci est une autre info-bulle.](item:opencomputers:transistor)
 
 un peu de texte directement au dessus de l'afficheur d'objet pour tester l'espacement
 ![Toutes ces couleurs.](oredict:forge/piston)

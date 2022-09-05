@@ -7,7 +7,7 @@ This is some test text for the subset of Markdown supported by the planned ingam
 ![This is rendered live.](oredict:opencomputers:assembler)
 ## Smaller headline [also with *link* but this __one__ longer](../block/adapter.md)
 
-![This is another tooltip.](item:opencomputers:item@23)
+![This is another tooltip.](item:opencomputers:transistor)
 
 some text directly above the item stack renderer to test spacing
 ![All the colors.](oredict:forge/piston)

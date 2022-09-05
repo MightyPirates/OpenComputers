@@ -1,6 +1,6 @@
 # Tablet
 
-![Berühr' mich, wenn du kannst.](item:OpenComputers:item@68)
+![Berühr' mich, wenn du kannst.](item:opencomputers:tablet)
 
 Tablets werden gebaut, indem ein [Tabletgehäuse](tabletCase1.md) in einer [Elektronik-Werkbank](../block/assembler.md) eingesetzt, konfiguriert und montiert wird. Tablets sind tragbare Computer die nicht direkt mit der Welt interagieren können. Das bedeutet, dass beispielsweise [Redstonekarten](redstoneCard1.md) nicht darin funktionieren. Eine Vielfalt von Upgrades funktionieren schon, wie das [Schild-I/O](signUpgrade.md) oder das [Kolbenupgrade](pistonUpgrade.md).
 

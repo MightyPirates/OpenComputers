@@ -1,6 +1,6 @@
 # Tablette
 
-![Touche moi si tu peux.](item:OpenComputers:item@68)
+![Touche moi si tu peux.](item:opencomputers:tablet)
 
 Les tablettes sont faites en mettant un [boîtier de tablette](tabletCase1.md) dans un [assembleur](../block/assembler.md), en le configurant comme vous le voulez et en assemblant. Les tablettes se comportent comme des ordinateurs portables qui ne peuvent pas interagir directement avec le monde - par exemple, les [cartes de redstone](redstoneCard1.md) de base ne fonctionnent pas avec une tablette. Cependant, un certain nombre d'améliorations fonctionne, comme l'[amélioration de panneau d'E/S](signUpgrade.md) ou l'[amélioration de piston](pistonUpgrade.md).
 
