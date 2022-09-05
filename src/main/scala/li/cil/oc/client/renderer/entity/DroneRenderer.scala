@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererManager
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.util.math.MathHelper
 import net.minecraftforge.fml.client.registry.IRenderFactory
 
 object DroneRenderer extends IRenderFactory[Drone] {
@@ -26,6 +27,10 @@ class DroneRenderer(manager: EntityRendererManager) extends EntityRenderer[Drone
       stack.pushPose()
       stack.translate(0, 2f / 16f, 0)
       val builder = buffer.getBuffer(renderType)
+      DroneRenderer.model.prepareMobModel(entity, 0, 0, dt)
+      val xRot = MathHelper.rotLerp(dt, entity.xRotO, entity.xRot)
+      val yRot = MathHelper.rotLerp(dt, entity.yRotO, entity.yRot)
+      DroneRenderer.model.setupAnim(entity, 0, 0, entity.tickCount, yRot, xRot)
       DroneRenderer.model.renderToBuffer(stack, builder, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1)
       stack.popPose()
     }
