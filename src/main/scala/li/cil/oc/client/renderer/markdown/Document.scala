@@ -139,6 +139,8 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
+    // Remove the depth mask so tooltips render properly.
+    RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, false)
     RenderState.popAttrib()
     RenderSystem.bindTexture(0)
 

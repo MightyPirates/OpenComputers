@@ -53,6 +53,8 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
 
     RenderSystem.enableBlend()
     RenderSystem.enableAlphaTest()
+    // Disabled by text rendering above it (default state is disabled).
+    RenderSystem.enableDepthTest()
 
     if (hovered.isDefined) {
       RenderSystem.color4f(1, 1, 1, 0.15f)
