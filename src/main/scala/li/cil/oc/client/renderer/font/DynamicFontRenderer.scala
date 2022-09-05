@@ -45,13 +45,13 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     }
     textures.clear()
     charMap.clear()
+    glyphProvider.initialize()
     textures += new DynamicFontRenderer.CharTexture(this)
     activeTexture = textures.head
     generateChars(basicChars.toCharArray)
   }
 
   def onResourceManagerReload(manager: IResourceManager) {
-    glyphProvider.initialize()
     initialize()
   }
 
