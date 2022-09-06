@@ -144,7 +144,7 @@ class Rack(state: container.Rack, playerInventory: PlayerInventory, name: ITextC
 
         for (connectable <- 0 until 3) {
           val button = new ImageButton(leftPos + bx, topPos + by + offset + 1 + mbh + sbh * connectable, sw, sh, new Button.IPressable {
-            override def onPress(b: Button) = onRackButton(mountable, connectable, bus)
+            override def onPress(b: Button) = onRackButton(mountable, connectable + 1, bus)
           })
           addButton(button)
           wireButtons(mountable)(connectable + 1)(bus) = button
@@ -157,7 +157,8 @@ class Rack(state: container.Rack, playerInventory: PlayerInventory, name: ITextC
     super.drawSecondaryForegroundLayer(stack, mouseX, mouseY)
     RenderState.pushAttrib() // Prevents NEI render glitch.
 
-    RenderSystem.color3f(1, 1, 1)
+    RenderSystem.color4f(1, 1, 1, 1)
+    RenderState.makeItBlend()
     minecraft.getTextureManager.bind(Textures.GUI.Rack)
 
     if (inventoryContainer.isRelayEnabled) {

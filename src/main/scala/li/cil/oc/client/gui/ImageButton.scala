@@ -1,6 +1,7 @@
 package li.cil.oc.client.gui
 
 import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
@@ -57,22 +58,20 @@ class ImageButton(xPos: Int, yPos: Int, w: Int, h: Int,
         r.vertex(stack.last.pose, x1, y1, getBlitOffset).uv(u1, v1).endVertex()
         r.vertex(stack.last.pose, x1, y0, getBlitOffset).uv(u1, v0).endVertex()
         r.vertex(stack.last.pose, x0, y0, getBlitOffset).uv(u0, v0).endVertex()
+        t.end()
       }
       else {
-        if (drawHover) {
-          RenderSystem.color4f(1, 1, 1, 0.8f)
-        }
-        else {
-          RenderSystem.color4f(1, 1, 1, 0.4f)
-        }
-
-        r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
-        r.vertex(stack.last.pose, x0, y1, getBlitOffset).endVertex()
-        r.vertex(stack.last.pose, x1, y1, getBlitOffset).endVertex()
-        r.vertex(stack.last.pose, x1, y0, getBlitOffset).endVertex()
-        r.vertex(stack.last.pose, x0, y0, getBlitOffset).endVertex()
+        RenderSystem.enableBlend()
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA)
+        val alpha = if (drawHover) 0.8f else 0.4f
+        r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+        r.vertex(stack.last.pose, x0, y1, getBlitOffset).color(1, 1, 1, alpha).endVertex()
+        r.vertex(stack.last.pose, x1, y1, getBlitOffset).color(1, 1, 1, alpha).endVertex()
+        r.vertex(stack.last.pose, x1, y0, getBlitOffset).color(1, 1, 1, alpha).endVertex()
+        r.vertex(stack.last.pose, x0, y0, getBlitOffset).color(1, 1, 1, alpha).endVertex()
+        t.end()
+        RenderSystem.disableBlend()
       }
-      t.end()
 
       if (getMessage != StringTextComponent.EMPTY) {
         val color =
