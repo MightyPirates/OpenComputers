@@ -518,7 +518,7 @@ object Settings {
       catch {
         case e: Throwable =>
           if (file.exists()) {
-            OpenComputers.log.warn("Failed loading config, using defaults.", e)
+            throw new RuntimeException("Error parsing configuration file. To restore defaults, delete '" + file.getName + "' and restart the game.", e)
           }
           settings = new Settings(defaults.getConfig("opencomputers"))
           defaults
