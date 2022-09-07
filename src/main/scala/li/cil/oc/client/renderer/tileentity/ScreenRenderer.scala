@@ -86,7 +86,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: fade")
 
     if (screen.buffer.isRenderingEnabled) {
+      val profiler = Minecraft.getMinecraft.mcProfiler
+      profiler.startSection("opencomputers:screen_text")
       draw()
+      profiler.endSection()
     }
 
     RenderState.enableLighting()
