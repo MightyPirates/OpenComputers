@@ -1,8 +1,11 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.item.ItemStack
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.container.ContainerType
 import net.minecraft.nbt.CompoundNBT
@@ -10,8 +13,20 @@ import net.minecraft.nbt.CompoundNBT
 class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: PlayerInventory, val printer: IInventory)
   extends Player(selfType, id, playerInventory, printer) {
 
-  addSlotToContainer(18, 19, Slot.Filtered)
-  addSlotToContainer(18, 51, Slot.Filtered)
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 19, Slot.Filtered, Tier.Any) {
+    override def mayPlace(stack: ItemStack): Boolean = {
+      if (!container.canPlaceItem(getSlotIndex, stack)) return false
+      if (!isActive) return false
+      PrintData.materialValue(stack) > 0
+    }
+  })
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 51, Slot.Filtered, Tier.Any) {
+    override def mayPlace(stack: ItemStack): Boolean = {
+      if (!container.canPlaceItem(getSlotIndex, stack)) return false
+      if (!isActive) return false
+      PrintData.inkValue(stack) > 0
+    }
+  })
   addSlotToContainer(152, 35)
 
   // Show the player's inventory.

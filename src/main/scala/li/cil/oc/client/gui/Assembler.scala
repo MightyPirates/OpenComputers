@@ -53,7 +53,13 @@ class Assembler(state: container.Assembler, playerInventory: PlayerInventory, na
     addButton(runButton)
   }
 
-  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {}
+  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {
+    drawSecondaryForegroundLayer(stack, mouseX, mouseY)
+
+    for (slot <- 0 until menu.slots.size()) {
+      drawSlotHighlight(stack, menu.getSlot(slot))
+    }
+  }
 
   override def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int): Unit = {
     RenderState.pushAttrib()

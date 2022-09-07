@@ -114,7 +114,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C, inv: PlayerInve
     RenderSystem.disableBlend()
   }
 
-  protected def drawSlotHighlight(stack: MatrixStack, slot: Slot) {
+  protected def drawSlotHighlight(matrix: MatrixStack, slot: Slot) {
     if (minecraft.player.inventory.getCarried.isEmpty) slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None => // Ignore.
       case _ =>
@@ -132,7 +132,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C, inv: PlayerInve
         }
         if (drawHighlight) {
           setBlitOffset(getBlitOffset + 100)
-          fillGradient(stack,
+          fillGradient(matrix,
             slot.x, slot.y,
             slot.x + 16, slot.y + 16,
             0x80FFFFFF, 0x80FFFFFF)

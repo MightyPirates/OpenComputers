@@ -1,5 +1,7 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.api.Driver
+import li.cil.oc.api.internal
 import li.cil.oc.common
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
@@ -33,7 +35,18 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
   @OnlyIn(Dist.CLIENT)
   override def isActive = slot != common.Slot.None && tier != common.Tier.None && super.isActive
 
-  override def mayPlace(stack: ItemStack) = inventory.canPlaceItem(getSlotIndex, stack)
+  override def mayPlace(stack: ItemStack): Boolean = {
+    if (!inventory.canPlaceItem(getSlotIndex, stack)) return false
+    if (!isActive) return false
+    for (driver <- Driver.itemDrivers) {
+      if (driver.worksWith(stack)) {
+        val slotOk = (slot == common.Slot.Any || driver.slot(stack) == slot)
+        val tierOk = (tier == common.Tier.Any || driver.tier(stack) <= tier)
+        if (slotOk && tierOk) return true
+      }
+    }
+    false
+  }
 
   override def onTake(player: PlayerEntity, stack: ItemStack) = {
     for (slot <- agentContainer.slots) slot match {

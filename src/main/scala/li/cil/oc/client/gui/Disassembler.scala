@@ -14,7 +14,12 @@ class Disassembler(state: container.Disassembler, playerInventory: PlayerInvento
   val progress = addCustomWidget(new ProgressBar(18, 65))
 
   override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {
-    font.draw(stack, title, titleLabelX, titleLabelY, 0x404040);
+    font.draw(stack, title, titleLabelX, titleLabelY, 0x404040)
+    drawSecondaryForegroundLayer(stack, mouseX, mouseY)
+
+    for (slot <- 0 until menu.slots.size()) {
+      drawSlotHighlight(stack, menu.getSlot(slot))
+    }
   }
 
   override def renderBg(stack: MatrixStack, dt: Float, mouseX: Int, mouseY: Int) {

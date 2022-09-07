@@ -5,6 +5,7 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
+import net.minecraft.item.ItemStack
 import net.minecraft.inventory.container.ContainerType
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
@@ -22,6 +23,12 @@ class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventor
       @OnlyIn(Dist.CLIENT) override
       def isActive = !isAssembling && super.isActive
 
+      override def mayPlace(stack: ItemStack): Boolean = {
+        if (!container.canPlaceItem(getSlotIndex, stack)) return false
+        if (!isActive) return false
+        AssemblerTemplates.select(stack).isDefined
+      }
+
       override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })
   }
@@ -38,6 +45,26 @@ class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventor
         new InventorySlot(tplSlot.kind, tplSlot.tier)
       case _ => new InventorySlot(common.Slot.None, common.Tier.None)
     }
+  }
+
+  override def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
+    val index = slots.size
+    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, info, () => common.Tier.One) {
+      override def mayPlace(stack: ItemStack): Boolean = {
+        if (!super.mayPlace(stack)) return false
+        AssemblerTemplates.select(getSlot(0).getItem) match {
+          case Some(template) =>
+            val index = getSlotIndex
+            val tplSlot =
+              if ((1 until 4) contains index) template.containerSlots(index - 1)
+              else if ((4 until 13) contains index) template.upgradeSlots(index - 4)
+              else if ((13 until 21) contains index) template.componentSlots(index - 13)
+              else AssemblerTemplates.NoSlot
+            tplSlot.validate(assembler, getSlotIndex, stack)
+          case _ => false
+        }
+      }
+    })
   }
 
   // Component containers.
