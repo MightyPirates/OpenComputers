@@ -15,6 +15,7 @@ import java.util
 import li.cil.oc.integration.charset.{CapabilitiesCharset, ModCharset}
 import net.minecraftforge.common.capabilities.Capability
 
+@Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = Mods.IDs.ProjectRedCore)
 trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
 
   protected[tileentity] val _bundledInput: Array[Array[Int]] = Array.fill(6)(Array.fill(16)(-1))
@@ -203,9 +204,9 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledTile {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  @Optional.Method(modid = Mods.IDs.ProjectRedCore)
   override def canConnectBundled(side: Int): Boolean = isOutputEnabled
 
-  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+  @Optional.Method(modid = Mods.IDs.ProjectRedCore)
   override def getBundledSignal(side: Int): Array[Byte] = getBundledOutput(EnumFacing.byIndex(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }
