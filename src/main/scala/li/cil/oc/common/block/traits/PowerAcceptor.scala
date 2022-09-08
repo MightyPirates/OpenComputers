@@ -20,7 +20,7 @@ trait PowerAcceptor extends SimpleBlock {
 
   override protected def tooltipTail(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     super.tooltipTail(stack, world, tooltip, advanced)
-    for (curr <- Tooltip.extended("PowerAcceptor", energyThroughput.toInt)) {
+    for (curr <- Tooltip.extended("poweracceptor", energyThroughput.toInt)) {
       tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }

@@ -146,6 +146,7 @@
     "item.oc.wirelessnetworkcard1": "無線網卡",
     "item.oc.worldsensorcard": "世界傳感器卡",
     "item.oc.wrench": "螺絲刀扳手",
+    "itemGroup.OpenComputers": "OpenComputers",
     "entity.oc.drone": "無人機",
     "oc:gui.Analyzer.Address": "§6位址§f: %s",
     "oc:gui.Analyzer.AddressCopied": "位址複製到剪貼簿.",

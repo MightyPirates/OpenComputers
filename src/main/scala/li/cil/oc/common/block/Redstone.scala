@@ -20,7 +20,7 @@ class Redstone extends RedstoneAware {
     super.tooltipTail(stack, world, tooltip, advanced)
     // todo more generic way for redstone mods to provide lines
     if (Mods.ProjectRedTransmission.isModAvailable) {
-      for (curr <- Tooltip.get("RedstoneCard.ProjectRed")) tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
+      for (curr <- Tooltip.get("redstonecard.ProjectRed")) tooltip.add(new StringTextComponent(curr).setStyle(Tooltip.DefaultStyle))
     }
   }
 

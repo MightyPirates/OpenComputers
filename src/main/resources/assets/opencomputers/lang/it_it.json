@@ -105,6 +105,7 @@
     "item.oc.upgradetractorbeam": "Upgrade Raggio Traente",
     "item.oc.wirelessnetworkcard0": "Scheda di Rete Wireless (Livello 1)",
     "item.oc.wirelessnetworkcard1": "Scheda di Rete Wireless (Livello 2)",
+    "itemGroup.OpenComputers": "OpenComputers",
     "oc:gui.Analyzer.Address": "§6Indirizzo§f: %s",
     "oc:gui.Analyzer.AddressCopied": "Indirizzo copiato negli appunti.",
     "oc:gui.Analyzer.ChargerSpeed": "§6Velocità ricarica§f: %s",

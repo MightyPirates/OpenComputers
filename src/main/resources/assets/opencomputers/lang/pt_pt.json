@@ -51,6 +51,7 @@
     "item.oc.upgradesolargenerator": "Melhoramento: Gerador Solar",
     "item.oc.wirelessnetworkcard0": "Placa de Rede sem Fios",
     "item.oc.WirelessNetworkCard1": "Placa de Rede sem Fios",
+    "itemGroup.OpenComputers": "OpenComputers",
     "oc:gui.Analyzer.Address": "§6Endereço§f: %s",
     "oc:gui.Analyzer.ComponentName": "§6Nome do Componente§f: %s",
     "oc:gui.Analyzer.LastError": "§6Último erro§f: %s",
