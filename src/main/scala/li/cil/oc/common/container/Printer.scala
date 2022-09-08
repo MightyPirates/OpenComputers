@@ -48,7 +48,7 @@ class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: P
         synchronizedData.putDouble("progress", if (te.isPrinting) te.progress / 100.0 else 0)
         synchronizedData.putInt("maxAmountMaterial", te.maxAmountMaterial)
         synchronizedData.putInt("amountMaterial", te.amountMaterial)
-        synchronizedData.putInt("maxAmountInk", te.amountInk)
+        synchronizedData.putInt("maxAmountInk", te.maxAmountInk)
         synchronizedData.putInt("amountInk", te.amountInk)
       }
       case _ =>

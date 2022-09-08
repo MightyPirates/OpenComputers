@@ -94,7 +94,7 @@ class Drone(state: container.Drone, playerInventory: PlayerInventory, name: ITex
   override protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {
     drawBufferLayer(stack)
     RenderState.pushAttrib()
-    if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
+    if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX - leftPos, mouseY - topPos)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(

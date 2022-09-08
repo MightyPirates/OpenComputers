@@ -85,7 +85,7 @@ class Assembler(state: container.Assembler, playerInventory: PlayerInventory, na
         copiedDrawHoveringText(stack, tooltip, mouseX - leftPos, mouseY - topPos, font)
       }
     }
-    else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
+    else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX - leftPos, mouseY - topPos)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(inventoryContainer.assemblyRemainingTime)
       tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
