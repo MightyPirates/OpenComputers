@@ -4,19 +4,17 @@ import java.util.function.Function
 
 import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity.Microcontroller
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.vector.Vector3f
-import org.lwjgl.opengl.GL11
 
 object MicrocontrollerRenderer extends Function[TileEntityRendererDispatcher, MicrocontrollerRenderer] {
   override def apply(dispatch: TileEntityRendererDispatcher) = new MicrocontrollerRenderer(dispatch)
@@ -26,11 +24,6 @@ class MicrocontrollerRenderer(dispatch: TileEntityRendererDispatcher) extends Ti
   override def render(mcu: Microcontroller, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
-
-    RenderState.disableEntityLighting()
-    RenderState.makeItBlend()
-    RenderState.setBlendAlpha(1)
     RenderSystem.color4f(1, 1, 1, 1)
 
     stack.pushPose()
@@ -47,11 +40,7 @@ class MicrocontrollerRenderer(dispatch: TileEntityRendererDispatcher) extends Ti
     stack.translate(-0.5, 0.5, 0.505)
     stack.scale(1, -1, 1)
 
-    val t = Tessellator.getInstance
-    val r = t.getBuilder
-
-    Textures.Block.bind()
-    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+    val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
     renderFrontOverlay(stack, Textures.Block.MicrocontrollerFrontLight, r)
 
@@ -62,18 +51,12 @@ class MicrocontrollerRenderer(dispatch: TileEntityRendererDispatcher) extends Ti
       renderFrontOverlay(stack, Textures.Block.MicrocontrollerFrontError, r)
     }
 
-    t.end()
-
-    RenderState.disableBlend()
-    RenderState.enableEntityLighting()
-
     stack.popPose()
-    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
-  private def renderFrontOverlay(stack: MatrixStack, texture: ResourceLocation, r: BufferBuilder): Unit = {
+  private def renderFrontOverlay(stack: MatrixStack, texture: ResourceLocation, r: IVertexBuilder): Unit = {
     val icon = Textures.getSprite(texture)
     r.vertex(stack.last.pose, 0, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
     r.vertex(stack.last.pose, 1, 1, 0).uv(icon.getU1, icon.getV1).endVertex()

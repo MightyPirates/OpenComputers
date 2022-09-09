@@ -26,7 +26,7 @@ class RackRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRen
   override def render(rack: Rack, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
+    RenderSystem.color4f(1, 1, 1, 1)
 
     stack.pushPose()
 
@@ -45,21 +45,14 @@ class RackRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRen
     // Note: we manually sync the rack inventory for this to work.
     for (i <- 0 until rack.getContainerSize) {
       if (!rack.getItem(i).isEmpty) {
-        stack.pushPose()
-        RenderState.pushAttrib()
-
         val v0 = vOffset + i * vSize
         val v1 = vOffset + (i + 1) * vSize
         val event = new RackMountableRenderEvent.TileEntity(rack, i, rack.lastData(i), stack, buffer, light, overlay, v0, v1)
         MinecraftForge.EVENT_BUS.post(event)
-
-        RenderState.popAttrib()
-        stack.popPose()
       }
     }
 
     stack.popPose()
-    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }

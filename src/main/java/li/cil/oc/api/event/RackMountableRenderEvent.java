@@ -4,20 +4,13 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.internal.Rack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
-import org.lwjgl.opengl.GL11;
 
 /**
  * Fired to allow rendering a custom overlay for {@link li.cil.oc.api.component.RackMountable}s.
@@ -141,68 +134,6 @@ public abstract class RackMountableRenderEvent extends Event {
             this.overlay = overlay;
             this.v0 = v0;
             this.v1 = v1;
-        }
-
-        /**
-         * Utility method for rendering a texture as the front-side overlay.
-         *
-         * @param texture the texture to use to render the overlay.
-         */
-        public void renderOverlay(final ResourceLocation texture) {
-            renderOverlay(texture, 0, 1);
-        }
-
-        /**
-         * Utility method for rendering a texture as the front-side overlay
-         * over a specified horizontal area.
-         *
-         * @param texture the texture to use to render the overlay.
-         * @param u0      the lower end of the vertical area to render at.
-         * @param u1      the upper end of the vertical area to render at.
-         */
-        public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
-            Minecraft.getInstance().getTextureManager().bind(texture);
-            final Tessellator t = Tessellator.getInstance();
-            final BufferBuilder r = t.getBuilder();
-            final Matrix4f matrix = stack.last().pose();
-            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            r.vertex(matrix, u0, v1, 0).uv(u0, v1).endVertex();
-            r.vertex(matrix, u1, v1, 0).uv(u1, v1).endVertex();
-            r.vertex(matrix, u1, v0, 0).uv(u1, v0).endVertex();
-            r.vertex(matrix, u0, v0, 0).uv(u0, v0).endVertex();
-            t.end();
-        }
-
-        /**
-         * Utility method for rendering an atlas texture as the front-side overlay.
-         *
-         * @param texture the atlas texture to use to render the overlay.
-         */
-        public void renderOverlayFromAtlas(final ResourceLocation texture) {
-            renderOverlayFromAtlas(texture, 0, 1);
-        }
-
-        /**
-         * Utility method for rendering an atlas texture as the front-side overlay
-         * over a specified horizontal area.
-         *
-         * @param texture the atlas texture to use to render the overlay.
-         * @param u0      the lower end of the vertical area to render at.
-         * @param u1      the upper end of the vertical area to render at.
-         */
-        public void renderOverlayFromAtlas(final ResourceLocation texture, final float u0, final float u1) {
-            final AtlasTexture atlas = Minecraft.getInstance().getModelManager().getAtlas(PlayerContainer.BLOCK_ATLAS);
-            atlas.bind();
-            final TextureAtlasSprite icon = atlas.getSprite(texture);
-            final Tessellator t = Tessellator.getInstance();
-            final BufferBuilder r = t.getBuilder();
-            final Matrix4f matrix = stack.last().pose();
-            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            r.vertex(matrix, u0, v1, 0).uv(icon.getU(u0 * 16), icon.getV(v1 * 16)).endVertex();
-            r.vertex(matrix, u1, v1, 0).uv(icon.getU(u1 * 16), icon.getV(v1 * 16)).endVertex();
-            r.vertex(matrix, u1, v0, 0).uv(icon.getU(u1 * 16), icon.getV(v0 * 16)).endVertex();
-            r.vertex(matrix, u0, v0, 0).uv(icon.getU(u0 * 16), icon.getV(v0 * 16)).endVertex();
-            t.end();
         }
     }
 }

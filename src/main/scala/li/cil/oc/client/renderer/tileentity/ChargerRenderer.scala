@@ -5,16 +5,14 @@ import java.util.function.Function
 import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3f
-import org.lwjgl.opengl.GL11
 
 object ChargerRenderer extends Function[TileEntityRendererDispatcher, ChargerRenderer] {
   override def apply(dispatch: TileEntityRendererDispatcher) = new ChargerRenderer(dispatch)
@@ -24,14 +22,9 @@ class ChargerRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntity
   override def render(charger: Charger, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
+    RenderSystem.color4f(1, 1, 1, 1)
+
     if (charger.chargeSpeed > 0) {
-      RenderState.pushAttrib()
-
-      RenderState.disableEntityLighting()
-      RenderState.makeItBlend()
-      RenderState.setBlendAlpha(1)
-      RenderSystem.color4f(1, 1, 1, 1)
-
       stack.pushPose()
 
       stack.translate(0.5, 0.5, 0.5)
@@ -46,11 +39,7 @@ class ChargerRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntity
       stack.translate(-0.5f, 0.5f, 0.5f)
       stack.scale(1, -1, 1)
 
-      val t = Tessellator.getInstance
-      val r = t.getBuilder
-
-      Textures.Block.bind()
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
       {
         val inverse = 1 - charger.chargeSpeed.toFloat
@@ -80,13 +69,7 @@ class ChargerRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntity
         r.vertex(stack.last.pose, 1.005f, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
       }
 
-      t.end()
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
-
       stack.popPose()
-      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".render: leaving")

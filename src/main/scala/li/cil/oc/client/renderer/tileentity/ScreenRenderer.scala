@@ -4,25 +4,22 @@ import java.util.function.Function
 
 import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
 import net.minecraft.util.math.vector.Vector3f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL14
 
 object ScreenRenderer extends Function[TileEntityRendererDispatcher, ScreenRenderer] {
   override def apply(dispatch: TileEntityRendererDispatcher) = new ScreenRenderer(dispatch)
@@ -41,8 +38,6 @@ class ScreenRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityR
     api.Items.get(Constants.BlockName.ScreenTier1),
     api.Items.get(Constants.BlockName.ScreenTier2),
     api.Items.get(Constants.BlockName.ScreenTier3))
-
-  private val canUseBlendColor = true // Minecraft 1.16 already requires OpenGL 2.0 or above.
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -73,13 +68,6 @@ class ScreenRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityR
       return
     }
 
-    RenderState.checkError(getClass.getName + ".render: checks")
-
-    RenderState.pushAttrib()
-
-    RenderSystem.glMultiTexCoord2f(GL13.GL_TEXTURE1, 0xFF, 0xFF)
-    RenderState.disableEntityLighting()
-    RenderState.makeItBlend()
     RenderSystem.color4f(1, 1, 1, 1)
 
     stack.pushPose()
@@ -88,29 +76,19 @@ class ScreenRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityR
 
     RenderState.checkError(getClass.getName + ".render: setup")
 
-    drawOverlay(stack)
+    drawOverlay(stack, buffer.getBuffer(RenderTypes.BLOCK_OVERLAY))
 
     RenderState.checkError(getClass.getName + ".render: overlay")
 
-    if (distance > fadeDistanceSq) {
-      val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
-      if (canUseBlendColor) {
-        GL14.glBlendColor(0, 0, 0, alpha)
-        RenderSystem.blendFunc(GL14.GL_CONSTANT_ALPHA, GL11.GL_ONE)
-      }
-    }
+    val alpha = if (distance > fadeDistanceSq) math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat) else 1f
 
     RenderState.checkError(getClass.getName + ".render: fade")
 
     if (screen.buffer.isRenderingEnabled) {
-      draw(stack)
+      draw(stack, alpha, buffer)
     }
 
-    RenderState.disableBlend()
-    RenderState.enableEntityLighting()
-
     stack.popPose()
-    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }
@@ -136,21 +114,14 @@ class ScreenRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityR
     stack.scale(1, -1, 1)
   }
 
-  private def drawOverlay(matrix: MatrixStack) = if (screen.facing == Direction.UP || screen.facing == Direction.DOWN) {
+  private def drawOverlay(matrix: MatrixStack, r: IVertexBuilder) = if (screen.facing == Direction.UP || screen.facing == Direction.DOWN) {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getInstance.player.getItemInHand(Hand.MAIN_HAND)
     if (!stack.isEmpty) {
       if (Wrench.holdsApplicableWrench(Minecraft.getInstance.player, screen.getBlockPos) || screens.contains(api.Items.get(stack))) {
         matrix.pushPose()
         transform(matrix)
-        RenderSystem.depthMask(false)
         matrix.translate(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
-
-        val t = Tessellator.getInstance
-        val r = t.getBuilder
-
-        Textures.Block.bind()
-        r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
         val icon = Textures.getSprite(Textures.Block.ScreenUpIndicator)
         r.vertex(matrix.last.pose, 0, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
@@ -158,15 +129,12 @@ class ScreenRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityR
         r.vertex(matrix.last.pose, 1, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
         r.vertex(matrix.last.pose, 0, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
 
-        t.end()
-
-        RenderSystem.depthMask(true)
         matrix.popPose()
       }
     }
   }
 
-  private def draw(stack: MatrixStack) {
+  private def draw(stack: MatrixStack, alpha: Float, buffer: IRenderTypeBuffer) {
     RenderState.checkError(getClass.getName + ".draw: entering (aka: wasntme)")
 
     val sx = screen.width

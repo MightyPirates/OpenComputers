@@ -68,6 +68,20 @@ public class RenderTypes extends RenderType {
                 .setWriteMaskState(COLOR_WRITE)
                 .createCompositeState(false));
 
+    public static final RenderType BLOCK_OVERLAY = create(OpenComputers.ID() + ":overlay_block",
+            DefaultVertexFormats.POSITION_TEX, GL11.GL_QUADS, 1024, State.builder()
+                .setTextureState(BLOCK_SHEET_MIPPED)
+                .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                .setAlphaState(DEFAULT_ALPHA)
+                .createCompositeState(false));
+
+    public static final RenderType BLOCK_OVERLAY_COLOR = create(OpenComputers.ID() + ":overlay_block",
+            DefaultVertexFormats.POSITION_COLOR_TEX, GL11.GL_QUADS, 1024, State.builder()
+                .setTextureState(BLOCK_SHEET_MIPPED)
+                .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                .setAlphaState(DEFAULT_ALPHA)
+                .createCompositeState(false));
+
     private RenderTypes() {
         super(null, null, 0, 0, false, false, null, null);
         throw new Error();

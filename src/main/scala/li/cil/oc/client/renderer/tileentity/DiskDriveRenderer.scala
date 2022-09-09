@@ -5,20 +5,16 @@ import java.util.function.Function
 import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.entity.item.ItemEntity
 import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
 
 object DiskDriveRenderer extends Function[TileEntityRendererDispatcher, DiskDriveRenderer] {
   override def apply(dispatch: TileEntityRendererDispatcher) = new DiskDriveRenderer(dispatch)
@@ -28,7 +24,6 @@ class DiskDriveRenderer(dispatch: TileEntityRendererDispatcher) extends TileEnti
   override def render(drive: DiskDrive, dt: Float, matrix: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
     RenderSystem.color4f(1, 1, 1, 1)
 
     matrix.pushPose()
@@ -58,30 +53,16 @@ class DiskDriveRenderer(dispatch: TileEntityRendererDispatcher) extends TileEnti
       matrix.translate(-0.5, 0.5, 0.505)
       matrix.scale(1, -1, 1)
 
-      RenderState.disableEntityLighting()
-      RenderState.makeItBlend()
-      RenderState.setBlendAlpha(1)
-
-      val t = Tessellator.getInstance
-      val r = t.getBuilder
-
-      Textures.Block.bind()
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
       val icon = Textures.getSprite(Textures.Block.DiskDriveFrontActivity)
       r.vertex(matrix.last.pose, 0, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
       r.vertex(matrix.last.pose, 1, 1, 0).uv(icon.getU1, icon.getV1).endVertex()
       r.vertex(matrix.last.pose, 1, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
       r.vertex(matrix.last.pose, 0, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
-
-      t.end()
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
     }
 
     matrix.popPose()
-    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }
