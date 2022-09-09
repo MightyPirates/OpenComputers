@@ -187,7 +187,11 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
         ActionResultType.sidedSuccess(world.isClientSide)
       case _ => {
         val loc = trace.getLocation
-        if (localOnBlockActivated(world, pos, player, hand, heldItem, trace.getDirection, loc.x.toFloat, loc.y.toFloat, loc.z.toFloat))
+        val pos = trace.getBlockPos
+        val x = loc.x.toFloat - pos.getX
+        val y = loc.y.toFloat - pos.getY
+        val z = loc.z.toFloat - pos.getZ
+        if (localOnBlockActivated(world, pos, player, hand, heldItem, trace.getDirection, x, y, z))
           ActionResultType.sidedSuccess(world.isClientSide) else ActionResultType.PASS
       }
     }
