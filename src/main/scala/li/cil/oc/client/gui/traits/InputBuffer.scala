@@ -99,6 +99,10 @@ trait InputBuffer extends DisplayBuffer {
   override def keyPressed(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
     if (onInput(InputMappings.getKey(keyCode, scanCode))) return true
     if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
+      if (keyCode == GLFW.GLFW_KEY_ESCAPE && shouldCloseOnEsc) {
+        onClose()
+        return true
+      }
       if (buffer != null && keyCode != GLFW.GLFW_KEY_UNKNOWN) {
         if (hasKeyboard) {
           if (pressedKeys.add(keyCode) || !ignoreRepeat(keyCode)) {
