@@ -86,7 +86,7 @@ class Drone(state: container.Drone, playerInventory: PlayerInventory, name: ITex
     RenderState.popAttrib()
   }
 
-  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
+  override protected def changeSize(w: Double, h: Double) = 2.0
 
   override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) =
     drawSecondaryForegroundLayer(stack, mouseX, mouseY)

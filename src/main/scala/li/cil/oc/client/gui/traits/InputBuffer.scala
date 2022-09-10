@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui.traits
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
@@ -43,7 +42,6 @@ trait InputBuffer extends DisplayBuffer {
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
       Textures.bind(Textures.GUI.KeyboardMissing)
-      RenderSystem.disableDepthTest()
 
       val x = bufferX + buffer.renderWidth - 16
       val y = bufferY + buffer.renderHeight - 16
@@ -56,8 +54,6 @@ trait InputBuffer extends DisplayBuffer {
       r.vertex(stack.last.pose, x + 16, y, 0).uv(1, 0).endVertex()
       r.vertex(stack.last.pose, x, y, 0).uv(0, 0).endVertex()
       t.end()
-
-      RenderSystem.enableDepthTest()
 
       RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
     }
@@ -97,12 +93,12 @@ trait InputBuffer extends DisplayBuffer {
   }
 
   override def keyPressed(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
-    if (onInput(InputMappings.getKey(keyCode, scanCode))) return true
     if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
       if (keyCode == GLFW.GLFW_KEY_ESCAPE && shouldCloseOnEsc) {
         onClose()
         return true
       }
+      if (onInput(InputMappings.getKey(keyCode, scanCode))) return true
       if (buffer != null && keyCode != GLFW.GLFW_KEY_UNKNOWN) {
         if (hasKeyboard) {
           if (pressedKeys.add(keyCode) || !ignoreRepeat(keyCode)) {
@@ -117,11 +113,13 @@ trait InputBuffer extends DisplayBuffer {
   }
 
   override def keyReleased(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
-    if (pressedKeys.remove(keyCode)) {
-      buffer.keyUp('\u0000', keyCode, null)
-      return true
+    if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
+      if (pressedKeys.remove(keyCode)) {
+        buffer.keyUp('\u0000', keyCode, null)
+        return true
+      }
+      // Wasn't pressed while viewing the screen.
     }
-    // Wasn't pressed while viewing the screen.
     super.keyReleased(keyCode, scanCode, mods)
   }
 

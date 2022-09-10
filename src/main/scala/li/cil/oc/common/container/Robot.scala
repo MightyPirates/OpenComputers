@@ -83,12 +83,13 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
 
   // Slot.x and Slot.y are final, so have to rebuild when scrolling
   def generateSlotsFor(scroll: Int) {
-    for (i <- 0 to 15) {
+    val maxRows = math.max(info.mainInvSize / 4, 4)
+    for (i <- 0 until maxRows) {
       val y = 156 + (i - scroll) * slotSize - deltaY
       for (j <- 0 to 3) {
         val x = 170 + j * slotSize
-        val slot = new InventorySlot(this, otherInventory, slots.size, x, y, i >= scroll && i < scroll + 4)
         val idx = 4 + j + 4 * i
+        val slot = new InventorySlot(this, otherInventory, idx, x, y, i >= scroll && i < scroll + 4)
         if (slots.size() <= idx) addSlot(slot)
         else slots.set(idx, slot)
       }

@@ -630,7 +630,7 @@ object TextBuffer {
     @OnlyIn(Dist.CLIENT)
     override def render(stack: MatrixStack) = {
       val wasDirty = dirty
-      TextBufferRenderCache.render(stack.asInstanceOf[MatrixStack], renderer)
+      TextBufferRenderCache.render(stack, renderer)
       wasDirty
     }
 

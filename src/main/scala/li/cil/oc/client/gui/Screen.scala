@@ -1,11 +1,9 @@
 package li.cil.oc.client.gui
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.INestedGuiEventHandler
 import net.minecraft.client.gui.screen
 import net.minecraft.client.settings.KeyBinding
@@ -26,6 +24,8 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
   private var didClick = false
 
   private var x, y = 0
+
+  private var innerWidth, innerHeight = 0
 
   private var mx, my = -1
 
@@ -112,28 +112,24 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
 
   override def drawBuffer(stack: MatrixStack) {
     stack.translate(x, y, 0)
-    BufferRenderer.drawBackground()
+    BufferRenderer.drawBackground(stack, innerWidth, innerHeight)
     if (hasPower()) {
       stack.translate(bufferMargin, bufferMargin, 0)
       stack.scale(scale.toFloat, scale.toFloat, 1)
-      RenderState.makeItBlend()
       BufferRenderer.drawText(stack, buffer)
     }
   }
 
-  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
+  override protected def changeSize(w: Double, h: Double) = {
     val bw = buffer.renderWidth
     val bh = buffer.renderHeight
     val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)
     val scaleY = math.min(height / (bh + bufferMargin * 2.0), 1)
     val scale = math.min(scaleX, scaleY)
-    val innerWidth = (bw * scale).toInt
-    val innerHeight = (bh * scale).toInt
+    innerWidth = (bw * scale).toInt
+    innerHeight = (bh * scale).toInt
     x = (width - (innerWidth + bufferMargin * 2)) / 2
     y = (height - (innerHeight + bufferMargin * 2)) / 2
-    if (recompile) {
-      BufferRenderer.compileBackground(innerWidth, innerHeight)
-    }
     scale
   }
 }
