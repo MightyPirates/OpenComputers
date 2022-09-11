@@ -3,10 +3,13 @@ package li.cil.oc.client.renderer;
 import java.util.OptionalDouble;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.GlStateManager;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.client.Textures;
 import net.minecraft.client.renderer.RenderState.LineState;
 import net.minecraft.client.renderer.RenderState.TextureState;
+import net.minecraft.client.renderer.RenderState.TexturingState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.State;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -81,6 +84,56 @@ public class RenderTypes extends RenderType {
                 .setTransparencyState(LIGHTNING_TRANSPARENCY)
                 .setAlphaState(DEFAULT_ALPHA)
                 .createCompositeState(false));
+
+    public static final RenderType FONT_QUAD = create(OpenComputers.ID() + ":font_quad",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 1024, State.builder()
+                .createCompositeState(false));
+
+    private static class CustomTextureState extends TexturingState {
+        public CustomTextureState(int id) {
+            super("custom_tex_" + id, () -> {
+                // Should already be enabled, but vanilla does it too.
+                RenderSystem.enableTexture();
+                RenderSystem.bindTexture(id);
+            }, () -> {});
+        }
+    }
+
+    private static class LinearTexturingState extends TexturingState {
+        public LinearTexturingState(boolean linear) {
+            super(linear ? "lin_font_texturing" : "near_font_texturing", () -> {
+                // Texture is already bound, only have to make set minify filter.
+                if (linear) GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+                else GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+            }, () -> {
+                // Nothing to do, the texture was already unbound.
+            });
+        }
+    }
+
+    private static final LinearTexturingState NEAR = new LinearTexturingState(false);
+    private static final LinearTexturingState LINEAR = new LinearTexturingState(true);
+
+    public static final RenderType createFontTex(String name, ResourceLocation texture, boolean linear) {
+        return create(OpenComputers.ID() + ":font_stat_" + name,
+            DefaultVertexFormats.POSITION_COLOR_TEX, GL11.GL_QUADS, 1024, State.builder()
+                // First parameter is blur (i.e. linear filter).
+                // We can't use it because it's also MAG_FILTER.
+                .setTextureState(new TextureState(texture, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setAlphaState(DEFAULT_ALPHA)
+                .setTexturingState(linear ? LINEAR : NEAR)
+                .createCompositeState(false));
+    }
+
+    public static final RenderType createFontTex(int id) {
+        return create(OpenComputers.ID() + ":font_dyn_" + id,
+            DefaultVertexFormats.POSITION_COLOR_TEX, GL11.GL_QUADS, 1024, State.builder()
+                .setTexturingState(new CustomTextureState(id))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setAlphaState(DEFAULT_ALPHA)
+                .createCompositeState(false));
+    }
 
     private RenderTypes() {
         super(null, null, 0, 0, false, false, null, null);
