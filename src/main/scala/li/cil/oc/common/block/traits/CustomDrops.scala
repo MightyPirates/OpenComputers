@@ -21,7 +21,13 @@ trait CustomDrops[Tile <: TileEntity] extends SimpleBlock {
 
   override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = new util.ArrayList[ItemStack]()
 
-  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {}
+  @Deprecated
+  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
+    // Copied from vanilla, can't use super as that also drops the contents.
+    if (state.hasTileEntity && (!state.is(newState.getBlock) || !newState.hasTileEntity)) {
+      world.removeBlockEntity(pos)
+    }
+  }
 
   override def removedByPlayer(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, willHarvest: Boolean, fluid: FluidState): Boolean = {
     if (!world.isClientSide) {
