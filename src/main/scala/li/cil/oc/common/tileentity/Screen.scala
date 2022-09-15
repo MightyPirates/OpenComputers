@@ -173,7 +173,7 @@ class Screen(selfType: TileEntityType[_ <: Screen], var tier: Int) extends TileE
       case Some((oldX, oldY)) if oldX == x && oldY == y => // Ignore
       case _ => entity match {
         case player: PlayerEntity if Settings.get.inputUsername =>
-          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
+          origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName.getString)
         case _ =>
           origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
       }

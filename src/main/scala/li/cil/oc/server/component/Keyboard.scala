@@ -51,7 +51,7 @@ class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     pressedKeys.get(player) match {
       case Some(keys) => for ((code, char) <- keys) {
         if (Settings.get.inputUsername) {
-          signal(player, "key_up", char, code, player.getName)
+          signal(player, "key_up", char, code, player.getName.getString)
         }
         else {
           signal(player, "key_up", char, code)
@@ -70,7 +70,7 @@ class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
         if (isUsableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
           if (Settings.get.inputUsername) {
-            signal(p, "key_down", char, code, p.getName)
+            signal(p, "key_down", char, code, p.getName.getString)
           }
           else {
             signal(p, "key_down", char, code)
@@ -81,7 +81,7 @@ class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
           case Some(keys) if keys.contains(code) =>
             keys -= code
             if (Settings.get.inputUsername) {
-              signal(p, "key_up", char, code, p.getName)
+              signal(p, "key_up", char, code, p.getName.getString)
             }
             else {
               signal(p, "key_up", char, code)
@@ -92,7 +92,7 @@ class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
         if (isUsableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
             if (Settings.get.inputUsername) {
-              signal(p, "clipboard", line, p.getName)
+              signal(p, "clipboard", line, p.getName.getString)
             }
             else {
               signal(p, "clipboard", line)

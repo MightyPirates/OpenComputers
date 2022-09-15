@@ -118,7 +118,7 @@ class MotionSensor(val host: EnvironmentHost) extends prefab.AbstractManagedEnvi
 
   private def sendSignal(entity: LivingEntity) {
     if (Settings.get.inputUsername) {
-      node.sendToReachable("computer.signal", "motion", Double.box(entity.getX - (x + 0.5)), Double.box(entity.getY - (y + 0.5)), Double.box(entity.getZ - (z + 0.5)), entity.getName)
+      node.sendToReachable("computer.signal", "motion", Double.box(entity.getX - (x + 0.5)), Double.box(entity.getY - (y + 0.5)), Double.box(entity.getZ - (z + 0.5)), entity.getName.getString)
     }
     else {
       node.sendToReachable("computer.signal", "motion", Double.box(entity.getX - (x + 0.5)), Double.box(entity.getY - (y + 0.5)), Double.box(entity.getZ - (z + 0.5)))

@@ -881,7 +881,7 @@ object TextBuffer {
       }
       args += Int.box(data)
       if (Settings.get.inputUsername) {
-        args += player.getName
+        args += player.getName.getString
       }
 
       owner.node.sendToReachable("computer.checked_signal", args: _*)

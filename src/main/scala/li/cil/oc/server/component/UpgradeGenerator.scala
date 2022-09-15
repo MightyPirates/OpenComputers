@@ -103,7 +103,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
   @Callback(doc = """function():number -- Get the size of the item stack in the generator's queue.""")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
-      case SomeStack(stack) => result(stack.getCount, stack.getItem.getName(stack))
+      case SomeStack(stack) => result(stack.getCount, stack.getItem.getName(stack).getString)
       case _ => result(0)
     }
   }

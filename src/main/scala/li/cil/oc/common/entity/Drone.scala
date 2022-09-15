@@ -483,7 +483,7 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
       val direction = new Vector3d(entity.getX - getX, entity.getY + entity.getEyeHeight - getY, entity.getZ - getZ).normalize()
       if (!world.isClientSide) {
         if (Settings.get.inputUsername)
-          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y), entity.getName)
+          machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y), entity.getName.getString)
         else
           machine.signal("hit", Double.box(direction.x), Double.box(direction.z), Double.box(direction.y))
       }
