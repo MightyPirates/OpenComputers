@@ -310,7 +310,7 @@ local function stat(path, name)
   info.sort_name = info.name:gsub("^%.","")
   info.isLink, info.link = fs.isLink(info.full_path)
   info.size = info.isLink and 0 or fs.size(info.full_path)
-  info.time = fs.lastModified(info.full_path)
+  info.time = fs.lastModified(info.full_path)/1000
   info.fs = fs.get(info.full_path)
   info.ext = info.name:match("(%.[^.]+)$") or ""
   return info
