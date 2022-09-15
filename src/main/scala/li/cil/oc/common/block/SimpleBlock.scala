@@ -155,7 +155,7 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
 
   @Deprecated
   override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
-    if (!world.isClientSide) world.getBlockEntity(pos) match {
+    if (!world.isClientSide && !newState.is(state.getBlock)) world.getBlockEntity(pos) match {
       case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
