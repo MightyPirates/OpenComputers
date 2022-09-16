@@ -137,7 +137,12 @@ abstract class LuaStateFactory {
   // loaded at the time the initializer runs.
   private def prepareLoad(lib: String): Unit = jnlua.NativeSupport.getInstance().setLoader(new Loader {
     def load(): Unit = {
-      System.load(lib)
+      // This redirects to `System.load(lib)`. It is required because
+      // Java expects the correct ClassLoader to also load the native
+      // library. Simply calling load here doesn't work in dev,
+      // because the JNLua jar only gets merged when the mod is built.
+      // Production environments are unaffected.
+      jnlua.NativeSupport.proxyLoad(lib)
     }
   })
 
