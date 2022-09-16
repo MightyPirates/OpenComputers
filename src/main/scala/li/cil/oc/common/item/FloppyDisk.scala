@@ -36,7 +36,7 @@ class FloppyDisk(props: Properties = new Properties().tab(CreativeTab)) extends 
         stack.getTag.getInt(Settings.namespace + "color")
       else
         8
-    modelLocationFromDyeName(Color.dyes(dyeIndex max 0 min 15))
+    modelLocationFromDyeName(Color.byId(dyeIndex max 0 min 15))
   }
 
   @OnlyIn(Dist.CLIENT)
