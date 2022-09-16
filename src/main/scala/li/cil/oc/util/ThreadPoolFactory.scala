@@ -9,10 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.SaveHandler
+import li.cil.oc.server.fs.Buffered
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent
 
 import scala.collection.mutable
@@ -26,7 +28,10 @@ object ThreadPoolFactory {
   }
 
   @SubscribeEvent
-  def serverStart(e: FMLServerStartingEvent): Unit = {
+  def serverStart(e: FMLServerAboutToStartEvent): Unit = {
+    // Access these handles to ensure the pools actually exist.
+    SaveHandler.stateSaveHandler
+    Buffered.fileSaveHandler
     ThreadPoolFactory.safePools.foreach(_.newThreadPool())
   }
 
