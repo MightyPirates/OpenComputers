@@ -1,19 +1,29 @@
 ## New Features/Support
 
-* Fixed: Adjusted version check to support the newer GitHub tag format.
-* Fixed: [#2883] Allowing any domain through if a whitelisted domain failed to resolve.
-* (1.12.2) Fixed: Block/item color regression (introduced in OpenComputers 1.7.6).
-* Fixed: [#3547] Character glyph regressions (introduced in OpenComputers 1.7.6).
-* Fixed: [#3004] Incorrect damage/metadata values on Cable items.
-* (1.12.2) Fixed: [#3546] Incorrect version number reported by mod.
-* (1.12.2) Fixed: Reflection call regression (introduced in OpenComputers 1.7.6).
-* (1.12.2) Fixed: [#2902] Thread race condition crash when rendering some blocks.
+* Added: Experimental Lua 5.4 support (Lua 5.4.4).
+  * For now, this is hidden behind a configuration option.
+* Added: Forestry circuit boards' internal layout is now available to Lua scripts.
+* Added: Major upgrade of Lua libraries.
+  * Updated LuaJ to 3.0.2 with many third-party patches applied.
+  * JNLua is now compiled with proper optimizations - ~2x better performance!
+  * Lua 5.2 has been updated with gamax92's backported bugfixes.
+  * Lua 5.3 has been updated from 5.3.2 to 5.3.6.
+  * 64-bit integers in calls should now be handled properly.
+* Added: Official support for AArch64 on Linux and macOS.
+* Added: Subtle indentations to Redstone I/O texture.
+  * The amount of darkened dots on each side marks the ordinal number of the side it responds to.
+* Added: Support for non-BMP Unicode codepoints!
+  * To clarify, Unicode characters >= 0x10000 should now be fully supported - as long as they're provided in the font.
+* Changed: New limitFlightHeight configuration definition.
+  * This allows values above 256 to be used, which may be useful for Cubic Chunks users.
+* Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
+* Removed: Native Lua library support for FreeBSD and x86 macOS.
+* (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
 ## OpenOS fixes/improvements
 
-* Fixed: /bin/edit not working on Lua 5.2 (introduced in OpenOS 1.7.6).
-* Fixed: Reverted "[#3196] Env pass in 'sh' command." due to a regression.
+* Fixed: [#3558] Invalid file modification timestamps in /bin/ls.
 
 ## List of contributors
 
-payonel, asie
+asie, payonel, Smok1e
