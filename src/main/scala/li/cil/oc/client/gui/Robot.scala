@@ -199,8 +199,8 @@ class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITex
   }
 
   override def mouseScrolled(mouseX: Double, mouseY: Double, scroll: Double): Boolean = {
-    val mx = mouseX.asInstanceOf[Int]
-    val my = mouseY.asInstanceOf[Int]
+    val mx = mouseX.asInstanceOf[Int] - leftPos
+    val my = mouseY.asInstanceOf[Int] - topPos
     if (isCoordinateOverInventory(mx, my) || isCoordinateOverScrollBar(mx, my)) {
       if (scroll < 0) scrollDown()
       else scrollUp()
