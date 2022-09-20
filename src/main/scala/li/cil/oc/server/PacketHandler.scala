@@ -71,6 +71,12 @@ object PacketHandler extends CommonPacketHandler {
           case _ =>
         }
       }
+      case robot: container.Robot if robot.containerId == containerId => {
+        (robot.otherInventory, p.player) match {
+          case (te: Computer, player: ServerPlayerEntity) => trySetComputerPower(te.machine, setPower, player)
+          case _ =>
+        }
+      }
       case _ => // Invalid packet or container closed early.
     }
   }
