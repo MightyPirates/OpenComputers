@@ -257,7 +257,11 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
     super.removedByPlayer(state, world, pos, player, willHarvest, fluid)
   }
 
-  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit =
+  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
     if (moving.get.isEmpty)
       super.onRemove(state, world, pos, newState, moved)
+    else if (!state.is(newState.getBlock))
+      // Can't use super.onRemove as that would drop inventory while moving.
+      world.removeBlockEntity(pos)
+  }
 }
