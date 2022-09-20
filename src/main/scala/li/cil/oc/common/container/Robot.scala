@@ -5,7 +5,8 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.ComponentTracker
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.opencomputers
+import li.cil.oc.integration.opencomputers.DriverKeyboard
+import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.IInventory
@@ -23,7 +24,7 @@ object RobotInfo {
     case Some(buffer: api.internal.TextBuffer) if buffer.node != null => buffer.node.address
   }
 
-  def hasKeyboard(robot: tileentity.Robot) = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
+  def hasKeyboard(robot: tileentity.Robot) = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(DriverKeyboard)
 
   def readRobotInfo(buff: PacketBuffer): RobotInfo = {
     val mainInvSize = buff.readVarInt()
@@ -77,9 +78,21 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   val deltaY: Int = if (info.screenBuffer.isDefined) 0 else withScreenHeight - noScreenHeight
 
   addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, common.Slot.Tool)
-  addSlotToContainer(170 + 1 * slotSize, 232 - deltaY, info.slot1, info.tier1)
-  addSlotToContainer(170 + 2 * slotSize, 232 - deltaY, info.slot2, info.tier2)
-  addSlotToContainer(170 + 3 * slotSize, 232 - deltaY, info.slot3, info.tier3)
+  addSpecialSlot(170 + 1 * slotSize, 232 - deltaY, info.slot1, info.tier1)
+  addSpecialSlot(170 + 2 * slotSize, 232 - deltaY, info.slot2, info.tier2)
+  addSpecialSlot(170 + 3 * slotSize, 232 - deltaY, info.slot3, info.tier3)
+
+  // Like addSlotToContainer, but handles the very special, much edge case with screen & keyboard.
+  def addSpecialSlot(x: Int, y: Int, slot: String, tier: Int) {
+    val index = slots.size
+    addSlot(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier) {
+      override def mayPlace(stack: ItemStack): Boolean = {
+        if (DriverScreen.worksWith(stack, classOf[tileentity.Robot])) return false
+        if (DriverKeyboard.worksWith(stack, classOf[tileentity.Robot])) return false
+        super.mayPlace(stack)
+      }
+    })
+  }
 
   // Slot.x and Slot.y are final, so have to rebuild when scrolling
   def generateSlotsFor(scroll: Int) {
@@ -90,6 +103,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
         val x = 170 + j * slotSize
         val idx = 4 + j + 4 * i
         val slot = new InventorySlot(this, otherInventory, idx, x, y, i >= scroll && i < scroll + 4)
+        slot.index = idx
         if (slots.size() <= idx) addSlot(slot)
         else slots.set(idx, slot)
       }

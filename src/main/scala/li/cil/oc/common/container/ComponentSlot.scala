@@ -38,6 +38,9 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
   override def mayPlace(stack: ItemStack): Boolean = {
     if (!inventory.canPlaceItem(getSlotIndex, stack)) return false
     if (!isActive) return false
+    if (slot == common.Slot.Any && tier == common.Tier.Any) return true
+    // Special case: tool slots fit everything.
+    if (slot == common.Slot.Tool) return true
     for (driver <- Driver.itemDrivers) {
       if (driver.worksWith(stack)) {
         val slotOk = (slot == common.Slot.Any || driver.slot(stack) == slot)
