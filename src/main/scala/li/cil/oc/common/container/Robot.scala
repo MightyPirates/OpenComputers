@@ -77,6 +77,8 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   private val noScreenHeight = 108
   val deltaY: Int = if (info.screenBuffer.isDefined) 0 else withScreenHeight - noScreenHeight
 
+  override protected def getHostClass = classOf[tileentity.Robot]
+
   addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, common.Slot.Tool)
   addSpecialSlot(170 + 1 * slotSize, 232 - deltaY, info.slot1, info.tier1)
   addSpecialSlot(170 + 2 * slotSize, 232 - deltaY, info.slot2, info.tier2)
@@ -85,10 +87,10 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   // Like addSlotToContainer, but handles the very special, much edge case with screen & keyboard.
   def addSpecialSlot(x: Int, y: Int, slot: String, tier: Int) {
     val index = slots.size
-    addSlot(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier) {
+    addSlot(new StaticComponentSlot(this, otherInventory, index, x, y, getHostClass, slot, tier) {
       override def mayPlace(stack: ItemStack): Boolean = {
-        if (DriverScreen.worksWith(stack, classOf[tileentity.Robot])) return false
-        if (DriverKeyboard.worksWith(stack, classOf[tileentity.Robot])) return false
+        if (DriverScreen.worksWith(stack, getHostClass)) return false
+        if (DriverKeyboard.worksWith(stack, getHostClass)) return false
         super.mayPlace(stack)
       }
     })
@@ -167,7 +169,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   def selectedSlot = selectedSlotData.get
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int, var enabled: Boolean)
-    extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
+    extends StaticComponentSlot(container, inventory, index, x, y, getHostClass, common.Slot.Any, common.Tier.Any) {
 
     def isValid: Boolean = getSlotIndex >= 4 && getSlotIndex < 4 + info.mainInvSize
 

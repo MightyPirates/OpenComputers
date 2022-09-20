@@ -16,10 +16,12 @@ import net.minecraftforge.api.distmarker.OnlyIn
 class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventory: PlayerInventory, val assembler: IInventory)
   extends Player(selfType, id, playerInventory, assembler) {
 
+  override protected def getHostClass = classOf[tileentity.Assembler]
+
   // Computer case.
   {
     val index = slots.size
-    addSlot(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
+    addSlot(new StaticComponentSlot(this, otherInventory, index, 12, 12, getHostClass, "template", common.Tier.Any) {
       @OnlyIn(Dist.CLIENT) override
       def isActive = !isAssembling && super.isActive
 
@@ -49,7 +51,7 @@ class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventor
 
   override def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
     val index = slots.size
-    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, info, () => common.Tier.One) {
+    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, getHostClass, info, () => common.Tier.One) {
       override def mayPlace(stack: ItemStack): Boolean = {
         if (!super.mayPlace(stack)) return false
         AssemblerTemplates.select(getSlot(0).getItem) match {

@@ -13,6 +13,8 @@ import net.minecraft.util.text.ITextComponent
 class Case(selfType: ContainerType[_ <: Case], id: Int, playerInventory: PlayerInventory, computer: IInventory, tier: Int)
   extends Player(selfType, id, playerInventory, computer) {
 
+  override protected def getHostClass = classOf[tileentity.Case]
+
   for (i <- 0 to (if (tier >= Tier.Three) 2 else 1)) {
     val slot = InventorySlots.computer(tier)(getItems.size)
     addSlotToContainer(98, 16 + i * slotSize, slot.slot, slot.tier)

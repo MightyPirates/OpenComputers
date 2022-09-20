@@ -1,5 +1,6 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.Tier
@@ -121,19 +122,22 @@ abstract class Player(selfType: ContainerType[_ <: Player], id: Int, val playerI
     }
   }
 
+  // Used by the ComponentSlots to make host-aware item placement decisions.
+  protected def getHostClass: Class[_ <: EnvironmentHost]
+
   def addSlotToContainer(x: Int, y: Int, slot: String = common.Slot.Any, tier: Int = common.Tier.Any) {
     val index = slots.size
-    addSlot(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
+    addSlot(new StaticComponentSlot(this, otherInventory, index, x, y, getHostClass, slot, tier))
   }
 
   def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], containerTierGetter: () => Int) {
     val index = slots.size
-    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, slot => info(slot.containerTierGetter())(slot.getSlotIndex), containerTierGetter))
+    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, getHostClass, slot => info(slot.containerTierGetter())(slot.getSlotIndex), containerTierGetter))
   }
 
   def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
     val index = slots.size
-    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, info, () => Tier.One))
+    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, getHostClass, info, () => Tier.One))
   }
 
   /** Render player inventory at the specified coordinates. */

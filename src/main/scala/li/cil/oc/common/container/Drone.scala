@@ -17,6 +17,8 @@ class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: Playe
 
   val deltaY = 0
 
+  override protected def getHostClass = classOf[entity.Drone]
+
   for (i <- 0 to 1) {
     val y = 8 + i * slotSize - deltaY
     for (j <- 0 to 3) {
@@ -90,7 +92,9 @@ class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: Playe
     super.detectCustomDataChanges(nbt)
   }
 
-  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
+  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int)
+    extends StaticComponentSlot(container, inventory, index, x, y, getHostClass, common.Slot.Any, common.Tier.Any) {
+
     def isValid = (0 until droneInv.getContainerSize).contains(getSlotIndex)
 
     @OnlyIn(Dist.CLIENT) override

@@ -1,7 +1,7 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.api.Driver
-import li.cil.oc.api.internal
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
@@ -13,7 +13,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) extends Slot(inventory, index, x, y) {
+abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, host: Class[_ <: EnvironmentHost]) extends Slot(inventory, index, x, y) {
   def agentContainer: Player
 
   def slot: String
@@ -41,14 +41,14 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
     if (slot == common.Slot.Any && tier == common.Tier.Any) return true
     // Special case: tool slots fit everything.
     if (slot == common.Slot.Tool) return true
-    for (driver <- Driver.itemDrivers) {
-      if (driver.worksWith(stack)) {
+    Option(Driver.driverFor(stack, host)) match {
+      case Some(driver) => {
         val slotOk = (slot == common.Slot.Any || driver.slot(stack) == slot)
         val tierOk = (tier == common.Tier.Any || driver.tier(stack) <= tier)
-        if (slotOk && tierOk) return true
+        slotOk && tierOk
       }
+      case _ => false
     }
-    false
   }
 
   override def onTake(player: PlayerEntity, stack: ItemStack) = {

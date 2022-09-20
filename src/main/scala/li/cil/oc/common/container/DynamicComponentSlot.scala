@@ -1,5 +1,6 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
@@ -10,7 +11,10 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 
-class DynamicComponentSlot(val agentContainer: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends ComponentSlot(inventory, index, x, y) {
+class DynamicComponentSlot(val agentContainer: Player, inventory: IInventory, index: Int, x: Int, y: Int, host: Class[_ <: EnvironmentHost],
+    val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int)
+  extends ComponentSlot(inventory, index, x, y, host) {
+
   override def tier: Int = {
     val mainTier = containerTierGetter()
     if (mainTier >= 0) info(this).tier

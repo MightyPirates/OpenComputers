@@ -16,6 +16,8 @@ import net.minecraftforge.common.util.Constants.NBT
 class Rack(selfType: ContainerType[_ <: Rack], id: Int, playerInventory: PlayerInventory, val rack: IInventory)
   extends Player(selfType, id, playerInventory, rack) {
 
+  override protected def getHostClass = classOf[tileentity.Rack]
+
   addSlotToContainer(20, 23, Slot.RackMountable)
   addSlotToContainer(20, 43, Slot.RackMountable)
   addSlotToContainer(20, 63, Slot.RackMountable)

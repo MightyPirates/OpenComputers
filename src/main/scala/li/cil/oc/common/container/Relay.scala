@@ -19,10 +19,12 @@ class Relay(selfType: ContainerType[_ <: Relay], id: Int, playerInventory: Playe
   lazy final val WirelessNetworkCardTier2: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
   lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
 
+  override protected def getHostClass = classOf[tileentity.Relay]
+
   addSlotToContainer(151, 15, Slot.CPU)
   addSlotToContainer(151, 34, Slot.Memory)
   addSlotToContainer(151, 53, Slot.HDD)
-  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 178, 15, Slot.Card, Tier.Any) {
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 178, 15, getHostClass, Slot.Card, Tier.Any) {
     override def mayPlace(stack: ItemStack): Boolean = {
       if (api.Items.get(stack) != WirelessNetworkCardTier1 && api.Items.get(stack) != WirelessNetworkCardTier2 &&
         api.Items.get(stack) != LinkedCard) return false

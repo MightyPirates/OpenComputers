@@ -13,6 +13,8 @@ import net.minecraft.nbt.CompoundNBT
 class Server(selfType: ContainerType[_ <: Server], id: Int, playerInventory: PlayerInventory, val stack: ItemStack, serverInventory: IInventory, tier: Int, val rackSlot: Int)
   extends Player(selfType, id, playerInventory, serverInventory) {
 
+  override protected def getHostClass = classOf[component.Server]
+
   for (i <- 0 to 1) {
     val slot = InventorySlots.server(tier)(slots.size)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)

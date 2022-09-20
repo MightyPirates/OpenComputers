@@ -12,15 +12,8 @@ import net.minecraft.inventory.container.ContainerType
 class Adapter(selfType: ContainerType[_ <: Adapter], id: Int, playerInventory: PlayerInventory, adapter: IInventory)
   extends Player(selfType, id, playerInventory, adapter) {
 
-  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 80, 35, Slot.Upgrade, Tier.Any) {
-    override def mayPlace(stack: ItemStack): Boolean = {
-      if (!container.canPlaceItem(getSlotIndex, stack)) return false
-      if (!isActive) return false
-      Option(Driver.driverFor(stack, classOf[tileentity.Adapter])) match {
-        case Some(driver) => driver.slot(stack) == Slot.Upgrade
-        case _ => false
-      }
-    }
-  })
+  override protected def getHostClass = classOf[tileentity.Adapter]
+
+  addSlotToContainer(80, 35, Slot.Upgrade)
   addPlayerInventorySlots(8, 84)
 }

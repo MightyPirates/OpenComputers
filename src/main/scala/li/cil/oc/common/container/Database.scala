@@ -12,6 +12,8 @@ import net.minecraft.item.ItemStack
 class Database(selfType: ContainerType[_ <: Database], id: Int, playerInventory: PlayerInventory, val container: ItemStack, databaseInventory: IInventory, val tier: Int)
   extends Player(selfType, id, playerInventory, databaseInventory) {
 
+  override protected def getHostClass = null
+
   val rows = math.sqrt(databaseInventory.getContainerSize).ceil.toInt
   val offset = 8 + Array(3, 2, 0)(tier) * slotSize
 
