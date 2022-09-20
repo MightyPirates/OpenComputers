@@ -130,8 +130,13 @@ class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITex
     }
   }
 
-  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) =
+  override protected def renderLabels(stack: MatrixStack, mouseX: Int, mouseY: Int) {
     drawSecondaryForegroundLayer(stack, mouseX, mouseY)
+
+    for (slot <- 0 until menu.slots.size()) {
+      drawSlotHighlight(stack, menu.getSlot(slot))
+    }
+  }
 
   override protected def drawSecondaryForegroundLayer(stack: MatrixStack, mouseX: Int, mouseY: Int) {
     drawBufferLayer(stack)
