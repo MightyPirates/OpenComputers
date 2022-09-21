@@ -1,16 +1,14 @@
 package li.cil.oc.client.renderer.entity
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.entity.model.EntityModel
 import net.minecraft.client.renderer.model.ModelRenderer
-import net.minecraft.entity.Entity
+import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.util.math.vector.Vector3f
-import org.lwjgl.opengl.GL11
 
 final class ModelQuadcopter extends EntityModel[Drone] {
   val body = new ModelRenderer(this)
@@ -78,9 +76,6 @@ final class ModelQuadcopter extends EntityModel[Drone] {
     wing3.render(stack, builder, light, overlay, r, g, b, a)
 
     if (drone.isRunning) {
-      RenderState.disableEntityLighting()
-      RenderSystem.depthFunc(GL11.GL_LEQUAL)
-
       light0.xRot = drone.flapAngles(0)(0)
       light0.zRot = drone.flapAngles(0)(1)
       light1.xRot = drone.flapAngles(1)(0)
@@ -90,24 +85,16 @@ final class ModelQuadcopter extends EntityModel[Drone] {
       light3.xRot = drone.flapAngles(3)(0)
       light3.zRot = drone.flapAngles(3)(1)
 
-      // Additive blending for the lights.
-      RenderState.makeItBlend()
-      RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-
       val lightColor = drone.lightColor
-      val r = (lightColor >>> 16) & 0xFF
-      val g = (lightColor >>> 8) & 0xFF
-      val b = (lightColor >>> 0) & 0xFF
-      RenderSystem.color3f(r / 255f, g / 255f, b / 255f)
+      val rr = r * ((lightColor >>> 16) & 0xFF) / 255f
+      val gg = g * ((lightColor >>> 8) & 0xFF) / 255f
+      val bb = b * ((lightColor >>> 0) & 0xFF) / 255f
+      val fullLight = LightTexture.pack(15, 15)
 
-      light0.render(stack, builder, light, overlay, r, g, b, a)
-      light1.render(stack, builder, light, overlay, r, g, b, a)
-      light2.render(stack, builder, light, overlay, r, g, b, a)
-      light3.render(stack, builder, light, overlay, r, g, b, a)
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
-      RenderSystem.color4f(1, 1, 1, 1)
+      light0.render(stack, builder, fullLight, OverlayTexture.NO_OVERLAY, rr, gg, bb, a)
+      light1.render(stack, builder, fullLight, OverlayTexture.NO_OVERLAY, rr, gg, bb, a)
+      light2.render(stack, builder, fullLight, OverlayTexture.NO_OVERLAY, rr, gg, bb, a)
+      light3.render(stack, builder, fullLight, OverlayTexture.NO_OVERLAY, rr, gg, bb, a)
     }
     stack.popPose()
   }
