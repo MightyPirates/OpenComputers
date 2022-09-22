@@ -497,7 +497,7 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
     override def getDisplayName = StringTextComponent.EMPTY
 
     override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
-      new container.Drone(ContainerTypes.DRONE, id, playerInventory, mainInventory)
+      new container.Drone(ContainerTypes.DRONE, id, playerInventory, mainInventory, mainInventory.getContainerSize)
   }
 
   override def interact(player: PlayerEntity, hand: Hand): ActionResultType = {

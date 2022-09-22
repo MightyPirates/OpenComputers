@@ -12,7 +12,7 @@ import net.minecraft.util.IntReferenceHolder
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: PlayerInventory, droneInv: IInventory)
+class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: PlayerInventory, droneInv: IInventory, val mainInvSize: Int)
   extends Player(selfType, id, playerInventory, droneInv) {
 
   val deltaY = 0
@@ -95,7 +95,7 @@ class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: Playe
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int)
     extends StaticComponentSlot(container, inventory, index, x, y, getHostClass, common.Slot.Any, common.Tier.Any) {
 
-    def isValid = (0 until droneInv.getContainerSize).contains(getSlotIndex)
+    def isValid = (0 until mainInvSize).contains(getSlotIndex)
 
     @OnlyIn(Dist.CLIENT) override
     def isActive = isValid && super.isActive

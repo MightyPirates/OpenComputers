@@ -55,7 +55,7 @@ public final class ContainerTypes {
         register(e.getRegistry(), "disk_drive", (id, plr, buff) -> new DiskDrive(DISK_DRIVE, id, plr, new Inventory(1)));
         register(e.getRegistry(), "drone", (id, plr, buff) -> {
             int invSize = buff.readVarInt();
-            return new Drone(DRONE, id, plr, new Inventory(invSize));
+            return new Drone(DRONE, id, plr, new Inventory(8), invSize);
         });
         register(e.getRegistry(), "printer", (id, plr, buff) -> new Printer(PRINTER, id, plr, new Inventory(3)));
         register(e.getRegistry(), "rack", (id, plr, buff) -> new Rack(RACK, id, plr, new Inventory(4)));
