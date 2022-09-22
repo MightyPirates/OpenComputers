@@ -440,8 +440,8 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
     xo = getX
     yo = getY
     zo = getZ
-    moveTowardsClosestSpace(getX, (getBoundingBox.minY + getBoundingBox.maxY) / 2, getZ)
-    noPhysics = true
+    noPhysics = !level.noCollision(this)
+    if (noPhysics) moveTowardsClosestSpace(getX, (getBoundingBox.minY + getBoundingBox.maxY) / 2, getZ)
 
     if (isRunning) {
       val toTarget = new Vector3d(targetX - getX, targetY - getY, targetZ - getZ)
