@@ -129,10 +129,9 @@ class Drone(state: container.Drone, playerInventory: PlayerInventory, name: ITex
   private def drawSelection(stack: MatrixStack) {
     val slot = inventoryContainer.selectedSlot
     if (slot >= 0 && slot < 16) {
-      RenderState.makeItBlend()
       Textures.bind(Textures.GUI.RobotSelection)
-      val now = System.currentTimeMillis() / 1000.0f
-      val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
+      val now = System.currentTimeMillis() % 1000 / 1000.0f
+      val offsetV = (now * selectionsStates).toInt * selectionStepV
       val x = leftPos + inventoryX - 1 + (slot % 4) * (selectionSize - 2)
       val y = topPos + inventoryY - 1 + (slot / 4) * (selectionSize - 2)
 
