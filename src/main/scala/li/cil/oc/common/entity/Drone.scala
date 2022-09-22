@@ -232,7 +232,7 @@ class Drone(selfType: EntityType[Drone], world: World) extends Entity(selfType, 
 
   // ----------------------------------------------------------------------- //
 
-  override def canBeCollidedWith = true
+  override def isPickable = true
 
   override def isPushable = true
 
