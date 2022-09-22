@@ -135,6 +135,15 @@ public class RenderTypes extends RenderType {
                 .createCompositeState(false));
     }
 
+    public static final RenderType createTexturedQuad(String name, ResourceLocation texture, VertexFormat format, boolean additive) {
+        return create(OpenComputers.ID() + ":tex_quad_" + name,
+            format, GL11.GL_QUADS, 1024, State.builder()
+                .setTextureState(new TextureState(texture, false, false))
+                .setTransparencyState(additive ? LIGHTNING_TRANSPARENCY : TRANSLUCENT_TRANSPARENCY)
+                .setAlphaState(DEFAULT_ALPHA)
+                .createCompositeState(false));
+    }
+
     private RenderTypes() {
         super(null, null, 0, 0, false, false, null, null);
         throw new Error();

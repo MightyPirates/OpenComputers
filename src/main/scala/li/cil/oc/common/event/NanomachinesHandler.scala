@@ -4,14 +4,17 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.nanomachines.ControllerImpl
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.PlayerEntity
@@ -23,11 +26,13 @@ import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent
-import org.lwjgl.opengl.GL11
 
 object NanomachinesHandler {
 
   object Client {
+    val TexNanomachines = RenderTypes.createTexturedQuad("nanomachines", Textures.GUI.Nanomachines, DefaultVertexFormats.POSITION_TEX, false)
+    val TexNanomachinesBar = RenderTypes.createTexturedQuad("nanomachines_bar", Textures.GUI.NanomachinesBar, DefaultVertexFormats.POSITION_TEX, false)
+
     @SubscribeEvent
     def onRenderGameOverlay(e: RenderGameOverlayEvent.Post): Unit = {
       if (e.getType == RenderGameOverlayEvent.ElementType.TEXT) {
@@ -52,26 +57,22 @@ object NanomachinesHandler {
                 else if (y < 1) y * height
                 else y)
             val fill = controller.getLocalBuffer / controller.getLocalBufferSize
-            Minecraft.getInstance.getTextureManager.bind(Textures.GUI.Nanomachines)
-            drawRect(stack, left.toInt, top.toInt, sizeX, sizeY, sizeX, sizeY)
-            Minecraft.getInstance.getTextureManager.bind(Textures.GUI.NanomachinesBar)
-            drawRect(stack, left.toInt, top.toInt, sizeX, sizeY, sizeX, sizeY, fill.toFloat)
+            val buffer = IRenderTypeBuffer.immediate(Tessellator.getInstance.getBuilder)
+            drawRect(stack, buffer.getBuffer(TexNanomachines), left.toInt, top.toInt, sizeX, sizeY, sizeX, sizeY)
+            drawRect(stack, buffer.getBuffer(TexNanomachinesBar), left.toInt, top.toInt, sizeX, sizeY, sizeX, sizeY, fill.toFloat)
+            buffer.endBatch()
           case _ => // Nothing to show.
         }
       }
     }
 
-    private def drawRect(stack: MatrixStack, x: Int, y: Int, w: Int, h: Int, tw: Int, th: Int, fill: Float = 1) {
+    private def drawRect(stack: MatrixStack, r: IVertexBuilder, x: Int, y: Int, w: Int, h: Int, tw: Int, th: Int, fill: Float = 1) {
       val sx = 1f / tw
       val sy = 1f / th
-      val t = Tessellator.getInstance
-      val r = t.getBuilder
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.vertex(stack.last.pose, x, y + h, 0).uv(0, h * sy).endVertex()
       r.vertex(stack.last.pose, x + w, y + h, 0).uv(w * sx, h * sy).endVertex()
       r.vertex(stack.last.pose, x + w, y + h * (1 - fill), 0).uv(w * sx, 1 - fill).endVertex()
       r.vertex(stack.last.pose, x, y + h * (1 - fill), 0).uv(0, 1 - fill).endVertex()
-      t.end()
     }
   }
 
