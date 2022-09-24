@@ -25,10 +25,12 @@ import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.client.model.data.IModelData
+import net.minecraftforge.client.model.data.ModelProperty
 import scala.collection.convert.ImplicitConversionsToJava._
 
 class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit])
-  extends TileEntity(selfType) with traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+  extends TileEntity(selfType) with traits.TileEntity with traits.RedstoneAware with traits.RotatableTile with IModelData {
 
   def this(selfType: TileEntityType[_ <: Print]) = this(selfType, None, None, None)
   def this(selfType: TileEntityType[_ <: Print], canToggle: () => Boolean, scheduleUpdate: Int => Unit, onStateChange: () => Unit) =
@@ -155,4 +157,18 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
     nbt.setNewCompoundTag(DataTag, data.saveData)
     nbt.putBoolean(StateTag, state)
   }
+
+  // ----------------------------------------------------------------------- //
+
+  @Deprecated
+  override def getModelData() = this
+
+  @Deprecated
+  override def hasProperty(prop: ModelProperty[_]) = false
+
+  @Deprecated
+  override def getData[T](prop: ModelProperty[T]): T = null.asInstanceOf[T]
+
+  @Deprecated
+  override def setData[T](prop: ModelProperty[T], value: T): T = null.asInstanceOf[T]
 }

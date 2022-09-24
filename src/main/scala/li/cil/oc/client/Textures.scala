@@ -549,8 +549,6 @@ object Textures {
     else RenderState.bindTexture(0)
   }
 
-  def getSprite(location: String): TextureAtlasSprite = getSprite(new ResourceLocation(location))
-
   def getSprite(location: ResourceLocation): TextureAtlasSprite =
     Minecraft.getInstance.getModelManager.getAtlas(PlayerContainer.BLOCK_ATLAS).getSprite(location)
 

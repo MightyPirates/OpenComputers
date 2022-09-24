@@ -19,10 +19,12 @@ import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.ItemOverrideList
 import net.minecraft.client.renderer.texture.MissingTextureSprite
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.data.IModelData
 
 import scala.collection.JavaConverters.bufferAsJavaList
@@ -46,10 +48,13 @@ object PrintModel extends SmartBlockModelBase {
       case _ => super.getQuads(state, side, rand)
     }
 
-  private def resolveTexture(name: String) = {
-    val texture = Textures.getSprite(name)
-    if (texture.equals(MissingTextureSprite.getLocation)) Textures.getSprite("minecraft:blocks/" + name)
+  private def resolveTexture(name: String): TextureAtlasSprite = try {
+    val texture = Textures.getSprite(new ResourceLocation(name))
+    if (texture.getName == MissingTextureSprite.getLocation) Textures.getSprite(new ResourceLocation("minecraft:blocks/" + name))
     else texture
+  }
+  catch {
+    case _: Throwable => Textures.getSprite(MissingTextureSprite.getLocation)
   }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {

@@ -27,10 +27,8 @@ class PrinterRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntity
     if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
-      RenderState.pushAttrib()
       matrix.pushPose()
-      val pos = printer.getBlockPos
-      matrix.translate(pos.getX + 0.5, pos.getY + 0.5 + 0.3, pos.getZ + 0.5)
+      matrix.translate(0.5, 0.5 + 0.3, 0.5)
 
       matrix.mulPose(Vector3f.YP.rotationDegrees((System.currentTimeMillis() % 20000) / 20000f * 360))
       matrix.scale(0.75f, 0.75f, 0.75f)
@@ -39,7 +37,6 @@ class PrinterRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntity
       Minecraft.getInstance.getItemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, light, overlay, matrix, buffer)
 
       matrix.popPose()
-      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".render: leaving")
