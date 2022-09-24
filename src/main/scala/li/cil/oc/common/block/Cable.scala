@@ -14,7 +14,10 @@ import net.minecraft.entity.{Entity, LivingEntity}
 import net.minecraft.item.{DyeColor, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Direction
-import net.minecraft.util.math.{AxisAlignedBB, BlockPos, RayTraceResult}
+import net.minecraft.util.math.{BlockPos, RayTraceResult}
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.util.math.shapes.VoxelShape
+import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
@@ -32,13 +35,16 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
+  // This is to skip the vanilla shape cache - we have our own, but based on World data, not BlockState.
+  override def hasDynamicShape() = true
+
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity) =
     world.getBlockEntity(pos) match {
       case t: tileentity.Cable => t.createItemStack()
       case _ => createItemStack()
     }
 
-  override def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB = Cable.bounds(world, pos)
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = Cable.shape(world, pos)
 
   // ----------------------------------------------------------------------- //
 
@@ -71,22 +77,22 @@ object Cable {
   final val MIN = 0.375
   final val MAX = 1 - MIN
 
-  final val DefaultBounds: AxisAlignedBB = new AxisAlignedBB(MIN, MIN, MIN, MAX, MAX, MAX)
+  final val DefaultShape: VoxelShape = VoxelShapes.box(MIN, MIN, MIN, MAX, MAX, MAX)
 
-  final val CachedParts: Array[AxisAlignedBB] = Array(
-    new AxisAlignedBB( MIN, 0, MIN, MAX, MIN, MAX ), // Down
-    new AxisAlignedBB( MIN, MAX, MIN, MAX, 1, MAX ), // Up
-    new AxisAlignedBB( MIN, MIN, 0, MAX, MAX, MIN ), // North
-    new AxisAlignedBB( MIN, MIN, MAX, MAX, MAX, 1 ), // South
-    new AxisAlignedBB( 0, MIN, MIN, MIN, MAX, MAX ), // West
-    new AxisAlignedBB( MAX, MIN, MIN, 1, MAX, MAX )) // East
+  final val CachedParts: Array[VoxelShape] = Array(
+    VoxelShapes.box( MIN, 0, MIN, MAX, MIN, MAX ), // Down
+    VoxelShapes.box( MIN, MAX, MIN, MAX, 1, MAX ), // Up
+    VoxelShapes.box( MIN, MIN, 0, MAX, MAX, MIN ), // North
+    VoxelShapes.box( MIN, MIN, MAX, MAX, MAX, 1 ), // South
+    VoxelShapes.box( 0, MIN, MIN, MIN, MAX, MAX ), // West
+    VoxelShapes.box( MAX, MIN, MIN, 1, MAX, MAX )) // East
 
   final val CachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
-      Direction.values.foldLeft(DefaultBounds)((bound, side) => {
-        if (((1 << side.get3DDataValue) & mask) != 0) bound.minmax(CachedParts(side.ordinal()))
-        else bound
+      Direction.values.foldLeft(DefaultShape)((shape, side) => {
+        if (((1 << side.get3DDataValue) & mask) != 0) VoxelShapes.or(shape, CachedParts(side.ordinal()))
+        else shape
       })
     }).toArray
   }
@@ -120,20 +126,7 @@ object Cable {
     result
   }
 
-  def bounds(world: IBlockReader, pos: BlockPos) = Cable.CachedBounds(Cable.neighbors(world, pos))
-
-  def parts(world: IBlockReader, pos: BlockPos, entityBox : AxisAlignedBB, boxes : util.List[AxisAlignedBB]) = {
-    val center = Cable.DefaultBounds.move(pos)
-    if (entityBox.intersects(center)) boxes.add(center)
-
-    val mask = Cable.neighbors(world, pos)
-    for (side <- Direction.values) {
-      if(((1 << side.get3DDataValue) & mask) != 0) {
-        val part = Cable.CachedParts(side.ordinal()).move(pos)
-        if (entityBox.intersects(part)) boxes.add(part)
-      }
-    }
-  }
+  def shape(world: IBlockReader, pos: BlockPos) = Cable.CachedBounds(Cable.neighbors(world, pos))
 
   private def hasNetworkNode(tileEntity: TileEntity, side: Direction): Boolean = {
     if (tileEntity != null) {

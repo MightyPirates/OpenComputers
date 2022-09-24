@@ -41,6 +41,4 @@ class Cable(selfType: TileEntityType[_ <: Cable]) extends TileEntity(selfType) w
       api.Network.joinOrCreateNetwork(this)
     }
   }
-
-  override def getRenderBoundingBox = common.block.Cable.bounds(getLevel, getBlockPos).move(x, y, z)
 }
