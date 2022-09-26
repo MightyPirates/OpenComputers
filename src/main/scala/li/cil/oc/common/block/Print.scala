@@ -22,11 +22,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.math.RayTraceResult
-import net.minecraft.util.math.vector.Vector3d
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.util.math.shapes.VoxelShape
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
@@ -67,6 +67,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
+  override def hasDynamicShape() = true
+
   override def getLightValue(state: BlockState, world: IBlockReader, pos: BlockPos): Int =
     world match {
       case world: World if world.isLoaded(pos) => world.getBlockEntity(pos) match {
@@ -93,10 +95,10 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
-  override def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB = {
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = {
     world.getBlockEntity(pos) match {
-      case print: tileentity.Print => print.bounds
-      case _ => super.getBoundingBox(state, world, pos)
+      case print: tileentity.Print => print.shape
+      case _ => super.getShape(state, world, pos, ctx)
     }
   }
 
@@ -136,7 +138,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def doCustomInit(tileEntity: tileentity.Print, player: LivingEntity, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.loadData(stack)
-    tileEntity.updateBounds()
+    tileEntity.updateShape()
     tileEntity.updateRedstone()
     tileEntity.getLevel.getLightEngine.checkBlock(tileEntity.getBlockPos)
   }

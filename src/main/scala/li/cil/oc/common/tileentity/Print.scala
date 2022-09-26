@@ -18,15 +18,18 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.shapes.IBooleanFunction
+import net.minecraft.util.math.shapes.VoxelShape
+import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.model.data.IModelData
 import net.minecraftforge.client.model.data.ModelProperty
+import scala.collection.Iterable
 import scala.collection.convert.ImplicitConversionsToJava._
 
 class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit])
@@ -40,11 +43,11 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
 
   val data = new PrintData()
 
-  var boundsOff = ExtendedAABB.unitBounds
-  var boundsOn = ExtendedAABB.unitBounds
+  var shapeOff = VoxelShapes.block
+  var shapeOn = VoxelShapes.block
   var state = false
 
-  def bounds = if (state) boundsOn else boundsOff
+  def shape = if (state) shapeOn else shapeOff
   def noclip = if (state) data.noclipOn else data.noclipOff
   def shapes = if (state) data.stateOn else data.stateOff
 
@@ -85,13 +88,17 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
     }
   }
 
-  def updateBounds(): Unit = {
-    boundsOff = data.stateOff.drop(1).foldLeft(data.stateOff.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.minmax(b.bounds))
-    if (boundsOff.volume == 0) boundsOff = ExtendedAABB.unitBounds
-    else boundsOff = boundsOff.rotateTowards(facing)
-    boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.minmax(b.bounds))
-    if (boundsOn.volume == 0) boundsOn = ExtendedAABB.unitBounds
-    else boundsOn = boundsOn.rotateTowards(facing)
+  private def convertShape(state: Iterable[PrintData.Shape]): VoxelShape = if (!state.isEmpty) {
+    state.foldLeft(VoxelShapes.empty)((curr, s) => {
+      val voxel = VoxelShapes.create(s.bounds.rotateTowards(facing))
+      VoxelShapes.joinUnoptimized(curr, voxel, IBooleanFunction.OR)
+    }).optimize()
+  }
+  else VoxelShapes.block
+
+  def updateShape(): Unit = {
+    shapeOff = convertShape(data.stateOff)
+    shapeOn = convertShape(data.stateOn)
   }
 
   def updateRedstone(): Unit = {
@@ -109,7 +116,7 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
 
   override protected def onRotationChanged(): Unit = {
     super.onRotationChanged()
-    updateBounds()
+    updateShape()
   }
 
   // ----------------------------------------------------------------------- //
@@ -131,7 +138,7 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
       state = nbt.getBoolean(StateTagCompat)
     else
       state = nbt.getBoolean(StateTag)
-    updateBounds()
+    updateShape()
   }
 
   override def saveForServer(nbt: CompoundNBT): Unit = {
@@ -145,7 +152,7 @@ class Print(selfType: TileEntityType[_ <: Print], val canToggle: Option[() => Bo
     super.loadForClient(nbt)
     data.loadData(nbt.getCompound(DataTag))
     state = nbt.getBoolean(StateTag)
-    updateBounds()
+    updateShape()
     if (getLevel != null) {
       getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
       if (data.emitLight) getLevel.getLightEngine.checkBlock(getBlockPos)

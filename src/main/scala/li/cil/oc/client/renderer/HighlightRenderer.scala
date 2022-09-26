@@ -1,23 +1,18 @@
 package li.cil.oc.client.renderer
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
-import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.{BlockPosition, RenderState}
-import li.cil.oc.{Constants, Settings, api, common}
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.{Constants, Settings, api}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer._
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.shapes.ISelectionContext
-import net.minecraft.util.math.vector.Vector3d
 import net.minecraftforge.client.event.DrawHighlightEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import org.lwjgl.opengl.GL11
 
 import scala.util.Random
 
@@ -90,36 +85,6 @@ object HighlightRenderer {
 
         stack.popPose()
       }
-    }
-
-    Minecraft.getInstance.level.getBlockEntity(hitInfo.getBlockPos) match {
-      case print: common.tileentity.Print if print.shapes.nonEmpty =>
-        val expansion = 0.002f
-
-        // See WorldRenderer.renderHitOutline.
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 1)
-        RenderSystem.color4f(0, 0, 0, 0.4f)
-        RenderSystem.lineWidth(2)
-        RenderSystem.disableTexture()
-        RenderSystem.depthMask(false)
-
-        val tesselator = Tessellator.getInstance
-        val buffer = tesselator.getBuilder()
-        buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION)
-        for (shape <- print.shapes) {
-          val bounds = shape.bounds.rotateTowards(print.facing)
-          WorldRenderer.renderLineBox(stack, buffer, bounds.inflate(expansion, expansion, expansion)
-            .move(blockPos.x, blockPos.y, blockPos.z), 0, 0, 0, 0x66/0xFFf.toFloat)
-        }
-        tesselator.end()
-
-        RenderSystem.depthMask(true)
-        RenderSystem.enableTexture()
-        RenderSystem.disableBlend()
-
-        e.setCanceled(true)
-      case _ =>
     }
   }
 }
