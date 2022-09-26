@@ -33,9 +33,11 @@ import net.minecraft.loot.LootParameters
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.util.math.shapes.VoxelShape
+import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
@@ -47,6 +49,8 @@ import scala.collection.convert.ImplicitConversionsToScala._
 class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 10).noOcclusion()) extends RedstoneAware(props) with traits.StateAware {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
+
+  val shape = VoxelShapes.box(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
 
   override val getDescriptionId = "robot"
 
@@ -62,20 +66,21 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
       case _ => ItemStack.EMPTY
     }
 
-  override def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB = {
+  override def hasDynamicShape() = true
+
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = {
     world.getBlockEntity(pos) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
-        val bounds = new AxisAlignedBB(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
         if (robot.isAnimatingMove) {
           val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
           val blockPos = robot.moveFrom.get
           val vec = robot.getBlockPos
           val delta = new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
-          bounds.move(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
+          shape.move(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
         }
-        else bounds
-      case _ => super.getBoundingBox(state, world, pos)
+        else shape
+      case _ => super.getShape(state, world, pos, ctx)
     }
   }
 

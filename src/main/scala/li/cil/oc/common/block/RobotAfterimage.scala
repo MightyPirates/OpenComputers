@@ -19,10 +19,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.math.RayTraceResult
+import net.minecraft.util.math.shapes.ISelectionContext
+import net.minecraft.util.math.shapes.VoxelShape
+import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
@@ -33,23 +35,25 @@ class RobotAfterimage(props: Properties = Properties.of(Material.STONE).strength
 
   // ----------------------------------------------------------------------- //
 
+  override def hasDynamicShape() = true
+
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity): ItemStack =
     findMovingRobot(world, pos) match {
       case Some(robot) => robot.info.createItemStack()
       case _ => ItemStack.EMPTY
     }
 
-  override def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB = {
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = {
     findMovingRobot(world, pos) match {
       case Some(robot) =>
         val block = robot.getBlockState.getBlock.asInstanceOf[SimpleBlock]
-        val bounds = block.getBoundingBox(state, world, robot.getBlockPos)
+        val shape = block.getShape(state, world, robot.getBlockPos, ctx)
         val delta = robot.moveFrom.fold(BlockPos.ZERO)(vec => {
           val blockPos = robot.getBlockPos
           new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
         })
-        bounds.move(delta)
-      case _ => super.getBoundingBox(state, world, pos)
+        shape.move(delta.getX, delta.getY, delta.getZ)
+      case _ => super.getShape(state, world, pos, ctx)
     }
   }
 

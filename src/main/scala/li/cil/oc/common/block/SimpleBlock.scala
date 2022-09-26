@@ -132,16 +132,6 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
   // Block
   // ----------------------------------------------------------------------- //
 
-  @Deprecated
-  def getBoundingBox(state: BlockState, world: IBlockReader, pos: BlockPos): AxisAlignedBB = {
-    val shape = super.getShape(state, world, pos, ISelectionContext.empty())
-    if (shape.isEmpty) shape.bounds else new AxisAlignedBB(0, 0, 0, 1, 1, 1)
-  }
-
-  @Deprecated
-  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape =
-    VoxelShapes.create(getBoundingBox(state, world, pos))
-
   override def canHarvestBlock(state: BlockState, world: IBlockReader, pos: BlockPos, player: PlayerEntity) = true
 
   override def getHarvestTool(state: BlockState): ToolType = null

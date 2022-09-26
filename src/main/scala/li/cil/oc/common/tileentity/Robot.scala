@@ -49,7 +49,6 @@ import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.SoundEvents
 import net.minecraft.util.Util
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.common.MinecraftForge
