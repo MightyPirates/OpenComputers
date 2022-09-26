@@ -2,25 +2,27 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.common.block.property.PropertyCableConnection
 import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
-import net.minecraft.block.Blocks
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.{Entity, LivingEntity}
 import net.minecraft.item.{DyeColor, ItemStack}
+import net.minecraft.state.StateContainer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Direction
 import net.minecraft.util.math.{BlockPos, RayTraceResult}
 import net.minecraft.util.math.shapes.ISelectionContext
 import net.minecraft.util.math.shapes.VoxelShape
 import net.minecraft.util.math.shapes.VoxelShapes
-import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.IBlockReader
+import net.minecraft.world.IWorld
 import net.minecraft.world.World
+import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.collection.JavaConverters._
@@ -35,8 +37,19 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  // This is to skip the vanilla shape cache - we have our own, but based on World data, not BlockState.
-  override def hasDynamicShape() = true
+  override protected def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) = {
+    builder.add(PropertyCableConnection.DOWN, PropertyCableConnection.UP,
+      PropertyCableConnection.NORTH, PropertyCableConnection.SOUTH,
+      PropertyCableConnection.WEST, PropertyCableConnection.EAST)
+  }
+
+  registerDefaultState(defaultBlockState.
+    setValue(PropertyCableConnection.DOWN, PropertyCableConnection.Shape.NONE).
+    setValue(PropertyCableConnection.UP, PropertyCableConnection.Shape.NONE).
+    setValue(PropertyCableConnection.NORTH, PropertyCableConnection.Shape.NONE).
+    setValue(PropertyCableConnection.SOUTH, PropertyCableConnection.Shape.NONE).
+    setValue(PropertyCableConnection.WEST, PropertyCableConnection.Shape.NONE).
+    setValue(PropertyCableConnection.EAST, PropertyCableConnection.Shape.NONE))
 
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity) =
     world.getBlockEntity(pos) match {
@@ -44,19 +57,32 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
       case _ => createItemStack()
     }
 
-  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = Cable.shape(world, pos)
+  override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = Cable.shape(state)
+
+  override def updateShape(state: BlockState, fromSide: Direction, fromState: BlockState, world: IWorld, pos: BlockPos, fromPos: BlockPos): BlockState =
+    Cable.updateState(state, fromSide, fromState, world, pos, fromPos)
+
+  // Connecting to other blocks requires this cable to have a TE set, so wait until next tick and update.
+  override def onPlace(state: BlockState, world: World, pos: BlockPos, prevState: BlockState, moved: Boolean): Unit = {
+    // Only schedule this update if this cable was newly placed (not if it changed shape).
+    if (!prevState.is(this)) {
+      world match {
+        case srvWorld: ServerWorld if !srvWorld.isClientSide => srvWorld.getBlockTicks.scheduleTick(pos, this, 1)
+        case _ =>
+      }
+    }
+  }
+
+  override def tick(state: BlockState, world: ServerWorld, pos: BlockPos, rand: util.Random) {
+    val newState = Block.updateFromNeighbourShapes(state, world, pos)
+    Block.updateOrDestroy(state, newState, world, pos, 3)
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def newBlockEntity(world: IBlockReader) = new tileentity.Cable(tileentity.TileEntityTypes.CABLE)
 
   // ----------------------------------------------------------------------- //
-
-  @Deprecated
-  override def neighborChanged(state: BlockState, world: World, pos: BlockPos, neighborBlock: Block, sourcePos: BlockPos, b: Boolean) {
-    world.sendBlockUpdated(pos, state, state, 3)
-    super.neighborChanged(state, world, pos, neighborBlock, sourcePos, b)
-  }
 
   override protected def doCustomInit(tileEntity: tileentity.Cable, player: LivingEntity, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
@@ -99,34 +125,39 @@ object Cable {
 
   def mask(side: Direction, value: Int = 0) = value | (1 << side.get3DDataValue)
 
-  def neighbors(world: IBlockReader, pos: BlockPos) = {
+  def shape(state: BlockState): VoxelShape = {
     var result = 0
-    val tileEntity = world.getBlockEntity(pos)
     for (side <- Direction.values) {
-      val tpos = pos.relative(side)
-      val hasNode = hasNetworkNode(tileEntity, side)
-      if (hasNode && (world match {
-        case world: World => world.isLoaded(tpos)
-        case _ => {
-          val state = world.getBlockState(tpos)
-          state.getBlock.isAir(state, world, tpos)
-        }
-      })) {
-        val neighborTileEntity = world.getBlockEntity(tpos)
+      val sideShape = state.getValue(PropertyCableConnection.BY_DIRECTION.get(side))
+      if (sideShape != PropertyCableConnection.Shape.NONE) {
+        result = mask(side, result)
+      }
+    }
+    Cable.CachedBounds(result)
+  }
+
+  def updateState(state: BlockState, fromSide: Direction, fromState: BlockState, world: IBlockReader, pos: BlockPos, fromPos: BlockPos): BlockState = {
+    val prop = PropertyCableConnection.BY_DIRECTION.get(fromSide)
+    if (fromState.is(state.getBlock)) {
+      state.setValue(prop, PropertyCableConnection.Shape.CABLE)
+    }
+    else {
+      val tileEntity = world.getBlockEntity(pos)
+      val hasNode = hasNetworkNode(tileEntity, fromSide)
+      if (hasNode) {
+        val neighborTileEntity = world.getBlockEntity(fromPos)
         if (neighborTileEntity != null && neighborTileEntity.getLevel != null) {
-          val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
+          val neighborHasNode = hasNetworkNode(neighborTileEntity, fromSide.getOpposite)
           val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
-          val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+          val canConnectIM = canConnectFromSideIM(tileEntity, fromSide) && canConnectFromSideIM(neighborTileEntity, fromSide.getOpposite)
           if (neighborHasNode && canConnectColor && canConnectIM) {
-            result = mask(side, result)
+            return state.setValue(prop, PropertyCableConnection.Shape.DEVICE)
           }
         }
       }
+      state.setValue(prop, PropertyCableConnection.Shape.NONE)
     }
-    result
   }
-
-  def shape(world: IBlockReader, pos: BlockPos) = Cable.CachedBounds(Cable.neighbors(world, pos))
 
   private def hasNetworkNode(tileEntity: TileEntity, side: Direction): Boolean = {
     if (tileEntity != null) {

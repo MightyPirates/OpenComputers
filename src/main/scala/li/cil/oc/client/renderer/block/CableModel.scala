@@ -4,10 +4,8 @@ import java.util
 import java.util.Collections
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.block
+import li.cil.oc.common.block.property.PropertyCableConnection
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ItemColorizer
@@ -27,29 +25,22 @@ import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
 
-object CableModel extends CableModel
-
-class CableModel extends SmartBlockModelBase {
+object CableModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride
 
-  override def getQuads(state: BlockState, side: Direction, rand: util.Random, data: IModelData): util.List[BakedQuad] =
+  override def getQuads(state: BlockState, side: Direction, rand: util.Random, data: IModelData): util.List[BakedQuad] = {
     data match {
-      case cable: tileentity.Cable =>
-        val world = cable.getLevel
-        val neighbors = block.Cable.neighbors(world, cable.getBlockPos)
+      case cable: tileentity.Cable if side == null =>
         val color = cable.getColor
-        var isCableSide = 0
-        for (side <- Direction.values) {
-          if (world.getBlockEntity(cable.getBlockPos.relative(side)).isInstanceOf[tileentity.Cable]){
-            isCableSide = block.Cable.mask(side, isCableSide)
-          }
-        }
         val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
         faces ++= bakeQuads(Middle, cableTexture, color)
-        for (side <- Direction.values) {
-          val connected = (neighbors & (1 << side.get3DDataValue)) != 0
-          val isCableOnSide = (isCableSide & (1 << side.get3DDataValue)) != 0
+        val directions = Direction.values
+        val numConnected = directions.count(d => state.getValue(PropertyCableConnection.BY_DIRECTION.get(d)) != PropertyCableConnection.Shape.NONE)
+        for (side <- directions) {
+          val shape = state.getValue(PropertyCableConnection.BY_DIRECTION.get(side))
+          val connected = shape != PropertyCableConnection.Shape.NONE
+          val isCableOnSide = shape == PropertyCableConnection.Shape.CABLE
           val (plug, shortBody, longBody) = Connected(side.get3DDataValue)
           if (connected) {
             if (isCableOnSide) {
@@ -60,20 +51,16 @@ class CableModel extends SmartBlockModelBase {
               faces ++= bakeQuads(plug, cableCapTexture, None)
             }
           }
-          else if (((1 << side.getOpposite.get3DDataValue) & neighbors) == neighbors || neighbors == 0) {
-            faces ++= bakeQuads(Disconnected(side.get3DDataValue), cableCapTexture, None)
+          else {
+            val otherConn = state.getValue(PropertyCableConnection.BY_DIRECTION.get(side.getOpposite)) != PropertyCableConnection.Shape.NONE
+            if ((otherConn && numConnected == 1) || numConnected == 0) {
+              faces ++= bakeQuads(Disconnected(side.get3DDataValue), cableCapTexture, None)
+            }
           }
         }
 
         bufferAsJavaList(faces)
       case _ => super.getQuads(state, side, rand)
-    }
-
-  protected def isCable(pos: BlockPosition) = {
-    pos.world match {
-      case Some(world) =>
-        world.getBlockEntity(pos).isInstanceOf[tileentity.Cable]
-      case _ => false
     }
   }
 
