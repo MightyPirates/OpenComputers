@@ -21,6 +21,8 @@ import net.minecraft.util.IItemProvider
 import net.minecraft.util.Direction
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
+import net.minecraftforge.client.model.data.IDynamicBakedModel
+import net.minecraftforge.client.model.data.IModelData
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
@@ -118,9 +120,9 @@ object ModelInitialization {
               override def resolve(base: IBakedModel, stack: ItemStack, world: ClientWorld, holder: LivingEntity) =
                 Option(custom.getModelLocation(stack)).map(registry).getOrElse(original)
             }
-            val fake = new IBakedModel {
+            val fake = new IDynamicBakedModel {
               @Deprecated
-              override def getQuads(state: BlockState, dir: Direction, rand: Random) = original.getQuads(state, dir, rand)
+              override def getQuads(state: BlockState, dir: Direction, rand: Random, data: IModelData) = original.getQuads(state, dir, rand, data)
         
               override def useAmbientOcclusion() = original.useAmbientOcclusion
         
@@ -156,20 +158,17 @@ object ModelInitialization {
 
     registry.keySet.toArray.foreach {
       case location: ModelResourceLocation => {
-        var parent = registry.get(location)
         for ((name, model) <- modelOverrides) {
           val pattern = s"^${Settings.resourceDomain}:$name#.*"
           if (location.toString.matches(pattern)) {
-            parent = model(parent)
-            registry.put(location, parent)
+            registry.put(location, model(registry.get(location)))
           }
-        }
-        modelRemappings.get(location) match {
-          case Some(remapped) => registry.put(remapped, parent)
-          case _ =>
         }
       }
       case _ =>
+    }
+    for ((real, virtual) <- modelRemappings) {
+      registry.put(real, registry.get(virtual))
     }
   }
 }
