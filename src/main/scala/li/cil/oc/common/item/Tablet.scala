@@ -616,12 +616,14 @@ object Tablet {
     override protected def timeout = 5
 
     def getWeak(stack: ItemStack): Option[TabletWrapper] = {
-      val key = getId(stack)
-      val map = cache.asMap
-      if (map.containsKey(key))
-        Some(map.entrySet.find(entry => entry.getKey == key).get.getValue)
-      else
-        None
+      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+        val key = getId(stack)
+        val map = cache.asMap
+        if (map.containsKey(key))
+          Some(map.entrySet.find(entry => entry.getKey == key).get.getValue)
+      }
+
+      None
     }
 
     def get(stack: ItemStack): Option[TabletWrapper] = {
