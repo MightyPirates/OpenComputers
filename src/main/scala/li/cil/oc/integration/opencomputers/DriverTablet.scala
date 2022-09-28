@@ -20,7 +20,7 @@ object DriverTablet extends Item {
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (host.world != null && host.world.isRemote) null
     else {
-      Tablet.Server.cache.invalidate(Tablet.getId(stack))
+      Tablet.Server.cache.invalidate(Tablet.getOrCreateId(stack))
       val data = new TabletData(stack)
       data.items.collect {
         case fs if !fs.isEmpty && DriverFileSystem.worksWith(fs) => fs
