@@ -173,20 +173,6 @@ abstract class LuaStateFactory {
 
   def isAvailable = haveNativeLibrary
 
-  val is64Bit = {
-    val dataModel = try System.getProperty("sun.arch.data.model") catch {
-      case ex: SecurityException => null
-    }
-
-    if (dataModel != null)
-      "64".equals(dataModel)
-    else {
-      // Best effort, will probably miss some esoteric architectures
-      // Examples this works for: x86_64, ppc64le, aarch64_be
-      SystemUtils.OS_ARCH.matches(".*64_?([bl]e)?")
-    }
-  }
-
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
   // libraries compiled for that system. It also means we have to unpack the
