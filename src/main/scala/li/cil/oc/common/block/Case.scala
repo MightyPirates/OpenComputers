@@ -52,7 +52,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
   override def energyThroughput = Settings.get.caseRate(tier)
 
   override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
-    case te: tileentity.Case => ContainerTypes.openCaseGui(player, te)
+    case te: tileentity.Case if te.stillValid(player) => ContainerTypes.openCaseGui(player, te)
     case _ =>
   }
 

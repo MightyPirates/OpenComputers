@@ -202,7 +202,9 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
         (player, world.getBlockEntity(pos)) match {
           case (srvPlr: ServerPlayerEntity, proxy: tileentity.RobotProxy) if proxy.robot.node.network != null =>
             PacketSender.sendRobotSelectedSlotChange(proxy.robot)
-            ContainerTypes.openRobotGui(srvPlr, proxy.robot)
+            if (proxy.stillValid(player)) {
+              ContainerTypes.openRobotGui(srvPlr, proxy.robot)
+            }
           case _ =>
         }
       }
