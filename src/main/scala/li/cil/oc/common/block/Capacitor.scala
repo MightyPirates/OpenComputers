@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util.Random
 
 import li.cil.oc.common.tileentity
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.util.math.BlockPos
@@ -10,7 +11,7 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 
-class Capacitor extends SimpleBlock {
+class Capacitor(props: Properties) extends SimpleBlock(props) {
   @Deprecated
   override def isRandomlyTicking(state: BlockState) = true
 

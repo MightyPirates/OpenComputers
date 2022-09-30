@@ -8,12 +8,13 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.item.ItemStack
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
-class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
+class PowerConverter(props: Properties) extends SimpleBlock(props) with traits.PowerAcceptor {
   if (Settings.get.ignorePower) {
     setCreativeTab(null)
     ItemBlacklist.hide(this)

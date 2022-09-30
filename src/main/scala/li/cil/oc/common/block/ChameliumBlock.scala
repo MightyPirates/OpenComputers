@@ -19,7 +19,7 @@ object ChameliumBlock {
   final val Color = EnumProperty.create("color", classOf[DyeColor])
 }
 
-class ChameliumBlock(props: Properties = Properties.of(Material.STONE).strength(2, 5)) extends SimpleBlock(props) {
+class ChameliumBlock(props: Properties) extends SimpleBlock(props) {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]): Unit = {
     builder.add(ChameliumBlock.Color)
   }

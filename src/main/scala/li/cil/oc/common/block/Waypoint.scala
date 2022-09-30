@@ -5,6 +5,7 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RotationHelper
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.Minecraft
@@ -17,7 +18,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.world.{IBlockReader, World}
 
-class Waypoint extends RedstoneAware {
+class Waypoint(props: Properties) extends RedstoneAware(props) {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Pitch, PropertyRotatable.Yaw)
 

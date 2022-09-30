@@ -8,6 +8,7 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -26,7 +27,7 @@ import net.minecraft.world.World
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Case(props: Properties, val tier: Int) extends RedstoneAware(props) with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing, property.PropertyRunning.Running)
 

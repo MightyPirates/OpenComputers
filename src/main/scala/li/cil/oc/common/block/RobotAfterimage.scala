@@ -12,7 +12,6 @@ import li.cil.oc.util.Rarity
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Blocks
 import net.minecraft.block.BlockState
-import net.minecraft.block.material.Material
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.fluid.FluidState
 import net.minecraft.item.ItemStack
@@ -29,13 +28,11 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 
-class RobotAfterimage(props: Properties = Properties.of(Material.STONE).strength(2, 5).noOcclusion()) extends SimpleBlock(props) {
+class RobotAfterimage(props: Properties) extends SimpleBlock(props) {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
   // ----------------------------------------------------------------------- //
-
-  override def hasDynamicShape() = true
 
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity): ItemStack =
     findMovingRobot(world, pos) match {
@@ -63,8 +60,6 @@ class RobotAfterimage(props: Properties = Properties.of(Material.STONE).strength
     val data = new RobotData(stack)
     Rarity.byTier(data.tier)
   }
-
-  override def isAir(state: BlockState, world: IBlockReader, pos: BlockPos): Boolean = true
 
   // ----------------------------------------------------------------------- //
 

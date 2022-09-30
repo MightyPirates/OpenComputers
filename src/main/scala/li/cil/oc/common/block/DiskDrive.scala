@@ -7,6 +7,7 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -24,7 +25,7 @@ import net.minecraft.world.World
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class DiskDrive extends SimpleBlock with traits.GUI {
+class DiskDrive(props: Properties) extends SimpleBlock(props) with traits.GUI {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)
 

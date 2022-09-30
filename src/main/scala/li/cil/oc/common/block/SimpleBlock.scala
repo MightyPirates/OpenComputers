@@ -10,7 +10,6 @@ import li.cil.oc.common.tileentity.traits.Rotatable
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.AbstractBlock.IExtendedPositionPredicate
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
 import net.minecraft.block.BlockRenderType
@@ -28,7 +27,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.math.shapes.ISelectionContext
@@ -46,9 +44,7 @@ import net.minecraftforge.common.ToolType
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).strength(2, 5)) extends ContainerBlock(props.isValidSpawn(new IExtendedPositionPredicate[EntityType[_]] {
-  override def test(state: BlockState, world: IBlockReader, pos: BlockPos, entity: EntityType[_]) = state.getBlock.asInstanceOf[SimpleBlock].isValidSpawn(state, world, pos, entity)
-}).noOcclusion) {
+abstract class SimpleBlock(props: Properties) extends ContainerBlock(props) {
   @Deprecated
   private var creativeTab: ItemGroup = CreativeTab
 
@@ -137,9 +133,6 @@ abstract class SimpleBlock(props: Properties = Properties.of(Material.METAL).str
   override def getHarvestTool(state: BlockState): ToolType = null
 
   override def canBeReplacedByLeaves(state: BlockState, world: IWorldReader, pos: BlockPos): Boolean = false
-
-  @Deprecated
-  def isValidSpawn(state: BlockState, world: IBlockReader, pos: BlockPos, `type`: EntityType[_]): Boolean = false
 
   def getValidRotations(world: World, pos: BlockPos): Array[Direction] = validRotations_
 

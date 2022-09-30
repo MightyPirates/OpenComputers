@@ -5,6 +5,7 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
@@ -21,7 +22,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Hologram(val tier: Int) extends SimpleBlock {
+class Hologram(props: Properties, val tier: Int) extends SimpleBlock(props) {
   val shape = VoxelShapes.box(0, 0, 0, 1, 0.5, 1)
 
   // ----------------------------------------------------------------------- //

@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -13,7 +14,7 @@ import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
-class NetSplitter extends RedstoneAware {
+class NetSplitter(props: Properties) extends RedstoneAware(props) {
   override def newBlockEntity(world: IBlockReader) = new tileentity.NetSplitter(tileentity.TileEntityTypes.NET_SPLITTER)
 
   // ----------------------------------------------------------------------- //

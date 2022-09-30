@@ -37,7 +37,7 @@ import net.minecraftforge.common.extensions.IForgeBlock
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.reflect.ClassTag
 
-class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware(Properties.of(Material.METAL).strength(1, 5).noOcclusion())
+class Print(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware(props)
   with IForgeBlock with traits.CustomDrops[tileentity.Print] {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
@@ -66,8 +66,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       tooltip.add(new StringTextComponent(Localization.Tooltip.PrintLightValue(data.lightLevel)).setStyle(Tooltip.DefaultStyle))
     }
   }
-
-  override def hasDynamicShape() = true
 
   override def getLightValue(state: BlockState, world: IBlockReader, pos: BlockPos): Int =
     world match {
@@ -101,8 +99,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case _ => super.getShape(state, world, pos, ctx)
     }
   }
-
-  override def isValidSpawn(state: BlockState, world: IBlockReader, pos: BlockPos, `type`: EntityType[_]): Boolean = true
 
   def tickRate(world: World) = 20
 

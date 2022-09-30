@@ -15,7 +15,6 @@ import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.block.BlockState
-import net.minecraft.block.material.Material
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.ItemStack
@@ -33,7 +32,7 @@ import net.minecraft.world.server.ServerWorld
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Keyboard(props: Properties = Properties.of(Material.STONE).strength(2, 5).noOcclusion()) extends SimpleBlock(props) {
+class Keyboard(props: Properties) extends SimpleBlock(props) {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 

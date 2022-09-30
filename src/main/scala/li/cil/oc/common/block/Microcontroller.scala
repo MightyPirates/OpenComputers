@@ -16,6 +16,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.StackOption._
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -36,7 +37,9 @@ import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.reflect.ClassTag
 
-class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with IForgeBlock with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
+class Microcontroller(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Microcontroller])
+  extends RedstoneAware(props) with IForgeBlock with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
+
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 

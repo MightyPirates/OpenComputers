@@ -5,6 +5,7 @@ import li.cil.oc.api.component.RackMountable
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
@@ -14,7 +15,6 @@ import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
 import net.minecraft.util.Direction.Axis
 import net.minecraft.util.Hand
-import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.RayTraceResult
 import net.minecraft.util.math.RayTraceResult
@@ -22,7 +22,7 @@ import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
-class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Rack(props: Properties) extends RedstoneAware(props) with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)
 

@@ -14,6 +14,7 @@ import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.Minecraft
@@ -26,7 +27,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
-import net.minecraft.util.math.{AxisAlignedBB, BlockPos}
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.{IBlockReader, World}
@@ -34,7 +35,7 @@ import net.minecraftforge.api.distmarker.{Dist, OnlyIn}
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Screen(val tier: Int) extends RedstoneAware {
+class Screen(props: Properties, val tier: Int) extends RedstoneAware(props) {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Pitch, PropertyRotatable.Yaw)
 

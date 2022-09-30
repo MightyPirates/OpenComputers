@@ -19,7 +19,6 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
-import net.minecraft.block.material.Material
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
@@ -46,7 +45,7 @@ import net.minecraft.world.World
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 10).noOcclusion()) extends RedstoneAware(props) with traits.StateAware {
+class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.StateAware {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
@@ -65,8 +64,6 @@ class RobotProxy(props: Properties = Properties.of(Material.STONE).strength(2, 1
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
       case _ => ItemStack.EMPTY
     }
-
-  override def hasDynamicShape() = true
 
   override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = {
     world.getBlockEntity(pos) match {

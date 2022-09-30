@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
@@ -15,7 +16,7 @@ import net.minecraft.world.IBlockReader
 import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
 
-class Adapter extends SimpleBlock with traits.GUI {
+class Adapter(props: Properties) extends SimpleBlock(props) with traits.GUI {
   override def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos): Unit = world.getBlockEntity(pos) match {
     case te: tileentity.Adapter => ContainerTypes.openAdapterGui(player, te)
     case _ =>

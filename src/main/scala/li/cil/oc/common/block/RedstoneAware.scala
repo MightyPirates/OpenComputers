@@ -4,13 +4,12 @@ import li.cil.oc.common.tileentity
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.block.material.Material
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 
-abstract class RedstoneAware(props: Properties = Properties.of(Material.METAL)) extends SimpleBlock(props) {
+abstract class RedstoneAware(props: Properties) extends SimpleBlock(props) {
   override def isSignalSource(state: BlockState): Boolean = true
 
   override def canConnectRedstone(state: BlockState, world: IBlockReader, pos: BlockPos, side: Direction): Boolean =

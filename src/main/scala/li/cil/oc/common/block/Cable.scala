@@ -7,6 +7,7 @@ import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
@@ -28,7 +29,7 @@ import net.minecraftforge.common.extensions.IForgeBlock
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with IForgeBlock with traits.CustomDrops[tileentity.Cable] {
+class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock(props) with IForgeBlock with traits.CustomDrops[tileentity.Cable] {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 

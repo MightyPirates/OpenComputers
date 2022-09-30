@@ -8,6 +8,7 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
@@ -26,7 +27,9 @@ import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.reflect.ClassTag
 
-class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with IForgeBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+class Raid(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Raid])
+  extends SimpleBlock(props) with IForgeBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)
 
