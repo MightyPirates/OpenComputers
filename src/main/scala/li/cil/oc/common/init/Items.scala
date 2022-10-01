@@ -56,6 +56,32 @@ object Items extends ItemAPI {
 
   private def defaultProps = new Properties().tab(CreativeTab)
 
+  def registerBlockOnly(instance: Block, id: String): Block = {
+    if (!descriptors.contains(id)) {
+      instance match {
+        case simple: SimpleBlock =>
+          simple.setUnlocalizedName("oc." + id)
+          simple.setRegistryName(OpenComputers.ID, id)
+          GameData.register_impl[Block](simple)
+        case _ =>
+      }
+      descriptors += id -> new ItemInfo {
+        override def name: String = id
+
+        override def block = instance
+
+        override def item = null
+
+        override def createItemStack(size: Int): ItemStack = {
+          OpenComputers.log.warn(s"Attempt to get ItemStack for block ${instance} without item form")
+          ItemStack.EMPTY
+        }
+      }
+      names += instance -> id
+    }
+    instance
+  }
+
   def registerBlock(instance: Block, id: String): Block = {
     if (!descriptors.contains(id)) {
       instance match {
@@ -76,7 +102,7 @@ object Items extends ItemAPI {
 
         override def block = instance
 
-        override def item = null
+        override def item = item
 
         override def createItemStack(size: Int): ItemStack = instance match {
           case simple: SimpleBlock => simple.createItemStack(size)

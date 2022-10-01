@@ -44,7 +44,7 @@ object Blocks {
     Items.registerBlock(new Case(defaultProps, Tier.Four), Constants.BlockName.CaseCreative)
     Items.registerBlock(new Microcontroller(defaultProps), Constants.BlockName.Microcontroller)
     Items.registerBlock(new Print(Properties.of(Material.METAL).strength(1, 5).noOcclusion.dynamicShape), Constants.BlockName.Print)
-    Items.registerBlock(new RobotAfterimage(Properties.of(Material.AIR).instabreak.noOcclusion.dynamicShape.air), Constants.BlockName.RobotAfterimage)
+    Items.registerBlockOnly(new RobotAfterimage(Properties.of(Material.AIR).instabreak.noOcclusion.dynamicShape.air), Constants.BlockName.RobotAfterimage)
     Items.registerBlock(new RobotProxy(defaultProps.noOcclusion.dynamicShape), Constants.BlockName.Robot)
 
     // v1.5.10

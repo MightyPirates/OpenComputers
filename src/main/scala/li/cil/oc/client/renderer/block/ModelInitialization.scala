@@ -41,7 +41,6 @@ object ModelInitialization {
   final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "")
   final val RobotItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
   final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "")
-  final val RobotAfterimageItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "inventory")
   final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "")
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
@@ -52,7 +51,7 @@ object ModelInitialization {
     registerModel(Constants.BlockName.NetSplitter, NetSplitterBlockLocation, NetSplitterItemLocation)
     registerModel(Constants.BlockName.Print, PrintBlockLocation, PrintItemLocation)
     registerModel(Constants.BlockName.Robot, RobotBlockLocation, RobotItemLocation)
-    registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, RobotAfterimageItemLocation)
+    registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, null)
   }
 
   @SubscribeEvent
@@ -86,8 +85,10 @@ object ModelInitialization {
     val block = descriptor.block()
     val stack = descriptor.createItemStack(1)
 
-    val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
-    shaper.register(stack.getItem, itemLocation)
+    if (!stack.isEmpty) {
+      val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
+      shaper.register(stack.getItem, itemLocation)
+    }
     block.getStateDefinition.getPossibleStates.foreach {
       modelRemappings += BlockModelShapes.stateToModelLocation(_) -> blockLocation
     }
@@ -108,7 +109,6 @@ object ModelInitialization {
     registry.put(RobotBlockLocation, RobotModel)
     registry.put(RobotItemLocation, RobotModel)
     registry.put(RobotAfterimageBlockLocation, NullModel)
-    registry.put(RobotAfterimageItemLocation, NullModel)
 
     for (item <- meshableItems) item match {
       case custom: CustomModel => {
