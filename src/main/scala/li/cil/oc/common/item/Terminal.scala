@@ -4,7 +4,6 @@ import java.util
 
 import com.google.common.base.Strings
 import li.cil.oc.Constants
-import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -32,7 +31,7 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.extensions.IForgeItem
 
-class Terminal(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
+class Terminal(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
   override def maxStackSize = 1
 
   def hasServer(stack: ItemStack) = stack.hasTag && stack.getTag.contains(Settings.namespace + "server")

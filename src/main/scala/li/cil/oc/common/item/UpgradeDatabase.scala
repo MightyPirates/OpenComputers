@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.container.ContainerTypes
@@ -17,7 +16,7 @@ import net.minecraft.util.Hand
 import net.minecraft.world.World
 import net.minecraftforge.common.extensions.IForgeItem
 
-class UpgradeDatabase(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+class UpgradeDatabase(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 

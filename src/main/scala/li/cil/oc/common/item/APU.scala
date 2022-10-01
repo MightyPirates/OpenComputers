@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.common.Tier
 import li.cil.oc.util.Rarity
 import net.minecraft.item // Rarity
@@ -11,7 +10,7 @@ import net.minecraftforge.common.extensions.IForgeItem
 
 import scala.language.existentials
 
-class APU(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier with traits.CPULike with traits.GPULike {
+class APU(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier with traits.CPULike with traits.GPULike {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 

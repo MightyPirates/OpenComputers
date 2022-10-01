@@ -12,8 +12,6 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.BlockItem
 import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.DyeColor
@@ -21,11 +19,9 @@ import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Rarity
 import net.minecraft.util.Direction
-import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
-import net.minecraft.world.World
 
 object Item {
   def setCreativeTab(block: Block, props: Properties): Properties = block match {
@@ -35,7 +31,7 @@ object Item {
   }
 }
 
-class Item(value: Block, props: Properties = new Properties()) extends BlockItem(value, Item.setCreativeTab(value, props)) {
+class Item(value: Block, props: Properties) extends BlockItem(value, Item.setCreativeTab(value, props)) {
   override def getRarity(stack: ItemStack): Rarity = getBlock match {
     case simple: SimpleBlock => simple.rarity(stack)
     case _ => Rarity.COMMON

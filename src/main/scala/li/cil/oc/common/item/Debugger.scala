@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.network._
@@ -15,7 +14,7 @@ import net.minecraft.util.Direction
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.extensions.IForgeItem
 
-class Debugger(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Debugger(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     player match {

@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.container.ContainerTypes
@@ -26,7 +25,7 @@ import net.minecraftforge.common.extensions.IForgeItem
 import scala.collection.mutable
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Server(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Server(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 

@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
@@ -21,7 +20,7 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraftforge.common.extensions.IForgeItem
 
-class UpgradeMF(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+class UpgradeMF(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
   override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {
     if (!player.level.isClientSide && player.isCrouching) {
       val data = stack.getOrCreateTag

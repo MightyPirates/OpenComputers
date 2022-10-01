@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.BlockPosition
@@ -22,7 +21,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.extensions.IForgeItem
 
-class Manual(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Manual(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   @OnlyIn(Dist.CLIENT)
   override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     super.appendHoverText(stack, world, tooltip, flag)

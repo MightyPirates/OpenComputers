@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.util.Rarity
@@ -10,7 +9,7 @@ import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.extensions.IForgeItem
 
-class ComponentBus(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+class ComponentBus(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 

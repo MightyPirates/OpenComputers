@@ -1,11 +1,10 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
 import net.minecraftforge.common.extensions.IForgeItem
 
-class DataCard(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+class DataCard(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 }

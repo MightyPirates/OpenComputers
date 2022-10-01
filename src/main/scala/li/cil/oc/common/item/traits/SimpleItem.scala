@@ -3,7 +3,6 @@ package li.cil.oc.common.item.traits
 import java.util
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint

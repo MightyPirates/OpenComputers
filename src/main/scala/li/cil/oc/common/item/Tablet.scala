@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.collect.ImmutableMap
 import li.cil.oc.Constants
-import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -78,7 +77,7 @@ import scala.collection.JavaConverters.asJavaIterable
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class Tablet(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel with traits.Chargeable {
+class Tablet(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel with traits.Chargeable {
   final val TimeToAnalyze = 10
 
   override def maxStackSize = 1

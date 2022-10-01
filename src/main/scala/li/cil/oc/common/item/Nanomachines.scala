@@ -3,7 +3,6 @@ package li.cil.oc.common.item
 import java.util
 
 import com.google.common.base.Strings
-import li.cil.oc.CreativeTab
 import li.cil.oc.api
 import li.cil.oc.common.item.data.NanomachineData
 import li.cil.oc.common.nanomachines.ControllerImpl
@@ -25,7 +24,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.extensions.IForgeItem
 
-class Nanomachines(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Nanomachines(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   @Deprecated
   override def getRarity(stack: ItemStack): Rarity = Rarity.UNCOMMON
 

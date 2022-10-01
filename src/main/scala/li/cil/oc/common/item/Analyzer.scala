@@ -1,7 +1,6 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Constants
-import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -105,7 +104,7 @@ object Analyzer {
   }
 }
 
-class Analyzer(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Analyzer(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (player.isCrouching && stack.hasTag) {
       stack.removeTagKey(Settings.namespace + "clipboard")

@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import javax.annotation.Nonnull
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.api
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
@@ -19,7 +18,7 @@ import net.minecraft.util.Hand
 import net.minecraft.world.World
 import net.minecraftforge.common.extensions.IForgeItem
 
-class Acid(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class Acid(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     player.startUsingItem(if (player.getItemInHand(Hand.MAIN_HAND) == stack) Hand.MAIN_HAND else Hand.OFF_HAND)
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)

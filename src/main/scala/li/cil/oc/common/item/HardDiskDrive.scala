@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
@@ -9,7 +8,7 @@ import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.common.extensions.IForgeItem
 
-class HardDiskDrive(val tier: Int, props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier with traits.FileSystemLike {
+class HardDiskDrive(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier with traits.FileSystemLike {
   @Deprecated
   override def getDescriptionId = super.getDescriptionId + tier
 

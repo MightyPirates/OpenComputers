@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.init.Items
@@ -30,9 +29,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.extensions.IForgeItem
 
-class HoverBoots(props: Properties = new Properties().tab(CreativeTab).setNoRepair())
-  extends ArmorItem(ArmorMaterial.DIAMOND, EquipmentSlotType.FEET, props) with IForgeItem with traits.SimpleItem with traits.Chargeable {
-
+class HoverBoots(props: Properties) extends ArmorItem(ArmorMaterial.DIAMOND, EquipmentSlotType.FEET, props) with IForgeItem with traits.SimpleItem with traits.Chargeable {
   @Deprecated
   override def getRarity(stack: ItemStack): Rarity = Rarity.UNCOMMON
 

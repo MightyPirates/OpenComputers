@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraft.item.ItemStack
 import net.minecraftforge.client.event.ModelBakeEvent

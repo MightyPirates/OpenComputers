@@ -3,7 +3,6 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.DroneModel
@@ -30,7 +29,7 @@ import net.minecraftforge.common.extensions.IForgeItem
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
-class Drone(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
+class Drone(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
   ItemBlacklist.hide(this)
 
   @OnlyIn(Dist.CLIENT)

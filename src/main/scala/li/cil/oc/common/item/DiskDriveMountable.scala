@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.DiskDriveMountableInventory
@@ -13,7 +12,7 @@ import net.minecraft.util.{ActionResult, ActionResultType, Hand}
 import net.minecraft.world.World
 import net.minecraftforge.common.extensions.IForgeItem
 
-class DiskDriveMountable(props: Properties = new Properties().tab(CreativeTab)) extends Item(props) with IForgeItem with traits.SimpleItem {
+class DiskDriveMountable(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   override def maxStackSize = 1
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity) = {
