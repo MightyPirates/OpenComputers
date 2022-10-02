@@ -43,16 +43,6 @@ trait SimpleItem extends Item with api.driver.item.UpgradeRenderer {
   @Deprecated
   override def getDescriptionId = "item.oc." + unlocalizedName
 
-  @Deprecated
-  def maxStackSize = 64
-
-  @Deprecated
-  override def getItemStackLimit(stack: ItemStack): Int =
-    OpenComputersItem.address(stack) match {
-      case Some(address) => 1
-      case _ => maxStackSize
-    }
-
   override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = {
     world.getBlockEntity(pos) match {
       case drive: tileentity.DiskDrive => true

@@ -377,8 +377,8 @@ object Items extends ItemAPI {
     registerItem(new item.DroneCase(defaultProps, Tier.Two), Constants.ItemName.DroneCaseTier2)
     registerItem(new item.DroneCase(defaultProps, Tier.Four), Constants.ItemName.DroneCaseCreative)
 
-    registerItem(new item.InkCartridgeEmpty(defaultProps), Constants.ItemName.InkCartridgeEmpty)
-    registerItem(new item.InkCartridge(defaultProps.craftRemainder(get(Constants.ItemName.InkCartridgeEmpty).item)), Constants.ItemName.InkCartridge)
+    registerItem(new item.InkCartridgeEmpty(defaultProps.stacksTo(1)), Constants.ItemName.InkCartridgeEmpty)
+    registerItem(new item.InkCartridge(defaultProps.stacksTo(1).craftRemainder(get(Constants.ItemName.InkCartridgeEmpty).item)), Constants.ItemName.InkCartridge)
     registerItem(new item.Chamelium(defaultProps), Constants.ItemName.Chamelium)
 
     registerItem(new item.DiamondChip(defaultProps), Constants.ItemName.DiamondChip)
@@ -390,13 +390,13 @@ object Items extends ItemAPI {
   private def initTools(): Unit = {
     registerItem(new item.Analyzer(defaultProps), Constants.ItemName.Analyzer)
     registerItem(new item.Debugger(defaultProps), Constants.ItemName.Debugger)
-    registerItem(new item.Terminal(defaultProps), Constants.ItemName.Terminal)
+    registerItem(new item.Terminal(defaultProps.stacksTo(1)), Constants.ItemName.Terminal)
     registerItem(new item.TexturePicker(defaultProps), Constants.ItemName.TexturePicker)
     registerItem(new item.Manual(defaultProps), Constants.ItemName.Manual)
     registerItem(new item.Wrench(defaultProps.stacksTo(1).addToolType(WrenchType, 1)), Constants.ItemName.Wrench)
 
     // 1.5.11
-    registerItem(new item.HoverBoots(defaultProps.setNoRepair), Constants.ItemName.HoverBoots)
+    registerItem(new item.HoverBoots(defaultProps.stacksTo(1).setNoRepair), Constants.ItemName.HoverBoots)
 
     // 1.5.18
     registerItem(new item.Nanomachines(defaultProps), Constants.ItemName.Nanomachines)
@@ -419,10 +419,10 @@ object Items extends ItemAPI {
     registerItem(new item.Memory(defaultProps, Tier.Five), Constants.ItemName.RAMTier5)
     registerItem(new item.Memory(defaultProps, Tier.Six), Constants.ItemName.RAMTier6)
 
-    registerItem(new item.Server(defaultProps, Tier.Four), Constants.ItemName.ServerCreative)
-    registerItem(new item.Server(defaultProps, Tier.One), Constants.ItemName.ServerTier1)
-    registerItem(new item.Server(defaultProps, Tier.Two), Constants.ItemName.ServerTier2)
-    registerItem(new item.Server(defaultProps, Tier.Three), Constants.ItemName.ServerTier3)
+    registerItem(new item.Server(defaultProps.stacksTo(1), Tier.Four), Constants.ItemName.ServerCreative)
+    registerItem(new item.Server(defaultProps.stacksTo(1), Tier.One), Constants.ItemName.ServerTier1)
+    registerItem(new item.Server(defaultProps.stacksTo(1), Tier.Two), Constants.ItemName.ServerTier2)
+    registerItem(new item.Server(defaultProps.stacksTo(1), Tier.Three), Constants.ItemName.ServerTier3)
 
     // 1.5.10
     registerItem(new item.APU(defaultProps, Tier.One), Constants.ItemName.APUTier1)
@@ -432,8 +432,8 @@ object Items extends ItemAPI {
     registerItem(new item.APU(defaultProps, Tier.Three), Constants.ItemName.APUCreative)
 
     // 1.6
-    registerItem(new item.TerminalServer(defaultProps), Constants.ItemName.TerminalServer)
-    registerItem(new item.DiskDriveMountable(defaultProps), Constants.ItemName.DiskDriveMountable)
+    registerItem(new item.TerminalServer(defaultProps.stacksTo(1)), Constants.ItemName.TerminalServer)
+    registerItem(new item.DiskDriveMountable(defaultProps.stacksTo(1)), Constants.ItemName.DiskDriveMountable)
   }
 
   // Card components.
@@ -522,7 +522,7 @@ object Items extends ItemAPI {
 
   // Special purpose items that don't fit into any other category.
   private def initSpecial(): Unit = {
-    registerItem(new item.Tablet(defaultProps), Constants.ItemName.Tablet)
+    registerItem(new item.Tablet(defaultProps.stacksTo(1)), Constants.ItemName.Tablet)
     registerItem(new item.Drone(defaultProps), Constants.ItemName.Drone)
     registerItem(new item.Present(defaultProps), Constants.ItemName.Present)
   }

@@ -80,8 +80,6 @@ import scala.collection.convert.ImplicitConversionsToScala._
 class Tablet(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel with traits.Chargeable {
   final val TimeToAnalyze = 10
 
-  override def maxStackSize = 1
-
   // ----------------------------------------------------------------------- //
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[ITextComponent]): Unit = {

@@ -34,8 +34,6 @@ class Server(props: Properties, val tier: Int) extends Item(props) with IForgeIt
   @Deprecated
   override def getRarity(stack: ItemStack): item.Rarity = Rarity.byTier(tier)
 
-  override def maxStackSize = 1
-
   private object HelperInventory extends ServerInventory {
     var container = ItemStack.EMPTY
 

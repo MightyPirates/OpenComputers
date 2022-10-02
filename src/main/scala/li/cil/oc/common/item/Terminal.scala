@@ -32,8 +32,6 @@ import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.extensions.IForgeItem
 
 class Terminal(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
-  override def maxStackSize = 1
-
   def hasServer(stack: ItemStack) = stack.hasTag && stack.getTag.contains(Settings.namespace + "server")
 
   @OnlyIn(Dist.CLIENT)

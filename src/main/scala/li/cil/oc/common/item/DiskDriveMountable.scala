@@ -13,8 +13,6 @@ import net.minecraft.world.World
 import net.minecraftforge.common.extensions.IForgeItem
 
 class DiskDriveMountable(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
-  override def maxStackSize = 1
-
   override def use(stack: ItemStack, world: World, player: PlayerEntity) = {
     if (!world.isClientSide) player match {
       case srvPlr: ServerPlayerEntity => ContainerTypes.openDiskDriveGui(srvPlr, new DiskDriveMountableInventory {
