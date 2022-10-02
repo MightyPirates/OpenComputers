@@ -7,12 +7,13 @@ import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.ItemColorizer
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.{Entity, LivingEntity}
-import net.minecraft.item.{DyeColor, ItemStack}
+import net.minecraft.item.{BlockItemUseContext, DyeColor, ItemStack}
 import net.minecraft.state.StateContainer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Direction
@@ -52,6 +53,18 @@ class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
     setValue(PropertyCableConnection.WEST, PropertyCableConnection.Shape.NONE).
     setValue(PropertyCableConnection.EAST, PropertyCableConnection.Shape.NONE))
 
+  override def getStateForPlacement(ctx: BlockItemUseContext): BlockState = {
+    var state = defaultBlockState
+    val color = Cable.getConnectionColor(ctx.getItemInHand)
+    val fromPos = new BlockPos.Mutable();
+    for (fromSide <- Direction.values) {
+      fromPos.setWithOffset(ctx.getClickedPos, fromSide)
+      val fromState = ctx.getLevel.getBlockState(fromPos)
+      state = Cable.updateState(state, null, color, fromSide, fromState, ctx.getLevel, fromPos)
+    }
+    state
+  }
+
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity) =
     world.getBlockEntity(pos) match {
       case t: tileentity.Cable => t.createItemStack()
@@ -61,23 +74,7 @@ class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
   override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = Cable.shape(state)
 
   override def updateShape(state: BlockState, fromSide: Direction, fromState: BlockState, world: IWorld, pos: BlockPos, fromPos: BlockPos): BlockState =
-    Cable.updateState(state, fromSide, fromState, world, pos, fromPos)
-
-  // Connecting to other blocks requires this cable to have a TE set, so wait until next tick and update.
-  override def onPlace(state: BlockState, world: World, pos: BlockPos, prevState: BlockState, moved: Boolean): Unit = {
-    // Only schedule this update if this cable was newly placed (not if it changed shape).
-    if (!prevState.is(this)) {
-      world match {
-        case srvWorld: ServerWorld if !srvWorld.isClientSide => srvWorld.getBlockTicks.scheduleTick(pos, this, 1)
-        case _ =>
-      }
-    }
-  }
-
-  override def tick(state: BlockState, world: ServerWorld, pos: BlockPos, rand: util.Random) {
-    val newState = Block.updateFromNeighbourShapes(state, world, pos)
-    Block.updateOrDestroy(state, newState, world, pos, 3)
-  }
+    Cable.updateState(state, world.getBlockEntity(pos), -1, fromSide, fromState, world, fromPos)
 
   // ----------------------------------------------------------------------- //
 
@@ -87,9 +84,8 @@ class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
 
   override protected def doCustomInit(tileEntity: tileentity.Cable, player: LivingEntity, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
-    if (!tileEntity.world.isClientSide) {
-      tileEntity.fromItemStack(stack)
-    }
+    tileEntity.fromItemStack(stack)
+    tileEntity.getBlockState.updateNeighbourShapes(tileEntity.getLevel, tileEntity.getBlockPos, 2)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Cable, player: PlayerEntity, willHarvest: Boolean): Unit = {
@@ -137,27 +133,23 @@ object Cable {
     Cable.CachedBounds(result)
   }
 
-  def updateState(state: BlockState, fromSide: Direction, fromState: BlockState, world: IBlockReader, pos: BlockPos, fromPos: BlockPos): BlockState = {
+  def updateState(state: BlockState, tileEntity: TileEntity, defaultColor: Int, fromSide: Direction, fromState: BlockState, world: IBlockReader, fromPos: BlockPos): BlockState = {
     val prop = PropertyCableConnection.BY_DIRECTION.get(fromSide)
-    if (fromState.is(state.getBlock)) {
-      state.setValue(prop, PropertyCableConnection.Shape.CABLE)
-    }
-    else {
-      val tileEntity = world.getBlockEntity(pos)
-      val hasNode = hasNetworkNode(tileEntity, fromSide)
-      if (hasNode) {
-        val neighborTileEntity = world.getBlockEntity(fromPos)
-        if (neighborTileEntity != null && neighborTileEntity.getLevel != null) {
-          val neighborHasNode = hasNetworkNode(neighborTileEntity, fromSide.getOpposite)
-          val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
-          val canConnectIM = canConnectFromSideIM(tileEntity, fromSide) && canConnectFromSideIM(neighborTileEntity, fromSide.getOpposite)
-          if (neighborHasNode && canConnectColor && canConnectIM) {
-            return state.setValue(prop, PropertyCableConnection.Shape.DEVICE)
-          }
+    val neighborTileEntity = world.getBlockEntity(fromPos)
+    if (neighborTileEntity != null && neighborTileEntity.getLevel != null) {
+      val neighborHasNode = hasNetworkNode(neighborTileEntity, fromSide.getOpposite)
+      val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity, defaultColor)
+      val canConnectIM = canConnectFromSideIM(tileEntity, fromSide) && canConnectFromSideIM(neighborTileEntity, fromSide.getOpposite)
+      if (neighborHasNode && canConnectColor && canConnectIM) {
+        if (fromState.is(state.getBlock)) {
+          return state.setValue(prop, PropertyCableConnection.Shape.CABLE)
+        }
+        else {
+          return state.setValue(prop, PropertyCableConnection.Shape.DEVICE)
         }
       }
-      state.setValue(prop, PropertyCableConnection.Shape.NONE)
     }
+    state.setValue(prop, PropertyCableConnection.Shape.NONE)
   }
 
   private def hasNetworkNode(tileEntity: TileEntity, side: Direction): Boolean = {
@@ -180,6 +172,11 @@ object Cable {
     false
   }
 
+  private def getConnectionColor(stack: ItemStack): Int = {
+    val color = ItemColorizer.getColor(stack)
+    if (color == -1) Color.rgbValues(DyeColor.LIGHT_GRAY) else color
+  }
+
   private def getConnectionColor(tileEntity: TileEntity): Int = {
     if (tileEntity != null) {
       if (tileEntity.getCapability(Capabilities.ColoredCapability, null).isPresent) {
@@ -191,8 +188,8 @@ object Cable {
     Color.rgbValues(DyeColor.LIGHT_GRAY)
   }
 
-  private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
-    val (c1, c2) = (getConnectionColor(te1), getConnectionColor(te2))
+  private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity, c1Default: Int = Color.rgbValues(DyeColor.LIGHT_GRAY)) = {
+    val (c1, c2) = (if (te1 == null) c1Default else getConnectionColor(te1), getConnectionColor(te2))
     c1 == c2 || c1 == Color.rgbValues(DyeColor.LIGHT_GRAY) || c2 == Color.rgbValues(DyeColor.LIGHT_GRAY)
   }
 
