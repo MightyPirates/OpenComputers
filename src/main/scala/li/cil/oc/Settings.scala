@@ -297,6 +297,8 @@ class Settings(val config: Config) {
   // internet
   val httpEnabled = config.getBoolean("internet.enableHttp")
   val httpHeadersEnabled = config.getBoolean("internet.enableHttpHeaders")
+  val httpMethodsEnabled = config.getStringList("internet.enableHttpMethods")
+  val httpRedirectsEnabled = config.getInt("internet.enableHttpRedirects") max -1
   val tcpEnabled = config.getBoolean("internet.enableTcp")
   val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
   val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
