@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
+import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
@@ -19,6 +20,8 @@ import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.loot.LootContext
+import net.minecraft.loot.LootParameters
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
@@ -37,8 +40,7 @@ import net.minecraftforge.common.extensions.IForgeBlock
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.reflect.ClassTag
 
-class Print(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware(props)
-  with IForgeBlock with traits.CustomDrops[tileentity.Print] {
+class Print(props: Properties) extends RedstoneAware(props) with IForgeBlock {
   setCreativeTab(null)
   ItemBlacklist.hide(this)
 
@@ -131,21 +133,6 @@ class Print(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
     }
   }
 
-  override protected def doCustomInit(tileEntity: tileentity.Print, player: LivingEntity, stack: ItemStack): Unit = {
-    super.doCustomInit(tileEntity, player, stack)
-    tileEntity.data.loadData(stack)
-    tileEntity.updateShape()
-    tileEntity.updateRedstone()
-    tileEntity.getLevel.getLightEngine.checkBlock(tileEntity.getBlockPos)
-  }
-
-  override protected def doCustomDrops(tileEntity: tileentity.Print, player: PlayerEntity, willHarvest: Boolean): Unit = {
-    super.doCustomDrops(tileEntity, player, willHarvest)
-    if (!player.isCreative) {
-      InventoryUtils.spawnStackInWorld(tileEntity.position, tileEntity.data.createItemStack())
-    }
-  }
-
   override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
     world.getBlockEntity(pos) match {
       case print: tileentity.Print if print.data.emitRedstone(print.state) =>
@@ -156,5 +143,28 @@ class Print(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
       case _ =>
     }
     super.onRemove(state, world, pos, newState, moved)
+  }
+
+  override def setPlacedBy(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity, stack: ItemStack): Unit = {
+    super.setPlacedBy(world, pos, state, placer, stack)
+    world.getBlockEntity(pos) match {
+      case tileEntity: tileentity.Print => {
+        tileEntity.data.loadData(stack)
+        tileEntity.updateShape()
+        tileEntity.updateRedstone()
+        tileEntity.getLevel.getLightEngine.checkBlock(tileEntity.getBlockPos)
+      }
+      case _ =>
+    }
+  }
+
+  override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = {
+    val newCtx = ctx.withDynamicDrop(LootFunctions.DYN_ITEM_DATA, (c, f) => {
+      c.getParamOrNull(LootParameters.BLOCK_ENTITY) match {
+        case tileEntity: tileentity.Print => f.accept(tileEntity.data.createItemStack())
+        case _ =>
+      }
+    })
+    super.getDrops(state, newCtx)
   }
 }

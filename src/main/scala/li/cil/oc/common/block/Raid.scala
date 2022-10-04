@@ -7,6 +7,7 @@ import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
@@ -17,6 +18,8 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.state.StateContainer
+import net.minecraft.loot.LootContext
+import net.minecraft.loot.LootParameters
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.ITextComponent
@@ -27,8 +30,7 @@ import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.reflect.ClassTag
 
-class Raid(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Raid])
-  extends SimpleBlock(props) with IForgeBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+class Raid(props: Properties) extends SimpleBlock(props) with IForgeBlock with traits.GUI {
 
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)
@@ -62,31 +64,52 @@ class Raid(props: Properties)(protected implicit val tileTag: ClassTag[tileentit
       case _ => 0
     }
 
-  override protected def doCustomInit(tileEntity: tileentity.Raid, player: LivingEntity, stack: ItemStack): Unit = {
-    super.doCustomInit(tileEntity, player, stack)
-    if (!tileEntity.world.isClientSide) {
-      val data = new RaidData(stack)
-      for (i <- 0 until math.min(data.disks.length, tileEntity.getContainerSize)) {
-        tileEntity.setItem(i, data.disks(i))
+  override def setPlacedBy(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity, stack: ItemStack): Unit = {
+    super.setPlacedBy(world, pos, state, placer, stack)
+    world.getBlockEntity(pos) match {
+      case tileEntity: tileentity.Raid if !world.isClientSide => {
+        val data = new RaidData(stack)
+        for (i <- 0 until math.min(data.disks.length, tileEntity.getContainerSize)) {
+          tileEntity.setItem(i, data.disks(i))
+        }
+        data.label.foreach(tileEntity.label.setLabel)
+        if (!data.filesystem.isEmpty) {
+          tileEntity.tryCreateRaid(data.filesystem.getCompound("node").getString("address"))
+          tileEntity.filesystem.foreach(_.loadData(data.filesystem))
+        }
       }
-      data.label.foreach(tileEntity.label.setLabel)
-      if (!data.filesystem.isEmpty) {
-        tileEntity.tryCreateRaid(data.filesystem.getCompound("node").getString("address"))
-        tileEntity.filesystem.foreach(_.loadData(data.filesystem))
-      }
+      case _ =>
     }
   }
 
-  override protected def doCustomDrops(tileEntity: tileentity.Raid, player: PlayerEntity, willHarvest: Boolean): Unit = {
-    super.doCustomDrops(tileEntity, player, willHarvest)
-    val stack = createItemStack()
-    if (tileEntity.items.exists(!_.isEmpty)) {
-      val data = new RaidData()
-      data.disks = tileEntity.items.clone()
-      tileEntity.filesystem.foreach(_.saveData(data.filesystem))
-      data.label = Option(tileEntity.label.getLabel)
-      data.saveData(stack)
+  override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = {
+    val newCtx = ctx.withDynamicDrop(LootFunctions.DYN_ITEM_DATA, (c, f) => {
+      c.getParamOrNull(LootParameters.BLOCK_ENTITY) match {
+        case tileEntity: tileentity.Raid => {
+          val stack = createItemStack()
+          if (tileEntity.items.exists(!_.isEmpty)) {
+            val data = new RaidData()
+            data.disks = tileEntity.items.clone()
+            tileEntity.filesystem.foreach(_.saveData(data.filesystem))
+            data.label = Option(tileEntity.label.getLabel)
+            data.saveData(stack)
+          }
+          f.accept(stack)
+        }
+        case _ =>
+      }
+    })
+    super.getDrops(state, newCtx)
+  }
+
+  override def playerWillDestroy(world: World, pos: BlockPos, state: BlockState, player: PlayerEntity) {
+    if (!world.isClientSide && player.isCreative) {
+      world.getBlockEntity(pos) match {
+        case tileEntity: tileentity.Raid if tileEntity.items.exists(!_.isEmpty) =>
+          Block.dropResources(state, world, pos, tileEntity, player, player.getMainHandItem)
+        case _ =>
+      }
     }
-    Block.popResource(tileEntity.world, tileEntity.getBlockPos, stack)
+    super.playerWillDestroy(world, pos, state, player)
   }
 }

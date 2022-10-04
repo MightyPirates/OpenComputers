@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util
+import java.util.function.Consumer
 
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
@@ -288,4 +289,13 @@ class Microcontroller(selfType: TileEntityType[_ <: Microcontroller]) extends Ti
       EmptyStack
     }
   }
+
+  // Uses the loot system, so still nope.
+  override def forAllLoot(dst: Consumer[ItemStack]) = Unit
+
+  // Nope.
+  override def dropSlot(slot: Int, count: Int = getMaxStackSize, direction: Option[Direction]) = false
+
+  // Nope.
+  override def dropAllSlots() = Unit
 }

@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import java.util.Optional
+import java.util.function.Consumer
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.util.ExtendedWorld._
@@ -328,6 +329,19 @@ object InventoryUtils {
         }
       case _ => null
     }
+
+  /**
+   * Utility method mirroring dropAllSlots but instead piping slots into
+   * a provided consumer for use with LootContext.
+   */
+  def forAllSlots(inventory: IInventory, dst: Consumer[ItemStack]): Unit = {
+    for (slot <- 0 until inventory.getContainerSize) {
+      StackOption(inventory.getItem(slot)) match {
+        case SomeStack(stack) if stack.getCount > 0 => dst.accept(stack)
+        case _ => // Nothing.
+      }
+    }
+  }
 
   /**
    * Utility method for dropping contents from a single inventory slot into

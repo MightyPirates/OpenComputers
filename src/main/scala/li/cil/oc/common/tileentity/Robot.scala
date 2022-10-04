@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.UUID
+import java.util.function.Consumer
 
 import li.cil.oc._
 import li.cil.oc.api.Driver
@@ -777,6 +778,20 @@ class Robot extends TileEntity(TileEntityTypes.ROBOT) with traits.Computer with 
     new container.Robot(ContainerTypes.ROBOT, id, playerInventory, this, new container.RobotInfo(this))
 
   // ----------------------------------------------------------------------- //
+
+  override def forAllLoot(dst: Consumer[ItemStack]) {
+    Option(getItem(0)) match {
+      case Some(stack) if stack.getCount > 0 => dst.accept(stack)
+      case _ =>
+    }
+    for (slot <- containerSlots) {
+      Option(getItem(slot)) match {
+        case Some(stack) if stack.getCount > 0 => dst.accept(stack)
+        case _ =>
+      }
+    }
+    InventoryUtils.forAllSlots(mainInventory, dst)
+  }
 
   override def dropSlot(slot: Int, count: Int, direction: Option[Direction]): Boolean =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, getLevel), mainInventory, slot, count, direction)

@@ -12,6 +12,7 @@ import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.StackOption._
@@ -24,6 +25,8 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
+import net.minecraft.loot.LootContext
+import net.minecraft.loot.LootParameters
 import net.minecraft.state.StateContainer
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
@@ -37,8 +40,8 @@ import net.minecraftforge.common.extensions.IForgeBlock
 
 import scala.reflect.ClassTag
 
-class Microcontroller(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Microcontroller])
-  extends RedstoneAware(props) with IForgeBlock with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
+class Microcontroller(props: Properties)
+  extends RedstoneAware(props) with IForgeBlock with traits.PowerAcceptor with traits.StateAware {
 
   setCreativeTab(null)
   ItemBlacklist.hide(this)
@@ -110,18 +113,39 @@ class Microcontroller(props: Properties)(protected implicit val tileTag: ClassTa
     else false
   }
 
-  override protected def doCustomInit(tileEntity: tileentity.Microcontroller, player: LivingEntity, stack: ItemStack): Unit = {
-    super.doCustomInit(tileEntity, player, stack)
-    if (!tileEntity.world.isClientSide) {
-      tileEntity.info.loadData(stack)
-      tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.localBuffer)
+  override def setPlacedBy(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity, stack: ItemStack): Unit = {
+    super.setPlacedBy(world, pos, state, placer, stack)
+    world.getBlockEntity(pos) match {
+      case tileEntity: tileentity.Microcontroller if !world.isClientSide => {
+        tileEntity.info.loadData(stack)
+        tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.localBuffer)
+      }
+      case _ =>
     }
   }
 
-  override protected def doCustomDrops(tileEntity: tileentity.Microcontroller, player: PlayerEntity, willHarvest: Boolean): Unit = {
-    super.doCustomDrops(tileEntity, player, willHarvest)
-    tileEntity.saveComponents()
-    tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
-    Block.popResource(tileEntity.world, tileEntity.getBlockPos, tileEntity.info.createItemStack())
+  override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = {
+    val newCtx = ctx.withDynamicDrop(LootFunctions.DYN_ITEM_DATA, (c, f) => {
+      c.getParamOrNull(LootParameters.BLOCK_ENTITY) match {
+        case tileEntity: tileentity.Microcontroller => {
+          tileEntity.saveComponents()
+          tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
+          f.accept(tileEntity.info.createItemStack())
+        }
+        case _ =>
+      }
+    })
+    super.getDrops(state, newCtx)
+  }
+
+  override def playerWillDestroy(world: World, pos: BlockPos, state: BlockState, player: PlayerEntity) {
+    if (!world.isClientSide && player.isCreative) {
+      world.getBlockEntity(pos) match {
+        case tileEntity: tileentity.Microcontroller =>
+          Block.dropResources(state, world, pos, tileEntity, player, player.getMainHandItem)
+        case _ =>
+      }
+    }
+    super.playerWillDestroy(world, pos, state, player)
   }
 }

@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.UUID
+import java.util.function.Consumer
 
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -278,6 +279,8 @@ class RobotProxy(selfType: TileEntityType[_ <: RobotProxy], val robot: Robot) ex
   override def hasCustomName: Boolean = robot.hasCustomName
 
   override def stillValid(player: PlayerEntity): Boolean = robot.stillValid(player)
+
+  override def forAllLoot(dst: Consumer[ItemStack]): Unit = robot.forAllLoot(dst)
 
   override def dropSlot(slot: Int, count: Int, direction: Option[Direction]): Boolean = robot.dropSlot(slot, count, direction)
 

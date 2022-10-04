@@ -30,7 +30,7 @@ import net.minecraftforge.common.extensions.IForgeBlock
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock(props) with IForgeBlock with traits.CustomDrops[tileentity.Cable] {
+class Cable(props: Properties) extends SimpleBlock(props) with IForgeBlock {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
@@ -82,16 +82,14 @@ class Cable(props: Properties)(protected implicit val tileTag: ClassTag[tileenti
 
   // ----------------------------------------------------------------------- //
 
-  override protected def doCustomInit(tileEntity: tileentity.Cable, player: LivingEntity, stack: ItemStack): Unit = {
-    super.doCustomInit(tileEntity, player, stack)
-    tileEntity.fromItemStack(stack)
-    tileEntity.getBlockState.updateNeighbourShapes(tileEntity.getLevel, tileEntity.getBlockPos, 2)
-  }
-
-  override protected def doCustomDrops(tileEntity: tileentity.Cable, player: PlayerEntity, willHarvest: Boolean): Unit = {
-    super.doCustomDrops(tileEntity, player, willHarvest)
-    if (!player.isCreative) {
-      Block.popResource(tileEntity.world, tileEntity.getBlockPos, tileEntity.createItemStack())
+  override def setPlacedBy(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity, stack: ItemStack): Unit = {
+    super.setPlacedBy(world, pos, state, placer, stack)
+    world.getBlockEntity(pos) match {
+      case tileEntity: tileentity.Cable => {
+        tileEntity.fromItemStack(stack)
+        state.updateNeighbourShapes(world, pos, 2)
+      }
+      case _ =>
     }
   }
 }

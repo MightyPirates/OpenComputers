@@ -1,19 +1,19 @@
 package li.cil.oc.common.block
 
-import java.util.Collections
 import java.util.List
 
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.AbstractBlock.Properties
-import net.minecraft.block.material.Material
-import net.minecraft.state.EnumProperty
+import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
-import net.minecraft.loot.LootContext
-import net.minecraft.util.NonNullList
+import net.minecraft.state.EnumProperty
 import net.minecraft.state.StateContainer
+import net.minecraft.util.NonNullList
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockReader
 
 object ChameliumBlock {
   final val Color = EnumProperty.create("color", classOf[DyeColor])
@@ -25,12 +25,14 @@ class ChameliumBlock(props: Properties) extends SimpleBlock(props) {
   }
   registerDefaultState(stateDefinition.any.setValue(ChameliumBlock.Color, DyeColor.BLACK))
 
-  @Deprecated
-  override def getDrops(state: BlockState, ctx: LootContext.Builder): List[ItemStack] = {
-    val stack = new ItemStack(this, 1)
+  override def getCloneItemStack(world: IBlockReader, pos: BlockPos, state: BlockState): ItemStack = {
+    val stack = new ItemStack(this)
     stack.setDamageValue(state.getValue(ChameliumBlock.Color).getId)
-    Collections.singletonList(stack)
+    stack
   }
+
+  override def getStateForPlacement(ctx: BlockItemUseContext): BlockState =
+    defaultBlockState.setValue(ChameliumBlock.Color, DyeColor.byId(ctx.getItemInHand.getDamageValue))
 
   override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {
     val stack = new ItemStack(this, 1)

@@ -7,6 +7,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Colored
 import li.cil.oc.common.tileentity.traits.Inventory
 import li.cil.oc.common.tileentity.traits.Rotatable
+import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.Tooltip
@@ -23,6 +24,8 @@ import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Rarity
+import net.minecraft.loot.LootContext
+import net.minecraft.loot.LootParameters
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
@@ -136,13 +139,25 @@ abstract class SimpleBlock(props: Properties) extends ContainerBlock(props) {
 
   def getValidRotations(world: World, pos: BlockPos): Array[Direction] = validRotations_
 
-  @Deprecated
-  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
-    if (!world.isClientSide && !newState.is(state.getBlock)) world.getBlockEntity(pos) match {
+  override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = {
+    val newCtx = ctx.getOptionalParameter(LootParameters.BLOCK_ENTITY) match {
+      case _: Inventory => ctx.withDynamicDrop(LootFunctions.DYN_VOLATILE_CONTENTS, (c, f) => {
+          c.getParamOrNull(LootParameters.BLOCK_ENTITY) match {
+            case inventory: Inventory => inventory.forAllLoot(f)
+            case _ =>
+          }
+        })
+      case _ => ctx
+    }
+    super.getDrops(state, newCtx)
+  }
+
+  override def playerWillDestroy(world: World, pos: BlockPos, state: BlockState, player: PlayerEntity) {
+    if (!world.isClientSide && player.isCreative) world.getBlockEntity(pos) match {
       case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
-    super.onRemove(state, world, pos, newState, moved)
+    super.playerWillDestroy(world, pos, state, player)
   }
 
   // ----------------------------------------------------------------------- //

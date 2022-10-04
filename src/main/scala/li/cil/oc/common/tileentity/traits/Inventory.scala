@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util.function.Consumer
+
 import li.cil.oc.common.inventory
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
@@ -34,6 +36,8 @@ trait Inventory extends TileEntity with inventory.Inventory {
     player.distanceToSqr(x + 0.5, y + 0.5, z + 0.5) <= 64
 
   // ----------------------------------------------------------------------- //
+
+  def forAllLoot(dst: Consumer[ItemStack]): Unit = InventoryUtils.forAllSlots(this, dst)
 
   def dropSlot(slot: Int, count: Int = getMaxStackSize, direction: Option[Direction] = None) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, getLevel), this, slot, count, direction)

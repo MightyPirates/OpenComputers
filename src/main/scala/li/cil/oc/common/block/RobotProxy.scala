@@ -13,6 +13,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.agent
+import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
@@ -149,8 +150,6 @@ class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.Sta
   // ----------------------------------------------------------------------- //
 
   override def getDrops(state: BlockState, ctx: LootContext.Builder): util.List[ItemStack] = {
-    val list = new java.util.ArrayList[ItemStack]()
-
     // Superspecial hack... usually this will not work, because Minecraft calls
     // this method *after* the block has already been destroyed. Meaning we
     // won't have access to the tile entity.
@@ -162,24 +161,26 @@ class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.Sta
     // mod calls this before the block is broken *and* calls removedByPlayer
     // this will lead to dupes, but in some initial testing this wasn't the
     // case anywhere (TE autonomous activator, CC turtles).
-    ctx.getParameter(LootParameters.BLOCK_ENTITY) match {
-      case proxy: tileentity.RobotProxy =>
-        val robot = proxy.robot
-        if (robot.node != null) {
-          // Update: even more special hack! As discussed here http://git.io/IcNAyg
-          // some mods call this even when they're not about to actually break the
-          // block... soooo we need a whitelist to know when to generate a *proper*
-          // drop (i.e. with file systems closed / open handles not saved, e.g.).
-          if (gettingDropsForActualDrop) {
-            robot.node.remove()
-            robot.saveComponents()
+    val newCtx = ctx.withDynamicDrop(LootFunctions.DYN_ITEM_DATA, (c, f) => {
+      c.getParamOrNull(LootParameters.BLOCK_ENTITY) match {
+        case proxy: tileentity.RobotProxy =>
+          val robot = proxy.robot
+          if (robot.node != null) {
+            // Update: even more special hack! As discussed here http://git.io/IcNAyg
+            // some mods call this even when they're not about to actually break the
+            // block... soooo we need a whitelist to know when to generate a *proper*
+            // drop (i.e. with file systems closed / open handles not saved, e.g.).
+            if (gettingDropsForActualDrop) {
+              robot.node.remove()
+              robot.saveComponents()
+            }
+            f.accept(robot.info.createItemStack())
           }
-          list.add(robot.info.createItemStack())
-        }
-      case _ =>
-    }
+        case _ =>
+      }
+    })
 
-    list
+    super.getDrops(state, newCtx)
   }
 
   private val getDropForRealDropCallers = Set(
@@ -251,7 +252,7 @@ class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.Sta
           if (robot.player == player) return false
           robot.node.remove()
           robot.saveComponents()
-          InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
+          if (player.isCreative) InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
         }
         robot.moveFrom.foreach(fromPos => if (world.getBlockState(fromPos).getBlock == api.Items.get(Constants.BlockName.RobotAfterimage).block) {
           world.setBlock(fromPos, net.minecraft.block.Blocks.AIR.defaultBlockState, 1)
@@ -259,13 +260,5 @@ class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.Sta
       case _ =>
     }
     super.removedByPlayer(state, world, pos, player, willHarvest, fluid)
-  }
-
-  override def onRemove(state: BlockState, world: World, pos: BlockPos, newState: BlockState, moved: Boolean): Unit = {
-    if (moving.get.isEmpty)
-      super.onRemove(state, world, pos, newState, moved)
-    else if (!state.is(newState.getBlock))
-      // Can't use super.onRemove as that would drop inventory while moving.
-      world.removeBlockEntity(pos)
   }
 }
