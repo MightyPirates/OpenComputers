@@ -68,11 +68,6 @@ class Microcontroller(props: Properties)
     }
   }
 
-  override def rarity(stack: ItemStack): item.Rarity = {
-    val data = new MicrocontrollerData(stack)
-    Rarity.byTier(data.tier)
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def energyThroughput: Double = Settings.get.caseRate(Tier.One)

@@ -5,28 +5,38 @@ import java.util
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.block
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
+import li.cil.oc.util.Rarity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
+import net.minecraft.item // Rarity
 import net.minecraft.item.BlockItem
 import net.minecraft.item.BlockItemUseContext
 import net.minecraft.item.DyeColor
 import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
-import net.minecraft.item.Rarity
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 
 class Item(value: Block, props: Properties) extends BlockItem(value, props) {
-  override def getRarity(stack: ItemStack): Rarity = getBlock match {
-    case simple: SimpleBlock => simple.rarity(stack)
-    case _ => Rarity.COMMON
+  override def getRarity(stack: ItemStack): item.Rarity = getBlock match {
+    case _: block.Microcontroller => {
+      val data = new MicrocontrollerData(stack)
+      Rarity.byTier(data.tier)
+    }
+    case _: block.RobotProxy => {
+      val data = new RobotData(stack)
+      Rarity.byTier(data.tier)
+    }
+    case _ => super.getRarity(stack)
   }
 
   override def getName(stack: ItemStack): ITextComponent = {

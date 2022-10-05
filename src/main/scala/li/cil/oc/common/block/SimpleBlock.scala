@@ -23,7 +23,6 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
-import net.minecraft.item.Rarity
 import net.minecraft.loot.LootContext
 import net.minecraft.loot.LootParameters
 import net.minecraft.tileentity.TileEntity
@@ -68,8 +67,6 @@ abstract class SimpleBlock(props: Properties) extends ContainerBlock(props) {
   // ----------------------------------------------------------------------- //
   // BlockItem
   // ----------------------------------------------------------------------- //
-
-  def rarity(stack: ItemStack) = Rarity.COMMON
 
   @OnlyIn(Dist.CLIENT)
   override def appendHoverText(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {

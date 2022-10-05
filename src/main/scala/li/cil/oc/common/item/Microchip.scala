@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.util.Rarity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
@@ -11,7 +10,4 @@ class Microchip(props: Properties, val tier: Int) extends Item(props) with IForg
   override def getDescriptionId = super.getDescriptionId + tier
 
   override protected def tooltipName = Option(unlocalizedName)
-
-  @Deprecated
-  override def getRarity(stack: ItemStack) = Rarity.byTier(tier)
 }

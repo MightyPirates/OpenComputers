@@ -4,7 +4,6 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.DatabaseInventory
-import li.cil.oc.util.Rarity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.Item
@@ -23,9 +22,6 @@ class UpgradeDatabase(props: Properties, val tier: Int) extends Item(props) with
   override protected def tooltipName = Option(unlocalizedName)
 
   override protected def tooltipData = Seq(Settings.get.databaseEntriesPerTier(tier))
-
-  @Deprecated
-  override def getRarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (!player.isCrouching) {

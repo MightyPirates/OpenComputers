@@ -25,9 +25,6 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.extensions.IForgeItem
 
 class Nanomachines(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
-  @Deprecated
-  override def getRarity(stack: ItemStack): Rarity = Rarity.UNCOMMON
-
   @OnlyIn(Dist.CLIENT)
   override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
     super.appendHoverText(stack, world, tooltip, flag)

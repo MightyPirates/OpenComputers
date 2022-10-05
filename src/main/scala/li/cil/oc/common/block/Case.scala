@@ -6,7 +6,6 @@ import li.cil.oc.Settings
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
@@ -32,8 +31,6 @@ class Case(props: Properties, val tier: Int) extends RedstoneAware(props) with t
     builder.add(PropertyRotatable.Facing, property.PropertyRunning.Running)
 
   // ----------------------------------------------------------------------- //
-
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     for (curr <- Tooltip.get(getClass.getSimpleName.toLowerCase, slots)) {

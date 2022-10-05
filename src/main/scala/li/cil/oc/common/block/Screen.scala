@@ -11,7 +11,6 @@ import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.PackedColor
-import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
@@ -40,8 +39,6 @@ class Screen(props: Properties, val tier: Int) extends RedstoneAware(props) {
     builder.add(PropertyRotatable.Pitch, PropertyRotatable.Yaw)
 
   // ----------------------------------------------------------------------- //
-
-  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     val (w, h) = Settings.screenResolutionsByTier(tier)

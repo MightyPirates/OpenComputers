@@ -49,7 +49,6 @@ class Drone(props: Properties) extends Item(props) with IForgeItem with traits.S
     }
   }
 
-  @Deprecated
   override def getRarity(stack: ItemStack) = {
     val data = new DroneData(stack)
     Rarity.byTier(data.tier)

@@ -55,13 +55,6 @@ class RobotAfterimage(props: Properties) extends SimpleBlock(props) {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity(stack: ItemStack) = {
-    val data = new RobotData(stack)
-    Rarity.byTier(data.tier)
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def onPlace(state: BlockState, world: World, pos: BlockPos, prevState: BlockState, moved: Boolean): Unit = {
     if (!world.isClientSide) {
       world.asInstanceOf[ServerWorld].getBlockTicks.scheduleTick(pos, this, Math.max((Settings.get.moveDelay * 20).toInt, 1) - 1)

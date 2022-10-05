@@ -83,11 +83,6 @@ class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.Sta
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity(stack: ItemStack): item.Rarity = {
-    val data = new RobotData(stack)
-    Rarity.byTier(data.tier)
-  }
-
   override protected def tooltipHead(stack: ItemStack, world: IBlockReader, tooltip: util.List[ITextComponent], advanced: ITooltipFlag) {
     super.tooltipHead(stack, world, tooltip, advanced)
     addLines(stack, tooltip)

@@ -98,7 +98,6 @@ class Tablet(props: Properties) extends Item(props) with IForgeItem with traits.
     }
   }
 
-  @Deprecated
   override def getRarity(stack: ItemStack): item.Rarity = {
     val data = new TabletData(stack)
     Rarity.byTier(data.tier)

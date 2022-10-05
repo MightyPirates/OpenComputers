@@ -6,11 +6,9 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
-import net.minecraft.item // Rarity
 import net.minecraft.item.Item
 import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
@@ -30,9 +28,6 @@ class Server(props: Properties, val tier: Int) extends Item(props) with IForgeIt
   override def getDescriptionId = super.getDescriptionId + tier
 
   override protected def tooltipName = Option(unlocalizedName)
-
-  @Deprecated
-  override def getRarity(stack: ItemStack): item.Rarity = Rarity.byTier(tier)
 
   private object HelperInventory extends ServerInventory {
     var container = ItemStack.EMPTY
