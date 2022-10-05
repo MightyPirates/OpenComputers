@@ -86,38 +86,42 @@ class Proxy {
 
   @SubscribeEvent
   def init(e: FMLCommonSetupEvent) {
-    OpenComputers.channel = NetworkRegistry.newSimpleChannel(new ResourceLocation(OpenComputers.ID, "net_main"), new Supplier[String] {
-      override def get = ""
-    }, new Predicate[String] {
-      override def test(ver: String) = "".equals(ver)
-    }, new Predicate[String] {
-      override def test(ver: String) = "".equals(ver)
+    e.enqueueWork(() => {
+      OpenComputers.channel = NetworkRegistry.newSimpleChannel(new ResourceLocation(OpenComputers.ID, "net_main"), new Supplier[String] {
+        override def get = ""
+      }, new Predicate[String] {
+        override def test(ver: String) = "".equals(ver)
+      }, new Predicate[String] {
+        override def test(ver: String) = "".equals(ver)
+      })
+      OpenComputers.channel.registerMessage(0, classOf[Array[Byte]], new BiConsumer[Array[Byte], PacketBuffer] {
+        override def accept(msg: Array[Byte], buff: PacketBuffer) = buff.writeByteArray(msg)
+      }, new Function[PacketBuffer, Array[Byte]] {
+        override def apply(buff: PacketBuffer) = buff.readByteArray()
+      }, new BiConsumer[Array[Byte], Supplier[NetworkEvent.Context]] {
+        override def accept(msg: Array[Byte], ctx: Supplier[NetworkEvent.Context]) = {
+          val context = ctx.get
+          context.enqueueWork(new Runnable {
+            override def run = PacketHandler.handlePacket(context.getDirection, msg, context.getSender)
+          })
+          context.setPacketHandled(true)
+        }
+      })
+      PacketHandler.serverHandler = server.PacketHandler
+
+      Loot.init()
+      Achievement.init()
+
+      OpenComputers.log.debug("Initializing mod integration.")
+      Mods.init()
+
+      OpenComputers.log.info("Initializing capabilities.")
+      Capabilities.init()
+
+      api.API.isPowerEnabled = !Settings.get.ignorePower
+
+      Unit // Avoid ambiguity with e.enqueueWork(Supplier[_])
     })
-    OpenComputers.channel.registerMessage(0, classOf[Array[Byte]], new BiConsumer[Array[Byte], PacketBuffer] {
-      override def accept(msg: Array[Byte], buff: PacketBuffer) = buff.writeByteArray(msg)
-    }, new Function[PacketBuffer, Array[Byte]] {
-      override def apply(buff: PacketBuffer) = buff.readByteArray()
-    }, new BiConsumer[Array[Byte], Supplier[NetworkEvent.Context]] {
-      override def accept(msg: Array[Byte], ctx: Supplier[NetworkEvent.Context]) = {
-        val context = ctx.get
-        context.enqueueWork(new Runnable {
-          override def run = PacketHandler.handlePacket(context.getDirection, msg, context.getSender)
-        })
-        context.setPacketHandled(true)
-      }
-    })
-    PacketHandler.serverHandler = server.PacketHandler
-
-    Loot.init()
-    Achievement.init()
-
-    OpenComputers.log.debug("Initializing mod integration.")
-    Mods.init()
-
-    OpenComputers.log.info("Initializing capabilities.")
-    Capabilities.init()
-
-    api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
   @SubscribeEvent

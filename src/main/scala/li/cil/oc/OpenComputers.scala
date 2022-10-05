@@ -78,5 +78,12 @@ class OpenComputers {
   }
 
   @SubscribeEvent
-  def imc(e: InterModProcessEvent): Unit = InterModComms.getMessages(OpenComputers.ID).sequential.iterator.foreach(IMC.handleMessage)
+  def imc(e: InterModProcessEvent): Unit = {
+    // Technically requires synchronization because IMC.sendTo doesn't check the loading stage.
+    e.enqueueWork(() => {
+      InterModComms.getMessages(OpenComputers.ID).sequential.iterator.foreach(IMC.handleMessage)
+
+      Unit // Avoid ambiguity with e.enqueueWork(Supplier[_])
+    })
+  }
 }
