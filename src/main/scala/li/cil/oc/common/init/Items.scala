@@ -82,7 +82,7 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerBlock(instance: Block, id: String): Block = {
+  def registerBlock(instance: Block, id: String, tab: ItemGroup = CreativeTab): Block = {
     if (!descriptors.contains(id)) {
       instance match {
         case simple: SimpleBlock =>
@@ -90,8 +90,7 @@ object Items extends ItemAPI {
           simple.setRegistryName(OpenComputers.ID, id)
           GameData.register_impl[Block](simple)
 
-          val props = defaultProps.tab(simple.getCreativeTab)
-          val item : Item = new common.block.Item(simple, props)
+          val item : Item = new common.block.Item(simple, new Properties().tab(tab))
           item.setRegistryName(OpenComputers.ID, id)
           GameData.register_impl(item)
           OpenComputers.proxy.registerModel(item, id)

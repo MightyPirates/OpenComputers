@@ -23,15 +23,7 @@ import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 
-object Item {
-  def setCreativeTab(block: Block, props: Properties): Properties = block match {
-    case simple: SimpleBlock =>
-      if (simple.getCreativeTab != null) props.tab(simple.getCreativeTab) else props
-    case _ => props
-  }
-}
-
-class Item(value: Block, props: Properties) extends BlockItem(value, Item.setCreativeTab(value, props)) {
+class Item(value: Block, props: Properties) extends BlockItem(value, props) {
   override def getRarity(stack: ItemStack): Rarity = getBlock match {
     case simple: SimpleBlock => simple.rarity(stack)
     case _ => Rarity.COMMON

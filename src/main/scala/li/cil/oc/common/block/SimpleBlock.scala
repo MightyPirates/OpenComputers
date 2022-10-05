@@ -49,15 +49,6 @@ import scala.collection.convert.ImplicitConversionsToScala._
 
 abstract class SimpleBlock(props: Properties) extends ContainerBlock(props) {
   @Deprecated
-  private var creativeTab: ItemGroup = CreativeTab
-
-  @Deprecated
-  def getCreativeTab = creativeTab
-
-  @Deprecated
-  protected def setCreativeTab(tab: ItemGroup) = creativeTab = tab
-
-  @Deprecated
   private var unlocalizedName = super.getDescriptionId()
 
   @Deprecated

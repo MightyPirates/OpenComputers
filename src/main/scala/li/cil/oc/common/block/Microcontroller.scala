@@ -43,7 +43,6 @@ import scala.reflect.ClassTag
 class Microcontroller(props: Properties)
   extends RedstoneAware(props) with IForgeBlock with traits.PowerAcceptor with traits.StateAware {
 
-  setCreativeTab(null)
   ItemBlacklist.hide(this)
 
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =

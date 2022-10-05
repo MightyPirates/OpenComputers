@@ -29,7 +29,6 @@ import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 
 class RobotAfterimage(props: Properties) extends SimpleBlock(props) {
-  setCreativeTab(null)
   ItemBlacklist.hide(this)
 
   // ----------------------------------------------------------------------- //

@@ -1,6 +1,7 @@
 package li.cil.oc.common.init
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block._
@@ -30,7 +31,8 @@ object Blocks {
     Items.registerBlock(new Keyboard(Properties.of(Material.STONE).strength(2, 5).noOcclusion), Constants.BlockName.Keyboard)
     Items.registerBlock(new MotionSensor(defaultProps), Constants.BlockName.MotionSensor)
     Items.registerBlock(new PowerConverter(defaultProps), Constants.BlockName.PowerConverter)
-    Items.registerBlock(new PowerDistributor(defaultProps), Constants.BlockName.PowerDistributor)
+    Items.registerBlock(new PowerDistributor(defaultProps), Constants.BlockName.PowerDistributor,
+      tab = if (Settings.get.ignorePower) CreativeTab else null)
     Items.registerBlock(new Printer(defaultProps), Constants.BlockName.Printer)
     Items.registerBlock(new Raid(defaultProps), Constants.BlockName.Raid)
     Items.registerBlock(new Redstone(defaultProps), Constants.BlockName.Redstone)
@@ -42,10 +44,10 @@ object Blocks {
     Items.registerBlock(new Waypoint(defaultProps), Constants.BlockName.Waypoint)
 
     Items.registerBlock(new Case(defaultProps, Tier.Four), Constants.BlockName.CaseCreative)
-    Items.registerBlock(new Microcontroller(defaultProps), Constants.BlockName.Microcontroller)
-    Items.registerBlock(new Print(Properties.of(Material.METAL).strength(1, 5).noOcclusion.dynamicShape), Constants.BlockName.Print)
+    Items.registerBlock(new Microcontroller(defaultProps), Constants.BlockName.Microcontroller, tab = null)
+    Items.registerBlock(new Print(Properties.of(Material.METAL).strength(1, 5).noOcclusion.dynamicShape), Constants.BlockName.Print, tab = null)
     Items.registerBlockOnly(new RobotAfterimage(Properties.of(Material.AIR).instabreak.noOcclusion.dynamicShape.air), Constants.BlockName.RobotAfterimage)
-    Items.registerBlock(new RobotProxy(defaultProps.noOcclusion.dynamicShape), Constants.BlockName.Robot)
+    Items.registerBlock(new RobotProxy(defaultProps.noOcclusion.dynamicShape), Constants.BlockName.Robot, tab = null)
 
     // v1.5.10
     Items.registerBlock(new FakeEndstone(Properties.of(Material.STONE).strength(3, 15)), Constants.BlockName.Endstone)

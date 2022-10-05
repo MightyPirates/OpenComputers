@@ -16,7 +16,6 @@ import net.minecraft.world.World
 
 class PowerConverter(props: Properties) extends SimpleBlock(props) with traits.PowerAcceptor {
   if (Settings.get.ignorePower) {
-    setCreativeTab(null)
     ItemBlacklist.hide(this)
   }
 

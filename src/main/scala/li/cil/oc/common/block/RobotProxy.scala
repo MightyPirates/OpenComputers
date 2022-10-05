@@ -47,7 +47,6 @@ import net.minecraft.world.World
 import scala.collection.convert.ImplicitConversionsToScala._
 
 class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.StateAware {
-  setCreativeTab(null)
   ItemBlacklist.hide(this)
 
   val shape = VoxelShapes.box(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)

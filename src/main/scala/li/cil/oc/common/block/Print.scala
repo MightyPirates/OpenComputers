@@ -41,7 +41,6 @@ import scala.collection.convert.ImplicitConversionsToJava._
 import scala.reflect.ClassTag
 
 class Print(props: Properties) extends RedstoneAware(props) with IForgeBlock {
-  setCreativeTab(null)
   ItemBlacklist.hide(this)
 
   @Deprecated
