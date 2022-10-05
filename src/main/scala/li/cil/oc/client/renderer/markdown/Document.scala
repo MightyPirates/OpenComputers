@@ -74,50 +74,21 @@ object Document {
 
     RenderState.pushAttrib()
 
-    // On some systems/drivers/graphics cards the next calls won't update the
-    // depth buffer correctly if alpha test is enabled. Guess how we found out?
-    // By noticing that on those systems it only worked while chat messages
-    // were visible. Yeah. I know.
-    RenderSystem.disableAlphaTest()
-
-    // Clear depth mask, then create masks in foreground above and below scroll area.
     RenderSystem.color4f(1, 1, 1, 1)
-    RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, false)
-    RenderSystem.enableDepthTest()
-    RenderSystem.depthFunc(GL11.GL_LEQUAL)
-    RenderSystem.depthMask(true)
-    RenderSystem.colorMask(false, false, false, false)
-
-    stack.pushPose()
-    stack.translate(0, 0, 500)
-    GL11.glBegin(GL11.GL_QUADS)
-    val vec = new Vector4f(0, y, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(window.getGuiScaledWidth, y, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(window.getGuiScaledWidth, 0, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(0, 0, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(0, window.getGuiScaledHeight, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(window.getGuiScaledWidth, window.getGuiScaledHeight, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(window.getGuiScaledWidth, y + maxHeight, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    vec.set(0, y + maxHeight, 0, 1)
-    vec.transform(stack.last.pose)
-    GL11.glVertex3f(vec.x, vec.y, vec.z)
-    GL11.glEnd()
-    stack.popPose()
-    RenderSystem.colorMask(true, true, true, true)
+    // Clip using the scissor test to not interfere with RenderType-maintained depth testing.
+    GL11.glEnable(GL11.GL_SCISSOR_TEST)
+    val (x0, y0, x1, y1) = {
+      val scale = window.getGuiScale
+      val bottomLeft = new Vector4f(x, y + maxHeight, 0, 1)
+      bottomLeft.transform(stack.last.pose)
+      val topRight = new Vector4f(x + maxWidth, y, 0, 1)
+      topRight.transform(stack.last.pose)
+      ((bottomLeft.x * scale).floor.asInstanceOf[Int],
+        (window.getHeight - bottomLeft.y * scale).floor.asInstanceOf[Int],
+        (topRight.x * scale).ceil.asInstanceOf[Int],
+        (window.getHeight - topRight.y * scale).ceil.asInstanceOf[Int])
+    }
+    GL11.glScissor(x0, y0, x1 - x0, y1 - y0);
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
@@ -139,10 +110,7 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
-    // Remove the depth mask so tooltips render properly.
-    RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, false)
-    RenderState.popAttrib()
-    RenderSystem.bindTexture(0)
+    GL11.glDisable(GL11.GL_SCISSOR_TEST)
 
     hovered
   }
