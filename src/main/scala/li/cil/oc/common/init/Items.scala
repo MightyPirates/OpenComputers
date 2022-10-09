@@ -82,7 +82,7 @@ object Items extends ItemAPI {
 
   def registerBlock(instance: Block, id: String, itemProps: Properties): Block = {
     if (!descriptors.contains(id)) {
-      instance match {
+      val itemInst = instance match {
         case simple: SimpleBlock =>
           simple.setUnlocalizedName("oc." + id)
           simple.setRegistryName(OpenComputers.ID, id)
@@ -92,14 +92,15 @@ object Items extends ItemAPI {
           item.setRegistryName(OpenComputers.ID, id)
           GameData.register_impl(item)
           OpenComputers.proxy.registerModel(item, id)
-        case _ =>
+          item
+        case _ => null.asInstanceOf[Item]
       }
       descriptors += id -> new ItemInfo {
         override def name: String = id
 
         override def block = instance
 
-        override def item = item
+        override def item = itemInst
 
         override def createItemStack(size: Int): ItemStack = instance match {
           case simple: SimpleBlock => simple.createItemStack(size)

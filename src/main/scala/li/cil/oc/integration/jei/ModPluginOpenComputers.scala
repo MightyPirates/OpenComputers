@@ -37,7 +37,6 @@ class ModPluginOpenComputers extends IModPlugin {
   override def registerCategories(registry: IRecipeCategoryRegistration): Unit = {
     registry.addRecipeCategories(ManualUsageHandler.ManualUsageRecipeCategory)
     registry.addRecipeCategories(CallbackDocHandler.CallbackDocRecipeCategory)
-
   }
 
   override def registerRecipes(registration: IRecipeRegistration) {
@@ -87,13 +86,11 @@ class ModPluginOpenComputers extends IModPlugin {
     subtypeRegistry.registerSubtypeInterpreter(Items.get(Constants.ItemName.Floppy).item(), new IIngredientSubtypeInterpreter[ItemStack] {
       override def apply(stack: ItemStack, ctx: UidContext): String = {
         if (!stack.hasTag) return IIngredientSubtypeInterpreter.NONE
-        val compound: CompoundNBT = stack.getTag
-        val data = new CompoundNBT
         // Separate loot disks from normal floppies
-        if (compound.contains(Settings.namespace + "lootFactory")) {
-          data.put(Settings.namespace + "lootFactory", compound.get(Settings.namespace + "lootFactory"))
+        Option(stack.getTag.get(Settings.namespace + "lootFactory")) match {
+          case Some(lf) => lf.toString
+          case None => IIngredientSubtypeInterpreter.NONE
         }
-        if (data.isEmpty) IIngredientSubtypeInterpreter.NONE else data.toString
       }
     })
   }
