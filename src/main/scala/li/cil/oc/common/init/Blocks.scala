@@ -30,9 +30,9 @@ object Blocks {
     Items.registerBlock(new Hologram(defaultProps, Tier.Two), Constants.BlockName.HologramTier2, defaultItemProps.rarity(Rarity.UNCOMMON))
     Items.registerBlock(new Keyboard(Properties.of(Material.STONE).strength(2, 5).noOcclusion), Constants.BlockName.Keyboard, defaultItemProps)
     Items.registerBlock(new MotionSensor(defaultProps), Constants.BlockName.MotionSensor, defaultItemProps)
-    Items.registerBlock(new PowerConverter(defaultProps), Constants.BlockName.PowerConverter, defaultItemProps)
-    Items.registerBlock(new PowerDistributor(defaultProps), Constants.BlockName.PowerDistributor,
-      new Item.Properties().tab(if (Settings.get.ignorePower) CreativeTab else null))
+    Items.registerBlock(new PowerConverter(defaultProps), Constants.BlockName.PowerConverter,
+      new Item.Properties().tab(if (!Settings.get.ignorePower) CreativeTab else null))
+    Items.registerBlock(new PowerDistributor(defaultProps), Constants.BlockName.PowerDistributor, defaultItemProps)
     Items.registerBlock(new Printer(defaultProps), Constants.BlockName.Printer, defaultItemProps)
     Items.registerBlock(new Raid(defaultProps), Constants.BlockName.Raid, defaultItemProps)
     Items.registerBlock(new Redstone(defaultProps), Constants.BlockName.Redstone, defaultItemProps)
