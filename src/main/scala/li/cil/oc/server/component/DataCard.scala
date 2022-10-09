@@ -24,14 +24,13 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class DataCard extends AbstractManagedEnvironment with DeviceInfo {
+abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("data", Visibility.Neighbors).
     withConnector().
@@ -325,18 +324,15 @@ object DataCard {
 
     // ----------------------------------------------------------------------- //
 
-    private final val TypeTag = "Type"
-    private final val DataTag = "Data"
-
     override def load(nbt: NBTTagCompound): Unit = {
-      val keyType = nbt.getString(TypeTag)
-      val data = nbt.getByteArray(DataTag)
+      val keyType = nbt.getString("Type")
+      val data = nbt.getByteArray("Data")
       value = ECUserdata.deserializeKey(keyType, data)
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString(TypeTag, keyType)
-      nbt.setByteArray(DataTag, value.getEncoded)
+      nbt.setString("Type", keyType)
+      nbt.setByteArray("Data", value.getEncoded)
     }
   }
 

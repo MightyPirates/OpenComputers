@@ -220,8 +220,8 @@ dependencies {
     }
 
     embedded name: 'OC-LuaJ', version: '20220907.1', ext: 'jar'
-    embedded name: 'OC-JNLua', version: '20220928.0', ext: 'jar'
-    embedded name: 'OC-JNLua-Natives', version: '20220928.0', ext: 'jar'
+    embedded name: 'OC-JNLua', version: '20220928.1', ext: 'jar'
+    embedded name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
     testImplementation("org.mockito:mockito-all:1.10.19")
 

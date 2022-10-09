@@ -11,9 +11,8 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
 import java.util
-import java.util.UUID
+import java.util.{Locale, UUID}
 import java.util.concurrent._
-
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -33,6 +32,11 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.server.MinecraftServer
 import net.minecraftforge.fml.common.FMLCommonHandler
+import org.apache.http.HttpHost
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.client.methods.RequestBuilder
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.HttpClients
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -474,34 +478,50 @@ object InternetCard {
     private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String], val method: Option[String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
-        val proxy = Option(FMLCommonHandler.instance.getMinecraftServerInstance.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-        url.openConnection(proxy) match {
-          case http: HttpURLConnection => try {
-            http.setDoInput(true)
-            http.setDoOutput(post.isDefined)
-            http.setRequestMethod(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
-            headers.foreach(Function.tupled(http.setRequestProperty))
-            if (post.isDefined) {
-              http.setReadTimeout(Settings.get.httpTimeout)
+        val proxy = FMLCommonHandler.instance.getMinecraftServerInstance.getServerProxy
 
-              val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-              out.write(post.get)
-              out.close()
-            }
-
-            val input = http.getInputStream
-            HTTPRequest.this.synchronized {
-              response = Some((http.getResponseCode, http.getResponseMessage, http.getHeaderFields))
-            }
-            input
-          }
-          catch {
-            case t: Throwable =>
-              http.disconnect()
-              throw t
-          }
-          case other => throw new IOException("unexpected connection type")
+        val methodStr = if (method.isDefined) method.get.toUpperCase(Locale.ROOT) else if (post.isDefined) "POST" else "GET"
+        if (Settings.get.httpMethodsEnabled.nonEmpty && !Settings.get.httpMethodsEnabled.contains(methodStr)) {
+          throw new IOException("method not allowed: " + methodStr)
         }
+
+        val requestBuilder = RequestBuilder.create(methodStr)
+        headers.foreach(Function.tupled(requestBuilder.addHeader))
+        requestBuilder.setUri(url.toURI)
+
+        val httpRequestConfig = RequestConfig.custom()
+          .setConnectTimeout(Settings.get.httpTimeout)
+          .setConnectionRequestTimeout(Settings.get.httpTimeout)
+          .setSocketTimeout(Settings.get.httpTimeout)
+
+        val maxRedirects = Settings.get.httpRedirectsEnabled
+        if (maxRedirects > 0) {
+          httpRequestConfig.setMaxRedirects(maxRedirects)
+        } else if (maxRedirects == 0) {
+          httpRequestConfig
+            .setRedirectsEnabled(false)
+            .setRelativeRedirectsAllowed(false)
+        }
+
+        if (proxy != null && proxy != Proxy.NO_PROXY) proxy.address() match {
+          case inetProxyAddress: InetSocketAddress => httpRequestConfig.setProxy(new HttpHost(inetProxyAddress.getAddress, inetProxyAddress.getPort))
+        }
+
+        val clientBuilder = HttpClients.custom()
+        clientBuilder.setDefaultRequestConfig(httpRequestConfig.build())
+
+        if (post.isDefined) {
+          requestBuilder.setEntity(new StringEntity(post.get))
+        }
+
+        val r = clientBuilder.build().execute(requestBuilder.build())
+
+        val input = r.getEntity.getContent
+        HTTPRequest.this.synchronized {
+          import collection.JavaConverters._
+          response = Some((r.getStatusLine.getStatusCode, r.getStatusLine.getReasonPhrase, r.getAllHeaders.groupBy(h => h.getName).map(i => i._1 -> i._2.toList.asJava).asJava))
+        }
+        input
       }
       catch {
         case e: UnknownHostException =>
