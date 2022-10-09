@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "opencomputers:pistonupgrade"
+    },
+    {
+      "tag": "forge:slimeballs"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:stickypistonupgrade"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iwi",
+    "pCp",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "w": {
+      "item": "minecraft:crafting_table"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:assembler"
+  }
+}

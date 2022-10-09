@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iCi",
+    "CDC",
+    "iCi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "D": {
+      "tag": "opencomputers:chipdiamond"
+    },
+    "C": {
+      "tag": "opencomputers:capacitor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:batteryupgrade3"
+  }
+}

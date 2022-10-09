@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "drd",
+    "CU ",
+    "dPd"
+  ],
+  "key": {
+    "d": {
+      "tag": "opencomputers:chipdiamond"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "U": {
+      "tag": "opencomputers:materialcu"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:componentbus3"
+  }
+}

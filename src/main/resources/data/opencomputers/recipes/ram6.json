@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "cPc"
+  ],
+  "key": {
+    "c": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:ram6"
+  }
+}

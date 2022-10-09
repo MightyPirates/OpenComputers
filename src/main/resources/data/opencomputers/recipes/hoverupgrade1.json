@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "fCf",
+    "ili",
+    "fPf"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "f": {
+      "tag": "forge:feathers"
+    },
+    "l": {
+      "tag": "forge:leather"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hoverupgrade1"
+  }
+}

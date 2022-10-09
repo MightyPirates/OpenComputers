@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "sss",
+    "ses",
+    "sss"
+  ],
+  "key": {
+    "s": {
+      "tag": "forge:string"
+    },
+    "e": {
+      "tag": "forge:ender_pearls"
+    }
+  },
+  "result": {
+    "item": "opencomputers:interweb"
+  }
+}

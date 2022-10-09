@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "cic",
+    " P "
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "c": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:ram1"
+  }
+}

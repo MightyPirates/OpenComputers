@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ipi",
+    "sCs",
+    "iPi"
+  ],
+  "key": {
+    "s": {
+      "tag": "forge:rods/wooden"
+    },
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:pistonupgrade"
+  }
+}

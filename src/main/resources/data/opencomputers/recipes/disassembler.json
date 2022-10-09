@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "UgA",
+    "p o",
+    "ili"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "g": {
+      "tag": "forge:glass_panes"
+    },
+    "l": {
+      "item": "minecraft:lava_bucket"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "U": {
+      "tag": "opencomputers:materialcu"
+    },
+    "A": {
+      "tag": "opencomputers:analyzer"
+    }
+  },
+  "result": {
+    "item": "opencomputers:disassembler"
+  }
+}

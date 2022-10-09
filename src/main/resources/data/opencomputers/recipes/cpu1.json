@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iri",
+    "CUC",
+    "iAi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "U": {
+      "tag": "opencomputers:materialcu"
+    },
+    "A": {
+      "tag": "opencomputers:materialalu"
+    }
+  },
+  "result": {
+    "item": "opencomputers:cpu1"
+  }
+}

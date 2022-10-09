@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "forge:ingots/gold"
+    },
+    {
+      "item": "minecraft:clay"
+    },
+    {
+      "tag": "forge:dyes/green"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:rawcircuitboard",
+    "count": 8
+  }
+}

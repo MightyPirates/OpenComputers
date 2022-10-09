@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ili",
+    "lCl",
+    "ili"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "l": {
+      "item": "minecraft:lead"
+    },
+    "C": {
+      "tag": "opencomputers:materialcu"
+    }
+  },
+  "result": {
+    "item": "opencomputers:leashupgrade"
+  }
+}

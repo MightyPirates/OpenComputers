@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iCi",
+    "TIT",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "I": {
+      "tag": "opencomputers:materialinterweb"
+    }
+  },
+  "result": {
+    "item": "opencomputers:waypoint"
+  }
+}

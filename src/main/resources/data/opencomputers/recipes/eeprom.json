@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gTg",
+    "pCp",
+    "grg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "p": {
+      "item": "minecraft:paper"
+    },
+    "r": {
+      "item": "minecraft:redstone_torch"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:eeprom"
+  }
+}

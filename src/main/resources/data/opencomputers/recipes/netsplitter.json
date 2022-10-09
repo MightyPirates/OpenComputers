@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ici",
+    "cpc",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "c": {
+      "tag": "opencomputers:cable"
+    }
+  },
+  "result": {
+    "item": "opencomputers:netsplitter"
+  }
+}

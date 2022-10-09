@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gRg",
+    "CBC",
+    "oPo"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "B": {
+      "tag": "opencomputers:componentbus2"
+    },
+    "R": {
+      "tag": "opencomputers:ram4"
+    }
+  },
+  "result": {
+    "item": "opencomputers:server2"
+  }
+}

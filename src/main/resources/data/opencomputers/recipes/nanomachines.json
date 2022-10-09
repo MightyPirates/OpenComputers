@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SRS",
+    "PAM",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "tag": "opencomputers:chamelium"
+    },
+    "A": {
+      "tag": "opencomputers:materialacid"
+    },
+    "C": {
+      "tag": "opencomputers:capacitor"
+    },
+    "R": {
+      "tag": "opencomputers:wlancard2"
+    },
+    "M": {
+      "tag": "opencomputers:ram1"
+    },
+    "P": {
+      "tag": "opencomputers:cpu2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:nanomachines"
+  }
+}

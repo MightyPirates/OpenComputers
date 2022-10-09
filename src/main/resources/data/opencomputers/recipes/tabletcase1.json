@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gbg",
+    "BMC",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "b": {
+      "item": "minecraft:stone_button"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "B": {
+      "tag": "opencomputers:componentbus1"
+    },
+    "M": {
+      "tag": "opencomputers:screen2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:tabletcase1"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iHi",
+    "LDL",
+    "iCi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "L": {
+      "tag": "forge:leather"
+    },
+    "C": {
+      "tag": "opencomputers:capacitor"
+    },
+    "D": {
+      "tag": "opencomputers:dronecase1"
+    },
+    "H": {
+      "tag": "opencomputers:hoverupgrade2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hoverboots"
+  }
+}

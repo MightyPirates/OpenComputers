@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "grg",
+    "CUC",
+    "gAg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "U": {
+      "tag": "opencomputers:materialcu"
+    },
+    "A": {
+      "tag": "opencomputers:materialalu"
+    }
+  },
+  "result": {
+    "item": "opencomputers:cpu2"
+  }
+}

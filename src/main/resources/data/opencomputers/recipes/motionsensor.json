@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gdg",
+    "dCd",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "d": {
+      "item": "minecraft:daylight_detector"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "C": {
+      "tag": "opencomputers:cpu2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:motionsensor"
+  }
+}

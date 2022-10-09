@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ggg",
+    "rTr",
+    "ggg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:chip2",
+    "count": 4
+  }
+}

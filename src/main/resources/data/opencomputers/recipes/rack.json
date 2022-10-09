@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "dWd",
+    "bcb",
+    "RPD"
+  ],
+  "key": {
+    "d": {
+      "tag": "forge:gems/diamond"
+    },
+    "c": {
+      "tag": "forge:chests"
+    },
+    "b": {
+      "item": "minecraft:iron_bars"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "W": {
+      "tag": "opencomputers:wlancard2"
+    },
+    "R": {
+      "tag": "opencomputers:relay"
+    },
+    "D": {
+      "tag": "opencomputers:powerdistributor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:rack"
+  }
+}

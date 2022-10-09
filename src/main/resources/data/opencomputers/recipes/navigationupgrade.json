@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gcg",
+    "CmC",
+    "gpg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "c": {
+      "item": "minecraft:compass"
+    },
+    "m": {
+      "item": "minecraft:filled_map"
+    },
+    "p": {
+      "item": "minecraft:potion"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:navigationupgrade"
+  }
+}

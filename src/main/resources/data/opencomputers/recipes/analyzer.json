@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "r ",
+    "Tg",
+    "Pg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "r": {
+      "item": "minecraft:redstone_torch"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:analyzer"
+  }
+}

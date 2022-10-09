@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "eC",
+    " B"
+  ],
+  "key": {
+    "e": {
+      "tag": "forge:ender_pearls"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    }
+  },
+  "result": {
+    "item": "opencomputers:wlancard2"
+  }
+}

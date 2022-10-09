@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ICr",
+    " Bo"
+  ],
+  "key": {
+    "r": {
+      "item": "minecraft:redstone_torch"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "I": {
+      "tag": "opencomputers:materialinterweb"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    }
+  },
+  "result": {
+    "item": "opencomputers:internetcard"
+  }
+}

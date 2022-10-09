@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CgC",
+    "PdP",
+    "obo"
+  ],
+  "key": {
+    "d": {
+      "tag": "forge:gems/diamond"
+    },
+    "g": {
+      "tag": "forge:glass"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "b": {
+      "item": "minecraft:blaze_powder"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hologram2"
+  }
+}

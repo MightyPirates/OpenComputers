@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CAM",
+    " B "
+  ],
+  "key": {
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    },
+    "A": {
+      "tag": "opencomputers:materialalu"
+    },
+    "M": {
+      "tag": "opencomputers:ram1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:graphicscard1"
+  }
+}

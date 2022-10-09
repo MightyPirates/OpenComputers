@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rCe",
+    " B "
+  ],
+  "key": {
+    "e": {
+      "tag": "forge:ender_pearls"
+    },
+    "r": {
+      "tag": "forge:storage_blocks/redstone"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    }
+  },
+  "result": {
+    "item": "opencomputers:redstonecard2"
+  }
+}

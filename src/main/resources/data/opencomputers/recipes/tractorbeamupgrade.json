@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gpg",
+    "iBi",
+    "gCg"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "B": {
+      "tag": "opencomputers:capacitor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:tractorbeamupgrade"
+  }
+}

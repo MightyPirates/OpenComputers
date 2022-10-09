@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gCg",
+    "PBG",
+    "gCg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "B": {
+      "tag": "opencomputers:componentbus1"
+    },
+    "P": {
+      "tag": "opencomputers:cpu2"
+    },
+    "G": {
+      "tag": "opencomputers:graphicscard1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:apu1"
+  }
+}

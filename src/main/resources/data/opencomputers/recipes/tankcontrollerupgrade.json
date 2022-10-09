@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gbg",
+    "dCp",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "b": {
+      "item": "minecraft:glass_bottle"
+    },
+    "d": {
+      "item": "minecraft:dispenser"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:tankcontrollerupgrade"
+  }
+}

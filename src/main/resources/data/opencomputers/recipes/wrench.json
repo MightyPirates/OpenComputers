@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "i i",
+    " C ",
+    " i "
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:wrench"
+  }
+}

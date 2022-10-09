@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "idi",
+    "TbT",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "b": {
+      "item": "minecraft:bucket"
+    },
+    "d": {
+      "item": "minecraft:dispenser"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:inkcartridgeempty"
+  }
+}

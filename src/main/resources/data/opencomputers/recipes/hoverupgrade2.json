@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "eCe",
+    "gig",
+    "ePe"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "e": {
+      "tag": "forge:end_stones"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hoverupgrade2"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ggg",
+    "ClC",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "g": {
+      "tag": "forge:glass"
+    },
+    "l": {
+      "tag": "forge:storage_blocks/lapis"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:solargeneratorupgrade"
+  }
+}

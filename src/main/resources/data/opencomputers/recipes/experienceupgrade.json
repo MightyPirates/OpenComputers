@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "g g",
+    "CeC",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "e": {
+      "tag": "forge:gems/emerald"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:experienceupgrade"
+  }
+}
