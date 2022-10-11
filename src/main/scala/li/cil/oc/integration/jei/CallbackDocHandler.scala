@@ -116,14 +116,14 @@ object CallbackDocHandler {
     override def draw(recipeWrapper: CallbackDocRecipe, stack: MatrixStack, mouseX: Double, mouseY: Double): Unit = {
       val minecraft = Minecraft.getInstance
       for ((text, line) <- recipeWrapper.page.lines.zipWithIndex) {
-        minecraft.font.drawShadow(stack, text, 4, 4 + line * (minecraft.font.lineHeight + 1), 0x333333, false)
+        minecraft.font.draw(stack, text, 4, 4 + line * (minecraft.font.lineHeight + 1), 0x333333)
       }
     }
 
     @Deprecated
     override def getTitle = "OpenComputers API"
 
-    override def getUid = new ResourceLocation(OpenComputers.ID, "api")
+    override def getUid = new ResourceLocation(OpenComputers.ID, "part_api")
   }
 
 }

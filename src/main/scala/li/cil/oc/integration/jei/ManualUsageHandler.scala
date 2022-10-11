@@ -62,7 +62,7 @@ object ManualUsageHandler {
     }
 
     override def draw(recipeWrapper: ManualUsageRecipe, stack: MatrixStack, mouseX: Double, mouseY: Double) {
-      button.renderButton(stack, mouseX.toInt, mouseY.toInt, 1)
+      button.render(stack, mouseX.toInt, mouseY.toInt, 0)
     }
 
     override def handleClick(recipeWrapper: ManualUsageRecipe, mouseX: Double, mouseY: Double, mouseButton: Int): Boolean = {
