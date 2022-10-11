@@ -129,14 +129,17 @@ class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) w
 
   // ----------------------------------------------------------------------- //
 
-  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, Charsets.UTF_8)
-          case x => x
-        }: _*))
+  // Isolated from parent class so automatic callbacks don't depend on optional mods.
+  protected object RelayCCAdapter {
+    def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
+      for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+        val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+        if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
+          computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+            case x: Array[Byte] => new String(x, Charsets.UTF_8)
+            case x => x
+          }: _*))
+      }
     }
   }
 
@@ -159,8 +162,8 @@ class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) w
   override def tryEnqueuePacket(sourceSide: Option[Direction], packet: Packet): Boolean = {
     if (Mods.ComputerCraft.isModAvailable) {
       packet.data.headOption match {
-        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+        case Some(answerPort: java.lang.Double) => RelayCCAdapter.queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => RelayCCAdapter.queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
       }
     }
     super.tryEnqueuePacket(sourceSide, packet)
