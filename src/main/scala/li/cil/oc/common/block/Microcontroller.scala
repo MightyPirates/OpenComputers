@@ -10,11 +10,9 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.Rarity
 import li.cil.oc.util.StackOption._
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
@@ -23,7 +21,6 @@ import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item // Rarity
 import net.minecraft.item.ItemStack
 import net.minecraft.loot.LootContext
 import net.minecraft.loot.LootParameters
@@ -42,8 +39,6 @@ import scala.reflect.ClassTag
 
 class Microcontroller(props: Properties)
   extends RedstoneAware(props) with IForgeBlock with traits.PowerAcceptor with traits.StateAware {
-
-  ItemBlacklist.hide(this)
 
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
     builder.add(PropertyRotatable.Facing)

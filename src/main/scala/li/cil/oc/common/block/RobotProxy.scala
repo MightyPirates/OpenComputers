@@ -3,34 +3,28 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Constants
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.agent
 import li.cil.oc.server.loot.LootFunctions
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.fluid.FluidState
-import net.minecraft.item
 import net.minecraft.item.ItemStack
 import net.minecraft.loot.LootContext
 import net.minecraft.loot.LootParameters
-import net.minecraft.util.ActionResultType
 import net.minecraft.util.Direction
 import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
@@ -38,7 +32,6 @@ import net.minecraft.util.math.RayTraceResult
 import net.minecraft.util.math.shapes.ISelectionContext
 import net.minecraft.util.math.shapes.VoxelShape
 import net.minecraft.util.math.shapes.VoxelShapes
-import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.IBlockReader
@@ -47,8 +40,6 @@ import net.minecraft.world.World
 import scala.collection.convert.ImplicitConversionsToScala._
 
 class RobotProxy(props: Properties) extends RedstoneAware(props) with traits.StateAware {
-  ItemBlacklist.hide(this)
-
   val shape = VoxelShapes.box(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
 
   override val getDescriptionId = "robot"

@@ -5,10 +5,7 @@ import java.util.Random
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.ItemBlacklist
-import li.cil.oc.util.Rarity
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Blocks
 import net.minecraft.block.BlockState
@@ -23,16 +20,11 @@ import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.util.math.RayTraceResult
 import net.minecraft.util.math.shapes.ISelectionContext
 import net.minecraft.util.math.shapes.VoxelShape
-import net.minecraft.util.math.shapes.VoxelShapes
 import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
 
 class RobotAfterimage(props: Properties) extends SimpleBlock(props) {
-  ItemBlacklist.hide(this)
-
-  // ----------------------------------------------------------------------- //
-
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity): ItemStack =
     findMovingRobot(world, pos) match {
       case Some(robot) => robot.info.createItemStack()

@@ -7,7 +7,6 @@ import li.cil.oc.api.Items
 import li.cil.oc.client.gui.Relay
 import li.cil.oc.integration.jei.CallbackDocHandler.CallbackDocRecipe
 import li.cil.oc.integration.jei.ManualUsageHandler.ManualUsageRecipe
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.ItemSearch
 import li.cil.oc.util.StackOption
 import mezz.jei.api.IModPlugin
@@ -61,8 +60,6 @@ class ModPluginOpenComputers extends IModPlugin {
       ItemSearch.stackFocusing += ((container, mouseX, mouseY) => stackUnderMouse(container, mouseX, mouseY))
     }
     stackUnderMouse = (container, mouseX, mouseY) => StackOption(jeiRuntime.getIngredientListOverlay.getIngredientUnderMouse(VanillaTypes.ITEM))
-
-    jeiRuntime.getIngredientManager.removeIngredientsAtRuntime(VanillaTypes.ITEM, ItemBlacklist.hiddenItems.map(getter => getter()).asJavaCollection)
 
     ModJEI.runtime = Option(jeiRuntime)
     ModJEI.ingredientRegistry = Option(jeiRuntime.getIngredientManager)

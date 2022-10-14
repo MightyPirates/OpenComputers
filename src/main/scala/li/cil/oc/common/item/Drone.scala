@@ -6,10 +6,8 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.DroneModel
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.entity
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
@@ -30,8 +28,6 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 
 class Drone(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with CustomModel {
-  ItemBlacklist.hide(this)
-
   @OnlyIn(Dist.CLIENT)
   override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Drone, "inventory")
 

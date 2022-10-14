@@ -34,7 +34,6 @@ import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
@@ -52,8 +51,6 @@ object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
-    ItemBlacklist.apply()
-
     DroneTemplate.register()
     MicrocontrollerTemplate.register()
     NavigationUpgradeTemplate.register()

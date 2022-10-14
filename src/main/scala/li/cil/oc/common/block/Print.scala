@@ -7,16 +7,11 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.loot.LootFunctions
-import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.BlockState
-import net.minecraft.block.material.Material
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -41,8 +36,6 @@ import scala.collection.convert.ImplicitConversionsToJava._
 import scala.reflect.ClassTag
 
 class Print(props: Properties) extends RedstoneAware(props) with IForgeBlock {
-  ItemBlacklist.hide(this)
-
   @Deprecated
   override def propagatesSkylightDown(state: BlockState, world: IBlockReader, pos: BlockPos) = false
 
