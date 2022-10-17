@@ -16,10 +16,14 @@ import net.minecraftforge.registries.ObjectHolder;
 @ObjectHolder("opencomputers")
 public class RecipeSerializers {
     public static final IRecipeSerializer<?> CRAFTING_LOOTDISK_CYCLING = null;
+    public static final IRecipeSerializer<?> CRAFTING_COLORIZE = null;
+    public static final IRecipeSerializer<?> CRAFTING_DECOLORIZE = null;
 
     @SubscribeEvent
     public static void registerSerializers(RegistryEvent.Register<IRecipeSerializer<?>> e) {
         register(e.getRegistry(), "crafting_lootdisk_cycling", new SpecialRecipeSerializer<>(LootDiskCyclingRecipe::new));
+        register(e.getRegistry(), "crafting_colorize", new ItemSpecialSerializer<>(ColorizeRecipe::new, ColorizeRecipe::targetItem));
+        register(e.getRegistry(), "crafting_decolorize", new ItemSpecialSerializer<>(DecolorizeRecipe::new, DecolorizeRecipe::targetItem));
     }
 
     private static <S extends IForgeRegistryEntry<IRecipeSerializer<?>> & IRecipeSerializer<?>>

@@ -66,7 +66,7 @@ object Color {
   @Deprecated
   val byId = dyes.map(name => (byOreName(name).getId, name)).toMap
 
-  private val byTag = DyeColor.values.map(col => (col.getTag.getName, col)).toMap
+  val byTag = DyeColor.values.map(col => (col.getTag.getName, col)).toMap
 
   val byTier = Array(DyeColor.LIGHT_GRAY, DyeColor.YELLOW, DyeColor.CYAN, DyeColor.MAGENTA)
 
