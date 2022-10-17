@@ -1,18 +1,15 @@
 package li.cil.oc.client.renderer.item
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Settings
-import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.model.Model
 import net.minecraft.client.renderer.model.ModelRenderer
 import net.minecraft.client.renderer.entity.model.BipedModel
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.entity.Entity
+import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.entity.LivingEntity
 import net.minecraft.util.ResourceLocation
-import org.lwjgl.opengl.GL11
 
 object HoverBootRenderer extends BipedModel[LivingEntity](0.5f) {
   val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
@@ -45,8 +42,8 @@ object HoverBootRenderer extends BipedModel[LivingEntity](0.5f) {
   texWidth = 64
   texHeight = 32
 
-  bootRight.y = 10.1f / 16
-  bootLeft.y = 10.11f / 16f
+  bootRight.y = 10.1f
+  bootLeft.y = 10.11f
 
   droneBody.texOffs(0, 23).addBox(-3, 1, -3, 6, 1, 6).yRot = math.toRadians(45).toFloat // top
   droneBody.texOffs(0, 1).addBox(-1, 0, -1, 2, 1, 2).yRot = math.toRadians(45).toFloat // middle
@@ -90,22 +87,11 @@ object HoverBootRenderer extends BipedModel[LivingEntity](0.5f) {
 
   class LightModelRenderer(modelBase: Model) extends ModelRenderer(modelBase) {
     override def render(stack: MatrixStack, builder: IVertexBuilder, light: Int, overlay: Int, r: Float, g: Float, b: Float, a: Float): Unit = {
-      RenderState.pushAttrib()
-      RenderSystem.disableLighting()
-      RenderState.disableEntityLighting()
-      RenderSystem.depthFunc(GL11.GL_LEQUAL)
-      RenderState.makeItBlend()
-      RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
       val rm = ((lightColor >>> 16) & 0xFF) / 255f
       val gm = ((lightColor >>> 8) & 0xFF) / 255f
       val bm = ((lightColor >>> 0) & 0xFF) / 255f
 
-      super.render(stack, builder, light, overlay, r * rm, g * gm, b * bm, a)
-
-      RenderState.disableBlend()
-      RenderSystem.enableLighting()
-      RenderState.enableEntityLighting()
-      RenderState.popAttrib()
+      super.render(stack, builder, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, r * rm, g * gm, b * bm, a)
     }
   }
 
