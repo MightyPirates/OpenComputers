@@ -18,8 +18,11 @@ object ItemColorizer {
   def getColor(stack: ItemStack): Int = {
     val tag = stack.getTag
     if (tag != null) {
-      val displayTag = tag.getCompound("display")
-      if (displayTag == null) -1 else if (displayTag.contains("color")) displayTag.getInt("color") else -1
+      if (tag.contains("display")) {
+        val displayTag = tag.getCompound("display")
+        if (displayTag.contains("color")) displayTag.getInt("color") else -1
+      }
+      else -1
     }
     else -1
   }
@@ -29,6 +32,8 @@ object ItemColorizer {
     if (tag != null) {
       val displayTag = tag.getCompound("display")
       if (displayTag.contains("color")) displayTag.remove("color")
+      if (displayTag.isEmpty) tag.remove("display")
+      if (tag.isEmpty) stack.setTag(null)
     }
   }
 
