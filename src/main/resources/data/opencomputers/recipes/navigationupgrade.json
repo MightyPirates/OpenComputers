@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "opencomputers:crafting_shaped_extended",
   "pattern": [
     "gcg",
     "CmC",

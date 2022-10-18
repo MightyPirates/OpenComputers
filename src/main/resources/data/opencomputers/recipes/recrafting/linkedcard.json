@@ -1,0 +1,15 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:linkedcard"
+    },
+    {
+      "item": "opencomputers:linkedcard"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:linkedcard",
+    "count": 2
+  }
+}

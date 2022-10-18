@@ -1,8 +1,8 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "opencomputers:crafting_shapeless_extended",
   "ingredients": [
     {
-      "tag": "opencomputers:chameliumblock"
+      "item": "opencomputers:chameliumblock"
     }
   ],
   "result": {

@@ -18,12 +18,16 @@ public class RecipeSerializers {
     public static final IRecipeSerializer<?> CRAFTING_LOOTDISK_CYCLING = null;
     public static final IRecipeSerializer<?> CRAFTING_COLORIZE = null;
     public static final IRecipeSerializer<?> CRAFTING_DECOLORIZE = null;
+    public static final IRecipeSerializer<?> CRAFTING_SHAPED_EXTENDED = null;
+    public static final IRecipeSerializer<?> CRAFTING_SHAPELESS_EXTENDED = null;
 
     @SubscribeEvent
     public static void registerSerializers(RegistryEvent.Register<IRecipeSerializer<?>> e) {
         register(e.getRegistry(), "crafting_lootdisk_cycling", new SpecialRecipeSerializer<>(LootDiskCyclingRecipe::new));
         register(e.getRegistry(), "crafting_colorize", new ItemSpecialSerializer<>(ColorizeRecipe::new, ColorizeRecipe::targetItem));
         register(e.getRegistry(), "crafting_decolorize", new ItemSpecialSerializer<>(DecolorizeRecipe::new, DecolorizeRecipe::targetItem));
+        register(e.getRegistry(), "crafting_shaped_extended", new ExtendedShapedRecipe.Serializer());
+        register(e.getRegistry(), "crafting_shapeless_extended", new ExtendedShapelessRecipe.Serializer());
     }
 
     private static <S extends IForgeRegistryEntry<IRecipeSerializer<?>> & IRecipeSerializer<?>>

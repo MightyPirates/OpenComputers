@@ -1,0 +1,14 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:navigationupgrade"
+    },
+    {
+      "item": "minecraft:filled_map"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:navigationupgrade"
+  }
+}

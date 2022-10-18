@@ -1,0 +1,14 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:print"
+    },
+    {
+      "tag": "forge:dusts/glowstone"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:print"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:eeprom"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:eeprom"
+  }
+}

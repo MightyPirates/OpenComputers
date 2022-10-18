@@ -1,0 +1,15 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:floppy"
+    },
+    {
+      "tag": "forge:dyes/gray"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:floppy",
+    "nbt": "{\"oc:color\": 7}"
+  }
+}

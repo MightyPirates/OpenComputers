@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "opencomputers:crafting_shaped_extended",
   "pattern": [
     "e e",
     "LIL",
@@ -20,6 +20,7 @@
     }
   },
   "result": {
-    "item": "opencomputers:linkedcard"
+    "item": "opencomputers:linkedcard",
+    "count": 2
   }
 }
