@@ -142,7 +142,7 @@ object Loot {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
-          acc += ((createLootDisk(name, key, external, Color.byOreName.get(color)), count.toInt))
+          acc += ((createLootDisk(name, key, external, Some(Color.byName(color))), count.toInt))
         case Array(name, count) =>
           acc += ((createLootDisk(name, key, external), count.toInt))
         case _ =>

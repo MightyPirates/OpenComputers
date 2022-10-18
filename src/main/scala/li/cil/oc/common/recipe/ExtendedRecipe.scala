@@ -12,11 +12,11 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.server.machine.luac.LuaStateFactory
-import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
 import net.minecraft.block.Blocks
 import net.minecraft.inventory.CraftingInventory
+import net.minecraft.item.DyeColor
 import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.IRecipe
@@ -86,7 +86,7 @@ object ExtendedRecipe {
         for (stack <- getItems(inventory)) {
           if (api.Items.get(stack) != null && (api.Items.get(stack) == floppy || api.Items.get(stack).name == "lootDisk") && stack.hasTag) {
             val oldData = stack.getTag
-            if (oldData.contains(colorKey) && oldData.getInt(colorKey) != Color.dyes.indexOf("lightGray")) {
+            if (oldData.contains(colorKey) && oldData.getInt(colorKey) != DyeColor.LIGHT_GRAY.getId) {
               nbt.put(colorKey, oldData.get(colorKey).copy())
             }
           }

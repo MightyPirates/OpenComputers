@@ -25,46 +25,7 @@ object Color {
     DyeColor.WHITE -> 0xF0F0F0
   )
 
-  @Deprecated
-  val dyes = Array(
-    "dyeBlack",
-    "dyeRed",
-    "dyeGreen",
-    "dyeBrown",
-    "dyeBlue",
-    "dyePurple",
-    "dyeCyan",
-    "dyeLightGray",
-    "dyeGray",
-    "dyePink",
-    "dyeLime",
-    "dyeYellow",
-    "dyeLightBlue",
-    "dyeMagenta",
-    "dyeOrange",
-    "dyeWhite")
-
-  @Deprecated
-  val byOreName = Map(
-    "dyeBlack" -> DyeColor.BLACK,
-    "dyeRed" -> DyeColor.RED,
-    "dyeGreen" -> DyeColor.GREEN,
-    "dyeBrown" -> DyeColor.BROWN,
-    "dyeBlue" -> DyeColor.BLUE,
-    "dyePurple" -> DyeColor.PURPLE,
-    "dyeCyan" -> DyeColor.CYAN,
-    "dyeLightGray" -> DyeColor.LIGHT_GRAY,
-    "dyeGray" -> DyeColor.GRAY,
-    "dyePink" -> DyeColor.PINK,
-    "dyeLime" -> DyeColor.LIME,
-    "dyeYellow" -> DyeColor.YELLOW,
-    "dyeLightBlue" -> DyeColor.LIGHT_BLUE,
-    "dyeMagenta" -> DyeColor.MAGENTA,
-    "dyeOrange" -> DyeColor.ORANGE,
-    "dyeWhite" -> DyeColor.WHITE)
-
-  @Deprecated
-  val byId = dyes.map(name => (byOreName(name).getId, name)).toMap
+  val byName = DyeColor.values.map(col => (col.getName, col)).toMap
 
   val byTag = DyeColor.values.map(col => (col.getTag.getName, col)).toMap
 
