@@ -3,8 +3,6 @@ package li.cil.oc.client.renderer
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -20,10 +18,12 @@ import org.lwjgl.system.MemoryUtil;
 
 public class RenderCache implements IRenderTypeBuffer {
     public static class DrawEntry {
+        private final RenderType type;
         private final DrawState state;
         private final ByteBuffer data;
 
-        public DrawEntry(DrawState state, ByteBuffer data, boolean copy) {
+        public DrawEntry(RenderType type, DrawState state, ByteBuffer data, boolean copy) {
+            this.type = type;
             this.state = state;
             if (copy)
             {
@@ -35,6 +35,10 @@ public class RenderCache implements IRenderTypeBuffer {
             this.data = data;
         }
 
+        public RenderType type() {
+            return type;
+        }
+
         public DrawState state() {
             return state;
         }
@@ -44,32 +48,28 @@ public class RenderCache implements IRenderTypeBuffer {
         }
     }
 
-    private final Map<RenderType, List<DrawEntry>> cached;
+    private final List<DrawEntry> cached;
     private RenderType activeType;
     private BufferBuilder activeBuilder;
 
     public RenderCache() {
-        cached = new HashMap<>();
+        cached = new ArrayList<>();
     }
 
     public boolean isEmpty() {
-        for (List<DrawEntry> frames : cached.values()) {
-            if (!frames.isEmpty()) return false;
-        }
-        return true;
+        return cached.isEmpty();
     }
 
     public void clear() {
-        cached.forEach((k, v) -> v.clear());
+        cached.clear();
     }
 
     private void flush(RenderType type) {
         if (type == activeType) {
             activeBuilder.end();
-            List<DrawEntry> frames = cached.computeIfAbsent(type, k -> new ArrayList<>());
             Pair<DrawState, ByteBuffer> rendered = activeBuilder.popNextBuffer();
             if (rendered.getSecond().hasRemaining()) {
-                frames.add(new DrawEntry(rendered.getFirst(), rendered.getSecond(), true));
+                cached.add(new DrawEntry(type, rendered.getFirst(), rendered.getSecond(), true));
             }
             activeType = null;
         }
@@ -99,17 +99,13 @@ public class RenderCache implements IRenderTypeBuffer {
         RenderSystem.pushMatrix();
         RenderSystem.multMatrix(stack.last().pose());
 
-        cached.forEach((type, frames) -> {
-            if (!frames.isEmpty()) {
-                type.setupRenderState();
-                frames.forEach(frame -> {
-                    DrawState state = frame.state();
-                    state.format().setupBufferState(MemoryUtil.memAddress(frame.data()));
-                    RenderSystem.drawArrays(state.mode(), 0, state.vertexCount());
-                    state.format().clearBufferState();
-                });
-                type.clearRenderState();
-            }
+        cached.forEach(frame -> {
+            frame.type().setupRenderState();
+            DrawState state = frame.state();
+            state.format().setupBufferState(MemoryUtil.memAddress(frame.data()));
+            RenderSystem.drawArrays(state.mode(), 0, state.vertexCount());
+            state.format().clearBufferState();
+            frame.type().clearRenderState();
         });
 
         RenderSystem.popMatrix();

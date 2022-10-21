@@ -87,6 +87,7 @@ public class RenderTypes extends RenderType {
 
     public static final RenderType FONT_QUAD = create(OpenComputers.ID() + ":font_quad",
             DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 1024, State.builder()
+                .setWriteMaskState(COLOR_WRITE)
                 .createCompositeState(false));
 
     private static class CustomTextureState extends TexturingState {
