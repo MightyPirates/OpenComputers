@@ -166,8 +166,8 @@ object Items extends ItemAPI {
 
   val registeredItems: ArrayBuffer[ItemStack] = mutable.ArrayBuffer.empty[ItemStack]
 
-  override def registerFloppy(name: String, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
-    val stack = Loot.registerLootDisk(name, color, factory, doRecipeCycling)
+  override def registerFloppy(name: String, loc: ResourceLocation, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    val stack = Loot.registerLootDisk(name, loc, color, factory, doRecipeCycling)
 
     registeredItems += stack
 

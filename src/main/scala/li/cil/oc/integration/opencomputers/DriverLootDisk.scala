@@ -9,6 +9,7 @@ import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.storage.FolderName
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
@@ -29,7 +30,7 @@ object DriverLootDisk extends Item {
           api.FileSystem.fromSaveDirectory(lootPath, 0, false)
         }
         else {
-          api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, lootPath)
+          api.FileSystem.fromResource(new ResourceLocation(Settings.resourceDomain, lootPath))
         }
       val label =
         if (dataTag(stack).contains(Settings.namespace + "fs.label")) {

@@ -14,6 +14,7 @@ import li.cil.oc.util.Color
 import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
 import net.minecraft.world.server.ServerWorld
@@ -21,8 +22,6 @@ import net.minecraft.world.storage.FolderName
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.ModLoadingContext
-import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
@@ -43,7 +42,7 @@ object Loot {
 //    ChestGenHooks.PYRAMID_JUNGLE_CHEST,
 //    ChestGenHooks.STRONGHOLD_LIBRARY)
 
-  val factories = mutable.Map.empty[String, Callable[FileSystem]]
+  val factories = mutable.Map.empty[ResourceLocation, Callable[FileSystem]]
 
   val globalDisks = mutable.ArrayBuffer.empty[(ItemStack, Int)]
 
@@ -65,12 +64,8 @@ object Loot {
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
     else None
 
-  def registerLootDisk(name: String, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
-    val mod = ModLoadingContext.get.getActiveContainer.getModId
-
-    OpenComputers.log.debug(s"Registering loot disk '$name' from mod $mod.")
-
-    val modSpecificName = mod + ":" + name
+  def registerLootDisk(name: String, loc: ResourceLocation, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
+    OpenComputers.log.debug(s"Registering loot disk '$name' from mod ${loc.getNamespace}.")
 
     val data = new CompoundNBT()
     data.putString(Settings.namespace + "fs.label", name)
@@ -80,10 +75,10 @@ object Loot {
     nbt.put(Settings.namespace + "data", data)
 
     // Store this top level, so it won't get wiped on save.
-    nbt.putString(Settings.namespace + "lootFactory", modSpecificName)
+    nbt.putString(Settings.namespace + "lootFactory", loc.toString)
     nbt.putInt(Settings.namespace + "color", color.getId)
 
-    Loot.factories += modSpecificName -> factory
+    Loot.factories += loc -> factory
 
     if(doRecipeCycling) {
       Loot.disksForCyclingServer += stack
@@ -158,9 +153,9 @@ object Loot {
     val callable = if (external) new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.asReadOnly(api.FileSystem.fromSaveDirectory("loot/" + path, 0, false))
     } else new Callable[FileSystem] {
-      override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
+      override def call(): FileSystem = api.FileSystem.fromResource(new ResourceLocation(Settings.resourceDomain, "loot/" + path))
     }
-    val stack = registerLootDisk(path, color.getOrElse(DyeColor.LIGHT_GRAY), callable, doRecipeCycling = true)
+    val stack = registerLootDisk(path, new ResourceLocation(Settings.resourceDomain, path), color.getOrElse(DyeColor.LIGHT_GRAY), callable, doRecipeCycling = true)
     stack.setHoverName(new StringTextComponent(name))
     if (!external) {
       Items.registerStack(stack, path)

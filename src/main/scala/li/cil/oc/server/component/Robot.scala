@@ -26,6 +26,7 @@ import li.cil.oc.util.StackOption._
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.particles.ParticleTypes
 import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
 
 import scala.collection.convert.ImplicitConversionsToJava._
 
@@ -36,7 +37,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
     create()
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+    fromResource(new ResourceLocation(Settings.resourceDomain, "lua/component/robot")), "robot"))
 
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,

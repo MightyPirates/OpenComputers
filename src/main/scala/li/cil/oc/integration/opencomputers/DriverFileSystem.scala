@@ -15,6 +15,7 @@ import li.cil.oc.server.component.Drive
 import li.cil.oc.server.fs.FileSystem.{ItemLabel, ReadOnlyLabel}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 object DriverFileSystem extends Item {
@@ -51,7 +52,8 @@ object DriverFileSystem extends Item {
   private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (ServerLifecycleHooks.getCurrentServer != null) {
     if (stack.hasTag && stack.getTag.contains(Settings.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
-      Loot.factories.get(stack.getTag.getString(Settings.namespace + "lootFactory")) match {
+      val lootFactory = new ResourceLocation(stack.getTag.getString(Settings.namespace + "lootFactory"))
+      Loot.factories.get(lootFactory) match {
         case Some(factory) =>
           val label =
             if (dataTag(stack).contains(Settings.namespace + "fs.label"))

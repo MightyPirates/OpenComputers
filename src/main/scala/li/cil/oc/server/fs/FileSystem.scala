@@ -15,7 +15,9 @@ import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.storage.FolderName
+import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.util.Try
@@ -58,53 +60,21 @@ object FileSystem extends api.detail.FileSystemAPI {
     path
   }
 
-  override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
-    val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
+  override def fromResource(loc: ResourceLocation): api.fs.FileSystem = {
+    val innerPath = "/assets/" + loc.getNamespace + "/" + (loc.getPath.trim + "/")
 
-    val codeSource = clazz.getProtectionDomain.getCodeSource
-    val codePath = if (codeSource != null) codeSource.getLocation.getPath else {
-      val name = clazz.getName.replace('.', '/').concat(".class")
-      val resource = clazz.getClassLoader.getResource(name)
-      if (resource == null) throw new IllegalArgumentException(s"Could not locate ${clazz}")
-      resource.getPath
-    }
-    val (codeUrl, isArchive) =
-      if (codePath.contains(".zip!") || codePath.contains(".jar!"))
-        (codePath.substring(0, codePath.lastIndexOf('!')), true)
-      else {
-        val name = clazz.getName.replace('.', '/').concat(".class")
-        if (!codePath.endsWith(name)) throw new IllegalArgumentException(s"Mismatched ${clazz} to '${codePath}'")
-        (codePath, false)
-      }
+    val modInfo = FMLLoader.getLoadingModList().getModFileById(loc.getNamespace)
+    val file = modInfo.getFile().getFilePath().toFile()
 
-    val url = Try {
-      new URL(codeUrl)
-    }.recoverWith {
-      case _: MalformedURLException => Try {
-        new URL("file://" + codeUrl)
-      }
-    }
-    val file = url.map(url => new io.File(url.toURI)).recoverWith {
-      case _: URISyntaxException => url.map(url => new io.File(url.getPath))
-    }.getOrElse(new io.File(codePath))
-
-    if (isArchive) {
+    if (!file.exists) return null
+    if (!file.isDirectory) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
     }
     else {
-      if (!file.exists || file.isDirectory) return null
-      new io.File(new io.File(file.getParent), innerPath) match {
+      new io.File(file, innerPath) match {
         case fsp if fsp.exists() && fsp.isDirectory =>
           new ReadOnlyFileSystem(fsp)
-        case _ =>
-          System.getProperty("java.class.path").split(System.getProperty("path.separator")).
-            find(cp => {
-            val fsp = new io.File(new io.File(cp), innerPath)
-            fsp.exists() && fsp.isDirectory
-          }) match {
-            case None => null
-            case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
-          }
+        case _ => null
       }
     }
   }
