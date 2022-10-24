@@ -10,6 +10,8 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 class DynamicComponentSlot(val agentContainer: Player, inventory: IInventory, index: Int, x: Int, y: Int, host: Class[_ <: EnvironmentHost],
     val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int)
@@ -21,6 +23,7 @@ class DynamicComponentSlot(val agentContainer: Player, inventory: IInventory, in
     else mainTier
   }
 
+  @OnlyIn(Dist.CLIENT)
   def tierIcon: ResourceLocation = Textures.Icons.get(tier)
 
   def slot: String = {
@@ -29,8 +32,10 @@ class DynamicComponentSlot(val agentContainer: Player, inventory: IInventory, in
     else common.Slot.None
   }
 
+  @OnlyIn(Dist.CLIENT)
   override def hasBackground: Boolean = Textures.Icons.get(slot) != null
 
+  @OnlyIn(Dist.CLIENT)
   override def getBackgroundLocation: ResourceLocation = Option(Textures.Icons.get(slot)).getOrElse(super.getBackgroundLocation)
 
   override def getMaxStackSize: Int =

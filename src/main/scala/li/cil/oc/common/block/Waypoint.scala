@@ -17,6 +17,7 @@ import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.BlockRayTraceResult
 import net.minecraft.world.{IBlockReader, World}
+import net.minecraftforge.api.distmarker.{Dist, OnlyIn}
 
 class Waypoint(props: Properties) extends RedstoneAware(props) {
   protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]) =
@@ -31,12 +32,17 @@ class Waypoint(props: Properties) extends RedstoneAware(props) {
   override def use(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, trace: BlockRayTraceResult): ActionResultType = {
     if (!player.isCrouching) {
       if (world.isClientSide) world.getBlockEntity(pos) match {
-        case t: tileentity.Waypoint => Minecraft.getInstance.pushGuiLayer(new gui.Waypoint(t))
+        case t: tileentity.Waypoint => showGui(t)
         case _ =>
       }
       ActionResultType.sidedSuccess(world.isClientSide)
     }
     else super.use(state, world, pos, player, hand, trace)
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(t: tileentity.Waypoint) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Waypoint(t))
   }
 
   override def getValidRotations(world: World, pos: BlockPos): Array[Direction] =

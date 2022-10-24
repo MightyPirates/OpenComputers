@@ -11,7 +11,6 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.client.Minecraft
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ActionResultType
@@ -53,12 +52,14 @@ trait FileSystemLike extends SimpleItem {
 
   override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
     if (!player.isCrouching && (!stack.hasTag || !stack.getTag.contains(Settings.namespace + "lootFactory"))) {
-      if (!world.isClientSide) player match {
-        case srvPlr: ServerPlayerEntity => Minecraft.getInstance.pushGuiLayer(new gui.Drive(player.inventory, () => stack))
-        case _ =>
-      }
+      if (world.isClientSide) showGui(stack, player)
       player.swing(Hand.MAIN_HAND)
     }
     new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(stack: ItemStack, player: PlayerEntity) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Drive(player.inventory, () => stack))
   }
 }

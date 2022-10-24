@@ -23,7 +23,6 @@ class Disassembler(selfType: ContainerType[_ <: Disassembler], id: Int, playerIn
   addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 80, 35, getHostClass, "ocitem", Tier.Any) {
     override def mayPlace(stack: ItemStack): Boolean = {
       if (!container.canPlaceItem(getSlotIndex, stack)) return false
-      if (!isActive) return false
       allowDisassembling(stack) &&
         (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) &&
             ItemUtils.getIngredients(playerInventory.player.level.getRecipeManager, stack).nonEmpty) ||

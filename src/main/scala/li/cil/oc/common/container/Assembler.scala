@@ -27,10 +27,11 @@ class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventor
 
       override def mayPlace(stack: ItemStack): Boolean = {
         if (!container.canPlaceItem(getSlotIndex, stack)) return false
-        if (!isActive) return false
+        if (isAssembling) return false
         AssemblerTemplates.select(stack).isDefined
       }
 
+      @OnlyIn(Dist.CLIENT)
       override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })
   }

@@ -73,9 +73,7 @@ class Screen(props: Properties, val tier: Int) extends RedstoneAware(props) {
         // Yep, this GUI is actually purely client side (to trigger it from
         // the server we would have to give screens a "container", which we
         // do not want).
-        if (world.isClientSide) {
-          Minecraft.getInstance.pushGuiLayer(new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled))
-        }
+        if (world.isClientSide) showGui(screen)
         true
       case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
         if (world.isClientSide && player == Minecraft.getInstance.player) {
@@ -84,6 +82,11 @@ class Screen(props: Properties, val tier: Int) extends RedstoneAware(props) {
         else true
       case _ => false
     }
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(screen: tileentity.Screen) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled))
   }
 
   override def stepOn(world: World, pos: BlockPos, entity: Entity): Unit =

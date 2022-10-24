@@ -75,13 +75,7 @@ class Terminal(props: Properties) extends Item(props) with IForgeItem with trait
                   case rack: TileEntity with api.internal.Rack => {
                     def inRange = player.isAlive && !rack.isRemoved && player.distanceToSqr(rack.x + 0.5, rack.y + 0.5, rack.z + 0.5) < term.range * term.range
                     if (inRange) {
-                      if (term.sidedKeys.contains(key)) Minecraft.getInstance.pushGuiLayer(new gui.Screen(term.buffer, true, () => true, () => {
-                        // Check if someone else bound a term to our server.
-                        if (stack.getTag.getString(Settings.namespace + "key") != key) Minecraft.getInstance.popGuiLayer
-                        // Check whether we're still in range.
-                        if (!inRange) Minecraft.getInstance.popGuiLayer
-                        true
-                      }))
+                      if (term.sidedKeys.contains(key)) showGui(stack, key, term, () => inRange)
                       else player.displayClientMessage(Localization.Terminal.InvalidKey, true)
                     }
                     else player.displayClientMessage(Localization.Terminal.OutOfRange, true)
@@ -97,5 +91,16 @@ class Terminal(props: Properties) extends Item(props) with IForgeItem with trait
       }
     }
     super.use(stack, world, player)
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(stack: ItemStack, key: String, term: component.TerminalServer, inRange: () => Boolean) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Screen(term.buffer, true, () => true, () => {
+      // Check if someone else bound a term to our server.
+      if (stack.getTag.getString(Settings.namespace + "key") != key) Minecraft.getInstance.popGuiLayer
+      // Check whether we're still in range.
+      if (!inRange()) Minecraft.getInstance.popGuiLayer
+      true
+    }))
   }
 }

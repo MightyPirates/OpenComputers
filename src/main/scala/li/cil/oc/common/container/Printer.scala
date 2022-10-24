@@ -18,14 +18,12 @@ class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: P
   addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 19, getHostClass, Slot.Filtered, Tier.Any) {
     override def mayPlace(stack: ItemStack): Boolean = {
       if (!container.canPlaceItem(getSlotIndex, stack)) return false
-      if (!isActive) return false
       PrintData.materialValue(stack) > 0
     }
   })
   addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 51, getHostClass, Slot.Filtered, Tier.Any) {
     override def mayPlace(stack: ItemStack): Boolean = {
       if (!container.canPlaceItem(getSlotIndex, stack)) return false
-      if (!isActive) return false
       PrintData.inkValue(stack) > 0
     }
   })

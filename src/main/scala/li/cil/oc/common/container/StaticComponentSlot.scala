@@ -11,7 +11,8 @@ import net.minecraftforge.api.distmarker.OnlyIn
 class StaticComponentSlot(val agentContainer: Player, inventory: IInventory, index: Int, x: Int, y: Int, host: Class[_ <: EnvironmentHost], val slot: String, val tier: Int)
   extends ComponentSlot(inventory, index, x, y, host) {
 
-  val tierIcon = Textures.Icons.get(tier)
+  @OnlyIn(Dist.CLIENT)
+  def tierIcon = Textures.Icons.get(tier)
 
   @OnlyIn(Dist.CLIENT)
   override def getBackgroundLocation: ResourceLocation = Textures.Icons.get(slot)

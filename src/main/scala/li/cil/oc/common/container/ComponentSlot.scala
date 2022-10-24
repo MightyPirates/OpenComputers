@@ -20,6 +20,7 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, 
 
   def tier: Int
 
+  @OnlyIn(Dist.CLIENT)
   def tierIcon: ResourceLocation
 
   var changeListener: Option[Slot => Unit] = None
@@ -37,7 +38,7 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, 
 
   override def mayPlace(stack: ItemStack): Boolean = {
     if (!inventory.canPlaceItem(getSlotIndex, stack)) return false
-    if (!isActive) return false
+    if (slot == common.Slot.None || tier == common.Tier.None) return false
     if (slot == common.Slot.Any && tier == common.Tier.Any) return true
     // Special case: tool slots fit everything.
     if (slot == common.Slot.Tool) return true

@@ -100,6 +100,7 @@ class Drone(selfType: ContainerType[_ <: Drone], id: Int, playerInventory: Playe
     @OnlyIn(Dist.CLIENT) override
     def isActive = isValid && super.isActive
 
+    @OnlyIn(Dist.CLIENT)
     override def getBackgroundLocation =
       if (isValid) super.getBackgroundLocation
       else Textures.Icons.get(common.Tier.None)

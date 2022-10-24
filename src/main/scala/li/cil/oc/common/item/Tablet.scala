@@ -234,7 +234,7 @@ class Tablet(props: Properties) extends Item(props) with IForgeItem with traits.
               Tablet.get(stack, player).components.collect {
                 case Some(buffer: api.internal.TextBuffer) => buffer
               }.headOption match {
-                case Some(buffer: api.internal.TextBuffer) => Minecraft.getInstance.pushGuiLayer(new gui.Screen(buffer, true, () => true, () => buffer.isRenderingEnabled))
+                case Some(buffer: api.internal.TextBuffer) => showGui(buffer)
                 case _ =>
               }
             }
@@ -242,6 +242,11 @@ class Tablet(props: Properties) extends Item(props) with IForgeItem with traits.
         }
       case _ =>
     }
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(buffer: api.internal.TextBuffer) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Screen(buffer, true, () => true, () => buffer.isRenderingEnabled))
   }
 
   override def maxCharge(stack: ItemStack): Double = new TabletData(stack).maxEnergy

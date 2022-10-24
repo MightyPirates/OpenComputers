@@ -44,8 +44,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.world.ForgeChunkManager
+import net.minecraftforge.fml.DistExecutor
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
@@ -306,6 +309,17 @@ object ModOpenComputers extends ModProxy {
       ModOpenComputers.hasRedstoneCardT2 = true
     }
 
+    api.Nanomachines.addProvider(DisintegrationProvider)
+    api.Nanomachines.addProvider(HungryProvider)
+    api.Nanomachines.addProvider(ParticleProvider)
+    api.Nanomachines.addProvider(PotionProvider)
+    api.Nanomachines.addProvider(MagnetProvider)
+
+    DistExecutor.runWhenOn(Dist.CLIENT, () => () => initializeClient())
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def initializeClient() {
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/"))
     api.Manual.addProvider("", TextureImageProvider)
@@ -316,12 +330,6 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addTab(new TextureTabIconRenderer(Textures.GUI.ManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
-
-    api.Nanomachines.addProvider(DisintegrationProvider)
-    api.Nanomachines.addProvider(HungryProvider)
-    api.Nanomachines.addProvider(ParticleProvider)
-    api.Nanomachines.addProvider(PotionProvider)
-    api.Nanomachines.addProvider(MagnetProvider)
   }
 
   protected[oc] var hasRedstoneCardT2 = false

@@ -47,6 +47,8 @@ import net.minecraft.world.chunk.Chunk
 import net.minecraft.world.server.ChunkHolder
 import net.minecraft.world.server.ChunkManager
 import net.minecraft.world.server.ServerWorld
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
@@ -283,6 +285,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
+  @OnlyIn(Dist.CLIENT)
   def clientLoggedIn(e: ClientPlayerNetworkEvent.LoggedInEvent) {
     PetRenderer.isInitialized = false
     PetRenderer.hidden.clear()

@@ -168,7 +168,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
   }
   def selectedSlot = selectedSlotData.get
 
-  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int, var enabled: Boolean)
+  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int, enabled: Boolean)
     extends StaticComponentSlot(container, inventory, index, x, y, getHostClass, common.Slot.Any, common.Tier.Any) {
 
     def isValid: Boolean = getSlotIndex >= 4 && getSlotIndex < 4 + info.mainInvSize
@@ -176,6 +176,7 @@ class Robot(selfType: ContainerType[_ <: Robot], id: Int, playerInventory: Playe
     @OnlyIn(Dist.CLIENT) override
     def isActive: Boolean = enabled && isValid && super.isActive
 
+    @OnlyIn(Dist.CLIENT)
     override def getBackgroundLocation: ResourceLocation =
       if (isValid) super.getBackgroundLocation
       else Textures.Icons.get(common.Tier.None)

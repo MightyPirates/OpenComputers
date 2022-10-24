@@ -16,7 +16,6 @@ class Charger(selfType: ContainerType[_ <: Charger], id: Int, playerInventory: P
   addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 80, 35, getHostClass, "tablet", Tier.Any) {
     override def mayPlace(stack: ItemStack): Boolean = {
       if (!container.canPlaceItem(getSlotIndex, stack)) return false
-      if (!isActive) return false
       ItemCharge.canCharge(stack)
     }
   })
