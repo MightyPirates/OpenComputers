@@ -54,7 +54,7 @@ version = "MC${config.minecraft.version}-${project.version}"
 minecraft {
     mappings channel: "official", version: config.minecraft.version
 
-    accessTransformer = file("src/main/resources/META-INF/oc_at.cfg")
+    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
     runs {
         client {
