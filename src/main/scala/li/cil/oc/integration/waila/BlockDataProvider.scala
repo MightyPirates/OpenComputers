@@ -27,12 +27,16 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 
 @WailaPlugin
-object BlockDataProvider extends IWailaPlugin with IServerDataProvider[TileEntity] with IComponentProvider {
+class BlockDataProvider extends IWailaPlugin {
+  def register(registrar: IRegistrar) = BlockDataProvider.register(registrar)
+}
+
+object BlockDataProvider extends IServerDataProvider[TileEntity] with IComponentProvider {
   val ConfigAddress = new ResourceLocation(OpenComputers.ID, "oc.address")
   val ConfigEnergy = new ResourceLocation(OpenComputers.ID, "oc.energy")
   val ConfigComponentName = new ResourceLocation(OpenComputers.ID, "oc.componentname")
 
-  def register(registrar: IRegistrar) {
+  private def register(registrar: IRegistrar) {
     registrar.registerComponentProvider(this, TooltipPosition.BODY, classOf[SimpleBlock])
 
     registrar.registerBlockDataProvider(this, classOf[li.cil.oc.api.network.Environment])
