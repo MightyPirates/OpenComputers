@@ -84,9 +84,10 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
             return null;
         }
 
-        @Callback(doc = "function():string -- Get the name of the owner, which is usually a player's name or 'global'.")
+        @Callback(doc = "function():string or nil -- Get the name of the owner, which is usually a player's name or nil.")
         public Object[] getOwner(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getFrequency().ownerName.getString()};
+            Frequency freq = tileEntity.getFrequency();
+            return new Object[]{freq.hasOwner() ? freq.ownerName.getString() : null};
         }
 
         @Callback(doc = "function():table -- Get the currently set frequency as a table of color names.")
