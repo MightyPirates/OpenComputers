@@ -30,7 +30,7 @@ import net.minecraftforge.common.util.Constants.NBT
 object BlockDataProvider extends IWailaPlugin with IServerDataProvider[TileEntity] with IComponentProvider {
   val ConfigAddress = new ResourceLocation(OpenComputers.ID, "oc.address")
   val ConfigEnergy = new ResourceLocation(OpenComputers.ID, "oc.energy")
-  val ConfigComponentName = new ResourceLocation(OpenComputers.ID, "oc.componentName")
+  val ConfigComponentName = new ResourceLocation(OpenComputers.ID, "oc.componentname")
 
   def register(registrar: IRegistrar) {
     registrar.registerComponentProvider(this, TooltipPosition.BODY, classOf[SimpleBlock])
