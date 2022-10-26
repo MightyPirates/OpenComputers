@@ -18,12 +18,16 @@ import net.minecraftforge.forgespi.language.MavenVersionAdapter
 import org.apache.maven.artifact.versioning.VersionRange
 
 @AEAddon
-object AEUtil extends IAEAddon {
+class AEUtil extends IAEAddon {
+  override def onAPIAvailable(aeApi: IAppEngApi) = AEUtil.onAPIAvailable(aeApi)
+}
+
+object AEUtil {
   var aeApi: Option[IAppEngApi] = None
 
   private def optionToScala[T](opt: Optional[T]): Option[T] = if (opt.isPresent) Some(opt.get) else None
 
-  def onAPIAvailable(aeApi: IAppEngApi) {
+  private def onAPIAvailable(aeApi: IAppEngApi) {
     AEUtil.aeApi = Some(aeApi)
     itemStorageChannel = aeApi.storage.getStorageChannel[IAEItemStack, IItemStorageChannel](classOf[IItemStorageChannel])
     fluidStorageChannel = aeApi.storage.getStorageChannel[IAEFluidStack, IFluidStorageChannel](classOf[IFluidStorageChannel])
