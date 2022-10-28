@@ -134,11 +134,14 @@ class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) w
     def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
       for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
         val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-        if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-          computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+        if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port)) {
+          val header = Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort))
+          val payload = args.map {
             case x: Array[Byte] => new String(x, Charsets.UTF_8)
             case x => x
-          }: _*))
+          }
+          computer.queueEvent("modem_message", Array((header :+ (if (payload.length > 1) payload else payload(0))): _*): _*)
+        }
       }
     }
   }
