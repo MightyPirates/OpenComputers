@@ -116,7 +116,7 @@ class RelayPeripheral(val relay: Relay) extends IDynamicPeripheral {
   override def getMethodNames = methodNames
 
   override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: IArguments) =
-    try MethodResult.of(methods(methodNames(method))(computer, context, arguments.getAll)) catch {
+    try MethodResult.of(methods(methodNames(method))(computer, context, arguments.getAll): _*) catch {
       case e: LuaException => throw e
       case t: Throwable =>
         t.printStackTrace()
