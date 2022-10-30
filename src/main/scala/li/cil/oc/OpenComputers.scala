@@ -6,6 +6,7 @@ import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.block.Block
 import net.minecraft.entity.player.PlayerEntity
@@ -66,6 +67,7 @@ class OpenComputers {
   Settings.load(FMLPaths.CONFIGDIR.get().resolve(Paths.get("opencomputers", "settings.conf")).toFile())
   OpenComputers.proxy.preInit()
   MinecraftForge.EVENT_BUS.register(ThreadPoolFactory)
+  Mods.preInit() // Must happen after loading Settings but before registry events are fired.
 
   @SubscribeEvent
   def registerBlocks(e: RegistryEvent.Register[Block]) {

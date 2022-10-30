@@ -30,11 +30,6 @@ import scala.collection.mutable
 object SerialInterfaceProviderAdapter extends ForgeRegistryEntry[SerialInterfaceProvider] with SerialInterfaceProvider {
   setRegistryName(OpenComputers.ID, "serial_port")
 
-  def init(): Unit = {
-    //ManualAPI.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/tis3d/"))
-    SerialInterfaceProviders.MODULE_PROVIDER_REGISTRY.get.register(this)
-  }
-
   override def getDocumentationReference = Optional.of(new SerialProtocolDocumentationReference(new StringTextComponent("OpenComputers Adapter"), "protocols/opencomputersadapter.md"))
 
   override def matches(world: World, pos: BlockPos, side: Direction): Boolean = world.getBlockEntity(pos).isInstanceOf[Adapter]

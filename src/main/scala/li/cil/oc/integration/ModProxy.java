@@ -3,5 +3,11 @@ package li.cil.oc.integration;
 public interface ModProxy {
     Mod getMod();
 
-    void initialize();
+    default void preInitialize()
+    {
+    }
+
+    default void initialize()
+    {
+    }
 }

@@ -13,7 +13,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object Mods {
-  private val handlers = mutable.Set.empty[ModProxy]
+  private var preInited = false
+  private var inited = false
 
   private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
@@ -51,13 +52,39 @@ object Mods {
     integration.opencomputers.ModOpenComputers
   )
 
+  def preInit(): Unit = {
+    if (!preInited) {
+      preInited = true
+      for (proxy <- Proxies) {
+        tryPreInit(proxy)
+      }
+    }
+  }
+
+  private def tryPreInit(mod: ModProxy) {
+    val handlers = mutable.Set.empty[ModProxy]
+    val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
+    val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
+    if (!isBlacklisted && (alwaysEnabled || mod.getMod.isModAvailable) && handlers.add(mod)) {
+      li.cil.oc.OpenComputers.log.debug(s"Pre-initializing mod integration for '${mod.getMod.id}'.")
+      try mod.preInitialize() catch {
+        case e: Throwable =>
+          li.cil.oc.OpenComputers.log.warn(s"Error pre-initializing integration for '${mod.getMod.id}'", e)
+      }
+    }
+  }
+
   def init(): Unit = {
-    for (proxy <- Proxies) {
-      tryInit(proxy)
+    if (!inited) {
+      inited = true
+      for (proxy <- Proxies) {
+        tryInit(proxy)
+      }
     }
   }
 
   private def tryInit(mod: ModProxy) {
+    val handlers = mutable.Set.empty[ModProxy]
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isModAvailable) && handlers.add(mod)) {
