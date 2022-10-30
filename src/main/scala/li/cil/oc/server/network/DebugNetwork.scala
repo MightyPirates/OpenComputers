@@ -8,7 +8,7 @@ object DebugNetwork {
   val cards = mutable.WeakHashMap.empty[DebugNode, Unit]
 
   def add(card: DebugNode) {
-    cards.put(card, Unit)
+    cards.put(card, ())
   }
 
   def remove(card: DebugNode) {

@@ -54,7 +54,7 @@ trait BundledRedstoneAware extends RedstoneAware {
     val sideIndex = checkSide(side)
     val bundled = _bundledInput(sideIndex)
     val rednet = _rednetInput(sideIndex)
-    (bundled, rednet).zipped.map((a, b) => a max b max 0)
+    bundled.lazyZip(rednet).map((a, b) => a max b max 0)
   }
 
   def getBundledInput(side: Direction, color: Int): Int = {

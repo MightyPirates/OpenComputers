@@ -18,7 +18,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
         case properties: TankProperties => result(Option(properties.contents).fold(0)(_.getAmount))
         case _ => result((0 until handler.getTanks).map(i => Option(handler.getFluidInTank(i)).fold(0)(_.getAmount)).sum)
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
 
@@ -30,7 +30,7 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
         case properties: TankProperties  => result(properties.capacity)
         case _ => result((0 until handler.getTanks).map(handler.getTankCapacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
 
@@ -42,8 +42,8 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
         case properties: TankProperties  => result(properties)
         case _ => result((0 until handler.getTanks).map(i => new TankProperties(handler.getTankCapacity(i), handler.getFluidInTank(i))).toArray)
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
-  else result(Unit, "not enabled in config")
+  else result((), "not enabled in config")
 }

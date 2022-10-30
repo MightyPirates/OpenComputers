@@ -270,7 +270,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = agent.mainInventory.getItem(agent.selectedSlot)
     if (stack.isEmpty) {
-      return result(Unit, "nothing selected")
+      return result((), "nothing selected")
     }
 
     for (side <- sides) {

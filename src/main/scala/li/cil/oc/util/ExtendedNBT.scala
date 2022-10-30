@@ -276,7 +276,7 @@ object ExtendedNBT {
       while (iterable.size > 0) {
         buffer += f((iterable.remove(0): INBT).asInstanceOf[Tag])
       }
-      buffer
+      buffer.toIndexedSeq
     }
 
     def toTagArray[Tag: ClassTag] = map((t: Tag) => t).toArray

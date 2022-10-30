@@ -8,8 +8,12 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.network.Component
+import li.cil.oc.server.network.ComponentConnector
+import li.cil.oc.server.network.Connector
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.util.Color
+import li.cil.oc.util.ResultWrapper
 import li.cil.oc.util.SideTracker
 import net.minecraft.item.DyeColor
 import net.minecraft.nbt._
@@ -652,7 +656,7 @@ object Network extends api.detail.NetworkAPI {
 
     def remove() = {
       edges.foreach(edge => edge.other(this).edges -= edge)
-      searchGraphs(edges.map(_.other(this)))
+      searchGraphs(edges.map(_.other(this)).toSeq)
     }
 
     override def toString = s"$data [${edges.length}]"
@@ -708,7 +712,7 @@ object Network extends api.detail.NetworkAPI {
       }
       values.length * 2 + values.foldLeft(0)((acc, arg) => {
         acc + (arg match {
-          case null | Unit | None => 4
+          case null | ResultWrapper.unit | None => 4
           case _: java.lang.Boolean => 4
           case _: java.lang.Byte => 4
           case _: java.lang.Short => 4
@@ -733,7 +737,7 @@ object Network extends api.detail.NetworkAPI {
       nbt.putInt("ttl", ttl)
       nbt.putInt("dataLength", data.length)
       for (i <- data.indices) data(i) match {
-        case null | Unit | None =>
+        case null | ResultWrapper.unit | None =>
         case value: java.lang.Boolean => nbt.putBoolean("data" + i, value)
         case value: java.lang.Integer => nbt.putInt("data" + i, value)
         case value: java.lang.Double => nbt.putDouble("data" + i, value)

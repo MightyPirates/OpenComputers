@@ -33,8 +33,8 @@ import net.minecraft.util.text.TextFormatting
 import net.minecraftforge.client.ForgeHooksClient
 import net.minecraftforge.common.MinecraftForge
 
-import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 object RobotRenderer extends Function[TileEntityRendererDispatcher, RobotRenderer] {
@@ -369,7 +369,7 @@ class RobotRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRe
         case _ =>
       }
 
-      lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
+      lazy val availableSlots = slotNameMapping.keys.to(mutable.Set).asJava
       lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
       lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
 

@@ -12,14 +12,11 @@ import li.cil.oc.Settings
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.fs.Buffered
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent
 
 import scala.collection.mutable
 
-@Mod.EventBusSubscriber(modid = OpenComputers.ID, bus = Bus.FORGE)
 object ThreadPoolFactory {
   val priority = {
     val custom = Settings.get.threadPriority

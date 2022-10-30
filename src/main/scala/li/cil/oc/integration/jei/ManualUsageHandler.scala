@@ -40,7 +40,7 @@ object ManualUsageHandler {
     private var background: IDrawable = _
     private var icon: IDrawable = _
     private val button = new Button((160 - 100) / 2, 10, 100, 20, Localization.localizeLater("nei.usage.oc.Manual"), new Button.IPressable {
-      override def onPress(b: Button) = Unit
+      override def onPress(b: Button) = ()
     })
 
     def initialize(guiHelper: IGuiHelper) {

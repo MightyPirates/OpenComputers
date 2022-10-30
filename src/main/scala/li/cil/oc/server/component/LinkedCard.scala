@@ -55,7 +55,7 @@ class LinkedCard extends AbstractManagedEnvironment with QuantumNetwork.QuantumN
       }
       result(true)
     }
-    else result(Unit, "not enough energy")
+    else result((), "not enough energy")
   }
 
   @Callback(direct = true, doc = "function():number -- Gets the maximum packet size (config setting).")

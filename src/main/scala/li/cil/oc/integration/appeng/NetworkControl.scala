@@ -70,7 +70,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IActionHost with IGridHos
     }
   }
 
-  private def reduceSequentialTable(map: scala.collection.mutable.HashMap[_, _]): AnyRef = {
+  private def reduceSequentialTable[K, V](map: scala.collection.mutable.HashMap[K, V]): AnyRef = {
     // in place of a table pack, we want a hash map of tuples
     val tuples = new util.LinkedList[AnyRef]()
     map.collect {
@@ -309,10 +309,10 @@ object NetworkControl {
 
     private def withController(f: (TileEntity with IActionHost with IGridHost) => Array[AnyRef]): Array[AnyRef] = {
       if (delayData != null) {
-        result(Unit, "waiting for ae network to load")
+        result((), "waiting for ae network to load")
       } else {
         if (controller == null || controller.isRemoved) {
-          result(Unit, "no controller")
+          result((), "no controller")
         } else {
           f(controller)
         }
@@ -322,7 +322,7 @@ object NetworkControl {
     private def withGridNode(f: (IGridNode) => Array[AnyRef]): Array[AnyRef] = {
       withController(c => Option(c.getGridNode(pos)) match {
         case Some(grid: IGridNode) => f(grid)
-        case _ => result(Unit, "no ae grid")
+        case _ => result((), "no ae grid")
       })
     }
 
@@ -500,7 +500,7 @@ object NetworkControl {
     }
 
     def asCraft(f: (ICraftingLink) => Array[AnyRef]): Array[AnyRef] = {
-      if (isComputing) result(Unit, "computing")
+      if (isComputing) result((), "computing")
       else link match {
         case Some(craft: ICraftingLink) if !failed => f(craft)
         case _ => result(false, reason)

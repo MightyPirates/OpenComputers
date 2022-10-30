@@ -1,10 +1,11 @@
-modLoader="javafml"
-loaderVersion="[${fversion},)"
+modLoader="scorge"
+loaderVersion="[${sversion},)"
 license="MIT, CC0 (see LICENSE)"
 issueTrackerURL="https://github.com/MightyPirates/OpenComputers/issues"
 
 [[mods]]
 modId="opencomputers"
+entryClass="li.cil.oc.OpenComputers"
 version="${version}"
 displayName="OpenComputers"
 displayURL="http://oc.cil.li/"

@@ -40,7 +40,7 @@ trait RedstoneSignaller extends AbstractManagedEnvironment {
     val flatArgs = ArrayBuffer[Object]("redstone_changed", side, Int.box(args.oldValue), Int.box(args.newValue))
     if (args.color >= 0)
       flatArgs += Int.box(args.color)
-    node.sendToReachable("computer.signal", flatArgs: _*)
+    node.sendToReachable("computer.signal", flatArgs.toArray: _*)
     if (args.oldValue < wakeThreshold && args.newValue >= wakeThreshold) {
       if (wakeNeighborsOnly)
         node.sendToNeighbors("computer.start")

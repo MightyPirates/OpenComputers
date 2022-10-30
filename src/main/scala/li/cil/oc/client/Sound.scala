@@ -33,7 +33,7 @@ object Sound {
   if (Settings.get.soundVolume > 0) {
     updateTimer.scheduleAtFixedRate(new TimerTask {
       override def run() {
-        sources.synchronized(updateCallable = Some(() => processQueue()))
+        sources.synchronized(Sound.updateCallable = Some(() => processQueue()))
       }
     }, 500, 50)
   }
@@ -162,7 +162,7 @@ object Sound {
     override def isStopped() = stopped
 
     // Required by ITickableSound, which is required to update position while playing
-    override def tick() = Unit
+    override def tick() = ()
 
     def stop() {
       stopped = true

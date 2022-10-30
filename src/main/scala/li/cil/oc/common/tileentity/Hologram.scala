@@ -339,7 +339,7 @@ class Hologram(selfType: TileEntityType[_ <: Hologram], var tier: Int) extends T
 
       result(true)
     }
-    else result(Unit, "not supported")
+    else result((), "not supported")
   }
 
   @Callback(doc = """function(speed:number, x:number, y:number, z:number):boolean -- Set the rotation speed of the displayed hologram.""")
@@ -358,7 +358,7 @@ class Hologram(selfType: TileEntityType[_ <: Hologram], var tier: Int) extends T
 
       result(true)
     }
-    else result(Unit, "not supported")
+    else result((), "not supported")
   }
 
   @Callback(direct = true, doc = "function():number, number, number -- Get the dimension of the x,y,z axes.")

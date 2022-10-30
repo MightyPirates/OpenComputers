@@ -5,6 +5,8 @@ import net.minecraft.item.ItemStack
 import scala.math.ScalaNumber
 
 object ResultWrapper {
+  final val unit = ().asInstanceOf[AnyRef]
+
   def result(args: Any*): Array[AnyRef] = {
     def unwrap(arg: Any): AnyRef = arg match {
       case x: ScalaNumber => x.underlying

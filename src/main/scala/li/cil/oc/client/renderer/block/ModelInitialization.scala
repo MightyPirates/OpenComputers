@@ -19,18 +19,14 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IItemProvider
 import net.minecraft.util.Direction
-import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
 import net.minecraftforge.client.model.data.IDynamicBakedModel
 import net.minecraftforge.client.model.data.IModelData
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
-@Mod.EventBusSubscriber(value = Array(Dist.CLIENT), modid = OpenComputers.ID, bus = Bus.MOD)
 object ModelInitialization {
   final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "")
   final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")

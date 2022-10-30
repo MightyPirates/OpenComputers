@@ -179,7 +179,7 @@ class Printer(selfType: TileEntityType[_ <: Printer]) extends TileEntity(selfTyp
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
     if (data.stateOff.size > Settings.get.maxPrintComplexity || data.stateOn.size > Settings.get.maxPrintComplexity) {
-      return result(Unit, "model too complex")
+      return result((), "model too complex")
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
     val minY = (args.checkInteger(1) max 0 min 16) / 16f
@@ -220,7 +220,7 @@ class Printer(selfType: TileEntityType[_ <: Printer]) extends TileEntity(selfTyp
   @Callback(doc = """function([count:number]):boolean -- Commit and begin printing the current configuration.""")
   def commit(context: Context, args: Arguments): Array[Object] = {
     if (!canPrint) {
-      return result(Unit, "model invalid")
+      return result((), "model invalid")
     }
     limit = (args.optDouble(0, 1) max 0 min Integer.MAX_VALUE).toInt
     isActive = limit > 0

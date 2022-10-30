@@ -143,7 +143,7 @@ class RobotProxy(selfType: TileEntityType[_ <: RobotProxy], val robot: Robot) ex
   def setName(context: Context, args: Arguments): Array[AnyRef] = {
     val oldName = robot.name
     val newName: String = args.checkString(0)
-    if (machine.isRunning) return result(Unit, "is running")
+    if (machine.isRunning) return result((), "is running")
     setName(newName)
     ServerPacketSender.sendRobotNameChange(robot)
     result(oldName)

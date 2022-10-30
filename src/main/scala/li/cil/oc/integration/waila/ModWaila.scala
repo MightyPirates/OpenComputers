@@ -7,5 +7,5 @@ import net.minecraftforge.fml.InterModComms
 object ModWaila extends ModProxy {
   override def getMod = Mods.Waila
 
-  override def initialize() = Unit
+  override def initialize() = ()
 }

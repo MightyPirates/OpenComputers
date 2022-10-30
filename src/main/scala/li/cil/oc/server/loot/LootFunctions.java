@@ -6,11 +6,7 @@ import net.minecraft.loot.LootFunctionType;
 import net.minecraft.loot.functions.ILootFunction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
-// No registry events or ObjectHolder - this is to load the class.
-@Mod.EventBusSubscriber(modid = "opencomputers", bus = Bus.MOD)
 public final class LootFunctions {
     public static final ResourceLocation DYN_ITEM_DATA = new ResourceLocation(OpenComputers.ID(), "item_data");
     public static final ResourceLocation DYN_VOLATILE_CONTENTS = new ResourceLocation(OpenComputers.ID(), "volatile_contents");
@@ -22,6 +18,10 @@ public final class LootFunctions {
         LootFunctionType type = new LootFunctionType(serializer);
         Registry.register(Registry.LOOT_FUNCTION_TYPE, new ResourceLocation(OpenComputers.ID(), name), type);
         return type;
+    }
+
+    public static final void init() {
+        // No registry events or ObjectHolder - this is to load the class.
     }
 
     private LootFunctions() {

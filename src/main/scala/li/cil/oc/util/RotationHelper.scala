@@ -36,7 +36,7 @@ object RotationHelper {
       getOrElseUpdate(pitch, mutable.Map.empty).
       getOrElseUpdate(yaw, {
       val t = translationFor(pitch, yaw)
-      t.indices.map(Direction.from3DDataValue).map(t.indexOf).map(Direction.from3DDataValue).toArray
+      t.indices.map(Direction.from3DDataValue).map(t.indexOf(_)).map(Direction.from3DDataValue).toArray
     }))
 
   // ----------------------------------------------------------------------- //

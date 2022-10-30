@@ -99,7 +99,7 @@ class Manual extends screen.Screen(StringTextComponent.EMPTY) with traits.Window
     }
 
     scrollButton = new ImageButton(leftPos + scrollPosX, topPos + scrollPosY, 6, 13, new Button.IPressable {
-      override def onPress(b: Button) = Unit
+      override def onPress(b: Button) = ()
     }, Textures.GUI.ButtonScroll)
     addButton(scrollButton)
 

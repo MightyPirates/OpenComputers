@@ -85,11 +85,11 @@ class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) wit
   }
 
   // Uses the loot system, so nope.
-  override def forAllLoot(dst: Consumer[ItemStack]) = Unit
+  override def forAllLoot(dst: Consumer[ItemStack]) = ()
 
   override def dropSlot(slot: Int, count: Int = getMaxStackSize, direction: Option[Direction]) = false
 
-  override def dropAllSlots() = Unit
+  override def dropAllSlots() = ()
 
   def tryCreateRaid(id: String) {
     if (items.count(!_.isEmpty) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {

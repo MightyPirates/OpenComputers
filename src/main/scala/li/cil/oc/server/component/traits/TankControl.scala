@@ -73,8 +73,8 @@ trait TankControl extends TankAware {
           from.fill(tmp, FluidAction.EXECUTE)
           result(true)
         }
-        else result(Unit, "incompatible or no fluid")
-      case _ => result(Unit, "invalid index")
+        else result((), "incompatible or no fluid")
+      case _ => result((), "invalid index")
     }
   }
 }

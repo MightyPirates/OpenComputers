@@ -78,9 +78,9 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
       case SomeStack(item) =>
         ToolDurabilityProviders.getDurability(item) match {
           case Some(durability) => result(durability)
-          case _ => result(Unit, "tool cannot be damaged")
+          case _ => result((), "tool cannot be damaged")
         }
-      case _ => result(Unit, "no tool equipped")
+      case _ => result((), "no tool equipped")
     }
   }
 
@@ -92,18 +92,18 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
     if (agent.isAnimatingMove) {
       // This shouldn't really happen due to delays being enforced, but just to
       // be on the safe side...
-      result(Unit, "already moving")
+      result((), "already moving")
     }
     else {
       val (something, what) = blockContent(direction)
       if (something) {
         context.pause(0.4)
         PacketSender.sendParticleEffect(BlockPosition(agent), ParticleTypes.CRIT, 8, 0.25, Some(direction))
-        result(Unit, what)
+        result((), what)
       }
       else {
         if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
-          result(Unit, "not enough energy")
+          result((), "not enough energy")
         }
         else if (agent.move(direction)) {
           context.pause(Settings.get.moveDelay)
@@ -113,7 +113,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
           node.changeBuffer(Settings.get.robotMoveCost)
           context.pause(0.4)
           PacketSender.sendParticleEffect(BlockPosition(agent), ParticleTypes.CRIT, 8, 0.25, Some(direction))
-          result(Unit, "impossible move")
+          result((), "impossible move")
         }
       }
     }
@@ -130,7 +130,7 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
       result(true)
     }
     else {
-      result(Unit, "not enough energy")
+      result((), "not enough energy")
     }
   }
 

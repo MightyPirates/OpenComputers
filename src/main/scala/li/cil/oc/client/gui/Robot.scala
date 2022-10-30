@@ -101,7 +101,7 @@ class Robot(state: container.Robot, playerInventory: PlayerInventory, name: ITex
       override def onPress(b: Button) = ClientPacketSender.sendRobotPower(inventoryContainer, !inventoryContainer.isRunning)
     }, Textures.GUI.ButtonPower, canToggle = true)
     scrollButton = new ImageButton(leftPos + scrollX + 1, topPos + scrollY + 1, 6, 13, new Button.IPressable {
-      override def onPress(b: Button) = Unit
+      override def onPress(b: Button) = ()
     }, Textures.GUI.ButtonScroll)
     addButton(powerButton)
     addButton(scrollButton)

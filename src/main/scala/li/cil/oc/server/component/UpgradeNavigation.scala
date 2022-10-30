@@ -59,7 +59,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
     if (math.abs(relativeX) <= size / 2 && math.abs(relativeZ) <= size / 2)
       result(relativeX, host.yPosition, relativeZ)
     else
-      result(Unit, "out of range")
+      result((), "out of range")
   }
 
   @Callback(doc = """function():number -- Get the current orientation of the robot.""")
@@ -72,7 +72,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
   def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
     val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange(Tier.Two)
     if (range <= 0) return result(Array.empty)
-    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange(Tier.Two) * 0.25)) return result(Unit, "not enough energy")
+    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange(Tier.Two) * 0.25)) return result((), "not enough energy")
     context.pause(0.5)
     val position = BlockPosition(host)
     val positionVec = position.toVec3

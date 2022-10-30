@@ -149,7 +149,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   def convert(value: Array[AnyRef]): Array[AnyRef] = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 
-  def convertRecursively(value: Any, memo: util.IdentityHashMap[AnyRef, AnyRef], force: Boolean = false): AnyRef = {
+  def convertRecursively(value: Any, memo: util.IdentityHashMap[Any, AnyRef], force: Boolean = false): AnyRef = {
     val valueRef = value match {
       case number: ScalaNumber => number.underlying
       case reference: AnyRef => reference
@@ -160,7 +160,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       memo.get(valueRef)
     }
     else valueRef match {
-      case null | Unit | None => null
+      case null | () | None => null
 
       case arg: java.lang.Boolean => arg
       case arg: java.lang.Byte => arg
@@ -230,7 +230,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]): Array[AnyRef] = {
+  def convertList(obj: Any, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[Any, AnyRef]): Array[AnyRef] = {
     val converted = mutable.ArrayBuffer.empty[AnyRef]
     memo += obj -> converted
     for ((value, index) <- list) {
@@ -239,7 +239,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     converted.toArray
   }
 
-  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]): AnyRef = {
+  def convertMap[K, V](obj: Any, map: Map[K, V], memo: util.IdentityHashMap[Any, AnyRef]): AnyRef = {
     val converted = memo.getOrElseUpdate(obj, mutable.Map.empty[AnyRef, AnyRef]) match {
       case map: mutable.Map[AnyRef, AnyRef]@unchecked => map
       case map: java.util.Map[AnyRef, AnyRef]@unchecked => mapAsScalaMap(map)

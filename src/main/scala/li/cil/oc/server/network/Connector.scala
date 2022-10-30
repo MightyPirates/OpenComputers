@@ -113,7 +113,7 @@ trait Connector extends network.Connector with Node {
   override def onDisconnect(node: ImmutableNode) {
     super.onDisconnect(node)
     if (node == this) {
-      this.synchronized(distributor = None)
+      this.synchronized(this.distributor = None)
     }
   }
 

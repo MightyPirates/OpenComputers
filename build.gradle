@@ -109,6 +109,12 @@ repositories {
             includeGroup "mekanism"
         }
     }
+    maven {
+        url "https://proxy-maven.covers1624.net/"
+        content {
+            includeModule "net.minecraftforge", "Scorge"
+        }
+    }
     mavenCentral()
 }
 
@@ -121,8 +127,9 @@ dependencies {
     var jeiSlug = "jei-${config.minecraft.version}"
     
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
+    compileOnly "org.scala-lang:scala-library:2.13.4"
+    implementation "net.minecraftforge:Scorge:${config.scorge.version}"
     embedded "com.typesafe:config:1.2.1"
-    embedded "org.scala-lang:scala-library:2.12.+"
 
     compileOnly fg.deobf("li.cil.tis3d:tis3d-1.16.5-forge:${config.tis3d.version}")
     compileOnly fg.deobf("curse.maven:hwyla-${config.hwyla.projectId}:${config.hwyla.fileId}")
@@ -158,11 +165,11 @@ dependencies {
 }
 
 processResources {
-    def reducedForgeVer = config.forge.version.replaceAll(/(\d+\.\d+)(\.\d+)/, "\$1")
+    def reducedScorgeVer = config.scorge.version.replaceAll(/(\d+\.\d+)(\.\d+)/, "\$1")
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"
         include 'META-INF/mods.toml'
-        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'fversion':reducedForgeVer
+        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'sversion':reducedScorgeVer
     }
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"

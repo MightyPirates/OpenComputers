@@ -274,7 +274,7 @@ class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with D
         node.connect(other)
         result(true)
       case _ =>
-        result(Unit, "no node found at this position")
+        result((), "no node found at this position")
     }
   }
 
@@ -423,7 +423,7 @@ object DebugCard {
       checkAccess()
       ServerLifecycleHooks.getCurrentServer.getPlayerList.getPlayerByName(name) match {
         case player: ServerPlayerEntity => f(player)
-        case _ => result(Unit, "player is offline")
+        case _ => result((), "player is offline")
       }
     }
 
@@ -838,9 +838,9 @@ object DebugCard {
               tileEntity.setChanged()
               world.notifyBlockUpdate(blockPos)
               result(true)
-            case nbt => result(Unit, s"nbt tag COMPOUND expected, got 'nbt.getType.getName'")
+            case nbt => result((), s"nbt tag COMPOUND expected, got 'nbt.getType.getName'")
           }
-        case _ => result(Unit, "no tile entity")
+        case _ => result((), "no tile entity")
       }
     }
 
@@ -921,7 +921,7 @@ object DebugCard {
           stack.setTag(tag)
           stack.setDamageValue(damage)
           result(InventoryUtils.insertIntoInventory(stack, inventory))
-        case _ => result(Unit, "no inventory")
+        case _ => result((), "no inventory")
       }
     }
 
@@ -936,7 +936,7 @@ object DebugCard {
           val removed = inventory.extractItem(slot, count, false)
           if (removed.isEmpty) result(0)
           else result(removed.getCount)
-        case _ => result(Unit, "no inventory")
+        case _ => result((), "no inventory")
       }
     }
 
@@ -952,7 +952,7 @@ object DebugCard {
       val side = args.checkSideAny(5)
       world.getBlockEntity(position) match {
         case handler: IFluidHandler => result(handler.fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE))
-        case _ => result(Unit, "no tank")
+        case _ => result((), "no tank")
       }
     }
 
@@ -964,7 +964,7 @@ object DebugCard {
       val side = args.checkSideAny(4)
       world.getBlockEntity(position) match {
         case handler: IFluidHandler => result(handler.drain(amount, IFluidHandler.FluidAction.EXECUTE))
-        case _ => result(Unit, "no tank")
+        case _ => result((), "no tank")
       }
     }
 

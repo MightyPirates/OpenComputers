@@ -5,12 +5,14 @@ import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.client
+import li.cil.oc.client.gui.GuiTypes
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.ModelInitialization
+import li.cil.oc.client.renderer.block.NetSplitterModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common
@@ -36,8 +38,12 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.network.NetworkRegistry
 
-@Deprecated
 private[oc] class Proxy extends CommonProxy {
+  modBus.register(classOf[GuiTypes])
+  modBus.register(ModelInitialization)
+  modBus.register(NetSplitterModel)
+  modBus.register(Textures)
+
   override def preInit() {
     super.preInit()
 
@@ -49,7 +55,7 @@ private[oc] class Proxy extends CommonProxy {
 
     CommonPacketHandler.clientHandler = PacketHandler
 
-    e.enqueueWork(() => {
+    e.enqueueWork((() => {
       ModelInitialization.preInit()
 
       ColorHandler.init()
@@ -89,9 +95,7 @@ private[oc] class Proxy extends CommonProxy {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
       MinecraftForge.EVENT_BUS.register(Audio)
       MinecraftForge.EVENT_BUS.register(HologramRenderer)
-
-      Unit // Avoid ambiguity with e.enqueueWork(Supplier[_])
-    })
+    }): Runnable)
 
     runOnRenderThread(() => MinecraftForge.EVENT_BUS.register(TextBufferRenderCache))
   }

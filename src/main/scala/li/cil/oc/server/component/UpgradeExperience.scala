@@ -82,11 +82,11 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
   @Callback(doc = """function():boolean -- Tries to consume an enchanted item to add experience to the upgrade.""")
   def consume(context: Context, args: Arguments): Array[AnyRef] = {
     if (level >= MaxLevel) {
-      return result(Unit, "max level")
+      return result((), "max level")
     }
     val stack = host.mainInventory.getItem(host.selectedSlot)
     if (stack.isEmpty) {
-      return result(Unit, "no item")
+      return result((), "no item")
     }
     var xp = 0
     if (stack.getItem == Items.EXPERIENCE_BOTTLE) {
@@ -99,12 +99,12 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
         }
       }
       if (xp <= 0) {
-        return result(Unit, "could not extract experience from item")
+        return result((), "could not extract experience from item")
       }
     }
     val consumed = host.mainInventory().removeItem(host.selectedSlot, 1)
     if (consumed.isEmpty) {
-      return result(Unit, "could not consume item")
+      return result((), "could not consume item")
     }
     addExperience(xp * Settings.get.constantXpGrowth)
     result(true)

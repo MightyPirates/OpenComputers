@@ -35,6 +35,7 @@ import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.fs.FileSystem
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ResultWrapper
 import li.cil.oc.util.ResultWrapper.result
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.client.Minecraft
@@ -45,7 +46,6 @@ import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.Array.canBuildFrom
 import scala.collection.JavaConverters.mapAsJavaMap
 import scala.collection.convert.ImplicitConversionsToJava._
 import scala.collection.convert.ImplicitConversionsToScala._
@@ -338,7 +338,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
         }
         else {
           signals.enqueue(new Machine.Signal(name, args.map {
-            case null | Unit | None => null
+            case null | ResultWrapper.unit | None => null
             case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
             case arg: mutable.Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg.toMap
             case arg: java.util.Map[_, _] => {

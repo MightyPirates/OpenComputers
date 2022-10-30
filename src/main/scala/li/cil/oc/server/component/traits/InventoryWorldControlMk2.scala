@@ -62,6 +62,6 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
   private def withInventory(blockPos: BlockPosition, fromSide: Direction, f: IItemHandler => Array[AnyRef]) =
     InventoryUtils.inventoryAt(blockPos, fromSide) match {
       case Some(inventory) if mayInteract(blockPos, fromSide) => f(inventory)
-      case _ => result(Unit, "no inventory")
+      case _ => result((), "no inventory")
     }
 }

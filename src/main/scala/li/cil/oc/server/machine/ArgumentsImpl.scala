@@ -5,6 +5,7 @@ import java.util
 import com.google.common.base.Charsets
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.ResultWrapper
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundNBT
@@ -22,7 +23,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def checkAny(index: Int) = {
     checkIndex(index, "value")
     args(index) match {
-      case Unit | None => null
+      case ResultWrapper.unit | None => null
       case arg => arg
     }
   }
@@ -209,7 +210,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
       s"bad argument #${index + 1} ($want expected, got ${typeName(have)})")
 
   private def typeName(value: AnyRef): String = value match {
-    case null | Unit | None => "nil"
+    case null | ResultWrapper.unit | None => "nil"
     case _: java.lang.Boolean => "boolean"
     case _: java.lang.Number => "double"
     case _: java.lang.String => "string"

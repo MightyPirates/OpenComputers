@@ -221,7 +221,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
       precisionMode = args.checkBoolean(0)
       result(oldValue)
     }
-    else result(Unit, "unsupported operation")
+    else result((), "unsupported operation")
   }
 
   // ----------------------------------------------------------------------- //
@@ -258,7 +258,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
 
   override def getMaximumHeight: Int = maxResolution._2
 
-  override def setAspectRatio(width: Double, height: Double): Unit = this.synchronized(aspectRatio = (width, height))
+  override def setAspectRatio(width: Double, height: Double): Unit = this.synchronized(this.aspectRatio = (width, height))
 
   override def getAspectRatio: Double = aspectRatio._1 / aspectRatio._2
 
@@ -884,7 +884,7 @@ object TextBuffer {
         args += player.getName.getString
       }
 
-      owner.node.sendToReachable("computer.checked_signal", args: _*)
+      owner.node.sendToReachable("computer.checked_signal", args.toSeq: _*)
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {

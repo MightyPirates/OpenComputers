@@ -1,5 +1,7 @@
 package li.cil.oc.common.container
 
+import java.util.Arrays
+
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
@@ -16,8 +18,10 @@ import net.minecraft.inventory.container.ContainerType
 import net.minecraft.inventory.container.IContainerListener
 import net.minecraft.inventory.container.Slot
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.INBT
+import net.minecraft.nbt.ByteArrayNBT
 import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.INBT
+import net.minecraft.nbt.IntArrayNBT
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.util.FakePlayer
@@ -260,12 +264,18 @@ abstract class Player(selfType: ContainerType[_ <: Player], id: Int, val playerI
     }
 
     override def putByteArray(key: String, value: Array[Byte]): Unit = this.synchronized {
-      if (value.deep != getByteArray(key).deep) delta.putByteArray(key, value)
+      get(key) match {
+        case arr: ByteArrayNBT if !Arrays.equals(value, arr.getAsByteArray) => delta.putByteArray(key, value)
+        case _ =>
+      }
       super.putByteArray(key, value)
     }
 
     override def putIntArray(key: String, value: Array[Int]): Unit = this.synchronized {
-      if (value.deep != getIntArray(key).deep) delta.putIntArray(key, value)
+      get(key) match {
+        case arr: IntArrayNBT if !Arrays.equals(value, arr.getAsIntArray) => delta.putIntArray(key, value)
+        case _ =>
+      }
       super.putIntArray(key, value)
     }
 

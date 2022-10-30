@@ -53,7 +53,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
 
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
-    if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
+    if (leashedEntities.size >= MaxLeashedEntities) return result((), "too many leashed entities")
     val side = args.checkSideAny(0)
     val nearBounds = position.bounds
     val farBounds = nearBounds.move(side.getStepX * 2.0, side.getStepY * 2.0, side.getStepZ * 2.0)
@@ -64,7 +64,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
         leashedEntities += entity.getUUID
         context.pause(0.1)
         result(true)
-      case _ => result(Unit, "no unleashed entity")
+      case _ => result((), "no unleashed entity")
     }
   }
 

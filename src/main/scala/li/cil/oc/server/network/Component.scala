@@ -7,6 +7,7 @@ import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.network.Node
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Callbacks.ComponentCallback

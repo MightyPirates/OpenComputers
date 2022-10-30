@@ -73,7 +73,7 @@ object AssemblerTemplates {
 
   class Slot(val kind: String, val tier: Int, val validator: Option[Method], val hostClass: Option[Class[_ <: EnvironmentHost]]) {
     def validate(inventory: IInventory, slot: Int, stack: ItemStack) = validator match {
-      case Some(method) => IMC.tryInvokeStatic(method, inventory, slot.underlying(), tier.underlying(), stack)(false)
+      case Some(method) => IMC.tryInvokeStatic(method, inventory, Integer.valueOf(slot), Integer.valueOf(tier), stack)(false)
       case _ => Option(hostClass.fold(api.Driver.driverFor(stack))(api.Driver.driverFor(stack, _))) match {
         case Some(driver) => try driver.slot(stack) == kind && driver.tier(stack) <= tier catch {
           case t: AbstractMethodError =>

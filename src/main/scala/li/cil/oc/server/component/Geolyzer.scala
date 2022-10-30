@@ -112,11 +112,11 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     }
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
-      return result(Unit, "not enough energy")
+      return result((), "not enough energy")
 
     val event = new GeolyzerEvent.Scan(host, options, minX, minY, minZ, maxX, maxY, maxZ)
     MinecraftForge.EVENT_BUS.post(event)
-    if (event.isCanceled) result(Unit, "scan was canceled")
+    if (event.isCanceled) result((), "scan was canceled")
     else result(event.data)
   }
 
@@ -151,15 +151,15 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
-      return result(Unit, "not enough energy")
+      return result((), "not enough energy")
 
     val globalPos = BlockPosition(host).offset(globalSide)
     val event = new Analyze(host, options, globalPos.toBlockPos)
     MinecraftForge.EVENT_BUS.post(event)
-    if (event.isCanceled) result(Unit, "scan was canceled")
+    if (event.isCanceled) result((), "scan was canceled")
     else result(event.data)
   }
-  else result(Unit, "not enabled in config")
+  else result((), "not enabled in config")
 
   @Callback(doc = """function(side:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack representation of the block on the specified side in a database component.""")
   def store(computer: Context, args: Arguments): Array[AnyRef] = {
@@ -170,12 +170,12 @@ class Geolyzer(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
     }
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
-      return result(Unit, "not enough energy")
+      return result((), "not enough energy")
 
     val blockPos = BlockPosition(host).offset(globalSide)
     val blockState = host.world.getBlockState(blockPos.toBlockPos)
     val item = blockState.getBlock().asItem()
-    if (item == null) result(Unit, "block has no registered item representation")
+    if (item == null) result((), "block has no registered item representation")
     else {
       val stacks = Block.getDrops(blockState, host.world.asInstanceOf[ServerWorld], blockPos.toBlockPos, host.world.getBlockEntity(blockPos.toBlockPos))
       val stack = if (!stacks.isEmpty) {

@@ -14,8 +14,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Direction
 import net.minecraft.util.math.vector.Vector3d
 
-import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 object DroneModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride
@@ -23,9 +23,9 @@ object DroneModel extends SmartBlockModelBase {
   override def getQuads(state: BlockState, side: Direction, rand: util.Random): util.List[BakedQuad] = {
     val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-    faces ++= Boxes.flatMap(box => bakeQuads(box, Array.fill(6)(droneTexture), None))
+    faces ++= Boxes.flatMap(box => bakeQuads(box, Array.fill(6)(droneTexture), None).toSeq)
 
-    bufferAsJavaList(faces)
+    faces.asJava
   }
 
   protected def droneTexture = Textures.getSprite(Textures.Item.DroneItem)

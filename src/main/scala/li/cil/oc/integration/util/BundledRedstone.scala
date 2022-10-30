@@ -24,7 +24,7 @@ object BundledRedstone {
     if (pos.world.get.blockExists(pos.offset(side))) {
       val inputs = providers.map(_.computeBundledInput(pos, side)).filter(_ != null)
       if (inputs.isEmpty) null
-      else inputs.reduce((a, b) => (a, b).zipped.map((l, r) => math.max(l, r)))
+      else inputs.reduce((a, b) => a.lazyZip(b).map((l, r) => math.max(l, r)))
     }
     else null
   }

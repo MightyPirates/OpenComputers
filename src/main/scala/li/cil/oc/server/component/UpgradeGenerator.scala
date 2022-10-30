@@ -52,22 +52,22 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends Ab
   def insert(context: Context, args: Arguments): Array[AnyRef] = {
     val count = args.optInteger(0, 64)
     val stack = host.mainInventory.getItem(host.selectedSlot)
-    if (stack.isEmpty) return result(Unit, "selected slot is empty")
+    if (stack.isEmpty) return result((), "selected slot is empty")
     if (ForgeHooks.getBurnTime(stack, null) <= 0) {
-      return result(Unit, "selected slot does not contain fuel")
+      return result((), "selected slot does not contain fuel")
     }
     val container: ItemStack = stack.getContainerItem()
     val inQueue: ItemStack = inventory match {
       case SomeStack(q) if q != null && q.getCount > 0 =>
         if (!q.sameItem(stack) || !ItemStack.tagMatches(q, stack)) {
-          return result(Unit, "different fuel type already queued")
+          return result((), "different fuel type already queued")
         }
         q
       case _ => ItemStack.EMPTY
     }
     val space = if (inQueue.isEmpty) stack.getMaxStackSize else inQueue.getMaxStackSize - inQueue.getCount
     if (space == 0) {
-      return result(Unit, "queue is full")
+      return result((), "queue is full")
     }
     val previousSelectedFuel: ItemStack = stack.copy
     val insertLimit: Int = math.min(stack.getCount, math.min(space, count))

@@ -74,7 +74,7 @@ object DriverExportBus extends driver.DriverBlock {
       val part = host.getPart(side)
 
       if (part == null || !AEUtil.isExportBus(part.getItemStack(PartItemStack.PICK))) {
-        return result(Unit, "no export bus")
+        return result((), "no export bus")
       }
 
       val exportBus = part.asInstanceOf[ISegmentedInventory with IConfigurableObject with IUpgradeableHost with IActionHost with IGridHost]
@@ -82,7 +82,7 @@ object DriverExportBus extends driver.DriverBlock {
 
       val inventory: IItemHandler = InventoryUtils.inventoryAt(new BlockPosition(location.x, location.y, location.z, Some(location.getWorld)).offset(side), side.getOpposite) match {
         case Some(inv) => inv
-        case _ => return result(Unit, "no inventory")
+        case _ => return result((), "no inventory")
       }
 
       val targetSlot: Option[Int] = args.optSlot(inventory, 1, -1) match {
@@ -120,7 +120,7 @@ object DriverExportBus extends driver.DriverBlock {
         }
       }
       if (potentialWork == count)
-        result(Unit, "no items moved")
+        result((), "no items moved")
       else
         result(potentialWork - count)
     }

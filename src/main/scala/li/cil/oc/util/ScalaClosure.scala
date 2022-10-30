@@ -34,7 +34,7 @@ object ScalaClosure {
       case null => null
       case primitive => primitive.asInstanceOf[AnyRef]
     }) match {
-      case null | Unit | _: BoxedUnit => LuaValue.NIL
+      case null | () | _: BoxedUnit => LuaValue.NIL
       case value: java.lang.Boolean => LuaValue.valueOf(value.booleanValue)
       case value: java.lang.Byte => LuaValue.valueOf(value.byteValue)
       case value: java.lang.Character => LuaValue.valueOf(String.valueOf(value))
@@ -64,7 +64,7 @@ object ScalaClosure {
     table
   }
 
-  def toLuaTable(value: Map[_, _]): LuaValue = {
+  def toLuaTable[K, V](value: Map[K, V]): LuaValue = {
     LuaValue.tableOf(value.flatMap {
       case (k, v) => Seq(toLuaValue(k), toLuaValue(v))
     }.toArray)

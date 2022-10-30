@@ -159,7 +159,7 @@ class NetSplitter(selfType: TileEntityType[_ <: NetSplitter]) extends TileEntity
   def setSideHelper(args: Arguments, value: Boolean): Array[AnyRef] = {
     val sideIndex = args.checkInteger(0)
     if (sideIndex < 0 || sideIndex > 5)
-      return result(Unit, "invalid direction")
+      return result((), "invalid direction")
     val side = Direction.from3DDataValue(sideIndex)
     result(setSide(side, value))
   }

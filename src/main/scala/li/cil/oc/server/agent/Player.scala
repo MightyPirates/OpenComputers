@@ -11,6 +11,7 @@ import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
+import li.cil.oc.server.agent.{Inventory => AgentInventory}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.PistonBlock
@@ -59,7 +60,7 @@ import net.minecraftforge.eventbus.api.{Event, EventPriority, SubscribeEvent}
 import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.wrapper._
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 
 object Player {
   // These use unobfuscated names because they're added by forge (LazyOptional / capabilities).
@@ -111,7 +112,7 @@ object Player {
     val agent = player.agent
     def setCopyOrNull(inv: net.minecraft.util.NonNullList[ItemStack], agentInv: IInventory, slot: Int): Unit = {
       val item = agentInv.getItem(slot)
-      inv(slot) = if (item != null) item.copy() else ItemStack.EMPTY
+      inv.set(slot, if (item != null) item.copy() else ItemStack.EMPTY)
     }
 
     for (i <- 0 until 4) {
@@ -121,7 +122,7 @@ object Player {
     // items is 36 items
     // the agent inventory is 100 items with some space for components
     // leaving us 88..we'll copy what we can
-    val size = player.inventory.items.length min agent.mainInventory.getContainerSize
+    val size = player.inventory.items.size min agent.mainInventory.getContainerSize
     for (i <- 0 until size) {
       setCopyOrNull(player.inventory.items, agent.mainInventory, i)
     }
@@ -140,11 +141,11 @@ object Player {
       }
     }
     for (i <- 0 until 4) {
-      setCopy(agent.equipmentInventory(), i, player.inventory.armor(i))
+      setCopy(agent.equipmentInventory(), i, player.inventory.armor.get(i))
     }
-    val size = player.inventory.items.length min agent.mainInventory.getContainerSize
+    val size = player.inventory.items.size min agent.mainInventory.getContainerSize
     for (i <- 0 until size) {
-      setCopy(agent.mainInventory, i, player.inventory.items(i))
+      setCopy(agent.mainInventory, i, player.inventory.items.get(i))
     }
   }
 }
@@ -165,7 +166,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   refreshDimensions()
 
   {
-    this.inventory = new Inventory(this, agent)
+    this.inventory = new AgentInventory(this, agent)
     // because the inventory was just overwritten, the container is now detached
     this.inventoryMenu = new PlayerContainer(inventory, !level.isClientSide, this)
     this.containerMenu = this.inventoryMenu
@@ -195,7 +196,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val bounds = BlockPosition(agent).offset(side).bounds
     val candidates = level.getEntitiesOfClass(clazz, bounds, null)
     if (candidates.isEmpty) return None
-    Some(candidates.minBy(e => distanceToSqr(e)))
+    Some(candidates.asScala.minBy(e => distanceToSqr(e)))
   }
 
   def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: Direction): util.List[Type] = {
@@ -211,8 +212,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   private def collectDroppedItems(itemsBefore: Iterable[ItemEntity]) {
-    val itemsAfter = adjacentItems
-    val itemsDropped = itemsAfter -- itemsBefore
+    val itemsDropped = adjacentItems.asScala --= itemsBefore
     if (itemsDropped.nonEmpty) {
       for (drop <- itemsDropped) {
         drop.setDefaultPickUpDelay()
@@ -518,7 +518,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           else ForgeEventFactory.onPlayerDestroyItem(this, newStack, Hand.OFF_HAND)
         }
       }
-      collectDroppedItems(itemsBefore)
+      collectDroppedItems(itemsBefore.asScala)
     }
   }
 

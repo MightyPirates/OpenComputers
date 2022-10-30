@@ -21,17 +21,13 @@ import net.minecraft.inventory.container.PlayerContainer
 import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.vector.Vector3d
-import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.data.IModelData
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus
 
 import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
-@Mod.EventBusSubscriber(value = Array(Dist.CLIENT), modid = OpenComputers.ID, bus = Bus.MOD)
 object NetSplitterModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride
 

@@ -366,8 +366,8 @@ class ControllerImpl(val player: PlayerEntity) extends Controller with WirelessE
     if (activeBehaviorsDirty) {
       configuration.synchronized(if (activeBehaviorsDirty) {
         val newBehaviors = configuration.behaviors.filter(_.isActive).map(_.behavior)
-        val addedBehaviors = newBehaviors -- activeBehaviors
-        val removedBehaviors = activeBehaviors -- newBehaviors
+        val addedBehaviors = newBehaviors.clone --= activeBehaviors
+        val removedBehaviors = activeBehaviors.clone --= newBehaviors
         activeBehaviors.clear()
         activeBehaviors ++= newBehaviors
         activeBehaviorsDirty = false

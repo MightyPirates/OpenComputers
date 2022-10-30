@@ -291,11 +291,11 @@ class Microcontroller(selfType: TileEntityType[_ <: Microcontroller]) extends Ti
   }
 
   // Uses the loot system, so still nope.
-  override def forAllLoot(dst: Consumer[ItemStack]) = Unit
+  override def forAllLoot(dst: Consumer[ItemStack]) = ()
 
   // Nope.
   override def dropSlot(slot: Int, count: Int = getMaxStackSize, direction: Option[Direction]) = false
 
   // Nope.
-  override def dropAllSlots() = Unit
+  override def dropAllSlots() = ()
 }

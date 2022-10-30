@@ -45,7 +45,7 @@ abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
   protected def getValue(tileEntity: Option[SignTileEntity]): Array[AnyRef] = {
     tileEntity match {
       case Some(sign) => result(sign.messages.map(_.getString).mkString("\n"))
-      case _ => result(Unit, "no sign")
+      case _ => result((), "no sign")
     }
   }
 
@@ -60,7 +60,7 @@ abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
         val lines = text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).toArray
 
         if (!canChangeSign(player, sign, lines)) {
-          return result(Unit, "not allowed")
+          return result((), "not allowed")
         }
 
         lines.map(line => new StringTextComponent(line)).copyToArray(sign.messages)
@@ -69,7 +69,7 @@ abstract class UpgradeSign extends AbstractManagedEnvironment with DeviceInfo {
         MinecraftForge.EVENT_BUS.post(new SignChangeEvent.Post(sign, lines))
 
         result(sign.messages.mkString("\n"))
-      case _ => result(Unit, "no sign")
+      case _ => result((), "no sign")
     }
   }
 
