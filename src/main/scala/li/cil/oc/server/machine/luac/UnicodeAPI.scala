@@ -9,7 +9,7 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.newTable()
 
     lua.pushScalaFunction(lua => {
-      lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+      lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInt32).map(_.toChar).toArray))
       1
     })
     lua.setField(-2, "char")
@@ -34,12 +34,12 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val string = lua.checkString(1)
-      val start = math.max(0, lua.checkInteger(2) match {
+      val start = math.max(0, lua.checkInt32(2) match {
         case i if i < 0 => string.length + i
         case i => i - 1
       })
       val end =
-        if (lua.getTop > 2) math.min(string.length, lua.checkInteger(3) match {
+        if (lua.getTop > 2) math.min(string.length, lua.checkInt32(3) match {
           case i if i < 0 => string.length + i + 1
           case i => i
         })

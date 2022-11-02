@@ -15,7 +15,6 @@ import li.cil.oc.api.machine.Architecture
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua
-import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import net.minecraft.item.ItemStack
 import org.apache.commons.lang3.SystemUtils
 
@@ -53,7 +52,7 @@ object LuaStateFactory {
   }
 
   object Lua52 extends LuaStateFactory {
-    override def version: String = "lua52"
+    override def version: String = "52"
 
     override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaState())(new jnlua.LuaState(_))
 
@@ -71,7 +70,7 @@ object LuaStateFactory {
   }
 
   object Lua53 extends LuaStateFactory {
-    override def version: String = "lua53"
+    override def version: String = "53"
 
     override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaStateFiveThree())(new jnlua.LuaStateFiveThree(_))
 
@@ -111,40 +110,39 @@ abstract class LuaStateFactory {
 
   private val libraryName = {
     if (!Strings.isNullOrEmpty(Settings.get.forceNativeLib)) Settings.get.forceNativeLib
+    else {
+      val libExtension = {
+        if (SystemUtils.IS_OS_MAC) ".dylib"
+        else if (SystemUtils.IS_OS_WINDOWS) ".dll"
+        else ".so"
+      }
 
-    else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X64) "native.64.bsd.so"
-    else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X86) "native.32.bsd.so"
+      val platformName = {
+        val systemName = {
+          if (SystemUtils.IS_OS_FREE_BSD) "freebsd"
+          else if (SystemUtils.IS_OS_NET_BSD) "netbsd"
+          else if (SystemUtils.IS_OS_OPEN_BSD) "openbsd"
+          else if (SystemUtils.IS_OS_SOLARIS) "solaris"
+          else if (SystemUtils.IS_OS_LINUX) "linux"
+          else if (SystemUtils.IS_OS_MAC) "darwin"
+          else if (SystemUtils.IS_OS_WINDOWS) "windows"
+          else "unknown"
+        }
 
-    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_ARM) "native.32.arm.so"
-    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X64) "native.64.so"
-    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X86) "native.32.so"
+        val archName = {
+          if (Architecture.IS_OS_ARM64) "aarch64"
+          else if (Architecture.IS_OS_ARM) "arm"
+          else if (Architecture.IS_OS_X64) "x86_64"
+          else if (Architecture.IS_OS_X86) "x86"
+          else "unknown"
+        }
 
-    else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X64) "native.64.dylib"
-    else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X86) "native.32.dylib"
+        systemName + "-" + archName
+      }
 
-    else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X64) "native.64.dll"
-    else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X86) "native.32.dll"
-
-    else null
-  }
-
-  // Register a custom library loader with JNLua. We have to trigger
-  // library loads through JNLua to ensure the LuaState class is the
-  // one loading the library and not the other way around - the native
-  // library also references the LuaState class, and if it is loaded
-  // that way, it will fail to access native methods in its static
-  // initializer, because the native lib will not have been completely
-  // loaded at the time the initializer runs.
-  private def prepareLoad(lib: String): Unit = jnlua.NativeSupport.getInstance().setLoader(new Loader {
-    def load(): Unit = {
-      // This redirects to `System.load(lib)`. It is required because
-      // Java expects the correct ClassLoader to also load the native
-      // library. Simply calling load here doesn't work in dev,
-      // because the JNLua jar only gets merged when the mod is built.
-      // Production environments are unaffected.
-      jnlua.NativeSupport.proxyLoad(lib)
+      "libjnlua" + version + "-" + platformName + libExtension
     }
-  })
+  }
 
   protected def create(maxMemory: Option[Int] = None): jnlua.LuaState
 
@@ -178,7 +176,7 @@ abstract class LuaStateFactory {
       }
     }
 
-    val libraryUrl = classOf[Machine].getResource(s"/assets/${Settings.resourceDomain}/lib/$version/$libraryName")
+    val libraryUrl = classOf[Machine].getResource(s"/assets/${Settings.resourceDomain}/lib//$libraryName")
     if (libraryUrl == null) {
       OpenComputers.log.warn(s"Native library with name '$version/$libraryName' not found.")
       return
@@ -282,7 +280,7 @@ abstract class LuaStateFactory {
     currentLib = tmpLibFile.getAbsolutePath
     try {
       LuaStateFactory.synchronized {
-        prepareLoad(currentLib)
+        System.load(currentLib)
         create().close()
       }
       OpenComputers.log.info(s"Found a compatible native library: '${tmpLibFile.getName}'.")
@@ -315,7 +313,7 @@ abstract class LuaStateFactory {
 
     try {
       val state = LuaStateFactory.synchronized {
-        prepareLoad(currentLib)
+        System.load(currentLib)
         if (Settings.get.limitMemory) create(Some(Int.MaxValue))
         else create()
       }
@@ -381,7 +379,7 @@ abstract class LuaStateFactory {
         state.setField(-2, "random")
 
         state.pushScalaFunction(lua => {
-          random.setSeed(lua.checkNumber(1).toLong)
+          random.setSeed(lua.checkInteger(1))
           0
         })
         state.setField(-2, "randomseed")
@@ -413,6 +411,8 @@ abstract class LuaStateFactory {
     }
 
     val IS_OS_ARM = isOSArchMatch("arm")
+
+    val IS_OS_ARM64 = isOSArchMatch("aarch64")
 
     val IS_OS_X86 = isOSArchMatch("x86") || isOSArchMatch("i386")
 

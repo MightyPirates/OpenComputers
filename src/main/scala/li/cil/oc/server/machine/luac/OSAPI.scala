@@ -80,7 +80,7 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
           if (res == null)
             if (d < 0) throw new Exception("field '" + key + "' missing in date table")
             else d
-          else res: Int
+          else res.intValue()
         }
 
         lua.checkType(1, LuaType.TABLE)

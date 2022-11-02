@@ -61,11 +61,7 @@ minecraft {
             workingDirectory project.file("run")
             property "forge.logging.markers", "REGISTRIES"
             property "forge.logging.console.level", "debug"
-            mods {
-                opencomputers {
-                    source sourceSets.main
-                }
-            }
+            environment "MOD_CLASSES", "opencomputers%%"
         }
     }
 }
@@ -81,6 +77,18 @@ repositories {
         url "https://maven.cil.li/"
         content {
             includeGroup "li.cil.tis3d"
+        }
+    }
+    ivy {
+        name 'asie dependency mirror'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+        content {
+            includeModule '', 'OC-LuaJ'
+            includeModule '', 'OC-JNLua'
+            includeModule '', 'OC-JNLua-Natives'
+        }
+        metadataSources {
+            artifact()
         }
     }
     maven {
@@ -125,8 +133,9 @@ configurations {
 
 dependencies {
     var jeiSlug = "jei-${config.minecraft.version}"
-    
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
+    runtimeOnly files(jar.archiveFile)
+
     compileOnly "org.scala-lang:scala-library:2.13.4"
     implementation "net.minecraftforge:Scorge:${config.scorge.version}"
     embedded "com.typesafe:config:1.2.1"
@@ -159,7 +168,9 @@ dependencies {
         exclude module: "CBMultipart"
     }
 
-    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
+    embedded name: 'OC-LuaJ', version: '20220907.1', ext: 'jar'
+    embedded name: 'OC-JNLua', version: '20220928.1', ext: 'jar'
+    embedded name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
     compileOnly "codechicken:EnderStorage:${config.enderstorage.version}:universal"
 }
@@ -228,7 +239,12 @@ artifacts {
     archives javadocJar
 }
 
-jar.finalizedBy('reobfJar')
+publish.dependsOn('reobfJar')
+afterEvaluate {
+    prepareRuns {
+        dependsOn(jar)
+    }
+}
 
 publishing {
     publications {
