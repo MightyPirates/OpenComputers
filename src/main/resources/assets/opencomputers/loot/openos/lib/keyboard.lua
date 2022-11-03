@@ -4,29 +4,31 @@ local keyboard = {pressedChars = {}, pressedCodes = {}}
 -- __index loads all key data from /lib/tools/keyboard_full.lua (only once)
 -- new key metadata should be added here if required for boot
 keyboard.keys = {
-  c               = 0x43,
-  d               = 0x44,
-  q               = 0x51,
-  w               = 0x57,
-  back            = 0x103, -- backspace
-  delete          = 0x105,
-  down            = 0x108,
-  enter           = 0x101,
-  home            = 0x10C,
-  lcontrol        = 0x155,
-  left            = 0x107,
-  lmenu           = 0x156, -- left Alt
-  lshift          = 0x154,
-  pageDown        = 0x10B,
-  rcontrol        = 0x159,
-  right           = 0x106,
-  rmenu           = 0x15A, -- right Alt
-  rshift          = 0x158,
-  space           = 0x20,
-  tab             = 0x102,
-  up              = 0x109,
-  ["end"]         = 0x10D,
-  numpadenter     = 0x14F,
+  c               = 0x2E,
+  d               = 0x20,
+  q               = 0x10,
+  w               = 0x11,
+  back            = 0x0E, -- backspace
+  delete          = 0xD3,
+  down            = 0xD0,
+  enter           = 0x1C,
+  home            = 0xC7,
+  lcontrol        = 0x1D,
+  left            = 0xCB,
+  lmenu           = 0x38, -- left Alt
+  lshift          = 0x2A,
+  pageDown        = 0xD1,
+  rcontrol        = 0x9D,
+  right           = 0xCD,
+  rmenu           = 0xB8, -- right Alt
+  rshift          = 0x36,
+  space           = 0x39,
+  tab             = 0x0F,
+  up              = 0xC8,
+  ["end"]         = 0xCF,
+  enter           = 0x1C,
+  tab             = 0x0F,
+  numpadenter     = 0x9C,
 }
 
 -------------------------------------------------------------------------------
