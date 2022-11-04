@@ -97,12 +97,7 @@ private[oc] class Proxy extends CommonProxy {
       MinecraftForge.EVENT_BUS.register(HologramRenderer)
     }): Runnable)
 
-    runOnRenderThread(() => MinecraftForge.EVENT_BUS.register(TextBufferRenderCache))
-  }
-
-  def runOnRenderThread(call: IRenderCall) {
-    if (RenderSystem.isOnRenderThreadOrInit) call.execute()
-    else RenderSystem.recordRenderCall(call)
+    RenderSystem.recordRenderCall(() => MinecraftForge.EVENT_BUS.register(TextBufferRenderCache))
   }
 
   override def registerModel(instance: Item, id: String): Unit = ModelInitialization.registerModel(instance, id)
