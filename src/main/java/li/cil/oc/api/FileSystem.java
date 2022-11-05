@@ -27,20 +27,21 @@ public final class FileSystem {
      * the namespace refers to the mod and the resource path denotes a
      * (mandatory) subpath relative to that mod's assets directory.
      * <p/>
-     * If {@code loc} is stored in a JAR file, this will create a read-only file
-     * system based on that JAR file. If {@code loc} is stored in the native
-     * file system, this will create a read-only file system from the the location
-     * constructed as described above (relative to the root of the namespace).
+     * If {@code location} is stored in a JAR file, this will create a read-only
+     * file system based on that JAR file. If {@code location} is stored in the
+     * native file system, this will create a read-only file system from the the
+     * location constructed as described above (relative to the root of the
+     * namespace).
      * <p/>
      * If the specified path cannot be located, the creation fails and this
      * returns <tt>null</tt>.
      *
-     * @param loc the location where the file system's contents are stored.
+     * @param location the location where the file system's contents are stored.
      * @return a file system wrapping the specified resource.
      */
-    public static li.cil.oc.api.fs.FileSystem fromResource(final ResourceLocation loc) {
+    public static li.cil.oc.api.fs.FileSystem fromResource(final ResourceLocation location) {
         if (API.fileSystem != null)
-            return API.fileSystem.fromResource(loc);
+            return API.fileSystem.fromResource(location);
         return null;
     }
 

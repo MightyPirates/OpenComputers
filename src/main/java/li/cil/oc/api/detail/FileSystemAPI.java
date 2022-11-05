@@ -12,18 +12,19 @@ public interface FileSystemAPI {
      * the namespace refers to the mod and the resource path denotes a
      * (mandatory) subpath relative to that mod's assets directory.
      * <p/>
-     * If {@code loc} is stored in a JAR file, this will create a read-only file
-     * system based on that JAR file. If {@code loc} is stored in the native
-     * file system, this will create a read-only file system from the the location
-     * constructed as described above (relative to the root of the namespace).
+     * If {@code location} is stored in a JAR file, this will create a read-only
+     * file system based on that JAR file. If {@code location} is stored in the
+     * native file system, this will create a read-only file system from the the
+     * location constructed as described above (relative to the root of the
+     * namespace).
      * <p/>
      * If the specified path cannot be located, the creation fails and this
      * returns <tt>null</tt>.
      *
-     * @param loc the location where the file system's contents are stored.
+     * @param location the location where the file system's contents are stored.
      * @return a file system wrapping the specified resource.
      */
-    FileSystem fromResource(ResourceLocation loc);
+    FileSystem fromResource(ResourceLocation location);
 
     /**
      * Creates a new <em>writable</em> file system in the save folder.
