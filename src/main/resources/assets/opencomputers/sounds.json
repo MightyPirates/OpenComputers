@@ -8,36 +8,36 @@
   "floppy_access": {
     "category": "block",
     "sounds": [
-      "opencomputers:floppy_access1",
-      "opencomputers:floppy_access2",
-      "opencomputers:floppy_access3",
-      "opencomputers:floppy_access4",
-      "opencomputers:floppy_access5",
-      "opencomputers:floppy_access6"
+      {"name": "opencomputers:floppy_access1", "preload": true},
+      {"name": "opencomputers:floppy_access2", "preload": true},
+      {"name": "opencomputers:floppy_access3", "preload": true},
+      {"name": "opencomputers:floppy_access4", "preload": true},
+      {"name": "opencomputers:floppy_access5", "preload": true},
+      {"name": "opencomputers:floppy_access6", "preload": true}
     ]
   },
   "floppy_eject": {
     "category": "block",
     "sounds": [
-      "opencomputers:floppy_eject"
+      {"name": "opencomputers:floppy_eject", "preload": true}
     ]
   },
   "floppy_insert": {
     "category": "block",
     "sounds": [
-      "opencomputers:floppy_insert"
+      {"name": "opencomputers:floppy_insert", "preload": true}
     ]
   },
   "hdd_access": {
     "category": "block",
     "sounds": [
-      "opencomputers:hdd_access1",
-      "opencomputers:hdd_access2",
-      "opencomputers:hdd_access3",
-      "opencomputers:hdd_access4",
-      "opencomputers:hdd_access5",
-      "opencomputers:hdd_access6",
-      "opencomputers:hdd_access7"
+      {"name": "opencomputers:hdd_access1", "preload": true},
+      {"name": "opencomputers:hdd_access2", "preload": true},
+      {"name": "opencomputers:hdd_access3", "preload": true},
+      {"name": "opencomputers:hdd_access4", "preload": true},
+      {"name": "opencomputers:hdd_access5", "preload": true},
+      {"name": "opencomputers:hdd_access6", "preload": true},
+      {"name": "opencomputers:hdd_access7", "preload": true}
     ]
   }
 }
