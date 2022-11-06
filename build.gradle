@@ -131,10 +131,16 @@ configurations {
     implementation.extendsFrom embedded
 }
 
+task devJar(type: Jar) {
+    classifier = 'dev'
+    dependsOn(jar.dependsOn)
+    from(jar.source)
+}
+
 dependencies {
     var jeiSlug = "jei-${config.minecraft.version}"
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
-    runtimeOnly files(jar.archiveFile)
+    runtimeOnly files(devJar.archiveFile)
 
     compileOnly "org.scala-lang:scala-library:2.13.4"
     implementation "net.minecraftforge:Scorge:${config.scorge.version}"
@@ -197,7 +203,7 @@ allprojects {
     }
 }
 
-jar {
+configure([jar, devJar]) {
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude '*', 'META-INF', 'META-INF/**'
@@ -239,10 +245,10 @@ artifacts {
     archives javadocJar
 }
 
-publish.dependsOn('reobfJar')
+jar.finalizedBy('reobfJar')
 afterEvaluate {
     prepareRuns {
-        dependsOn(jar)
+        dependsOn(devJar)
     }
 }
 
