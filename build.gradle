@@ -24,7 +24,11 @@ file "build.properties" withReader {
     ext.config = new ConfigSlurper().parse prop
 }
 
-version = config.mod.version
+version = "${mod_version}"
+if (version.endsWith("-snapshot")) {
+    version += "-" + (new Date().format('yyyyMMdd'))
+}
+
 group = config.mod.group
 archivesBaseName = config.mod.name
 
@@ -41,12 +45,7 @@ def getGitRef() {
     }
 }
 
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += ".${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
+version += "+" + getGitRef()
 
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
@@ -186,13 +185,13 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"
         include 'META-INF/mods.toml'
-        expand 'version':project.simpleVersion, 'mcversion':config.minecraft.version, 'sversion':reducedScorgeVer
+        expand 'version':mod_version, 'mcversion':config.minecraft.version, 'sversion':reducedScorgeVer
     }
     from(sourceSets.main.resources.srcDirs) {
         duplicatesStrategy = "include"
         include 'application.conf'
         filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
+            line.replaceAll("@VERSION@", mod_version)
         }
     }
 }
@@ -215,8 +214,8 @@ configure([jar, devJar]) {
             "Specification-Vendor": "li.cil.oc",
             "Specification-Version": "1",
             "Implementation-Title": project.name,
-            "Implementation-Version": "${project.simpleVersion}",
-            "Implementation-Vendor": "${config.mod.group}",
+            "Implementation-Version": version,
+            "Implementation-Vendor": config.mod.group,
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             "FMLCorePlugin": "li.cil.oc.common.launch.TransformerLoader",
             "FMLCorePluginContainsFMLMod": "true"
