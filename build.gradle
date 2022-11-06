@@ -275,5 +275,6 @@ curseforge {
         changelog = file("changelog.md")
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
+        addGameVersion "Forge"
     }
 }
