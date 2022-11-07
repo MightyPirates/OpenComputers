@@ -1,5 +1,7 @@
 package li.cil.oc.client.gui.traits
 
+import java.util.Arrays
+
 import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
@@ -150,6 +152,7 @@ trait InputBuffer extends DisplayBuffer {
 
 object GLFWTranslator {
   private val toLWJGL = new Array[Int](GLFW.GLFW_KEY_LAST + 1)
+  Arrays.fill(toLWJGL, -1)
 
   /** Printable keys. */
   toLWJGL(GLFW.GLFW_KEY_SPACE) = 0x39
@@ -200,8 +203,8 @@ object GLFWTranslator {
   toLWJGL(GLFW.GLFW_KEY_BACKSLASH) = 0x2B
   toLWJGL(GLFW.GLFW_KEY_RIGHT_BRACKET) = 0x1B
   toLWJGL(GLFW.GLFW_KEY_GRAVE_ACCENT) = 0x29
-  toLWJGL(GLFW.GLFW_KEY_WORLD_1) = -1
-  toLWJGL(GLFW.GLFW_KEY_WORLD_2) = -1
+  toLWJGL(GLFW.GLFW_KEY_WORLD_1) = 0x00
+  toLWJGL(GLFW.GLFW_KEY_WORLD_2) = 0x00
 
   /** Function keys. */
   toLWJGL(GLFW.GLFW_KEY_ESCAPE) = 0x01
@@ -221,7 +224,7 @@ object GLFWTranslator {
   toLWJGL(GLFW.GLFW_KEY_CAPS_LOCK) = 0x3A
   toLWJGL(GLFW.GLFW_KEY_SCROLL_LOCK) = 0x46
   toLWJGL(GLFW.GLFW_KEY_NUM_LOCK) = 0x45
-  toLWJGL(GLFW.GLFW_KEY_PRINT_SCREEN) = -1
+  toLWJGL(GLFW.GLFW_KEY_PRINT_SCREEN) = 0xB7
   toLWJGL(GLFW.GLFW_KEY_PAUSE) = 0xC5
   toLWJGL(GLFW.GLFW_KEY_F1) = 0x3B
   toLWJGL(GLFW.GLFW_KEY_F2) = 0x3C
@@ -264,7 +267,7 @@ object GLFWTranslator {
   toLWJGL(GLFW.GLFW_KEY_KP_SUBTRACT) = 0x4A
   toLWJGL(GLFW.GLFW_KEY_KP_ADD) = 0x4E
   toLWJGL(GLFW.GLFW_KEY_KP_ENTER) = 0x9C
-  toLWJGL(GLFW.GLFW_KEY_KP_EQUAL) = -1
+  toLWJGL(GLFW.GLFW_KEY_KP_EQUAL) = 0x8D
   toLWJGL(GLFW.GLFW_KEY_LEFT_SHIFT) = 0x2A
   toLWJGL(GLFW.GLFW_KEY_LEFT_CONTROL) = 0x1D
   toLWJGL(GLFW.GLFW_KEY_LEFT_ALT) = 0x38
