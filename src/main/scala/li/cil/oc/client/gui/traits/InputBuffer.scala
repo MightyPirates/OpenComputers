@@ -28,9 +28,44 @@ trait InputBuffer extends DisplayBuffer {
 
   protected def hasKeyboard: Boolean
 
-  private val pressedKeys = mutable.Set.empty[Int]
+  private val pressedKeys = mutable.Map.empty[Int, Char]
 
   private var showKeyboardMissing = 0L
+
+  private var hasQueuedKey = false
+  private var queuedKey = 0
+  private var queuedChar = '\u0000'
+
+  protected def pushQueuedKey(keyCode: Int): Unit = {
+    flushQueuedKey()
+    hasQueuedKey = true
+    queuedKey = keyCode
+    queuedChar = GLFWTranslator.keyToChar(keyCode)
+  }
+
+  protected def pushQueuedChar(char: Char): Unit = {
+    if (hasQueuedKey) {
+      queuedChar = char
+      flushQueuedKey()
+    }
+  }
+
+  protected def flushQueuedKey(): Unit = {
+    if (hasQueuedKey) {
+      hasQueuedKey = false
+      if (!pressedKeys.contains(queuedKey)) {
+        val lwjglCode = GLFWTranslator.glfwToLWJGL(queuedKey)
+        if (lwjglCode > 0) {
+          pressedKeys(queuedKey) = queuedChar
+          if (buffer != null) buffer.keyDown(queuedChar, lwjglCode, null)
+        }
+        else if (queuedChar > 0) {
+          pressedKeys(queuedKey) = queuedChar
+          if (buffer != null) buffer.keyDown(queuedChar, 0, null)
+        }
+      }
+    }
+  }
 
   override def isPauseScreen = false
 
@@ -61,11 +96,21 @@ trait InputBuffer extends DisplayBuffer {
     }
   }
 
+  override def tick(): Unit = {
+    super.tick()
+    flushQueuedKey()
+  }
+
   override def removed() = {
     super.removed()
     Minecraft.getInstance.keyboardHandler.setSendRepeatsToGui(false)
-    if (buffer != null) for (code <- pressedKeys) {
-      buffer.keyUp(GLFWTranslator.keyToChar(code), GLFWTranslator.glfwToLWJGL(code), null)
+    if (buffer != null) {
+      flushQueuedKey()
+      for ((code, char) <- pressedKeys) {
+        val lwjglCode = GLFWTranslator.glfwToLWJGL(code)
+        if (lwjglCode > 0) buffer.keyUp(char, lwjglCode, null)
+        else buffer.keyUp(char, 0, null)
+      }
     }
   }
 
@@ -83,10 +128,7 @@ trait InputBuffer extends DisplayBuffer {
   override def charTyped(codePt: Char, mods: Int): Boolean = {
     if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
       if (buffer != null) {
-        if (hasKeyboard) {
-          buffer.keyDown(codePt, 0, null)
-          buffer.keyUp(codePt, 0, null)
-        }
+        if (hasKeyboard) pushQueuedChar(codePt)
         else showKeyboardMissing = System.currentTimeMillis()
         return true
       }
@@ -102,12 +144,7 @@ trait InputBuffer extends DisplayBuffer {
       }
       if (onInput(InputMappings.getKey(keyCode, scanCode))) return true
       if (buffer != null && keyCode != GLFW.GLFW_KEY_UNKNOWN) {
-        if (hasKeyboard) {
-          val lwjglCode = GLFWTranslator.glfwToLWJGL(keyCode)
-          if (lwjglCode > 0 && (pressedKeys.add(keyCode) || !ignoreRepeat(keyCode))) {
-            buffer.keyDown(GLFWTranslator.keyToChar(keyCode), lwjglCode, null)
-          }
-        }
+        if (hasKeyboard) pushQueuedKey(keyCode)
         else showKeyboardMissing = System.currentTimeMillis()
         return true
       }
@@ -117,10 +154,20 @@ trait InputBuffer extends DisplayBuffer {
 
   override def keyReleased(keyCode: Int, scanCode: Int, mods: Int): Boolean = {
     if (!this.isInstanceOf[ContainerScreen[_]] || !ItemSearch.isInputFocused) {
-      val lwjglCode = GLFWTranslator.glfwToLWJGL(keyCode)
-      if (lwjglCode > 0 && pressedKeys.remove(keyCode)) {
-        buffer.keyUp(GLFWTranslator.keyToChar(keyCode), lwjglCode, null)
-        return true
+      flushQueuedKey()
+      pressedKeys.remove(keyCode) match {
+        case Some(char) => {
+          val lwjglCode = GLFWTranslator.glfwToLWJGL(keyCode)
+          if (lwjglCode > 0) {
+            buffer.keyUp(char, lwjglCode, null)
+            return true
+          }
+          else if (char > 0) {
+            buffer.keyUp(char, 0, null)
+            return true
+          }
+        }
+        case None =>
       }
       // Wasn't pressed while viewing the screen.
     }
