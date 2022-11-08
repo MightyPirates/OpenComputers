@@ -63,6 +63,13 @@ minecraft {
             property "forge.logging.console.level", "debug"
             environment "MOD_CLASSES", "opencomputers%%"
         }
+
+        server {
+            workingDirectory project.file("run")
+            property "forge.logging.markers", "REGISTRIES"
+            property "forge.logging.console.level", "debug"
+            environment "MOD_CLASSES", "opencomputers%%"
+        }
     }
 }
 
