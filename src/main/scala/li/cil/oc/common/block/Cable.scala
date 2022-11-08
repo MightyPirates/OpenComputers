@@ -54,15 +54,13 @@ class Cable(props: Properties) extends SimpleBlock(props) with IForgeBlock {
     setValue(PropertyCableConnection.EAST, PropertyCableConnection.Shape.NONE))
 
   override def getStateForPlacement(ctx: BlockItemUseContext): BlockState = {
-    var state = defaultBlockState
     val color = Cable.getConnectionColor(ctx.getItemInHand)
-    val fromPos = new BlockPos.Mutable();
-    for (fromSide <- Direction.values) {
+    val fromPos = new BlockPos.Mutable()
+    Direction.values.foldLeft(defaultBlockState)((state, fromSide) => {
       fromPos.setWithOffset(ctx.getClickedPos, fromSide)
       val fromState = ctx.getLevel.getBlockState(fromPos)
-      state = Cable.updateState(state, null, color, fromSide, fromState, ctx.getLevel, fromPos)
-    }
-    state
+      Cable.updateState(state, null, color, fromSide, fromState, ctx.getLevel, fromPos)
+    })
   }
 
   override def getPickBlock(state: BlockState, target: RayTraceResult, world: IBlockReader, pos: BlockPos, player: PlayerEntity) =
@@ -72,6 +70,22 @@ class Cable(props: Properties) extends SimpleBlock(props) with IForgeBlock {
     }
 
   override def getShape(state: BlockState, world: IBlockReader, pos: BlockPos, ctx: ISelectionContext): VoxelShape = Cable.shape(state)
+
+  override def neighborChanged(state: BlockState, world: World, pos: BlockPos, other: Block, otherPos: BlockPos, moved: Boolean): Unit = {
+    if (world.isClientSide) return
+    val newState = world.getBlockEntity(pos) match {
+      case t: tileentity.Cable => {
+        val fromPos = new BlockPos.Mutable()
+        Direction.values.foldLeft(state)((state, fromSide) => {
+          fromPos.setWithOffset(pos, fromSide)
+          val fromState = world.getBlockState(fromPos)
+          Cable.updateState(state, t, -1, fromSide, fromState, world, fromPos)
+        })
+      }
+      case _ => state
+    }
+    if (newState != state) world.setBlock(pos, newState, 0x13)
+  }
 
   override def updateShape(state: BlockState, fromSide: Direction, fromState: BlockState, world: IWorld, pos: BlockPos, fromPos: BlockPos): BlockState =
     Cable.updateState(state, world.getBlockEntity(pos), -1, fromSide, fromState, world, fromPos)
