@@ -383,6 +383,9 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
   override def keyUp(character: Char, code: Int, player: PlayerEntity): Unit =
     proxy.keyUp(character, code, player)
 
+  override def textInput(codePt: Int, player: PlayerEntity): Unit =
+    proxy.textInput(codePt, player)
+
   override def clipboard(value: String, player: PlayerEntity): Unit =
     proxy.clipboard(value, player)
 
@@ -603,6 +606,8 @@ object TextBuffer {
 
     def keyUp(character: Char, code: Int, player: PlayerEntity): Unit
 
+    def textInput(codePt: Int, player: PlayerEntity): Unit
+
     def clipboard(value: String, player: PlayerEntity): Unit
 
     def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity): Unit
@@ -692,6 +697,11 @@ object TextBuffer {
     override def keyUp(character: Char, code: Int, player: PlayerEntity) {
       debug(s"{type = keyUp, char = $character, code = $code}")
       ClientPacketSender.sendKeyUp(nodeAddress, character, code)
+    }
+
+    override def textInput(codePt: Int, player: PlayerEntity) {
+      debug(s"{type = textInput, codePt = $codePt}")
+      ClientPacketSender.sendTextInput(nodeAddress, codePt)
     }
 
     override def clipboard(value: String, player: PlayerEntity) {
@@ -830,6 +840,10 @@ object TextBuffer {
 
     override def keyUp(character: Char, code: Int, player: PlayerEntity) {
       sendToKeyboards("keyboard.keyUp", player, Char.box(character), Int.box(code))
+    }
+
+    override def textInput(codePt: Int, player: PlayerEntity) {
+      sendToKeyboards("keyboard.textInput", player, Int.box(codePt))
     }
 
     override def clipboard(value: String, player: PlayerEntity) {

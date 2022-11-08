@@ -88,6 +88,13 @@ class Keyboard(val host: EnvironmentHost) extends AbstractManagedEnvironment wit
             }
           case _ =>
         }
+      case Array(p: PlayerEntity, codePt: Integer) if message.name == "keyboard.textInput" =>
+        if (Settings.get.inputUsername) {
+          signal(p, "text_input", new String(Character.toChars(codePt)), p.getName.getString)
+        }
+        else {
+          signal(p, "text_input", new String(Character.toChars(codePt)))
+        }
       case Array(p: PlayerEntity, value: String) if message.name == "keyboard.clipboard" =>
         if (isUsableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {

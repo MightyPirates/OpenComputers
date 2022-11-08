@@ -35,6 +35,7 @@ trait InputBuffer extends DisplayBuffer {
   private var hasQueuedKey = false
   private var queuedKey = 0
   private var queuedChar = '\u0000'
+  private var highSurrogate = '\u0000'
 
   protected def pushQueuedKey(keyCode: Int): Unit = {
     flushQueuedKey()
@@ -45,9 +46,17 @@ trait InputBuffer extends DisplayBuffer {
 
   protected def pushQueuedChar(char: Char): Unit = {
     if (hasQueuedKey) {
-      queuedChar = char
+      if (!Character.isSurrogate(char)) queuedChar = char
+      // Flush either way as the next code point will be unrelated.
       flushQueuedKey()
     }
+    // text_input happens independent of key events
+    if (Character.isSurrogate(char)) {
+      // Convert two successive surrogates back into a code point.
+      if (Character.isHighSurrogate(char)) highSurrogate = char
+      else buffer.textInput(Character.toCodePoint(highSurrogate, char), null)
+    }
+    else buffer.textInput(char, null)
   }
 
   protected def flushQueuedKey(): Unit = {

@@ -83,6 +83,15 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendTextInput(address: String, codePt: Int) {
+    val pb = new SimplePacketBuilder(PacketType.TextInput)
+
+    pb.writeUTF(address)
+    pb.writeInt(codePt)
+
+    pb.sendToServer()
+  }
+
   def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
       if (value.length > 64 * 1024 || System.currentTimeMillis() < clipboardCooldown) {
