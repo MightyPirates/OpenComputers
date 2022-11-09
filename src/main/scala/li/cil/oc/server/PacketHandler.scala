@@ -44,6 +44,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
+      case PacketType.TextInput => onTextInput(p)
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MachineItemStateRequest => onMachineItemStateRequest(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
@@ -176,6 +177,17 @@ object PacketHandler extends CommonPacketHandler {
     ComponentTracker.get(p.player.level, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.keyUp(key, code, p.player.asInstanceOf[PlayerEntity])
       case _ => // Invalid Packet
+    }
+  }
+
+  def onTextInput(p: PacketParser): Unit = {
+    val address = p.readUTF()
+    val codePt = p.readInt()
+    if (codePt >= 0 && codePt <= Character.MAX_CODE_POINT) {
+      ComponentTracker.get(p.player.level, address) match {
+        case Some(buffer: api.internal.TextBuffer) => buffer.textInput(codePt, p.player.asInstanceOf[PlayerEntity])
+        case _ => // Invalid Packet
+      }
     }
   }
 

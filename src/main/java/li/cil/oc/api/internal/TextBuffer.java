@@ -522,6 +522,19 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
     void keyUp(char character, int code, PlayerEntity player);
 
     /**
+     * Signals a code-point (text) event for the buffer.
+     * <p/>
+     * On the client side this causes a packet to be sent to the server. On the
+     * server side this will trigger a message that will be picked up by
+     * keyboards, which will then cause a signal in attached machines.
+     *
+     * @param character the character of the released key.
+     * @param codePoint     the code point being typed.
+     * @param player        the player that typed the code point. Pass <tt>null</tt> on the client side.
+     */
+    void textInput(int codePoint, PlayerEntity player);
+
+    /**
      * Signals a clipboard paste event for the buffer.
      * <p/>
      * On the client side this causes a packet to be sent to the server. On the
