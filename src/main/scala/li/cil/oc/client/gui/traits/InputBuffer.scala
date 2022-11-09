@@ -337,9 +337,11 @@ object GLFWTranslator {
   def glfwToLWJGL(keyCode: Int): Int = if (keyCode >= 0 && keyCode < toLWJGL.size) toLWJGL(keyCode) else -1
 
   def keyToChar(keyCode: Int): Char = {
-    if (keyCode == GLFW.GLFW_KEY_ENTER) '\r'
-    else if (keyCode == GLFW.GLFW_KEY_KP_ENTER) '\r'
+    if (keyCode == GLFW.GLFW_KEY_ESCAPE) '\u001B'
+    else if (keyCode == GLFW.GLFW_KEY_ENTER) '\r'
+    else if (keyCode == GLFW.GLFW_KEY_TAB) '\t'
     else if (keyCode == GLFW.GLFW_KEY_BACKSPACE) '\b'
+    else if (keyCode == GLFW.GLFW_KEY_KP_ENTER) '\r'
     else '\u0000'
   }
 }
