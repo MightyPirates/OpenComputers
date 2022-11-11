@@ -30,7 +30,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 
 import scala.collection.convert.WrapAsJava._
 
-abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
+abstract class DataCard extends prefab.AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("data", Visibility.Neighbors).
     withConnector().
