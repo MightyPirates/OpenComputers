@@ -138,23 +138,28 @@ object FontUtils {
       else if ((charCode == 0xe0001) || ((charCode - 0xe0020) < 0x5f) || ((charCode - 0xe0100) < 0xef)) 0
       else 1
     }
-    OpenComputers.log.info("Initializing unicode wcwidth.")
-    for (i <- 0 until codepoint_limit) {
-      if (c_wcwidth(i) == 2)
-        defined_double_wide += i
+    {
+      OpenComputers.log.info("Initializing font glyph width cache...")
+      val time = System.currentTimeMillis()
+      for (i <- 0 until codepoint_limit) {
+        if (c_wcwidth(i) == 2)
+          defined_double_wide += i
+      }
+      OpenComputers.log.info("Initialized font glyph width cache in " + (System.currentTimeMillis() - time) + " milliseconds.")
     }
     try {
-      OpenComputers.log.info("Initializing font glyph widths.")
+      OpenComputers.log.info("Initializing font glyph width overrides...")
+      val time = System.currentTimeMillis()
       val font = FontUtils.getClass.getResourceAsStream("/assets/opencomputers/font.hex")
       try {
         var line: String = null
         val input = new BufferedReader(new InputStreamReader(font, StandardCharsets.UTF_8))
         var out_of_range_glyph: Int = 0
         while ({line = input.readLine; line != null}) {
-          val info = line.split(":")
-          val charCode = Integer.parseInt(info(0), 16)
+          val info = line.substring(0, line.indexOf(':'))
+          val charCode = Integer.parseInt(info, 16)
           if (charCode >= 0 && charCode < codepoint_limit) {
-            info(1).trim.length match {
+            line.length - info.length - 1 match {
               case 64 => defined_double_wide += charCode
               case 32 => defined_double_wide -= charCode
               case n => OpenComputers.log.warn(s"Invalid glyph size detected in font.hex. Expected 64 or 32, got: $n")
@@ -163,8 +168,8 @@ object FontUtils {
             out_of_range_glyph += 1
           }
         }
-        if (out_of_range_glyph > 1) {
-          OpenComputers.log.info(f"${out_of_range_glyph} total non-BMP glyph char codes detected in font.hex")
+        if (out_of_range_glyph >= 1) {
+          OpenComputers.log.info(f"${out_of_range_glyph} total out-of-bounds glyph char codes detected in font.hex")
         }
       } finally {
         try {
@@ -173,9 +178,9 @@ object FontUtils {
           case ex: Throwable => OpenComputers.log.error(s"Error closing font.hex: $ex")
         }
       }
+      OpenComputers.log.info("Initialized font glyph width overrides in " + (System.currentTimeMillis() - time) + " milliseconds.")
     } catch {
       case ex: Throwable => OpenComputers.log.error(s"Error parsing glyphs to determine widths: $ex")
     }
-    OpenComputers.log.info("glyph width ready.")
   }
 }

@@ -55,13 +55,34 @@ object FluidUtils {
    * <br>
    * This returns <tt>true</tt> if some fluid was transferred.
    */
-  def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME): Int = {
-    val drained = source.drain(limit, false)
+  def transferBetweenFluidHandlers(source: IFluidHandler, sink: IFluidHandler, limit: Int = Fluid.BUCKET_VOLUME, sourceTank: Int = -1): Int = {
+    var stackToDrain: FluidStack = null
+    if (sourceTank >= 0) {
+      val tankProperties = source.getTankProperties
+      if (tankProperties != null && tankProperties.length > sourceTank) {
+        stackToDrain = tankProperties(sourceTank).getContents
+        if (stackToDrain != null) {
+          stackToDrain = stackToDrain.copy()
+          stackToDrain.amount = math.max(stackToDrain.amount, limit)
+        }
+      }
+    }
+
+    val drained = Option(stackToDrain) match {
+      case Some(fluidStack) => source.drain(fluidStack, false)
+      case _ => source.drain(limit, false)
+    }
     if (drained == null) {
       return 0
     }
-    val filled = sink.fill(drained, false)
-    sink.fill(source.drain(filled, true), true)
+    val filledAmount = sink.fill(drained, false)
+    if (stackToDrain != null) {
+      val filledStack = drained.copy()
+      filledStack.amount = filledAmount
+      sink.fill(source.drain(filledStack, true), true)
+    } else {
+      sink.fill(source.drain(filledAmount, true), true)
+    }
   }
 
   /**
@@ -71,10 +92,10 @@ object FluidUtils {
    * This uses the <tt>fluidHandlerAt</tt> method, and therefore handles special
    * cases such as fluid blocks.
    */
-  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME): Int =
+  def transferBetweenFluidHandlersAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sinkPos: BlockPosition, sinkSide: EnumFacing, limit: Int = Fluid.BUCKET_VOLUME, sourceTank: Int = -1): Int =
     fluidHandlerAt(sourcePos, sourceSide).fold(0)(source =>
       fluidHandlerAt(sinkPos, sinkSide).fold(0)(sink =>
-        transferBetweenFluidHandlers(source, sink, limit)))
+        transferBetweenFluidHandlers(source, sink, limit, sourceTank)))
 
   /**
    * Lookup fluid taking into account flowing liquid blocks...
