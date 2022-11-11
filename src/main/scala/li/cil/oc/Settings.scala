@@ -51,6 +51,7 @@ class Settings(val config: Config) {
       (-1.0, -1.0)
   }
   val enableNanomachinePfx = config.getBoolean("client.enableNanomachinePfx")
+  val transposerFluidTransferRate = config.getInt("misc.transposerFluidTransferRate")
 
   // ----------------------------------------------------------------------- //
   // computer

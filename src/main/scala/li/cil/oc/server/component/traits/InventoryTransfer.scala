@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.traits
 
+import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -40,20 +41,21 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
     }
   }
 
-  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number]):number -- Transfer some items between two inventories.""")
+  @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number [, sourceTank:number]]):boolean, number -- Transfer some fluid between two tanks. Returns operation result and filled amount""")
   def transferFluid(context: Context, args: Arguments): Array[AnyRef] = {
     val sourceSide = checkSideForAction(args, 0)
     val sourcePos = position.offset(sourceSide)
     val sinkSide = checkSideForAction(args, 1)
     val sinkPos = position.offset(sinkSide)
     val count = args.optFluidCount(2)
+    val sourceTank = args.optInteger(3, -1)
 
     onTransferContents() match {
       case Some(reason) =>
         result(Unit, reason)
       case _ =>
-        val moved = FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count)
-        if (moved > 0) context.pause(moved / 1000 * 0.25) // Allow up to 4 buckets per second.
+        val moved = FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count, sourceTank)
+        if (moved > 0) context.pause(moved / Settings.get.transposerFluidTransferRate) // Allow up to 16 buckets per second.
         result(moved > 0, moved)
     }
   }
