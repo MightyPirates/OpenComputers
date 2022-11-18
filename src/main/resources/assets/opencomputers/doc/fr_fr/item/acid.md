@@ -1,6 +1,6 @@
 # Grog
 
-![Un reflux?](oredict:oc:materialAcid)
+![Un reflux?](oredict:opencomputers:materialAcid)
 
 Cette délicieuse [citation nécessaire] mixture peut être consommée si jamais vous ressentez le besoin de vous... amuser. Ou de détruire votre tube digestif. Ou les deux. Il peut également servir en tant qu'ingrédient pour d'autres objets beaucoup plus utiles.
 

@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iSi",
+    "CMR",
+    "iKi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "M": {
+      "tag": "opencomputers:screen2"
+    },
+    "K": {
+      "tag": "opencomputers:keyboard"
+    },
+    "R": {
+      "tag": "opencomputers:wlancard2"
+    },
+    "S": {
+      "tag": "opencomputers:solargeneratorupgrade"
+    }
+  },
+  "result": {
+    "item": "opencomputers:terminal"
+  }
+}

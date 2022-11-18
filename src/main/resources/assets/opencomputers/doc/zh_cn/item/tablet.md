@@ -1,6 +1,6 @@
 # 平板电脑
 
-![如果可以，请摸我。](item:OpenComputers:item@68)
+![如果可以，请摸我。](item:opencomputers:tablet)
 
 平板电脑是在[装配机](../block/assembler.md)中通过配置[平板外壳](tabletCase1.md)并组装而成的。平板电脑本身是种无法直接与世界交互的移动计算机，比如[基础红石卡](redstoneCard1.md)就不能在平板上用，但像是[告示牌升级](signUpgrade.md)和[活塞升级](pistonUpgrade.md)这样的可以使用。
 

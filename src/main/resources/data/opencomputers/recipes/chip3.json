@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ddd",
+    "rTr",
+    "ddd"
+  ],
+  "key": {
+    "d": {
+      "tag": "opencomputers:chipdiamond"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:chip3",
+    "count": 2
+  }
+}

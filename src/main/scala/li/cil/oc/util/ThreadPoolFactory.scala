@@ -9,6 +9,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.SaveHandler
+import li.cil.oc.server.fs.Buffered
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent
+import net.minecraftforge.fml.event.server.FMLServerStoppedEvent
 
 import scala.collection.mutable
 
@@ -17,6 +22,19 @@ object ThreadPoolFactory {
     val custom = Settings.get.threadPriority
     if (custom < 1) Thread.MIN_PRIORITY + (Thread.NORM_PRIORITY - Thread.MIN_PRIORITY) / 2
     else custom max Thread.MIN_PRIORITY min Thread.MAX_PRIORITY
+  }
+
+  @SubscribeEvent
+  def serverStart(e: FMLServerAboutToStartEvent): Unit = {
+    // Access these handles to ensure the pools actually exist.
+    SaveHandler.stateSaveHandler
+    Buffered.fileSaveHandler
+    ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+  }
+
+  @SubscribeEvent
+  def serverStop(e: FMLServerStoppedEvent): Unit = {
+    ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
   }
 
   def create(name: String, threads: Int) = Executors.newScheduledThreadPool(threads,

@@ -8,15 +8,15 @@ import li.cil.oc.api
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Slot
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.server.component.Drive
 import li.cil.oc.server.fs.FileSystem.{ItemLabel, ReadOnlyLabel}
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 object DriverFileSystem extends Item {
   val UUIDVerifier = """^([0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})$""".r
@@ -26,36 +26,37 @@ object DriverFileSystem extends Item {
     api.Items.get(Constants.ItemName.HDDTier2),
     api.Items.get(Constants.ItemName.HDDTier3),
     api.Items.get(Constants.ItemName.Floppy)) &&
-    (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
+    (!stack.hasTag || !stack.getTag.contains(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
-    else Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
+    if (host.world != null && host.world.isClientSide) null
+    else stack.getItem match {
+      case hdd: HardDiskDrive => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
+      case disk: FloppyDisk => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
       case _ => null
     }
 
   override def slot(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => Slot.HDD
-      case Some(disk: FloppyDisk) => Slot.Floppy
+    stack.getItem match {
+      case hdd: HardDiskDrive => Slot.HDD
+      case disk: FloppyDisk => Slot.Floppy
       case _ => throw new IllegalArgumentException()
     }
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => hdd.tier
+    stack.getItem match {
+      case hdd: HardDiskDrive => hdd.tier
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory")) {
+  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (ServerLifecycleHooks.getCurrentServer != null) {
+    if (stack.hasTag && stack.getTag.contains(Settings.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
-      Loot.factories.get(stack.getTagCompound.getString(Settings.namespace + "lootFactory")) match {
+      val lootFactory = new ResourceLocation(stack.getTag.getString(Settings.namespace + "lootFactory"))
+      Loot.factories.get(lootFactory) match {
         case Some(factory) =>
           val label =
-            if (dataTag(stack).hasKey(Settings.namespace + "fs.label"))
+            if (dataTag(stack).contains(Settings.namespace + "fs.label"))
               dataTag(stack).getString(Settings.namespace + "fs.label")
             else null
           api.FileSystem.asManagedEnvironment(factory.call(), label, host, Settings.resourceDomain + ":floppy_access")
@@ -90,13 +91,13 @@ object DriverFileSystem extends Item {
   }
   else null
 
-  private def addressFromTag(tag: NBTTagCompound) =
-    if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
-      tag.getCompoundTag("node").getString("address") match {
+  private def addressFromTag(tag: CompoundNBT) =
+    if (tag.contains("node") && tag.getCompound("node").contains("address")) {
+      tag.getCompound("node").getString("address") match {
         case UUIDVerifier(address) => address
         case _ => // Invalid disk address.
           val newAddress = java.util.UUID.randomUUID().toString
-          tag.getCompoundTag("node").setString("address", newAddress)
+          tag.getCompound("node").putString("address", newAddress)
           OpenComputers.log.warn(s"Generated new address for disk '${newAddress}'.")
           newAddress
       }
@@ -114,15 +115,15 @@ object DriverFileSystem extends Item {
 
     private final val LabelTag = Settings.namespace + "fs.label"
 
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(LabelTag)) {
+    override def loadData(nbt: CompoundNBT) {
+      if (nbt.contains(LabelTag)) {
         label = Option(nbt.getString(LabelTag))
       }
     }
 
-    override def save(nbt: NBTTagCompound) {
+    override def saveData(nbt: CompoundNBT) {
       label match {
-        case Some(value) => nbt.setString(LabelTag, value)
+        case Some(value) => nbt.putString(LabelTag, value)
         case _ =>
       }
     }

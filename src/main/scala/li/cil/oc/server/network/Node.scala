@@ -6,10 +6,10 @@ import li.cil.oc.api
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait Node extends ImmutableNode {
   def host: Environment
@@ -71,8 +71,8 @@ trait Node extends ImmutableNode {
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) = {
-    if (nbt.hasKey("address")) {
+  def loadData(nbt: CompoundNBT) {
+    if (nbt.contains("address")) {
       val newAddress = nbt.getString("address")
       if (!Strings.isNullOrEmpty(newAddress) && newAddress != address) network match {
         case wrapper: Network.Wrapper => wrapper.network.remap(this, newAddress)
@@ -81,9 +81,9 @@ trait Node extends ImmutableNode {
     }
   }
 
-  def save(nbt: NBTTagCompound) = {
+  def saveData(nbt: CompoundNBT) {
     if (address != null) {
-      nbt.setString("address", address)
+      nbt.putString("address", address)
     }
   }
 

@@ -21,13 +21,13 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLiving
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.entity.MobEntity
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.nbt.StringNBT
 import net.minecraftforge.common.util.Constants.NBT
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
@@ -53,18 +53,18 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
 
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
-    if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
+    if (leashedEntities.size >= MaxLeashedEntities) return result((), "too many leashed entities")
     val side = args.checkSideAny(0)
     val nearBounds = position.bounds
-    val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
-    val bounds = nearBounds.union(farBounds)
-    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
+    val farBounds = nearBounds.move(side.getStepX * 2.0, side.getStepY * 2.0, side.getStepZ * 2.0)
+    val bounds = nearBounds.minmax(farBounds)
+    entitiesInBounds[MobEntity](classOf[MobEntity], bounds).find(_.canBeLeashed(fakePlayer)) match {
       case Some(entity) =>
-        entity.setLeashHolder(host, true)
-        leashedEntities += entity.getUniqueID
+        entity.setLeashedTo(host, true)
+        leashedEntities += entity.getUUID
         context.pause(0.1)
         result(true)
-      case _ => result(Unit, "no unleashed entity")
+      case _ => result((), "no unleashed entity")
     }
   }
 
@@ -82,9 +82,9 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
   }
 
   private def unleashAll() {
-    entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
-      if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashHolder == host) {
-        entity.clearLeashed(true, false)
+    entitiesInBounds(classOf[MobEntity], position.bounds.inflate(5, 5, 5)).foreach(entity => {
+      if (leashedEntities.contains(entity.getUUID) && entity.getLeashHolder == host) {
+        entity.dropLeash(true, false)
       }
     })
     leashedEntities.clear()
@@ -92,18 +92,18 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
 
   private final val LeashedEntitiesTag = "leashedEntities"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    leashedEntities ++= nbt.getTagList(LeashedEntitiesTag, NBT.TAG_STRING).
-      map((s: NBTTagString) => UUID.fromString(s.getString))
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    leashedEntities ++= nbt.getList(LeashedEntitiesTag, NBT.TAG_STRING).
+      map((s: StringNBT) => UUID.fromString(s.getAsString))
     // Re-acquire leashed entities. Need to do this manually because leashed
-    // entities only remember their leashee if it's an EntityLivingBase...
+    // entities only remember their leashee if it's an LivingEntity...
     EventHandler.scheduleServer(() => {
       val foundEntities = mutable.Set.empty[UUID]
-      entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
-        if (leashedEntities.contains(entity.getUniqueID)) {
-          entity.setLeashHolder(host, true)
-          foundEntities += entity.getUniqueID
+      entitiesInBounds(classOf[MobEntity], position.bounds.inflate(5, 5, 5)).foreach(entity => {
+        if (leashedEntities.contains(entity.getUUID)) {
+          entity.setLeashedTo(host, true)
+          foundEntities += entity.getUUID
         }
       })
       val missing = leashedEntities.diff(foundEntities)
@@ -114,8 +114,8 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     })
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
     nbt.setNewTagList(LeashedEntitiesTag, leashedEntities.map(_.toString))
   }
 }

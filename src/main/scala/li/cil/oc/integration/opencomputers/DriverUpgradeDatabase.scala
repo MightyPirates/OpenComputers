@@ -7,9 +7,8 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 
 object DriverUpgradeDatabase extends Item with api.driver.item.HostAware {
@@ -19,18 +18,18 @@ object DriverUpgradeDatabase extends Item with api.driver.item.HostAware {
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier3))
 
   override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else new component.UpgradeDatabase(new DatabaseInventory {
       override def container = stack
 
-      override def isUsableByPlayer(player: EntityPlayer) = false
+      override def stillValid(player: PlayerEntity) = false
     })
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(database: item.UpgradeDatabase) => database.tier
+    stack.getItem match {
+      case database: item.UpgradeDatabase => database.tier
       case _ => Tier.One
     }
 

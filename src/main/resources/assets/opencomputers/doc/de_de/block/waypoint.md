@@ -1,6 +1,6 @@
 # Wegpunkt
 
-!["Da lang!" - "Nein, ganz falsch! Dort entlang!"](oredict:oc:waypoint)
+!["Da lang!" - "Nein, ganz falsch! Dort entlang!"](oredict:opencomputers:waypoint)
 
 Der Wegpunkt kann mit Hilfe des [Navigations-Upgrades](../item/navigationUpgrade.md) erkannt werden. So können Geräte mit diesem Upgrade Wegpunkte verwenden um durch die Welt zu navigieren. Dies ist besonders nützlich zum Schreiben einfach wiederverwendbarer Programme für Geräte wie [Roboter](robot.md) und [Drohnen](../item/drone.md).
 

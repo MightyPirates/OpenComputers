@@ -1,19 +1,14 @@
 package li.cil.oc.util;
 
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.forgespi.Environment;
+import net.minecraftforge.fml.common.thread.EffectiveSide;
 
 import java.util.Collections;
 import java.util.Set;
 
 public final class SideTracker {
-    private static final Set<Thread> serverThreads = Collections.newSetFromMap(new java.util.WeakHashMap<Thread, Boolean>());
-
-    public static void addServerThread() {
-        serverThreads.add(Thread.currentThread());
-    }
-
     public static boolean isServer() {
-        return FMLCommonHandler.instance().getEffectiveSide().isServer() || serverThreads.contains(Thread.currentThread());
+        return Environment.get().getDist().isDedicatedServer() || EffectiveSide.get().isServer();
     }
 
     public static boolean isClient() {

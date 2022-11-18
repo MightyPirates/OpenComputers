@@ -5,7 +5,7 @@ import java.util.UUID
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua.LuaState
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.mutable
 
@@ -85,21 +85,21 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       lua.getGlobal("_G") /* ... perms uperms k v */
 
       flattenAndStore() /* ... perms uperms */
-      lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
-      lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
+      lua.setField(lua.getRegistryIndex, "uperms") /* ... perms */
+      lua.setField(lua.getRegistryIndex, "perms") /* ... */
     }
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (nbt.hasKey("persistKey")) {
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (nbt.contains("persistKey")) {
       persistKey = nbt.getString("persistKey")
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setString("persistKey", persistKey)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putString("persistKey", persistKey)
   }
 
   def configure() {
@@ -126,7 +126,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "persist") // ... eris persist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
+          lua.getField(lua.getRegistryIndex, "perms") // ... eris persist perms
           lua.pushValue(index) // ... eris persist perms obj
           try {
             lua.call(2, 1) // ... eris str?
@@ -159,7 +159,7 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.getGlobal("eris") // ... eris
         lua.getField(-1, "unpersist") // ... eris unpersist
         if (lua.isFunction(-1)) {
-          lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
+          lua.getField(lua.getRegistryIndex, "uperms") // ... eris persist uperms
           lua.pushByteArray(value) // ... eris unpersist uperms str
           lua.call(2, 1) // ... eris obj
           lua.insert(-2) // ... obj eris

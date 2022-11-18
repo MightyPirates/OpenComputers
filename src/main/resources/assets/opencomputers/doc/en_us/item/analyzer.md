@@ -1,6 +1,6 @@
 # Analyzer
 
-![Must. Resist. Bad. Joke.](oredict:oc:analyzer)
+![Must. Resist. Bad. Joke.](oredict:opencomputers:analyzer)
 
 The analyzer is a handy tool for reading information about OpenComputers-related blocks in the world. Simply (sneak-)activate a block to get some information printed to the chat box. This ranges from basic things like the address of components, to power levels in the subnetwork the block is in, and information on the error lead to a [computer](../general/computer.md) to crash, for example.
 

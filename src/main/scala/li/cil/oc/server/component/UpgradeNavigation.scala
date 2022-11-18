@@ -22,12 +22,12 @@ import li.cil.oc.common.item.data.NavigationUpgradeData
 import li.cil.oc.common.Tier
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -53,13 +53,13 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
   def getPosition(context: Context, args: Arguments): Array[AnyRef] = {
     val info = data.mapData(host.world)
     val size = data.getSize(host.world)
-    val relativeX = host.xPosition - info.xCenter
-    val relativeZ = host.zPosition - info.zCenter
+    val relativeX = host.xPosition - info.x
+    val relativeZ = host.zPosition - info.z
 
     if (math.abs(relativeX) <= size / 2 && math.abs(relativeZ) <= size / 2)
       result(relativeX, host.yPosition, relativeZ)
     else
-      result(Unit, "out of range")
+      result((), "out of range")
   }
 
   @Callback(doc = """function():number -- Get the current orientation of the robot.""")
@@ -72,13 +72,13 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
   def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
     val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange(Tier.Two)
     if (range <= 0) return result(Array.empty)
-    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange(Tier.Two) * 0.25)) return result(Unit, "not enough energy")
+    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange(Tier.Two) * 0.25)) return result((), "not enough energy")
     context.pause(0.5)
     val position = BlockPosition(host)
     val positionVec = position.toVec3
     val rangeSq = range * range
     val waypoints = Waypoints.findWaypoints(position, range).
-      filter(waypoint => waypoint.getDistanceSq(positionVec.x, positionVec.y, positionVec.z) <= rangeSq)
+      filter(waypoint => positionVec.distanceToSqr(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) <= rangeSq)
     result(waypoints.map(waypoint => {
       val delta = waypoint.position.offset(waypoint.facing).toVec3.subtract(positionVec)
       Map(
@@ -94,11 +94,11 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
     super.onMessage(message)
     if (message.name == "tablet.use") message.source.host match {
       case machine: api.machine.Machine => (machine.host, message.data) match {
-        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+        case (tablet: internal.Tablet, Array(nbt: CompoundNBT, stack: ItemStack, player: PlayerEntity, blockPos: BlockPosition, side: Direction, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           val info = data.mapData(host.world)
-          nbt.setInteger("posX", blockPos.x - info.xCenter)
-          nbt.setInteger("posY", blockPos.y)
-          nbt.setInteger("posZ", blockPos.z - info.zCenter)
+          nbt.putInt("posX", blockPos.x - info.x)
+          nbt.putInt("posY", blockPos.y)
+          nbt.putInt("posZ", blockPos.z - info.z)
         case _ => // Ignore.
       }
       case _ => // Ignore.
@@ -107,13 +107,13 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends Abstra
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    data.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    data.loadData(nbt)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    data.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    data.saveData(nbt)
   }
 }

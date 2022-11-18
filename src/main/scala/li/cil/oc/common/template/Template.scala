@@ -62,7 +62,7 @@ abstract class Template {
   }
 
   protected def exists(inventory: IInventory, p: ItemStack => Boolean) = {
-    (0 until inventory.getSizeInventory).exists(slot => StackOption(inventory.getStackInSlot(slot)) match {
+    (0 until inventory.getContainerSize).exists(slot => StackOption(inventory.getItem(slot)) match {
       case SomeStack(stack) => p(stack)
       case _ => false
     })
@@ -78,8 +78,8 @@ abstract class Template {
     case _ => false
   })
 
-  protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getSizeInventory).
-    map(inventory.getStackInSlot).
+  protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getContainerSize).
+    map(inventory.getItem).
     exists(stack => api.Driver.driverFor(stack, hostClass) match {
       case driver: api.driver.item.Processor =>
         val architecture = driver.architecture(stack)
@@ -104,8 +104,8 @@ abstract class Template {
 
   protected def complexity(inventory: IInventory) = {
     var acc = 0
-    for (slot <- 1 until inventory.getSizeInventory) {
-      val stack = inventory.getStackInSlot(slot)
+    for (slot <- 1 until inventory.getContainerSize) {
+      val stack = inventory.getItem(slot)
       acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
         case Some(driver: api.driver.item.Processor) => 0 // CPUs are exempt, since they control the limit.
         case Some(driver: api.driver.item.Container) => (1 + driver.tier(stack)) * 2
@@ -118,8 +118,8 @@ abstract class Template {
 
   protected def maxComplexity(inventory: IInventory) = {
     val caseTier = this.caseTier(inventory)
-    val cpuTier = (0 until inventory.getSizeInventory).foldRight(0)((slot, acc) => {
-      val stack = inventory.getStackInSlot(slot)
+    val cpuTier = (0 until inventory.getContainerSize).foldRight(0)((slot, acc) => {
+      val stack = inventory.getItem(slot)
       acc + (api.Driver.driverFor(stack, hostClass) match {
         case processor: api.driver.item.Processor => processor.tier(stack)
         case _ => 0

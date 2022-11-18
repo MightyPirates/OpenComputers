@@ -7,7 +7,6 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverUpgradeHover extends Item with HostAware {
@@ -20,8 +19,8 @@ object DriverUpgradeHover extends Item with HostAware {
   override def slot(stack: ItemStack) = Slot.Upgrade
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(upgrade: item.UpgradeHover) => upgrade.tier
+    stack.getItem match {
+      case upgrade: item.UpgradeHover => upgrade.tier
       case _ => Tier.One
     }
 }

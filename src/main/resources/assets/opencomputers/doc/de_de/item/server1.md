@@ -1,6 +1,6 @@
 # Server
 
-![Serviert alles korrekt.](oredict:oc:server1)
+![Serviert alles korrekt.](oredict:opencomputers:server1)
 
 Server sind eine Form von hochstufigen [Computern](../general/computer.md). Sie können mit Rechtsklick konfiguriert werden, wenn sie in der Hand liegen. Nach dem Einsetzen von [CPU](cpu1.md), [RAM](ram1.md) und Erweiterungskarten muss der Server in einem [Serverschrank](../block/serverRack.md) platziert werden. Für Informationen siehe [Eintrag des Serverschranks](../block/serverRack.md). 
 

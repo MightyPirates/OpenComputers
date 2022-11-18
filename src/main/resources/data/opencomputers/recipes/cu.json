@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "grg",
+    "TcT",
+    "gTg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "c": {
+      "item": "minecraft:clock"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    }
+  },
+  "result": {
+    "item": "opencomputers:cu"
+  }
+}

@@ -5,49 +5,61 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.common.GuiType
-import net.minecraft.client.util.ITooltipFlag
+import li.cil.oc.client.gui
 import li.cil.oc.common.item.data.DriveData
-import net.minecraft.entity.player.EntityPlayer
+import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
+import net.minecraft.client.util.ITooltipFlag
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Hand
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-trait FileSystemLike extends Delegate {
+trait FileSystemLike extends SimpleItem {
   override protected def tooltipName = None
 
   def kiloBytes: Int
 
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag): Unit = {
-    if (stack.hasTagCompound) {
-      val nbt = stack.getTagCompound
-      if (nbt.hasKey(Settings.namespace + "data")) {
-        val data = nbt.getCompoundTag(Settings.namespace + "data")
-        if (data.hasKey(Settings.namespace + "fs.label")) {
-          tooltip.add(data.getString(Settings.namespace + "fs.label"))
+  @OnlyIn(Dist.CLIENT)
+  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    super.appendHoverText(stack, world, tooltip, flag)
+    if (stack.hasTag) {
+      val nbt = stack.getTag
+      if (nbt.contains(Settings.namespace + "data")) {
+        val data = nbt.getCompound(Settings.namespace + "data")
+        if (data.contains(Settings.namespace + "fs.label")) {
+          tooltip.add(new StringTextComponent(data.getString(Settings.namespace + "fs.label")).setStyle(Tooltip.DefaultStyle))
         }
-        if (flag.isAdvanced && data.hasKey("fs")) {
-          val fsNbt = data.getCompoundTag("fs")
-          if (fsNbt.hasKey("capacity.used")) {
+        if (flag.isAdvanced && data.contains("fs")) {
+          val fsNbt = data.getCompound("fs")
+          if (fsNbt.contains("capacity.used")) {
             val used = fsNbt.getLong("capacity.used")
-            tooltip.add(Localization.Tooltip.DiskUsage(used, kiloBytes * 1024))
+            tooltip.add(new StringTextComponent(Localization.Tooltip.DiskUsage(used, kiloBytes * 1024)).setStyle(Tooltip.DefaultStyle))
           }
         }
       }
       val data = new DriveData(stack)
-      tooltip.add(Localization.Tooltip.DiskMode(data.isUnmanaged))
-      tooltip.add(Localization.Tooltip.DiskLock(data.lockInfo))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.DiskMode(data.isUnmanaged)).setStyle(Tooltip.DefaultStyle))
+      tooltip.add(new StringTextComponent(Localization.Tooltip.DiskLock(data.lockInfo)).setStyle(Tooltip.DefaultStyle))
     }
-    super.tooltipLines(stack, world, tooltip, flag)
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (!player.isSneaking && (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootFactory"))) {
-      player.openGui(OpenComputers, GuiType.Drive.id, world, 0, 0, 0)
-      player.swingArm(EnumHand.MAIN_HAND)
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    if (!player.isCrouching && (!stack.hasTag || !stack.getTag.contains(Settings.namespace + "lootFactory"))) {
+      if (world.isClientSide) showGui(stack, player)
+      player.swing(Hand.MAIN_HAND)
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def showGui(stack: ItemStack, player: PlayerEntity) {
+    Minecraft.getInstance.pushGuiLayer(new gui.Drive(player.inventory, () => stack))
   }
 }

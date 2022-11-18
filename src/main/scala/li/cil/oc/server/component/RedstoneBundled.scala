@@ -11,9 +11,9 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 trait RedstoneBundled extends RedstoneVanilla {
   private final lazy val deviceInfo = Map(
@@ -33,7 +33,7 @@ trait RedstoneBundled extends RedstoneVanilla {
 
   override def redstone: EnvironmentHost with BundledRedstoneAware
 
-  private def getBundleKey(args: Arguments): (Option[EnumFacing], Option[Int]) = {
+  private def getBundleKey(args: Arguments): (Option[Direction], Option[Int]) = {
     args.count match {
       case 2 => (Option(checkSide(args, 0)), Option(checkColor(args, 1)))
       case 1 => (Option(checkSide(args, 0)), None)
@@ -103,10 +103,10 @@ trait RedstoneBundled extends RedstoneVanilla {
   def setBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     var ret: AnyRef = null
     if (getBundleAssignment(args) match {
-      case (side: EnumFacing, color: Int, value: Int) =>
+      case (side: Direction, color: Int, value: Int) =>
         ret = new java.lang.Integer(redstone.getBundledOutput(side, color))
         redstone.setBundledOutput(side, color, value)
-      case (side: EnumFacing, value: util.Map[_, _], _) =>
+      case (side: Direction, value: util.Map[_, _], _) =>
         ret = redstone.getBundledOutput(side)
         redstone.setBundledOutput(side, value)
       case (value: util.Map[_, _], _, _) =>

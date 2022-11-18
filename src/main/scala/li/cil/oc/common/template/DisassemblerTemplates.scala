@@ -5,14 +5,14 @@ import java.lang.reflect.Method
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.IMC
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.mutable
 
 object DisassemblerTemplates {
   private val templates = mutable.ArrayBuffer.empty[Template]
 
-  def add(template: NBTTagCompound): Unit = try {
+  def add(template: CompoundNBT): Unit = try {
     val selector = IMC.getStaticMethod(template.getString("select"), classOf[ItemStack])
     val disassembler = IMC.getStaticMethod(template.getString("disassemble"), classOf[ItemStack], classOf[Array[ItemStack]])
 

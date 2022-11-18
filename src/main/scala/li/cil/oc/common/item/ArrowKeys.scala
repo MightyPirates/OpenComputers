@@ -1,5 +1,9 @@
 package li.cil.oc.common.item
 
-class ArrowKeys(val parent: Delegator) extends traits.Delegate {
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
+
+class ArrowKeys(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
   override protected def tooltipName = None
 }

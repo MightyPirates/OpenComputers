@@ -5,25 +5,39 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.item.ItemStack
+import net.minecraft.inventory.container.ContainerType
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.IInventory
+import net.minecraft.nbt.CompoundNBT
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends Player(playerInventory, assembler) {
+class Assembler(selfType: ContainerType[_ <: Assembler], id: Int, playerInventory: PlayerInventory, val assembler: IInventory)
+  extends Player(selfType, id, playerInventory, assembler) {
+
+  override protected def getHostClass = classOf[tileentity.Assembler]
+
   // Computer case.
   {
-    val index = inventorySlots.size
-    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, "template", common.Tier.Any) {
-      @SideOnly(Side.CLIENT) override
-      def isEnabled = !isAssembling && super.isEnabled
+    val index = slots.size
+    addSlot(new StaticComponentSlot(this, otherInventory, index, 12, 12, getHostClass, "template", common.Tier.Any) {
+      @OnlyIn(Dist.CLIENT) override
+      def isActive = !isAssembling && super.isActive
 
+      override def mayPlace(stack: ItemStack): Boolean = {
+        if (!container.canPlaceItem(getSlotIndex, stack)) return false
+        if (isAssembling) return false
+        AssemblerTemplates.select(stack).isDefined
+      }
+
+      @OnlyIn(Dist.CLIENT)
       override def getBackgroundLocation = if (isAssembling) Textures.Icons.get(common.Tier.None) else super.getBackgroundLocation
     })
   }
 
   private def slotInfo(slot: DynamicComponentSlot) = {
-    AssemblerTemplates.select(getSlot(0).getStack) match {
+    AssemblerTemplates.select(getSlot(0).getItem) match {
       case Some(template) =>
         val index = slot.getSlotIndex
         val tplSlot =
@@ -34,6 +48,26 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
         new InventorySlot(tplSlot.kind, tplSlot.tier)
       case _ => new InventorySlot(common.Slot.None, common.Tier.None)
     }
+  }
+
+  override def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
+    val index = slots.size
+    addSlot(new DynamicComponentSlot(this, otherInventory, index, x, y, getHostClass, info, () => common.Tier.One) {
+      override def mayPlace(stack: ItemStack): Boolean = {
+        if (!super.mayPlace(stack)) return false
+        AssemblerTemplates.select(getSlot(0).getItem) match {
+          case Some(template) =>
+            val index = getSlotIndex
+            val tplSlot =
+              if ((1 until 4) contains index) template.containerSlots(index - 1)
+              else if ((4 until 13) contains index) template.upgradeSlots(index - 4)
+              else if ((13 until 21) contains index) template.componentSlots(index - 13)
+              else AssemblerTemplates.NoSlot
+            tplSlot.validate(assembler, getSlotIndex, stack)
+          case _ => false
+        }
+      }
+    })
   }
 
   // Component containers.
@@ -71,12 +105,17 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   def assemblyProgress = synchronizedData.getDouble("assemblyProgress")
 
-  def assemblyRemainingTime = synchronizedData.getInteger("assemblyRemainingTime")
+  def assemblyRemainingTime = synchronizedData.getInt("assemblyRemainingTime")
 
-  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setBoolean("isAssembling", assembler.isAssembling)
-    synchronizedData.setDouble("assemblyProgress", assembler.progress)
-    synchronizedData.setInteger("assemblyRemainingTime", assembler.timeRemaining)
+  override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
+    assembler match {
+      case te: tileentity.Assembler => {
+        synchronizedData.putBoolean("isAssembling", te.isAssembling)
+        synchronizedData.putDouble("assemblyProgress", te.progress)
+        synchronizedData.putInt("assemblyRemainingTime", te.timeRemaining)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

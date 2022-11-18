@@ -1,6 +1,6 @@
 # Bottes de vol plané
 
-![Si vous attrapez un poulet, et que vous sautez...](oredict:oc:hoverBoots)
+![Si vous attrapez un poulet, et que vous sautez...](oredict:opencomputers:hoverBoots)
 
 Si vous ne voulez pas vous embêter à programmer un [drone](drone.md), voici un usage alternatif : un tremplin ! Ou de glorieux patins à roulettes. Un truc du genre.
 

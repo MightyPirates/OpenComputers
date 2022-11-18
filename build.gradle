@@ -1,27 +1,23 @@
-// For those who want the bleeding edge
 buildscript {
     repositories {
-        jcenter()
-        maven {
-            name = "forge"
-            url = "https://files.minecraftforge.net/maven"
-        }
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 
 plugins {
-    id "com.matthewprenger.cursegradle" version "1.0.9"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
+    id 'com.modrinth.minotaur' version '2.2.0'
 }
 
 apply plugin: 'scala'
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -29,7 +25,11 @@ file "build.properties" withReader {
     ext.config = new ConfigSlurper().parse prop
 }
 
-version = config.mod.version
+version = "${mod_version}"
+if (version.endsWith("-snapshot")) {
+    version += "-" + (new Date().format('yyyyMMdd'))
+}
+
 group = config.mod.group
 archivesBaseName = config.mod.name
 
@@ -46,119 +46,162 @@ def getGitRef() {
     }
 }
 
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += ".${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
+version += "+" + getGitRef()
 
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
 minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
-    runDir = "run"
+    mappings channel: "official", version: config.minecraft.version
 
-    mappings = config.minecraft.mappings
+    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
-    replace "@VERSION@", project.simpleVersion
-    replace "/*@MCVERSIONDEP@*/", ", acceptedMinecraftVersions = \"[${config.minecraft.version}]\""
+    runs {
+        client {
+            workingDirectory project.file("run")
+            property "forge.logging.markers", "REGISTRIES"
+            property "forge.logging.console.level", "debug"
+            environment "MOD_CLASSES", "opencomputers%%"
+        }
+
+        server {
+            workingDirectory project.file("run")
+            property "forge.logging.markers", "REGISTRIES"
+            property "forge.logging.console.level", "debug"
+            environment "MOD_CLASSES", "opencomputers%%"
+        }
+    }
 }
 
 repositories {
-    maven { url "https://maven.cil.li/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/" }
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven {
+        url "https://maven.cil.li/"
+        content {
+            includeGroup "li.cil.tis3d"
+        }
+    }
+    ivy {
+        name 'asie dependency mirror'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+        content {
+            includeModule '', 'OC-LuaJ'
+            includeModule '', 'OC-JNLua'
+            includeModule '', 'OC-JNLua-Natives'
+        }
+        metadataSources {
+            artifact()
+        }
+    }
+    maven {
+        url "https://dvs1.progwml6.com/files/maven"
+        content {
+            includeGroup "mezz.jei"
+        }
+    }
+    maven {
+        url "https://chickenbones.net/maven/"
+        content {
+            includeGroup "codechicken"
+            includeGroup "mrtjp"
+        }
+    }
+    maven {
+        url "https://squiddev.cc/maven/"
+        content {
+            includeGroup "org.squiddev"
+        }
+    }
+    maven {
+        url "https://modmaven.dev/"
+        content {
+            includeGroup "appeng"
+            includeGroup "mekanism"
+        }
+    }
+    maven {
+        url "https://proxy-maven.covers1624.net/"
+        content {
+            includeModule "net.minecraftforge", "Scorge"
+        }
+    }
+    mavenCentral()
 }
 
 configurations {
     embedded
-    compile.extendsFrom provided, embedded
+    implementation.extendsFrom embedded
+}
+
+task devJar(type: Jar) {
+    classifier = 'dev'
+    dependsOn(jar.dependsOn)
+    from(jar.source)
 }
 
 dependencies {
-    deobfCompile ("li.cil.tis3d:TIS-3D:MC1.12-${config.tis3d.version}") {
-        exclude module: "jei_1.12"
-    }
-    deobfCompile "com.mod-buildcraft:buildcraft-api:${config.buildcraft.version}"
-    deobfCompile "MCMultiPart2:MCMultiPart-exp:${config.mcmp.version}"
-    provided ("net.sengir.forestry:forestry_1.12.2:${config.forestry.version}") {
-        exclude module: "jei_1.12"
-    }
-    deobfCompile "net.industrial-craft:industrialcraft-2:${config.ic2.version}"
-    deobfCompile "mcp.mobius.waila:Hwyla:${config.hwyla.version}:api"
-    deobfCompile "dan200.computercraft:ComputerCraft:${config.cc.version}"
-    deobfCompile "charset:Charset:${config.charset.version}:api"
-    
-    provided ("appeng:appliedenergistics2:${config.ae2.version}:api") {
-        transitive = false
-    }
-    provided "extracells2:ExtraCells-api:${config.extracells.version}"
-    
-    provided("mekanism:Mekanism:${config.mekanism.version}:api") {
+    var jeiSlug = "jei-${config.minecraft.version}"
+    minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
+    runtimeOnly files(devJar.archiveFile)
+
+    compileOnly "org.scala-lang:scala-library:2.13.4"
+    implementation "net.minecraftforge:Scorge:${config.scorge.version}"
+    embedded "com.typesafe:config:1.2.1"
+
+    compileOnly fg.deobf("li.cil.tis3d:tis3d-1.16.5-forge:${config.tis3d.version}")
+    compileOnly fg.deobf("curse.maven:hwyla-${config.hwyla.projectId}:${config.hwyla.fileId}")
+    compileOnly fg.deobf("org.squiddev:cc-tweaked-${config.minecraft.version}:${config.cct.version}")
+
+    compileOnly ("appeng:appliedenergistics2:${config.ae2.version}:api") {
         transitive = false
     }
 
-    provided ("codechicken:ForgeMultipart:${config.minecraft.version}-${config.forgemultipart.version}:universal") {
-        exclude module: "jei_1.12"
+    compileOnly("mekanism:Mekanism:${config.mekanism.version}:api") {
+        transitive = false
+    }
+
+    compileOnly ("codechicken:CBMultipart:${config.cbmultipart.version}:universal") {
+        exclude module: jeiSlug
         exclude module: "CodeChickenLib"
     }
 
-    provided ("codechicken:ChickenASM:${config.casm.version}")
+    compileOnly ("codechicken:ChickenASM:${config.casm.version}")
 
-    provided "mezz.jei:jei_${config.minecraft.version}:${config.jei.version}"
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:universal"
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:universal"
+    compileOnly "mezz.jei:${jeiSlug}:${config.jei.version}"
+    compileOnly "codechicken:CodeChickenLib:${config.ccl.version}:universal"
 
-    provided ("mrtjp:ProjectRed:${config.projred.version}:Base") {
-        exclude module: "NotEnoughItems"
+    compileOnly ("mrtjp:ProjectRed:${config.projred.version}:core") {
         exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
+        exclude module: jeiSlug
+        exclude module: "CBMultipart"
     }
 
-    provided ("mrtjp:ProjectRed:${config.projred.version}:integration") {
-        exclude module: "NotEnoughItems"
-        exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
-    }
+    embedded name: 'OC-LuaJ', version: '20220907.1', ext: 'jar'
+    embedded name: 'OC-JNLua', version: '20220928.1', ext: 'jar'
+    embedded name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
-    provided ("mrtjp:MrTJPCore:${config.mrtjpcore.version}:universal") {
-        exclude module: "NotEnoughItems"
-        exclude module: "CodeChickenLib"
-        exclude module: "jei_1.12"
-        exclude module: "ForgeMultipart"
-    }
-
-    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
-
-    testCompile "org.mockito:mockito-all:1.10.19"
-
-    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.enderstorage.version}:universal"
+    compileOnly "codechicken:EnderStorage:${config.enderstorage.version}:universal"
 }
 
 processResources {
-    inputs.property "version", project.simpleVersion
-    inputs.property "mcversion", project.minecraft.version
-    inputs.property "fversion", config.forge.version
+    def reducedScorgeVer = config.scorge.version.replaceAll(/(\d+\.\d+)(\.\d+)/, "\$1")
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version':project.simpleVersion, 'mcversion':project.minecraft.version, 'fversion':config.forge.version
+        duplicatesStrategy = "include"
+        include 'META-INF/mods.toml'
+        expand 'version':mod_version, 'mcversion':config.minecraft.version, 'sversion':reducedScorgeVer
     }
     from(sourceSets.main.resources.srcDirs) {
+        duplicatesStrategy = "include"
         include 'application.conf'
         filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
+            line.replaceAll("@VERSION@", mod_version)
         }
     }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-        exclude 'application.conf'
-    }
-
-    // Move access transformer to META-INF
-    rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
 allprojects {
@@ -167,16 +210,24 @@ allprojects {
     }
 }
 
-jar {
+configure([jar, devJar]) {
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
+            exclude '*', 'META-INF', 'META-INF/**'
         }
     }
     manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-        attributes FMLAT: "oc_at.cfg"
+        attributes([
+            "Specification-Title": "opencomputers",
+            "Specification-Vendor": "li.cil.oc",
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": version,
+            "Implementation-Vendor": config.mod.group,
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "FMLCorePlugin": "li.cil.oc.common.launch.TransformerLoader",
+            "FMLCorePluginContainsFMLMod": "true"
+        ])
     }
 }
 
@@ -201,9 +252,19 @@ artifacts {
     archives javadocJar
 }
 
+jar.finalizedBy('reobfJar')
+afterEvaluate {
+    prepareRuns {
+        dependsOn(devJar)
+    }
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = mod_version
             artifact jar
             artifact apiJar
             artifact javadocJar
@@ -211,19 +272,37 @@ publishing {
     }
     repositories {
         maven {
-            url System.getenv("MAVEN_PATH")
+            name = "GitHubPackages"
+            url = System.getenv("GITHUB_MAVEN_URL") ?: ""
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
 
 curseforge {
-    apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+    apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
     project {
         id = config.curse.project.id
-        releaseType = config.curse.project.releaseType
+        releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = "markdown"
-        changelog = file("changelog.md")
+        changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
         addGameVersion config.minecraft.version
         addGameVersion "Java 8"
+        addGameVersion "Forge"
     }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_API_KEY") ?: ""
+    projectId = config.modrinth.project.id
+    changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
+    versionNumber = mod_version
+    versionName = "${rootProject.name}-${version}"
+    versionType = System.getenv('MODRINTH_RELEASE_TYPE') ?: "alpha"
+    uploadFile = jar
+    gameVersions = [config.minecraft.version]
+    loaders = ["forge"]
 }

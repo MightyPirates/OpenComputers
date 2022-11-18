@@ -1,19 +1,16 @@
 package li.cil.oc.api.event;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.internal.Rack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import org.lwjgl.opengl.GL11;
+import net.minecraftforge.eventbus.api.Cancelable;
+import net.minecraftforge.eventbus.api.Event;
 
 /**
  * Fired to allow rendering a custom overlay for {@link li.cil.oc.api.component.RackMountable}s.
@@ -39,9 +36,9 @@ public abstract class RackMountableRenderEvent extends Event {
      *
      * @see RackMountable#getData()
      */
-    public final NBTTagCompound data;
+    public final CompoundNBT data;
 
-    public RackMountableRenderEvent(Rack rack, int mountable, NBTTagCompound data) {
+    public RackMountableRenderEvent(Rack rack, int mountable, CompoundNBT data) {
         this.rack = rack;
         this.mountable = mountable;
         this.data = data;
@@ -62,14 +59,14 @@ public abstract class RackMountableRenderEvent extends Event {
         /**
          * The front-facing side, i.e. where the mountable is visible on the rack.
          */
-        public final EnumFacing side;
+        public final Direction side;
 
         /**
          * Texture to use for the front of the mountable.
          */
         private TextureAtlasSprite frontTextureOverride;
 
-        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final EnumFacing side) {
+        public Block(final Rack rack, final int mountable, final CompoundNBT data, final Direction side) {
             super(rack, mountable, data);
             this.side = side;
         }
@@ -94,7 +91,7 @@ public abstract class RackMountableRenderEvent extends Event {
     /**
      * Fired when the dynamic rack model is rendered.
      * <p/>
-     * Code here runs inside a <tt>TileEntitySpecialRenderer</tt>, so go nuts. This is
+     * Code here runs inside a <tt>TileEntityRenderer</tt>, so go nuts. This is
      * primarily meant to allow rendering custom overlays, such as LEDs. The GL state
      * will have been adjusted such that rendering a one by one quad starting at the
      * origin will fill the full front face of the rack (i.e. rotation and translation
@@ -108,75 +105,35 @@ public abstract class RackMountableRenderEvent extends Event {
      */
     public static class TileEntity extends RackMountableRenderEvent {
         /**
+         * The transformation used by the rendering engine.
+         */
+        public final MatrixStack stack;
+
+        /**
+         * An accessor to the renderer's buffer context.
+         */
+        public final IRenderTypeBuffer typeBuffer;
+
+        /**
+         * Packed block light and overlay texture coordinates.
+         */
+        public final int light, overlay;
+
+        /**
          * The vertical low and high texture coordinates for the mountable's slot.
          * <p/>
          * This is purely for convenience; they're computed as <tt>(2/16)+i*(3/16)</tt>.
          */
         public final float v0, v1;
 
-        public TileEntity(final Rack rack, final int mountable, final NBTTagCompound data, final float v0, final float v1) {
+        public TileEntity(final Rack rack, final int mountable, final CompoundNBT data, final MatrixStack stack, final IRenderTypeBuffer typeBuffer, final int light, final int overlay, final float v0, final float v1) {
             super(rack, mountable, data);
+            this.stack = stack;
+            this.typeBuffer = typeBuffer;
+            this.light = light;
+            this.overlay = overlay;
             this.v0 = v0;
             this.v1 = v1;
-        }
-
-        /**
-         * Utility method for rendering a texture as the front-side overlay.
-         *
-         * @param texture the texture to use to render the overlay.
-         */
-        public void renderOverlay(final ResourceLocation texture) {
-            renderOverlay(texture, 0, 1);
-        }
-
-        /**
-         * Utility method for rendering a texture as the front-side overlay
-         * over a specified horizontal area.
-         *
-         * @param texture the texture to use to render the overlay.
-         * @param u0      the lower end of the vertical area to render at.
-         * @param u1      the upper end of the vertical area to render at.
-         */
-        public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
-            Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
-            final Tessellator t = Tessellator.getInstance();
-            final BufferBuilder r = t.getBuffer();
-            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            r.pos(u0, v1, 0).tex(u0, v1).endVertex();
-            r.pos(u1, v1, 0).tex(u1, v1).endVertex();
-            r.pos(u1, v0, 0).tex(u1, v0).endVertex();
-            r.pos(u0, v0, 0).tex(u0, v0).endVertex();
-            t.draw();
-        }
-
-        /**
-         * Utility method for rendering an atlas texture as the front-side overlay.
-         *
-         * @param texture the atlas texture to use to render the overlay.
-         */
-        public void renderOverlayFromAtlas(final ResourceLocation texture) {
-            renderOverlayFromAtlas(texture, 0, 1);
-        }
-
-        /**
-         * Utility method for rendering an atlas texture as the front-side overlay
-         * over a specified horizontal area.
-         *
-         * @param texture the atlas texture to use to render the overlay.
-         * @param u0      the lower end of the vertical area to render at.
-         * @param u1      the upper end of the vertical area to render at.
-         */
-        public void renderOverlayFromAtlas(final ResourceLocation texture, final float u0, final float u1) {
-            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            final TextureAtlasSprite icon = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
-            final Tessellator t = Tessellator.getInstance();
-            final BufferBuilder r = t.getBuffer();
-            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            r.pos(u0, v1, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
-            r.pos(u1, v1, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
-            r.pos(u1, v0, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
-            r.pos(u0, v0, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
-            t.draw();
         }
     }
 }

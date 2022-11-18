@@ -6,50 +6,50 @@ import li.cil.oc.client.Sound
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SideTracker
-import net.minecraft.block.state.IBlockState
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.block.BlockState
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.network.NetworkManager
-import net.minecraft.network.play.server.SPacketUpdateTileEntity
+import net.minecraft.network.play.server.SUpdateTileEntityPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   private final val IsServerDataTag = Settings.namespace + "isServerData"
 
-  def x: Int = getPos.getX
+  def x: Int = getBlockPos.getX
 
-  def y: Int = getPos.getY
+  def y: Int = getBlockPos.getY
 
-  def z: Int = getPos.getZ
+  def z: Int = getBlockPos.getZ
 
-  def position = BlockPosition(x, y, z, getWorld)
+  def position = BlockPosition(x, y, z, getLevel)
 
   def isClient: Boolean = !isServer
 
-  def isServer: Boolean = if (getWorld != null) !getWorld.isRemote else SideTracker.isServer
+  def isServer: Boolean = if (getLevel != null) !getLevel.isClientSide else SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 
   def updateEntity() {
-    if (Settings.get.periodicallyForceLightUpdate && getWorld.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(getWorld.getBlockState(getPos), getWorld, getPos) > 0) {
-      getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
+    if (Settings.get.periodicallyForceLightUpdate && getLevel.getGameTime % 40 == 0 && getBlockState.getBlock.getLightValue(getLevel.getBlockState(getBlockPos), getLevel, getBlockPos) > 0) {
+      getLevel.sendBlockUpdated(getBlockPos, getLevel.getBlockState(getBlockPos), getLevel.getBlockState(getBlockPos), 3)
     }
   }
 
-  override def validate() {
-    super.validate()
+  override def clearRemoved() {
+    super.clearRemoved()
     initialize()
   }
 
-  override def invalidate() {
-    super.invalidate()
+  override def setRemoved() {
+    super.setRemoved()
     dispose()
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
+  override def onChunkUnloaded() {
+    super.onChunkUnloaded()
     try dispose() catch {
       case t: Throwable => OpenComputers.log.error("Failed properly disposing a tile entity, things may leak and or break.", t)
     }
@@ -67,53 +67,52 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def shouldRefresh(world: World, pos: BlockPos, oldState: IBlockState, newSate: IBlockState): Boolean = oldState.getBlock != newSate.getBlock
+  def loadForServer(nbt: CompoundNBT) {}
 
-  def readFromNBTForServer(nbt: NBTTagCompound): Unit = super.readFromNBT(nbt)
-
-  def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
-    nbt.setBoolean(IsServerDataTag, true)
-    super.writeToNBT(nbt)
+  def saveForServer(nbt: CompoundNBT): Unit = {
+    nbt.putBoolean(IsServerDataTag, true)
+    super.save(nbt)
   }
 
-  @SideOnly(Side.CLIENT)
-  def readFromNBTForClient(nbt: NBTTagCompound) {}
+  @OnlyIn(Dist.CLIENT)
+  def loadForClient(nbt: CompoundNBT) {}
 
-  def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
-    nbt.setBoolean(IsServerDataTag, false)
+  def saveForClient(nbt: CompoundNBT): Unit = {
+    nbt.putBoolean(IsServerDataTag, false)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound): Unit = {
+  override def load(state: BlockState, nbt: CompoundNBT): Unit = {
+    super.load(state, nbt)
     if (isServer || nbt.getBoolean(IsServerDataTag)) {
-      readFromNBTForServer(nbt)
+      loadForServer(nbt)
     }
     else {
-      readFromNBTForClient(nbt)
+      loadForClient(nbt)
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound): NBTTagCompound = {
+  override def save(nbt: CompoundNBT): CompoundNBT = {
     if (isServer) {
-      writeToNBTForServer(nbt)
+      saveForServer(nbt)
     }
     nbt
   }
 
-  override def getUpdatePacket: SPacketUpdateTileEntity = {
+  override def getUpdatePacket: SUpdateTileEntityPacket = {
     // Obfuscation workaround. If it works.
     val te = this.asInstanceOf[net.minecraft.tileentity.TileEntity]
-    new SPacketUpdateTileEntity(te.getPos, te.getBlockMetadata, te.getUpdateTag)
+    new SUpdateTileEntityPacket(te.getBlockPos, 0, te.getUpdateTag)
   }
 
-  override def getUpdateTag: NBTTagCompound = {
+  override def getUpdateTag: CompoundNBT = {
     val nbt = super.getUpdateTag
 
     // See comment on savingForClients variable.
     SaveHandler.savingForClients = true
     try {
-      try writeToNBTForClient(nbt) catch {
+      try saveForClient(nbt) catch {
         case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
       }
     } finally {
@@ -123,8 +122,8 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
     nbt
   }
 
-  override def onDataPacket(manager: NetworkManager, packet: SPacketUpdateTileEntity) {
-    try readFromNBTForClient(packet.getNbtCompound) catch {
+  override def onDataPacket(manager: NetworkManager, packet: SUpdateTileEntityPacket) {
+    try loadForClient(packet.getTag) catch {
       case e: Throwable => OpenComputers.log.warn("There was a problem reading a TileEntity description packet. Please report this if you see it!", e)
     }
   }

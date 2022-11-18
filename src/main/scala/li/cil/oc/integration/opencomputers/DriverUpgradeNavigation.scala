@@ -16,7 +16,7 @@ object DriverUpgradeNavigation extends Item with HostAware {
     api.Items.get(Constants.ItemName.NavigationUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else host match {
       case rotatable: EnvironmentHost with Rotatable => new component.UpgradeNavigation(rotatable)
       case _ => null

@@ -4,30 +4,27 @@ import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
+import net.minecraft.util.ResourceLocation;
 
 public interface FileSystemAPI {
     /**
-     * Creates a new file system based on the location of a class.
+     * Creates a new file system based on a mod-specific resource location where
+     * the namespace refers to the mod and the resource path denotes a
+     * (mandatory) subpath relative to that mod's assets directory.
      * <p/>
-     * This can be used to wrap a folder in the assets folder of your mod's JAR.
-     * The actual path is built like this:
-     * <pre>"/assets/" + domain + "/" + root</pre>
-     * <p/>
-     * If the class is located in a JAR file, this will create a read-only file
-     * system based on that JAR file. If the class file is located in the native
-     * file system, this will create a read-only file system first trying from
-     * the actual location of the class file, and failing that by searching the
-     * class path (i.e. it'll look for a path constructed as described above).
+     * If {@code location} is stored in a JAR file, this will create a read-only
+     * file system based on that JAR file. If {@code location} is stored in the
+     * native file system, this will create a read-only file system from the the
+     * location constructed as described above (relative to the root of the
+     * namespace).
      * <p/>
      * If the specified path cannot be located, the creation fails and this
      * returns <tt>null</tt>.
      *
-     * @param clazz  the class whose containing JAR to wrap.
-     * @param domain the domain, usually your mod's ID.
-     * @param root   an optional subdirectory.
-     * @return a file system wrapping the specified folder.
+     * @param location the location where the file system's contents are stored.
+     * @return a file system wrapping the specified resource.
      */
-    FileSystem fromClass(Class<?> clazz, String domain, String root);
+    FileSystem fromResource(ResourceLocation location);
 
     /**
      * Creates a new <em>writable</em> file system in the save folder.

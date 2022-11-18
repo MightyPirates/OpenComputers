@@ -1,5 +1,10 @@
 package li.cil.oc.common.item
 
-class DataCard(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
-  override val unlocalizedName = super.unlocalizedName + tier
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
+
+class DataCard(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
 }

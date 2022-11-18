@@ -1,6 +1,6 @@
 # Routeur
 
-![[relays](relay.md).](oredict:oc:switch)
+![[relays](relay.md).](oredict:opencomputers:switch)
 
 *Ce bloc est déprécié et sera retiré dans une version future.* Transformez les en [relai](relay.md) pour éviter de les perdre.
 

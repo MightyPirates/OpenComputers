@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "oRo",
+    "RCR",
+    "oPo"
+  ],
+  "key": {
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "R": {
+      "tag": "opencomputers:wlancard2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:terminalserver"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iTi",
+    "gpg",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "p": {
+      "item": "minecraft:paper"
+    },
+    "T": {
+      "tag": "opencomputers:materialtransistor"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:capacitor"
+  }
+}

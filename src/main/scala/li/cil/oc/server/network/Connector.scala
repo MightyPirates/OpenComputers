@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 trait Connector extends network.Connector with Node {
   var localBufferSize = 0.0
@@ -113,19 +113,19 @@ trait Connector extends network.Connector with Node {
   override def onDisconnect(node: ImmutableNode) {
     super.onDisconnect(node)
     if (node == this) {
-      this.synchronized(distributor = None)
+      this.synchronized(this.distributor = None)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
     localBuffer = nbt.getDouble(NodeData.BufferTag)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setDouble(NodeData.BufferTag, math.min(localBuffer, localBufferSize))
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putDouble(NodeData.BufferTag, math.min(localBuffer, localBufferSize))
   }
 }

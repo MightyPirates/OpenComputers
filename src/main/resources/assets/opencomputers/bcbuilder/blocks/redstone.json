@@ -1,8 +1,0 @@
-[{
-  "includes": ["traits/redstone.json"],
-  "nbt": {
-    "blacklist": [
-      "oc:redstone/node"
-    ]
-  }
-}]

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ogo",
+    "gCG",
+    "ogo"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:dusts/glowstone"
+    },
+    "G": {
+      "tag": "forge:glass"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    }
+  },
+  "result": {
+    "item": "opencomputers:screen3"
+  }
+}

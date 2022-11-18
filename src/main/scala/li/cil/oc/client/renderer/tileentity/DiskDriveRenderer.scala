@@ -1,84 +1,68 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.util.EnumFacing
-import org.lwjgl.opengl.GL11
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.model.ItemCameraTransforms
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
+import net.minecraft.util.Direction
+import net.minecraft.util.math.vector.Vector3f
 
-object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
-  override def render(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object DiskDriveRenderer extends Function[TileEntityRendererDispatcher, DiskDriveRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new DiskDriveRenderer(dispatch)
+}
+
+class DiskDriveRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[DiskDrive](dispatch) {
+  override def render(drive: DiskDrive, dt: Float, matrix: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
-    GlStateManager.color(1, 1, 1, 1)
+    RenderSystem.color4f(1, 1, 1, 1)
 
-    GlStateManager.pushMatrix()
+    matrix.pushPose()
 
-    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+    matrix.translate(0.5, 0.5, 0.5)
 
     drive.yaw match {
-      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
-      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
-      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
+      case Direction.WEST => matrix.mulPose(Vector3f.YP.rotationDegrees(-90))
+      case Direction.NORTH => matrix.mulPose(Vector3f.YP.rotationDegrees(180))
+      case Direction.EAST => matrix.mulPose(Vector3f.YP.rotationDegrees(90))
       case _ => // No yaw.
     }
 
     drive.items(0) match {
       case stack if !stack.isEmpty =>
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(0, 3.5f / 16, 6 / 16f)
-        GlStateManager.rotate(90, -1, 0, 0)
-        GlStateManager.scale(0.5f, 0.5f, 0.5f)
+        matrix.pushPose()
+        matrix.translate(0, 3.5f / 16, 6 / 16f)
+        matrix.mulPose(Vector3f.XN.rotationDegrees(90))
+        matrix.scale(0.5f, 0.5f, 0.5f)
 
-        val brightness = drive.world.getCombinedLight(drive.getPos.offset(drive.facing), 0)
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
-
-        // This is very 'meh', but item frames do it like this, too!
-        val entity = new EntityItem(drive.world, 0, 0, 0, stack)
-        entity.hoverStart = 0
-        Textures.Block.bind()
-        Minecraft.getMinecraft.getRenderItem.renderItem(entity.getItem, ItemCameraTransforms.TransformType.FIXED)
-        GlStateManager.popMatrix()
+        Minecraft.getInstance.getItemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, light, overlay, matrix, buffer)
+        matrix.popPose()
       case _ =>
     }
 
-    if (System.currentTimeMillis() - drive.lastAccess < 400 && drive.world.rand.nextDouble() > 0.1) {
-      GlStateManager.translate(-0.5, 0.5, 0.505)
-      GlStateManager.scale(1, -1, 1)
+    if (System.currentTimeMillis() - drive.lastAccess < 400 && drive.world.random.nextDouble() > 0.1) {
+      matrix.translate(-0.5, 0.5, 0.505)
+      matrix.scale(1, -1, 1)
 
-      RenderState.disableEntityLighting()
-      RenderState.makeItBlend()
-      RenderState.setBlendAlpha(1)
-
-      val t = Tessellator.getInstance
-      val r = t.getBuffer
-
-      Textures.Block.bind()
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
       val icon = Textures.getSprite(Textures.Block.DiskDriveFrontActivity)
-      r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
-      r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
-      r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
-      r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
-
-      t.draw()
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
+      r.vertex(matrix.last.pose, 0, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
+      r.vertex(matrix.last.pose, 1, 1, 0).uv(icon.getU1, icon.getV1).endVertex()
+      r.vertex(matrix.last.pose, 1, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
+      r.vertex(matrix.last.pose, 0, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
     }
 
-    GlStateManager.popMatrix()
-    RenderState.popAttrib()
+    matrix.popPose()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }

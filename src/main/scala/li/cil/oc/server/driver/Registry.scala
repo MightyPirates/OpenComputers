@@ -13,17 +13,18 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.items.CapabilityItemHandler
 import net.minecraftforge.items.IItemHandler
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.mapAsScalaMap
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.math.ScalaNumber
@@ -98,7 +99,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): DriverBlock =
+  override def driverFor(world: World, pos: BlockPos, side: Direction): DriverBlock =
     sidedBlocks.filter(_.worksWith(world, pos, side)) match {
       case sidedDrivers if sidedDrivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray)
       case _ => null
@@ -129,20 +130,18 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   override def environmentsFor(stack: ItemStack): util.Set[Class[_]] = environmentProviders.map(_.getEnvironment(stack)).filter(_ != null).toSet[Class[_]]
 
-  override def itemHandlerFor(stack: ItemStack, player: EntityPlayer): IItemHandler = {
+  override def itemHandlerFor(stack: ItemStack, player: PlayerEntity): IItemHandler = {
     inventoryProviders.find(provider => provider.worksWith(stack, player)).
       map(provider => InventoryUtils.asItemHandler(provider.getInventory(stack, player))).
       getOrElse {
-        if(stack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
-          stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
-        else null
+        stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null).orElse(null)
       }
   }
 
   override def itemDrivers: util.List[DriverItem] = items.toSeq
 
   def blacklistHost(stack: ItemStack, host: Class[_]) {
-    blacklist.find(_._1.isItemEqual(stack)) match {
+    blacklist.find(_._1.sameItem(stack)) match {
       case Some((_, hosts)) => hosts += host
       case _ => blacklist.append((stack, mutable.Set(host)))
     }
@@ -150,7 +149,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   def convert(value: Array[AnyRef]): Array[AnyRef] = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 
-  def convertRecursively(value: Any, memo: util.IdentityHashMap[AnyRef, AnyRef], force: Boolean = false): AnyRef = {
+  def convertRecursively(value: Any, memo: util.IdentityHashMap[Any, AnyRef], force: Boolean = false): AnyRef = {
     val valueRef = value match {
       case number: ScalaNumber => number.underlying
       case reference: AnyRef => reference
@@ -161,7 +160,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       memo.get(valueRef)
     }
     else valueRef match {
-      case null | Unit | None => null
+      case null | () | None => null
 
       case arg: java.lang.Boolean => arg
       case arg: java.lang.Byte => arg
@@ -231,7 +230,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  def convertList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[AnyRef, AnyRef]): Array[AnyRef] = {
+  def convertList(obj: Any, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[Any, AnyRef]): Array[AnyRef] = {
     val converted = mutable.ArrayBuffer.empty[AnyRef]
     memo += obj -> converted
     for ((value, index) <- list) {
@@ -240,7 +239,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     converted.toArray
   }
 
-  def convertMap(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[AnyRef, AnyRef]): AnyRef = {
+  def convertMap[K, V](obj: Any, map: Map[K, V], memo: util.IdentityHashMap[Any, AnyRef]): AnyRef = {
     val converted = memo.getOrElseUpdate(obj, mutable.Map.empty[AnyRef, AnyRef]) match {
       case map: mutable.Map[AnyRef, AnyRef]@unchecked => map
       case map: java.util.Map[AnyRef, AnyRef]@unchecked => mapAsScalaMap(map)

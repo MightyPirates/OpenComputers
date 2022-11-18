@@ -4,13 +4,13 @@ This is some test text for the subset of Markdown supported by the planned ingam
 ![This is a tooltip...](opencomputers:textures/gui/printer_ink.png)
 ![This is a tooltip...](opencomputers:/textures/gui/printer_material.png)
 *This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](../index.md).
-![This is rendered live.](oredict:oc:assembler)
+![This is rendered live.](oredict:opencomputers:assembler)
 ## Smaller headline [also with *link* but this __one__ longer](../block/adapter.md)
 
-![This is another tooltip.](item:OpenComputers:item@23)
+![This is another tooltip.](item:opencomputers:transistor)
 
 some text directly above the item stack renderer to test spacing
-![All the colors.](oredict:craftingPiston)
+![All the colors.](oredict:forge/piston)
 some text directly below the item stack renderer to test spacing
 
 This is *italic
@@ -42,9 +42,9 @@ asdasd ![oh my god, the recursion!](img/example.png) qweqwe
 
 And finally, [this is a link!](https://avatars1.githubusercontent.com/u/514903).
 
-![broken item image](item:this is broken)
-![broken item image](block:this is broken)
-![broken item image](oredict:this is broken)
+![broken item image](item:this_is_broken)
+![broken item image](block:this_is_broken)
+![broken item image](oredict:this_is_broken)
 
 wrap testing
 12345678901234567890.1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -53,17 +53,17 @@ wrap testing
 * 12345678901234567890.1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 - `123456789012345678901234567890.12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`
 
-this is a test for an![](oredict:oc:cpu1)an inline image kakakakalalsd 123 as
+this is a test for an![](oredict:opencomputers:cpu1)an inline image kakakakalalsd 123 as
 
-this is a test for an![](oredict:oc:cpu1)
+this is a test for an![](oredict:opencomputers:cpu1)
 an image with a break after it
 
 this is a test for an
-![](oredict:oc:cpu1)
+![](oredict:opencomputers:cpu1)
 an image between two lines
 
 this is a test for an
 
-![](oredict:oc:cpu1)
+![](oredict:opencomputers:cpu1)
 
 an image between two blank lines

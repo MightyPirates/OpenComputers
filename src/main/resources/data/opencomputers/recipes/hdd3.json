@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CDd",
+    "PDp",
+    "CDd"
+  ],
+  "key": {
+    "d": {
+      "tag": "forge:gems/diamond"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "D": {
+      "tag": "opencomputers:materialdisk"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hdd3"
+  }
+}

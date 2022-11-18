@@ -4,7 +4,9 @@ import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.TranslationTextComponent
 import net.minecraftforge.common.util.Constants.NBT
 
 trait Inventory extends SimpleInventory {
@@ -14,12 +16,12 @@ trait Inventory extends SimpleInventory {
 
   // ----------------------------------------------------------------------- //
 
-  override def getStackInSlot(slot: Int): ItemStack =
-    if (slot >= 0 && slot < getSizeInventory) items(slot)
+  override def getItem(slot: Int): ItemStack =
+    if (slot >= 0 && slot < getContainerSize) items(slot)
     else ItemStack.EMPTY
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
-    if (slot >= 0 && slot < getSizeInventory) {
+  override def setItem(slot: Int, stack: ItemStack): Unit = {
+    if (slot >= 0 && slot < getContainerSize) {
       if (stack.isEmpty && items(slot).isEmpty) {
         return
       }
@@ -33,8 +35,8 @@ trait Inventory extends SimpleInventory {
         onItemRemoved(slot, oldStack)
       }
       if (!stack.isEmpty && stack.getCount >= getInventoryStackRequired) {
-        if (stack.getCount > getInventoryStackLimit) {
-          stack.setCount(getInventoryStackLimit)
+        if (stack.getCount > getMaxStackSize) {
+          stack.setCount(getMaxStackSize)
         }
         updateItems(slot, stack)
       }
@@ -43,11 +45,11 @@ trait Inventory extends SimpleInventory {
         onItemAdded(slot, items(slot))
       }
 
-      markDirty()
+      setChanged()
     }
   }
 
-  override def getName: String = Settings.namespace + "container." + inventoryName
+  override def getName: ITextComponent = new TranslationTextComponent(Settings.namespace + "container." + inventoryName)
 
   protected def inventoryName: String = getClass.getSimpleName.toLowerCase
 
@@ -59,26 +61,26 @@ trait Inventory extends SimpleInventory {
   private final val SlotTag = "slot"
   private final val ItemTag = "item"
 
-  def load(nbt: NBTTagCompound) {
-    nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
-      if (tag.hasKey(SlotTag)) {
+  def loadData(nbt: CompoundNBT) {
+    nbt.getList(ItemsTag, NBT.TAG_COMPOUND).foreach((tag: CompoundNBT) => {
+      if (tag.contains(SlotTag)) {
         val slot = tag.getByte(SlotTag)
         if (slot >= 0 && slot < items.length) {
-          updateItems(slot, new ItemStack(tag.getCompoundTag(ItemTag)))
+          updateItems(slot, ItemStack.of(tag.getCompound(ItemTag)))
         }
       }
     })
   }
 
-  def save(nbt: NBTTagCompound) {
+  def saveData(nbt: CompoundNBT) {
     nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
         case (stack, slot) if !stack.isEmpty => (stack, slot)
       } map {
         case (stack, slot) =>
-          val slotNbt = new NBTTagCompound()
-          slotNbt.setByte(SlotTag, slot.toByte)
-          slotNbt.setNewCompoundTag(ItemTag, stack.writeToNBT)
+          val slotNbt = new CompoundNBT()
+          slotNbt.putByte(SlotTag, slot.toByte)
+          slotNbt.setNewCompoundTag(ItemTag, stack.save)
       })
   }
 

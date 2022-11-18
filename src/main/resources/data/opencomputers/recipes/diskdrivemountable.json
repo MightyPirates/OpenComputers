@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "oCo",
+    "fDf",
+    "oPo"
+  ],
+  "key": {
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "f": {
+      "item": "minecraft:iron_bars"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "D": {
+      "tag": "opencomputers:diskdrive"
+    }
+  },
+  "result": {
+    "item": "opencomputers:diskdrivemountable"
+  }
+}

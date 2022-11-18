@@ -14,7 +14,7 @@ object DriverInternetCard extends Item {
     api.Items.get(Constants.ItemName.InternetCard))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else new component.InternetCard()
 
   override def slot(stack: ItemStack) = Slot.Card

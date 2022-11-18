@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gcg",
+    "eCe",
+    "dPp"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "e": {
+      "tag": "forge:gems/emerald"
+    },
+    "c": {
+      "tag": "forge:chests"
+    },
+    "d": {
+      "item": "minecraft:dropper"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:tradingupgrade"
+  }
+}

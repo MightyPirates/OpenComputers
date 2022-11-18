@@ -1,6 +1,6 @@
 # Transposer
 
-![Such a poser.](oredict:oc:transposer)
+![Such a poser.](oredict:opencomputers:transposer)
 
 The transposer bridges the gap between redstone controlled hoppers and [robots](robot.md), allowing [computer](../general/computer.md)-controlled transferral of items and fluids between adjacent blocks.
 

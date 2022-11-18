@@ -9,7 +9,7 @@ import li.cil.oc.api.driver.Converter
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterLinkedCard extends Converter {
   lazy val linkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)

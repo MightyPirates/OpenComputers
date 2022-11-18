@@ -1,6 +1,6 @@
 # Kabel
 
-![Salat.](oredict:oc:cable)
+![Salat.](oredict:opencomputers:cable)
 
 Das Kabel ist eine Möglichkeit, [Computer](../general/computer.md) und Maschinen, die weit auseinander stehen zu verbinden. Kompakte Bauten, bei denen sich alle Komponenten direkt oder indirekt berühren (die meisten Blöcke verhalten sich für Kabel) benötigen in der Regel keine Kabel.
 

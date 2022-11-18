@@ -1,90 +1,86 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.util.EnumFacing
-import org.lwjgl.opengl.GL11
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.texture.AtlasTexture
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
+import net.minecraft.util.Direction
 
-object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplitter] {
-  override def render(splitter: tileentity.NetSplitter, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object NetSplitterRenderer extends Function[TileEntityRendererDispatcher, NetSplitterRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new NetSplitterRenderer(dispatch)
+}
+
+class NetSplitterRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[tileentity.NetSplitter](dispatch) {
+  override def render(splitter: tileentity.NetSplitter, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
+    RenderSystem.color4f(1, 1, 1, 1)
+
     if (splitter.openSides.contains(!splitter.isInverted)) {
-      RenderState.pushAttrib()
-      RenderState.disableEntityLighting()
-      RenderState.makeItBlend()
+      stack.pushPose()
 
-      GlStateManager.pushMatrix()
+      stack.translate(0.5, 0.5, 0.5)
+      stack.scale(1.0025f, -1.0025f, 1.0025f)
+      stack.translate(-0.5f, -0.5f, -0.5f)
 
-      GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
-      GlStateManager.scale(1.0025, -1.0025, 1.0025)
-      GlStateManager.translate(-0.5f, -0.5f, -0.5f)
+      Minecraft.getInstance().getModelManager().getAtlas(AtlasTexture.LOCATION_BLOCKS).bind()
 
-      bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
-
-      val t = Tessellator.getInstance
-      val r = t.getBuffer
-
-      Textures.Block.bind()
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
       val sideActivity = Textures.getSprite(Textures.Block.NetSplitterOn)
 
-      if (splitter.isSideOpen(EnumFacing.DOWN)) {
-        r.pos(0, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(1, 1, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
-        r.pos(1, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+      if (splitter.isSideOpen(Direction.DOWN)) {
+        r.vertex(stack.last.pose, 0, 1, 0).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 1, 0).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 1, 1).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 1, 1).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
       }
 
-      if (splitter.isSideOpen(EnumFacing.UP)) {
-        r.pos(0, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(1, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
-        r.pos(1, 0, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+      if (splitter.isSideOpen(Direction.UP)) {
+        r.vertex(stack.last.pose, 0, 0, 0).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 0, 1).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 1).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 0).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
       }
 
-      if (splitter.isSideOpen(EnumFacing.NORTH)) {
-        r.pos(1, 1, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(1, 0, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+      if (splitter.isSideOpen(Direction.NORTH)) {
+        r.vertex(stack.last.pose, 1, 1, 0).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 1, 0).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 0, 0).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 0).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
       }
 
-      if (splitter.isSideOpen(EnumFacing.SOUTH)) {
-        r.pos(0, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
-        r.pos(1, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
-        r.pos(1, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(0, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+      if (splitter.isSideOpen(Direction.SOUTH)) {
+        r.vertex(stack.last.pose, 0, 1, 1).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, 1, 1).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 1).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 0, 0, 1).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
       }
 
-      if (splitter.isSideOpen(EnumFacing.WEST)) {
-        r.pos(0, 1, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
-        r.pos(0, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(0, 0, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+      if (splitter.isSideOpen(Direction.WEST)) {
+        r.vertex(stack.last.pose, 0, 1, 0).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 1, 1).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 0, 0, 1).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 0, 0, 0).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
       }
 
-      if (splitter.isSideOpen(EnumFacing.EAST)) {
-        r.pos(1, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
-        r.pos(1, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
-        r.pos(1, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
-        r.pos(1, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+      if (splitter.isSideOpen(Direction.EAST)) {
+        r.vertex(stack.last.pose, 1, 1, 1).uv(sideActivity.getU0, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, 1, 0).uv(sideActivity.getU1, sideActivity.getV1).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 0).uv(sideActivity.getU1, sideActivity.getV0).endVertex()
+        r.vertex(stack.last.pose, 1, 0, 1).uv(sideActivity.getU0, sideActivity.getV0).endVertex()
       }
 
-      t.draw()
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
-
-      GlStateManager.popMatrix()
-      RenderState.popAttrib()
+      stack.popPose()
     }
 
     RenderState.checkError(getClass.getName + ".render: leaving")

@@ -1,8 +1,0 @@
-[{
-  "ignoreInventoryContents": true,
-  "nbt": {
-    "blacklist": [
-      "oc:items"
-    ]
-  }
-}]

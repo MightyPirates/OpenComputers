@@ -1,6 +1,6 @@
 # 适配器
 
-![Now with 100% more everything.](oredict:oc:adapter)
+![Now with 100% more everything.](oredict:opencomputers:adapter)
 
 适配器令[电脑](../general/computer.md)能与原版或其他 Mod 的方块交互。支持适配器的方块在连接适配器后，将会在与适配器连接的[电脑](../general/computer.md)上以组件的形式显示出来。
 

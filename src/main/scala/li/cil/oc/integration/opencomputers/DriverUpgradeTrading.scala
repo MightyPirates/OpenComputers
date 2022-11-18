@@ -16,7 +16,7 @@ object DriverUpgradeTrading extends Item with HostAware {
     api.Items.get(Constants.ItemName.TradingUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world.isClientSide) null
     else new UpgradeTrading(host)
 
   override def slot(stack: ItemStack) = Slot.Upgrade

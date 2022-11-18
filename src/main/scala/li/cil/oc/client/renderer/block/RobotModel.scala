@@ -4,17 +4,16 @@ import java.util
 import java.util.Collections
 
 import li.cil.oc.client.Textures
-import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.block.model.BakedQuad
-import net.minecraft.client.renderer.block.model.IBakedModel
-import net.minecraft.client.renderer.block.model.ItemOverrideList
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.entity.EntityLivingBase
+import net.minecraft.block.BlockState
+import net.minecraft.client.world.ClientWorld
+import net.minecraft.client.renderer.model.BakedQuad
+import net.minecraft.client.renderer.model.IBakedModel
+import net.minecraft.client.renderer.model.ItemOverrideList
+import net.minecraft.entity.LivingEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.world.World
+import net.minecraft.util.Direction
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 object RobotModel extends SmartBlockModelBase {
@@ -56,30 +55,30 @@ object RobotModel extends SmartBlockModelBase {
           (x - 0.5f) * 1.4f + 0.5f,
           (y - 0.5f) * 1.4f + 0.5f,
           (z - 0.5f) * 1.4f + 0.5f,
-          EnumFacing.UP, robotTexture, robotTexture.getInterpolatedU(u * 16), robotTexture.getInterpolatedV(v * 16),
+          Direction.UP, robotTexture, robotTexture.getU(u * 16), robotTexture.getV(v * 16),
           White)
       }.toArray
     }
 
-    override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
+    override def getQuads(state: BlockState, side: Direction, rand: util.Random): util.List[BakedQuad] = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-      faces += new BakedQuad(quad(top, top1, top2), tint, EnumFacing.NORTH, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(top, top2, top3), tint, EnumFacing.EAST, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(top, top3, top4), tint, EnumFacing.SOUTH, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(top, top4, top1), tint, EnumFacing.WEST, robotTexture, true, DefaultVertexFormats.ITEM)
+      faces += new BakedQuad(quad(top, top1, top2), tint, Direction.NORTH, robotTexture, true)
+      faces += new BakedQuad(quad(top, top2, top3), tint, Direction.EAST, robotTexture, true)
+      faces += new BakedQuad(quad(top, top3, top4), tint, Direction.SOUTH, robotTexture, true)
+      faces += new BakedQuad(quad(top, top4, top1), tint, Direction.WEST, robotTexture, true)
 
-      faces += new BakedQuad(quad(bottom, bottom1, bottom2), tint, EnumFacing.NORTH, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(bottom, bottom2, bottom3), tint, EnumFacing.EAST, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(bottom, bottom3, bottom4), tint, EnumFacing.SOUTH, robotTexture, true, DefaultVertexFormats.ITEM)
-      faces += new BakedQuad(quad(bottom, bottom4, bottom1), tint, EnumFacing.WEST, robotTexture, true, DefaultVertexFormats.ITEM)
+      faces += new BakedQuad(quad(bottom, bottom1, bottom2), tint, Direction.NORTH, robotTexture, true)
+      faces += new BakedQuad(quad(bottom, bottom2, bottom3), tint, Direction.EAST, robotTexture, true)
+      faces += new BakedQuad(quad(bottom, bottom3, bottom4), tint, Direction.SOUTH, robotTexture, true)
+      faces += new BakedQuad(quad(bottom, bottom4, bottom1), tint, Direction.WEST, robotTexture, true)
 
       bufferAsJavaList(faces)
     }
   }
 
-  object ItemOverride extends ItemOverrideList(Collections.emptyList()) {
-    override def handleItemState(originalModel: IBakedModel, stack: ItemStack, world: World, entity: EntityLivingBase): IBakedModel = ItemModel
+  object ItemOverride extends ItemOverrideList {
+    override def resolve(originalModel: IBakedModel, stack: ItemStack, world: ClientWorld, entity: LivingEntity): IBakedModel = ItemModel
   }
 
 }

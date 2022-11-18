@@ -17,13 +17,13 @@ import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.init.SoundEvents
-import net.minecraft.util.EnumFacing
+import net.minecraft.entity.item.ItemEntity
+import net.minecraft.util.SoundEvents
+import net.minecraft.util.Direction
 import net.minecraft.util.SoundCategory
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Agent with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -44,11 +44,11 @@ class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Age
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSideAny(n)
 
-  override protected def suckableItems(side: EnumFacing) = entitiesInBlock(classOf[EntityItem], position) ++ super.suckableItems(side)
+  override protected def suckableItems(side: Direction) = entitiesInBlock(classOf[ItemEntity], position) ++ super.suckableItems(side)
 
-  override protected def onSuckCollect(entity: EntityItem) = {
+  override protected def onSuckCollect(entity: ItemEntity) = {
     if (InventoryUtils.insertIntoInventory(entity.getItem, InventoryUtils.asItemHandler(inventory), slots = Option(insertionSlots))) {
-      world.playSound(agent.player, agent.posX, agent.posY, agent.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
+      world.playSound(agent.player, agent.getX, agent.getY, agent.getZ, SoundEvents.ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((world.random.nextFloat - world.random.nextFloat) * 0.7f + 1) * 2)
     }
   }
 
@@ -93,14 +93,14 @@ class Drone(val agent: entity.Drone) extends AbstractManagedEnvironment with Age
 
   @Callback(doc = "function():number -- Get the current distance to the target position.")
   def getOffset(context: Context, args: Arguments): Array[AnyRef] =
-    result(agent.getDistance(agent.targetX.floatValue(), agent.targetY.floatValue(), agent.targetZ.floatValue()))
+    result(agent.position.distanceTo(agent.getTarget()))
 
   @Callback(doc = "function():number -- Get the current velocity in m/s.")
   def getVelocity(context: Context, args: Arguments): Array[AnyRef] =
-    result(math.sqrt(agent.motionX * agent.motionX + agent.motionY * agent.motionY + agent.motionZ * agent.motionZ) * 20) // per second
+    result(agent.getDeltaMovement.length * 20) // per second
 
   @Callback(doc = "function():number -- Get the maximum velocity, in m/s.")
-  def getMaxVelocity(context: Context, args: Arguments): Array[AnyRef] = {
+  def getV1elocity(context: Context, args: Arguments): Array[AnyRef] = {
     result(agent.maxVelocity * 20) // per second
   }
 

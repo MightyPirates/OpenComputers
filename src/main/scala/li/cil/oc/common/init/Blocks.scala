@@ -1,92 +1,64 @@
 package li.cil.oc.common.init
 
 import li.cil.oc.Constants
+import li.cil.oc.CreativeTab
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block._
-import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.tileentity
-import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraft.block.AbstractBlock.Properties
+import net.minecraft.block.material.Material
+import net.minecraft.item.Rarity
+import net.minecraft.item.Item
 
 object Blocks {
   def init() {
-    registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
-    registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
-    registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
-    registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
-    registerTileEntity(classOf[tileentity.CarpetedCapacitor], Settings.namespace + "carpetedCapacitor")
-    registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
-    registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
-    registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "diskDrive")
-    registerTileEntity(classOf[tileentity.Disassembler], Settings.namespace + "disassembler")
-    registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
-    registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
-    registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
-    registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
-    registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motionSensor")
-    registerTileEntity(classOf[tileentity.NetSplitter], Settings.namespace + "netSplitter")
-    registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "powerConverter")
-    registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "powerDistributor")
-    registerTileEntity(classOf[tileentity.Print], Settings.namespace + "print")
-    registerTileEntity(classOf[tileentity.Printer], Settings.namespace + "printer")
-    registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
-    registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
-    registerTileEntity(classOf[tileentity.Relay], Settings.namespace + "relay")
-    registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
-    registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
-    registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "rack")
-    registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
-    registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
+    def defaultProps = Properties.of(Material.METAL).strength(2, 5)
+    def defaultItemProps = new Item.Properties().tab(CreativeTab)
+    Items.registerBlock(new Adapter(defaultProps), Constants.BlockName.Adapter, defaultItemProps)
+    Items.registerBlock(new Assembler(defaultProps), Constants.BlockName.Assembler, defaultItemProps)
+    Items.registerBlock(new Cable(defaultProps), Constants.BlockName.Cable, defaultItemProps)
+    Items.registerBlock(new Capacitor(defaultProps), Constants.BlockName.Capacitor, defaultItemProps)
+    Items.registerBlock(new Case(defaultProps, Tier.One), Constants.BlockName.CaseTier1, defaultItemProps)
+    Items.registerBlock(new Case(defaultProps, Tier.Three), Constants.BlockName.CaseTier3, defaultItemProps.rarity(Rarity.RARE))
+    Items.registerBlock(new Case(defaultProps, Tier.Two), Constants.BlockName.CaseTier2, defaultItemProps.rarity(Rarity.UNCOMMON))
+    Items.registerBlock(new ChameliumBlock(Properties.of(Material.STONE).strength(2, 5)), Constants.BlockName.ChameliumBlock, defaultItemProps)
+    Items.registerBlock(new Charger(defaultProps), Constants.BlockName.Charger, defaultItemProps)
+    Items.registerBlock(new Disassembler(defaultProps), Constants.BlockName.Disassembler, defaultItemProps)
+    Items.registerBlock(new DiskDrive(defaultProps), Constants.BlockName.DiskDrive, defaultItemProps)
+    Items.registerBlock(new Geolyzer(defaultProps), Constants.BlockName.Geolyzer, defaultItemProps)
+    Items.registerBlock(new Hologram(defaultProps, Tier.One), Constants.BlockName.HologramTier1, defaultItemProps)
+    Items.registerBlock(new Hologram(defaultProps, Tier.Two), Constants.BlockName.HologramTier2, defaultItemProps.rarity(Rarity.UNCOMMON))
+    Items.registerBlock(new Keyboard(Properties.of(Material.STONE).strength(2, 5).noOcclusion), Constants.BlockName.Keyboard, defaultItemProps)
+    Items.registerBlock(new MotionSensor(defaultProps), Constants.BlockName.MotionSensor, defaultItemProps)
+    Items.registerBlock(new PowerConverter(defaultProps), Constants.BlockName.PowerConverter,
+      new Item.Properties().tab(if (!Settings.get.ignorePower) CreativeTab else null))
+    Items.registerBlock(new PowerDistributor(defaultProps), Constants.BlockName.PowerDistributor, defaultItemProps)
+    Items.registerBlock(new Printer(defaultProps), Constants.BlockName.Printer, defaultItemProps)
+    Items.registerBlock(new Raid(defaultProps), Constants.BlockName.Raid, defaultItemProps)
+    Items.registerBlock(new Redstone(defaultProps), Constants.BlockName.Redstone, defaultItemProps)
+    Items.registerBlock(new Relay(defaultProps), Constants.BlockName.Relay, defaultItemProps)
+    Items.registerBlock(new Screen(defaultProps, Tier.One), Constants.BlockName.ScreenTier1, defaultItemProps)
+    Items.registerBlock(new Screen(defaultProps, Tier.Three), Constants.BlockName.ScreenTier3, defaultItemProps.rarity(Rarity.RARE))
+    Items.registerBlock(new Screen(defaultProps, Tier.Two), Constants.BlockName.ScreenTier2, defaultItemProps.rarity(Rarity.UNCOMMON))
+    Items.registerBlock(new Rack(defaultProps), Constants.BlockName.Rack, defaultItemProps)
+    Items.registerBlock(new Waypoint(defaultProps), Constants.BlockName.Waypoint, defaultItemProps)
 
-    Recipes.addBlock(new Adapter(), Constants.BlockName.Adapter, "oc:adapter")
-    Recipes.addBlock(new Assembler(), Constants.BlockName.Assembler, "oc:assembler")
-    Recipes.addBlock(new Cable(), Constants.BlockName.Cable, "oc:cable")
-    Recipes.addBlock(new Capacitor(), Constants.BlockName.Capacitor, "oc:capacitor")
-    Recipes.addBlock(new Case(Tier.One), Constants.BlockName.CaseTier1, "oc:case1")
-    Recipes.addBlock(new Case(Tier.Three), Constants.BlockName.CaseTier3, "oc:case3")
-    Recipes.addBlock(new Case(Tier.Two), Constants.BlockName.CaseTier2, "oc:case2")
-    Recipes.addBlock(new ChameliumBlock(), Constants.BlockName.ChameliumBlock, "oc:chameliumBlock")
-    Recipes.addBlock(new Charger(), Constants.BlockName.Charger, "oc:charger")
-    Recipes.addBlock(new Disassembler(), Constants.BlockName.Disassembler, "oc:disassembler")
-    Recipes.addBlock(new DiskDrive(), Constants.BlockName.DiskDrive, "oc:diskDrive")
-    Recipes.addBlock(new Geolyzer(), Constants.BlockName.Geolyzer, "oc:geolyzer")
-    Recipes.addBlock(new Hologram(Tier.One), Constants.BlockName.HologramTier1, "oc:hologram1")
-    Recipes.addBlock(new Hologram(Tier.Two), Constants.BlockName.HologramTier2, "oc:hologram2")
-    Recipes.addBlock(new Keyboard(), Constants.BlockName.Keyboard, "oc:keyboard")
-    Recipes.addBlock(new MotionSensor(), Constants.BlockName.MotionSensor, "oc:motionSensor")
-    Recipes.addBlock(new PowerConverter(), Constants.BlockName.PowerConverter, "oc:powerConverter")
-    Recipes.addBlock(new PowerDistributor(), Constants.BlockName.PowerDistributor, "oc:powerDistributor")
-    Recipes.addBlock(new Printer(), Constants.BlockName.Printer, "oc:printer")
-    Recipes.addBlock(new Raid(), Constants.BlockName.Raid, "oc:raid")
-    Recipes.addBlock(new Redstone(), Constants.BlockName.Redstone, "oc:redstone")
-    Recipes.addBlock(new Relay(), Constants.BlockName.Relay, "oc:relay")
-    Recipes.addBlock(new Screen(Tier.One), Constants.BlockName.ScreenTier1, "oc:screen1")
-    Recipes.addBlock(new Screen(Tier.Three), Constants.BlockName.ScreenTier3, "oc:screen3")
-    Recipes.addBlock(new Screen(Tier.Two), Constants.BlockName.ScreenTier2, "oc:screen2")
-    Recipes.addBlock(new Rack(), Constants.BlockName.Rack, "oc:rack", "oc:rack")
-    Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
-
-    Items.registerBlock(new Case(Tier.Four), Constants.BlockName.CaseCreative)
-    Items.registerBlock(new Microcontroller(), Constants.BlockName.Microcontroller)
-    Items.registerBlock(new Print(), Constants.BlockName.Print)
-    Items.registerBlock(new RobotAfterimage(), Constants.BlockName.RobotAfterimage)
-    Items.registerBlock(new RobotProxy(), Constants.BlockName.Robot)
+    Items.registerBlock(new Case(defaultProps, Tier.Four), Constants.BlockName.CaseCreative, defaultItemProps.rarity(Rarity.EPIC))
+    Items.registerBlock(new Microcontroller(defaultProps), Constants.BlockName.Microcontroller, new Item.Properties())
+    Items.registerBlock(new Print(Properties.of(Material.METAL).strength(1, 5).noOcclusion.dynamicShape), Constants.BlockName.Print, new Item.Properties())
+    Items.registerBlockOnly(new RobotAfterimage(Properties.of(Material.AIR).instabreak.noOcclusion.dynamicShape.air), Constants.BlockName.RobotAfterimage)
+    Items.registerBlock(new RobotProxy(defaultProps.noOcclusion.dynamicShape), Constants.BlockName.Robot, new Item.Properties())
 
     // v1.5.10
-    Recipes.addBlock(new FakeEndstone(), Constants.BlockName.Endstone, "oc:stoneEndstone")
+    Items.registerBlock(new FakeEndstone(Properties.of(Material.STONE).strength(3, 15)), Constants.BlockName.Endstone, defaultItemProps)
 
     // v1.5.14
-    Recipes.addBlock(new NetSplitter(), Constants.BlockName.NetSplitter, "oc:netSplitter")
+    Items.registerBlock(new NetSplitter(defaultProps), Constants.BlockName.NetSplitter, defaultItemProps)
 
     // v1.5.16
-    Recipes.addBlock(new Transposer(), Constants.BlockName.Transposer, "oc:transposer")
+    Items.registerBlock(new Transposer(defaultProps), Constants.BlockName.Transposer, defaultItemProps)
 
     // v1.7.2
-    Recipes.addBlock(new CarpetedCapacitor(), Constants.BlockName.CarpetedCapacitor, "oc:carpetedCapacitor")
-  }
-
-  private def registerTileEntity(tileEntityClass: Class[_ <: TileEntity], key: String): Unit = {
-    GameRegistry.registerTileEntity(tileEntityClass, key)
+    Items.registerBlock(new CarpetedCapacitor(defaultProps), Constants.BlockName.CarpetedCapacitor, defaultItemProps)
   }
 }

@@ -18,12 +18,12 @@ import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.item.ItemEntity
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.math.BlockPos
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object UpgradeTractorBeam {
 
@@ -45,22 +45,22 @@ object UpgradeTractorBeam {
 
   protected def position: BlockPosition
 
-  protected def collectItem(item: EntityItem): Unit
+  protected def collectItem(item: ItemEntity): Unit
 
   private def world = position.world.get
 
   @Callback(doc = """function():boolean -- Tries to pick up a random item in the robots' vicinity.""")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
-    val items = world.getEntitiesWithinAABB(classOf[EntityItem], position.bounds.grow(pickupRadius, pickupRadius, pickupRadius))
-      .filter(item => item.isEntityAlive && !item.cannotPickup)
+    val items = world.getEntitiesOfClass(classOf[ItemEntity], position.bounds.inflate(pickupRadius, pickupRadius, pickupRadius))
+      .filter(item => item.isAlive && !item.hasPickUpDelay)
     if (items.nonEmpty) {
-      val item = items(world.rand.nextInt(items.size))
+      val item = items(world.random.nextInt(items.size))
       val stack = item.getItem
       val size = stack.getCount
       collectItem(item)
-      if (stack.getCount < size || item.isDead) {
+      if (stack.getCount < size || !item.isAlive) {
         context.pause(Settings.get.suckDelay)
-        world.playEvent(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
+        world.levelEvent(2003, new BlockPos(math.floor(item.getX).toInt, math.floor(item.getY).toInt, math.floor(item.getZ).toInt), 0)
         return result(true)
       }
     }
@@ -68,20 +68,20 @@ object UpgradeTractorBeam {
   }
   }
 
-  class Player(val owner: EnvironmentHost, val player: () => EntityPlayer) extends Common {
+  class Player(val owner: EnvironmentHost, val player: () => PlayerEntity) extends Common {
     override protected def position = BlockPosition(owner)
 
-    override protected def collectItem(item: EntityItem) = item.onCollideWithPlayer(player())
+    override protected def collectItem(item: ItemEntity) = item.playerTouch(player())
   }
 
   class Drone(val owner: internal.Agent) extends Common {
     override protected def position = BlockPosition(owner)
 
-    override protected def collectItem(item: EntityItem) = {
+    override protected def collectItem(item: ItemEntity) = {
       InventoryUtils.insertIntoInventory(item.getItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
     }
 
-    private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getSizeInventory) ++ (0 until owner.selectedSlot)
+    private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getContainerSize) ++ (0 until owner.selectedSlot)
   }
 
 }

@@ -4,11 +4,11 @@ import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ComponentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.util.StateAware;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Hand;
 
 /**
  * Use this interface on environments provided by drivers for items that can
@@ -41,7 +41,7 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
      *
      * @return the data to synchronize to the clients.
      */
-    NBTTagCompound getData();
+    CompoundNBT getData();
 
     /**
      * The number of connectables exposed by the environment.
@@ -70,5 +70,5 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
      * @param hitY     the relative y coordinate of the activation on the mountable.
      * @return whether the activation was handled (e.g. GUI opened).
      */
-    boolean onActivate(EntityPlayer player, EnumHand hand, ItemStack heldItem, float hitX, float hitY);
+    boolean onActivate(PlayerEntity player, Hand hand, ItemStack heldItem, float hitX, float hitY);
 }

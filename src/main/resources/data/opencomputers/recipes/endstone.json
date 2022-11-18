@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "eCe",
+    "CeC",
+    "eCe"
+  ],
+  "key": {
+    "e": {
+      "tag": "forge:ender_pearls"
+    },
+    "C": {
+      "tag": "opencomputers:chameliumblock"
+    }
+  },
+  "result": {
+    "item": "opencomputers:endstone"
+  }
+}

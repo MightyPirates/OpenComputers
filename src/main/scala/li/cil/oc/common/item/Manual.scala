@@ -6,38 +6,43 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.util.ITooltipFlag
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ActionResult
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Direction
+import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.StringTextComponent
 import net.minecraft.util.text.TextFormatting
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.common.extensions.IForgeItem
 
-class Manual(val parent: Delegator) extends traits.Delegate {
-  @SideOnly(Side.CLIENT)
-  override def tooltipLines(stack: ItemStack, world: World, tooltip: util.List[String], flag: ITooltipFlag): Unit = {
-    tooltip.add(TextFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)
-    super.tooltipLines(stack, world, tooltip, flag)
+class Manual(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
+  @OnlyIn(Dist.CLIENT)
+  override def appendHoverText(stack: ItemStack, world: World, tooltip: util.List[ITextComponent], flag: ITooltipFlag) {
+    super.appendHoverText(stack, world, tooltip, flag)
+    tooltip.add(new StringTextComponent(TextFormatting.DARK_GRAY.toString + "v" + OpenComputers.get.Version))
   }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ActionResult[ItemStack] = {
-    if (world.isRemote) {
-      if (player.isSneaking) {
+  override def use(stack: ItemStack, world: World, player: PlayerEntity): ActionResult[ItemStack] = {
+    if (world.isClientSide) {
+      if (player.isCrouching) {
         api.Manual.reset()
       }
       api.Manual.openFor(player)
     }
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    val world = player.getEntityWorld
+  override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    val world = player.level
     api.Manual.pathFor(world, position.toBlockPos) match {
       case path: String =>
-        if (world.isRemote) {
+        if (world.isClientSide) {
           api.Manual.openFor(player)
           api.Manual.reset()
           api.Manual.navigate(path)

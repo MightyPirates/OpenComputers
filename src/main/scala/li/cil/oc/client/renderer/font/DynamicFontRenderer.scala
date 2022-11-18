@@ -1,14 +1,20 @@
 package li.cil.oc.client.renderer.font
 
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Settings
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.resources.IReloadableResourceManager
-import net.minecraft.client.resources.IResourceManager
-import net.minecraft.client.resources.IResourceManagerReloadListener
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.texture.TextureUtil
+import net.minecraft.resources.IReloadableResourceManager
+import net.minecraft.resources.IResourceManager
+import net.minecraft.resources.IResourceManagerReloadListener
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 
@@ -31,7 +37,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
 
   initialize()
 
-  Minecraft.getMinecraft.getResourceManager match {
+  Minecraft.getInstance.getResourceManager match {
     case reloadable: IReloadableResourceManager => reloadable.registerReloadListener(this)
     case _ =>
   }
@@ -42,13 +48,13 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     }
     textures.clear()
     charMap.clear()
+    glyphProvider.initialize()
     textures += new DynamicFontRenderer.CharTexture(this)
     activeTexture = textures.head
     generateChars(basicChars.toCharArray)
   }
 
   def onResourceManagerReload(manager: IResourceManager) {
-    glyphProvider.initialize()
     initialize()
   }
 
@@ -64,13 +70,25 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     RenderState.checkError(getClass.getName + ".bindTexture")
   }
 
+  override protected def selectType(index: Int): RenderType = {
+    activeTexture = textures(index)
+    activeTexture.getType
+  }
+
   override protected def generateChar(char: Char) {
     charMap.getOrElseUpdate(char, createCharIcon(char))
   }
 
-  override protected def drawChar(tx: Float, ty: Float, char: Char) {
+  override protected def drawChar(matrix: Matrix4f, tx: Float, ty: Float, char: Char) {
     charMap.get(char) match {
-      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
+      case Some(icon) if icon.texture == activeTexture => icon.draw(matrix, tx, ty)
+      case _ =>
+    }
+  }
+
+  override protected def drawChar(builder: IVertexBuilder, matrix: Matrix4f, color: Int, tx: Float, ty: Float, char: Char) {
+    charMap.get(char) match {
+      case Some(icon) if icon.texture == activeTexture => icon.draw(builder, matrix, color, tx, ty)
       case _ =>
     }
   }
@@ -94,16 +112,18 @@ object DynamicFontRenderer {
   private val size = 256
 
   class CharTexture(val owner: DynamicFontRenderer) {
-    private val id = GlStateManager.generateTexture()
+    private val id = TextureUtil.generateTextureId()
     RenderState.bindTexture(id)
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
     } else {
-    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
     }
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
     GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, size, size, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, BufferUtils.createByteBuffer(size * size * 4))
     RenderState.bindTexture(0)
+
+    private val rt = RenderTypes.createFontTex(id)
 
     RenderState.checkError(getClass.getName + ".<init>: create texture")
 
@@ -112,20 +132,22 @@ object DynamicFontRenderer {
     private val cellHeight = owner.charHeight + 2
     private val cols = size / cellWidth
     private val rows = size / cellHeight
-    private val uStep = cellWidth / size.toDouble
-    private val vStep = cellHeight / size.toDouble
-    private val pad = 1.0 / size
+    private val uStep = cellWidth / size.toFloat
+    private val vStep = cellHeight / size.toFloat
+    private val pad = 1f / size
     private val capacity = cols * rows
 
     private var chars = 0
 
     def delete() {
-      GlStateManager.deleteTexture(id)
+      RenderSystem.deleteTexture(id)
     }
 
     def bind() {
       RenderState.bindTexture(id)
     }
+
+    def getType() = rt
 
     def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
 
@@ -149,16 +171,34 @@ object DynamicFontRenderer {
     }
   }
 
-  class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
-    def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty)
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty)
+  class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Float, val v1: Float, val u2: Float, val v2: Float) {
+    def draw(matrix: Matrix4f, tx: Float, ty: Float) {
+      GL11.glTexCoord2f(u1, v2)
+      val vec = new Vector4f(tx, ty + h, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
+      GL11.glTexCoord2f(u2, v2)
+      vec.set(tx + w, ty + h, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
+      GL11.glTexCoord2f(u2, v1)
+      vec.set(tx + w, ty, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
+      GL11.glTexCoord2f(u1, v1)
+      vec.set(tx, ty, 0, 1)
+      vec.transform(matrix)
+      GL11.glVertex3f(vec.x, vec.y, vec.z)
+    }
+
+    def draw(builder: IVertexBuilder, matrix: Matrix4f, color: Int, tx: Float, ty: Float) {
+      val r = ((color >> 16) & 0xFF) / 255f
+      val g = ((color >> 8) & 0xFF) / 255f
+      val b = (color & 0xFF) / 255f
+      builder.vertex(matrix, tx, ty + h, 0).color(r, g, b, 1f).uv(u1, v2).endVertex()
+      builder.vertex(matrix, tx + w, ty + h, 0).color(r, g, b, 1f).uv(u2, v2).endVertex()
+      builder.vertex(matrix, tx + w, ty, 0).color(r, g, b, 1f).uv(u2, v1).endVertex()
+      builder.vertex(matrix, tx, ty, 0).color(r, g, b, 1f).uv(u1, v1).endVertex()
     }
   }
 

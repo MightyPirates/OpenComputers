@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.UUID
+import java.util.function.Consumer
 
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -15,30 +16,46 @@ import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.server.agent.Player
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.common.util.NonNullSupplier
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandler
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraft.entity.Entity
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.fluid.Fluid
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
 import net.minecraft.util.math.AxisAlignedBB
-import net.minecraftforge.fluids.Fluid
+import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidTank
-import net.minecraftforge.fluids.capability.IFluidTankProperties
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
-  def this() = this(new Robot())
+class RobotProxy(selfType: TileEntityType[_ <: RobotProxy], val robot: Robot) extends TileEntity(selfType)
+  with traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot {
+
+  def this(selfType: TileEntityType[_ <: RobotProxy]) = this(selfType, new Robot())
 
   // ----------------------------------------------------------------------- //
 
-  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+  private val wrapper = LazyOptional.of(new NonNullSupplier[IFluidHandler] {
+    override def get = RobotProxy.this
+  })
+
+  override def invalidateCaps() {
+    super.invalidateCaps()
+    wrapper.invalidate()
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
     if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-      capability.cast(this.asInstanceOf[T])
+      wrapper.cast[T]
     else super.getCapability(capability, facing)
   }
 
@@ -53,7 +70,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def equipmentInventory: InventoryProxy {
     def inventory: Robot
 
-    def getSizeInventory: Int
+    def getContainerSize: Int
   } = robot.equipmentInventory
 
   override def mainInventory: InventoryProxy {
@@ -61,7 +78,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
     def inventory: Robot
 
-    def getSizeInventory: Int
+    def getContainerSize: Int
   } = robot.mainInventory
 
   override def tank: MultiTank {
@@ -126,7 +143,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   def setName(context: Context, args: Arguments): Array[AnyRef] = {
     val oldName = robot.name
     val newName: String = args.checkString(0)
-    if (machine.isRunning) return result(Unit, "is running")
+    if (machine.isRunning) return result((), "is running")
     setName(newName)
     ServerPacketSender.sendRobotNameChange(robot)
     result(oldName)
@@ -149,20 +166,19 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     robot.updateEntity()
   }
 
-  override def validate() {
-    super.validate()
+  override def clearRemoved() {
+    super.clearRemoved()
     val firstProxy = robot.proxy == null
     robot.proxy = this
-    robot.setWorld(getWorld)
-    robot.setPos(getPos)
+    robot.setLevelAndPosition(getLevel, getBlockPos)
     if (firstProxy) {
-      robot.validate()
+      robot.clearRemoved()
     }
     if (isServer) {
       // Use the same address we use internally on the outside.
-      val nbt = new NBTTagCompound()
-      nbt.setString("address", robot.node.address)
-      node.load(nbt)
+      val nbt = new CompoundNBT()
+      nbt.putString("address", robot.node.address)
+      node.loadData(nbt)
     }
   }
 
@@ -173,37 +189,36 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     }
   }
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    robot.info.load(nbt)
-    super.readFromNBTForServer(nbt)
-    robot.readFromNBTForServer(nbt)
+  override def loadForServer(nbt: CompoundNBT) {
+    robot.info.loadData(nbt)
+    super.loadForServer(nbt)
+    robot.loadForServer(nbt)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
-    robot.writeToNBTForServer(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
+    robot.saveForServer(nbt)
   }
 
-  override def save(nbt: NBTTagCompound): Unit = robot.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = robot.saveData(nbt)
 
-  override def load(nbt: NBTTagCompound): Unit = robot.load(nbt)
+  override def loadData(nbt: CompoundNBT): Unit = robot.loadData(nbt)
 
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound): Unit = robot.readFromNBTForClient(nbt)
+  @OnlyIn(Dist.CLIENT)
+  override def loadForClient(nbt: CompoundNBT): Unit = robot.loadForClient(nbt)
 
-  override def writeToNBTForClient(nbt: NBTTagCompound): Unit = robot.writeToNBTForClient(nbt)
+  override def saveForClient(nbt: CompoundNBT): Unit = robot.saveForClient(nbt)
 
-  override def getMaxRenderDistanceSquared: Double = robot.getMaxRenderDistanceSquared
+  @OnlyIn(Dist.CLIENT)
+  override def getViewDistance: Double = robot.getViewDistance
 
   override def getRenderBoundingBox: AxisAlignedBB = robot.getRenderBoundingBox
 
-  override def shouldRenderInPass(pass: Int): Boolean = robot.shouldRenderInPass(pass)
-
-  override def markDirty(): Unit = robot.markDirty()
+  override def setChanged(): Unit = robot.setChanged()
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = robot.onAnalyze(player, side, hitX, hitY, hitZ)
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = robot.onAnalyze(player, side, hitX, hitY, hitZ)
 
   // ----------------------------------------------------------------------- //
 
@@ -223,89 +238,71 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def checkRedstoneInputChanged(): Unit = robot.checkRedstoneInputChanged()
 
-  /* TORO RedLogic
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = robot.connects(wire, blockFace, fromDirection)
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = robot.connectsAroundCorner(wire, blockFace, fromDirection)
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def getBundledCableStrength(blockFace: Int, toDirection: Int) = robot.getBundledCableStrength(blockFace, toDirection)
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def getEmittedSignalStrength(blockFace: Int, toDirection: Int) = robot.getEmittedSignalStrength(blockFace, toDirection)
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def onBundledInputChanged() = robot.onBundledInputChanged()
-
-    @Optional.Method(modid = Mods.IDs.RedLogic)
-    override def onRedstoneInputChanged() = robot.onRedstoneInputChanged()
-  */
-
   // ----------------------------------------------------------------------- //
 
-  override def pitch: EnumFacing = robot.pitch
+  override def pitch: Direction = robot.pitch
 
-  override def pitch_=(value: EnumFacing): Unit = robot.pitch_=(value)
+  override def pitch_=(value: Direction): Unit = robot.pitch_=(value)
 
-  override def yaw: EnumFacing = robot.yaw
+  override def yaw: Direction = robot.yaw
 
-  override def yaw_=(value: EnumFacing): Unit = robot.yaw_=(value)
+  override def yaw_=(value: Direction): Unit = robot.yaw_=(value)
 
   override def setFromEntityPitchAndYaw(entity: Entity): Boolean = robot.setFromEntityPitchAndYaw(entity)
 
-  override def setFromFacing(value: EnumFacing): Boolean = robot.setFromFacing(value)
+  override def setFromFacing(value: Direction): Boolean = robot.setFromFacing(value)
 
   override def invertRotation(): Boolean = robot.invertRotation()
 
-  override def facing: EnumFacing = robot.facing
+  override def facing: Direction = robot.facing
 
-  override def rotate(axis: EnumFacing): Boolean = robot.rotate(axis)
+  override def rotate(axis: Direction): Boolean = robot.rotate(axis)
 
-  override def toLocal(value: EnumFacing): EnumFacing = robot.toLocal(value)
+  override def toLocal(value: Direction): Direction = robot.toLocal(value)
 
-  override def toGlobal(value: EnumFacing): EnumFacing = robot.toGlobal(value)
+  override def toGlobal(value: Direction): Direction = robot.toGlobal(value)
 
   // ----------------------------------------------------------------------- //
 
-  override def getStackInSlot(i: Int): ItemStack = robot.getStackInSlot(i)
+  override def getItem(i: Int): ItemStack = robot.getItem(i)
 
-  override def decrStackSize(slot: Int, amount: Int): ItemStack = robot.decrStackSize(slot, amount)
+  override def removeItem(slot: Int, amount: Int): ItemStack = robot.removeItem(slot, amount)
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = robot.setInventorySlotContents(slot, stack)
+  override def setItem(slot: Int, stack: ItemStack): Unit = robot.setItem(slot, stack)
 
-  override def removeStackFromSlot(slot: Int): ItemStack = robot.removeStackFromSlot(slot)
+  override def removeItemNoUpdate(slot: Int): ItemStack = robot.removeItemNoUpdate(slot)
 
-  override def openInventory(player: EntityPlayer): Unit = robot.openInventory(player)
+  override def startOpen(player: PlayerEntity): Unit = robot.startOpen(player)
 
-  override def closeInventory(player: EntityPlayer): Unit = robot.closeInventory(player)
+  override def stopOpen(player: PlayerEntity): Unit = robot.stopOpen(player)
 
   override def hasCustomName: Boolean = robot.hasCustomName
 
-  override def isUsableByPlayer(player: EntityPlayer): Boolean = robot.isUsableByPlayer(player)
+  override def stillValid(player: PlayerEntity): Boolean = robot.stillValid(player)
 
-  override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]): Boolean = robot.dropSlot(slot, count, direction)
+  override def forAllLoot(dst: Consumer[ItemStack]): Unit = robot.forAllLoot(dst)
+
+  override def dropSlot(slot: Int, count: Int, direction: Option[Direction]): Boolean = robot.dropSlot(slot, count, direction)
 
   override def dropAllSlots(): Unit = robot.dropAllSlots()
 
-  override def getInventoryStackLimit: Int = robot.getInventoryStackLimit
+  override def getMaxStackSize: Int = robot.getMaxStackSize
 
   override def componentSlot(address: String): Int = robot.componentSlot(address)
 
-  override def getName: String = robot.getName
+  override def getName: ITextComponent = robot.getName
 
-  override def getSizeInventory: Int = robot.getSizeInventory
+  override def getContainerSize: Int = robot.getContainerSize
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = robot.isItemValidForSlot(slot, stack)
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = robot.canPlaceItem(slot, stack)
 
   // ----------------------------------------------------------------------- //
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = robot.canExtractItem(slot, stack, side)
+  override def canTakeItemThroughFace(slot: Int, stack: ItemStack, side: Direction): Boolean = robot.canTakeItemThroughFace(slot, stack, side)
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = robot.canInsertItem(slot, stack, side)
+  override def canPlaceItemThroughFace(slot: Int, stack: ItemStack, side: Direction): Boolean = robot.canPlaceItemThroughFace(slot, stack, side)
 
-  override def getSlotsForFace(side: EnumFacing): Array[Int] = robot.getSlotsForFace(side)
+  override def getSlotsForFace(side: Direction): Array[Int] = robot.getSlotsForFace(side)
 
   // ----------------------------------------------------------------------- //
 
@@ -323,15 +320,17 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def fill(resource: FluidStack, doFill: Boolean): Int = robot.fill(resource, doFill)
+  override def getTanks: Int = robot.getTanks
 
-  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = robot.drain(resource, doDrain)
+  override def getFluidInTank(tank: Int): FluidStack = robot.getFluidInTank(tank)
 
-  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = robot.drain(maxDrain, doDrain)
+  override def getTankCapacity(tank: Int): Int = robot.getTankCapacity(tank)
 
-  def canFill(fluid: Fluid): Boolean = robot.canFill(fluid)
+  override def isFluidValid(tank: Int, resource: FluidStack): Boolean = robot.isFluidValid(tank, resource)
 
-  def canDrain(fluid: Fluid): Boolean = robot.canDrain(fluid)
+  override def fill(resource: FluidStack, action: FluidAction): Int = robot.fill(resource, action)
 
-  override def getTankProperties: Array[IFluidTankProperties] = robot.getTankProperties
+  override def drain(resource: FluidStack, action: FluidAction): FluidStack = robot.drain(resource, action)
+
+  override def drain(maxDrain: Int, action: FluidAction): FluidStack = robot.drain(maxDrain, action)
 }

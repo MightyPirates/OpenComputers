@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CDi",
+    "PDp",
+    "CDi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "D": {
+      "tag": "opencomputers:materialdisk"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hdd1"
+  }
+}

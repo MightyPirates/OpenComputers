@@ -10,18 +10,18 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 object DriverImportBus extends driver.DriverBlock {
-  override def worksWith(world: World, pos: BlockPos, side: EnumFacing) =
-    world.getTileEntity(pos) match {
-      case container: IPartHost => EnumFacing.VALUES.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isImportBus)
+  override def worksWith(world: World, pos: BlockPos, side: Direction) =
+    world.getBlockEntity(pos) match {
+      case container: IPartHost => Direction.values.map(container.getPart).filter(p => p != null).map(_.getItemStack(PartItemStack.PICK)).exists(AEUtil.isImportBus)
       case _ => false
     }
 
-  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = new Environment(world.getTileEntity(pos).asInstanceOf[IPartHost])
+  override def createEnvironment(world: World, pos: BlockPos, side: Direction) = new Environment(world.getBlockEntity(pos).asInstanceOf[IPartHost])
 
   final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_importbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_importbus"

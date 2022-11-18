@@ -1,17 +1,21 @@
 package li.cil.oc.client.renderer.item
 
+import com.google.common.collect.ImmutableList
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint
-import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.item.ItemStack
-import net.minecraft.util.math.AxisAlignedBB
+import net.minecraft.util.math.vector.Vector3f
 import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer {
@@ -36,71 +40,63 @@ object UpgradeRenderer {
     descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade
   }
 
-  def render(stack: ItemStack, mountPoint: MountPoint): Unit = {
+  def render(matrix: MatrixStack, buffer: IRenderTypeBuffer, stack: ItemStack, mountPoint: MountPoint): Unit = {
     val descriptor = api.Items.get(stack)
 
     if (descriptor == api.Items.get(Constants.ItemName.CraftingUpgrade)) {
-      Textures.bind(Textures.Model.UpgradeCrafting)
-      drawSimpleBlock(mountPoint)
+      drawSimpleBlock(matrix, buffer.getBuffer(RenderTypes.UPGRADE_CRAFTING), mountPoint)
 
       RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade")
     }
 
     else if (descriptor == api.Items.get(Constants.ItemName.GeneratorUpgrade)) {
-      Textures.bind(Textures.Model.UpgradeGenerator)
-      drawSimpleBlock(mountPoint, if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5f else 0)
+      drawSimpleBlock(matrix, buffer.getBuffer(RenderTypes.UPGRADE_GENERATOR), mountPoint, if (Item.dataTag(stack).getInt("remainingTicks") > 0) 0.5f else 0)
 
       RenderState.checkError(getClass.getName + ".renderItem: generator upgrade")
     }
 
     else if (descriptor == api.Items.get(Constants.ItemName.InventoryUpgrade)) {
-      Textures.bind(Textures.Model.UpgradeInventory)
-      drawSimpleBlock(mountPoint)
+      drawSimpleBlock(matrix, buffer.getBuffer(RenderTypes.UPGRADE_INVENTORY), mountPoint)
 
       RenderState.checkError(getClass.getName + ".renderItem: inventory upgrade")
     }
   }
 
-  private val bounds = new AxisAlignedBB(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
+  private val (minX, minY, minZ) = (-0.1f, -0.1f, -0.1f)
+  private val (maxX, maxY, maxZ) = (0.1f, 0.1f, 0.1f)
 
-  private def drawSimpleBlock(mountPoint: MountPoint, frontOffset: Float = 0) {
-    GlStateManager.rotate(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
-    GlStateManager.translate(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-
-    val t = Tessellator.getInstance()
-    val r = t.getBuffer
-    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL)
+  private def drawSimpleBlock(stack: MatrixStack, r: IVertexBuilder, mountPoint: MountPoint, frontOffset: Float = 0) {
+    stack.mulPose(new Vector3f(mountPoint.rotation.x, mountPoint.rotation.y, mountPoint.rotation.z).rotationDegrees(mountPoint.rotation.w))
+    stack.translate(mountPoint.offset.x, mountPoint.offset.y, mountPoint.offset.z)
 
     // Front.
-    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(frontOffset, 0.5f).normal(0, 0, 1).endVertex()
-    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(frontOffset + 0.5f, 0.5f).normal(0, 0, 1).endVertex()
-    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(frontOffset + 0.5f, 0).normal(0, 0, 1).endVertex()
-    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(frontOffset, 0).normal(0, 0, 1).endVertex()
+    r.vertex(stack.last.pose, minX, minY, maxZ).uv(frontOffset, 0.5f).normal(stack.last.normal, 0, 0, 1).endVertex()
+    r.vertex(stack.last.pose, maxX, minY, maxZ).uv(frontOffset + 0.5f, 0.5f).normal(stack.last.normal, 0, 0, 1).endVertex()
+    r.vertex(stack.last.pose, maxX, maxY, maxZ).uv(frontOffset + 0.5f, 0).normal(stack.last.normal, 0, 0, 1).endVertex()
+    r.vertex(stack.last.pose, minX, maxY, maxZ).uv(frontOffset, 0).normal(stack.last.normal, 0, 0, 1).endVertex()
 
     // Top.
-    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(1, 0.5f).normal(0, 1, 0).endVertex()
-    r.pos(bounds.maxX, bounds.maxY, bounds.minZ).tex(1, 1).normal(0, 1, 0).endVertex()
-    r.pos(bounds.minX, bounds.maxY, bounds.minZ).tex(0.5f, 1).normal(0, 1, 0).endVertex()
-    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(0.5f, 0.5f).normal(0, 1, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, maxY, maxZ).uv(1, 0.5f).normal(stack.last.normal, 0, 1, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, maxY, minZ).uv(1, 1).normal(stack.last.normal, 0, 1, 0).endVertex()
+    r.vertex(stack.last.pose, minX, maxY, minZ).uv(0.5f, 1).normal(stack.last.normal, 0, 1, 0).endVertex()
+    r.vertex(stack.last.pose, minX, maxY, maxZ).uv(0.5f, 0.5f).normal(stack.last.normal, 0, 1, 0).endVertex()
 
     // Bottom.
-    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(0.5f, 0.5f).normal(0, -1, 0).endVertex()
-    r.pos(bounds.minX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(0, -1, 0).endVertex()
-    r.pos(bounds.maxX, bounds.minY, bounds.minZ).tex(1, 1).normal(0, -1, 0).endVertex()
-    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(1, 0.5f).normal(0, -1, 0).endVertex()
+    r.vertex(stack.last.pose, minX, minY, maxZ).uv(0.5f, 0.5f).normal(stack.last.normal, 0, -1, 0).endVertex()
+    r.vertex(stack.last.pose, minX, minY, minZ).uv(0.5f, 1).normal(stack.last.normal, 0, -1, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, minY, minZ).uv(1, 1).normal(stack.last.normal, 0, -1, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, minY, maxZ).uv(1, 0.5f).normal(stack.last.normal, 0, -1, 0).endVertex()
 
     // Left.
-    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(0, 0.5f).normal(1, 0, 0).endVertex()
-    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(0, 1).normal(1, 0, 0).endVertex()
-    r.pos(bounds.maxX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(1, 0, 0).endVertex()
-    r.pos(bounds.maxX, bounds.maxY, bounds.minZ).tex(0.5f, 0.5f).normal(1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, maxY, maxZ).uv(0, 0.5f).normal(stack.last.normal, 1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, minY, maxZ).uv(0, 1).normal(stack.last.normal, 1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, minY, minZ).uv(0.5f, 1).normal(stack.last.normal, 1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, maxX, maxY, minZ).uv(0.5f, 0.5f).normal(stack.last.normal, 1, 0, 0).endVertex()
 
     // Right.
-    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(0, 1).normal(-1, 0, 0).endVertex()
-    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(0, 0.5f).normal(-1, 0, 0).endVertex()
-    r.pos(bounds.minX, bounds.maxY, bounds.minZ).tex(0.5f, 0.5f).normal(-1, 0, 0).endVertex()
-    r.pos(bounds.minX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(-1, 0, 0).endVertex()
-
-    t.draw()
+    r.vertex(stack.last.pose, minX, minY, maxZ).uv(0, 1).normal(stack.last.normal, -1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, minX, maxY, maxZ).uv(0, 0.5f).normal(stack.last.normal, -1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, minX, maxY, minZ).uv(0.5f, 0.5f).normal(stack.last.normal, -1, 0, 0).endVertex()
+    r.vertex(stack.last.pose, minX, minY, minZ).uv(0.5f, 1).normal(stack.last.normal, -1, 0, 0).endVertex()
   }
 }

@@ -3,16 +3,16 @@ package li.cil.oc.integration.minecraft
 import java.util
 
 import li.cil.oc.api
-import net.minecraftforge.fluids
+import li.cil.oc.util.ExtendedArguments.TankProperties
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterFluidTankProperties extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
     value match {
-      case properties: fluids.capability.IFluidTankProperties =>
-        output += "capacity" -> Int.box(properties.getCapacity)
-        val fluid = properties.getContents
+      case properties: TankProperties =>
+        output += "capacity" -> Int.box(properties.capacity)
+        val fluid = properties.contents
         if (fluid != null) {
           ConverterFluidStack.convert(fluid, output)
         }

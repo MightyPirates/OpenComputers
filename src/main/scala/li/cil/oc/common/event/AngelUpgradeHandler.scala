@@ -3,9 +3,9 @@ package li.cil.oc.common.event
 import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.component.UpgradeAngel
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object AngelUpgradeHandler {
   @SubscribeEvent

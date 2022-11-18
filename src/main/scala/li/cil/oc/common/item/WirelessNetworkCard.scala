@@ -1,9 +1,12 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.common.Tier
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
 
-class WirelessNetworkCard(val parent: Delegator, var tier: Int) extends traits.Delegate with traits.ItemTier {
-  override val unlocalizedName = super.unlocalizedName + tier
+class WirelessNetworkCard(props: Properties, var tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
   
-  override protected def tooltipName = Option(super.unlocalizedName)
+  override protected def tooltipName = Option(unlocalizedName)
 }

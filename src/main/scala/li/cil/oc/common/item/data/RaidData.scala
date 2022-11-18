@@ -4,18 +4,18 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 class RaidData extends ItemData(Constants.BlockName.Raid) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var disks = Array.empty[ItemStack]
 
-  var filesystem = new NBTTagCompound()
+  var filesystem = new CompoundNBT()
 
   var label: Option[String] = None
 
@@ -23,18 +23,18 @@ class RaidData extends ItemData(Constants.BlockName.Raid) {
   private final val FileSystemTag = Settings.namespace + "filesystem"
   private final val LabelTag = Settings.namespace + "label"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    disks = nbt.getTagList(DisksTag, NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(new ItemStack(_))
-    filesystem = nbt.getCompoundTag(FileSystemTag)
-    if (nbt.hasKey(LabelTag)) {
+  override def loadData(nbt: CompoundNBT): Unit = {
+    disks = nbt.getList(DisksTag, NBT.TAG_COMPOUND).
+      toTagArray[CompoundNBT].map(ItemStack.of(_))
+    filesystem = nbt.getCompound(FileSystemTag)
+    if (nbt.contains(LabelTag)) {
       label = Option(nbt.getString(LabelTag))
     }
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
+  override def saveData(nbt: CompoundNBT): Unit = {
     nbt.setNewTagList(DisksTag, disks.toIterable)
-    nbt.setTag(FileSystemTag, filesystem)
-    label.foreach(nbt.setString(LabelTag, _))
+    nbt.put(FileSystemTag, filesystem)
+    label.foreach(nbt.putString(LabelTag, _))
   }
 }

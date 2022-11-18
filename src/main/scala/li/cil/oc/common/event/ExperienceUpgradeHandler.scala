@@ -1,5 +1,6 @@
 package li.cil.oc.common.event
 
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
@@ -7,10 +8,10 @@ import li.cil.oc.api.internal.Agent
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraft.util.Util
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ExperienceUpgradeHandler {
   @SubscribeEvent
@@ -18,7 +19,7 @@ object ExperienceUpgradeHandler {
     val (level, experience) = getLevelAndExperience(e.agent)
     // This is basically a 'does it have an experience upgrade' check.
     if (experience != 0.0) {
-      e.player.sendMessage(Localization.Analyzer.RobotXp(experience, level))
+      e.player.sendMessage(Localization.Analyzer.RobotXp(experience, level), Util.NIL_UUID)
     }
   }
 
@@ -37,7 +38,7 @@ object ExperienceUpgradeHandler {
   def onRobotAttackEntityPost(e: RobotAttackEntityEvent.Post) {
     e.agent match {
       case robot: Robot =>
-        if (robot.equipmentInventory.getStackInSlot(0) != null && e.target.isDead) {
+        if (robot.equipmentInventory.getItem(0) != null && !e.target.isAlive) {
           addExperience(robot, Settings.get.robotActionXp)
         }
       case _ =>
@@ -69,7 +70,7 @@ object ExperienceUpgradeHandler {
     val level = e.agent match {
       case robot: Robot =>
         var acc = 0
-        for (index <- 0 until robot.getSizeInventory) {
+        for (index <- 0 until robot.getContainerSize) {
           robot.getComponentInSlot(index) match {
             case upgrade: component.UpgradeExperience =>
               acc += upgrade.level
@@ -80,13 +81,10 @@ object ExperienceUpgradeHandler {
       case _ => 0
     }
     if (level > 19) {
-      GlStateManager.color(0.4f, 1, 1)
+      e.multiplyColors(0.4f, 1, 1)
     }
     else if (level > 9) {
-      GlStateManager.color(1, 1, 0.4f)
-    }
-    else {
-      GlStateManager.color(0.5f, 0.5f, 0.5f)
+      e.multiplyColors(1, 1, 0.4f)
     }
   }
 

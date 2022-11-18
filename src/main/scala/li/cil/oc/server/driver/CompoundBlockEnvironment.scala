@@ -7,7 +7,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 class CompoundBlockEnvironment(val name: String, val environments: (String, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,
@@ -54,14 +54,14 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
 
   private final val TypeHashTag = "typeHash"
 
-  override def load(nbt: NBTTagCompound) {
+  override def loadData(nbt: CompoundNBT) {
     // Ignore existing data if the underlying type is different.
-    if (nbt.hasKey(TypeHashTag) && nbt.getLong(TypeHashTag) != typeHash) return
-    node.load(nbt)
+    if (nbt.contains(TypeHashTag) && nbt.getLong(TypeHashTag) != typeHash) return
+    node.loadData(nbt)
     for ((driver, environment) <- environments) {
-      if (nbt.hasKey(driver)) {
+      if (nbt.contains(driver)) {
         try {
-          environment.load(nbt.getCompoundTag(driver))
+          environment.loadData(nbt.getCompound(driver))
         } catch {
           case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$driver') threw an error while loading.", e)
         }
@@ -69,12 +69,12 @@ class CompoundBlockEnvironment(val name: String, val environments: (String, Mana
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    nbt.setLong(TypeHashTag, typeHash)
-    node.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    nbt.putLong(TypeHashTag, typeHash)
+    node.saveData(nbt)
     for ((driver, environment) <- environments) {
       try {
-        nbt.setNewCompoundTag(driver, environment.save)
+        nbt.setNewCompoundTag(driver, environment.saveData)
       } catch {
         case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$driver') threw an error while saving.", e)
       }

@@ -5,6 +5,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
 
 trait TankControl extends TankAware {
   @Callback(doc = "function():number -- The number of tanks installed in the device.")
@@ -24,7 +25,7 @@ trait TankControl extends TankAware {
       if (args.count > 0 && args.checkAny(0) != null) args.checkTank(tank, 0)
       else selectedTank
     result(fluidInTank(index) match {
-      case Some(fluid) => fluid.amount
+      case Some(fluid) => fluid.getAmount
       case _ => 0
     })
   }
@@ -59,21 +60,21 @@ trait TankControl extends TankAware {
     }
     else (getTank(selectedTank), getTank(index)) match {
       case (Some(from), Some(to)) =>
-        val drained = from.drain(count, false)
-        val transferred = to.fill(drained, true)
+        val drained = from.drain(count, FluidAction.SIMULATE)
+        val transferred = to.fill(drained, FluidAction.EXECUTE)
         if (transferred > 0) {
-          from.drain(transferred, true)
+          from.drain(transferred, FluidAction.EXECUTE)
           result(true)
         }
         else if (count >= from.getFluidAmount && to.getCapacity >= from.getFluidAmount && from.getCapacity >= to.getFluidAmount) {
           // Swap.
-          val tmp = to.drain(to.getFluidAmount, true)
-          to.fill(from.drain(from.getFluidAmount, true), true)
-          from.fill(tmp, true)
+          val tmp = to.drain(to.getFluidAmount, FluidAction.EXECUTE)
+          to.fill(from.drain(from.getFluidAmount, FluidAction.EXECUTE), FluidAction.EXECUTE)
+          from.fill(tmp, FluidAction.EXECUTE)
           result(true)
         }
-        else result(Unit, "incompatible or no fluid")
-      case _ => result(Unit, "invalid index")
+        else result((), "incompatible or no fluid")
+      case _ => result((), "invalid index")
     }
   }
 }

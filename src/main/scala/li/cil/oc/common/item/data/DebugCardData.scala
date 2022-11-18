@@ -1,35 +1,35 @@
 package li.cil.oc.common.item.data
 
-import li.cil.oc.server.component.DebugCard.AccessContext
 import li.cil.oc.Constants
 import li.cil.oc.Settings
+import li.cil.oc.server.component.DebugCard.AccessContext
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 class DebugCardData extends ItemData(Constants.ItemName.DebugCard) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var access: Option[AccessContext] = None
 
   private final val DataTag = Settings.namespace + "data"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    access = AccessContext.load(dataTag(nbt))
+  override def loadData(nbt: CompoundNBT): Unit = {
+    access = AccessContext.loadData(dataTag(nbt))
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
+  override def saveData(nbt: CompoundNBT): Unit = {
     val tag = dataTag(nbt)
     AccessContext.remove(tag)
-    access.foreach(_.save(tag))
+    access.foreach(_.saveData(tag))
   }
 
-  private def dataTag(nbt: NBTTagCompound) = {
-    if (!nbt.hasKey(DataTag)) {
-      nbt.setTag(DataTag, new NBTTagCompound())
+  private def dataTag(nbt: CompoundNBT) = {
+    if (!nbt.contains(DataTag)) {
+      nbt.put(DataTag, new CompoundNBT())
     }
-    nbt.getCompoundTag(DataTag)
+    nbt.getCompound(DataTag)
   }
 }

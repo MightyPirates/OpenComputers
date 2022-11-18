@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "clc",
+    "LAL",
+    "clc"
+  ],
+  "key": {
+    "l": {
+      "tag": "forge:gems/lapis"
+    },
+    "c": {
+      "tag": "opencomputers:chamelium"
+    },
+    "A": {
+      "tag": "opencomputers:adapter"
+    },
+    "L": {
+      "tag": "opencomputers:linkedcard"
+    }
+  },
+  "result": {
+    "item": "opencomputers:mfu"
+  }
+}

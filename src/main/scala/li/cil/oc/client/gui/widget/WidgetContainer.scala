@@ -1,11 +1,14 @@
 package li.cil.oc.client.gui.widget
 
+import com.mojang.blaze3d.matrix.MatrixStack
+
 import scala.collection.mutable
 
+@Deprecated
 trait WidgetContainer {
   protected val widgets = mutable.ArrayBuffer.empty[Widget]
 
-  def addWidget[T <: Widget](widget: T) = {
+  def addCustomWidget[T <: Widget](widget: T) = {
     widgets += widget
     widget.owner = this
     widget
@@ -17,7 +20,7 @@ trait WidgetContainer {
 
   def windowZ = 0f
 
-  def drawWidgets() {
-    widgets.foreach(_.draw())
+  def drawWidgets(stack: MatrixStack) {
+    widgets.foreach(_.draw(stack))
   }
 }

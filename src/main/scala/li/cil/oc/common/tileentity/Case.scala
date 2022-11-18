@@ -15,19 +15,25 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRunning
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.util.Color
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo {
-  def this() = {
-    this(0)
+class Case(selfType: TileEntityType[_ <: Case], var tier: Int) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case with DeviceInfo with INamedContainerProvider {
+  def this(selfType: TileEntityType[_ <: Case]) = {
+    this(selfType, 0)
     // If no tier was defined when constructing this case, then we don't yet know the inventory size
     // this is set back to true when the nbt data is loaded
     isSizeInventoryReady = false
@@ -44,17 +50,17 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     DeviceAttribute.Description -> "Computer",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "Blocker",
-    DeviceAttribute.Capacity -> getSizeInventory.toString
+    DeviceAttribute.Capacity -> getContainerSize.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = side != facing
+  @OnlyIn(Dist.CLIENT)
+  override protected def hasConnector(side: Direction) = side != facing
 
-  override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: Direction) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
@@ -67,7 +73,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (isServer && isCreative && getWorld.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && isCreative && getLevel.getGameTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
@@ -78,12 +84,12 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override protected def onRunningChanged(): Unit = {
     super.onRunningChanged()
-    getBlockType match {
+    getBlockState.getBlock match {
       case block: common.block.Case => {
-        val state = getWorld.getBlockState(getPos)
+        val state = getLevel.getBlockState(getBlockPos)
         // race condition that the world no longer has this block at the position (e.g. it was broken)
         if (block == state.getBlock) {
-          getWorld.setBlockState(getPos, state.withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
+          getLevel.setBlockAndUpdate(getBlockPos, state.setValue(PropertyRunning.Running, Boolean.box(isRunning)))
         }
       }
       case _ =>
@@ -94,16 +100,16 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   private final val TierTag = Settings.namespace + "tier"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
+  override def loadForServer(nbt: CompoundNBT) {
     tier = nbt.getByte(TierTag) max 0 min 3
     setColor(Color.rgbValues(Color.byTier(tier)))
-    super.readFromNBTForServer(nbt)
+    super.loadForServer(nbt)
     isSizeInventoryReady = true
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    nbt.setByte(TierTag, tier.toByte)
-    super.writeToNBTForServer(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    nbt.putByte(TierTag, tier.toByte)
+    super.saveForServer(nbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -130,14 +136,19 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     }
   }
 
-  override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
+  override def getContainerSize = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
-  override def isUsableByPlayer(player: EntityPlayer) =
-    super.isUsableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
+  override def stillValid(player: PlayerEntity) =
+    super.stillValid(player) && (!isCreative || player.isCreative)
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+  override def canPlaceItem(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.computer(tier)(slot)
       driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
+
+  // ----------------------------------------------------------------------- //
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Case(ContainerTypes.CASE, id, playerInventory, this, tier)
 }

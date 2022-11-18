@@ -1,6 +1,7 @@
 package li.cil.oc.common.component
 
 import com.google.common.base.Strings
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -31,17 +32,17 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.SideTracker
 import net.minecraft.client.Minecraft
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumHand
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Hand
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment with traits.TextBufferProxy with VideoRamRasterizer with DeviceInfo {
@@ -125,7 +126,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
 
   override def update() {
     super.update()
-    if (isDisplaying && host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isDisplaying && host.world.getGameTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
@@ -220,7 +221,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
       precisionMode = args.checkBoolean(0)
       result(oldValue)
     }
-    else result(Unit, "unsupported operation")
+    else result((), "unsupported operation")
   }
 
   // ----------------------------------------------------------------------- //
@@ -257,7 +258,7 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
 
   override def getMaximumHeight: Int = maxResolution._2
 
-  override def setAspectRatio(width: Double, height: Double): Unit = this.synchronized(aspectRatio = (width, height))
+  override def setAspectRatio(width: Double, height: Double): Unit = this.synchronized(this.aspectRatio = (width, height))
 
   override def getAspectRatio: Double = aspectRatio._1 / aspectRatio._2
 
@@ -361,43 +362,46 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
     proxy.onBufferRawSetForeground(col, row, color)
   }
 
-  @SideOnly(Side.CLIENT)
-  override def renderText: Boolean = relativeLitArea != 0 && proxy.render()
+  @OnlyIn(Dist.CLIENT)
+  override def renderText(stack: MatrixStack): Boolean = relativeLitArea != 0 && proxy.render(stack)
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def renderWidth: Int = TextBufferRenderCache.renderer.charRenderWidth * getViewportWidth
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def renderHeight: Int = TextBufferRenderCache.renderer.charRenderHeight * getViewportHeight
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def setRenderingEnabled(enabled: Boolean): Unit = isRendering = enabled
 
-  @SideOnly(Side.CLIENT)
+  @OnlyIn(Dist.CLIENT)
   override def isRenderingEnabled: Boolean = isRendering
 
-  override def keyDown(character: Char, code: Int, player: EntityPlayer): Unit =
+  override def keyDown(character: Char, code: Int, player: PlayerEntity): Unit =
     proxy.keyDown(character, code, player)
 
-  override def keyUp(character: Char, code: Int, player: EntityPlayer): Unit =
+  override def keyUp(character: Char, code: Int, player: PlayerEntity): Unit =
     proxy.keyUp(character, code, player)
 
-  override def clipboard(value: String, player: EntityPlayer): Unit =
+  override def textInput(codePt: Int, player: PlayerEntity): Unit =
+    proxy.textInput(codePt, player)
+
+  override def clipboard(value: String, player: PlayerEntity): Unit =
     proxy.clipboard(value, player)
 
-  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
+  override def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity): Unit =
     proxy.mouseDown(x, y, button, player)
 
-  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
+  override def mouseDrag(x: Double, y: Double, button: Int, player: PlayerEntity): Unit =
     proxy.mouseDrag(x, y, button, player)
 
-  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
+  override def mouseUp(x: Double, y: Double, button: Int, player: PlayerEntity): Unit =
     proxy.mouseUp(x, y, button, player)
 
-  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit =
+  override def mouseScroll(x: Double, y: Double, delta: Int, player: PlayerEntity): Unit =
     proxy.mouseScroll(x, y, delta, player)
 
-  def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+  def copyToAnalyzer(line: Int, player: PlayerEntity): Unit = {
     proxy.copyToAnalyzer(line, player)
   }
 
@@ -428,38 +432,38 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
   private final val ViewportWidthTag = Settings.namespace + "viewportWidth"
   private final val ViewportHeightTag = Settings.namespace + "viewportHeight"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
     if (SideTracker.isClient) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
-      proxy.nodeAddress = nbt.getCompoundTag(NodeData.NodeTag).getString(NodeData.AddressTag)
+      proxy.nodeAddress = nbt.getCompound(NodeData.NodeTag).getString(NodeData.AddressTag)
       TextBuffer.registerClientBuffer(this)
     }
     else {
-      if (nbt.hasKey(NodeData.BufferTag)) {
-        data.load(nbt.getCompoundTag(NodeData.BufferTag))
+      if (nbt.contains(NodeData.BufferTag)) {
+        data.loadData(nbt.getCompound(NodeData.BufferTag))
       }
       else if (!Strings.isNullOrEmpty(node.address)) {
-        data.load(SaveHandler.loadNBT(nbt, bufferPath))
+        data.loadData(SaveHandler.loadNBT(nbt, bufferPath))
       }
     }
 
-    if (nbt.hasKey(IsOnTag)) {
+    if (nbt.contains(IsOnTag)) {
       isDisplaying = nbt.getBoolean(IsOnTag)
     }
-    if (nbt.hasKey(HasPowerTag)) {
+    if (nbt.contains(HasPowerTag)) {
       hasPower = nbt.getBoolean(HasPowerTag)
     }
-    if (nbt.hasKey(MaxWidthTag) && nbt.hasKey(MaxHeightTag)) {
-      val maxWidth = nbt.getInteger(MaxWidthTag)
-      val maxHeight = nbt.getInteger(MaxHeightTag)
+    if (nbt.contains(MaxWidthTag) && nbt.contains(MaxHeightTag)) {
+      val maxWidth = nbt.getInt(MaxWidthTag)
+      val maxHeight = nbt.getInt(MaxHeightTag)
       maxResolution = (maxWidth, maxHeight)
     }
     precisionMode = nbt.getBoolean(PreciseTag)
 
-    if (nbt.hasKey(ViewportWidthTag)) {
-      val vpw = nbt.getInteger(ViewportWidthTag)
-      val vph = nbt.getInteger(ViewportHeightTag)
+    if (nbt.contains(ViewportWidthTag)) {
+      val vpw = nbt.getInt(ViewportWidthTag)
+      val vph = nbt.getInt(ViewportHeightTag)
       viewport = (vpw min data.width max 1, vph min data.height max 1)
     } else {
       viewport = data.size
@@ -467,8 +471,8 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
   }
 
   // Null check for Waila (and other mods that may call this client side).
-  override def save(nbt: NBTTagCompound): Unit = if (node != null) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = if (node != null) {
+    super.saveData(nbt)
     // Happy thread synchronization hack! Here's the problem: GPUs allow direct
     // calls for modifying screens to give a more responsive experience. This
     // causes the following problem: when saving, if the screen is saved first,
@@ -486,14 +490,14 @@ class TextBuffer(val host: EnvironmentHost) extends AbstractManagedEnvironment w
       }
     }
 
-    SaveHandler.scheduleSave(host, nbt, bufferPath, data.save _)
-    nbt.setBoolean(IsOnTag, isDisplaying)
-    nbt.setBoolean(HasPowerTag, hasPower)
-    nbt.setInteger(MaxWidthTag, maxResolution._1)
-    nbt.setInteger(MaxHeightTag, maxResolution._2)
-    nbt.setBoolean(PreciseTag, precisionMode)
-    nbt.setInteger(ViewportWidthTag, viewport._1)
-    nbt.setInteger(ViewportHeightTag, viewport._2)
+    SaveHandler.scheduleSave(host, nbt, bufferPath, data.saveData _)
+    nbt.putBoolean(IsOnTag, isDisplaying)
+    nbt.putBoolean(HasPowerTag, hasPower)
+    nbt.putInt(MaxWidthTag, maxResolution._1)
+    nbt.putInt(MaxHeightTag, maxResolution._2)
+    nbt.putBoolean(PreciseTag, precisionMode)
+    nbt.putInt(ViewportWidthTag, viewport._1)
+    nbt.putInt(ViewportHeightTag, viewport._2)
   }
 }
 
@@ -501,11 +505,12 @@ object TextBuffer {
   var clientBuffers = mutable.ListBuffer.empty[TextBuffer]
 
   @SubscribeEvent
-  def onChunkUnload(e: ChunkEvent.Unload) {
+  def onChunkUnloaded(e: ChunkEvent.Unload) {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
       val blockPos = BlockPosition(t.host)
-      val keep = t.host.world != e.getWorld || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
+      val chunkPos = chunk.getPos
+      val keep = t.host.world != e.getWorld || ((blockPos.x >> 4) != chunkPos.x || (blockPos.z >> 4) != chunkPos.z)
       if (!keep) {
         ClientComponentTracker.remove(t.host.world, t)
       }
@@ -537,11 +542,12 @@ object TextBuffer {
 
     var nodeAddress = ""
 
-    def markDirty() {
+    def setChanged() {
       dirty = true
     }
 
-    def render() = false
+    @OnlyIn(Dist.CLIENT)
+    def render(stack: MatrixStack) = false
 
     def onBufferColorChange(): Unit
 
@@ -596,21 +602,23 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def keyDown(character: Char, code: Int, player: EntityPlayer): Unit
+    def keyDown(character: Char, code: Int, player: PlayerEntity): Unit
 
-    def keyUp(character: Char, code: Int, player: EntityPlayer): Unit
+    def keyUp(character: Char, code: Int, player: PlayerEntity): Unit
 
-    def clipboard(value: String, player: EntityPlayer): Unit
+    def textInput(codePt: Int, player: PlayerEntity): Unit
 
-    def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
+    def clipboard(value: String, player: PlayerEntity): Unit
 
-    def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
+    def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity): Unit
 
-    def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
+    def mouseDrag(x: Double, y: Double, button: Int, player: PlayerEntity): Unit
 
-    def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit
+    def mouseUp(x: Double, y: Double, button: Int, player: PlayerEntity): Unit
 
-    def copyToAnalyzer(line: Int, player: EntityPlayer): Unit
+    def mouseScroll(x: Double, y: Double, delta: Int, player: PlayerEntity): Unit
+
+    def copyToAnalyzer(line: Int, player: PlayerEntity): Unit
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
@@ -624,52 +632,53 @@ object TextBuffer {
       override def viewport: (Int, Int) = owner.viewport
     }
 
-    override def render() = {
+    @OnlyIn(Dist.CLIENT)
+    override def render(stack: MatrixStack) = {
       val wasDirty = dirty
-      TextBufferRenderCache.render(renderer)
+      TextBufferRenderCache.render(stack, renderer)
       wasDirty
     }
 
     override def onBufferColorChange() {
-      markDirty()
+      setChanged()
     }
 
     override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onBufferCopy(col, row, w, h, tx, ty)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth) {
-      markDirty()
+      setChanged()
     }
 
     override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onBufferFill(col, row, w, h, c)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferPaletteChange(index: Int) {
-      markDirty()
+      setChanged()
     }
 
     override def onBufferResolutionChange(w: Int, h: Int) {
       super.onBufferResolutionChange(w, h)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferViewportResolutionChange(w: Int, h: Int) {
       super.onBufferViewportResolutionChange(w, h)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
       super.onBufferBitBlt(col, row, w, h, ram, fromCol, fromRow)
-      markDirty()
+      setChanged()
     }
 
     override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
@@ -680,49 +689,54 @@ object TextBuffer {
       super.onBufferRamDestroy(ram)
     }
 
-    override def keyDown(character: Char, code: Int, player: EntityPlayer) {
+    override def keyDown(character: Char, code: Int, player: PlayerEntity) {
       debug(s"{type = keyDown, char = $character, code = $code}")
       ClientPacketSender.sendKeyDown(nodeAddress, character, code)
     }
 
-    override def keyUp(character: Char, code: Int, player: EntityPlayer) {
+    override def keyUp(character: Char, code: Int, player: PlayerEntity) {
       debug(s"{type = keyUp, char = $character, code = $code}")
       ClientPacketSender.sendKeyUp(nodeAddress, character, code)
     }
 
-    override def clipboard(value: String, player: EntityPlayer) {
+    override def textInput(codePt: Int, player: PlayerEntity) {
+      debug(s"{type = textInput, codePt = $codePt}")
+      ClientPacketSender.sendTextInput(nodeAddress, codePt)
+    }
+
+    override def clipboard(value: String, player: PlayerEntity) {
       debug(s"{type = clipboard}")
       ClientPacketSender.sendClipboard(nodeAddress, value)
     }
 
-    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity) {
       debug(s"{type = mouseDown, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = false, button)
     }
 
-    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseDrag(x: Double, y: Double, button: Int, player: PlayerEntity) {
       debug(s"{type = mouseDrag, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = true, button)
     }
 
-    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseUp(x: Double, y: Double, button: Int, player: PlayerEntity) {
       debug(s"{type = mouseUp, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseUp(nodeAddress, x, y, button)
     }
 
-    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: PlayerEntity) {
       debug(s"{type = mouseScroll, x = $x, y = $y, delta = $delta}")
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
     }
 
-    override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+    override def copyToAnalyzer(line: Int, player: PlayerEntity): Unit = {
       ClientPacketSender.sendCopyToAnalyzer(nodeAddress, line)
     }
 
     private lazy val Debugger = api.Items.get(Constants.ItemName.Debugger)
 
     private def debug(message: String) {
-      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.player != null && api.Items.get(Minecraft.getMinecraft.player.getHeldItemMainhand) == Debugger) {
+      if (Minecraft.getInstance != null && Minecraft.getInstance.player != null && api.Items.get(Minecraft.getInstance.player.getItemInHand(Hand.MAIN_HAND)) == Debugger) {
         OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
       }
     }
@@ -791,8 +805,8 @@ object TextBuffer {
     override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {
       super.onBufferRamInit(ram)
       owner.host.markChanged()
-      val nbt = new NBTTagCompound()
-      ram.save(nbt)
+      val nbt = new CompoundNBT()
+      ram.saveData(nbt)
       owner.synchronized(ServerPacketSender.appendTextBufferRamInit(owner.pendingCommands, ram.owner, ram.id, nbt))
     }
 
@@ -820,56 +834,53 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferRawSetForeground(owner.pendingCommands, col, row, color))
     }
 
-    override def keyDown(character: Char, code: Int, player: EntityPlayer) {
+    override def keyDown(character: Char, code: Int, player: PlayerEntity) {
       sendToKeyboards("keyboard.keyDown", player, Char.box(character), Int.box(code))
     }
 
-    override def keyUp(character: Char, code: Int, player: EntityPlayer) {
+    override def keyUp(character: Char, code: Int, player: PlayerEntity) {
       sendToKeyboards("keyboard.keyUp", player, Char.box(character), Int.box(code))
     }
 
-    override def clipboard(value: String, player: EntityPlayer) {
+    override def textInput(codePt: Int, player: PlayerEntity) {
+      sendToKeyboards("keyboard.textInput", player, Int.box(codePt))
+    }
+
+    override def clipboard(value: String, player: PlayerEntity) {
       sendToKeyboards("keyboard.clipboard", player, value)
     }
 
-    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity) {
       sendMouseEvent(player, "touch", x, y, button)
     }
 
-    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseDrag(x: Double, y: Double, button: Int, player: PlayerEntity) {
       sendMouseEvent(player, "drag", x, y, button)
     }
 
-    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
+    override def mouseUp(x: Double, y: Double, button: Int, player: PlayerEntity) {
       sendMouseEvent(player, "drop", x, y, button)
     }
 
-    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: PlayerEntity) {
       sendMouseEvent(player, "scroll", x, y, delta)
     }
 
-    override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
-      val stack = player.getHeldItem(EnumHand.MAIN_HAND)
+    override def copyToAnalyzer(line: Int, player: PlayerEntity): Unit = {
+      val stack = player.getItemInHand(Hand.MAIN_HAND)
       if (!stack.isEmpty) {
-        if (!stack.hasTagCompound) {
-          stack.setTagCompound(new NBTTagCompound())
-        }
-        stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
+        stack.removeTagKey(Settings.namespace + "clipboard")
 
         if (line >= 0 && line < owner.getViewportHeight) {
           val text = new String(owner.data.buffer(line)).trim
           if (!Strings.isNullOrEmpty(text)) {
-            stack.getTagCompound.setString(Settings.namespace + "clipboard", text)
+            stack.getOrCreateTag.putString(Settings.namespace + "clipboard", text)
           }
-        }
-
-        if (stack.getTagCompound.hasNoTags) {
-          stack.setTagCompound(null)
         }
       }
     }
 
-    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
+    private def sendMouseEvent(player: PlayerEntity, name: String, x: Double, y: Double, data: Int) = {
       val args = mutable.ArrayBuffer.empty[AnyRef]
 
       args += player
@@ -884,10 +895,10 @@ object TextBuffer {
       }
       args += Int.box(data)
       if (Settings.get.inputUsername) {
-        args += player.getName
+        args += player.getName.getString
       }
 
-      owner.node.sendToReachable("computer.checked_signal", args: _*)
+      owner.node.sendToReachable("computer.checked_signal", args.toSeq: _*)
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {

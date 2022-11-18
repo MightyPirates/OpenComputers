@@ -1,0 +1,14 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:drone"
+    },
+    {
+      "item": "opencomputers:eeprom"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:drone"
+  }
+}

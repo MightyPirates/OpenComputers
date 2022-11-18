@@ -1,0 +1,12 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:chameliumblock"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:chamelium",
+    "count": 9
+  }
+}

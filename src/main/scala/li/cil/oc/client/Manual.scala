@@ -8,23 +8,22 @@ import li.cil.oc.api.manual.ImageProvider
 import li.cil.oc.api.manual.ImageRenderer
 import li.cil.oc.api.manual.PathProvider
 import li.cil.oc.api.manual.TabIconRenderer
-import li.cil.oc.common.GuiType
 import net.minecraft.client.Minecraft
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.annotation.tailrec
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.JavaConverters.asJavaIterable
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object Manual extends ManualAPI {
   final val LanguageKey = "%LANGUAGE%"
 
-  final val FallbackLanguage = "en_US"
+  final val FallbackLanguage = "en_us"
 
   class History(val path: String, var offset: Int = 0)
 
@@ -38,7 +37,7 @@ object Manual extends ManualAPI {
 
   val imageProviders = mutable.Buffer.empty[(String, ImageProvider)]
 
-  val history = new mutable.Stack[History]
+  val history = new mutable.ArrayStack[History]
 
   reset()
 
@@ -87,7 +86,7 @@ object Manual extends ManualAPI {
 
   override def contentFor(path: String): java.lang.Iterable[String] = {
     val cleanPath = com.google.common.io.Files.simplifyPath(path)
-    val language = FMLCommonHandler.instance.getCurrentLanguage
+    val language = Minecraft.getInstance().getLanguageManager().getSelected().getCode()
     contentForWithRedirects(cleanPath.replaceAll(LanguageKey, language)).
       orElse(contentForWithRedirects(cleanPath.replaceAll(LanguageKey, FallbackLanguage))).
       orNull
@@ -107,9 +106,10 @@ object Manual extends ManualAPI {
     null
   }
 
-  override def openFor(player: EntityPlayer): Unit = {
-    if (player.getEntityWorld.isRemote) {
-      player.openGui(OpenComputers, GuiType.Manual.id, player.getEntityWorld, 0, 0, 0)
+  override def openFor(player: PlayerEntity): Unit = {
+    if (player.level.isClientSide) {
+      val mc = Minecraft.getInstance
+      if (player == mc.player) mc.pushGuiLayer(new gui.Manual())
     }
   }
 
@@ -119,7 +119,7 @@ object Manual extends ManualAPI {
   }
 
   override def navigate(path: String): Unit = {
-    Minecraft.getMinecraft.currentScreen match {
+    Minecraft.getInstance.screen match {
       case manual: gui.Manual => manual.pushPage(path)
       case _ => history.push(new History(path))
     }

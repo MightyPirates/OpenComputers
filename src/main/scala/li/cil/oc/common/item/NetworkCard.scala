@@ -1,3 +1,7 @@
 package li.cil.oc.common.item
 
-class NetworkCard(val parent: Delegator) extends traits.Delegate with traits.ItemTier
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
+
+class NetworkCard(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier

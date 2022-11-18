@@ -1,6 +1,6 @@
 # 酸液
 
-![Reflux?](oredict:oc:materialAcid)
+![Reflux?](oredict:opencomputers:materialAcid)
 
 可口的[来源请求]混合液体，如果你想……找点乐子，或者烧了你的食管，亦或者都想的话，就喝下去吧。同时也是制作多种物品的原料。
 

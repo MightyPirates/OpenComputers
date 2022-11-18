@@ -1,8 +1,9 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.FileSystem;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -41,11 +42,11 @@ public interface ItemAPI {
      * <p/>
      * The specified factory callable will be used to generate a new file
      * system when the loot disk is used as a component. The specified name
-     * will be used as the label for the loot disk, as well as the identifier
-     * to select the corresponding factory method, so choose wisely.
+     * will be used as the label for the loot disk, while the location serves
+     * as the identifier to select the corresponding factory method.
      * <p/>
      * To use some directory in your mod JAR as the directory provided by the
-     * loot disk, use {@link FileSystem#fromClass} in your callable.
+     * loot disk, use {@link FileSystem#fromResource} in your callable.
      * <p/>
      * If <tt>doRecipeCycling</tt> is <tt>true</tt>, the floppy disk will be
      * included in the floppy disk recipe cycle if that is enabled.
@@ -53,13 +54,15 @@ public interface ItemAPI {
      * Call this in the init phase or later, <em>not</em> in pre-init.
      *
      * @param name    the label and identifier to use for the loot disk.
+     * @param loc     the location where the disk's contents are stored.
 	 * @param color   the color of the disk, as a Minecraft color.
      * @param factory the callable to call for creating file system instances.
      * @param doRecipeCycling whether to include this floppy disk in floppy disk cycling.
      * @return an item stack representing the registered loot disk, to allow
      * adding a recipe for your loot disk, for example.
      */
-    ItemStack registerFloppy(String name, EnumDyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling);
+    ItemStack registerFloppy(String name, ResourceLocation loc, DyeColor color,
+        Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling);
 
     /**
      * Register a single custom EEPROM.

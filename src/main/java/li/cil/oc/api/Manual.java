@@ -5,7 +5,7 @@ import li.cil.oc.api.manual.ImageProvider;
 import li.cil.oc.api.manual.ImageRenderer;
 import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -153,7 +153,7 @@ public class Manual {
      *
      * @param player the player to open the manual for.
      */
-    public static void openFor(EntityPlayer player) {
+    public static void openFor(PlayerEntity player) {
         if (API.manual != null)
             API.manual.openFor(player);
     }

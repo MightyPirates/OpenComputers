@@ -25,7 +25,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
         val slot = args.optSlot(config, 1, 0)
         val stack = config.getStackInSlot(slot)
         result(stack)
-      case _ => result(Unit, "no matching part")
+      case _ => result((), "no matching part")
     }
   }
 
@@ -60,7 +60,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
         config.insertItem(slot, stack, false)
         context.pause(0.5)
         result(true)
-      case _ => result(Unit, "no matching part")
+      case _ => result((), "no matching part")
     }
   }
 }

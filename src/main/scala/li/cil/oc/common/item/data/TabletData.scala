@@ -5,13 +5,13 @@ import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraftforge.common.util.Constants.NBT
 
 class TabletData extends ItemData(Constants.ItemName.Tablet) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var items = Array.fill[ItemStack](32)(ItemStack.EMPTY)
@@ -30,36 +30,36 @@ class TabletData extends ItemData(Constants.ItemName.Tablet) {
   private final val TierTag = Settings.namespace + "tier"
   private final val ContainerTag = Settings.namespace + "container"
 
-  override def load(nbt: NBTTagCompound) {
-    nbt.getTagList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
+  override def loadData(nbt: CompoundNBT) {
+    nbt.getList(ItemsTag, NBT.TAG_COMPOUND).foreach((slotNbt: CompoundNBT) => {
       val slot = slotNbt.getByte(SlotTag)
       if (slot >= 0 && slot < items.length) {
-        items(slot) = new ItemStack(slotNbt.getCompoundTag(ItemTag))
+        items(slot) = ItemStack.of(slotNbt.getCompound(ItemTag))
       }
     })
     isRunning = nbt.getBoolean(IsRunningTag)
     energy = nbt.getDouble(EnergyTag)
     maxEnergy = nbt.getDouble(MaxEnergyTag)
-    tier = nbt.getInteger(TierTag)
-    if (nbt.hasKey(ContainerTag)) {
-      container = new ItemStack(nbt.getCompoundTag(ContainerTag))
+    tier = nbt.getInt(TierTag)
+    if (nbt.contains(ContainerTag)) {
+      container = ItemStack.of(nbt.getCompound(ContainerTag))
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def saveData(nbt: CompoundNBT) {
     nbt.setNewTagList(ItemsTag,
       items.zipWithIndex collect {
         case (stack, slot) if !stack.isEmpty => (stack, slot)
       } map {
         case (stack, slot) =>
-          val slotNbt = new NBTTagCompound()
-          slotNbt.setByte(SlotTag, slot.toByte)
-          slotNbt.setNewCompoundTag(ItemTag, stack.writeToNBT)
+          val slotNbt = new CompoundNBT()
+          slotNbt.putByte(SlotTag, slot.toByte)
+          slotNbt.setNewCompoundTag(ItemTag, stack.save)
       })
-    nbt.setBoolean(IsRunningTag, isRunning)
-    nbt.setDouble(EnergyTag, energy)
-    nbt.setDouble(MaxEnergyTag, maxEnergy)
-    nbt.setInteger(TierTag, tier)
-    if (!container.isEmpty) nbt.setNewCompoundTag(ContainerTag, container.writeToNBT)
+    nbt.putBoolean(IsRunningTag, isRunning)
+    nbt.putDouble(EnergyTag, energy)
+    nbt.putDouble(MaxEnergyTag, maxEnergy)
+    nbt.putInt(TierTag, tier)
+    if (!container.isEmpty) nbt.setNewCompoundTag(ContainerTag, container.save)
   }
 }

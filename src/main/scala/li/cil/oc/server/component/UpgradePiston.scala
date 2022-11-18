@@ -16,34 +16,36 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraft.block.BlockPistonBase
-import net.minecraft.init.SoundEvents
-import net.minecraft.util.{EnumFacing, SoundCategory}
+import net.minecraft.block.Blocks
+import net.minecraft.block.PistonBlock
+import net.minecraft.util.SoundEvents
+import net.minecraft.util.{Direction, SoundCategory}
+import net.minecraft.util.math.BlockPos
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.block.material.EnumPushReaction
+import net.minecraft.block.material.PushReaction
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 protected object PistonTraits {
   trait ExtendAware {
     val host: EnvironmentHost
-    def pushOrigin(side: EnumFacing): BlockPosition = BlockPosition(host)
-    def pushDirection(args: Arguments, index: Int): EnumFacing
+    def pushOrigin(side: Direction): BlockPosition = BlockPosition(host)
+    def pushDirection(args: Arguments, index: Int): Direction
   }
 
   trait DroneLike extends ExtendAware {
-    def pushDirection(args: Arguments, index: Int): EnumFacing = args.optSideAny(index, EnumFacing.SOUTH)
+    def pushDirection(args: Arguments, index: Int): Direction = args.optSideAny(index, Direction.SOUTH)
   }
 
   trait RotatableLike extends ExtendAware {
     val rotatable: internal.Rotatable with EnvironmentHost
-    def pushDirection(args: Arguments, index: Int): EnumFacing = rotatable.toGlobal(args.optSideForAction(index, EnumFacing.SOUTH))
+    def pushDirection(args: Arguments, index: Int): Direction = rotatable.toGlobal(args.optSideForAction(index, Direction.SOUTH))
   }
 
   trait TabletLike extends ExtendAware {
     val tablet: internal.Tablet
-    override def pushOrigin(side: EnumFacing): BlockPosition =
-      if (side == EnumFacing.DOWN && tablet.player.getEyeHeight > 1) super.pushOrigin(side).offset(EnumFacing.DOWN)
+    override def pushOrigin(side: Direction): BlockPosition =
+      if (side == Direction.DOWN && tablet.player.getEyeHeight > 1) super.pushOrigin(side).offset(Direction.DOWN)
       else super.pushOrigin(side)
   }
 }
@@ -68,10 +70,10 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends AbstractManagedE
   @Callback(doc = """function():boolean -- Returns true if the piston is sticky, i.e. it can also pull.""")
   def isSticky(context: Context, args: Arguments): Array[AnyRef] = result(isSticky)
 
-  protected def doPistonAction(context: Context, side: EnumFacing, extending: Boolean): Array[AnyRef] = {
-    val sound = if (extending) SoundEvents.BLOCK_PISTON_EXTEND.getRegistryName else SoundEvents.BLOCK_PISTON_CONTRACT.getRegistryName
+  protected def doPistonAction(context: Context, side: Direction, extending: Boolean): Array[AnyRef] = {
+    val sound = if (extending) SoundEvents.PISTON_EXTEND.getRegistryName else SoundEvents.PISTON_CONTRACT.getRegistryName
     val hostPos = pushOrigin(side).toBlockPos
-    val piston = new BlockPistonBase(isSticky)
+    val piston = (if (isSticky) Blocks.STICKY_PISTON else Blocks.PISTON).asInstanceOf[PistonBlock]
 
     if (!extending) {
       if (!isSticky) {
@@ -79,18 +81,18 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends AbstractManagedE
         throw new NoSuchMethodError("piston is not sticky. does not have pull")
       }
       // make sure that any obstruction block has breaking mobility
-      val innerBlockPos = hostPos.offset(side)
+      val innerBlockPos = hostPos.relative(side): BlockPos
       val innerBlockState = host.world.getBlockState(innerBlockPos)
       if (innerBlockState != null) {
         if (!innerBlockState.getBlock.isAir(innerBlockState, host.world, innerBlockPos)) {
-          if (innerBlockState.getMobilityFlag != EnumPushReaction.DESTROY) {
+          if (innerBlockState.getPistonPushReaction != PushReaction.DESTROY) {
             return result(false, "path is obstructed")
           }
         }
       }
     }
 
-    if (piston.doMove(host.world, hostPos, side, extending)) {
+    if (piston.moveBlocks(host.world, hostPos, side, extending)) {
       // send piston extend sound to clients
       host.synchronized(ServerPacketSender.sendSound(
         host.world, hostPos.getX, hostPos.getY, hostPos.getZ,

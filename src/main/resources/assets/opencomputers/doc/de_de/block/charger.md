@@ -1,6 +1,6 @@
 # Ladegerät
 
-![Gehen wir es an!](oredict:oc:charger)
+![Gehen wir es an!](oredict:opencomputers:charger)
 
 Das Ladegerät wird verwendet, um Geräte wie den [Roboter](robot.md), [Drohnen](../item/drone.md) und [Tablets](../item/tablet.md) zu laden. Ein Ladegerät muss mit einem Redstonesignal aktiviert werden. Die Ladegeschwindigkeit hängt von der Stärke des Redstonesignals ab. Eine Stärke von 15 bedeutet 100% Ladegeschwindigkeit.
 

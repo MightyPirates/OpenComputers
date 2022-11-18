@@ -1,0 +1,11 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:hdd3"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:hdd3"
+  }
+}

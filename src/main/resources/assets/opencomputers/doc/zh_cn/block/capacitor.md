@@ -1,6 +1,6 @@
 # 电容
 
-![超 9000！](oredict:oc:capacitor)
+![超 9000！](oredict:opencomputers:capacitor)
 
 电容存储了计算机网络需要的能源，实际上就是一个以备不时之需的缓存。和使用[能源转换器](powerConverter.md)将转换其他 Mod 的能量到 OpenComputer 使用的电力不一样的是，电容传输电力的过程是瞬时的。这样一个缓存对一些能耗大的任务比较有用，比如[组装](assembler.md)或[充能](charger.md)[机器人](robot.md)和[无人机](../item/drone.md)这样的设备。
 

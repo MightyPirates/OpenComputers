@@ -8,7 +8,6 @@ import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverComponentBus extends Item with Processor {
@@ -24,14 +23,14 @@ object DriverComponentBus extends Item with Processor {
 
   // Clamp item tier because the creative bus needs to fit into tier 3 slots.
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(bus: item.ComponentBus) => bus.tier min Tier.Three
+    stack.getItem match {
+      case bus: item.ComponentBus => bus.tier min Tier.Three
       case _ => Tier.One
     }
 
   override def supportedComponents(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(bus: item.ComponentBus) => Settings.get.cpuComponentSupport(bus.tier)
+    stack.getItem match {
+      case bus: item.ComponentBus => Settings.get.cpuComponentSupport(bus.tier)
       case _ => Tier.One
     }
 

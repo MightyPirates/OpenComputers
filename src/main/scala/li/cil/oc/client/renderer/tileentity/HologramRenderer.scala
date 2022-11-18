@@ -1,30 +1,41 @@
 package li.cil.oc.client.renderer.tileentity
 
 import java.nio.IntBuffer
+import java.util.ArrayDeque
+import java.util.function.Function
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.GlStateManager.CullFace
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraft.util.Direction
+import net.minecraft.util.math.vector.Vector3f
+import net.minecraftforge.client.event.RenderWorldLastEvent
+import net.minecraftforge.event.TickEvent.ClientTickEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 
 import scala.util.Random
 
-object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callable[Int] with RemovalListener[TileEntity, Int] {
+object HologramRenderer extends Function[TileEntityRendererDispatcher, HologramRenderer]
+  with Callable[Int] with RemovalListener[TileEntity, Int] {
+
+  override def apply(dispatch: TileEntityRendererDispatcher) = new HologramRenderer(dispatch)
+
   private val random = new Random()
 
   /** We cache the VBOs for the projectors we render for performance. */
@@ -65,76 +76,86 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
    */
   private var failed = false
 
-  override def render(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
-    if (failed) {
-      HologramRendererFallback.render(hologram, x, y, z, f, damage, alpha)
-      return
+  private val renderQueue = new ArrayDeque[Hologram]
+
+  // Defer actual rendering until now so transparent things render correctly.
+  @SubscribeEvent
+  def onRenderWorldLast(e: RenderWorldLastEvent): Unit = {
+    RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
+
+    val stack = e.getMatrixStack
+    val camPos = Minecraft.getInstance.gameRenderer.getMainCamera.getPosition
+    val buffer = Minecraft.getInstance.renderBuffers.bufferSource
+
+    while (!renderQueue.isEmpty) {
+      val holo = renderQueue.removeFirst()
+      val pos = holo.getBlockPos
+      stack.pushPose()
+      stack.translate(pos.getX + 0.5 - camPos.x, pos.getY + 0.5 - camPos.y, pos.getZ + 0.5 - camPos.z)
+      doRender(holo, e.getPartialTicks, stack)
+      stack.popPose()
     }
 
-    this.hologram = hologram
-    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
+    RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
+  }
 
-    if (!hologram.hasPower) return
-
-    GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
-    RenderState.pushAttrib()
+  private def doRender(hologram: Hologram, f: Float, stack: MatrixStack) {
+    HologramRenderer.hologram = hologram
+    GL11.glPushClientAttrib(GL11.GL_CLIENT_ALL_ATTRIB_BITS)
     RenderState.makeItBlend()
-    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
-    val playerDistSq = x * x + y * y + z * z
-    val maxDistSq = hologram.getMaxRenderDistanceSquared
+    val pos = hologram.getBlockPos
+    val relPos = Minecraft.getInstance.player.getEyePosition(f).
+      subtract(pos.getX + 0.5, pos.getY + 0.5, pos.getZ + 0.5)
+    val playerDistSq = relPos.dot(relPos)
+    val maxDistSq = hologram.getViewDistance * hologram.getViewDistance
     val fadeDistSq = hologram.getFadeStartDistanceSquared
     RenderState.setBlendAlpha(0.75f * (if (playerDistSq > fadeDistSq) math.max(0, 1 - ((playerDistSq - fadeDistSq) / (maxDistSq - fadeDistSq)).toFloat) else 1))
 
-    GlStateManager.pushMatrix()
-    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
-
     hologram.yaw match {
-      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case Direction.WEST => stack.mulPose(Vector3f.YP.rotationDegrees(-90))
+      case Direction.NORTH => stack.mulPose(Vector3f.YP.rotationDegrees(180))
+      case Direction.EAST => stack.mulPose(Vector3f.YP.rotationDegrees(90))
       case _ => // No yaw.
     }
     hologram.pitch match {
-      case EnumFacing.DOWN => GL11.glRotatef(90, 1, 0, 0)
-      case EnumFacing.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case Direction.DOWN => stack.mulPose(Vector3f.XP.rotationDegrees(90))
+      case Direction.UP => stack.mulPose(Vector3f.XP.rotationDegrees(-90))
       case _ => // No pitch.
     }
 
-    GlStateManager.rotate(hologram.rotationAngle, hologram.rotationX, hologram.rotationY, hologram.rotationZ)
-    GlStateManager.rotate(hologram.rotationSpeed * (hologram.getWorld.getTotalWorldTime % (360 * 20 - 1) + f) / 20f, hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
+    stack.mulPose(new Vector3f(hologram.rotationX, hologram.rotationY, hologram.rotationZ).rotationDegrees(hologram.rotationAngle))
+    stack.mulPose(new Vector3f(hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
+      .rotationDegrees(hologram.rotationSpeed * (hologram.getLevel.getGameTime % (360 * 20 - 1) + f) / 20f))
 
-    GlStateManager.scale(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
-    GlStateManager.translate(
+    stack.scale(1.001f, 1.001f, 1.001f) // Avoid z-fighting with other blocks.
+    stack.translate(
       (hologram.translation.x * hologram.width / 16 - 1.5) * hologram.scale,
       hologram.translation.y * hologram.height / 16 * hologram.scale,
       (hologram.translation.z * hologram.width / 16 - 1.5) * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
     if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
-      GlStateManager.scale(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
-      GlStateManager.translate(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
+      stack.scale(1 + random.nextGaussian().toFloat * 0.01f, 1 + random.nextGaussian().toFloat * 0.001f, 1 + random.nextGaussian().toFloat * 0.01f)
+      stack.translate(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }
 
     // After the below scaling, hologram is drawn inside a [0..48]x[0..32]x[0..48] box
-    GlStateManager.scale(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
+    stack.scale(hologram.scale.toFloat / 16f, hologram.scale.toFloat / 16f, hologram.scale.toFloat / 16f)
 
-    bindTexture(Textures.Model.HologramEffect)
+    Textures.bind(Textures.Model.HologramEffect)
 
-    // Normalize normals (yes, glScale scales them too).
-    GL11.glEnable(GL11.GL_NORMALIZE)
-
-    val sx = (x + 0.5) * hologram.scale
-    val sy = -(y + 0.5) * hologram.scale
-    val sz = (z + 0.5) * hologram.scale
+    val sx = relPos.x * hologram.scale
+    val sy = relPos.y * hologram.scale
+    val sz = relPos.z * hologram.scale
     if (sx >= -1.5 && sx <= 1.5 && sz >= -1.5 && sz <= 1.5 && sy >= 0 && sy <= 2) {
       // Camera is inside the hologram.
-      GlStateManager.disableCull()
+      RenderSystem.disableCull()
     }
     else {
       // Camera is outside the hologram.
-      GlStateManager.enableCull()
-      GlStateManager.cullFace(CullFace.BACK)
+      RenderSystem.enableCull()
     }
 
     // We do two passes here to avoid weird transparency effects: in the first
@@ -142,22 +163,21 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
     // When we don't do this the hologram will look different from different
     // angles (because some faces will shine through sometimes and sometimes
     // they won't), so a more... consistent look is desirable.
+    RenderSystem.pushMatrix()
+    RenderSystem.multMatrix(stack.last.pose)
     val glBuffer = cache.get(hologram, this)
-    GlStateManager.colorMask(false, false, false, false)
-    GlStateManager.depthMask(true)
+    GL11.glEnable(GL11.GL_DEPTH_TEST)
+    RenderSystem.colorMask(false, false, false, false)
+    RenderSystem.depthMask(true)
     draw(glBuffer)
-    GlStateManager.colorMask(true, true, true, true)
-    GlStateManager.depthFunc(GL11.GL_EQUAL)
+    RenderSystem.colorMask(true, true, true, true)
+    RenderSystem.depthFunc(GL11.GL_EQUAL)
     draw(glBuffer)
-    GlStateManager.depthFunc(GL11.GL_LEQUAL)
-
-    GlStateManager.popMatrix()
+    RenderSystem.depthFunc(GL11.GL_LEQUAL)
+    RenderSystem.popMatrix()
 
     RenderState.disableBlend()
-    RenderState.popAttrib()
     GL11.glPopClientAttrib()
-
-    RenderState.checkError(getClass.getName + ".render: leaving")
   }
 
   def draw(glBuffer: Int) {
@@ -381,4 +401,15 @@ object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callabl
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) = cache.cleanUp()
+}
+
+class HologramRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[Hologram](dispatch) {
+  override def render(hologram: Hologram, f: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
+    if (HologramRenderer.failed) {
+      HologramRendererFallback.render(hologram, f, stack, buffer, light, overlay)
+      return
+    }
+
+    if (hologram.hasPower) HologramRenderer.renderQueue.addLast(hologram)
+  }
 }

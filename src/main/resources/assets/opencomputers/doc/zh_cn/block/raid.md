@@ -1,6 +1,6 @@
 # Raid
 
-![40 man instance.](oredict:oc:raid)
+![40 man instance.](oredict:opencomputers:raid)
 
 Raid 磁盘阵列可将三块[硬盘](../item/hdd1.md)组成一个文件系统，组合的文件系统拥有所有硬盘容量之和的大小，并且所有与其相连的电脑都能访问。
 

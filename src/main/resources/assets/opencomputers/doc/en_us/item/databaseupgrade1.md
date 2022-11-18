@@ -1,6 +1,6 @@
 # Database Upgrade
 
-![Living in the database.](oredict:oc:databaseUpgrade1)
+![Living in the database.](oredict:opencomputers:databaseUpgrade1)
 
 The database upgrade can be configured to store a list of item stack representations, which can then be used by other components. This is particularly useful for items that are differentiated purely based on their NBT data, which is not part of the item stack descriptor returned by callbacks.
 

@@ -22,7 +22,7 @@ public final class CallableHelper {
         return index;
     }
 
-    public Object[] convertArguments(final Arguments args) throws UnsupportedEncodingException {
+    public static Object[] convertArguments(final Arguments args) throws UnsupportedEncodingException {
         final Object[] argArray = Iterables.toArray(args, Object.class);
         for (int i = 0; i < argArray.length; ++i) {
             if (argArray[i] instanceof byte[]) {

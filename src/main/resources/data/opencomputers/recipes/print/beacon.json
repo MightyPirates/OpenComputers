@@ -1,0 +1,14 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:print"
+    },
+    {
+      "tag": "forge:beacon_base_blocks"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:print"
+  }
+}

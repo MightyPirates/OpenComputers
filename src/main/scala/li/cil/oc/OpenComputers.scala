@@ -1,67 +1,89 @@
 package li.cil.oc
 
+import java.nio.file.Paths
+
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
-import li.cil.oc.server.command.CommandHandler
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.Mod.EventHandler
-import net.minecraftforge.fml.common.SidedProxy
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
-import net.minecraftforge.fml.common.event._
-import net.minecraftforge.fml.common.network.FMLEventChannel
+import li.cil.oc.common.init.Blocks
+import li.cil.oc.common.init.Items
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.ThreadPoolFactory
+import net.minecraft.block.Block
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.world.World
+import net.minecraftforge.event.RegistryEvent
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.forgespi.Environment
+import net.minecraftforge.fml.InterModComms
+import net.minecraftforge.fml.ModContainer
+import net.minecraftforge.fml.ModLoadingContext
+import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent
+import net.minecraftforge.fml.loading.FMLPaths
+import net.minecraftforge.fml.network.simple.SimpleChannel
+import net.minecraftforge.scorge.lang.ScorgeModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-@Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
-  version = OpenComputers.Version,
-  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
+import scala.collection.convert.ImplicitConversionsToScala._
+
 object OpenComputers {
   final val ID = "opencomputers"
 
   final val Name = "OpenComputers"
 
-  final val Version = "@VERSION@"
+  final val log: Logger = LogManager.getLogger(Name)
 
-  def log: Logger = logger.getOrElse(LogManager.getLogger(Name))
-
-  var logger: Option[Logger] = None
-
-  @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
-  var proxy: Proxy = null
-
-  var channel: FMLEventChannel = _
-
-  @EventHandler
-  def preInit(e: FMLPreInitializationEvent) {
-    logger = Option(e.getModLog)
-    proxy.preInit(e)
-    OpenComputers.log.info("Done with pre init phase.")
+  lazy val proxy: Proxy = {
+    val cls = Environment.get.getDist match {
+      case Dist.CLIENT => Class.forName("li.cil.oc.client.Proxy")
+      case _ => Class.forName("li.cil.oc.common.Proxy")
+    }
+    cls.getConstructor().newInstance().asInstanceOf[Proxy]
   }
 
-  @EventHandler
-  def init(e: FMLInitializationEvent): Unit = {
-    proxy.init(e)
-    OpenComputers.log.info("Done with init phase.")
+  var channel: SimpleChannel = null
+
+  private var instance: Option[OpenComputers] = None
+
+  def get = instance match {
+    case Some(oc) => oc
+    case _ => throw new IllegalStateException("not initialized")
+  }
+}
+
+class OpenComputers {
+  val modContainer: ModContainer = ModLoadingContext.get.getActiveContainer
+
+  val Version = modContainer.getModInfo.getVersion
+
+  ScorgeModLoadingContext.get.getModEventBus.register(this)
+  OpenComputers.instance = Some(this)
+
+  MinecraftForge.EVENT_BUS.register(OpenComputers.proxy)
+  ScorgeModLoadingContext.get.getModEventBus.register(OpenComputers.proxy)
+  Settings.load(FMLPaths.CONFIGDIR.get().resolve(Paths.get("opencomputers", "settings.conf")).toFile())
+  OpenComputers.proxy.preInit()
+  MinecraftForge.EVENT_BUS.register(ThreadPoolFactory)
+  Mods.preInit() // Must happen after loading Settings but before registry events are fired.
+
+  @SubscribeEvent
+  def registerBlocks(e: RegistryEvent.Register[Block]) {
+    Blocks.init()
   }
 
-  @EventHandler
-  def postInit(e: FMLPostInitializationEvent): Unit = {
-    proxy.postInit(e)
-    OpenComputers.log.info("Done with post init phase.")
+  @SubscribeEvent
+  def registerItems(e: RegistryEvent.Register[Item]) {
+    Items.init()
   }
 
-  @EventHandler
-  def serverStart(e: FMLServerStartingEvent): Unit = {
-    CommandHandler.register(e)
-    ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+  @SubscribeEvent
+  def imc(e: InterModProcessEvent): Unit = {
+    // Technically requires synchronization because IMC.sendTo doesn't check the loading stage.
+    e.enqueueWork((() => {
+      InterModComms.getMessages(OpenComputers.ID).sequential.iterator.foreach(IMC.handleMessage)
+    }): Runnable)
   }
-
-  @EventHandler
-  def serverStop(e: FMLServerStoppedEvent): Unit = {
-    ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
-  }
-
-  @EventHandler
-  def imc(e: IMCEvent): Unit = IMC.handleEvent(e)
 }

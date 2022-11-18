@@ -6,13 +6,12 @@ import li.cil.oc.api
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with api.driver.item.Memory with api.driver.item.CallBudget {
-  override def amount(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(memory: item.Memory) =>
+  override def amount(stack: ItemStack) = stack.getItem match {
+    case memory: item.Memory =>
       val sizes = Settings.get.ramSizes
       Settings.get.ramSizes(memory.tier max 0 min (sizes.length - 1))
     case _ => 0.0
@@ -31,8 +30,8 @@ object DriverMemory extends Item with api.driver.item.Memory with api.driver.ite
   override def slot(stack: ItemStack) = Slot.Memory
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(memory: item.Memory) => memory.tier / 2
+    stack.getItem match {
+      case memory: item.Memory => memory.tier / 2
       case _ => Tier.One
     }
 

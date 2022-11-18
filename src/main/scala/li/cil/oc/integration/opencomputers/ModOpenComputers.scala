@@ -20,11 +20,9 @@ import li.cil.oc.client.renderer.markdown.segment.render.TextureImageProvider
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
-import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.nanomachines.provider.DisintegrationProvider
@@ -36,25 +34,26 @@ import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
-import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeChunkManager
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.world.ForgeChunkManager
+import net.minecraftforge.fml.DistExecutor
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
-    ItemBlacklist.apply()
-
     DroneTemplate.register()
     MicrocontrollerTemplate.register()
     NavigationUpgradeTemplate.register()
@@ -91,27 +90,21 @@ object ModOpenComputers extends ModProxy {
     api.IMC.registerProgramDiskLabel("opl-flash", "openloader", "Lua 5.2", "Lua 5.3", "LuaJ")
     api.IMC.registerProgramDiskLabel("oppm", "oppm", "Lua 5.2", "Lua 5.3", "LuaJ")
 
-    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
+    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers.ID, ChunkloaderUpgradeHandler)
 
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
-    MinecraftForge.EVENT_BUS.register(SimpleComponentTickHandler.Instance)
     MinecraftForge.EVENT_BUS.register(Tablet)
-
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(BlockChangeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(FileSystemAccessHandler)
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
-    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
     MinecraftForge.EVENT_BUS.register(NetworkActivityHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
-    MinecraftForge.EVENT_BUS.register(Tablet)
     MinecraftForge.EVENT_BUS.register(Waypoints)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
@@ -313,12 +306,20 @@ object ModOpenComputers extends ModProxy {
     // redstone card availability here, after all other mods were inited.
     if (BundledRedstone.isAvailable) {
       OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
-      Delegator.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
-        case Some(redstone: RedstoneCard) => redstone.showInItemList = true
-        case _ =>
-      }
+      ModOpenComputers.hasRedstoneCardT2 = true
     }
 
+    api.Nanomachines.addProvider(DisintegrationProvider)
+    api.Nanomachines.addProvider(HungryProvider)
+    api.Nanomachines.addProvider(ParticleProvider)
+    api.Nanomachines.addProvider(PotionProvider)
+    api.Nanomachines.addProvider(MagnetProvider)
+
+    DistExecutor.runWhenOn(Dist.CLIENT, () => () => initializeClient())
+  }
+
+  @OnlyIn(Dist.CLIENT)
+  private def initializeClient() {
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/"))
     api.Manual.addProvider("", TextureImageProvider)
@@ -329,17 +330,13 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addTab(new TextureTabIconRenderer(Textures.GUI.ManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
-
-    api.Nanomachines.addProvider(DisintegrationProvider)
-    api.Nanomachines.addProvider(HungryProvider)
-    api.Nanomachines.addProvider(ParticleProvider)
-    api.Nanomachines.addProvider(PotionProvider)
-    api.Nanomachines.addProvider(MagnetProvider)
   }
 
-  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
-    player.getHeldItemMainhand.getItem match {
-      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
+  protected[oc] var hasRedstoneCardT2 = false
+
+  def useWrench(player: PlayerEntity, pos: BlockPos, changeDurability: Boolean): Boolean = {
+    player.getItemInHand(Hand.MAIN_HAND).getItem match {
+      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.level, pos, !changeDurability)
       case _ => false
     }
   }

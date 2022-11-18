@@ -3,18 +3,22 @@ package li.cil.oc.common.item
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.common.item.data.NodeData
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
+import net.minecraftforge.common.extensions.IForgeItem
 
-class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with traits.Chargeable {
-  override val unlocalizedName: String = super.unlocalizedName + tier
+class UpgradeBattery(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier with traits.Chargeable {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
 
-  override protected def tooltipName = Option(super.unlocalizedName)
+  override protected def tooltipName = Option(unlocalizedName)
 
   override protected def tooltipData = Seq(Settings.get.bufferCapacitorUpgrades(tier).toInt)
 
   override def showDurabilityBar(stack: ItemStack) = true
 
-  override def durability(stack: ItemStack): Double = {
+  override def getDurabilityForDisplay(stack: ItemStack): Double = {
     val data = new NodeData(stack)
     1 - data.buffer.getOrElse(0.0) / Settings.get.bufferCapacitorUpgrades(tier)
   }
@@ -31,7 +35,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
     }
     traits.Chargeable.applyCharge(amount, buffer, Settings.get.bufferCapacitorUpgrades(tier), used => if (!simulate) {
       data.buffer = Option(buffer + used)
-      data.save(stack)
+      data.saveData(stack)
     })
   }
 
@@ -42,7 +46,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delega
   override def setCharge(stack: ItemStack, amount: Double): Unit = {
     val data = new NodeData(stack)
     data.buffer = Option((0.0 max amount) min maxCharge(stack))
-    data.save(stack)
+    data.saveData(stack)
   }
 
   override def canExtract(stack: ItemStack): Boolean = true

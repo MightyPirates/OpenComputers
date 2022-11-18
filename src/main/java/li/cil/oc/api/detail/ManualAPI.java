@@ -5,7 +5,7 @@ import li.cil.oc.api.manual.ImageProvider;
 import li.cil.oc.api.manual.ImageRenderer;
 import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -90,7 +90,7 @@ public interface ManualAPI {
      * <p/>
      * The provided path may contain the special variable <tt>%LANGUAGE%</tt>,
      * which will be resolved to the currently set language, falling back to
-     * <tt>en_US</tt>.
+     * <tt>en_us</tt>.
      *
      * @param path the path of the page to get the content of.
      * @return the content of the page, or <tt>null</tt> if none exists.
@@ -119,7 +119,7 @@ public interface ManualAPI {
      *
      * @param player the player to open the manual for.
      */
-    void openFor(EntityPlayer player);
+    void openFor(PlayerEntity player);
 
     /**
      * Reset the history of the manual.

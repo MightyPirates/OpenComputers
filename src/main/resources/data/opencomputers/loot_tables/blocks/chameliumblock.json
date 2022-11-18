@@ -1,0 +1,315 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "white"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 0}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "orange"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 1}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "magenta"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 2}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "light_blue"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 3}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "yellow"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 4}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "lime"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 5}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "pink"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 6}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "gray"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 7}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "light_gray"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 8}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "cyan"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 9}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "purple"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 10}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 11}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "brown"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 12}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "green"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 13}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "block_state_property",
+                  "block": "opencomputers:chameliumblock",
+                  "properties": {
+                    "color": "red"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 14}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "function": "set_nbt",
+                  "tag": "{\"Damage\": 15}"
+                }
+              ],
+              "name": "opencomputers:chameliumblock"
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

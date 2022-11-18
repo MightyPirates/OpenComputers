@@ -11,14 +11,14 @@ import li.cil.oc.server.component.Server
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.SoundEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object FileSystemAccessHandler {
   @SubscribeEvent
   def onFileSystemAccess(e: FileSystemAccessEvent.Server) {
-    e.getTileEntity match {
+    e.getBlockEntity match {
       case t: Rack =>
-        for (slot <- 0 until t.getSizeInventory) {
+        for (slot <- 0 until t.getContainerSize) {
           t.getMountable(slot) match {
             case server: Server =>
               val containsNode = server.componentSlot(e.getNode.address) >= 0
@@ -43,8 +43,8 @@ object FileSystemAccessHandler {
   def onFileSystemAccess(e: FileSystemAccessEvent.Client) {
     val volume = Settings.get.soundVolume
     val sound = new SoundEvent(new ResourceLocation(e.getSound))
-    e.getWorld.playSound(e.getX, e.getY, e.getZ, sound, SoundCategory.BLOCKS, volume, 1, false)
-    e.getTileEntity match {
+    e.getWorld.playLocalSound(e.getX, e.getY, e.getZ, sound, SoundCategory.BLOCKS, volume, 1, false)
+    e.getBlockEntity match {
       case t: DiskDrive => t.lastAccess = System.currentTimeMillis()
       case t: Case => t.lastFileSystemAccess = System.currentTimeMillis()
       case t: Raid => t.lastAccess = System.currentTimeMillis()

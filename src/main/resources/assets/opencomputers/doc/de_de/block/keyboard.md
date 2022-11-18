@@ -1,6 +1,6 @@
 # Tastatur
 
-![QWERTY](oredict:oc:keyboard)
+![QWERTY](oredict:opencomputers:keyboard)
 
 Eine Tastatur wird benötigt um Text auf [Bildschirme](screen1.md) zu schreiben, egal ob in der Welt platziert oder in Geräte eingebaut (wie bei [Robotern](robot.md) oder [Tablets](../item/tablet.md)).
 

@@ -15,7 +15,7 @@ object DriverUpgradeStickyPiston extends Item with HostAware {
     api.Items.get(Constants.ItemName.StickyPistonUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost): ManagedEnvironment =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else host match {
       case host: internal.Drone => new component.UpgradeStickyPiston.Drone(host)
       case host: internal.Tablet => new component.UpgradeStickyPiston.Tablet(host)

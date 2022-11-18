@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "bbb",
+    "bbb",
+    "bbb"
+  ],
+  "key": {
+    "b": {
+      "item": "minecraft:stone_button"
+    }
+  },
+  "result": {
+    "item": "opencomputers:numpad"
+  }
+}

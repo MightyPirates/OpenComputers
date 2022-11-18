@@ -3,31 +3,32 @@ package li.cil.oc.common.recipe
 import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.StackOption
 import net.minecraft.block.Block
-import net.minecraft.init.Items
-import net.minecraft.inventory.InventoryCrafting
+import net.minecraft.inventory.CraftingInventory
+import net.minecraft.item.crafting.SpecialRecipe
 import net.minecraft.item.Item
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
+import net.minecraft.util.IItemProvider
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 
 /**
   * @author Vexatos
   */
-class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
-  def this(target: Block) = this(Item.getItemFromBlock(target))
+class DecolorizeRecipe(id: ResourceLocation, target: IItemProvider) extends SpecialRecipe(id) {
+  val targetItem: Item = target.asItem()
 
-  val targetItem: Item = target
-
-  override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
+  override def matches(crafting: CraftingInventory, world: World): Boolean = {
+    val stacks = (0 until crafting.getContainerSize).flatMap(i => StackOption(crafting.getItem(i)))
     val targets = stacks.filter(stack => stack.getItem == targetItem)
     val other = stacks.filterNot(targets.contains)
     targets.size == 1 && other.size == 1 && other.forall(_.getItem == Items.WATER_BUCKET)
   }
 
-  override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
+  override def assemble(crafting: CraftingInventory): ItemStack = {
     var targetStack: ItemStack = ItemStack.EMPTY
 
-    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
+    (0 until crafting.getContainerSize).flatMap(i => StackOption(crafting.getItem(i))).foreach { stack =>
       if (stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
@@ -42,7 +43,7 @@ class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
     targetStack
   }
 
-  override def getMinimumRecipeSize = 2
+  override def canCraftInDimensions(width: Int, height: Int): Boolean = width * height >= 2
 
-  override def getRecipeOutput = ItemStack.EMPTY
+  override def getSerializer = RecipeSerializers.CRAFTING_DECOLORIZE
 }

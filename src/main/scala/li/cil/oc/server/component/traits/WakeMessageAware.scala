@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.{EnvironmentHost, Packet}
 import li.cil.oc.server.component._
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 trait WakeMessageAware extends traits.NetworkAware {
   private final val WakeMessageTag = "wakeMessage"
@@ -60,15 +60,15 @@ trait WakeMessageAware extends traits.NetworkAware {
     }
   }
 
-  def loadWakeMessage(nbt: NBTTagCompound): Unit = {
-    if (nbt.hasKey(WakeMessageTag)) {
+  def loadWakeMessage(nbt: CompoundNBT): Unit = {
+    if (nbt.contains(WakeMessageTag)) {
       wakeMessage = Option(nbt.getString(WakeMessageTag))
     }
     wakeMessageFuzzy = nbt.getBoolean(WakeMessageFuzzyTag)
   }
 
-  def saveWakeMessage(nbt: NBTTagCompound): Unit = {
-    wakeMessage.foreach(nbt.setString(WakeMessageTag, _))
-    nbt.setBoolean(WakeMessageFuzzyTag, wakeMessageFuzzy)
+  def saveWakeMessage(nbt: CompoundNBT): Unit = {
+    wakeMessage.foreach(nbt.putString(WakeMessageTag, _))
+    nbt.putBoolean(WakeMessageFuzzyTag, wakeMessageFuzzy)
   }
 }

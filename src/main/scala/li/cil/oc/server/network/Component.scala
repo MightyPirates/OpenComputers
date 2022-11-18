@@ -7,16 +7,17 @@ import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.network.Node
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Callbacks.ComponentCallback
 import li.cil.oc.server.machine.Callbacks.PeripheralCallback
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.SideTracker
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 trait Component extends network.Component with Node {
   def visibility = _visibility
@@ -118,16 +119,16 @@ trait Component extends network.Component with Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    if (nbt.hasKey(NodeData.VisibilityTag)) {
-      _visibility = Visibility.values()(nbt.getInteger(NodeData.VisibilityTag))
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    if (nbt.contains(NodeData.VisibilityTag)) {
+      _visibility = Visibility.values()(nbt.getInt(NodeData.VisibilityTag))
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    nbt.setInteger(NodeData.VisibilityTag, _visibility.ordinal())
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    nbt.putInt(NodeData.VisibilityTag, _visibility.ordinal())
   }
 
   override def toString = super.toString + s"@$name"

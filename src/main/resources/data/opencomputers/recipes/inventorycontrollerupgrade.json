@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gAg",
+    "dCp",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "d": {
+      "item": "minecraft:dropper"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "A": {
+      "tag": "opencomputers:analyzer"
+    }
+  },
+  "result": {
+    "item": "opencomputers:inventorycontrollerupgrade"
+  }
+}

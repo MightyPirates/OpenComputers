@@ -1,6 +1,6 @@
 # Assembleur électronique
 
-![Harder, better, faster, stronger.](oredict:oc:assembler)
+![Harder, better, faster, stronger.](oredict:opencomputers:assembler)
 
 L'assembleur est une table avancée qui peut être utilisée pour construire des appareils électroniques plus complexes, comme les [robots](robot.md), les [drones](../item/drone.md) et les [tablettes](../item/tablet.md). Il nécessite une grande quantité d'énergie pour assembler des appareils, il est donc recommandé de lui fournir suffisament d'énergie avec un [capaciteur](capacitor.md).
 

@@ -6,7 +6,7 @@ Aussi connu en tant que "comment construire votre premier ordinateur". Pour fair
 
 Premièrement, vous aurez besoin d'un [boîtier](../block/case1.md). C'est le bloc qui contiendra tous les composants, en définissant le comportement de l'ordinateur que vous construisez.
 
-![Un boîtier d'ordinateur de niveau 2.](oredict:oc:case2)
+![Un boîtier d'ordinateur de niveau 2.](oredict:opencomputers:case2)
 
 Par exemple, vous aurez besoin de choisir quel niveau de [carte graphique](../item/graphicsCard1.md) vous voulez utiliser, si vous avez besoin d'une [carte réseau](../item/lanCard.md), une [carte de redstone](../item/redstoneCard1.md) ou, si vous faites des essais en mode créatif, peut être même une [carte de débogueur](../item/debugCard.md).
 
@@ -39,7 +39,7 @@ Maintenant, si vous avez utilisé un [boîtier](../block/case2.md) de niveau 2 c
 Il vit ! Ou il devrait, en tout cas. Si ce n'est pas le cas quelque chose ne va pas, et vous devriez investiguer en utilisant l'[analyzer](../item/analyzer.md). Mais en supposant qu'il fonctionne maintenant, vous avez presque fini. La partie la plus compliquée est terminée. Tout ce qui reste à faire est de lui permettre d'accepter des entrées, et d'afficher des sorties.
 
 Pour permettre à l'[ordinateur](computer.md) d'afficher des informations, vous devrez vous munir d'un [écran](../block/screen1.md) et d'une [carte graphique](../item/graphicsCard1.md).
-![Non, ce n'est pas un écran plat.](oredict:oc:screen2)
+![Non, ce n'est pas un écran plat.](oredict:opencomputers:screen2)
 
 Placez l'[écran](../block/screen1.md) à côté de votre [boîtier](../block/case1.md) ou, à nouveau, connectez le en utilisant des [câbles](../block/cable.md). Puis placez une [carte graphique](../item/graphicsCard1.md) de votre choix dans le [boîtier](../block/case1.md). Vous devriez maintenant voir un curseur clignotant sur l'[écran](../block/screen1.md). Finalement, placez un [clavier](../block/keyboard.md) soit sur l'[écran](../block/screen1.md) lui-même, soit juste en face de l'[écran](../block/screen1.md), pour activer l'entrée de données au [clavier](../block/keyboard.md).
 

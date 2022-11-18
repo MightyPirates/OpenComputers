@@ -18,13 +18,15 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SafeThreadPool
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.World
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.world.storage.FolderName
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.eventbus.api.EventPriority
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 import org.apache.commons.lang3.JavaVersion
 import org.apache.commons.lang3.SystemUtils
 
@@ -48,10 +50,10 @@ object SaveHandler {
   // which takes a lot of time and is completely unnecessary in those cases.
   var savingForClients = false
 
-  class SaveDataEntry(val data: Array[Byte], val pos: ChunkPos, val name: String, val dimension: Int) extends Runnable {
+  class SaveDataEntry(val data: Array[Byte], val pos: ChunkPos, val name: String, val dimension: ResourceLocation) extends Runnable {
     override def run(): Unit = {
       val path = statePath
-      val dimPath = new io.File(path, dimension.toString)
+      val dimPath = new io.File(path, dimension.toString.replace(':', '/').replace('.', '/'))
       val chunkPath = new io.File(dimPath, s"${this.pos.x}.${this.pos.z}")
       chunkDirs.add(chunkPath)
       if (!chunkPath.exists()) {
@@ -75,46 +77,46 @@ object SaveHandler {
   val chunkDirs = new ConcurrentLinkedDeque[io.File]()
   val saving = mutable.HashMap.empty[String, Future[_]]
 
-  def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
+  def savePath = ServerLifecycleHooks.getCurrentServer.getWorldPath(new FolderName(Settings.savePath)).toFile
 
   def statePath = new io.File(savePath, "state")
 
-  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+  def scheduleSave(host: MachineHost, nbt: CompoundNBT, name: String, data: Array[Byte]) {
     scheduleSave(BlockPosition(host), nbt, name, data)
   }
 
-  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(host: MachineHost, nbt: CompoundNBT, name: String, save: CompoundNBT => Unit) {
     scheduleSave(host, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(host: EnvironmentHost, nbt: CompoundNBT, name: String, save: CompoundNBT => Unit) {
     scheduleSave(BlockPosition(host), nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: CompoundNBT, name: String, data: Array[Byte]) {
     scheduleSave(BlockPosition(x, 0, z, world), nbt, name, data)
   }
 
-  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: CompoundNBT, name: String, save: CompoundNBT => Unit) {
     scheduleSave(world, x, z, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+  def scheduleSave(position: BlockPosition, nbt: CompoundNBT, name: String, data: Array[Byte]) {
     val world = position.world.get
-    val dimension = world.provider.getDimension
+    val dimension = world.dimension.location
     val chunk = new ChunkPos(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
-    nbt.setInteger("dimension", dimension)
-    nbt.setInteger("chunkX", chunk.x)
-    nbt.setInteger("chunkZ", chunk.z)
+    nbt.putString("dimension", dimension.toString)
+    nbt.putInt("chunkX", chunk.x)
+    nbt.putInt("chunkZ", chunk.z)
 
     scheduleSave(dimension, chunk, name, data)
   }
 
-  private def writeNBT(save: NBTTagCompound => Unit) = {
-    val tmpNbt = new NBTTagCompound()
+  private def writeNBT(save: CompoundNBT => Unit) = {
+    val tmpNbt = new CompoundNBT()
     save(tmpNbt)
     val baos = new ByteArrayOutputStream()
     val dos = new DataOutputStream(baos)
@@ -122,7 +124,7 @@ object SaveHandler {
     baos.toByteArray
   }
 
-  def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {
+  def loadNBT(nbt: CompoundNBT, name: String): CompoundNBT = {
     val data = load(nbt, name)
     if (data.length > 0) try {
       val bais = new ByteArrayInputStream(data)
@@ -132,17 +134,17 @@ object SaveHandler {
     catch {
       case t: Throwable =>
         OpenComputers.log.warn("There was an error trying to restore a block's state from external data. This indicates that data was somehow corrupted.", t)
-        new NBTTagCompound()
+        new CompoundNBT()
     }
-    else new NBTTagCompound()
+    else new CompoundNBT()
   }
 
-  def load(nbt: NBTTagCompound, name: String): Array[Byte] = {
+  def load(nbt: CompoundNBT, name: String): Array[Byte] = {
     // Since we have no world yet, we rely on the dimension we were saved in.
     // Same goes for the chunk. This also works around issues with computers
     // being moved (e.g. Redstone in Motion).
-    val dimension = nbt.getInteger("dimension")
-    val chunk = new ChunkPos(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
+    val dimension = nbt.getString("dimension")
+    val chunk = new ChunkPos(nbt.getInt("chunkX"), nbt.getInt("chunkZ"))
 
     // Wait for the latest save task for the requested file to complete.
     // This prevents the chance of loading an outdated version
@@ -155,10 +157,10 @@ object SaveHandler {
     })
     saving.remove(name)
 
-    load(dimension, chunk, name)
+    load(new ResourceLocation(dimension), chunk, name)
   }
 
-  def scheduleSave(dimension: Int, chunk: ChunkPos, name: String, data: Array[Byte]): Unit = {
+  def scheduleSave(dimension: ResourceLocation, chunk: ChunkPos, name: String, data: Array[Byte]): Unit = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
       // Disregarding whether or not there already was a
@@ -169,11 +171,11 @@ object SaveHandler {
     }
   }
 
-  def load(dimension: Int, chunk: ChunkPos, name: String): Array[Byte] = {
+  def load(dimension: ResourceLocation, chunk: ChunkPos, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
 
     val path = statePath
-    val dimPath = new io.File(path, dimension.toString)
+    val dimPath = new io.File(path, dimension.toString.replace(':', '/').replace('.', '/'))
     val chunkPath = new io.File(dimPath, s"${chunk.x}.${chunk.z}")
     val file = new io.File(chunkPath, name)
     if (!file.exists()) return Array.empty[Byte]
@@ -219,7 +221,7 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
-    if (!e.getWorld.isRemote) {
+    if (!e.getWorld.isClientSide) {
       // Touch all externally saved data when loading, to avoid it getting
       // deleted in the next save (because the now - save time will usually
       // be larger than the time out after loading a world again).

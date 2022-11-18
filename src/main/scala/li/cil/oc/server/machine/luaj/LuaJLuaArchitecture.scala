@@ -17,9 +17,9 @@ import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2._
 import li.cil.repack.org.luaj.vm2.lib.jse.JsePlatform
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 @Architecture.Name("LuaJ")
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
@@ -250,12 +250,12 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
+  override def loadData(nbt: CompoundNBT) {
     if (machine.isRunning) {
       machine.stop()
       machine.start()
     }
   }
 
-  override def save(nbt: NBTTagCompound) {}
+  override def saveData(nbt: CompoundNBT) {}
 }

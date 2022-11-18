@@ -7,7 +7,6 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.FluidUtils
-import net.minecraftforge.fluids.capability.IFluidTankProperties
 
 trait WorldTankAnalytics extends WorldAware with SideRestricted {
   @Callback(doc = """function(side:number [, tank:number]):number -- Get the amount of fluid in the tank on the specified side.""")
@@ -16,10 +15,10 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
 
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) => args.optTankProperties(handler, 1, null) match {
-        case properties: IFluidTankProperties => result(Option(properties.getContents).fold(0)(_.amount))
-        case _ => result(handler.getTankProperties.map(info => Option(info.getContents).fold(0)(_.amount)).sum)
+        case properties: TankProperties => result(Option(properties.contents).fold(0)(_.getAmount))
+        case _ => result((0 until handler.getTanks).map(i => Option(handler.getFluidInTank(i)).fold(0)(_.getAmount)).sum)
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
 
@@ -28,10 +27,10 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
     val facing = checkSideForAction(args, 0)
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) => args.optTankProperties(handler, 1, null) match {
-        case properties: IFluidTankProperties  => result(properties.getCapacity)
-        case _ => result(handler.getTankProperties.map(_.getCapacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
+        case properties: TankProperties  => result(properties.capacity)
+        case _ => result((0 until handler.getTanks).map(handler.getTankCapacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
 
@@ -40,11 +39,11 @@ trait WorldTankAnalytics extends WorldAware with SideRestricted {
     val facing = checkSideForAction(args, 0)
     FluidUtils.fluidHandlerAt(position.offset(facing), facing.getOpposite) match {
       case Some(handler) => args.optTankProperties(handler, 1, null) match {
-        case properties: IFluidTankProperties  => result(properties)
-        case _ => result(handler.getTankProperties)
+        case properties: TankProperties  => result(properties)
+        case _ => result((0 until handler.getTanks).map(i => new TankProperties(handler.getTankCapacity(i), handler.getFluidInTank(i))).toArray)
       }
-      case _ => result(Unit, "no tank")
+      case _ => result((), "no tank")
     }
   }
-  else result(Unit, "not enabled in config")
+  else result((), "not enabled in config")
 }

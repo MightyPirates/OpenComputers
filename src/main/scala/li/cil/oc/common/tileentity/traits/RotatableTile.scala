@@ -1,10 +1,11 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import li.cil.oc.util.RotationHelper
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 /**
  * Like Rotatable, but stores the rotation information in the TE's NBT instead
@@ -16,10 +17,10 @@ trait RotatableTile extends Rotatable {
   // ----------------------------------------------------------------------- //
 
   /** One of Up, Down and North (where north means forward/no pitch). */
-  private var _pitch = EnumFacing.NORTH
+  private var _pitch = Direction.NORTH
 
   /** One of the four cardinal directions. */
-  private var _yaw = EnumFacing.SOUTH
+  private var _yaw = Direction.SOUTH
 
   // ----------------------------------------------------------------------- //
   // Accessors
@@ -34,43 +35,43 @@ trait RotatableTile extends Rotatable {
   private final val PitchTag = Settings.namespace + "pitch"
   private final val YawTag = Settings.namespace + "yaw"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) = {
-    super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(PitchTag)) {
-      pitch = EnumFacing.getFront(nbt.getInteger(PitchTag))
+  override def loadForServer(nbt: CompoundNBT) = {
+    super.loadForServer(nbt)
+    if (nbt.contains(PitchTag)) {
+      pitch = Direction.from3DDataValue(nbt.getInt(PitchTag))
     }
-    if (nbt.hasKey(YawTag)) {
-      yaw = EnumFacing.getFront(nbt.getInteger(YawTag))
+    if (nbt.contains(YawTag)) {
+      yaw = Direction.from3DDataValue(nbt.getInt(YawTag))
     }
     validatePitchAndYaw()
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) = {
-    super.writeToNBTForServer(nbt)
-    nbt.setInteger(PitchTag, pitch.ordinal)
-    nbt.setInteger(YawTag, yaw.ordinal)
+  override def saveForServer(nbt: CompoundNBT) = {
+    super.saveForServer(nbt)
+    nbt.putInt(PitchTag, pitch.ordinal)
+    nbt.putInt(YawTag, yaw.ordinal)
   }
 
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    pitch = EnumFacing.getFront(nbt.getInteger(PitchTag))
-    yaw = EnumFacing.getFront(nbt.getInteger(YawTag))
+  @OnlyIn(Dist.CLIENT)
+  override def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
+    pitch = Direction.from3DDataValue(nbt.getInt(PitchTag))
+    yaw = Direction.from3DDataValue(nbt.getInt(YawTag))
     validatePitchAndYaw()
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    nbt.setInteger(PitchTag, pitch.ordinal)
-    nbt.setInteger(YawTag, yaw.ordinal)
+  override def saveForClient(nbt: CompoundNBT) {
+    super.saveForClient(nbt)
+    nbt.putInt(PitchTag, pitch.ordinal)
+    nbt.putInt(YawTag, yaw.ordinal)
   }
 
   private def validatePitchAndYaw() {
     if (!_pitch.getAxis.isVertical) {
-      _pitch = EnumFacing.NORTH
+      _pitch = Direction.NORTH
     }
     if (!_yaw.getAxis.isHorizontal) {
-      _yaw = EnumFacing.SOUTH
+      _yaw = Direction.SOUTH
     }
     updateTranslation()
   }
@@ -78,7 +79,7 @@ trait RotatableTile extends Rotatable {
   // ----------------------------------------------------------------------- //
 
   /** Validates new values against the allowed rotations as set in our block. */
-  override protected def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
+  override protected def trySetPitchYaw(pitch: Direction, yaw: Direction) = {
     var changed = false
     if (pitch != _pitch) {
       changed = true

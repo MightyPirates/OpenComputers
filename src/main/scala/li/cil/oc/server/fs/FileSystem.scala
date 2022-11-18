@@ -11,20 +11,23 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.ResourceLocation
+import net.minecraft.world.storage.FolderName
+import net.minecraftforge.fml.loading.FMLLoader
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
 import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive: Boolean = Settings.get.forceCaseInsensitive || (try {
     val uuid = UUID.randomUUID().toString
-    val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
-    val upperCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
+    val saveDir = ServerLifecycleHooks.getCurrentServer.getWorldPath(FolderName.ROOT).toFile
+    val lowerCase = new io.File(saveDir, uuid + "oc_rox")
+    val upperCase = new io.File(saveDir, uuid + "OC_ROX")
     // This should NEVER happen but could also lead to VERY weird bugs, so we
     // make sure the files don't exist.
     lowerCase.exists() && lowerCase.delete()
@@ -57,50 +60,27 @@ object FileSystem extends api.detail.FileSystemAPI {
     path
   }
 
-  override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
-    val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
+  override def fromResource(loc: ResourceLocation): api.fs.FileSystem = {
+    val innerPath = "/assets/" + loc.getNamespace + "/" + (loc.getPath.trim + "/")
 
-    val codeSource = clazz.getProtectionDomain.getCodeSource.getLocation.getPath
-    val (codeUrl, isArchive) =
-      if (codeSource.contains(".zip!") || codeSource.contains(".jar!"))
-        (codeSource.substring(0, codeSource.lastIndexOf('!')), true)
-      else
-        (codeSource, false)
+    val modInfo = FMLLoader.getLoadingModList().getModFileById(loc.getNamespace)
+    val file = modInfo.getFile().getFilePath().toFile()
 
-    val url = Try {
-      new URL(codeUrl)
-    }.recoverWith {
-      case _: MalformedURLException => Try {
-        new URL("file://" + codeUrl)
-      }
-    }
-    val file = url.map(url => new io.File(url.toURI)).recoverWith {
-      case _: URISyntaxException => url.map(url => new io.File(url.getPath))
-    }.getOrElse(new io.File(codeSource))
-
-    if (isArchive) {
+    if (!file.exists) return null
+    if (!file.isDirectory) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
     }
     else {
-      if (!file.exists || file.isDirectory) return null
-      new io.File(new io.File(file.getParent), innerPath) match {
+      new io.File(file, innerPath) match {
         case fsp if fsp.exists() && fsp.isDirectory =>
           new ReadOnlyFileSystem(fsp)
-        case _ =>
-          System.getProperty("java.class.path").split(System.getProperty("path.separator")).
-            find(cp => {
-            val fsp = new io.File(new io.File(cp), innerPath)
-            fsp.exists() && fsp.isDirectory
-          }) match {
-            case None => null
-            case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
-          }
+        case _ => null
       }
     }
   }
 
   override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean): Capacity = {
-    val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
+    val path = ServerLifecycleHooks.getCurrentServer.getWorldPath(new FolderName(Settings.savePath + root)).toFile
     if (!path.isDirectory) {
       path.delete()
     }
@@ -113,13 +93,13 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   def removeAddress(fsStack: ItemStack): Boolean = {
-    Delegator.subItem(fsStack) match {
-      case Some(drive: FileSystemLike) => {
+    fsStack.getItem match {
+      case drive: FileSystemLike => {
         val data = li.cil.oc.integration.opencomputers.Item.dataTag(fsStack)
-        if (data.hasKey("node")) {
-          val nodeData = data.getCompoundTag("node")
-          if (nodeData.hasKey("address")) {
-            nodeData.removeTag("address")
+        if (data.contains("node")) {
+          val nodeData = data.getCompound("node")
+          if (nodeData.contains("address")) {
+            nodeData.remove("address")
             return true
           }
         }
@@ -167,11 +147,11 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     private final val LabelTag = Settings.namespace + "fs.label"
 
-    override def load(nbt: NBTTagCompound) {}
+    override def loadData(nbt: CompoundNBT) {}
 
-    override def save(nbt: NBTTagCompound) {
+    override def saveData(nbt: CompoundNBT) {
       if (label != null) {
-        nbt.setString(LabelTag, label)
+        nbt.putString(LabelTag, label)
       }
     }
   }

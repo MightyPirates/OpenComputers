@@ -7,8 +7,7 @@ import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.versioning.ComparableVersion
+import org.apache.maven.artifact.versioning.ComparableVersion
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,7 +22,7 @@ object UpdateCheck {
 
   private def initialize(): Option[Release] = {
     // Keep the version template split up so it's not replaced with the actual version...
-    if (Settings.get.updateCheck && OpenComputers.Version != ("@" + "VERSION" + "@")) {
+    if (Settings.get.updateCheck && OpenComputers.get.Version != ("@" + "VERSION" + "@")) {
       try {
         OpenComputers.log.info("Starting OpenComputers version check.")
         val reader = new JsonReader(new InputStreamReader(releasesUrl.openStream()))
@@ -39,7 +38,7 @@ object UpdateCheck {
         if (candidates.nonEmpty) {
           val latest = candidates.maxBy(release => new ComparableVersion(release.tag_name.stripPrefix("v")))
           val remoteVersion = new ComparableVersion(latest.tag_name.stripPrefix("v"))
-          val localVersion = new ComparableVersion(Loader.instance.getIndexedModList.get(OpenComputers.ID).getVersion)
+          val localVersion = new ComparableVersion(OpenComputers.get.Version.toString)
           if (remoteVersion.compareTo(localVersion) > 0) {
             OpenComputers.log.info(s"A newer version of OpenComputers is available: ${latest.tag_name}.")
             return Some(latest)

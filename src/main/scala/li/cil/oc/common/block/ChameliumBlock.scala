@@ -1,27 +1,42 @@
 package li.cil.oc.common.block
 
-import net.minecraft.block.material.Material
-import net.minecraft.block.properties.PropertyEnum
-import net.minecraft.block.state.BlockStateContainer
-import net.minecraft.block.state.IBlockState
-import net.minecraft.item.EnumDyeColor
+import java.util.List
+
+import net.minecraft.block.Block
+import net.minecraft.block.BlockState
+import net.minecraft.block.AbstractBlock.Properties
+import net.minecraft.item.BlockItemUseContext
+import net.minecraft.item.DyeColor
+import net.minecraft.item.ItemGroup
+import net.minecraft.item.ItemStack
+import net.minecraft.state.EnumProperty
+import net.minecraft.state.StateContainer
+import net.minecraft.util.NonNullList
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockReader
 
 object ChameliumBlock {
-  final val Color = PropertyEnum.create("color", classOf[EnumDyeColor])
+  final val Color = EnumProperty.create("color", classOf[DyeColor])
 }
 
-class ChameliumBlock extends SimpleBlock(Material.ROCK) {
-  setDefaultState(blockState.getBaseState.withProperty(ChameliumBlock.Color, EnumDyeColor.BLACK))
+class ChameliumBlock(props: Properties) extends SimpleBlock(props) {
+  protected override def createBlockStateDefinition(builder: StateContainer.Builder[Block, BlockState]): Unit = {
+    builder.add(ChameliumBlock.Color)
+  }
+  registerDefaultState(stateDefinition.any.setValue(ChameliumBlock.Color, DyeColor.BLACK))
 
-  override def damageDropped(state: IBlockState): Int = getMetaFromState(state)
+  override def getCloneItemStack(world: IBlockReader, pos: BlockPos, state: BlockState): ItemStack = {
+    val stack = new ItemStack(this)
+    stack.setDamageValue(state.getValue(ChameliumBlock.Color).getId)
+    stack
+  }
 
-  override def getStateFromMeta(meta: Int): IBlockState =
-    getDefaultState.withProperty(ChameliumBlock.Color, EnumDyeColor.byDyeDamage(meta))
+  override def getStateForPlacement(ctx: BlockItemUseContext): BlockState =
+    defaultBlockState.setValue(ChameliumBlock.Color, DyeColor.byId(ctx.getItemInHand.getDamageValue))
 
-  override def getMetaFromState(state: IBlockState): Int =
-    state.getValue(ChameliumBlock.Color).getDyeDamage
-
-  override def createBlockState() = new BlockStateContainer(this, ChameliumBlock.Color)
-
-  override def hasTileEntity(state: IBlockState): Boolean = false
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {
+    val stack = new ItemStack(this, 1)
+    stack.setDamageValue(defaultBlockState.getValue(ChameliumBlock.Color).getId)
+    list.add(stack)
+  }
 }

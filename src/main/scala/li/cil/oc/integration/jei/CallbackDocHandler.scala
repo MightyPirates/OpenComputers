@@ -2,25 +2,30 @@ package li.cil.oc.integration.jei
 
 import java.util
 
-import javax.annotation.Nonnull
 import com.google.common.base.Strings
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.server.machine.Callbacks
-import mezz.jei.api.IGuiHelper
-import mezz.jei.api.IModRegistry
-import mezz.jei.api.gui.IDrawable
+import mezz.jei.api.constants.VanillaTypes
 import mezz.jei.api.gui.IRecipeLayout
+import mezz.jei.api.gui.drawable.IDrawable
+import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection
+import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.ingredients.IIngredients
-import mezz.jei.api.recipe._
+import mezz.jei.api.recipe.category.IRecipeCategory
+import mezz.jei.api.registration.IRecipeRegistration
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ICharacterConsumer
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.text.CharacterManager.ISliceAcceptor
+import net.minecraft.util.text.Style
 import net.minecraft.util.text.TextFormatting
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object CallbackDocHandler {
@@ -29,7 +34,7 @@ object CallbackDocHandler {
 
   private val VexPattern = """(?s)^function(\(.*?\).*?); (.*)$""".r
 
-  def getRecipes(registry: IModRegistry): util.List[CallbackDocRecipe] = registry.getIngredientRegistry.getIngredients(classOf[ItemStack]).collect {
+  def getRecipes(registration: IRecipeRegistration): util.List[CallbackDocRecipe] = registration.getIngredientManager.getAllIngredients(VanillaTypes.ITEM).collect {
     case stack: ItemStack =>
       val callbacks = api.Driver.environmentsFor(stack).flatMap(getCallbacks).toBuffer
 
@@ -73,22 +78,15 @@ object CallbackDocHandler {
   }
   else Seq.empty
 
-  protected def wrap(line: String, width: Int): util.List[String] = Minecraft.getMinecraft.fontRenderer.listFormattedStringToWidth(line, width)
-
-  object CallbackDocRecipeHandler extends IRecipeWrapperFactory[CallbackDocRecipe] {
-    override def getRecipeWrapper(recipe: CallbackDocRecipe): CallbackDocRecipe = recipe
+  protected def wrap(line: String, width: Int): util.List[String] = {
+    val list = new util.ArrayList[String]
+    Minecraft.getInstance.font.getSplitter.splitLines(line, width, Style.EMPTY, true, new ISliceAcceptor {
+      override def accept(style: Style, start: Int, end: Int) = list.add(line.substring(start, end))
+    })
+    list
   }
 
-  class CallbackDocRecipe(val stack: ItemStack, val page: String) extends BlankRecipeWrapper {
-
-    override def getIngredients(ingredients: IIngredients): Unit = ingredients.setInputs(classOf[ItemStack], List(stack))
-
-    override def drawInfo(@Nonnull minecraft: Minecraft, recipeWidth: Int, recipeHeight: Int, mouseX: Int, mouseY: Int): Unit = {
-      for ((text, line) <- page.lines.zipWithIndex) {
-        minecraft.fontRenderer.drawString(text, 4, 4 + line * (minecraft.fontRenderer.FONT_HEIGHT + 1), 0x333333, false)
-      }
-    }
-  }
+  class CallbackDocRecipe(val stack: ItemStack, val page: String)
 
   object CallbackDocRecipeCategory extends IRecipeCategory[CallbackDocRecipe] {
     val recipeWidth: Int = 160
@@ -102,18 +100,30 @@ object CallbackDocHandler {
         guiHelper.createTickTimer(20, 1, true), 0, 16)
     }
 
+    override def getRecipeClass = classOf[CallbackDocRecipe]
+
     override def getIcon: IDrawable = icon
 
     override def getBackground: IDrawable = background
 
+    override def setIngredients(recipeWrapper: CallbackDocRecipe, ingredients: IIngredients) {
+      ingredients.setInput(VanillaTypes.ITEM, recipeWrapper.stack)
+    }
+
     override def setRecipe(recipeLayout: IRecipeLayout, recipeWrapper: CallbackDocRecipe, ingredients: IIngredients) {
     }
 
+    override def draw(recipeWrapper: CallbackDocRecipe, stack: MatrixStack, mouseX: Double, mouseY: Double): Unit = {
+      val minecraft = Minecraft.getInstance
+      for ((text, line) <- recipeWrapper.page.lines.zipWithIndex) {
+        minecraft.font.draw(stack, text, 4, 4 + line * (minecraft.font.lineHeight + 1), 0x333333)
+      }
+    }
+
+    @Deprecated
     override def getTitle = "OpenComputers API"
 
-    override def getUid = "oc.api"
-
-    override def getModName: String = OpenComputers.Name
+    override def getUid = new ResourceLocation(OpenComputers.ID, "part_api")
   }
 
 }

@@ -3,25 +3,25 @@ package li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 trait Common extends TileEntity {
-  @SideOnly(Side.CLIENT)
-  protected def hasConnector(side: EnumFacing) = false
+  @OnlyIn(Dist.CLIENT)
+  protected def hasConnector(side: Direction) = false
 
-  protected def connector(side: EnumFacing): Option[Connector] = None
+  protected def connector(side: Direction): Option[Connector] = None
 
   // ----------------------------------------------------------------------- //
 
   def energyThroughput: Double
 
-  protected def tryAllSides(provider: (Double, EnumFacing) => Double, fromOther: Double => Double, toOther: Double => Double) {
+  protected def tryAllSides(provider: (Double, Direction) => Double, fromOther: Double => Double, toOther: Double => Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,
     // but our throughput is per tick, so multiply this up for actual budget.
     var budget = energyThroughput * Settings.get.tickFrequency
-    for (side <- EnumFacing.values) {
+    for (side <- Direction.values) {
       val demand = toOther(math.min(budget, globalDemand(side)))
       if (demand > 1) {
         val energy = fromOther(provider(demand, side))
@@ -34,7 +34,7 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  def canConnectPower(side: EnumFacing) =
+  def canConnectPower(side: Direction) =
     !Settings.get.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined)
 
   /**
@@ -45,7 +45,7 @@ trait Common extends TileEntity {
    * @param doReceive whether to actually inject energy or only simulate it.
    * @return the amount of energy that was actually injected.
    */
-  def tryChangeBuffer(side: EnumFacing, amount: Double, doReceive: Boolean = true): Double =
+  def tryChangeBuffer(side: Direction, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
@@ -55,19 +55,19 @@ trait Common extends TileEntity {
       case _ => 0
     }
 
-  def globalBuffer(side: EnumFacing): Double =
+  def globalBuffer(side: Direction): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBuffer
       case _ => 0
     }
 
-  def globalBufferSize(side: EnumFacing): Double =
+  def globalBufferSize(side: Direction): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBufferSize
       case _ => 0
     }
 
-  def globalDemand(side: EnumFacing) = math.max(0, math.min(energyThroughput, globalBufferSize(side) - globalBuffer(side)))
+  def globalDemand(side: Direction) = math.max(0, math.min(energyThroughput, globalBufferSize(side) - globalBuffer(side)))
 }

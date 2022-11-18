@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.markdown.segment
 
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
 
@@ -46,7 +47,7 @@ trait Segment {
    * Render the segment at the specified coordinates with the specified
    * properties.
    */
-  def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+  def render(stack: MatrixStack, x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
 
   def renderAsText(format: MarkupFormat.Value): Iterable[String] = {
     var segment = this

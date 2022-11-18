@@ -1,10 +1,17 @@
 package li.cil.oc.client.renderer.font
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.IVertexBuilder
 import li.cil.oc.Settings
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.opengl.GL11
 
 /**
@@ -26,29 +33,22 @@ abstract class TextureFontRenderer {
     * be generated inside the draw call.
     */
   def generateChars(chars: Array[Char]) {
-    GlStateManager.enableTexture2D()
+    RenderSystem.enableTexture()
     for (char <- chars) {
       generateChar(char)
     }
   }
 
-  def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
+  def drawBuffer(stack: MatrixStack, renderBuff: IRenderTypeBuffer, buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
     val format = buffer.format
 
-    GlStateManager.pushMatrix()
-    RenderState.pushAttrib()
+    stack.pushPose()
 
-    GlStateManager.scale(0.5f, 0.5f, 1)
-
-    GL11.glDepthMask(false)
-    RenderState.makeItBlend()
-    GL11.glDisable(GL11.GL_TEXTURE_2D)
-
-    RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
+    stack.scale(0.5f, 0.5f, 1)
 
     // Background first. We try to merge adjacent backgrounds of the same
     // color to reduce the number of quads we have to draw.
-    GL11.glBegin(GL11.GL_QUADS)
+    var quadBuilder: IVertexBuilder = null
     for (y <- 0 until (viewportHeight min buffer.height)) {
       val color = buffer.color(y)
       var cbg = 0x000000
@@ -56,76 +56,48 @@ abstract class TextureFontRenderer {
       var width = 0
       for (col <- color.map(PackedColor.unpackBackground(_, format)) if x + width < viewportWidth) {
         if (col != cbg) {
-          drawQuad(cbg, x, y, width)
+          if (quadBuilder == null) quadBuilder = renderBuff.getBuffer(RenderTypes.FONT_QUAD)
+          drawQuad(quadBuilder, stack.last.pose, cbg, x, y, width)
           cbg = col
           x += width
           width = 0
         }
         width = width + 1
       }
-      drawQuad(cbg, x, y, width)
-    }
-    GL11.glEnd()
-
-    RenderState.checkError(getClass.getName + ".drawBuffer: background")
-
-    GL11.glEnable(GL11.GL_TEXTURE_2D)
-
-    if (Settings.get.textLinearFiltering) {
-      GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
+      drawQuad(quadBuilder, stack.last.pose, cbg, x, y, width)
     }
 
-    // Foreground second. We only have to flush when the color changes, so
-    // unless every char has a different color this should be quite efficient.
-    for (y <- 0 until (viewportHeight min buffer.height)) {
-      val line = buffer.buffer(y)
-      val color = buffer.color(y)
-      val ty = y * charHeight
-      for (i <- 0 until textureCount) {
-        bindTexture(i)
-        GL11.glBegin(GL11.GL_QUADS)
-        var cfg = -1
+    // Foreground second. We only have to flush when the texture changes.
+    for (i <- 0 until textureCount) {
+      // Initialized early because our RenderCache drops empty buffers.
+      val fontBuilder = renderBuff.getBuffer(selectType(i))
+      for (y <- 0 until (viewportHeight min buffer.height)) {
+        val line = buffer.buffer(y)
+        val color = buffer.color(y)
+        val ty = y * charHeight
         var tx = 0f
         for (n <- 0 until viewportWidth) {
           val ch = line(n)
-          val col = PackedColor.unpackForeground(color(n), format)
-          // Check if color changed.
-          if (col != cfg) {
-            cfg = col
-            GL11.glColor3f(
-              ((cfg & 0xFF0000) >> 16) / 255f,
-              ((cfg & 0x00FF00) >> 8) / 255f,
-              ((cfg & 0x0000FF) >> 0) / 255f)
-          }
           // Don't render whitespace.
           if (ch != ' ') {
-            drawChar(tx, ty, ch)
+            val col = PackedColor.unpackForeground(color(n), format)
+            drawChar(fontBuilder, stack.last.pose, col, tx, ty, ch)
           }
           tx += charWidth
         }
-        GL11.glEnd()
       }
     }
 
-    RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
-
-    GlStateManager.bindTexture(0)
-    GL11.glDepthMask(true)
-    GL11.glColor3f(1, 1, 1)
-    RenderState.disableBlend()
-    RenderState.popAttrib()
-    GlStateManager.popMatrix()
-
-    RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
+    stack.popPose()
   }
 
-  def drawString(s: String, x: Int, y: Int): Unit = {
-    GlStateManager.pushMatrix()
+  def drawString(stack: MatrixStack, s: String, x: Int, y: Int): Unit = {
+    stack.pushPose()
     RenderState.pushAttrib()
 
-    GlStateManager.translate(x, y, 0)
-    GlStateManager.scale(0.5f, 0.5f, 1)
-    GlStateManager.depthMask(false)
+    stack.translate(x, y, 0)
+    stack.scale(0.5f, 0.5f, 1)
+    RenderSystem.depthMask(false)
 
     for (i <- 0 until textureCount) {
       bindTexture(i)
@@ -135,7 +107,7 @@ abstract class TextureFontRenderer {
         val ch = s.charAt(n)
         // Don't render whitespace.
         if (ch != ' ') {
-          drawChar(tx, 0, ch)
+          drawChar(stack.last.pose, tx, 0, ch)
         }
         tx += charWidth
       }
@@ -143,8 +115,8 @@ abstract class TextureFontRenderer {
     }
 
     RenderState.popAttrib()
-    GlStateManager.popMatrix()
-    GlStateManager.color(1, 1, 1)
+    stack.popPose()
+    RenderSystem.color3f(1, 1, 1)
   }
 
   protected def charWidth: Int
@@ -155,22 +127,25 @@ abstract class TextureFontRenderer {
 
   protected def bindTexture(index: Int): Unit
 
+  protected def selectType(index: Int): RenderType
+
   protected def generateChar(char: Char): Unit
 
-  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
+  protected def drawChar(matrix: Matrix4f, tx: Float, ty: Float, char: Char): Unit
 
-  private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
+  protected def drawChar(builder: IVertexBuilder, matrix: Matrix4f, color: Int, tx: Float, ty: Float, char: Char): Unit
+
+  private def drawQuad(builder: IVertexBuilder, matrix: Matrix4f, color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
     val x0 = x * charWidth
     val x1 = (x + width) * charWidth
     val y0 = y * charHeight
     val y1 = (y + 1) * charHeight
-    GlStateManager.color(
-      ((color >> 16) & 0xFF) / 255f,
-      ((color >> 8) & 0xFF) / 255f,
-      (color & 0xFF) / 255f)
-    GL11.glVertex3d(x0, y1, 0)
-    GL11.glVertex3d(x1, y1, 0)
-    GL11.glVertex3d(x1, y0, 0)
-    GL11.glVertex3d(x0, y0, 0)
+    val r = ((color >> 16) & 0xFF) / 255f
+    val g = ((color >> 8) & 0xFF) / 255f
+    val b = (color & 0xFF) / 255f
+    builder.vertex(matrix, x0, y1, 0).color(r, g, b, 1f).endVertex()
+    builder.vertex(matrix, x1, y1, 0).color(r, g, b, 1f).endVertex()
+    builder.vertex(matrix, x1, y0, 0).color(r, g, b, 1f).endVertex()
+    builder.vertex(matrix, x0, y0, 0).color(r, g, b, 1f).endVertex()
   }
 }

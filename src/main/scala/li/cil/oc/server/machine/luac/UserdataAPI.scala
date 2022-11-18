@@ -12,19 +12,19 @@ import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {
     lua.newTable()
 
     lua.pushScalaFunction(lua => {
-      val nbt = new NBTTagCompound()
+      val nbt = new CompoundNBT()
       val persistable = lua.toJavaObjectRaw(1).asInstanceOf[Persistable]
       lua.pushString(persistable.getClass.getName)
-      persistable.save(nbt)
+      persistable.saveData(nbt)
       val baos = new ByteArrayOutputStream()
       val dos = new DataOutputStream(baos)
       CompressedStreamTools.write(nbt, dos)
@@ -42,7 +42,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         val bais = new ByteArrayInputStream(data)
         val dis = new DataInputStream(bais)
         val nbt = CompressedStreamTools.read(dis)
-        persistable.load(nbt)
+        persistable.loadData(nbt)
         lua.pushJavaObjectRaw(persistable)
         1
       }

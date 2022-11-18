@@ -9,7 +9,7 @@ import li.cil.oc.common.IMC
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraftforge.common.util.Constants.NBT
 
@@ -18,7 +18,7 @@ import scala.collection.mutable
 class PrintData extends ItemData(Constants.BlockName.Print) {
   def this(stack: ItemStack) {
     this()
-    load(stack)
+    loadData(stack)
   }
 
   var label: Option[String] = None
@@ -72,17 +72,17 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
   private final val NoclipOffTag = "noclipOff"
   private final val NoclipOnTag = "noclipOn"
 
-  override def load(nbt: NBTTagCompound): Unit = {
-    if (nbt.hasKey(LabelTag)) label = Option(nbt.getString(LabelTag)) else label = None
-    if (nbt.hasKey(TooltipTag)) tooltip = Option(nbt.getString(TooltipTag)) else tooltip = None
+  override def loadData(nbt: CompoundNBT): Unit = {
+    if (nbt.contains(LabelTag)) label = Option(nbt.getString(LabelTag)) else label = None
+    if (nbt.contains(TooltipTag)) tooltip = Option(nbt.getString(TooltipTag)) else tooltip = None
     isButtonMode = nbt.getBoolean(IsButtonModeTag)
-    redstoneLevel = nbt.getInteger(RedstoneLevelTag) max 0 min 15
+    redstoneLevel = nbt.getInt(RedstoneLevelTag) max 0 min 15
     if (nbt.getBoolean(RedstoneLevelTagCompat)) redstoneLevel = 15
     pressurePlate = nbt.getBoolean(PressurePlateTag)
     stateOff.clear()
-    stateOff ++= nbt.getTagList(StateOffTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    stateOff ++= nbt.getList(StateOffTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
-    stateOn ++= nbt.getTagList(StateOnTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    stateOn ++= nbt.getList(StateOnTag, NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean(IsBeaconBaseTag)
     lightLevel = (nbt.getByte(LightLevelTag) & 0xFF) max 0 min 15
     noclipOff = nbt.getBoolean(NoclipOffTag)
@@ -91,18 +91,18 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
     opacityDirty = true
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    label.foreach(nbt.setString(LabelTag, _))
-    tooltip.foreach(nbt.setString(TooltipTag, _))
-    nbt.setBoolean(IsButtonModeTag, isButtonMode)
-    nbt.setInteger(RedstoneLevelTag, redstoneLevel)
-    nbt.setBoolean(PressurePlateTag, pressurePlate)
+  override def saveData(nbt: CompoundNBT): Unit = {
+    label.foreach(nbt.putString(LabelTag, _))
+    tooltip.foreach(nbt.putString(TooltipTag, _))
+    nbt.putBoolean(IsButtonModeTag, isButtonMode)
+    nbt.putInt(RedstoneLevelTag, redstoneLevel)
+    nbt.putBoolean(PressurePlateTag, pressurePlate)
     nbt.setNewTagList(StateOffTag, stateOff.map(PrintData.shapeToNBT))
     nbt.setNewTagList(StateOnTag, stateOn.map(PrintData.shapeToNBT))
-    nbt.setBoolean(IsBeaconBaseTag, isBeaconBase)
-    nbt.setByte(LightLevelTag, lightLevel.toByte)
-    nbt.setBoolean(NoclipOffTag, noclipOff)
-    nbt.setBoolean(NoclipOnTag, noclipOn)
+    nbt.putBoolean(IsBeaconBaseTag, isBeaconBase)
+    nbt.putByte(LightLevelTag, lightLevel.toByte)
+    nbt.putBoolean(NoclipOffTag, noclipOff)
+    nbt.putBoolean(NoclipOnTag, noclipOn)
   }
 }
 
@@ -179,9 +179,9 @@ object PrintData {
     0
   }
 
-  def nbtToShape(nbt: NBTTagCompound): Shape = {
+  def nbtToShape(nbt: CompoundNBT): Shape = {
     val aabb =
-      if (nbt.hasKey("minX")) {
+      if (nbt.contains("minX")) {
         // Compatibility with shapes created with earlier dev-builds.
         val minX = nbt.getByte("minX") / 16f
         val minY = nbt.getByte("minY") / 16f
@@ -202,13 +202,13 @@ object PrintData {
         new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ)
       }
     val texture = nbt.getString("texture")
-    val tint = if (nbt.hasKey("tint")) Option(nbt.getInteger("tint")) else None
+    val tint = if (nbt.contains("tint")) Option(nbt.getInt("tint")) else None
     new Shape(aabb, texture, tint)
   }
 
-  def shapeToNBT(shape: Shape): NBTTagCompound = {
-    val nbt = new NBTTagCompound()
-    nbt.setByteArray("bounds", Array(
+  def shapeToNBT(shape: Shape): CompoundNBT = {
+    val nbt = new CompoundNBT()
+    nbt.putByteArray("bounds", Array(
       (shape.bounds.minX * 16).round.toByte,
       (shape.bounds.minY * 16).round.toByte,
       (shape.bounds.minZ * 16).round.toByte,
@@ -216,8 +216,8 @@ object PrintData {
       (shape.bounds.maxY * 16).round.toByte,
       (shape.bounds.maxZ * 16).round.toByte
     ))
-    nbt.setString("texture", shape.texture)
-    shape.tint.foreach(nbt.setInteger("tint", _))
+    nbt.putString("texture", shape.texture)
+    shape.tint.foreach(nbt.putInt("tint", _))
     nbt
   }
 

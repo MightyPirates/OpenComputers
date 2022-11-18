@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:transposer" }
+        "": { "model": "opencomputers:block/transposer" }
     }
 }

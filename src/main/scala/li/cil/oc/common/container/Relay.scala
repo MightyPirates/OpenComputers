@@ -1,33 +1,59 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.Constants
+import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.item.ItemStack
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
+import net.minecraft.nbt.CompoundNBT
 
-class Relay(playerInventory: InventoryPlayer, relay: tileentity.Relay) extends Player(playerInventory, relay) {
+class Relay(selfType: ContainerType[_ <: Relay], id: Int, playerInventory: PlayerInventory, relay: IInventory)
+  extends Player(selfType, id, playerInventory, relay) {
+
+  lazy final val WirelessNetworkCardTier1: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
+  lazy final val WirelessNetworkCardTier2: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
+  lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
+
+  override protected def getHostClass = classOf[tileentity.Relay]
+
   addSlotToContainer(151, 15, Slot.CPU)
   addSlotToContainer(151, 34, Slot.Memory)
   addSlotToContainer(151, 53, Slot.HDD)
-  addSlotToContainer(178, 15, Slot.Card)
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 178, 15, getHostClass, Slot.Card, Tier.Any) {
+    override def mayPlace(stack: ItemStack): Boolean = {
+      if (api.Items.get(stack) != WirelessNetworkCardTier1 && api.Items.get(stack) != WirelessNetworkCardTier2 &&
+        api.Items.get(stack) != LinkedCard) return false
+      super.mayPlace(stack)
+    }
+  })
   addPlayerInventorySlots(8, 84)
 
-  def relayDelay = synchronizedData.getInteger("relayDelay")
+  def relayDelay = synchronizedData.getInt("relayDelay")
 
-  def relayAmount = synchronizedData.getInteger("relayAmount")
+  def relayAmount = synchronizedData.getInt("relayAmount")
 
-  def maxQueueSize = synchronizedData.getInteger("maxQueueSize")
+  def maxQueueSize = synchronizedData.getInt("maxQueueSize")
 
-  def packetsPerCycleAvg = synchronizedData.getInteger("packetsPerCycleAvg")
+  def packetsPerCycleAvg = synchronizedData.getInt("packetsPerCycleAvg")
 
-  def queueSize = synchronizedData.getInteger("queueSize")
+  def queueSize = synchronizedData.getInt("queueSize")
 
-  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setInteger("relayDelay", relay.relayDelay)
-    synchronizedData.setInteger("relayAmount", relay.relayAmount)
-    synchronizedData.setInteger("maxQueueSize", relay.maxQueueSize)
-    synchronizedData.setInteger("packetsPerCycleAvg", relay.packetsPerCycleAvg())
-    synchronizedData.setInteger("queueSize", relay.queue.size)
+  override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
+    relay match {
+      case te: tileentity.Relay => {
+        synchronizedData.putInt("relayDelay", te.relayDelay)
+        synchronizedData.putInt("relayAmount", te.relayAmount)
+        synchronizedData.putInt("maxQueueSize", te.maxQueueSize)
+        synchronizedData.putInt("packetsPerCycleAvg", te.packetsPerCycleAvg())
+        synchronizedData.putInt("queueSize", te.queue.size)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

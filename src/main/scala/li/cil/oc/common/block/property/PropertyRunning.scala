@@ -1,7 +1,7 @@
 package li.cil.oc.common.block.property
 
-import net.minecraft.block.properties.PropertyBool
+import net.minecraft.state.BooleanProperty
 
 object PropertyRunning {
-  final val Running = PropertyBool.create("running")
+  final val Running = BooleanProperty.create("running")
 }

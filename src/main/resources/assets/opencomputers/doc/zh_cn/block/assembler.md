@@ -1,6 +1,6 @@
 # 装配器
 
-![更硬，更好，更快，更强。](oredict:oc:assembler)
+![更硬，更好，更快，更强。](oredict:opencomputers:assembler)
 
 装配器是个用来制作精密电子设备的高级工作台，像是[机器人](robot.md)、[无人机](../item/drone.md)和[平板](../item/tablet.md)这样的设备都需要在这里制作。组装电子设备的过程需要消耗大量能源，所以在此推荐使用[电容](capacitor.md)保证其能源供应。
 

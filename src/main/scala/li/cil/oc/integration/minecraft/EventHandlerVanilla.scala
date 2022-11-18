@@ -5,15 +5,15 @@ import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
-import net.minecraft.block.BlockCrops
-import net.minecraft.block.BlockStem
-import net.minecraft.block.properties.PropertyInteger
-import net.minecraft.block.state.IBlockState
-import net.minecraft.init.Blocks
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraft.block.CropsBlock
+import net.minecraft.block.StemBlock
+import net.minecraft.state.IntegerProperty
+import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fluids.IFluidBlock
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object EventHandlerVanilla {
   @SubscribeEvent
@@ -26,24 +26,20 @@ object EventHandlerVanilla {
     }
 
     val noise = new Array[Byte](e.data.length)
-    world.rand.nextBytes(noise)
+    world.random.nextBytes(noise)
     // Map to [-1, 1). The additional /33f is for normalization below.
     noise.map(_ / 128f / 33f).copyToArray(e.data)
 
     val w = e.maxX - e.minX + 1
     val d = e.maxZ - e.minZ + 1
     for (ry <- e.minY to e.maxY; rz <- e.minZ to e.maxZ; rx <- e.minX to e.maxX) {
-      val pos = blockPos.toBlockPos.add(rx, ry, rz)
-      val x = blockPos.x + rx
-      val y = blockPos.y + ry
-      val z = blockPos.z + rz
+      val pos = blockPos.toBlockPos.offset(rx, ry, rz)
       val index = (rx - e.minX) + ((rz - e.minZ) + (ry - e.minY) * d) * w
-      if (world.isBlockLoaded(pos) && !world.isAirBlock(pos)) {
+      if (world.isLoaded(pos) && !world.isEmptyBlock(pos)) {
         val blockState = world.getBlockState(pos)
-        val block = blockState.getBlock
-        if (block != Blocks.AIR && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.toBlockPos))) {
+        if (!blockState.getBlock.isAir(blockState, world, pos) && (includeReplaceable || blockState.getBlock.isInstanceOf[IFluidBlock] || !blockState.getMaterial.isReplaceable)) {
           val distance = math.sqrt(rx * rx + ry * ry + rz * rz).toFloat
-          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + blockState.getBlockHardness(world, pos)
+          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + blockState.getDestroySpeed(world, pos)
         }
         else e.data(index) = 0
       }
@@ -51,13 +47,11 @@ object EventHandlerVanilla {
     }
   }
 
-  private def isFluid(block: Block) = FluidRegistry.lookupFluidForBlock(block) != null
-
-  private def getGrowth(blockState: IBlockState) = {
-    blockState.getPropertyKeys().find(prop => {prop.isInstanceOf[PropertyInteger] && prop.getName() == "age"}) match {
+  private def getGrowth(blockState: BlockState) = {
+    blockState.getProperties().find(prop => {prop.isInstanceOf[IntegerProperty] && prop.getName() == "age"}) match {
       case Some(prop) => {
-        val propAge = prop.asInstanceOf[PropertyInteger]
-        Some((blockState.getValue(propAge).toFloat / propAge.getAllowedValues().max) max 0 min 1)
+        val propAge = prop.asInstanceOf[IntegerProperty]
+        Some((blockState.getValue(propAge).toFloat / propAge.getPossibleValues().max) max 0 min 1)
       }
       case None => None
     }
@@ -66,40 +60,34 @@ object EventHandlerVanilla {
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
     val world = e.host.world
-    val blockState = world.getBlockState(e.pos).getActualState(world, e.pos)
+    val blockState = world.getBlockState(e.pos)
     val block = blockState.getBlock
 
-    e.data += "name" -> Block.REGISTRY.getNameForObject(block)
-    e.data += "hardness" -> Float.box(blockState.getBlockHardness(world, e.pos))
+    e.data += "name" -> block.getRegistryName
+    e.data += "hardness" -> Float.box(blockState.getDestroySpeed(world, e.pos))
     e.data += "harvestLevel" -> Int.box(block.getHarvestLevel(blockState))
-    e.data += "harvestTool" -> block.getHarvestTool(blockState)
-    e.data += "color" -> Int.box(blockState.getMapColor(world, e.pos).colorValue)
+    e.data += "harvestTool" -> Option(block.getHarvestTool(blockState)).map(_.getName).orNull
+    e.data += "color" -> Int.box(blockState.getMapColor(world, e.pos).col)
 
     // backward compatibility
-    e.data += "metadata" -> Int.box({
-      try {
-        block.getMetaFromState(blockState)
-      } catch {
-          case _ :IllegalArgumentException => 0
-      }
-    })
+    e.data += "metadata" -> Int.box(0)
 
     e.data += "properties" -> {
       var props:Map[String, Any] = Map();
-      for (prop <- blockState.getProperties().keySet()) {
+      for (prop <- blockState.getProperties()) {
         props += prop.getName() -> blockState.getValue(prop)
       }
       props
     }
 
     if (Settings.get.insertIdsInConverters) {
-      e.data += "id" -> Int.box(Block.getIdFromBlock(block))
+      e.data += "id" -> Int.box(Block.getId(blockState))
     }
 
     {
-      if (block.isInstanceOf[BlockCrops] || block.isInstanceOf[BlockStem] || block == Blocks.COCOA || block == Blocks.NETHER_WART || block == Blocks.CHORUS_FLOWER) {
+      if (block.isInstanceOf[CropsBlock] || block.isInstanceOf[StemBlock] || block == Blocks.COCOA || block == Blocks.NETHER_WART || block == Blocks.CHORUS_FLOWER) {
         getGrowth(blockState)
-      } else if (block == Blocks.MELON_BLOCK || block == Blocks.PUMPKIN || block == Blocks.CACTUS || block == Blocks.REEDS || block == Blocks.CHORUS_PLANT) {
+      } else if (block == Blocks.MELON || block == Blocks.PUMPKIN || block == Blocks.CACTUS || block == Blocks.SUGAR_CANE || block == Blocks.CHORUS_PLANT) {
         Some(1f)
       } else {
         None

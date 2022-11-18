@@ -3,10 +3,10 @@ package li.cil.oc.util
 import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fluids.Fluid
+import net.minecraft.util.Direction
+import net.minecraftforge.fluids.FluidAttributes
+import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler
-import net.minecraftforge.fluids.capability.IFluidTankProperties
 import net.minecraftforge.items.IItemHandler
 
 import scala.language.implicitConversions
@@ -20,7 +20,7 @@ object ExtendedArguments {
       if (!isDefined(index) || !hasValue(index)) default
       else math.max(0, math.min(64, args.checkInteger(index)))
 
-    def optFluidCount(index: Int, default: Int = Fluid.BUCKET_VOLUME) =
+    def optFluidCount(index: Int, default: Int = FluidAttributes.BUCKET_VOLUME) =
       if (!isDefined(index) || !hasValue(index)) default
       else math.max(0, args.checkInteger(index))
 
@@ -51,53 +51,53 @@ object ExtendedArguments {
 
     def checkTankProperties(handler: IFluidHandler, n: Int) = {
       val tank = args.checkInteger(n) - 1
-      if (tank < 0 || tank >= handler.getTankProperties.length) {
+      if (tank < 0 || tank >= handler.getTanks) {
         throw new IllegalArgumentException("invalid tank index")
       }
-      handler.getTankProperties()(tank)
+      new TankProperties(handler.getTankCapacity(tank), handler.getFluidInTank(tank))
     }
 
-    def optTankProperties(handler: IFluidHandler, n: Int, default: IFluidTankProperties) = {
+    def optTankProperties(handler: IFluidHandler, n: Int, default: TankProperties) = {
       if (!isDefined(n)) default
       else checkTankProperties(handler, n)
     }
 
-    def checkSideAny(index: Int) = checkSide(index, EnumFacing.values: _*)
+    def checkSideAny(index: Int) = checkSide(index, Direction.values: _*)
 
-    def optSideAny(index: Int, default: EnumFacing) =
+    def optSideAny(index: Int, default: Direction) =
       if (!isDefined(index)) default
       else checkSideAny(index)
 
-    def checkSideExcept(index: Int, invalid: EnumFacing*) = checkSide(index, EnumFacing.values.filterNot(invalid.contains): _*)
+    def checkSideExcept(index: Int, invalid: Direction*) = checkSide(index, Direction.values.filterNot(invalid.contains): _*)
 
-    def optSideExcept(index: Int, default: EnumFacing, invalid: EnumFacing*) =
+    def optSideExcept(index: Int, default: Direction, invalid: Direction*) =
       if (!isDefined(index)) default
       else checkSideExcept(index, invalid: _*)
 
-    def checkSideForAction(index: Int) = checkSide(index, EnumFacing.SOUTH, EnumFacing.UP, EnumFacing.DOWN)
+    def checkSideForAction(index: Int) = checkSide(index, Direction.SOUTH, Direction.UP, Direction.DOWN)
 
-    def optSideForAction(index: Int, default: EnumFacing) =
+    def optSideForAction(index: Int, default: Direction) =
       if (!isDefined(index)) default
       else checkSideForAction(index)
 
-    def checkSideForMovement(index: Int) = checkSide(index, EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.UP, EnumFacing.DOWN)
+    def checkSideForMovement(index: Int) = checkSide(index, Direction.SOUTH, Direction.NORTH, Direction.UP, Direction.DOWN)
 
-    def optSideForMovement(index: Int, default: EnumFacing) =
+    def optSideForMovement(index: Int, default: Direction) =
       if (!isDefined(index)) default
       else checkSideForMovement(index)
 
-    def checkSideForFace(index: Int, facing: EnumFacing) = checkSideExcept(index, facing.getOpposite)
+    def checkSideForFace(index: Int, facing: Direction) = checkSideExcept(index, facing.getOpposite)
 
-    def optSideForFace(index: Int, default: EnumFacing) =
+    def optSideForFace(index: Int, default: Direction) =
       if (!isDefined(index)) default
       else checkSideForAction(index)
 
-    private def checkSide(index: Int, allowed: EnumFacing*) = {
+    private def checkSide(index: Int, allowed: Direction*) = {
       val side = args.checkInteger(index)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
       }
-      val direction = EnumFacing.getFront(side)
+      val direction = Direction.from3DDataValue(side)
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
     }
@@ -106,5 +106,8 @@ object ExtendedArguments {
 
     private def hasValue(index: Int) = args.checkAny(index) != null
   }
+
+  @Deprecated
+  class TankProperties(val capacity: Int, val contents: FluidStack)
 
 }

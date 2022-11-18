@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.UUID
+import java.util.function.Consumer
 
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -8,20 +9,26 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.Slot
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.data.NodeData
 import li.cil.oc.server.component.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class Raid extends traits.Environment with traits.Inventory with traits.Rotatable with Analyzable {
+class Raid(selfType: TileEntityType[_ <: Raid]) extends TileEntity(selfType) with traits.Environment with traits.Inventory with traits.Rotatable with Analyzable with INamedContainerProvider {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   var filesystem: Option[FileSystem] = None
@@ -32,19 +39,19 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   var lastAccess = 0L
 
   // For client side rendering.
-  val presence = Array.fill(getSizeInventory)(false)
+  val presence = Array.fill(getContainerSize)(false)
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
 
   // ----------------------------------------------------------------------- //
 
-  override def getSizeInventory = 3
+  override def getContainerSize = 3
 
-  override def getInventoryStackLimit = 1
+  override def getMaxStackSize = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = Option(Driver.driverFor(stack, getClass)) match {
+  override def canPlaceItem(slot: Int, stack: ItemStack) = Option(Driver.driverFor(stack, getClass)) match {
     case Some(driver) => driver.slot(stack) == Slot.HDD
     case _ => false
   }
@@ -57,8 +64,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     }
   }
 
-  override def markDirty() {
-    super.markDirty()
+  override def setChanged() {
+    super.setChanged()
     // Makes the implementation of the comparator output easier.
     items.map(!_.isEmpty).copyToArray(presence)
   }
@@ -70,12 +77,19 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
       filesystem.foreach(fs => {
         fs.fileSystem.close()
         fs.fileSystem.list("/").foreach(fs.fileSystem.delete)
-        fs.save(new NBTTagCompound()) // Flush buffered fs.
+        fs.saveData(new CompoundNBT()) // Flush buffered fs.
         fs.node.remove()
         filesystem = None
       })
     }
   }
+
+  // Uses the loot system, so nope.
+  override def forAllLoot(dst: Consumer[ItemStack]) = ()
+
+  override def dropSlot(slot: Int, count: Int = getMaxStackSize, direction: Option[Direction]) = false
+
+  override def dropAllSlots() = ()
 
   def tryCreateRaid(id: String) {
     if (items.count(!_.isEmpty) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
@@ -84,15 +98,15 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
         val drive = new DriveData(fsStack)
         drive.lockInfo = ""
         drive.isUnmanaged = false
-        drive.save(fsStack)
+        drive.saveData(fsStack)
       })
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
         label, this, Settings.resourceDomain + ":hdd_access", 6).
         asInstanceOf[FileSystem]
-      val nbtToSetAddress = new NBTTagCompound()
-      nbtToSetAddress.setString(NodeData.AddressTag, id)
-      fs.node.load(nbtToSetAddress)
+      val nbtToSetAddress = new CompoundNBT()
+      nbtToSetAddress.putString(NodeData.AddressTag, id)
+      fs.node.loadData(nbtToSetAddress)
       fs.node.setVisibility(Visibility.Network)
       // Ensure we're in a network before connecting the raid fs.
       api.Network.joinNewNetwork(node)
@@ -106,10 +120,10 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
       case Some(driver) => driver.createEnvironment(hdd, this) match {
         case fs: FileSystem =>
           val nbt = driver.dataTag(hdd)
-          fs.load(nbt)
+          fs.loadData(nbt)
           fs.fileSystem.close()
           fs.fileSystem.list("/").foreach(fs.fileSystem.delete)
-          fs.save(nbt)
+          fs.saveData(nbt)
           fs.fileSystem.spaceTotal.toInt
         case _ => 0L // Ignore.
       }
@@ -120,40 +134,45 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Raid(ContainerTypes.RAID, id, playerInventory, this)
+
+  // ----------------------------------------------------------------------- //
+
   private final val FileSystemTag = Settings.namespace + "fs"
   private final val PresenceTag = Settings.namespace + "presence"
   private final val LabelTag = Settings.namespace + "label"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
-    if (nbt.hasKey(FileSystemTag)) {
-      val tag = nbt.getCompoundTag(FileSystemTag)
-      tryCreateRaid(tag.getCompoundTag(NodeData.NodeTag).getString(NodeData.AddressTag))
-      filesystem.foreach(fs => fs.load(tag))
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
+    if (nbt.contains(FileSystemTag)) {
+      val tag = nbt.getCompound(FileSystemTag)
+      tryCreateRaid(tag.getCompound(NodeData.NodeTag).getString(NodeData.AddressTag))
+      filesystem.foreach(fs => fs.loadData(tag))
     }
-    label.load(nbt)
+    label.loadData(nbt)
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound) {
-    super.writeToNBTForServer(nbt)
-    filesystem.foreach(fs => nbt.setNewCompoundTag(FileSystemTag, fs.save))
-    label.save(nbt)
+  override def saveForServer(nbt: CompoundNBT) {
+    super.saveForServer(nbt)
+    filesystem.foreach(fs => nbt.setNewCompoundTag(FileSystemTag, fs.saveData))
+    label.saveData(nbt)
   }
 
-  @SideOnly(Side.CLIENT) override
-  def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
+  @OnlyIn(Dist.CLIENT) override
+  def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
     nbt.getByteArray(PresenceTag).
       map(_ != 0).
       copyToArray(presence)
     label.setLabel(nbt.getString(LabelTag))
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    nbt.setTag(PresenceTag, items.map(!_.isEmpty))
+  override def saveForClient(nbt: CompoundNBT) {
+    super.saveForClient(nbt)
+    nbt.put(PresenceTag, items.map(!_.isEmpty))
     if (label.getLabel != null)
-      nbt.setString(LabelTag, label.getLabel)
+      nbt.putString(LabelTag, label.getLabel)
   }
 
   // ----------------------------------------------------------------------- //
@@ -165,14 +184,14 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
     override def setLabel(value: String) = label = Option(value).map(_.take(16)).orNull
 
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "label")) {
+    override def loadData(nbt: CompoundNBT) {
+      if (nbt.contains(Settings.namespace + "label")) {
         label = nbt.getString(Settings.namespace + "label")
       }
     }
 
-    override def save(nbt: NBTTagCompound) {
-      nbt.setString(Settings.namespace + "label", label)
+    override def saveData(nbt: CompoundNBT) {
+      nbt.putString(Settings.namespace + "label", label)
     }
   }
 

@@ -2,8 +2,7 @@ package li.cil.oc.common.component.traits
 
 import li.cil.oc.common.component
 import li.cil.oc.common.component.GpuTextBuffer
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.village.VillageDoorInfo
+import net.minecraft.nbt.CompoundNBT
 
 import scala.collection.mutable
 
@@ -54,7 +53,7 @@ trait VideoRamRasterizer {
           }
         }
       }
-      case _ => Unit
+      case _ =>
     }
     count
   }
@@ -67,9 +66,9 @@ trait VideoRamRasterizer {
     count
   }
 
-  def loadBuffer(owner: String, id: Int, nbt: NBTTagCompound): Boolean = {
+  def loadBuffer(owner: String, id: Int, nbt: CompoundNBT): Boolean = {
     val src = new li.cil.oc.util.TextBuffer(width = 1, height = 1, li.cil.oc.util.PackedColor.SingleBitFormat)
-    src.load(nbt)
+    src.loadData(nbt)
     addBuffer(component.GpuTextBuffer.wrap(owner, id, src))
   }
 

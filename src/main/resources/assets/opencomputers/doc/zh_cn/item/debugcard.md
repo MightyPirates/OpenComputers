@@ -1,6 +1,6 @@
 # 调试卡
 
-![等等，如果…… 哦。](item:OpenComputers:item@73)
+![等等，如果…… 哦。](item:opencomputers:debugcard)
 
 调试卡本身是一种仅用于在创造模式下对设备进行快速调试的卡片。有鉴于其丰富的功能，它对于地图制作也很有用处。
 

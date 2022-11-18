@@ -1,6 +1,6 @@
 # 平板电脑外壳
 
-![不能折弯。](oredict:oc:tabletCase1)
+![不能折弯。](oredict:opencomputers:tabletCase1)
 
 平板电脑外壳是在[装配机](../block/assembler.md)中组装[平板电脑](tablet.md)的基础。[平板电脑](tablet.md)是种小型可移动[电脑](../general/computer.md)，可加装少量升级，但无法像[机箱](../block/case1.md)那样简单的使用红石卡和网卡和世界交互。
 

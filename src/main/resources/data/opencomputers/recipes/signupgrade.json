@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ibi",
+    "CsC",
+    "ipi"
+  ],
+  "key": {
+    "s": {
+      "tag": "forge:rods/wooden"
+    },
+    "b": {
+      "tag": "forge:dyes/black"
+    },
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "p": {
+      "item": "minecraft:sticky_piston"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:signupgrade"
+  }
+}

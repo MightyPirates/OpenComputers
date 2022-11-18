@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ici",
+    "cLc",
+    "iPi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "c": {
+      "tag": "opencomputers:cable"
+    },
+    "L": {
+      "tag": "opencomputers:lancard"
+    }
+  },
+  "result": {
+    "item": "opencomputers:relay"
+  }
+}

@@ -1,6 +1,6 @@
 # Drohnengehäuse
 
-![Droning on.](oredict:oc:droneCase1)
+![Droning on.](oredict:opencomputers:droneCase1)
 
 Das Drohnengehäuse wird verwendet um [Drohnen](drone.md) in der [Elektronik-Werkbank](../block/assembler.md) zu bauen. Drohnen sind leicht, schnell und sehr mobil, haben jedoch einen eingeschränkten Funktionenszeitraum (d.h. weniger Upgrade- und Komponentenslots sind verfügbar). Im Gegensatz zu [Robotern](../block/robot.md) können sie keine Werkzeuge verwenden und können nur indirekt mit der Welt interagieren.
 

@@ -1,7 +1,10 @@
 package li.cil.oc.client
 
 import java.io.EOFException
+import java.io.InputStream
 
+import com.mojang.blaze3d.systems.IRenderCall
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -23,32 +26,25 @@ import li.cil.oc.integration.jei.ModJEI
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumParticleTypes
+import net.minecraft.particles.IParticleData
+import net.minecraft.util.Direction
+import net.minecraft.util.Util
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.SoundEvent
-import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.vector.Vector3d
+import net.minecraft.util.text.ChatType
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.Optional
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
-import org.lwjgl.input.Keyboard
+import net.minecraftforge.registries.ForgeRegistries
 
 object PacketHandler extends CommonPacketHandler {
-  @SubscribeEvent
-  def onPacket(e: ClientCustomPacketEvent): Unit = {
-    onPacketData(e.getManager.getNetHandler, e.getPacket.payload, Minecraft.getMinecraft.player)
-  }
-
-  protected override def world(player: EntityPlayer, dimension: Int): Option[World] = {
-    val world = player.world
-    if (world.provider.getDimension == dimension) Some(world)
+  protected override def world(player: PlayerEntity, dimension: ResourceLocation): Option[World] = {
+    val world = player.level
+    if (world.dimension.location.equals(dimension)) Some(world)
     else None
   }
 
@@ -115,23 +111,28 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onAdapterState(p: PacketParser): Unit =
-    p.readTileEntity[Adapter]() match {
+    p.readBlockEntity[Adapter]() match {
       case Some(t) =>
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.notifyBlockUpdate(t.getPos)
+        t.world.notifyBlockUpdate(t.getBlockPos)
       case _ => // Invalid packet.
     }
 
   def onAnalyze(p: PacketParser) {
     val address = p.readUTF()
-    if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
-      GuiScreen.setClipboardString(address)
-      p.player.sendMessage(Localization.Analyzer.AddressCopied)
+    if (KeyBindings.isAnalyzeCopyingAddress) {
+      RenderSystem.recordRenderCall(new IRenderCall {
+        override def execute = {
+          val mc = Minecraft.getInstance
+          mc.keyboardHandler.setClipboard(address)
+          mc.gui.handleChat(ChatType.SYSTEM, Localization.Analyzer.AddressCopied, Util.NIL_UUID)
+        }
+      })
     }
   }
 
   def onChargerState(p: PacketParser): Unit =
-    p.readTileEntity[Charger]() match {
+    p.readBlockEntity[Charger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
@@ -144,14 +145,17 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onClipboard(p: PacketParser) {
-    GuiScreen.setClipboardString(p.readUTF())
+    val contents = p.readUTF()
+    RenderSystem.recordRenderCall(new IRenderCall {
+      override def execute = Minecraft.getInstance.keyboardHandler.setClipboard(contents)
+    })
   }
 
   def onColorChange(p: PacketParser): Unit =
-    p.readTileEntity[Colored]() match {
+    p.readBlockEntity[Colored]() match {
       case Some(t) =>
         t.setColor(p.readInt())
-        t.getWorld.notifyBlockUpdate(t.position)
+        t.getLevel.notifyBlockUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -165,7 +169,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onComputerState(p: PacketParser): Unit =
-    p.readTileEntity[Computer]() match {
+    p.readBlockEntity[Computer]() match {
       case Some(t) =>
         t.setRunning(p.readBoolean())
         t.hasErrored = p.readBoolean()
@@ -173,7 +177,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerUserList(p: PacketParser): Unit =
-    p.readTileEntity[Computer]() match {
+    p.readBlockEntity[Computer]() match {
       case Some(t) =>
         val count = p.readInt()
         t.setUsers((0 until count).map(_ => p.readUTF()))
@@ -181,9 +185,9 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onContainerUpdate(p: PacketParser): Unit = {
-    val windowId = p.readUnsignedByte()
-    if (p.player.openContainer != null && p.player.openContainer.windowId == windowId) {
-      p.player.openContainer match {
+    val containerId = p.readInt()
+    if (p.player.containerMenu != null && p.player.containerMenu.containerId == containerId) {
+      p.player.containerMenu match {
         case container: container.Player => container.updateCustomData(p.readNBT())
         case _ => // Invalid packet.
       }
@@ -191,7 +195,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onDisassemblerActiveChange(p: PacketParser): Unit =
-    p.readTileEntity[Disassembler]() match {
+    p.readBlockEntity[Disassembler]() match {
       case Some(t) => t.isActive = p.readBoolean()
       case _ => // Invalid packet.
     }
@@ -199,12 +203,12 @@ object PacketHandler extends CommonPacketHandler {
   def onFileSystemActivity(p: PacketParser): AnyVal = {
     val sound = p.readUTF()
     val data = CompressedStreamTools.read(p)
-    if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
+    if (p.readBoolean()) p.readBlockEntity[net.minecraft.tileentity.TileEntity]() match {
       case Some(t) =>
         MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, t, data))
       case _ => // Invalid packet.
     }
-    else world(p.player, p.readInt()) match {
+    else world(p.player, new ResourceLocation(p.readUTF())) match {
       case Some(world) =>
         val x = p.readDouble()
         val y = p.readDouble()
@@ -216,12 +220,12 @@ object PacketHandler extends CommonPacketHandler {
 
   def onNetworkActivity(p: PacketParser): AnyVal = {
     val data = CompressedStreamTools.read(p)
-    if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
+    if (p.readBoolean()) p.readBlockEntity[net.minecraft.tileentity.TileEntity]() match {
       case Some(t) =>
         MinecraftForge.EVENT_BUS.post(new NetworkActivityEvent.Client(t, data))
       case _ => // Invalid packet.
     }
-    else world(p.player, p.readInt()) match {
+    else world(p.player, new ResourceLocation(p.readUTF())) match {
       case Some(world) =>
         val x = p.readDouble()
         val y = p.readDouble()
@@ -232,13 +236,13 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onFloppyChange(p: PacketParser): Unit =
-    p.readTileEntity[DiskDrive]() match {
-      case Some(t) => t.setInventorySlotContents(0, p.readItemStack())
+    p.readBlockEntity[DiskDrive]() match {
+      case Some(t) => t.setItem(0, p.readItemStack())
       case _ => // Invalid packet.
     }
 
   def onHologramClear(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         for (i <- t.volume.indices) t.volume(i) = 0
         t.needsRendering = true
@@ -246,7 +250,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onHologramColor(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         val index = p.readInt()
         val value = p.readInt()
@@ -256,20 +260,20 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onHologramPowerChange(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) => t.hasPower = p.readBoolean()
       case _ => // Invalid packet.
     }
 
   def onHologramScale(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         t.scale = p.readDouble()
       case _ => // Invalid packet.
     }
 
   def onHologramArea(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         val fromX = p.readByte(): Int
         val untilX = p.readByte(): Int
@@ -286,7 +290,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onHologramValues(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         val count = p.readInt()
         for (i <- 0 until count) {
@@ -301,17 +305,17 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onHologramPositionOffsetY(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         val x = p.readDouble()
         val y = p.readDouble()
         val z = p.readDouble()
-        t.translation = new Vec3d(x, y, z)
+        t.translation = new Vector3d(x, y, z)
       case _ => // Invalid packet.
     }
 
   def onHologramRotation(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         t.rotationAngle = p.readFloat()
         t.rotationX = p.readFloat()
@@ -321,7 +325,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onHologramRotationSpeed(p: PacketParser): Unit =
-    p.readTileEntity[Hologram]() match {
+    p.readBlockEntity[Hologram]() match {
       case Some(t) =>
         t.rotationSpeed = p.readFloat()
         t.rotationSpeedX = p.readFloat()
@@ -336,13 +340,8 @@ object PacketHandler extends CommonPacketHandler {
       Loot.disksForClient += stack
     }
     if(Mods.JustEnoughItems.isModAvailable) {
-      addDiskToJEI(stack)
+      ModJEI.addDiskAtRuntime(stack)
     }
-  }
-
-  @Optional.Method(modid = Mods.IDs.JustEnoughItems)
-  private def addDiskToJEI(stack: ItemStack): Unit = {
-    ModJEI.addDiskAtRuntime(stack)
   }
 
   def onCyclingDisk(p: PacketParser): Any = {
@@ -353,12 +352,12 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onNanomachinesConfiguration(p: PacketParser): Unit = {
-    p.readEntity[EntityPlayer]() match {
+    p.readEntity[PlayerEntity]() match {
       case Some(player) =>
         val hasController = p.readBoolean()
         if (hasController) {
           api.Nanomachines.installController(player) match {
-            case controller: ControllerImpl => controller.load(p.readNBT())
+            case controller: ControllerImpl => controller.loadData(p.readNBT())
             case _ => // Wat.
           }
         }
@@ -370,7 +369,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onNanomachinesInputs(p: PacketParser): Unit = {
-    p.readEntity[EntityPlayer]() match {
+    p.readEntity[PlayerEntity]() match {
       case Some(player) => api.Nanomachines.getController(player) match {
         case controller: ControllerImpl =>
           val inputs = new Array[Byte](p.readInt())
@@ -388,7 +387,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onNanomachinesPower(p: PacketParser): Unit = {
-    p.readEntity[EntityPlayer]() match {
+    p.readEntity[PlayerEntity]() match {
       case Some(player) => api.Nanomachines.getController(player) match {
         case controller: ControllerImpl => controller.storedEnergy = p.readDouble()
         case _ => // Wat.
@@ -398,45 +397,47 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onNetSplitterState(p: PacketParser): Unit =
-    p.readTileEntity[NetSplitter]() match {
+    p.readBlockEntity[NetSplitter]() match {
       case Some(t) =>
         t.isInverted = p.readBoolean()
         t.openSides = t.uncompressSides(p.readByte())
-        t.world.notifyBlockUpdate(t.getPos)
+        t.world.notifyBlockUpdate(t.getBlockPos)
       case _ => // Invalid packet.
     }
 
   def onParticleEffect(p: PacketParser): Unit = {
-    val dimension = p.readInt()
-    world(p.player, dimension) match {
+    world(p.player, new ResourceLocation(p.readUTF())) match {
       case Some(world) =>
         val x = p.readInt()
         val y = p.readInt()
         val z = p.readInt()
         val velocity = p.readDouble()
         val direction = p.readDirection()
-        val particleType = EnumParticleTypes.getParticleFromId(p.readInt())
-        val count = p.readUnsignedByte()
+        val particleType = p.readRegistryEntry(ForgeRegistries.PARTICLE_TYPES)
+        if (particleType.isInstanceOf[IParticleData]) {
+          val particle = particleType.asInstanceOf[IParticleData]
+          val count = p.readUnsignedByte()
 
-        for (i <- 0 until count) {
-          def rv(f: EnumFacing => Int) = direction match {
-            case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
-            case _ => world.rand.nextFloat * 2.0 - 1
-          }
-
-          val vx = rv(_.getFrontOffsetX)
-          val vy = rv(_.getFrontOffsetY)
-          val vz = rv(_.getFrontOffsetZ)
-          if (vx * vx + vy * vy + vz * vz < 1) {
-            def rp(x: Int, v: Double, f: EnumFacing => Int) = direction match {
-              case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
-              case _ => x + 0.5 + v * velocity
+          for (i <- 0 until count) {
+            def rv(f: Direction => Int) = direction match {
+              case Some(d) => world.random.nextFloat - 0.5 + f(d) * 0.5
+              case _ => world.random.nextFloat * 2.0 - 1
             }
 
-            val px = rp(x, vx, _.getFrontOffsetX)
-            val py = rp(y, vy, _.getFrontOffsetY)
-            val pz = rp(z, vz, _.getFrontOffsetZ)
-            world.spawnParticle(particleType, px, py, pz, vx, vy + velocity * 0.25, vz)
+            val vx = rv(_.getStepX)
+            val vy = rv(_.getStepY)
+            val vz = rv(_.getStepZ)
+            if (vx * vx + vy * vy + vz * vz < 1) {
+              def rp(x: Int, v: Double, f: Direction => Int) = direction match {
+                case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
+                case _ => x + 0.5 + v * velocity
+              }
+
+              val px = rp(x, vx, _.getStepX)
+              val py = rp(y, vy, _.getStepY)
+              val pz = rp(z, vz, _.getStepZ)
+              world.addParticle(particle, px, py, pz, vx, vy + velocity * 0.25, vz)
+            }
           }
         }
       case _ => // Invalid packet.
@@ -447,7 +448,7 @@ object PacketHandler extends CommonPacketHandler {
     if (!PetRenderer.isInitialized) {
       PetRenderer.isInitialized = true
       if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.player.getName
+        PetRenderer.hidden += Minecraft.getInstance.player.getName.getString
       }
       PacketSender.sendPetVisibility()
     }
@@ -465,7 +466,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onPowerState(p: PacketParser): Unit =
-    p.readTileEntity[PowerInformation]() match {
+    p.readBlockEntity[PowerInformation]() match {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
         t.globalBufferSize = p.readDouble()
@@ -473,7 +474,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onPrinterState(p: PacketParser): Unit =
-    p.readTileEntity[Printer]() match {
+    p.readBlockEntity[Printer]() match {
       case Some(t) =>
         if (p.readBoolean()) t.requiredEnergy = 9001
         else t.requiredEnergy = 0
@@ -481,58 +482,58 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRackInventory(p: PacketParser): Unit =
-    p.readTileEntity[Rack]() match {
+    p.readBlockEntity[Rack]() match {
       case Some(t) =>
         val count = p.readInt()
         for (_ <- 0 until count) {
           val slot = p.readInt()
-          t.setInventorySlotContents(slot, p.readItemStack())
+          t.setItem(slot, p.readItemStack())
         }
       case _ => // Invalid packet.
     }
 
   def onRackMountableData(p: PacketParser): Unit =
-    p.readTileEntity[Rack]() match {
+    p.readBlockEntity[Rack]() match {
       case Some(t) =>
         val mountableIndex = p.readInt()
         t.lastData(mountableIndex) = p.readNBT()
-        t.getWorld.notifyBlockUpdate(t.getPos)
+        t.getLevel.notifyBlockUpdate(t.getBlockPos)
       case _ => // Invalid packet.
     }
 
   def onRaidStateChange(p: PacketParser): Unit =
-    p.readTileEntity[Raid]() match {
+    p.readBlockEntity[Raid]() match {
       case Some(t) =>
-        for (slot <- 0 until t.getSizeInventory) {
+        for (slot <- 0 until t.getContainerSize) {
           t.presence(slot) = p.readBoolean()
         }
       case _ => // Invalid packet.
     }
 
   def onRedstoneState(p: PacketParser): Unit =
-    p.readTileEntity[RedstoneAware]() match {
+    p.readBlockEntity[RedstoneAware]() match {
       case Some(t) =>
         t.setOutputEnabled(p.readBoolean())
-        for (d <- EnumFacing.values) {
+        for (d <- Direction.values) {
           t.setOutput(d, p.readByte())
         }
       case _ => // Invalid packet.
     }
 
   def onRobotAnimateSwing(p: PacketParser): Unit =
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) => t.robot.setAnimateSwing(p.readInt())
       case _ => // Invalid packet.
     }
 
   def onRobotAnimateTurn(p: PacketParser): Unit =
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) => t.robot.setAnimateTurn(p.readByte(), p.readInt())
       case _ => // Invalid packet.
     }
 
   def onRobotAssemblingState(p: PacketParser): Unit =
-    p.readTileEntity[Assembler]() match {
+    p.readBlockEntity[Assembler]() match {
       case Some(t) =>
         if (p.readBoolean()) t.requiredEnergy = 9001
         else t.requiredEnergy = 0
@@ -540,26 +541,26 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotInventoryChange(p: PacketParser): Unit =
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) =>
         val robot = t.robot
         val slot = p.readInt()
         val stack = p.readItemStack()
-        if (slot >= robot.getSizeInventory - robot.componentCount) {
-          robot.info.components(slot - (robot.getSizeInventory - robot.componentCount)) = stack
+        if (slot >= robot.getContainerSize - robot.componentCount) {
+          robot.info.components(slot - (robot.getContainerSize - robot.componentCount)) = stack
         }
-        else t.robot.setInventorySlotContents(slot, stack)
+        else t.robot.setItem(slot, stack)
       case _ => // Invalid packet.
     }
 
   def onRobotLightChange(p: PacketParser): Unit =
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) => t.robot.info.lightColor = p.readInt()
       case _ => // Invalid packet.
     }
 
   def onRobotNameChange(p: PacketParser) = {
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) => {
         val len = p.readShort()
         val name = new Array[Char](len)
@@ -573,28 +574,28 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onRobotMove(p: PacketParser): AnyVal = {
-    val dimension = p.readInt()
+    val dimension = new ResourceLocation(p.readUTF())
     val x = p.readInt()
     val y = p.readInt()
     val z = p.readInt()
     val direction = p.readDirection()
-    (p.getTileEntity[RobotProxy](dimension, x, y, z), direction) match {
+    (p.getBlockEntity[RobotProxy](dimension, x, y, z), direction) match {
       case (Some(t), Some(d)) => t.robot.move(d)
       case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + d.getFrontOffsetX, y + d.getFrontOffsetY, z + d.getFrontOffsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.getStepX, y + d.getStepY, z + d.getStepZ)
       case _ => // Invalid packet.
     }
   }
 
   def onRobotSelectedSlotChange(p: PacketParser): Unit =
-    p.readTileEntity[RobotProxy]() match {
+    p.readBlockEntity[RobotProxy]() match {
       case Some(t) => t.robot.selectedSlot = p.readInt()
       case _ => // Invalid packet.
     }
 
   def onRotatableState(p: PacketParser): Unit =
-    p.readTileEntity[Rotatable]() match {
+    p.readBlockEntity[Rotatable]() match {
       case Some(t) =>
         t.pitch = p.readDirection().get
         t.yaw = p.readDirection().get
@@ -602,41 +603,41 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onSwitchActivity(p: PacketParser): Unit =
-    p.readTileEntity[Relay]() match {
+    p.readBlockEntity[Relay]() match {
       case Some(t) => t.lastMessage = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
 
   def onTextBufferPowerChange(p: PacketParser): Unit =
-    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
+    ComponentTracker.get(p.player.level, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
   def onTextBufferInit(p: PacketParser) {
-    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
+    ComponentTracker.get(p.player.level, p.readUTF()) match {
       case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
         val nbt = p.readNBT()
-        if (nbt.hasKey("maxWidth")) {
-          val maxWidth = nbt.getInteger("maxWidth")
-          val maxHeight = nbt.getInteger("maxHeight")
+        if (nbt.contains("maxWidth")) {
+          val maxWidth = nbt.getInt("maxWidth")
+          val maxHeight = nbt.getInt("maxHeight")
           buffer.setMaximumResolution(maxWidth, maxHeight)
         }
-        buffer.data.load(nbt)
-        if (nbt.hasKey("viewportWidth")) {
-          val viewportWidth = nbt.getInteger("viewportWidth")
-          val viewportHeight = nbt.getInteger("viewportHeight")
+        buffer.data.loadData(nbt)
+        if (nbt.contains("viewportWidth")) {
+          val viewportWidth = nbt.getInt("viewportWidth")
+          val viewportHeight = nbt.getInt("viewportHeight")
           buffer.setViewport(viewportWidth, viewportHeight)
         }
-        buffer.proxy.markDirty()
+        buffer.proxy.setChanged()
         buffer.markInitialized()
       case _ => // Invalid packet.
     }
   }
 
   def onTextBufferMulti(p: PacketParser): Unit =
-    if (p.player != null) ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
+    if (p.player != null) ComponentTracker.get(p.player.level, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {
@@ -815,14 +816,13 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onScreenTouchMode(p: PacketParser): Unit =
-    p.readTileEntity[Screen]() match {
+    p.readBlockEntity[Screen]() match {
       case Some(t) => t.invertTouchMode = p.readBoolean()
       case _ => // Invalid packet.
     }
 
   def onSoundEffect(p: PacketParser) {
-    val dimension = p.readInt()
-    world(p.player, dimension) match {
+    world(p.player, new ResourceLocation(p.readUTF())) match {
       case Some(world) =>
         val x = p.readDouble()
         val y = p.readDouble()
@@ -836,8 +836,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onSound(p: PacketParser) {
-    val dimension = p.readInt()
-    if (world(p.player, dimension).isDefined) {
+    if (world(p.player, new ResourceLocation(p.readUTF())).isDefined) {
       val x = p.readInt()
       val y = p.readInt()
       val z = p.readInt()
@@ -848,8 +847,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onSoundPattern(p: PacketParser) {
-    val dimension = p.readInt()
-    if (world(p.player, dimension).isDefined) {
+    if (world(p.player, new ResourceLocation(p.readUTF())).isDefined) {
       val x = p.readInt()
       val y = p.readInt()
       val z = p.readInt()
@@ -859,14 +857,16 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTransposerActivity(p: PacketParser): Unit =
-    p.readTileEntity[Transposer]() match {
+    p.readBlockEntity[Transposer]() match {
       case Some(transposer) => transposer.lastOperation = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
 
   def onWaypointLabel(p: PacketParser): Unit =
-    p.readTileEntity[Waypoint]() match {
+    p.readBlockEntity[Waypoint]() match {
       case Some(waypoint) => waypoint.label = p.readUTF()
       case _ => // Invalid packet.
     }
+
+  protected override def createParser(stream: InputStream, player: PlayerEntity) = new PacketParser(stream, Minecraft.getInstance.player)
 }

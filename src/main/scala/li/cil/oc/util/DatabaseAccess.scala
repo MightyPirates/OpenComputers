@@ -4,11 +4,11 @@ import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.component.UpgradeDatabase
 
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters
 
 object DatabaseAccess {
   def databases(node: Node): Iterable[UpgradeDatabase] =
-    JavaConversions.iterableAsScalaIterable(node.network.nodes).collect {
+    JavaConverters.iterableAsScalaIterable(node.network.nodes).collect {
       case component: Component => component.host match {
         case db: UpgradeDatabase => db
         case _ => null

@@ -1,6 +1,6 @@
 # Mikrocontroller-Gehäuse
 
-![So niedlich!](oredict:oc:microcontrollerCase1)
+![So niedlich!](oredict:opencomputers:microcontrollerCase1)
 
 Das Mikrocontroller-Gehäuse ist das grundlegende Teil zum Bau von [Mikrocontrollern](../block/microcontroller.md) in der [Elektronik-Werkbank](../block/assembler.md). Mikrocontroller sind sehr primitive [Computer](../general/computer.md). Sie können nur eine bestimmte Anzahl an Komponenten enthalten und sind für sehr spezifische Anwendungsfälle gedacht, wie das Reagieren auf Redstonesignale, oder das Verarbeiten von Netzwerknachrichten.
 

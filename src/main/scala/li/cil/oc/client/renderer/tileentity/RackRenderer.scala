@@ -1,55 +1,58 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api.event.RackMountableRenderEvent
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.util.EnumFacing
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
+import net.minecraft.util.Direction
+import net.minecraft.util.math.vector.Vector3f
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GL11
 
-object RackRenderer extends TileEntitySpecialRenderer[Rack] {
+object RackRenderer extends Function[TileEntityRendererDispatcher, RackRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new RackRenderer(dispatch)
+}
+
+class RackRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[Rack](dispatch) {
   private final val vOffset = 2 / 16f
   private final val vSize = 3 / 16f
 
-  override def render(rack: Rack, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, alpha: Float): Unit = {
+  override def render(rack: Rack, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
+    RenderSystem.color4f(1, 1, 1, 1)
 
-    GlStateManager.pushMatrix()
+    stack.pushPose()
 
-    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+    stack.translate(0.5, 0.5, 0.5)
 
     rack.yaw match {
-      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
-      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
-      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
+      case Direction.WEST => stack.mulPose(Vector3f.YP.rotationDegrees(-90))
+      case Direction.NORTH => stack.mulPose(Vector3f.YP.rotationDegrees(180))
+      case Direction.EAST => stack.mulPose(Vector3f.YP.rotationDegrees(90))
       case _ => // No yaw.
     }
 
-    GlStateManager.translate(-0.5, 0.5, 0.505 - 0.5f / 16f)
-    GlStateManager.scale(1, -1, 1)
+    stack.translate(-0.5, 0.5, 0.505 - 0.5f / 16f)
+    stack.scale(1, -1, 1)
 
     // Note: we manually sync the rack inventory for this to work.
-    for (i <- 0 until rack.getSizeInventory) {
-      if (!rack.getStackInSlot(i).isEmpty) {
-        GlStateManager.pushMatrix()
-        RenderState.pushAttrib()
-
+    for (i <- 0 until rack.getContainerSize) {
+      if (!rack.getItem(i).isEmpty) {
         val v0 = vOffset + i * vSize
         val v1 = vOffset + (i + 1) * vSize
-        val event = new RackMountableRenderEvent.TileEntity(rack, i, rack.lastData(i), v0, v1)
+        val event = new RackMountableRenderEvent.TileEntity(rack, i, rack.lastData(i), stack, buffer, light, overlay, v0, v1)
         MinecraftForge.EVENT_BUS.post(event)
-
-        RenderState.popAttrib()
-        GlStateManager.popMatrix()
       }
     }
 
-    GlStateManager.popMatrix()
-    RenderState.popAttrib()
+    stack.popPose()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }

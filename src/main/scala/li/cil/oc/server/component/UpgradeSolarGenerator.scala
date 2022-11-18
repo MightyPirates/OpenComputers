@@ -13,9 +13,11 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.BlockPosition
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
+import net.minecraft.world.World
+import net.minecraft.world.biome.Biome.RainType
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeSolarGenerator(val host: EnvironmentHost) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -53,10 +55,10 @@ class UpgradeSolarGenerator(val host: EnvironmentHost) extends AbstractManagedEn
   }
 
   private def isSunVisible = {
-    val blockPos = BlockPosition(host).offset(EnumFacing.UP)
-    host.world.isDaytime &&
-      (!host.world.provider.isNether) &&
-      host.world.canBlockSeeSky(blockPos.toBlockPos) &&
-      (!host.world.getBiome(blockPos.toBlockPos).canRain || (!host.world.isRaining && !host.world.isThundering))
+    val blockPos = BlockPosition(host).offset(Direction.UP)
+    host.world.isDay &&
+      (host.world.dimension != World.NETHER) &&
+      host.world.canSeeSkyFromBelowWater(blockPos.toBlockPos) &&
+      (host.world.getBiome(blockPos.toBlockPos).getPrecipitation == RainType.NONE || (!host.world.isRaining && !host.world.isThundering))
   }
 }

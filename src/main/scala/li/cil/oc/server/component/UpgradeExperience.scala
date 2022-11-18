@@ -15,14 +15,14 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
-import li.cil.oc.util.UpgradeExperience
+import li.cil.oc.util.{UpgradeExperience => ExperienceUtil}
 import net.minecraft.enchantment.EnchantmentHelper
-import net.minecraft.entity.item.EntityXPOrb
-import net.minecraft.init.Items
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.entity.item.ExperienceOrbEntity
+import net.minecraft.item.Items
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends AbstractManagedEnvironment with DeviceInfo {
   final val MaxLevel = 30
@@ -46,7 +46,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
 
   var level = 0
 
-  def xpForNextLevel: Double = UpgradeExperience.xpForLevel(level + 1)
+  def xpForNextLevel: Double = ExperienceUtil.xpForLevel(level + 1)
 
   def addExperience(value: Double) {
     if (level < MaxLevel) {
@@ -55,10 +55,10 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
         updateXpInfo()
       }
       val world = this.host.world
-      val pos = this.host.player.getPosition
-      val orb = new EntityXPOrb(world, pos.getX.toDouble + 0.5D, pos.getY.toDouble + 0.5D, pos.getZ.toDouble + 0.5D, value.toInt)
-      this.host.player.xpCooldown = 0
-      orb.onCollideWithPlayer(this.host.player)
+      val pos = this.host.player.blockPosition
+      val orb = new ExperienceOrbEntity(world, pos.getX.toDouble + 0.5D, pos.getY.toDouble + 0.5D, pos.getZ.toDouble + 0.5D, value.toInt)
+      this.host.player.takeXpDelay = 0
+      orb.playerTouch(this.host.player)
     }
   }
 
@@ -66,7 +66,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
     val oldLevel = level
-    level = UpgradeExperience.calculateLevelFromExperience(experience)
+    level = ExperienceUtil.calculateLevelFromExperience(experience)
     if (node != null) {
       if (level != oldLevel) {
         updateClient()
@@ -77,34 +77,34 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
 
   @Callback(direct = true, doc = """function():number -- The current level of experience stored in this experience upgrade.""")
   def level(context: Context, args: Arguments): Array[AnyRef] =
-    result(UpgradeExperience.calculateExperienceLevel(level, experience))
+    result(ExperienceUtil.calculateExperienceLevel(level, experience))
 
   @Callback(doc = """function():boolean -- Tries to consume an enchanted item to add experience to the upgrade.""")
   def consume(context: Context, args: Arguments): Array[AnyRef] = {
     if (level >= MaxLevel) {
-      return result(Unit, "max level")
+      return result((), "max level")
     }
-    val stack = host.mainInventory.getStackInSlot(host.selectedSlot)
+    val stack = host.mainInventory.getItem(host.selectedSlot)
     if (stack.isEmpty) {
-      return result(Unit, "no item")
+      return result((), "no item")
     }
     var xp = 0
     if (stack.getItem == Items.EXPERIENCE_BOTTLE) {
-      xp += 3 + host.world.rand.nextInt(5) + host.world.rand.nextInt(5)
+      xp += 3 + host.world.random.nextInt(5) + host.world.random.nextInt(5)
     }
     else {
       for ((enchantment, level) <- EnchantmentHelper.getEnchantments(stack)) {
         if (enchantment != null) {
-          xp += enchantment.getMinEnchantability(level)
+          xp += enchantment.getMinCost(level)
         }
       }
       if (xp <= 0) {
-        return result(Unit, "could not extract experience from item")
+        return result((), "could not extract experience from item")
       }
     }
-    val consumed = host.mainInventory().decrStackSize(host.selectedSlot, 1)
+    val consumed = host.mainInventory().removeItem(host.selectedSlot, 1)
     if (consumed.isEmpty) {
-      return result(Unit, "could not consume item")
+      return result((), "could not consume item")
     }
     addExperience(xp * Settings.get.constantXpGrowth)
     result(true)
@@ -115,14 +115,14 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends A
     case _ =>
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    UpgradeExperience.setExperience(nbt, experience)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    ExperienceUtil.setExperience(nbt, experience)
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    experience = UpgradeExperience.getExperience(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    experience = ExperienceUtil.getExperience(nbt)
     updateXpInfo()
   }
 }

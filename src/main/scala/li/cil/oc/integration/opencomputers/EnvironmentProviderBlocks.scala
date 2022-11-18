@@ -10,7 +10,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.server.machine.Machine
 import net.minecraft.block.Block
-import net.minecraft.item.ItemBlock
+import net.minecraft.item.BlockItem
 import net.minecraft.item.ItemStack
 
 /**
@@ -21,7 +21,7 @@ import net.minecraft.item.ItemStack
  */
 object EnvironmentProviderBlocks extends EnvironmentProvider {
   override def getEnvironment(stack: ItemStack): Class[_] = stack.getItem match {
-    case block: ItemBlock if block.getBlock != null =>
+    case block: BlockItem if block.getBlock != null =>
       if (isOneOf(block.getBlock, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
       else if (isOneOf(block.getBlock, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
       else if (isOneOf(block.getBlock, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]

@@ -1,6 +1,6 @@
 # Redstonekarte
 
-![Sieht rot.](oredict:oc:redstoneCard1)
+![Sieht rot.](oredict:opencomputers:redstoneCard1)
 
 Die Redstonekarte ermöglicht [Computern](../general/computer.md) das Lesen und Senden von analogen Redstonesignalen zu benachbarten Blöcken. Wenn sich ein eingehendes Signal ändert wird dies dem Computer gemeldet.
 

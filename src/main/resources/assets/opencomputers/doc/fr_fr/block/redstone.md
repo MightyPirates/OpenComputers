@@ -1,6 +1,6 @@
 # Redstone E/S
 
-![Salut Red.](oredict:oc:redstone)
+![Salut Red.](oredict:opencomputers:redstone)
 
 Le bloc d'E/S de redstone peut être utilisé pour lire et émettre des signaux de redstone à distance. Il se comporte comme un hybride des [cartes de redstone](../item/redstoneCard1.md) de niveau 1 et 2 : il peut aussi bien lire et émettre des signaux analogiques que des signaux empaquetés (bundle), mais il ne peut pas lire ou émettre de signaux redstone sans-fil.
 

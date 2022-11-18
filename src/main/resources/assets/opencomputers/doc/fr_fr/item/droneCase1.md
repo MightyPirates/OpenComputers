@@ -1,6 +1,6 @@
 # Boitier de drone
 
-![Le vol du bourdon.](oredict:oc:droneCase1)
+![Le vol du bourdon.](oredict:opencomputers:droneCase1)
 
 Le boitier de drone est utilisé pour construire des [drones](drone.md) dans l'[assembler](../block/assembler.md). Les [drones](drone.md) sont des machines légères, rapides et très mobiles avec des fonctionnalités réduites (moins d'améliorations et d'emplacements de composant disponibles). Contrairement aux [robots](../block/robot.md), ils ne peuvent pas utiliser d'outils, et peuvent seulement interagir avec le monde de manière relativement limitée.
 

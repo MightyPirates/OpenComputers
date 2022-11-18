@@ -1,61 +1,82 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.api.Driver
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
-import net.minecraft.inventory.Slot
+import net.minecraft.inventory.container.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
-abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) extends Slot(inventory, index, x, y) {
-  def container: Player
+abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, host: Class[_ <: EnvironmentHost]) extends Slot(inventory, index, x, y) {
+  def agentContainer: Player
 
   def slot: String
 
   def tier: Int
 
+  @OnlyIn(Dist.CLIENT)
   def tierIcon: ResourceLocation
 
   var changeListener: Option[Slot => Unit] = None
 
   // ----------------------------------------------------------------------- //
 
-  def hasBackground = backgroundLocation != null
+  @OnlyIn(Dist.CLIENT)
+  def hasBackground = getBackgroundLocation != null
 
-  @SideOnly(Side.CLIENT)
-  override def isEnabled = slot != common.Slot.None && tier != common.Tier.None && super.isEnabled
+  @OnlyIn(Dist.CLIENT)
+  def getBackgroundLocation: ResourceLocation = null
 
-  override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
+  @OnlyIn(Dist.CLIENT)
+  override def isActive = slot != common.Slot.None && tier != common.Tier.None && super.isActive
 
-  override def onTake(player: EntityPlayer, stack: ItemStack) = {
-    for (slot <- container.inventorySlots) slot match {
+  override def mayPlace(stack: ItemStack): Boolean = {
+    if (!inventory.canPlaceItem(getSlotIndex, stack)) return false
+    if (slot == common.Slot.None || tier == common.Tier.None) return false
+    if (slot == common.Slot.Any && tier == common.Tier.Any) return true
+    // Special case: tool slots fit everything.
+    if (slot == common.Slot.Tool) return true
+    Option(Driver.driverFor(stack, host)) match {
+      case Some(driver) => {
+        val slotOk = (slot == common.Slot.Any || driver.slot(stack) == slot)
+        val tierOk = (tier == common.Tier.Any || driver.tier(stack) <= tier)
+        slotOk && tierOk
+      }
+      case _ => false
+    }
+  }
+
+  override def onTake(player: PlayerEntity, stack: ItemStack) = {
+    for (slot <- agentContainer.slots) slot match {
       case dynamic: ComponentSlot => dynamic.clearIfInvalid(player)
       case _ =>
     }
     super.onTake(player, stack)
   }
 
-  override def putStack(stack: ItemStack): Unit = {
-    super.putStack(stack)
+  override def set(stack: ItemStack): Unit = {
+    super.set(stack)
     inventory match {
       case playerAware: common.tileentity.traits.PlayerInputAware =>
-        playerAware.onSetInventorySlotContents(container.playerInventory.player, getSlotIndex, stack)
+        playerAware.onSetInventorySlotContents(agentContainer.playerInventory.player, getSlotIndex, stack)
       case _ =>
     }
   }
 
-  override def onSlotChanged() {
-    super.onSlotChanged()
-    for (slot <- container.inventorySlots) slot match {
-      case dynamic: ComponentSlot => dynamic.clearIfInvalid(container.playerInventory.player)
+  override def setChanged() {
+    super.setChanged()
+    for (slot <- agentContainer.slots) slot match {
+      case dynamic: ComponentSlot => dynamic.clearIfInvalid(agentContainer.playerInventory.player)
       case _ =>
     }
     changeListener.foreach(_(this))
   }
 
-  protected def clearIfInvalid(player: EntityPlayer) {}
+  protected def clearIfInvalid(player: PlayerEntity) {}
 }

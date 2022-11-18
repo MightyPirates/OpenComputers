@@ -1,6 +1,6 @@
 # Relay
 
-![Baut Brücken.](oredict:oc:relay)
+![Baut Brücken.](oredict:opencomputers:relay)
 
 Das Relay kann verwendet werden um verschiedene Subnetzwerken das Senden von Nachrichten zueinander zu ermöglichen, ohne Komponenten Computern in anderen Netzen zugänglich zu machen. Grundsätzlich ist es eine gute Idee Komponenten lokal zu behalten, damit [Computer](../general/computer.md) nicht die falschen Komponenten ansprechen oder Komponenten-Overflows zu verursachen (welche dazu führen, dass Computer crashen und nicht hochfahren.)
 

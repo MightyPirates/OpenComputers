@@ -1,6 +1,6 @@
 # 悬浮靴
 
-![一脚油门。](oredict:oc:hoverBoots)
+![一脚油门。](oredict:opencomputers:hoverBoots)
 
 如果不想去编程[无人机](drone.md)，有个变通的办法：垫脚石！或者说那是美化的内联冰鞋的名字。总之就是这个意思。
 

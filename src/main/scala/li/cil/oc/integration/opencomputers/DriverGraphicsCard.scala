@@ -8,7 +8,6 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -19,7 +18,7 @@ object DriverGraphicsCard extends Item with HostAware {
     api.Items.get(Constants.ItemName.GraphicsCardTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else tier(stack) match {
       case Tier.One => new component.GraphicsCard(Tier.One)
       case Tier.Two => new component.GraphicsCard(Tier.Two)
@@ -30,8 +29,8 @@ object DriverGraphicsCard extends Item with HostAware {
   override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(gpu: common.item.GraphicsCard) => gpu.gpuTier
+    stack.getItem match {
+      case gpu: common.item.GraphicsCard => gpu.gpuTier
       case _ => Tier.One
     }
 

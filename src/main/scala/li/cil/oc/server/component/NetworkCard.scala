@@ -23,8 +23,8 @@ import li.cil.oc.common.Tier
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToJava._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment with RackBusConnectable with DeviceInfo with traits.WakeMessageAware {
@@ -160,17 +160,17 @@ class NetworkCard(val host: EnvironmentHost) extends AbstractManagedEnvironment 
 
   private final val OpenPortsTag = "openPorts"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
     assert(openPorts.isEmpty)
     openPorts ++= nbt.getIntArray(OpenPortsTag)
     loadWakeMessage(nbt)
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
 
-    nbt.setIntArray(OpenPortsTag, openPorts.toArray)
+    nbt.putIntArray(OpenPortsTag, openPorts.toArray)
     saveWakeMessage(nbt)
   }
 

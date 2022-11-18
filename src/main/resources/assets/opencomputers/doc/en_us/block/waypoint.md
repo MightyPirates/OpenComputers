@@ -1,6 +1,6 @@
 # Waypoint
 
-!["This way!" - "No, that way!"](oredict:oc:waypoint)
+!["This way!" - "No, that way!"](oredict:opencomputers:waypoint)
 
 The waypoint's use lies not in itself, but in how it can be used. [Navigation upgrades](../item/navigationUpgrade.md) can detect waypoints, so devices with a navigation upgrade can use these waypoints to navigate the world. This is particularly useful for writing easily reusable programs for devices such as [robots](robot.md) and [drones](../item/drone.md).
 

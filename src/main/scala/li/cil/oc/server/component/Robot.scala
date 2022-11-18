@@ -23,11 +23,12 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.StackOption
 import li.cil.oc.util.StackOption._
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumParticleTypes
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.particles.ParticleTypes
+import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with Agent with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -36,14 +37,14 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
     create()
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+    fromResource(new ResourceLocation(Settings.resourceDomain, "lua/component/robot")), "robot"))
 
   private final lazy val deviceInfo = Map(
     DeviceAttribute.Class -> DeviceClass.System,
     DeviceAttribute.Description -> "Robot",
     DeviceAttribute.Vendor -> Constants.DeviceInfo.DefaultVendor,
     DeviceAttribute.Product -> "Caterpillar",
-    DeviceAttribute.Capacity -> agent.getSizeInventory.toString
+    DeviceAttribute.Capacity -> agent.getContainerSize.toString
   )
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
@@ -73,13 +74,13 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
 
   @Callback(doc = "function():number -- Get the durability of the currently equipped tool.")
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
-    StackOption(agent.equipmentInventory.getStackInSlot(0)) match {
+    StackOption(agent.equipmentInventory.getItem(0)) match {
       case SomeStack(item) =>
         ToolDurabilityProviders.getDurability(item) match {
           case Some(durability) => result(durability)
-          case _ => result(Unit, "tool cannot be damaged")
+          case _ => result((), "tool cannot be damaged")
         }
-      case _ => result(Unit, "no tool equipped")
+      case _ => result((), "no tool equipped")
     }
   }
 
@@ -91,18 +92,18 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
     if (agent.isAnimatingMove) {
       // This shouldn't really happen due to delays being enforced, but just to
       // be on the safe side...
-      result(Unit, "already moving")
+      result((), "already moving")
     }
     else {
       val (something, what) = blockContent(direction)
       if (something) {
         context.pause(0.4)
-        PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
-        result(Unit, what)
+        PacketSender.sendParticleEffect(BlockPosition(agent), ParticleTypes.CRIT, 8, 0.25, Some(direction))
+        result((), what)
       }
       else {
         if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
-          result(Unit, "not enough energy")
+          result((), "not enough energy")
         }
         else if (agent.move(direction)) {
           context.pause(Settings.get.moveDelay)
@@ -111,8 +112,8 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
         else {
           node.changeBuffer(Settings.get.robotMoveCost)
           context.pause(0.4)
-          PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
-          result(Unit, "impossible move")
+          PacketSender.sendParticleEffect(BlockPosition(agent), ParticleTypes.CRIT, 8, 0.25, Some(direction))
+          result((), "impossible move")
         }
       }
     }
@@ -122,14 +123,14 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
-      if (clockwise) agent.rotate(EnumFacing.UP)
-      else agent.rotate(EnumFacing.DOWN)
+      if (clockwise) agent.rotate(Direction.UP)
+      else agent.rotate(Direction.DOWN)
       agent.animateTurn(clockwise, Settings.get.turnDelay)
       context.pause(Settings.get.turnDelay)
       result(true)
     }
     else {
-      result(Unit, "not enough energy")
+      result((), "not enough energy")
     }
   }
 
@@ -157,13 +158,13 @@ class Robot(val agent: tileentity.Robot) extends AbstractManagedEnvironment with
 
   private final val RomRobotTag = "romRobot"
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    romRobot.foreach(_.load(nbt.getCompoundTag(RomRobotTag)))
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
+    romRobot.foreach(_.loadData(nbt.getCompound(RomRobotTag)))
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-    romRobot.foreach(fs => nbt.setNewCompoundTag(RomRobotTag, fs.save))
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
+    romRobot.foreach(fs => nbt.setNewCompoundTag(RomRobotTag, fs.saveData))
   }
 }

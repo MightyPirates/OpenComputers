@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CDg",
+    "PDp",
+    "CDg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "D": {
+      "tag": "opencomputers:materialdisk"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:hdd2"
+  }
+}

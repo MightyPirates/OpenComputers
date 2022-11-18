@@ -1,6 +1,6 @@
 # 无人机外壳
 
-![无人机：嗡嗡嗡，嗡嗡嗡](oredict:oc:droneCase1)
+![无人机：嗡嗡嗡，嗡嗡嗡](oredict:opencomputers:droneCase1)
 
 无人机外壳是在[装配机](../block/assembler.md)中组装[无人机](drone.md)时所用的容器。[无人机](drone.md)是种轻量、快速、功能受限（只有少量的升级和插槽）的移动设备。和[机器人](../block/robot.md)不一样，无人机不能使用工具，也只能和世界进行有限的交互。
 

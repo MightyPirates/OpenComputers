@@ -1,6 +1,6 @@
 # Acid
 
-![Reflux?](oredict:oc:materialAcid)
+![Reflux?](oredict:opencomputers:materialAcid)
 
 This tasty [citation needed] concoction can be consumed if you ever feel the need for some... fun. Or ruining your digestive tract. Or both. It can also serve as ingredient in other, more useful items.
 

@@ -22,7 +22,7 @@ import li.cil.oc.util.StackOption
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment with internal.Database with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -39,20 +39,20 @@ class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment w
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  override def size = data.getSizeInventory
+  override def size = data.getContainerSize
 
-  override def getStackInSlot(slot: Int) = StackOption(data.getStackInSlot(slot)).map(_.copy()).orEmpty
+  override def getStackInSlot(slot: Int) = StackOption(data.getItem(slot)).map(_.copy()).orEmpty
 
-  override def setStackInSlot(slot: Int, stack: ItemStack) = data.setInventorySlotContents(slot, stack)
+  override def setStackInSlot(slot: Int, stack: ItemStack) = data.setItem(slot, stack)
 
   override def findStackWithHash(needle: String) = indexOf(needle)
 
   @Callback(doc = "function(slot:number):table -- Get the representation of the item stack stored in the specified slot.")
-  def get(context: Context, args: Arguments): Array[AnyRef] = result(data.getStackInSlot(args.checkSlot(data, 0)))
+  def get(context: Context, args: Arguments): Array[AnyRef] = result(data.getItem(args.checkSlot(data, 0)))
 
   @Callback(doc = "function(slot:number):string -- Computes a hash value for the item stack in the specified slot.")
   def computeHash(context: Context, args: Arguments): Array[AnyRef] = {
-    data.getStackInSlot(args.checkSlot(data, 0)) match {
+    data.getItem(args.checkSlot(data, 0)) match {
       case stack: ItemStack =>
         val hash = Hashing.sha256().hashBytes(ItemUtils.saveStack(stack))
         result(hash.toString)
@@ -66,19 +66,19 @@ class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment w
   @Callback(doc = "function(slot:number):boolean -- Clears the specified slot. Returns true if there was something in the slot before.")
   def clear(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(data, 0)
-    val nonEmpty = data.getStackInSlot(slot) != ItemStack.EMPTY // zero size stacks
-    data.setInventorySlotContents(slot, ItemStack.EMPTY)
+    val nonEmpty = data.getItem(slot) != ItemStack.EMPTY // zero size stacks
+    data.setItem(slot, ItemStack.EMPTY)
     result(nonEmpty)
   }
 
   @Callback(doc = "function(fromSlot:number, toSlot:number[, address:string]):boolean -- Copies an entry to another slot, optionally to another database. Returns true if something was overwritten.")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
     val fromSlot = args.checkSlot(data, 0)
-    val entry = data.getStackInSlot(fromSlot)
+    val entry = data.getItem(fromSlot)
     def set(inventory: IInventory) = {
       val toSlot = args.checkSlot(inventory, 1)
-      val nonEmpty = inventory.getStackInSlot(toSlot) != ItemStack.EMPTY // zero size stacks
-      inventory.setInventorySlotContents(toSlot, entry.copy())
+      val nonEmpty = inventory.getItem(toSlot) != ItemStack.EMPTY // zero size stacks
+      inventory.setItem(toSlot, entry.copy())
       result(nonEmpty)
     }
     if (args.count > 2) DatabaseAccess.withDatabase(node, args.checkString(2), database => set(database.data))
@@ -88,9 +88,9 @@ class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment w
   @Callback(doc = "function(address:string):number -- Copies the data stored in this database to another database with the specified address.")
   def clone(context: Context, args: Arguments): Array[AnyRef] = {
     DatabaseAccess.withDatabase(node, args.checkString(0), database => {
-      val numberToCopy = math.min(data.getSizeInventory, database.data.getSizeInventory)
+      val numberToCopy = math.min(data.getContainerSize, database.data.getContainerSize)
       for (slot <- 0 until numberToCopy) {
-        database.data.setInventorySlotContents(slot, data.getStackInSlot(slot).copy())
+        database.data.setItem(slot, data.getItem(slot).copy())
       }
       context.pause(0.25)
       result(numberToCopy)
@@ -98,7 +98,7 @@ class UpgradeDatabase(val data: IInventory) extends AbstractManagedEnvironment w
   }
 
   private def indexOf(needle: String, offset: Int = 0): Int = {
-    for (slot <- 0 until data.getSizeInventory) data.getStackInSlot(slot) match {
+    for (slot <- 0 until data.getContainerSize) data.getItem(slot) match {
       case stack: ItemStack =>
         val hash = Hashing.sha256().hashBytes(ItemUtils.saveStack(stack))
         if (hash.toString == needle) return slot + offset

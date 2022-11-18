@@ -1,17 +1,12 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Localization
 import li.cil.oc.common.container
-import li.cil.oc.common.item.TabletWrapper
-import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.util.text.ITextComponent
 
-class Tablet(playerInventory: InventoryPlayer, val tablet: TabletWrapper) extends DynamicGuiContainer(new container.Tablet(playerInventory, tablet)) with traits.LockedHotbar {
-  override def lockedStack = tablet.stack
+class Tablet(state: container.Tablet, playerInventory: PlayerInventory, name: ITextComponent)
+  extends DynamicGuiContainer(state, playerInventory, name)
+  with traits.LockedHotbar[container.Tablet] {
 
-  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    fontRenderer.drawString(
-      Localization.localizeImmediately(tablet.getName),
-      8, 6, 0x404040)
-  }
+  override def lockedStack = inventoryContainer.stack
 }

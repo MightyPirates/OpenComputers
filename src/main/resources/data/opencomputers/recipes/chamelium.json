@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "grg",
+    "rcr",
+    "gwg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:gravel"
+    },
+    "c": {
+      "item": "minecraft:coal"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "w": {
+      "item": "minecraft:water_bucket"
+    }
+  },
+  "result": {
+    "item": "opencomputers:chamelium",
+    "count": 16
+  }
+}

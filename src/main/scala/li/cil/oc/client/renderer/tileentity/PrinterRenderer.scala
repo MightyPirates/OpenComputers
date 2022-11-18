@@ -1,38 +1,42 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Printer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.model.ItemCameraTransforms
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
+import net.minecraft.util.math.vector.Vector3f
+import org.lwjgl.opengl.GL13
 
-object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
-  override def render(printer: Printer, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object PrinterRenderer extends Function[TileEntityRendererDispatcher, PrinterRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new PrinterRenderer(dispatch)
+}
+
+class PrinterRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[Printer](dispatch) {
+  override def render(printer: Printer, dt: Float, matrix: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
     if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
-      RenderState.pushAttrib()
-      GlStateManager.pushMatrix()
+      matrix.pushPose()
+      matrix.translate(0.5, 0.5 + 0.3, 0.5)
 
-      GlStateManager.translate(x + 0.5, y + 0.5 + 0.3, z + 0.5)
-
-      GlStateManager.rotate((System.currentTimeMillis() % 20000) / 20000f * 360, 0, 1, 0)
-      GlStateManager.scale(0.75, 0.75, 0.75)
-
-      val brightness = printer.world.getCombinedLight(printer.getPos, 0)
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
+      matrix.mulPose(Vector3f.YP.rotationDegrees((System.currentTimeMillis() % 20000) / 20000f * 360))
+      matrix.scale(0.75f, 0.75f, 0.75f)
 
       Textures.Block.bind()
-      Minecraft.getMinecraft.getRenderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED)
+      Minecraft.getInstance.getItemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, light, overlay, matrix, buffer)
 
-      GlStateManager.popMatrix()
-      RenderState.popAttrib()
+      matrix.popPose()
     }
 
     RenderState.checkError(getClass.getName + ".render: leaving")

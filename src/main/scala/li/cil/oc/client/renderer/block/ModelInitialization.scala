@@ -1,81 +1,77 @@
 package li.cil.oc.client.renderer.block
 
+import java.util.Random
+
 import li.cil.oc.Constants
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.CustomModel
-import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.traits.Delegate
-import net.minecraft.block.Block
-import net.minecraft.block.state.IBlockState
+import net.minecraft.block.BlockState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.ItemMeshDefinition
-import net.minecraft.client.renderer.block.model.IBakedModel
-import net.minecraft.client.renderer.block.model.ModelBakery
-import net.minecraft.client.renderer.block.model.ModelResourceLocation
-import net.minecraft.client.renderer.block.statemap.StateMapperBase
+import net.minecraft.client.renderer.BlockModelShapes
+import net.minecraft.client.renderer.model.IBakedModel
+import net.minecraft.client.renderer.model.ItemOverrideList
+import net.minecraft.client.renderer.model.ModelResourceLocation
+import net.minecraft.client.world.ClientWorld
+import net.minecraft.entity.LivingEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.registry.RegistrySimple
+import net.minecraft.util.IItemProvider
+import net.minecraft.util.Direction
 import net.minecraftforge.client.event.{ModelBakeEvent, ModelRegistryEvent}
-import net.minecraftforge.client.model.{ModelLoader, ModelLoaderRegistry}
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.client.model.data.IDynamicBakedModel
+import net.minecraftforge.client.model.data.IModelData
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable
 
 object ModelInitialization {
-  final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
+  final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "")
   final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
-  final val NetSplitterBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "normal")
+  final val NetSplitterBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "")
   final val NetSplitterItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "inventory")
-  final val PrintBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "normal")
+  final val PrintBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "")
   final val PrintItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "inventory")
-  final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "normal")
+  final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "")
   final val RobotItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
-  final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "normal")
-  final val RobotAfterimageItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "inventory")
-  final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "normal")
+  final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "")
+  final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "")
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
-  private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
-  private val itemDelegatesCustom = mutable.ArrayBuffer.empty[Delegate with CustomModel]
+  private val modelRemappings = mutable.Map.empty[ModelResourceLocation, ModelResourceLocation]
 
   def preInit(): Unit = {
-    MinecraftForge.EVENT_BUS.register(this)
-
     registerModel(Constants.BlockName.Cable, CableBlockLocation, CableItemLocation)
     registerModel(Constants.BlockName.NetSplitter, NetSplitterBlockLocation, NetSplitterItemLocation)
     registerModel(Constants.BlockName.Print, PrintBlockLocation, PrintItemLocation)
     registerModel(Constants.BlockName.Robot, RobotBlockLocation, RobotItemLocation)
-    registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, RobotAfterimageItemLocation)
+    registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, null)
   }
 
   @SubscribeEvent
   def onModelRegistration(event: ModelRegistryEvent): Unit = {
-    registerItems()
-    registerSubItems()
-    registerSubItemsCustom()
+    val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
+    for (item <- meshableItems) {
+      item match {
+        case custom: CustomModel => custom.registerModelLocations()
+        case _ => {
+          Option(api.Items.get(new ItemStack(item))) match {
+            case Some(descriptor) =>
+              val location = Settings.resourceDomain + ":" + descriptor.name()
+              shaper.register(item, new ModelResourceLocation(location, "inventory"))
+            case _ =>
+          }
+        }
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //
 
-  def registerModel(instance: Delegate, id: String): Unit = {
-    instance match {
-      case customModel: CustomModel => itemDelegatesCustom += customModel
-      case _ => itemDelegates += id -> instance
-    }
-  }
-
-  def registerModel(instance: Item, id: String): Unit = {
-    meshableItems += instance
-  }
-
-  def registerModel(instance: Block, id: String): Unit = {
-    val item = Item.getItemFromBlock(instance)
-    registerModel(item, id)
+  def registerModel(instance: IItemProvider, id: String): Unit = {
+    meshableItems += instance.asItem
   }
 
   // ----------------------------------------------------------------------- //
@@ -85,48 +81,12 @@ object ModelInitialization {
     val block = descriptor.block()
     val stack = descriptor.createItemStack(1)
 
-    ModelLoader.setCustomModelResourceLocation(stack.getItem, stack.getMetadata, itemLocation)
-    ModelLoader.setCustomStateMapper(block, new StateMapperBase {
-      override def getModelResourceLocation(state: IBlockState): ModelResourceLocation = blockLocation
-    })
-  }
-
-  private def registerItems(): Unit = {
-    val meshDefinition = new ItemMeshDefinition {
-      override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
-        Option(api.Items.get(stack)) match {
-          case Some(descriptor) =>
-            val location = Settings.resourceDomain + ":" + descriptor.name()
-            new ModelResourceLocation(location, "inventory")
-          case _ => null
-        }
-      }
+    if (!stack.isEmpty) {
+      val shaper = Minecraft.getInstance.getItemRenderer.getItemModelShaper
+      shaper.register(stack.getItem, itemLocation)
     }
-
-    for (item <- meshableItems) {
-      ModelLoader.setCustomMeshDefinition(item, meshDefinition)
-    }
-    meshableItems.clear()
-  }
-
-  private def registerSubItems(): Unit = {
-    for ((id, item) <- itemDelegates) {
-      val location = Settings.resourceDomain + ":" + id
-      ModelLoader.setCustomModelResourceLocation(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
-      ModelBakery.registerItemVariants(item.parent, new ResourceLocation(location))
-    }
-    itemDelegates.clear()
-  }
-
-  private def registerSubItemsCustom(): Unit = {
-    for (item <- itemDelegatesCustom) {
-      ModelLoader.setCustomMeshDefinition(item.parent, new ItemMeshDefinition {
-        override def getModelLocation(stack: ItemStack): ModelResourceLocation = Delegator.subItem(stack) match {
-          case Some(subItem: CustomModel) => subItem.getModelLocation(stack)
-          case _ => null
-        }
-      })
-      item.registerModelLocations()
+    block.getStateDefinition.getPossibleStates.foreach {
+      modelRemappings += BlockModelShapes.stateToModelLocation(_) -> blockLocation
     }
   }
 
@@ -134,22 +94,56 @@ object ModelInitialization {
 
   @SubscribeEvent
   def onModelBake(e: ModelBakeEvent): Unit = {
-    val registry = e.getModelRegistry.asInstanceOf[RegistrySimple[ModelResourceLocation, IBakedModel]]
+    val registry = e.getModelRegistry
 
-    registry.putObject(CableBlockLocation, CableModel)
-    registry.putObject(CableItemLocation, CableModel)
-    registry.putObject(NetSplitterBlockLocation, NetSplitterModel)
-    registry.putObject(NetSplitterItemLocation, NetSplitterModel)
-    registry.putObject(PrintBlockLocation, PrintModel)
-    registry.putObject(PrintItemLocation, PrintModel)
-    registry.putObject(RobotBlockLocation, RobotModel)
-    registry.putObject(RobotItemLocation, RobotModel)
-    registry.putObject(RobotAfterimageBlockLocation, NullModel)
-    registry.putObject(RobotAfterimageItemLocation, NullModel)
+    registry.put(CableBlockLocation, CableModel)
+    registry.put(CableItemLocation, CableModel)
+    registry.put(NetSplitterBlockLocation, NetSplitterModel)
+    registry.put(NetSplitterItemLocation, NetSplitterModel)
+    registry.put(PrintBlockLocation, PrintModel)
+    registry.put(PrintItemLocation, PrintModel)
+    registry.put(RobotBlockLocation, RobotModel)
+    registry.put(RobotItemLocation, RobotModel)
+    registry.put(RobotAfterimageBlockLocation, NullModel)
 
-    for (item <- itemDelegatesCustom) {
-      item.bakeModels(e)
+    for (item <- meshableItems) item match {
+      case custom: CustomModel => {
+        custom.bakeModels(e)
+        val originalLocation = new ModelResourceLocation(custom.getRegistryName, "inventory")
+        registry.get(originalLocation) match {
+          case original: IBakedModel => {
+            val overrides = new ItemOverrideList {
+              override def resolve(base: IBakedModel, stack: ItemStack, world: ClientWorld, holder: LivingEntity) =
+                Option(custom.getModelLocation(stack)).map(registry).getOrElse(original)
+            }
+            val fake = new IDynamicBakedModel {
+              @Deprecated
+              override def getQuads(state: BlockState, dir: Direction, rand: Random, data: IModelData) = original.getQuads(state, dir, rand, data)
+        
+              override def useAmbientOcclusion() = original.useAmbientOcclusion
+        
+              override def isGui3d() = original.isGui3d
+        
+              override def usesBlockLight() = original.usesBlockLight
+        
+              override def isCustomRenderer() = original.isCustomRenderer
+        
+              @Deprecated
+              override def getParticleIcon() = original.getParticleIcon
+        
+              @Deprecated
+              override def getTransforms() = original.getTransforms
+        
+              override def getOverrides() = overrides
+            }
+            registry.put(originalLocation, fake)
+          }
+          case _ =>
+        }
+      }
+      case _ =>
     }
+    meshableItems.clear()
 
     val modelOverrides = Map[String, IBakedModel => IBakedModel](
       Constants.BlockName.ScreenTier1 -> (_ => ScreenModel),
@@ -158,17 +152,19 @@ object ModelInitialization {
       Constants.BlockName.Rack -> (parent => new ServerRackModel(parent))
     )
 
-    registry.getKeys.collect {
-      case location: ModelResourceLocation => registry.getObject(location) match {
-        case parent: IBakedModel =>
-          for ((name, model) <- modelOverrides) {
-            val pattern = s"^${Settings.resourceDomain}:$name#.*"
-            if (location.toString.matches(pattern)) {
-              registry.putObject(location, model(parent))
-            }
+    registry.keySet.toArray.foreach {
+      case location: ModelResourceLocation => {
+        for ((name, model) <- modelOverrides) {
+          val pattern = s"^${Settings.resourceDomain}:$name#.*"
+          if (location.toString.matches(pattern)) {
+            registry.put(location, model(registry.get(location)))
           }
-        case _ =>
+        }
       }
+      case _ =>
+    }
+    for ((real, virtual) <- modelRemappings) {
+      registry.put(real, registry.get(virtual))
     }
   }
 }

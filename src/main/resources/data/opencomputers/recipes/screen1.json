@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iri",
+    "rCG",
+    "iri"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "G": {
+      "tag": "forge:glass"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:screen1"
+  }
+}

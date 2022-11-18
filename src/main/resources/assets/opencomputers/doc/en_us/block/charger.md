@@ -1,6 +1,6 @@
 # Charger
 
-![All right, let's do this.](oredict:oc:charger)
+![All right, let's do this.](oredict:opencomputers:charger)
 
 The charger is used to charge devices such as [robots](robot.md), [drones](../item/drone.md) and [tablets](../item/tablet.md). A charger has to be activated by applying a redstone signal to it. The charge speed is based on the applied redstone signal's strength, with a strength of 15 meaning a charge speed of 100%.
 

@@ -5,31 +5,34 @@ import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.Direction
 import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.common.extensions.IForgeItem
 
-class Debugger(val parent: Delegator) extends traits.Delegate {
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+class Debugger(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
+  override def onItemUse(stack: ItemStack, player: PlayerEntity, position: BlockPosition, side: Direction, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     player match {
       case _: FakePlayer => false // Nope
-      case realPlayer: EntityPlayerMP =>
-        world.getTileEntity(position) match {
+      case realPlayer: ServerPlayerEntity =>
+        world.getBlockEntity(position) match {
           case host: SidedEnvironment =>
-            if (!world.isRemote) {
+            if (!world.isClientSide) {
               Debugger.reconnect(Array(host.sidedNode(side)))
             }
             true
           case host: Environment =>
-            if (!world.isRemote) {
+            if (!world.isClientSide) {
               Debugger.reconnect(Array(host.node))
             }
             true
           case _ =>
-            if (!world.isRemote) {
+            if (!world.isClientSide) {
               Debugger.node.remove()
             }
             true

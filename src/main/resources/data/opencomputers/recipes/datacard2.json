@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gPC",
+    " B "
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    },
+    "P": {
+      "tag": "opencomputers:cpu1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:datacard2"
+  }
+}

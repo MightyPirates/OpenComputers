@@ -1,34 +1,35 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.Localization
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.INameable
 import net.minecraft.util.text.ITextComponent
 
-trait SimpleInventory extends IInventory {
+trait SimpleInventory extends IInventory with INameable {
   override def hasCustomName = false
 
-  override def getDisplayName: ITextComponent = Localization.localizeLater(getName)
+  override def getDisplayName: ITextComponent = getName
 
-  override def getInventoryStackLimit = 64
+  override def getMaxStackSize = 64
 
   // Items required in a slot before it's set to null (for ghost stacks).
   def getInventoryStackRequired = 1
 
-  override def openInventory(player: EntityPlayer): Unit = {}
+  override def startOpen(player: PlayerEntity): Unit = {}
 
-  override def closeInventory(player: EntityPlayer): Unit = {}
+  override def stopOpen(player: PlayerEntity): Unit = {}
 
-  override def decrStackSize(slot: Int, amount: Int): ItemStack = {
-    if (slot >= 0 && slot < getSizeInventory) {
-      (getStackInSlot(slot) match {
+  override def removeItem(slot: Int, amount: Int): ItemStack = {
+    if (slot >= 0 && slot < getContainerSize) {
+      (getItem(slot) match {
         case stack: ItemStack if stack.getCount - amount < getInventoryStackRequired =>
-          setInventorySlotContents(slot, ItemStack.EMPTY)
+          setItem(slot, ItemStack.EMPTY)
           stack
         case stack: ItemStack =>
-          val result = stack.splitStack(amount)
-          markDirty()
+          val result = stack.split(amount)
+          setChanged()
           result
         case _ => ItemStack.EMPTY
       }) match {
@@ -39,24 +40,18 @@ trait SimpleInventory extends IInventory {
     else ItemStack.EMPTY
   }
 
-  override def removeStackFromSlot(slot: Int) = {
-    if (slot >= 0 && slot < getSizeInventory) {
-      val stack = getStackInSlot(slot)
-      setInventorySlotContents(slot, ItemStack.EMPTY)
+  override def removeItemNoUpdate(slot: Int) = {
+    if (slot >= 0 && slot < getContainerSize) {
+      val stack = getItem(slot)
+      setItem(slot, ItemStack.EMPTY)
       stack
     }
     else ItemStack.EMPTY
   }
 
-  override def clear(): Unit = {
-    for (slot <- 0 until getSizeInventory) {
-      setInventorySlotContents(slot, ItemStack.EMPTY)
+  override def clearContent(): Unit = {
+    for (slot <- 0 until getContainerSize) {
+      setItem(slot, ItemStack.EMPTY)
     }
   }
-
-  override def getField(id: Int) = 0
-
-  override def setField(id: Int, value: Int) {}
-
-  override def getFieldCount = 0
 }

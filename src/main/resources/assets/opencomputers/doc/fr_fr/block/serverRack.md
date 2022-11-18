@@ -1,6 +1,6 @@
 # Support de serveur
 
-![Logement gratuit.](oredict:oc:serverRack)
+![Logement gratuit.](oredict:opencomputers:serverRack)
 
 Un support de serveur peut contenir jusqu'à 4 [serveurs](../item/server1.md). Un [serveur](../item/server1.md) est un [ordinateur](../general/computer.md) de plus haut niveau, qui peut seulement être lancé dans un support de serveur. Les [serveurs](../item/server1.md) peuvent être contrôlés à distance avec un [terminal à distance](../item/terminal.md). Le nombre de [terminaux à distance](../item/terminal.md) qui peuvent être connectés à un seul [serveur](../item/server1.md) à la fois dépend du niveau du [serveur](../item/server1.md). La distance jusqu'à laquelle le [terminal à distance](../item/terminal.md) fonctionne peut être configurée dans l'interface du support. De plus grandes valeurs nécessitent plus d'énergie.
 

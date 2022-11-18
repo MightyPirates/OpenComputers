@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "grg",
+    "CU ",
+    "gPg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip2"
+    },
+    "U": {
+      "tag": "opencomputers:materialcu"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:componentbus2"
+  }
+}

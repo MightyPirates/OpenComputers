@@ -1,6 +1,6 @@
 # 导航升级
 
-![我，又，走丢了。](oredict:oc:navigationUpgrade)
+![我，又，走丢了。](oredict:opencomputers:navigationUpgrade)
 
 导航升级可提供宿主设备的位置和朝向。坐标是相对用于合成这个升级的地图的中心而言的，它的作用范围也限制在那张地图的大小中。
 

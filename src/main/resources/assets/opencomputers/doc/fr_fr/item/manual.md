@@ -1,6 +1,6 @@
 # Manuel
 
-![Une bonne lecture.](oredict:oc:manual)
+![Une bonne lecture.](oredict:opencomputers:manual)
 
 Ce que vous êtes en train de lire en ce moment même ! Le manuel contient une mine d'informations à propos d'OpenComputers (et sûrement plus). Si vous avez besoin d'information sur un objet ou un bloc, ne cherchez pas plus loin ! Descendez pour apprendre comment l'utiliser (avec la souris ou la barre d'ascenseur sur la droite).
 

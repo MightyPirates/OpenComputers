@@ -1,21 +1,28 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.GuiType
-import net.minecraft.entity.player.EntityPlayer
+import li.cil.oc.common.container.ContainerTypes
+import li.cil.oc.common.inventory.DiskDriveMountableInventory
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{ActionResult, EnumActionResult, EnumHand}
+import net.minecraft.util.{ActionResult, ActionResultType, Hand}
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 
-class DiskDriveMountable(val parent: Delegator) extends traits.Delegate {
-  override def maxStackSize = 1
+class DiskDriveMountable(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem {
+  override def use(stack: ItemStack, world: World, player: PlayerEntity) = {
+    if (!world.isClientSide) player match {
+      case srvPlr: ServerPlayerEntity => ContainerTypes.openDiskDriveGui(srvPlr, new DiskDriveMountableInventory {
+        override def container: ItemStack = stack
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-    // Open the GUI immediately on the client, too, to avoid the player
-    // changing the current slot before it actually opens, which can lead to
-    // desynchronization of the player inventory.
-    player.openGui(OpenComputers, GuiType.DiskDriveMountable.id, world, 0, 0, 0)
-    player.swingArm(EnumHand.MAIN_HAND)
-    ActionResult.newResult(EnumActionResult.SUCCESS, stack)
+        override def stillValid(player: PlayerEntity) = player == srvPlr
+      })
+      case _ =>
+    }
+    player.swing(Hand.MAIN_HAND)
+    new ActionResult(ActionResultType.sidedSuccess(world.isClientSide), stack)
   }
 }

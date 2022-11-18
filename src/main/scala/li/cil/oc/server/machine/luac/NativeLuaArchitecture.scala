@@ -16,9 +16,9 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.repack.com.naef.jnlua._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 @Architecture.Name("Lua 5.2")
 class NativeLua52Architecture(machine: api.machine.Machine) extends NativeLuaArchitecture(machine) {
@@ -340,7 +340,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
   @Deprecated
   private def state = machine.asInstanceOf[Machine].state
 
-  override def load(nbt: NBTTagCompound) {
+  override def loadData(nbt: CompoundNBT) {
     if (!machine.isRunning) return
 
     // Unlimit memory use while unpersisting.
@@ -368,10 +368,10 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
         }
       }
 
-      kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
+      kernelMemory = (nbt.getInt("kernelMemory") * ramScale).toInt
 
       for (api <- apis) {
-        api.load(nbt)
+        api.loadData(nbt)
       }
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
@@ -387,7 +387,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     recomputeMemory(machine.host.internalComponents)
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def saveData(nbt: CompoundNBT) {
     // Unlimit memory while persisting.
     if (Settings.get.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)
@@ -406,10 +406,10 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
         SaveHandler.scheduleSave(machine.host, nbt, machine.node.address + "_stack", persistence.persist(2))
       }
 
-      nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
+      nbt.putInt("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
 
       for (api <- apis) {
-        api.save(nbt)
+        api.saveData(nbt)
       }
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
@@ -420,10 +420,10 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     } catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
-        nbt.removeTag("state")
+        nbt.remove("state")
       case e: LuaGcMetamethodException =>
         OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.xPosition}, ${machine.host.yPosition}, ${machine.host.zPosition}).\n${e.toString}")
-        nbt.removeTag("state")
+        nbt.remove("state")
     }
 
     // Limit memory again.

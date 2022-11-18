@@ -1,6 +1,6 @@
 # Inventarbedienungs-Upgrade
 
-![Ich bin unter Kontrolle.](oredict:oc:inventoryControllerUpgrade)
+![Ich bin unter Kontrolle.](oredict:opencomputers:inventoryControllerUpgrade)
 
 Das Inventarbedienungs-Upgrade ermöglicht erweiterte Inventarinteraktionen für [Roboter](../block/robot.md) und [Drohnen](drone.md). Es erlaubt es dem Gerät explizit einzelne Slots in externen Inventaren zu verwenden. Es erlaubt es dem Gerät zudem detaillierte Informationen über seine Itemstacks zu lesen. Zuletzt stellt es Robotern eine Möglichkeit zur Verfügung, das Werkzeug ohne Hilfe zu wechseln.
 

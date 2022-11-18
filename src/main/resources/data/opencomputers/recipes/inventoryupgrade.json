@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "whw",
+    "dcp",
+    "wCw"
+  ],
+  "key": {
+    "w": {
+      "tag": "minecraft:planks"
+    },
+    "c": {
+      "tag": "forge:chests"
+    },
+    "h": {
+      "item": "minecraft:hopper"
+    },
+    "d": {
+      "item": "minecraft:dropper"
+    },
+    "p": {
+      "tag": "forge:pistons"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:inventoryupgrade"
+  }
+}

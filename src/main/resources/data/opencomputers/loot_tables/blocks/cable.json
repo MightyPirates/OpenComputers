@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "minecraft:survives_explosion"
+            }
+          ],
+          "functions": [
+            {
+              "function": "opencomputers:copy_color"
+            }
+          ],
+          "name": "opencomputers:cable"
+        }
+      ]
+    }
+  ]
+}

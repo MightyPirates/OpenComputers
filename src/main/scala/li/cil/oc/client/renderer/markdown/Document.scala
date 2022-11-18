@@ -1,12 +1,14 @@
 package li.cil.oc.client.renderer.markdown
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.util.math.vector.Vector4f
 import org.lwjgl.opengl.GL11
 
 import scala.collection.Iterable
@@ -61,45 +63,32 @@ object Document {
   /**
    * Line height for a normal line of text.
    */
-  def lineHeight(renderer: FontRenderer): Int = renderer.FONT_HEIGHT + 1
+  def lineHeight(renderer: FontRenderer): Int = renderer.lineHeight + 1
 
   /**
    * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
    * Returns the hovered interactive segment, if any.
    */
-  def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-    val mc = Minecraft.getMinecraft
+  def render(stack: MatrixStack, document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+    val window = Minecraft.getInstance.getWindow
 
     RenderState.pushAttrib()
 
-    // On some systems/drivers/graphics cards the next calls won't update the
-    // depth buffer correctly if alpha test is enabled. Guess how we found out?
-    // By noticing that on those systems it only worked while chat messages
-    // were visible. Yeah. I know.
-    GlStateManager.disableAlpha()
-
-    // Clear depth mask, then create masks in foreground above and below scroll area.
-    GlStateManager.color(1, 1, 1, 1)
-    GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT)
-    GlStateManager.enableDepth()
-    GlStateManager.depthFunc(GL11.GL_LEQUAL)
-    GlStateManager.depthMask(true)
-    GlStateManager.colorMask(false, false, false, false)
-
-    GlStateManager.pushMatrix()
-    GlStateManager.translate(0, 0, 500)
-    GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex2f(0, y)
-    GL11.glVertex2f(mc.displayWidth, y)
-    GL11.glVertex2f(mc.displayWidth, 0)
-    GL11.glVertex2f(0, 0)
-    GL11.glVertex2f(0, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, y + maxHeight)
-    GL11.glVertex2f(0, y + maxHeight)
-    GL11.glEnd()
-    GlStateManager.popMatrix()
-    GlStateManager.colorMask(true, true, true, true)
+    RenderSystem.color4f(1, 1, 1, 1)
+    // Clip using the scissor test to not interfere with RenderType-maintained depth testing.
+    GL11.glEnable(GL11.GL_SCISSOR_TEST)
+    val (x0, y0, x1, y1) = {
+      val scale = window.getGuiScale
+      val bottomLeft = new Vector4f(x, y + maxHeight, 0, 1)
+      bottomLeft.transform(stack.last.pose)
+      val topRight = new Vector4f(x + maxWidth, y, 0, 1)
+      topRight.transform(stack.last.pose)
+      ((bottomLeft.x * scale).floor.asInstanceOf[Int],
+        (window.getHeight - bottomLeft.y * scale).floor.asInstanceOf[Int],
+        (topRight.x * scale).ceil.asInstanceOf[Int],
+        (window.getHeight - topRight.y * scale).ceil.asInstanceOf[Int])
+    }
+    GL11.glScissor(x0, y0, x1 - x0, y1 - y0);
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
@@ -111,7 +100,7 @@ object Document {
     while (segment != null) {
       val segmentHeight = segment.nextY(indent, maxWidth, renderer)
       if (currentY + segmentHeight >= minY && currentY <= maxY) {
-        val result = segment.render(x, currentY, indent, maxWidth, renderer, mouseX, mouseY)
+        val result = segment.render(stack, x, currentY, indent, maxWidth, renderer, mouseX, mouseY)
         hovered = hovered.orElse(result)
       }
       currentY += segmentHeight
@@ -121,8 +110,7 @@ object Document {
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
-    RenderState.popAttrib()
-    GlStateManager.bindTexture(0)
+    GL11.glDisable(GL11.GL_SCISSOR_TEST)
 
     hovered
   }

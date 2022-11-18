@@ -1,6 +1,6 @@
 # OpenComputers 手册
 
-![值得一读。](oredict:oc:manual)
+![值得一读。](oredict:opencomputers:manual)
 
 没错就是你正在读的东西！本手册涵盖了 OpenComputers 的所有内容（甚至还有别的东西）。如果你需要关于 OpenComputers 的某个方块或物品的信息，查手册就可以了！用鼠标滚轮往下翻（或者右边的滑块往下拉）来学习如何使用本手册。
 

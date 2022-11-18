@@ -1,13 +1,32 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.item.ItemStack
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.container.ContainerType
+import net.minecraft.nbt.CompoundNBT
 
-class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer) extends Player(playerInventory, printer) {
-  addSlotToContainer(18, 19, Slot.Filtered)
-  addSlotToContainer(18, 51, Slot.Filtered)
+class Printer(selfType: ContainerType[_ <: Printer], id: Int, playerInventory: PlayerInventory, val printer: IInventory)
+  extends Player(selfType, id, playerInventory, printer) {
+
+  override protected def getHostClass = classOf[tileentity.Printer]
+
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 19, getHostClass, Slot.Filtered, Tier.Any) {
+    override def mayPlace(stack: ItemStack): Boolean = {
+      if (!container.canPlaceItem(getSlotIndex, stack)) return false
+      PrintData.materialValue(stack) > 0
+    }
+  })
+  addSlot(new StaticComponentSlot(this, otherInventory, slots.size, 18, 51, getHostClass, Slot.Filtered, Tier.Any) {
+    override def mayPlace(stack: ItemStack): Boolean = {
+      if (!container.canPlaceItem(getSlotIndex, stack)) return false
+      PrintData.inkValue(stack) > 0
+    }
+  })
   addSlotToContainer(152, 35)
 
   // Show the player's inventory.
@@ -15,14 +34,25 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
 
   def progress = synchronizedData.getDouble("progress")
 
-  def amountMaterial = synchronizedData.getInteger("amountMaterial")
+  def maxAmountMaterial = synchronizedData.getInt("maxAmountMaterial")
 
-  def amountInk = synchronizedData.getInteger("amountInk")
+  def amountMaterial = synchronizedData.getInt("amountMaterial")
 
-  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setDouble("progress", if (printer.isPrinting) printer.progress / 100.0 else 0)
-    synchronizedData.setInteger("amountMaterial", printer.amountMaterial)
-    synchronizedData.setInteger("amountInk", printer.amountInk)
+  def maxAmountInk = synchronizedData.getInt("maxAmountInk")
+
+  def amountInk = synchronizedData.getInt("amountInk")
+
+  override protected def detectCustomDataChanges(nbt: CompoundNBT): Unit = {
+    printer match {
+      case te: tileentity.Printer => {
+        synchronizedData.putDouble("progress", if (te.isPrinting) te.progress / 100.0 else 0)
+        synchronizedData.putInt("maxAmountMaterial", te.maxAmountMaterial)
+        synchronizedData.putInt("amountMaterial", te.amountMaterial)
+        synchronizedData.putInt("maxAmountInk", te.maxAmountInk)
+        synchronizedData.putInt("amountInk", te.amountInk)
+      }
+      case _ =>
+    }
     super.detectCustomDataChanges(nbt)
   }
 }

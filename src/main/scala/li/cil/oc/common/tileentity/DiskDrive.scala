@@ -18,19 +18,27 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
-class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo {
+class DiskDrive(selfType: TileEntityType[_ <: DiskDrive]) extends TileEntity(selfType) with traits.Environment
+  with traits.ComponentInventory with traits.Rotatable with Analyzable with DeviceInfo with INamedContainerProvider {
+
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
@@ -63,14 +71,14 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   @Callback(doc = "function([velocity:number]):boolean -- Eject the currently present medium from the drive.")
   def eject(context: Context, args: Arguments): Array[AnyRef] = {
     val velocity = args.optDouble(0, 0) max 0 min 1
-    val ejected = decrStackSize(0, 1)
+    val ejected = removeItem(0, 1)
     if (!ejected.isEmpty) {
       val entity = InventoryUtils.spawnStackInWorld(position, ejected, Option(facing))
       if (entity != null) {
-        val vx = facing.getFrontOffsetX * velocity
-        val vy = facing.getFrontOffsetY * velocity
-        val vz = facing.getFrontOffsetZ * velocity
-        entity.addVelocity(vx, vy, vz)
+        val vx = facing.getStepX * velocity
+        val vy = facing.getStepY * velocity
+        val vz = facing.getStepZ * velocity
+        entity.push(vx, vy, vz)
       }
       result(true)
     }
@@ -80,7 +88,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   @Callback(doc = "function(): string -- Return the internal floppy disk address")
   def media(context: Context, args: Arguments): Array[AnyRef] = {
     if (filesystemNode.isEmpty)
-      result(Unit, "drive is empty")
+      result((), "drive is empty")
     else
       result(filesystemNode.head.address)
   }
@@ -88,17 +96,23 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   // ----------------------------------------------------------------------- //
   // Analyzable
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = filesystemNode.fold(null: Array[Node])(Array(_))
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = filesystemNode.fold(null: Array[Node])(Array(_))
 
   // ----------------------------------------------------------------------- //
   // IInventory
 
-  override def getSizeInventory = 1
+  override def getContainerSize = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack, getClass))) match {
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Floppy
     case _ => false
   }
+
+  // ----------------------------------------------------------------------- //
+  // INamedContainerProvider
+
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.DiskDrive(ContainerTypes.DISK_DRIVE, id, playerInventory, this)
 
   // ----------------------------------------------------------------------- //
   // ComponentInventory
@@ -130,16 +144,16 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
 
   private final val DiskTag = Settings.namespace + "disk"
 
-  @SideOnly(Side.CLIENT) override
-  def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    if (nbt.hasKey(DiskTag)) {
-      setInventorySlotContents(0, new ItemStack(nbt.getCompoundTag(DiskTag)))
+  @OnlyIn(Dist.CLIENT) override
+  def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
+    if (nbt.contains(DiskTag)) {
+      setItem(0, ItemStack.of(nbt.getCompound(DiskTag)))
     }
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    if (!items(0).isEmpty) nbt.setNewCompoundTag(DiskTag, items(0).writeToNBT)
+  override def saveForClient(nbt: CompoundNBT) {
+    super.saveForClient(nbt)
+    if (!items(0).isEmpty) nbt.setNewCompoundTag(DiskTag, items(0).save)
   }
 }

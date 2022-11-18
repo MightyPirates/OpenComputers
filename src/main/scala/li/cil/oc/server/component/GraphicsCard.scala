@@ -12,11 +12,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.util.PackedColor
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.{CompoundNBT, ListNBT}
 import li.cil.oc.common.component
 import li.cil.oc.common.component.GpuTextBuffer
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 import scala.util.matching.Regex
 
 // IMPORTANT: usually methods with side effects should *not* be direct
@@ -51,12 +51,12 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     if (index == RESERVED_SCREEN_INDEX) {
       screenInstance match {
         case Some(screen) => screen.synchronized(f(screen))
-        case _ => Array(Unit, "no screen")
+        case _ => Array(null, "no screen")
       }
     } else {
       getBuffer(index) match {
         case Some(buffer: api.internal.TextBuffer) => f(buffer)
-        case _ => Array(Unit, "invalid buffer index")
+        case _ => Array(null, "invalid buffer index")
       }
     }
   }
@@ -118,7 +118,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val previousIndex: Int = bufferIndex
     val newIndex: Int = args.checkInteger(0)
     if (newIndex != RESERVED_SCREEN_INDEX && getBuffer(newIndex).isEmpty) {
-      result(Unit, "invalid buffer index")
+      result((), "invalid buffer index")
     } else {
       bufferIndex = newIndex
       if (bufferIndex == RESERVED_SCREEN_INDEX) {
@@ -139,12 +139,12 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val height: Int = args.optInteger(1, maxResolution._2)
     val size: Int = width * height
     if (width <= 0 || height <= 0) {
-      result(Unit, "invalid page dimensions: must be greater than zero")
+      result((), "invalid page dimensions: must be greater than zero")
     }
     else if (size > (totalVRAM - calculateUsedMemory)) {
-      result(Unit, "not enough video memory")
+      result((), "not enough video memory")
     } else if (node == null) {
-      result(Unit, "graphics card appears disconnected")
+      result((), "graphics card appears disconnected")
     } else {
       val format: PackedColor.ColorFormat = PackedColor.Depth.format(Settings.screenDepthsByTier(tier))
       val buffer = new li.cil.oc.util.TextBuffer(width, height, format)
@@ -173,7 +173,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
   def freeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
     val index: Int = args.optInteger(0, bufferIndex)
     if (removeBuffers(Array(index)) == 1) result(true)
-    else result(Unit, "no buffer at index")
+    else result((), "no buffer at index")
   }
 
   @Callback(direct = true, doc = """function(): number -- Closes all buffers and returns the count. If the active buffer is closed, index moves to 0""")
@@ -263,7 +263,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
             component.GpuTextBuffer.bitblt(dst, col, row, w, h, src, fromRow, fromCol)
             result(true)
           }
-        } else result(Unit, "not enough energy")
+        } else result((), "not enough energy")
       })
     })
   }
@@ -273,7 +273,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
     val address = args.checkString(0)
     val reset = args.optBoolean(1, true)
     node.network.node(address) match {
-      case null => result(Unit, "invalid address")
+      case null => result((), "invalid address")
       case node: Node if node.host.isInstanceOf[api.internal.TextBuffer] =>
         screenAddress = Option(address)
         screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
@@ -294,7 +294,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           else context.pause(0) // To discourage outputting "in realtime" to multiple screens using one GPU.
           result(true)
         })
-      case _ => result(Unit, "not a screen")
+      case _ => result((), "not a screen")
     }
   }
 
@@ -318,7 +318,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (s.getPaletteColor(oldValue), oldValue)
         }
         else {
-          (oldValue, Unit)
+          (oldValue, ())
         }
       s.setBackgroundColor(color, args.optBoolean(1, false))
       result(oldColor, oldIndex)
@@ -342,7 +342,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (s.getPaletteColor(oldValue), oldValue)
         }
         else {
-          (oldValue, Unit)
+          (oldValue, ())
         }
       s.setForegroundColor(color, args.optBoolean(1, false))
       result(oldColor, oldIndex)
@@ -449,8 +449,8 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
 //    if (bufferIndex != RESERVED_SCREEN_INDEX && args.count() == 0) {
 //      return screen {
 //        case ram: GpuTextBuffer => {
-//          val nbt = new NBTTagCompound
-//          ram.data.save(nbt)
+//          val nbt = new CompoundNBT
+//          ram.data.saveData(nbt)
 //          result(nbt)
 //        }
 //      }
@@ -464,7 +464,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (s.getPaletteColor(fgValue), fgValue)
         }
         else {
-          (fgValue, Unit)
+          (fgValue, ())
         }
 
       val bgValue = s.getBackgroundColor(x, y)
@@ -473,7 +473,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
           (s.getPaletteColor(bgValue), bgValue)
         }
         else {
-          (bgValue, Unit)
+          (bgValue, ())
         }
 
       result(s.get(x, y), fgColor, bgColor, fgIndex, bgIndex)
@@ -491,7 +491,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
       if (resolveInvokeCosts(bufferIndex, context, setCosts(tier), value.length, Settings.get.gpuSetCost)) {
         s.set(x, y, value, vertical)
         result(true)
-      } else result(Unit, "not enough energy")
+      } else result((), "not enough energy")
     })
   }
 
@@ -508,7 +508,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
-      else result(Unit, "not enough energy")
+      else result((), "not enough energy")
     })
   }
 
@@ -527,7 +527,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
         result(true)
       }
       else {
-        result(Unit, "not enough energy")
+        result((), "not enough energy")
       }
     })
     else throw new Exception("invalid fill value")
@@ -615,12 +615,12 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
   private final val NBT_PAGES: String = "pages"
   private final val NBT_PAGE_IDX: String = "page_idx"
   private final val NBT_PAGE_DATA: String = "page_data"
-  private val COMPOUND_ID = (new NBTTagCompound).getId
+  private val COMPOUND_ID = (new CompoundNBT).getId
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT) {
+    super.loadData(nbt)
 
-    if (nbt.hasKey(SCREEN_KEY)) {
+    if (nbt.contains(SCREEN_KEY)) {
       nbt.getString(SCREEN_KEY) match {
         case screen: String if !screen.isEmpty => screenAddress = Some(screen)
         case _ => screenAddress = None
@@ -628,50 +628,50 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
       screenInstance = None
     }
 
-    if (nbt.hasKey(BUFFER_INDEX_KEY)) {
-      bufferIndex = nbt.getInteger(BUFFER_INDEX_KEY)
+    if (nbt.contains(BUFFER_INDEX_KEY)) {
+      bufferIndex = nbt.getInt(BUFFER_INDEX_KEY)
     }
 
     removeAllBuffers() // JUST in case
-    if (nbt.hasKey(VIDEO_RAM_KEY)) {
-      val videoRamNbt = nbt.getCompoundTag(VIDEO_RAM_KEY)
-      val nbtPages = videoRamNbt.getTagList(NBT_PAGES, COMPOUND_ID)
-      for (i <- 0 until nbtPages.tagCount) {
-        val nbtPage = nbtPages.getCompoundTagAt(i)
-        val idx: Int = nbtPage.getInteger(NBT_PAGE_IDX)
-        val data = nbtPage.getCompoundTag(NBT_PAGE_DATA)
+    if (nbt.contains(VIDEO_RAM_KEY)) {
+      val videoRamNbt = nbt.getCompound(VIDEO_RAM_KEY)
+      val nbtPages = videoRamNbt.getList(NBT_PAGES, COMPOUND_ID)
+      for (i <- 0 until nbtPages.size) {
+        val nbtPage = nbtPages.getCompound(i)
+        val idx: Int = nbtPage.getInt(NBT_PAGE_IDX)
+        val data = nbtPage.getCompound(NBT_PAGE_DATA)
         loadBuffer(node.address, idx, data)
       }
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
 
     if (screenAddress.isDefined) {
-      nbt.setString(SCREEN_KEY, screenAddress.get)
+      nbt.putString(SCREEN_KEY, screenAddress.get)
     }
 
-    nbt.setInteger(BUFFER_INDEX_KEY, bufferIndex)
+    nbt.putInt(BUFFER_INDEX_KEY, bufferIndex)
 
-    val videoRamNbt = new NBTTagCompound
-    val nbtPages = new NBTTagList
+    val videoRamNbt = new CompoundNBT
+    val nbtPages = new ListNBT
 
     val indexes = bufferIndexes()
     for (idx: Int <- indexes) {
       getBuffer(idx) match {
         case Some(page) => {
-          val nbtPage = new NBTTagCompound
-          nbtPage.setInteger(NBT_PAGE_IDX, idx)
-          val data = new NBTTagCompound
-          page.data.save(data)
-          nbtPage.setTag(NBT_PAGE_DATA, data)
-          nbtPages.appendTag(nbtPage)
+          val nbtPage = new CompoundNBT
+          nbtPage.putInt(NBT_PAGE_IDX, idx)
+          val data = new CompoundNBT
+          page.data.saveData(data)
+          nbtPage.put(NBT_PAGE_DATA, data)
+          nbtPages.add(nbtPage)
         }
         case _ => // ignore
       }
     }
-    videoRamNbt.setTag(NBT_PAGES, nbtPages)
-    nbt.setTag(VIDEO_RAM_KEY, videoRamNbt)
+    videoRamNbt.put(NBT_PAGES, nbtPages)
+    nbt.put(VIDEO_RAM_KEY, videoRamNbt)
   }
 }

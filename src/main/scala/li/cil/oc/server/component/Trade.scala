@@ -9,16 +9,19 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
-import net.minecraft.entity.IMerchant
+import net.minecraft.entity.merchant.IMerchant
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.item.MerchantOffer
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
+import net.minecraft.util.RegistryKey
 import net.minecraft.util.math.BlockPos
-import net.minecraft.village.MerchantRecipe
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.util.registry.Registry
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 import scala.ref.WeakReference
 
 class Trade(val info: TradeInfo) extends AbstractValue {
@@ -30,15 +33,15 @@ class Trade(val info: TradeInfo) extends AbstractValue {
   def maxRange = Settings.get.tradingRange
 
   def isInRange = (info.merchant.get, info.host) match {
-    case (Some(merchant: Entity), Some(host)) => merchant.getDistanceSq(host.xPosition, host.yPosition, host.zPosition) < maxRange * maxRange
+    case (Some(merchant: Entity), Some(host)) => merchant.distanceToSqr(host.xPosition, host.yPosition, host.zPosition) < maxRange * maxRange
     case _ => false
   }
 
   // Queue the load because when load is called we can't access the world yet
   // and we need to access it to get the Robot's TileEntity / Drone's Entity.
-  override def load(nbt: NBTTagCompound) = EventHandler.scheduleServer(() => info.load(nbt))
+  override def loadData(nbt: CompoundNBT) = EventHandler.scheduleServer(() => info.loadData(nbt))
 
-  override def save(nbt: NBTTagCompound) = info.save(nbt)
+  override def saveData(nbt: CompoundNBT) = info.saveData(nbt)
 
   @Callback(doc = "function():number -- Returns a sort index of the merchant that provides this trade")
   def getMerchantId(context: Context, arguments: Arguments): Array[AnyRef] =
@@ -46,16 +49,16 @@ class Trade(val info: TradeInfo) extends AbstractValue {
 
   @Callback(doc = "function():table, table -- Returns the items the merchant wants for this trade.")
   def getInput(context: Context, arguments: Arguments): Array[AnyRef] =
-    result(info.recipe.map(_.getItemToBuy.copy()).orNull,
-      if (info.recipe.exists(_.hasSecondItemToBuy)) info.recipe.map(_.getSecondItemToBuy.copy()).orNull else null)
+    result(info.recipe.map(_.getCostA.copy()).orNull,
+      if (info.recipe.exists(!_.getCostB.isEmpty)) info.recipe.map(_.getCostB.copy()).orNull else null)
 
   @Callback(doc = "function():table -- Returns the item the merchant offers for this trade.")
   def getOutput(context: Context, arguments: Arguments): Array[AnyRef] =
-    result(info.recipe.map(_.getItemToSell.copy()).orNull)
+    result(info.recipe.map(_.getResult.copy()).orNull)
 
   @Callback(doc = "function():boolean -- Returns whether the merchant currently wants to trade this.")
   def isEnabled(context: Context, arguments: Arguments): Array[AnyRef] =
-    result(info.merchant.get.exists(merchant => !info.recipe.exists(_.isRecipeDisabled))) // Make sure merchant is neither dead/gone nor the recipe has been disabled.
+    result(info.merchant.get.exists(merchant => !info.recipe.exists(_.isOutOfStock))) // Make sure merchant is neither dead/gone nor the recipe has been disabled.
 
   @Callback(doc = "function():boolean, string -- Returns true when trade succeeds and nil, error when not.")
   def trade(context: Context, arguments: Arguments): Array[AnyRef] = {
@@ -64,15 +67,15 @@ class Trade(val info: TradeInfo) extends AbstractValue {
       case Some(inventory) =>
         // Make sure merchant hasn't died, it somehow gone or moved out of range and still wants to trade this.
         info.merchant.get match {
-          case Some(merchant: Entity) if merchant.isEntityAlive && isInRange =>
-            if (!merchant.isEntityAlive) {
+          case Some(merchant: Entity) if merchant.isAlive && isInRange =>
+            if (!merchant.isAlive) {
               result(false, "trader died")
             } else if (!isInRange) {
               result(false, "out of range")
             } else {
               info.recipe match {
                 case Some(recipe) =>
-                  if (recipe.isRecipeDisabled) {
+                  if (recipe.isOutOfStock) {
                     result(false, "trade is disabled")
                   } else {
                     if (!hasRoomForRecipe(inventory, recipe)) {
@@ -94,18 +97,18 @@ class Trade(val info: TradeInfo) extends AbstractValue {
     }
   }
 
-  def hasRoomForRecipe(inventory: IInventory, recipe: MerchantRecipe) : Boolean = {
-    val remainder = recipe.getItemToSell.copy()
+  def hasRoomForRecipe(inventory: IInventory, recipe: MerchantOffer) : Boolean = {
+    val remainder = recipe.getResult.copy()
     InventoryUtils.insertIntoInventory(remainder, InventoryUtils.asItemHandler(inventory), remainder.getCount, simulate = true)
     remainder.getCount == 0
   }
 
-  def completeTrade(inventory: IInventory, recipe: MerchantRecipe, exact: Boolean) : Boolean = {
+  def completeTrade(inventory: IInventory, recipe: MerchantOffer, exact: Boolean) : Boolean = {
     // Now we'll check if we have enough items to perform the trade, caching first
     info.merchant.get match {
       case Some(merchant) => {
-        val firstInputStack = recipe.getItemToBuy
-        val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
+        val firstInputStack = recipe.getCostA
+        val secondInputStack = if (!recipe.getCostB.isEmpty) Option(recipe.getCostB) else None
 
         def containsAccumulativeItemStack(stack: ItemStack) =
           InventoryUtils.extractFromInventory(stack, inventory, null, simulate = true, exact = exact).getCount == 0
@@ -115,7 +118,7 @@ class Trade(val info: TradeInfo) extends AbstractValue {
           return false
 
         // Now we need to check if we have enough inventory space to accept the item we get for the trade.
-        val outputStack = recipe.getItemToSell.copy()
+        val outputStack = recipe.getResult.copy()
 
         // We established that out inventory allows to perform the trade, now actually do the trade.
         InventoryUtils.extractFromInventory(firstInputStack, InventoryUtils.asItemHandler(inventory), exact = exact)
@@ -123,7 +126,7 @@ class Trade(val info: TradeInfo) extends AbstractValue {
         InventoryUtils.insertIntoInventory(outputStack, InventoryUtils.asItemHandler(inventory), outputStack.getCount)
 
         // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
-        merchant.useRecipe(recipe)
+        merchant.notifyTrade(recipe)
         true
       }
       case _ => false
@@ -137,7 +140,7 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
   def this(host: EnvironmentHost, merchant: IMerchant, recipeID: Int, merchantID: Int) =
     this(Option(host), new WeakReference[IMerchant](merchant), recipeID, merchantID)
 
-  def recipe = merchant.get.map(_.getRecipes(null).get(recipeID))
+  def recipe = merchant.get.map(_.getOffers.get(recipeID))
 
   def inventory = host match {
     case Some(agent: li.cil.oc.api.internal.Agent) => Option(agent.mainInventory())
@@ -156,7 +159,7 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
   private final val RecipeID = "recipeID"
   private final val MerchantID = "merchantID"
 
-  def load(nbt: NBTTagCompound): Unit = {
+  def loadData(nbt: CompoundNBT): Unit = {
     val isEntity = nbt.getBoolean(HostIsEntityTag)
     // If drone we find it again by its UUID, if Robot we know the X/Y/Z of the TileEntity.
     host = if (isEntity) loadHostEntity(nbt) else loadHostTileEntity(nbt)
@@ -164,61 +167,60 @@ class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[I
       case Some(merchant: IMerchant) => merchant
       case _ => null
     })
-    recipeID = nbt.getInteger(RecipeID)
-    merchantID = if (nbt.hasKey(MerchantID)) nbt.getInteger(MerchantID) else -1
+    recipeID = nbt.getInt(RecipeID)
+    merchantID = if (nbt.contains(MerchantID)) nbt.getInt(MerchantID) else -1
   }
 
-  def save(nbt: NBTTagCompound): Unit = {
+  def saveData(nbt: CompoundNBT): Unit = {
     host match {
       case Some(entity: Entity) =>
-        nbt.setBoolean(HostIsEntityTag, true)
-        nbt.setInteger(DimensionIDTag, entity.world.provider.getDimension)
-        nbt.setLong(HostUUIDLeast, entity.getPersistentID.getLeastSignificantBits)
-        nbt.setLong(HostUUIDMost, entity.getPersistentID.getMostSignificantBits)
+        nbt.putBoolean(HostIsEntityTag, true)
+        nbt.putString(DimensionIDTag, entity.world.dimension.location.toString)
+        nbt.putLong(HostUUIDLeast, entity.getUUID.getLeastSignificantBits)
+        nbt.putLong(HostUUIDMost, entity.getUUID.getMostSignificantBits)
       case Some(tileEntity: TileEntity) =>
-        nbt.setBoolean(HostIsEntityTag, false)
-        nbt.setInteger(DimensionIDTag, tileEntity.getWorld.provider.getDimension)
-        nbt.setInteger(HostXTag, tileEntity.getPos.getX)
-        nbt.setInteger(HostYTag, tileEntity.getPos.getY)
-        nbt.setInteger(HostZTag, tileEntity.getPos.getZ)
+        nbt.putBoolean(HostIsEntityTag, false)
+        nbt.putString(DimensionIDTag, tileEntity.getLevel.dimension.location.toString)
+        nbt.putInt(HostXTag, tileEntity.getBlockPos.getX)
+        nbt.putInt(HostYTag, tileEntity.getBlockPos.getY)
+        nbt.putInt(HostZTag, tileEntity.getBlockPos.getZ)
       case _ => // Welp!
     }
     merchant.get match {
       case Some(entity: Entity) =>
-        nbt.setLong(MerchantUUIDLeastTag, entity.getPersistentID.getLeastSignificantBits)
-        nbt.setLong(MerchantUUIDMostTag, entity.getPersistentID.getMostSignificantBits)
+        nbt.putLong(MerchantUUIDLeastTag, entity.getUUID.getLeastSignificantBits)
+        nbt.putLong(MerchantUUIDMostTag, entity.getUUID.getMostSignificantBits)
       case _ =>
     }
-    nbt.setInteger(RecipeID, recipeID)
-    nbt.setInteger(MerchantID, merchantID)
+    nbt.putInt(RecipeID, recipeID)
+    nbt.putInt(MerchantID, merchantID)
   }
 
-  private def loadEntity(nbt: NBTTagCompound, uuid: UUID): Option[Entity] = {
-    val dimension = nbt.getInteger(DimensionIDTag)
-    val world = DimensionManager.getWorld(dimension)
+  private def loadEntity(nbt: CompoundNBT, uuid: UUID): Option[Entity] = {
+    val dimension = new ResourceLocation(nbt.getString(DimensionIDTag))
+    val dimKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, dimension)
+    val world = ServerLifecycleHooks.getCurrentServer.getLevel(dimKey)
 
-    world.loadedEntityList.find {
-      case entity: Entity if entity.getPersistentID == uuid => true
-      case _ => false
-    }
+    Option(world.getEntity(uuid))
   }
 
-  private def loadHostEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
+  private def loadHostEntity(nbt: CompoundNBT): Option[EnvironmentHost] = {
     loadEntity(nbt, new UUID(nbt.getLong(HostUUIDMost), nbt.getLong(HostUUIDLeast))) match {
       case Some(entity: Entity with li.cil.oc.api.internal.Agent) => Option(entity: EnvironmentHost)
       case _ => None
     }
   }
 
-  private def loadHostTileEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
-    val dimension = nbt.getInteger(DimensionIDTag)
-    val world = DimensionManager.getWorld(dimension)
+  private def loadHostTileEntity(nbt: CompoundNBT): Option[EnvironmentHost] = {
+    val dimension = new ResourceLocation(nbt.getString(DimensionIDTag))
+    val dimKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, dimension)
+    val world = ServerLifecycleHooks.getCurrentServer.getLevel(dimKey)
 
-    val x = nbt.getInteger(HostXTag)
-    val y = nbt.getInteger(HostYTag)
-    val z = nbt.getInteger(HostZTag)
+    val x = nbt.getInt(HostXTag)
+    val y = nbt.getInt(HostYTag)
+    val z = nbt.getInt(HostZTag)
 
-    world.getTileEntity(new BlockPos(x, y, z)) match {
+    world.getBlockEntity(new BlockPos(x, y, z)) match {
       case robotProxy: li.cil.oc.common.tileentity.RobotProxy => Option(robotProxy.robot)
       case agent: li.cil.oc.api.internal.Agent => Option(agent)
       case null => None

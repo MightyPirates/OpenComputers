@@ -4,7 +4,7 @@ import java.io
 import java.io.RandomAccessFile
 
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.CompoundNBT
 
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {
   override def spaceTotal = -1
@@ -34,8 +34,8 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT) {
+    super.saveData(nbt)
     root.mkdirs()
     root.setLastModified(System.currentTimeMillis())
   }

@@ -1,6 +1,6 @@
 # RAID
 
-![40 man instance.](oredict:oc:raid)
+![40 man instance.](oredict:opencomputers:raid)
 
 Der RAID-Block enthält drei [Festplatten](../item/hdd1.md), welche zu einem einzelnen Dateisystem kombiniert werden. Dieses einzelne Dateisystem hat als Kapazität die Summe der einzelnen Kapazitäten. Das Dateisystem kann mit allen angeschlossenen [Computern](../general/computer.md) verwendet werden.
 

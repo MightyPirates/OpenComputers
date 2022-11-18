@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "opencomputers:floppy"
+    },
+    {
+      "tag": "opencomputers:manual"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:floppy",
+    "nbt": {
+      "oc:data": {
+        "oc:fs.label": "openos"
+      },
+      "oc:lootFactory": "opencomputers:openos",
+      "oc:color": 13,
+      "display": {
+        "Name": "OpenOS (Operating System)"
+      }
+    }
+  }
+}

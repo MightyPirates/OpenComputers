@@ -1,27 +1,34 @@
 package li.cil.oc.client.renderer.tileentity
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.util.math.vector.Vector3f
 
-object HologramRendererFallback extends TileEntitySpecialRenderer[Hologram] {
+object HologramRendererFallback {
   var text = "Requires OpenGL 1.5"
 
-  override def render(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+  def render(hologram: Hologram, f: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-    val fontRenderer = Minecraft.getMinecraft.fontRenderer
+    RenderSystem.color4f(1, 1, 1, 1)
 
-    GlStateManager.pushMatrix()
-    GlStateManager.translate(x + 0.5, y + 0.75, z + 0.5)
+    val fontRenderer = Minecraft.getInstance.font
 
-    GlStateManager.scale(1 / 128f, -1 / 128f, 1 / 128f)
-    GlStateManager.disableCull()
-    fontRenderer.drawString(text, -fontRenderer.getStringWidth(text) / 2, 0, 0xFFFFFFFF)
+    stack.pushPose()
+    stack.translate(0.5, 0.75, 0.5)
+    stack.scale(1 / 128f, -1 / 128f, 1 / 128f)
 
-    GlStateManager.popMatrix()
+    fontRenderer.drawInBatch(text, -fontRenderer.width(text) / 2, 0, 0xFFFFFFFF,
+      false, stack.last.pose, buffer, false, 0, light)
+    stack.mulPose(Vector3f.YP.rotationDegrees(180))
+    fontRenderer.drawInBatch(text, -fontRenderer.width(text) / 2, 0, 0xFFFFFFFF,
+      false, stack.last.pose, buffer, false, 0, light)
+
+    stack.popPose()
 
     RenderState.checkError(getClass.getName + ".render: leaving")
   }

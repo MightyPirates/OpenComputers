@@ -1,6 +1,6 @@
 # 3D Printer
 
-![2D printing is so yesteryear.](oredict:oc:printer)
+![2D printing is so yesteryear.](oredict:opencomputers:printer)
 
 3D printers allow you to print any block of any shape, with any type of texture. To get started with 3D printers, you will need to place down a 3D printer block next to a computer. This will give access to the `printer3d` component API, allowing you to set up and print [models](print.md) using the provided functions.
 

@@ -13,7 +13,7 @@ object DriverDebugCard extends Item {
     api.Items.get(Constants.ItemName.DebugCard))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else new component.DebugCard(host)
 
   override def slot(stack: ItemStack) = Slot.Card

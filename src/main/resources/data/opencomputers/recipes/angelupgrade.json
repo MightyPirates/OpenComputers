@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iei",
+    "CpC",
+    "iei"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "e": {
+      "tag": "forge:ender_pearls"
+    },
+    "p": {
+      "item": "minecraft:sticky_piston"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip1"
+    }
+  },
+  "result": {
+    "item": "opencomputers:angelupgrade"
+  }
+}

@@ -1,6 +1,6 @@
 # 终端
 
-![远程访问。](oredict:oc:terminal)
+![远程访问。](oredict:opencomputers:terminal)
 
 终端可用于远程访问[终端服务器](terminalServer.md)。只需对准[机架](../block/rack.md)里安装的[终端服务器](terminalServer.md)手持远程终端右击即可完成绑定。
 

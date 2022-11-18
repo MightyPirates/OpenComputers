@@ -3,12 +3,15 @@ package li.cil.oc.common.component
 import java.io.InvalidObjectException
 import java.security.InvalidParameterException
 
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.api.network.{Environment, Message, Node}
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.CompoundNBT
 import li.cil.oc.api.internal.TextBuffer.ColorDepth
 import li.cil.oc.api
 import li.cil.oc.common.component.traits.{TextBufferProxy, VideoRamDevice, VideoRamRasterizer}
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 class GpuTextBuffer(val owner: String, val id: Int, val data: li.cil.oc.util.TextBuffer) extends traits.TextBufferProxy {
 
@@ -30,14 +33,14 @@ class GpuTextBuffer(val owner: String, val id: Int, val data: li.cil.oc.util.Tex
   override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int): Unit = dirty = true
   override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char): Unit = dirty = true
 
-  override def load(nbt: NBTTagCompound): Unit = {
+  override def loadData(nbt: CompoundNBT): Unit = {
     // the data is initially dirty because other devices don't know about it yet
-    data.load(nbt)
+    data.loadData(nbt)
     dirty = true
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
-    data.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = {
+    data.saveData(nbt)
     dirty = false
   }
 
@@ -52,18 +55,20 @@ class GpuTextBuffer(val owner: String, val id: Int, val data: li.cil.oc.util.Tex
   override def setViewport(width: Int, height: Int): Boolean = false
   override def setMaximumColorDepth(depth: ColorDepth): Unit = {}
   override def getMaximumColorDepth: ColorDepth = data.format.depth
-  override def renderText: Boolean = false
+  @OnlyIn(Dist.CLIENT)
+  override def renderText(stack: MatrixStack): Boolean = false
   override def renderWidth: Int = 0
   override def renderHeight: Int = 0
   override def setRenderingEnabled(enabled: Boolean): Unit = {}
   override def isRenderingEnabled: Boolean = false
-  override def keyDown(character: Char, code: Int, player: EntityPlayer): Unit = {}
-  override def keyUp(character: Char, code: Int, player: EntityPlayer): Unit = {}
-  override def clipboard(value: String, player: EntityPlayer): Unit = {}
-  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
-  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
-  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
-  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit = {}
+  override def keyDown(character: Char, code: Int, player: PlayerEntity): Unit = {}
+  override def keyUp(character: Char, code: Int, player: PlayerEntity): Unit = {}
+  override def textInput(codePt: Int, player: PlayerEntity): Unit = {}
+  override def clipboard(value: String, player: PlayerEntity): Unit = {}
+  override def mouseDown(x: Double, y: Double, button: Int, player: PlayerEntity): Unit = {}
+  override def mouseDrag(x: Double, y: Double, button: Int, player: PlayerEntity): Unit = {}
+  override def mouseUp(x: Double, y: Double, button: Int, player: PlayerEntity): Unit = {}
+  override def mouseScroll(x: Double, y: Double, delta: Int, player: PlayerEntity): Unit = {}
   override def canUpdate: Boolean = false
   override def update(): Unit = {}
   override def onConnect(node: Node): Unit = {}
@@ -91,7 +96,7 @@ object ClientGpuTextBufferHandler {
     }
   }
 
-  def loadBuffer(buffer: api.internal.TextBuffer, owner: String, id: Int, nbt: NBTTagCompound): Boolean = {
+  def loadBuffer(buffer: api.internal.TextBuffer, owner: String, id: Int, nbt: CompoundNBT): Boolean = {
     buffer match {
       case screen: VideoRamRasterizer => screen.loadBuffer(owner, id, nbt)
       case _ => false // ignore, not compatible with bitblts

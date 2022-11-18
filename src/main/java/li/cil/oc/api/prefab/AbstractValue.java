@@ -3,7 +3,7 @@ package li.cil.oc.api.prefab;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.machine.Value;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 /**
  * Basic implementation for the <tt>Value</tt> interface.
@@ -28,10 +28,10 @@ public class AbstractValue implements Value {
     }
 
     @Override
-    public void load(NBTTagCompound nbt) {
+    public void loadData(CompoundNBT nbt) {
     }
 
     @Override
-    public void save(NBTTagCompound nbt) {
+    public void saveData(CompoundNBT nbt) {
     }
 }

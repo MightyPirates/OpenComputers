@@ -36,7 +36,7 @@ public interface Context {
      * Use this to check whether you should signal something to the computer,
      * for example. Note that for signals triggered via network messages there
      * is a <tt>computer.checked_signal</tt> message, that expects an
-     * <tt>EntityPlayer</tt> as the first argument and performs this check
+     * <tt>PlayerEntity</tt> as the first argument and performs this check
      * before pushing the signal.
      *
      * @param player the name of the player to check for.
@@ -171,7 +171,7 @@ public interface Context {
      * <li>Strings.</li>
      * <li>Byte arrays (which appear as strings on the Lua side, e.g.).</li>
      * <li>Maps if and only if both keys and values are strings.</li>
-     * <li>NBTTagCompounds.</li>
+     * <li>CompoundNBTs.</li>
      * </ul>
      * If an unsupported type is specified the method will enqueue nothing
      * instead, resulting in a <tt>nil</tt> on the Lua side, e.g., and log a

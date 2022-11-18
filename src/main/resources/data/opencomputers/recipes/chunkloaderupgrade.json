@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gsg",
+    "CeC",
+    "oPo"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "s": {
+      "tag": "forge:glass"
+    },
+    "o": {
+      "tag": "forge:obsidian"
+    },
+    "e": {
+      "item": "minecraft:ender_eye"
+    },
+    "C": {
+      "tag": "opencomputers:circuitchip3"
+    },
+    "P": {
+      "tag": "opencomputers:materialcircuitboardprinted"
+    }
+  },
+  "result": {
+    "item": "opencomputers:chunkloaderupgrade"
+  }
+}

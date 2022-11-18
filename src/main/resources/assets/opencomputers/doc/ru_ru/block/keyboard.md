@@ -1,6 +1,6 @@
 # Клавиатура
 
-![QWERTY](oredict:oc:keyboard)
+![QWERTY](oredict:opencomputers:keyboard)
 
 Клавиатура необходима для набора текста на [мониторе](screen1.md), и могут стоять отдельным блоком в мире или быть встроены в такие устройства, как [роботы](robot.md) или [планшеты](../item/tablet.md).
 

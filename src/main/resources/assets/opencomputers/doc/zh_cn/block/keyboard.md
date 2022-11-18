@@ -1,6 +1,6 @@
 # 键盘
 
-![QWERTY](oredict:oc:keyboard)
+![QWERTY](oredict:opencomputers:keyboard)
 
 键盘自然是用来在[屏幕](screen1.md)上打字的，或者作为输入设备嵌入[机器人](robot.md)和[平板](../item/tablet.md)中。
 

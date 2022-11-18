@@ -13,7 +13,7 @@ object NavigationUpgradeTemplate {
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new NavigationUpgradeData(stack)
     ingredients.map {
-      case part if part.getItem == net.minecraft.init.Items.FILLED_MAP => info.map
+      case part if part.getItem == net.minecraft.item.Items.FILLED_MAP => info.map
       case part => part
     }
   }

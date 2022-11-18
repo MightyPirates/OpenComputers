@@ -2,7 +2,7 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.machine.MachineHost;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 
 /**
  * This interface is implemented as a marker by tablets.
@@ -34,5 +34,5 @@ public interface Tablet extends EnvironmentHost, MachineHost, Rotatable {
      *
      * @return the player last holding the tablet.
      */
-    EntityPlayer player();
+    PlayerEntity player();
 }

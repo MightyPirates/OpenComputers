@@ -1,6 +1,6 @@
 # Computergehäuse
 
-![Just in case.](oredict:oc:case1)
+![Just in case.](oredict:opencomputers:case1)
 
 Computergehäuse gibt es in drei verschiedenen Stufen. Die Stufe bestimmt die maximale Anzahl an Komponenten, die eingesetzt werden können. Es gibt eine zusätzliche Stufe für den Kreativ-Modus. Gehäuse können ebenfalls in einer [Elektronik-Werkbank](assembler.md) platziert werden, um [Roboter](robot.md) zu bauen.
 

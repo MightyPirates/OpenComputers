@@ -1,6 +1,6 @@
 # Carte de débogueur
 
-![Attends, si je... oooooh.](item:OpenComputers:item@73)
+![Attends, si je... oooooh.](item:opencomputers:debugcard)
 
 La carte de débogueur est un objet à usage créatif seulement, qui a été créé à l'origine pour rendre le débogage plus facile, en automatisant certains processus. Depuis, elle a obtenu beaucoup d'autres fonctionnalités, ce qui la rend très utile pour la création de cartes personnalisées.
 

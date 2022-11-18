@@ -1,6 +1,6 @@
 # Adapter
 
-![Nun mit 100% mehr Alles!](oredict:oc:adapter)
+![Nun mit 100% mehr Alles!](oredict:opencomputers:adapter)
 
 Der Adapter ermöglicht es [Computern](../general/computer.md) mit Vanilla-Minecraft-Blöcken oder Blöcken von anderen Mods zu interagieren. Unterstützte Blöcke neben dem Adapter werden als Komponenten des Computers aufgelistet.
 

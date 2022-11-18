@@ -1,6 +1,6 @@
 # 3D-Drucker
 
-![2D printing is so yesteryear.](oredict:oc:printer)
+![2D printing is so yesteryear.](oredict:opencomputers:printer)
 
 3D-Drucker erlauben es, Blöcke von jeder Form mit jeder Art von Textur zu drucken. Um mit 3D-Druckern anzufangen wird ein 3D-Drucker und ein Computer benötigt. Dadurch erhält man Zugriff auf die `printer3d`-Komponenten-API. Hiermit können [Modelle](print.md) erstellt und gedruckt werden.
 

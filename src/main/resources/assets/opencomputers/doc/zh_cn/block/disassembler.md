@@ -1,6 +1,6 @@
 # 拆解器
 
-![造了拆，拆了造。](oredict:oc:disassembler)
+![造了拆，拆了造。](oredict:opencomputers:disassembler)
 
 拆解器可以将 OpenComputers 中的绝大多数设备拆成零件。常用来回收不需要的或者制造出错的设备，比如忘了装[系统](../general/openOS.md)的[机器人](robot.md)。
 

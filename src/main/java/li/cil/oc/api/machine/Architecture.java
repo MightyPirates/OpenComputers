@@ -1,7 +1,7 @@
 package li.cil.oc.api.machine;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 import java.lang.annotation.*;
 
@@ -134,13 +134,13 @@ public interface Architecture {
 
     /**
      * Restores the state of this architecture as previously saved in
-     * {@link #save(NBTTagCompound)}. The architecture should be in the same
+     * {@link #saveData(CompoundNBT)}. The architecture should be in the same
      * state it was when it was saved after this, so it can be resumed from
      * whatever state the owning machine was in when it was saved.
      *
      * @param nbt the tag compound to save to.
      */
-    void load(NBTTagCompound nbt);
+    void loadData(CompoundNBT nbt);
 
     /**
      * Saves the architecture for later restoration, e.g. across games or chunk
@@ -151,7 +151,7 @@ public interface Architecture {
      *
      * @param nbt the tag compound to save to.
      */
-    void save(NBTTagCompound nbt);
+    void saveData(CompoundNBT nbt);
 
     /**
      * Architectures can be annotated with this to provide a nice display name.

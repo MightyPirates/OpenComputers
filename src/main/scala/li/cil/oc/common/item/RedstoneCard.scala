@@ -3,23 +3,21 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.common.Tier
+import li.cil.oc.integration.opencomputers.ModOpenComputers
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
+import net.minecraft.util.NonNullList
+import net.minecraftforge.common.extensions.IForgeItem
 
-class RedstoneCard(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier {
-  override val unlocalizedName = super.unlocalizedName + tier
+class RedstoneCard(props: Properties, val tier: Int) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier {
+  @Deprecated
+  override def getDescriptionId = super.getDescriptionId + tier
 
-  override protected def tooltipName = Option(super.unlocalizedName)
+  override protected def tooltipName = Option(unlocalizedName)
 
-  // Note: T2 is enabled in mod integration, if it makes sense.
-  showInItemList = tier == Tier.One
-
-  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
-    super.tooltipExtended(stack, tooltip)
-    if (tier == Tier.Two) {
-      // TODO Generic system for redstone integration modules to register in a list of tooltip lines.
-      //      if (Mods.MOD_NAME.isAvailable) {
-      //        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".MOD_NAME"))
-      //      }
-    }
+  override def fillItemCategory(tab: ItemGroup, list: NonNullList[ItemStack]) {
+    if (tier == Tier.One || ModOpenComputers.hasRedstoneCardT2) super.fillItemCategory(tab, list)
   }
 }

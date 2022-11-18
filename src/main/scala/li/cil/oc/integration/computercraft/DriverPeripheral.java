@@ -5,8 +5,13 @@ import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.lua.ILuaTask;
 import dan200.computercraft.api.lua.LuaException;
+import dan200.computercraft.api.lua.MethodResult;
+import dan200.computercraft.api.lua.ObjectArguments;
 import dan200.computercraft.api.peripheral.IComputerAccess;
+import dan200.computercraft.api.peripheral.IWorkMonitor;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.core.apis.PeripheralAPI;
+import dan200.computercraft.core.asm.PeripheralMethod;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import li.cil.oc.api.FileSystem;
@@ -21,9 +26,10 @@ import li.cil.oc.api.network.Visibility;
 import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,9 +62,9 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
         return false;
     }
 
-    private IPeripheral findPeripheral(final World world, final BlockPos pos, final EnumFacing side) {
+    private IPeripheral findPeripheral(final World world, final BlockPos pos, final Direction side) {
         try {
-            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, pos, side);
+            final IPeripheral p = dan200.computercraft.shared.Peripherals.getPeripheral(world, pos, side, cap -> {});
             if (!isBlacklisted(p)) {
                 return p;
             }
@@ -69,8 +75,8 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
     }
 
     @Override
-    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public boolean worksWith(final World world, final BlockPos pos, final Direction side) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         return tileEntity != null
                 // This ensures we don't get duplicate components, in case the
                 // tile entity is natively compatible with OpenComputers.
@@ -83,32 +89,35 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final Direction side) {
         return new Environment(findPeripheral(world, pos, side));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.AbstractManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral, NamedBlock {
         protected final IPeripheral peripheral;
 
-        protected final CallableHelper helper;
+        protected final Map<String, PeripheralMethod> methods;
+        protected final String[] methodNames;
 
         protected final Map<String, FakeComputerAccess> accesses = new HashMap<String, FakeComputerAccess>();
 
         public Environment(final IPeripheral peripheral) {
             this.peripheral = peripheral;
-            helper = new CallableHelper(peripheral.getMethodNames());
+            methods = PeripheralAPI.getMethods(peripheral);
+            methodNames = methods.keySet().toArray(new String[methods.size()]);
             setNode(Network.newNode(this, Visibility.Network).create());
         }
 
         @Override
         public String[] methods() {
-            return peripheral.getMethodNames();
+            return methodNames;
         }
 
         @Override
-        public Object[] invoke(final String method, final Context context, final Arguments args) throws Exception {
-            final int index = helper.methodIndex(method);
-            final Object[] argArray = helper.convertArguments(args);
+        public Object[] invoke(final String name, final Context context, final Arguments args) throws Exception {
+            final Object[] argArray = CallableHelper.convertArguments(args);
+            final PeripheralMethod method = methods.get(name);
+            if (method == null) throw new NoSuchMethodException();
             final FakeComputerAccess access;
             if (accesses.containsKey(context.node().address())) {
                 access = accesses.get(context.node().address());
@@ -117,13 +126,13 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
                 // an onConnect for it. Create a temporary access.
                 access = new FakeComputerAccess(this, context);
             }
-            return peripheral.callMethod(access, UnsupportedLuaContext.instance(), index, argArray);
+            return method.apply(peripheral, UnsupportedLuaContext.instance(), access, new ObjectArguments(argArray)).getResult();
         }
 
         @Override
         public void onConnect(final Node node) {
             super.onConnect(node);
-            if (node.host() instanceof Context) {
+            if (node.host() instanceof Context && !accesses.containsKey(node.address())) {
                 final FakeComputerAccess access = new FakeComputerAccess(this, (Context) node.host());
                 accesses.put(node.address(), access);
                 peripheral.attach(access);
@@ -237,6 +246,21 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
             public String getAttachmentName() {
                 return owner.node().address();
             }
+
+            @Override
+            public Map<String, IPeripheral> getAvailablePeripherals() {
+                return Collections.emptyMap();
+            }
+
+            @Override
+            public IPeripheral getAvailablePeripheral(String name) {
+                return null;
+            }
+
+            @Override
+            public IWorkMonitor getMainThreadMonitor() {
+                throw new UnsupportedOperationException();
+            }
         }
 
         /**
@@ -259,22 +283,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
             }
 
             @Override
-            public Object[] executeMainThreadTask(ILuaTask task) throws LuaException, InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Object[] pullEvent(final String filter) throws LuaException, InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Object[] pullEventRaw(final String filter) throws InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Object[] yield(final Object[] arguments) throws InterruptedException {
+            public MethodResult executeMainThreadTask(ILuaTask task) throws LuaException {
                 throw new UnsupportedOperationException();
             }
         }

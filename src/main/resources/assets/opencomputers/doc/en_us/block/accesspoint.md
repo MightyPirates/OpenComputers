@@ -1,6 +1,6 @@
 # Access Point
 
-![AAA](oredict:oc:accessPoint)
+![AAA](oredict:opencomputers:accessPoint)
 
 *This block is deprecated and will be removed in a future version.* Craft it into a [relay](relay.md) to avoid losing it.
 

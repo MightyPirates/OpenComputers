@@ -1,6 +1,6 @@
 # Capaciteur
 
-![Au delà des 8000.](oredict:oc:capacitor)
+![Au delà des 8000.](oredict:opencomputers:capacitor)
 
 Le capaciteur emmagasine de l'énergie qui sera utilisée par le réseau, en se comportant comme un tampon d'énergie au besoin. Contrairement à la conversion de l'énergie d'autres mods vers l'énergie interne à OpenComputers (en utilisant un [convertisseur énergétique](powerConverter.md) par exemple), le transfert d'énergie dans un sous-réseau est instantané. Posséder un tampon d'énergie interne sera utile pour des tâches qui nécessitent beaucoup d'énergie, comme l'[assemblage](assembler.md) et/ou la [charge](charger.md) d'appareils comme les [robots](robot.md) ou les [drones](../item/drone.md).
 

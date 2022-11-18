@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "dPM",
+    " B "
+  ],
+  "key": {
+    "d": {
+      "tag": "opencomputers:chipdiamond"
+    },
+    "B": {
+      "tag": "opencomputers:materialcard"
+    },
+    "M": {
+      "tag": "opencomputers:ram5"
+    },
+    "P": {
+      "tag": "opencomputers:cpu2"
+    }
+  },
+  "result": {
+    "item": "opencomputers:datacard3"
+  }
+}

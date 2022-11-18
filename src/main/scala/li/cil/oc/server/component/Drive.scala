@@ -24,10 +24,11 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.world.storage.FolderName
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String], val speed: Int, val isLocked: Boolean) extends AbstractManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -35,7 +36,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
     withConnector().
     create()
 
-  private def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + node.address + ".bin")
+  private def savePath = ServerLifecycleHooks.getCurrentServer.getWorldPath(new FolderName(Settings.savePath + node.address + ".bin")).toFile
 
   private final val sectorSize = 512
 
@@ -137,8 +138,8 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   private final val HeadPosTag = "headPos"
 
-  override def load(nbt: NBTTagCompound) = this.synchronized {
-    super.load(nbt)
+  override def loadData(nbt: CompoundNBT): Unit = this.synchronized {
+    super.loadData(nbt)
 
     if (node.address != null) try {
       val path = savePath
@@ -157,15 +158,15 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
       case t: Throwable => OpenComputers.log.warn(s"Failed loading drive contents for '${node.address}'.", t)
     }
 
-    headPos = nbt.getInteger(HeadPosTag) max 0 min sectorToHeadPos(sectorCount)
+    headPos = nbt.getInt(HeadPosTag) max 0 min sectorToHeadPos(sectorCount)
 
     if (label != null) {
-      label.load(nbt)
+      label.loadData(nbt)
     }
   }
 
-  override def save(nbt: NBTTagCompound) = this.synchronized {
-    super.save(nbt)
+  override def saveData(nbt: CompoundNBT): Unit = this.synchronized {
+    super.saveData(nbt)
 
     if (node.address != null) try {
       val path = savePath
@@ -180,10 +181,10 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
       case t: Throwable => OpenComputers.log.warn(s"Failed saving drive contents for '${node.address}'.", t)
     }
 
-    nbt.setInteger(HeadPosTag, headPos)
+    nbt.putInt(HeadPosTag, headPos)
 
     if (label != null) {
-      label.save(nbt)
+      label.saveData(nbt)
     }
   }
 

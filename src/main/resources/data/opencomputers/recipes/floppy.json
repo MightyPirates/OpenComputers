@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ili",
+    "pDp",
+    "ipi"
+  ],
+  "key": {
+    "i": {
+      "tag": "forge:nuggets/iron"
+    },
+    "p": {
+      "item": "minecraft:paper"
+    },
+    "l": {
+      "item": "minecraft:lever"
+    },
+    "D": {
+      "tag": "opencomputers:materialdisk"
+    }
+  },
+  "result": {
+    "item": "opencomputers:floppy",
+    "nbt": {
+      "oc:color": 8
+    }
+  }
+}

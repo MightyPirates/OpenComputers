@@ -7,7 +7,6 @@ import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -18,7 +17,7 @@ object DriverDataCard extends Item {
     api.Items.get(Constants.ItemName.DataCardTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world != null && host.world.isRemote) null
+    if (host.world != null && host.world.isClientSide) null
     else tier(stack) match {
     case Tier.One => new component.DataCard.Tier1()
     case Tier.Two => new component.DataCard.Tier2()
@@ -29,8 +28,8 @@ object DriverDataCard extends Item {
   override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(data: common.item.DataCard) => data.tier
+    stack.getItem match {
+      case data: common.item.DataCard => data.tier
       case _ => Tier.One
     }
 

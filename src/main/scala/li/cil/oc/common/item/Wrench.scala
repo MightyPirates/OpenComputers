@@ -1,45 +1,48 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.api
-import li.cil.oc.common.asm.Injectable
-import li.cil.oc.integration.Mods
+import li.cil.oc.common.block.SimpleBlock
 import net.minecraft.block.Block
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.init.Blocks
+import net.minecraft.block.Blocks
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumActionResult
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.util.ActionResultType
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
+import net.minecraft.util.Rotation
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.IWorldReader
 import net.minecraft.world.World
+import net.minecraftforge.common.extensions.IForgeItem
 
-@Injectable.InterfaceList(Array(
-  new Injectable.Interface(value = "ic2.api.item.IBoxable", modid = Mods.IDs.IndustrialCraft2)
-))
-class Wrench extends traits.SimpleItem with api.internal.Wrench {
-  setHarvestLevel("wrench", 1)
-  setMaxStackSize(1)
+class Wrench(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with api.internal.Wrench {
+  override def doesSneakBypassUse(stack: ItemStack, world: IWorldReader, pos: BlockPos, player: PlayerEntity): Boolean = true
 
-  override def doesSneakBypassUse(stack: ItemStack, world: IBlockAccess, pos: BlockPos, player: EntityPlayer): Boolean = true
-
-  override def onItemUseFirst(player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, hand: EnumHand): EnumActionResult = {
-    if (world.isBlockLoaded(pos) && world.isBlockModifiable(player, pos)) world.getBlockState(pos).getBlock match {
-      case block: Block if block.rotateBlock(world, pos, side) =>
-        block.neighborChanged(world.getBlockState(pos), world, pos, Blocks.AIR, pos)
-        player.swingArm(hand)
-        if (!world.isRemote) EnumActionResult.SUCCESS else EnumActionResult.PASS
-      case _ =>
-        super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+  override def onItemUseFirst(stack: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, side: Direction, hitX: Float, hitY: Float, hitZ: Float, hand: Hand): ActionResultType = {
+    if (world.isLoaded(pos) && world.mayInteract(player, pos)) {
+      val state = world.getBlockState(pos)
+      state.getBlock match {
+        case block: SimpleBlock if block.rotateBlock(world, pos, side) =>
+          state.neighborChanged(world, pos, Blocks.AIR, pos, false)
+          player.swing(hand)
+          if (!world.isClientSide) ActionResultType.sidedSuccess(world.isClientSide) else ActionResultType.PASS
+        case _ =>
+          val updated = state.rotate(world, pos, Rotation.CLOCKWISE_90)
+          if (updated != state) {
+            world.setBlock(pos, updated, 3)
+            player.swing(hand)
+            if (!world.isClientSide) ActionResultType.sidedSuccess(world.isClientSide) else ActionResultType.PASS
+          }
+          else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
+      }
     }
-    else super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand)
+    else super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand)
   }
 
-  def useWrenchOnBlock(player: EntityPlayer, world: World, pos: BlockPos, simulate: Boolean): Boolean = {
-    if (!simulate) player.swingArm(EnumHand.MAIN_HAND)
+  def useWrenchOnBlock(player: PlayerEntity, world: World, pos: BlockPos, simulate: Boolean): Boolean = {
+    if (!simulate) player.swing(Hand.MAIN_HAND)
     true
   }
-
-  // IndustrialCraft 2
-  def canBeStoredInToolbox(stack: ItemStack): Boolean = true
 }

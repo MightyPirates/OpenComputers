@@ -9,12 +9,13 @@ import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.StackOption
 import li.cil.oc.util.StackOption._
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.util.Direction
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 import scala.collection.mutable
 
@@ -26,8 +27,8 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   // Cache changes to inventory slots on the client side to avoid recreating
   // components when we don't have to and the slots are just cleared by MC
   // temporarily.
-  private lazy val pendingRemovalsActual = mutable.ArrayBuffer.fill(getSizeInventory)(EmptyStack: StackOption)
-  private lazy val pendingAddsActual = mutable.ArrayBuffer.fill(getSizeInventory)(EmptyStack: StackOption)
+  private lazy val pendingRemovalsActual = mutable.ArrayBuffer.fill(getContainerSize)(EmptyStack: StackOption)
+  private lazy val pendingAddsActual = mutable.ArrayBuffer.fill(getContainerSize)(EmptyStack: StackOption)
   private var updateScheduled = false
   def pendingRemovals = {
     adjustSize(pendingRemovalsActual)
@@ -39,12 +40,12 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   }
 
   private def adjustSize(buffer: mutable.ArrayBuffer[StackOption]): Unit = {
-    val delta = buffer.length - getSizeInventory
+    val delta = buffer.length - getContainerSize
     if (delta > 0) {
       buffer.remove(buffer.length - delta, delta)
     }
     else if (delta < 0) {
-      buffer.sizeHint(getSizeInventory)
+      buffer.sizeHint(getContainerSize)
       for (i <- 0 until -delta) {
         buffer += EmptyStack
       }
@@ -56,17 +57,17 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     for (slot <- this.indices) {
       (pendingRemovals(slot), pendingAdds(slot)) match {
         case (SomeStack(removed), SomeStack(added)) =>
-          if (!removed.isItemEqual(added) || !ItemStack.areItemStackTagsEqual(removed, added)) {
+          if (!removed.sameItem(added) || !ItemStack.tagMatches(removed, added)) {
             super.onItemRemoved(slot, removed)
             super.onItemAdded(slot, added)
-            markDirty()
+            setChanged()
           } // else: No change, ignore.
         case (SomeStack(removed), EmptyStack) =>
           super.onItemRemoved(slot, removed)
-          markDirty()
+          setChanged()
         case (EmptyStack, SomeStack(added)) =>
           super.onItemAdded(slot, added)
-          markDirty()
+          setChanged()
         case _ => // No change.
       }
 
@@ -86,7 +87,7 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     if (isServer) super.onItemAdded(slot, stack)
     else {
       pendingRemovals(slot) match {
-        case SomeStack(removed) if removed.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(removed, stack) =>
+        case SomeStack(removed) if removed.sameItem(stack) && ItemStack.tagMatches(removed, stack) =>
           // Reverted to original state.
           pendingAdds(slot) = EmptyStack
           pendingRemovals(slot) = EmptyStack
@@ -153,37 +154,31 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
     }
   }
 
-  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
+  override def getCapability[T](capability: Capability[T], facing: Direction): LazyOptional[T] = {
     val localFacing = this match {
       case rotatable: Rotatable => rotatable.toLocal(facing)
       case _ => facing
     }
-    super.hasCapability(capability, facing) || components.exists {
-      case Some(component: ICapabilityProvider) => component.hasCapability(capability, localFacing)
-      case _ => false
+    for (curr <- components) curr match {
+      case Some(comp: ICapabilityProvider) => {
+        val cap = comp.getCapability(capability, localFacing)
+        if (cap.isPresent) return cap
+      }
+      case _ =>
     }
+    super.getCapability(capability, facing)
   }
 
-  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-    val localFacing = this match {
-      case rotatable: Rotatable => rotatable.toLocal(facing)
-      case _ => facing
-    }
-    (if (super.hasCapability(capability, facing)) Option(super.getCapability(capability, facing)) else None).orElse(components.collectFirst {
-      case Some(component: ICapabilityProvider) if component.hasCapability(capability, localFacing) => component.getCapability(capability, localFacing)
-    }).getOrElse(null.asInstanceOf[T])
-  }
-
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
+  override def saveForClient(nbt: CompoundNBT) {
     connectComponents()
-    super.writeToNBTForClient(nbt)
-    save(nbt)
+    super.saveForClient(nbt)
+    saveData(nbt)
   }
 
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    load(nbt)
+  @OnlyIn(Dist.CLIENT)
+  override def loadForClient(nbt: CompoundNBT) {
+    super.loadForClient(nbt)
+    loadData(nbt)
     connectComponents()
   }
 }

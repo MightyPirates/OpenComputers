@@ -12,70 +12,33 @@ import com.google.common.base.Charsets
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundManager
-import net.minecraft.server.integrated.IntegratedServer
+import net.minecraft.client.audio.ITickableSound
+import net.minecraft.client.audio.LocatableSound
+import net.minecraft.client.audio.SoundEngine
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.SoundCategory
-import net.minecraftforge.client.event.sound.SoundLoadEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.event.TickEvent.ClientTickEvent
 import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.client.FMLClientHandler
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import paulscode.sound.SoundSystemConfig
 
 import scala.collection.mutable
-import scala.io.Source
 
 object Sound {
   private val sources = mutable.Map.empty[TileEntity, PseudoLoopingStream]
 
   private val commandQueue = mutable.PriorityQueue.empty[Command]
 
-  private var lastVolume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
-
   private val updateTimer = new Timer("OpenComputers-SoundUpdater", true)
   if (Settings.get.soundVolume > 0) {
     updateTimer.scheduleAtFixedRate(new TimerTask {
       override def run() {
-        sources.synchronized(updateCallable = Some(() => {
-          updateVolume()
-          processQueue()
-        }))
+        sources.synchronized(Sound.updateCallable = Some(() => processQueue()))
       }
     }, 500, 50)
   }
 
   private var updateCallable = None: Option[() => Unit]
-
-  // Set in init event.
-  var manager: SoundManager = _
-
-  def soundSystem = if (manager != null) manager.sndSystem else null
-
-  private def updateVolume() {
-    val volume =
-      if (isGamePaused) 0f
-      else FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
-    if (volume != lastVolume) {
-      lastVolume = volume
-      sources.synchronized {
-        for (sound <- sources.values) {
-          sound.updateVolume()
-        }
-      }
-    }
-  }
-
-  private def isGamePaused = {
-    val server = FMLCommonHandler.instance.getMinecraftServerInstance
-    // Check outside of match to avoid client side class access.
-    server != null && !server.isDedicatedServer && (server match {
-      case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
-      case _ => false
-    })
-  }
 
   private def processQueue() {
     if (commandQueue.nonEmpty) {
@@ -114,41 +77,10 @@ object Sound {
   }
 
   @SubscribeEvent
-  def onSoundLoad(event: SoundLoadEvent) {
-    manager = event.getManager
-  }
-
-  private var hasPreloaded = Settings.get.soundVolume <= 0
-
-  @SubscribeEvent
   def onTick(e: ClientTickEvent) {
-    if (soundSystem != null) {
-      if (!hasPreloaded) {
-        hasPreloaded = true
-        new Thread(new Runnable() {
-          override def run(): Unit = {
-            val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
-            val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
-            for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
-              val url = getClass.getClassLoader.getResource(location)
-              if (url != null) try {
-                val sourceName = "preload_" + location
-                soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
-                soundSystem.activate(sourceName)
-                soundSystem.removeSource(sourceName)
-              } catch {
-                case _: Throwable => // Meh.
-              }
-              else OpenComputers.log.warn(s"Couldn't preload sound $location!")
-            }
-          }
-        })
-      }
-
-      sources.synchronized {
-        updateCallable.foreach(_ ())
-        updateCallable = None
-      }
+    sources.synchronized {
+      updateCallable.foreach(_ ())
+      updateCallable = None
     }
   }
 
@@ -170,7 +102,11 @@ object Sound {
   private class StartCommand(when: Long, tileEntity: TileEntity, val name: String, val volume: Float) extends Command(when, tileEntity) {
     override def apply() {
       sources.synchronized {
-        sources.getOrElseUpdate(tileEntity, new PseudoLoopingStream(tileEntity, volume)).play(name)
+        val current = sources.getOrElse(tileEntity, null)
+        if (current == null || !current.getLocation.getPath.equals(name)) {
+          if (current != null) current.stop()
+          sources(tileEntity) = new PseudoLoopingStream(tileEntity, volume, name)
+        }
       }
     }
   }
@@ -203,65 +139,34 @@ object Sound {
     }
   }
 
-  private class PseudoLoopingStream(val tileEntity: TileEntity, val volume: Float, val source: String = UUID.randomUUID.toString) {
-    var initialized = false
+  private class PseudoLoopingStream(val tileEntity: TileEntity, val subVolume: Float, name: String)
+    extends LocatableSound(new ResourceLocation(OpenComputers.ID, name), SoundCategory.BLOCKS) with ITickableSound {
 
-    def updateVolume() {
-      soundSystem.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
-    }
+    var stopped = false
+    volume = subVolume * Settings.get.soundVolume
+    relative = tileEntity != null
+    looping = true
+    updatePosition()
 
     def updatePosition() {
-      if (tileEntity != null) soundSystem.setPosition(source, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ)
-      else soundSystem.setPosition(source, 0, 0, 0)
+      if (tileEntity != null) {
+        val pos = tileEntity.getBlockPos
+        x = pos.getX + 0.5
+        y = pos.getY + 0.5
+        z = pos.getZ + 0.5
+      }
     }
 
-    def play(name: String) {
-      val resourceName = s"${Settings.resourceDomain}:$name"
-      val sound = manager.sndHandler.getAccessor(new ResourceLocation(resourceName))
-      // Specified return type because apparently this is ambiguous according to Jenkins. I don't even.
-      val resource = (sound.cloneEntry(): net.minecraft.client.audio.Sound).getSoundAsOggLocation
-      if (!initialized) {
-        initialized = true
-        if (tileEntity != null) soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ, SoundSystemConfig.ATTENUATION_LINEAR, 16)
-        else soundSystem.newSource(false, source, toUrl(resource), resource.toString, false, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 0)
-        updateVolume()
-        soundSystem.activate(source)
-      }
-      soundSystem.play(source)
-    }
+    override def canStartSilent() = true
+
+    override def isStopped() = stopped
+
+    // Required by ITickableSound, which is required to update position while playing
+    override def tick() = ()
 
     def stop() {
-      if (soundSystem != null) try {
-        soundSystem.stop(source)
-        soundSystem.removeSource(source)
-      }
-      catch {
-        case _: Throwable =>
-      }
-    }
-  }
-
-  // This is copied from SoundManager.getURLForSoundResource, which is private.
-  private def toUrl(resource: ResourceLocation): URL = {
-    val name = s"mcsounddomain:${resource.getResourceDomain}:${resource.getResourcePath}"
-    try {
-      new URL(null, name, new URLStreamHandler {
-        protected def openConnection(url: URL): URLConnection = new URLConnection(url) {
-          def connect() {
-          }
-
-          override def getInputStream = try {
-            Minecraft.getMinecraft.getResourceManager.getResource(resource).getInputStream
-          } catch {
-            case t: Throwable =>
-              OpenComputers.log.warn(t)
-              null
-          }
-        }
-      })
-    }
-    catch {
-      case _: MalformedURLException => null
+      stopped = true
+      looping = false
     }
   }
 }

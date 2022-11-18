@@ -9,7 +9,7 @@ import li.cil.oc.api.driver.Converter
 import li.cil.oc.common.item.data.NanomachineData
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object ConverterNanomachines extends Converter {
   lazy val nanomachines = api.Items.get(Constants.ItemName.Nanomachines)

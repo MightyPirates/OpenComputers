@@ -6,7 +6,7 @@ Auch bekannt als "Wie man seinen ersten Computer baut". Um deinen ersten [Comput
 
 Zuerst wirst du ein [Computergehäuse](../block/case1.md) benötigen. Dies sit der Block der alle Komponenten benötigt und das Verhalten des gebauten Computers bestimmen.
 
-![Ein Stufe-2-Computergehäuse.](oredict:oc:case2)
+![Ein Stufe-2-Computergehäuse.](oredict:opencomputers:case2)
 
 Zum Beispiel musst du bestimmen, welche Stufe die [Grafikkarte](../item/graphicsCard1.md) du benötigst, ob eine [Netzwerkkarte](../item/lanCard.md) oder eine [Redstonekarte](../item/redstoneCard1.md) benötigt wird oder, wenn du im Creative-Mode spielst, eine [Debugkarte](../item/debugCard.md) gebraucht wird.
 
@@ -38,7 +38,7 @@ Wenn du, wie in den Screenshots oben, ein Stufe-2-Gehäuse verwendet hast gibt e
 Es lebt! Zumindest sollte es das. Wenn es das nicht tut lief etwas falsch, und das [Analysegerät](../item/analyzer.md) wird bei der Fehlersuche helfen. Wenn der Computer jetzt läuft bist zu weitgehend fertig und der schwerste Teil ist vorbei. Du musst es nur noch mit einem 
 
 Um die Ausgabe des Computers zu lesen wird ein [Bildschirm](../block/screen1.md) und eine Grafikkarte benötigt.
-![Nein. Es ist kein Flachbildschirm](oredict:oc:screen2)
+![Nein. Es ist kein Flachbildschirm](oredict:opencomputers:screen2)
 
 Platziere den Bildschirm entweder direkt neben den Computer oder verbinde sie mit einem Kabel. Setze eine Grafikkarte deiner Wahl in den Computer ein. Nun sollte ein blinkender Cursor auf dem Bildschirm sichtbar sein. Jetzt fehlt nur noch eine [Tastatur](../block/keyboard.md) entweder direkt auf dem Bildschirm oder neben dem Bildschirm (mit Ausrichtung auf diesen). 
 

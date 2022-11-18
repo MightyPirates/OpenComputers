@@ -1,20 +1,20 @@
 {
     "variants": {
-      "color=silver": { "model": "opencomputers:chameliumblock" },
-      "color=magenta": { "model": "opencomputers:chameliumblock" },
-      "color=light_blue": { "model": "opencomputers:chameliumblock" },
-      "color=red": { "model": "opencomputers:chameliumblock" },
-      "color=yellow": { "model": "opencomputers:chameliumblock" },
-      "color=gray": { "model": "opencomputers:chameliumblock" },
-      "color=brown": { "model": "opencomputers:chameliumblock" },
-      "color=cyan": { "model": "opencomputers:chameliumblock" },
-      "color=green": { "model": "opencomputers:chameliumblock" },
-      "color=blue": { "model": "opencomputers:chameliumblock" },
-      "color=purple": { "model": "opencomputers:chameliumblock" },
-      "color=orange": { "model": "opencomputers:chameliumblock" },
-      "color=pink": { "model": "opencomputers:chameliumblock" },
-      "color=black": { "model": "opencomputers:chameliumblock" },
-      "color=white": { "model": "opencomputers:chameliumblock" },
-      "color=lime": { "model": "opencomputers:chameliumblock" }
+      "color=light_gray": { "model": "opencomputers:block/chameliumblock" },
+      "color=magenta": { "model": "opencomputers:block/chameliumblock" },
+      "color=light_blue": { "model": "opencomputers:block/chameliumblock" },
+      "color=red": { "model": "opencomputers:block/chameliumblock" },
+      "color=yellow": { "model": "opencomputers:block/chameliumblock" },
+      "color=gray": { "model": "opencomputers:block/chameliumblock" },
+      "color=brown": { "model": "opencomputers:block/chameliumblock" },
+      "color=cyan": { "model": "opencomputers:block/chameliumblock" },
+      "color=green": { "model": "opencomputers:block/chameliumblock" },
+      "color=blue": { "model": "opencomputers:block/chameliumblock" },
+      "color=purple": { "model": "opencomputers:block/chameliumblock" },
+      "color=orange": { "model": "opencomputers:block/chameliumblock" },
+      "color=pink": { "model": "opencomputers:block/chameliumblock" },
+      "color=black": { "model": "opencomputers:block/chameliumblock" },
+      "color=white": { "model": "opencomputers:block/chameliumblock" },
+      "color=lime": { "model": "opencomputers:block/chameliumblock" }
     }
 }

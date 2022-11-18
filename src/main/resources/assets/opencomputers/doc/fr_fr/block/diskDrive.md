@@ -1,6 +1,6 @@
 # Lecteur de disquettes
 
-![Silence, on tourne !](oredict:oc:diskDrive)
+![Silence, on tourne !](oredict:opencomputers:diskDrive)
 
 Le lecteur de disquettes peut être utilisé pour lire des [disquettes](../item/floppy.md) en se servant d'un [ordinateur](../general/computer.md) connecté au lecteur de disquette. C'est très utile pour démarrer, car les niveaux les plus inférieurs de [boîtier d'ordinateur](case1.md) n'ont pas d'emplacement pour disquettes pré-construit, et vous aurez besoin d'un système d'exploitation pour démarrer l'[ordinateur](../general/computer.md). Un disque d'[OpenOS](../general/openOS.md) peut être fabriqué en utilisant une [disquette](../item/floppy.md) vierge et un [manuel](../item/manual.md).
 

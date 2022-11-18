@@ -1,6 +1,6 @@
 # 显示屏
 
-![看见没？](oredict:oc:screen1)
+![看见没？](oredict:opencomputers:screen1)
 
 显示屏需要和[显卡](../item/graphicsCard1.md)一起使用，这样电脑才能显示文本。不同型号的屏幕能支持的分辨率和色深不尽相同，从低分单色屏到高分 256 色屏都有。
 

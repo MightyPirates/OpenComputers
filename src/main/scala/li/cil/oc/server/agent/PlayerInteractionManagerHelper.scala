@@ -1,6 +1,7 @@
 package li.cil.oc.server.agent
 
-import net.minecraft.util.EnumFacing
+import net.minecraft.network.play.client.CPlayerDiggingPacket
+import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Node
@@ -9,32 +10,33 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper
-import net.minecraftforge.fml.common.eventhandler.{EventPriority, SubscribeEvent}
+import net.minecraftforge.eventbus.api.{EventPriority, SubscribeEvent}
 
-import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.ImplicitConversionsToScala._
 
 object PlayerInteractionManagerHelper {
+  private val isDestroyingBlock = ObfuscationReflectionHelper.findField(classOf[PlayerInteractionManager], "field_73088_d")
 
   private def isDestroyingBlock(player: Player): Boolean = {
     try {
-      ObfuscationReflectionHelper.getPrivateValue(classOf[PlayerInteractionManager], player.interactionManager, "isDestroyingBlock", "field_73088_d").asInstanceOf[Boolean]
+      isDestroyingBlock.getBoolean(player.gameMode)
     } catch {
       case _: Exception => true
     }
   }
 
-  def onBlockClicked(player: Player, pos: BlockPos, side: EnumFacing): Boolean = {
+  def onBlockClicked(player: Player, pos: BlockPos, side: Direction): Boolean = {
     if (isDestroyingBlock(player)) {
-      player.interactionManager.cancelDestroyingBlock()
+      player.gameMode.handleBlockBreakAction(pos, CPlayerDiggingPacket.Action.ABORT_DESTROY_BLOCK, side, 0)
     }
-    player.interactionManager.onBlockClicked(pos, side)
+    player.gameMode.handleBlockBreakAction(pos, CPlayerDiggingPacket.Action.START_DESTROY_BLOCK, side, 0)
     isDestroyingBlock(player)
   }
 
   def updateBlockRemoving(player: Player): Boolean = {
     if (!isDestroyingBlock(player))
       return false
-    player.interactionManager.updateBlockRemoving()
+    player.gameMode.tick()
     isDestroyingBlock(player)
   }
 
@@ -61,7 +63,7 @@ object PlayerInteractionManagerHelper {
 
       @SubscribeEvent(priority = EventPriority.LOWEST)
       def onBreakSpeedEvent(breakSpeedEvent: PlayerEvent.BreakSpeed): Unit = {
-        if (player == breakSpeedEvent.getEntityPlayer)
+        if (player == breakSpeedEvent.getPlayer)
           breakSpeedEvent.setNewSpeed(scala.Float.MaxValue)
       }
 
@@ -78,12 +80,12 @@ object PlayerInteractionManagerHelper {
 
     MinecraftForge.EVENT_BUS.register(infBreaker)
     try {
-      player.interactionManager.blockRemoving(pos)
+      player.gameMode.handleBlockBreakAction(pos, CPlayerDiggingPacket.Action.STOP_DESTROY_BLOCK, null, 0)
       infBreaker.expToDrop
     } catch {
       case e: Exception => {
         OpenComputers.log.info(s"an exception was thrown while trying to call blockRemoving: ${e.getMessage}")
-        player.interactionManager.cancelDestroyingBlock()
+        player.gameMode.handleBlockBreakAction(pos, CPlayerDiggingPacket.Action.ABORT_DESTROY_BLOCK, null, 0)
         -1
       }
     } finally {

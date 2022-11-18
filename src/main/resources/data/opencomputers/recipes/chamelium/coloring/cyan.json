@@ -1,0 +1,15 @@
+{
+  "type": "opencomputers:crafting_shapeless_extended",
+  "ingredients": [
+    {
+      "item": "opencomputers:chameliumblock"
+    },
+    {
+      "tag": "forge:dyes/cyan"
+    }
+  ],
+  "result": {
+    "item": "opencomputers:chameliumblock",
+    "nbt": "{\"Damage\": 9}"
+  }
+}

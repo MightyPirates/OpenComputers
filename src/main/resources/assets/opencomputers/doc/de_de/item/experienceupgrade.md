@@ -1,6 +1,6 @@
 # Erfahrungs-Upgrade
 
-![Kaum sinnvoll, sehr cool.](oredict:oc:experienceUpgrade)
+![Kaum sinnvoll, sehr cool.](oredict:opencomputers:experienceUpgrade)
 
 Das Erfahrungs-Upgrade ist ein sehr spezielles Upgrade, da es [Robotern](../block/robot.md) und [Drohnen](drone.md) ermöglicht, Erfahrung zu sammeln. Ein einziges Upgrade kann bis zu 30 Level speichern und ermöglicht damit kleinere Boni, wie schnellere Ausführung oder erhöhte Energiespeicherkapazität.
 

@@ -1,6 +1,6 @@
 # 纹理选择器
 
-![你说啥，这就是换了个皮肤？](oredict:oc:texturePicker)
+![你说啥，这就是换了个皮肤？](oredict:opencomputers:texturePicker)
 
 纹理选择器在制作 [3D 打印机](../block/printer.md)使用的模型时很有用。只需要潜行时对着某个方块使用它，就能获得世界上某个方块的纹理名。免责声明：对于箱子这种有特殊渲染器的方块无效。
 

@@ -1,8 +1,9 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
-import net.minecraft.world.World
+import net.minecraft.block.AbstractBlock.Properties
+import net.minecraft.world.IBlockReader
 
-class CarpetedCapacitor extends Capacitor {
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.CarpetedCapacitor()
+class CarpetedCapacitor(props: Properties) extends Capacitor(props) {
+  override def newBlockEntity(world: IBlockReader) = new tileentity.CarpetedCapacitor(tileentity.TileEntityTypes.CARPETED_CAPACITOR)
 }

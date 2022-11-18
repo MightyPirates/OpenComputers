@@ -13,7 +13,8 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.JavaConverters.asJavaIterable
+import scala.collection.convert.ImplicitConversionsToJava._
 
 object DroneTemplate extends Template {
   override protected val suggestedComponents = Array(
@@ -30,14 +31,14 @@ object DroneTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
-    val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
+    val items = (0 until inventory.getContainerSize).map(inventory.getItem)
     val data = new DroneData()
     data.tier = caseTier(inventory)
     data.name = RobotData.randomName
     data.components = items.drop(1).filter(!_.isEmpty).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
     val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
-    data.save(stack)
+    data.saveData(stack)
     val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
 
     Array(stack, Double.box(energy))
@@ -139,5 +140,5 @@ object DroneTemplate extends Template {
     else if (caseTier(inventory) == Tier.Four) 9001 // Creative
     else 5
 
-  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
+  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getItem(0))
 }

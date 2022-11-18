@@ -1,3 +1,7 @@
 package li.cil.oc.common.item
 
-class UpgradeLeash(val parent: Delegator) extends traits.Delegate with traits.ItemTier
+import net.minecraft.item.Item
+import net.minecraft.item.Item.Properties
+import net.minecraftforge.common.extensions.IForgeItem
+
+class UpgradeLeash(props: Properties) extends Item(props) with IForgeItem with traits.SimpleItem with traits.ItemTier

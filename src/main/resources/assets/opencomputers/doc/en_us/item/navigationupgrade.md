@@ -1,6 +1,6 @@
 # Navigation Upgrade
 
-![I'm lost. Again.](oredict:oc:navigationUpgrade)
+![I'm lost. Again.](oredict:opencomputers:navigationUpgrade)
 
 The navigation upgrade provides location and orientation information to devices it is installed in. The coordinates the upgrade provides are relative to the center of the map that was used to craft the upgrade, and the functional range is based on the size of that map.
 

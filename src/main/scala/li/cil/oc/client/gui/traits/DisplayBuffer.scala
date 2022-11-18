@@ -1,12 +1,10 @@
 package li.cil.oc.client.gui.traits
 
-import li.cil.oc.client.renderer.gui.BufferRenderer
+import com.mojang.blaze3d.matrix.MatrixStack
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.gui.screen.Screen
 
-trait DisplayBuffer extends GuiScreen {
+trait DisplayBuffer extends Screen {
   protected def bufferX: Int
 
   protected def bufferY: Int
@@ -15,36 +13,21 @@ trait DisplayBuffer extends GuiScreen {
 
   protected def bufferRows: Int
 
-  protected var guiSizeChanged = false
-
-  protected var currentWidth, currentHeight = -1
-
   protected var scale = 0.0
 
-  override def initGui() = {
-    super.initGui()
-    BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
-    guiSizeChanged = true
-  }
-
-  protected def drawBufferLayer() {
-    val oldWidth = currentWidth
-    val oldHeight = currentHeight
-    currentWidth = bufferColumns
-    currentHeight = bufferRows
-    scale = changeSize(currentWidth, currentHeight, guiSizeChanged || oldWidth != currentWidth || oldHeight != currentHeight)
+  protected def drawBufferLayer(stack: MatrixStack) {
+    scale = changeSize(bufferColumns, bufferRows)
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
 
-    GlStateManager.pushMatrix()
-    RenderState.disableEntityLighting()
-    drawBuffer()
-    GlStateManager.popMatrix()
+    stack.pushPose()
+    drawBuffer(stack)
+    stack.popPose()
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer")
   }
 
-  protected def drawBuffer(): Unit
+  protected def drawBuffer(stack: MatrixStack): Unit
 
-  protected def changeSize(w: Double, h: Double, recompile: Boolean): Double
+  protected def changeSize(w: Double, h: Double): Double
 }

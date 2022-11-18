@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:adapter" }
+        "": { "model": "opencomputers:block/adapter" }
     }
 }

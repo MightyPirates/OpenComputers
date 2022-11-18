@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 
 trait InventoryControl extends InventoryAware {
   @Callback(doc = "function():number -- The size of this device's internal inventory.")
-  def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(inventory.getSizeInventory)
+  def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(inventory.getContainerSize)
 
   @Callback(doc = "function([slot:number]):number -- Get the currently selected slot; set the selected slot if specified.")
   def select(context: Context, args: Arguments): Array[AnyRef] = {
@@ -35,8 +35,8 @@ trait InventoryControl extends InventoryAware {
   def space(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
-      case SomeStack(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.getCount
-      case _ => inventory.getInventoryStackLimit
+      case SomeStack(stack) => math.min(inventory.getMaxStackSize, stack.getMaxStackSize) - stack.getCount
+      case _ => inventory.getMaxStackSize
     })
   }
 
@@ -60,28 +60,28 @@ trait InventoryControl extends InventoryAware {
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (SomeStack(from), SomeStack(to)) =>
         if (InventoryUtils.haveSameItemType(from, to, checkNBT = true)) {
-          val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.getCount
+          val space = math.min(inventory.getMaxStackSize, to.getMaxStackSize) - to.getCount
           val amount = math.min(count, math.min(space, from.getCount))
           if (amount > 0) {
             from.shrink(amount)
             to.grow(amount)
             assert(from.getCount >= 0)
             if (from.getCount == 0) {
-              inventory.setInventorySlotContents(selectedSlot, ItemStack.EMPTY)
+              inventory.setItem(selectedSlot, ItemStack.EMPTY)
             }
-            inventory.markDirty()
+            inventory.setChanged()
             true
           }
           else false
         }
         else if (count >= from.getCount) {
-          inventory.setInventorySlotContents(slot, from)
-          inventory.setInventorySlotContents(selectedSlot, to)
+          inventory.setItem(slot, from)
+          inventory.setItem(selectedSlot, to)
           true
         }
         else false
       case (SomeStack(from), EmptyStack) =>
-        inventory.setInventorySlotContents(slot, inventory.decrStackSize(selectedSlot, count))
+        inventory.setItem(slot, inventory.removeItem(selectedSlot, count))
         true
       case _ => false
     })

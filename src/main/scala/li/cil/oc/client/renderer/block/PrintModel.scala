@@ -13,52 +13,54 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
-import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.block.model.BakedQuad
-import net.minecraft.client.renderer.block.model.IBakedModel
-import net.minecraft.client.renderer.block.model.ItemOverrideList
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.item.EnumDyeColor
+import net.minecraft.block.BlockState
+import net.minecraft.client.world.ClientWorld
+import net.minecraft.client.renderer.model.BakedQuad
+import net.minecraft.client.renderer.model.IBakedModel
+import net.minecraft.client.renderer.model.ItemOverrideList
+import net.minecraft.client.renderer.texture.MissingTextureSprite
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.entity.LivingEntity
+import net.minecraft.item.DyeColor
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.world.World
-import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.client.model.data.IModelData
 
-import scala.collection.convert.WrapAsJava.bufferAsJavaList
+import scala.collection.JavaConverters.bufferAsJavaList
 import scala.collection.mutable
 
 object PrintModel extends SmartBlockModelBase {
   override def getOverrides: ItemOverrideList = ItemOverride
 
-  override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] =
-    state match {
-      case extended: IExtendedBlockState =>
-        extended.getValue(block.property.PropertyTile.Tile) match {
-          case t: tileentity.Print =>
-            val faces = mutable.ArrayBuffer.empty[BakedQuad]
+  override def getQuads(state: BlockState, side: Direction, rand: util.Random, data: IModelData): util.List[BakedQuad] =
+    data match {
+      case t: tileentity.Print =>
+        val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-            for (shape <- t.shapes if !Strings.isNullOrEmpty(shape.texture)) {
-              val bounds = shape.bounds.rotateTowards(t.facing)
-              val texture = resolveTexture(shape.texture)
-              faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(White))
-            }
-
-            bufferAsJavaList(faces)
-          case _ => super.getQuads(state, side, rand)
+        for (shape <- t.shapes if !Strings.isNullOrEmpty(shape.texture)) {
+          val bounds = shape.bounds.rotateTowards(t.facing)
+          val texture = resolveTexture(shape.texture)
+          faces ++= bakeQuads(makeBox(bounds.minVec, bounds.maxVec), Array.fill(6)(texture), shape.tint.getOrElse(White))
         }
+
+        bufferAsJavaList(faces)
       case _ => super.getQuads(state, side, rand)
     }
 
-  private def resolveTexture(name: String) = {
-    val texture = Textures.getSprite(name)
-    if (texture.getIconName == "missingno") Textures.getSprite("minecraft:blocks/" + name)
+  private def resolveTexture(name: String): TextureAtlasSprite = try {
+    val texture = Textures.getSprite(new ResourceLocation(name))
+    if (texture.getName == MissingTextureSprite.getLocation) Textures.getSprite(new ResourceLocation("minecraft:blocks/" + name))
     else texture
+  }
+  catch {
+    case _: Throwable => Textures.getSprite(MissingTextureSprite.getLocation)
   }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
     val data = new PrintData(stack)
 
-    override def getQuads(state: IBlockState, side: EnumFacing, rand: Long): util.List[BakedQuad] = {
+    override def getQuads(state: BlockState, side: Direction, rand: util.Random): util.List[BakedQuad] = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
       val shapes =
@@ -69,20 +71,20 @@ object PrintModel extends SmartBlockModelBase {
       for (shape <- shapes) {
         val bounds = shape.bounds
         val texture = resolveTexture(shape.texture)
-        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(White))
+        faces ++= bakeQuads(makeBox(bounds.minVec, bounds.maxVec), Array.fill(6)(texture), shape.tint.getOrElse(White))
       }
       if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds
         val texture = resolveTexture(Settings.resourceDomain + ":blocks/white")
-        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), Color.rgbValues(EnumDyeColor.LIME))
+        faces ++= bakeQuads(makeBox(bounds.minVec, bounds.maxVec), Array.fill(6)(texture), Color.rgbValues(DyeColor.LIME))
       }
 
       bufferAsJavaList(faces)
     }
   }
 
-  object ItemOverride extends ItemOverrideList(Collections.emptyList()) {
-    override def handleItemState(originalModel: IBakedModel, stack: ItemStack, world: World, entity: EntityLivingBase): IBakedModel = new ItemModel(stack)
+  object ItemOverride extends ItemOverrideList {
+    override def resolve(originalModel: IBakedModel, stack: ItemStack, world: ClientWorld, entity: LivingEntity): IBakedModel = new ItemModel(stack)
   }
 
 }

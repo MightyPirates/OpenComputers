@@ -1,15 +1,16 @@
 package li.cil.oc.client.renderer.markdown.segment
 
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
 import scala.util.matching.Regex
 
 private[markdown] class TextSegment(val parent: Segment, val text: String) extends BasicTextSegment {
-  override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+  override def render(stack: MatrixStack, x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     var currentX = x + indent
     var currentY = y
     var chars = text
@@ -20,12 +21,12 @@ private[markdown] class TextSegment(val parent: Segment, val text: String) exten
     while (chars.length > 0) {
       val part = chars.take(numChars)
       hovered = hovered.orElse(resolvedInteractive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, stringWidth(part, renderer), (Document.lineHeight(renderer) * resolvedScale).toInt)))
-      GlStateManager.pushMatrix()
-      GlStateManager.translate(currentX, currentY, 0)
-      GlStateManager.scale(resolvedScale, resolvedScale, resolvedScale)
-      GlStateManager.translate(-currentX, -currentY, 0)
-      renderer.drawString(resolvedFormat + part, currentX, currentY, resolvedColor)
-      GlStateManager.popMatrix()
+      stack.pushPose()
+      stack.translate(currentX, currentY, 0)
+      stack.scale(resolvedScale, resolvedScale, resolvedScale)
+      stack.translate(-currentX, -currentY, 0)
+      renderer.draw(stack, resolvedFormat + part, currentX, currentY, resolvedColor)
+      stack.popPose()
       currentX = x + wrapIndent
       currentY += lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
@@ -65,7 +66,7 @@ private[markdown] class TextSegment(val parent: Segment, val text: String) exten
 
   override protected def lineHeight(renderer: FontRenderer): Int = (super.lineHeight(renderer) * resolvedScale).toInt
 
-  override protected def stringWidth(s: String, renderer: FontRenderer): Int = (renderer.getStringWidth(resolvedFormat + s) * resolvedScale).toInt
+  override protected def stringWidth(s: String, renderer: FontRenderer): Int = (renderer.width(resolvedFormat + s) * resolvedScale).toInt
 
   // ----------------------------------------------------------------------- //
 

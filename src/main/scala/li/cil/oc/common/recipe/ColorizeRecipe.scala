@@ -3,38 +3,35 @@ package li.cil.oc.common.recipe
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.StackOption
-import net.minecraft.block.Block
-import net.minecraft.inventory.InventoryCrafting
+import net.minecraft.inventory.CraftingInventory
+import net.minecraft.item.crafting.SpecialRecipe
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.util.IItemProvider
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 
 /**
   * @author asie, Vexatos
   */
-class ColorizeRecipe(target: Item, source: Array[Item] = null) extends ContainerItemAwareRecipe {
-  def this(target: Block, source: Array[Item]) = this(Item.getItemFromBlock(target), source)
-  def this(target: Block) = this(target, null)
+class ColorizeRecipe(id: ResourceLocation, target: IItemProvider) extends SpecialRecipe(id) {
+  val targetItem: Item = target.asItem()
 
-  val targetItem: Item = target
-  val sourceItems: Array[Item] = if (source != null) source else Array(targetItem)
-
-  override def matches(crafting: InventoryCrafting, world: World): Boolean = {
-    val stacks = (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i)))
-    val targets = stacks.filter(stack => sourceItems.contains(stack.getItem) || stack.getItem == targetItem)
+  override def matches(crafting: CraftingInventory, world: World): Boolean = {
+    val stacks = (0 until crafting.getContainerSize).flatMap(i => StackOption(crafting.getItem(i)))
+    val targets = stacks.filter(stack => stack.getItem == targetItem)
     val other = stacks.filterNot(targets.contains(_))
     targets.size == 1 && other.nonEmpty && other.forall(Color.isDye)
   }
 
-  override def getCraftingResult(crafting: InventoryCrafting): ItemStack = {
+  override def assemble(crafting: CraftingInventory): ItemStack = {
     var targetStack: ItemStack = ItemStack.EMPTY
     val color = Array[Int](0, 0, 0)
     var colorCount = 0
     var maximum = 0
 
-    (0 until crafting.getSizeInventory).flatMap(i => StackOption(crafting.getStackInSlot(i))).foreach { stack =>
-      if (sourceItems.contains(stack.getItem)
-        || stack.getItem == targetItem) {
+    (0 until crafting.getContainerSize).flatMap(i => StackOption(crafting.getItem(i))).foreach { stack =>
+      if (stack.getItem == targetItem) {
         targetStack = stack.copy()
         targetStack.setCount(1)
       } else {
@@ -42,7 +39,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         if (dye.isEmpty)
           return ItemStack.EMPTY
 
-        val itemColor = Color.byOreName(dye.get).getColorComponentValues
+        val itemColor = Color.byTag(dye.get).getTextureDiffuseColors
         val red = (itemColor(0) * 255.0F).toInt
         val green = (itemColor(1) * 255.0F).toInt
         val blue = (itemColor(2) * 255.0F).toInt
@@ -68,8 +65,6 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
         color(2) = (color(2).toFloat + blue * 255.0F).toInt
         colorCount = colorCount + 1
       }
-    } else if (sourceItems.contains(targetStack.getItem)) {
-      targetStack = new ItemStack(targetItem, targetStack.getCount, targetStack.getItemDamage)
     }
 
     var red = color(0) / colorCount
@@ -84,7 +79,7 @@ class ColorizeRecipe(target: Item, source: Array[Item] = null) extends Container
     targetStack
   }
 
-  override def getMinimumRecipeSize = 2
+  override def canCraftInDimensions(width: Int, height: Int): Boolean = width * height >= 2
 
-  override def getRecipeOutput = ItemStack.EMPTY
+  override def getSerializer = RecipeSerializers.CRAFTING_COLORIZE
 }

@@ -1,66 +1,59 @@
 package li.cil.oc.client.renderer.tileentity
 
+import java.util.function.Function
+
+import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.RenderTypes
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import org.lwjgl.opengl.GL11
+import net.minecraft.client.renderer.IRenderTypeBuffer
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 
-object RelayRenderer extends TileEntitySpecialRenderer[tileentity.Relay] {
-  override def render(switch: tileentity.Relay, x: Double, y: Double, z: Double, f: Float, damage: Int, alpha: Float) {
+object RelayRenderer extends Function[TileEntityRendererDispatcher, RelayRenderer] {
+  override def apply(dispatch: TileEntityRendererDispatcher) = new RelayRenderer(dispatch)
+}
+
+class RelayRenderer(dispatch: TileEntityRendererDispatcher) extends TileEntityRenderer[tileentity.Relay](dispatch) {
+  override def render(switch: tileentity.Relay, dt: Float, stack: MatrixStack, buffer: IRenderTypeBuffer, light: Int, overlay: Int) {
     RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
+
+    RenderSystem.color4f(1, 1, 1, 1)
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
-      RenderState.pushAttrib()
+      stack.pushPose()
 
-      RenderState.disableEntityLighting()
-      RenderState.makeItBlend()
-      RenderState.setBlendAlpha(activity.toFloat)
+      stack.translate(0.5, 0.5, 0.5)
+      stack.scale(1.0025f, -1.0025f, 1.0025f)
+      stack.translate(-0.5f, -0.5f, -0.5f)
 
-      GlStateManager.pushMatrix()
-
-      GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
-      GlStateManager.scale(1.0025, -1.0025, 1.0025)
-      GlStateManager.translate(-0.5f, -0.5f, -0.5f)
-
-      val t = Tessellator.getInstance
-      val r = t.getBuffer
-
-      Textures.Block.bind()
-      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+      val r = buffer.getBuffer(RenderTypes.BLOCK_OVERLAY)
 
       val icon = Textures.getSprite(Textures.Block.SwitchSideOn)
-      r.pos(1, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
-      r.pos(0, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
-      r.pos(0, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
-      r.pos(1, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
+      r.vertex(stack.last.pose, 1, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 0, 1, 0).uv(icon.getU1, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 0, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
+      r.vertex(stack.last.pose, 1, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
 
-      r.pos(0, 1, 1).tex(icon.getMinU, icon.getMaxV).endVertex()
-      r.pos(1, 1, 1).tex(icon.getMaxU, icon.getMaxV).endVertex()
-      r.pos(1, 0, 1).tex(icon.getMaxU, icon.getMinV).endVertex()
-      r.pos(0, 0, 1).tex(icon.getMinU, icon.getMinV).endVertex()
+      r.vertex(stack.last.pose, 0, 1, 1).uv(icon.getU0, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 1, 1, 1).uv(icon.getU1, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 1, 0, 1).uv(icon.getU1, icon.getV0).endVertex()
+      r.vertex(stack.last.pose, 0, 0, 1).uv(icon.getU0, icon.getV0).endVertex()
 
-      r.pos(1, 1, 1).tex(icon.getMinU, icon.getMaxV).endVertex()
-      r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
-      r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
-      r.pos(1, 0, 1).tex(icon.getMinU, icon.getMinV).endVertex()
+      r.vertex(stack.last.pose, 1, 1, 1).uv(icon.getU0, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 1, 1, 0).uv(icon.getU1, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 1, 0, 0).uv(icon.getU1, icon.getV0).endVertex()
+      r.vertex(stack.last.pose, 1, 0, 1).uv(icon.getU0, icon.getV0).endVertex()
 
-      r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
-      r.pos(0, 1, 1).tex(icon.getMaxU, icon.getMaxV).endVertex()
-      r.pos(0, 0, 1).tex(icon.getMaxU, icon.getMinV).endVertex()
-      r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
+      r.vertex(stack.last.pose, 0, 1, 0).uv(icon.getU0, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 0, 1, 1).uv(icon.getU1, icon.getV1).endVertex()
+      r.vertex(stack.last.pose, 0, 0, 1).uv(icon.getU1, icon.getV0).endVertex()
+      r.vertex(stack.last.pose, 0, 0, 0).uv(icon.getU0, icon.getV0).endVertex()
 
-      t.draw()
-
-      RenderState.disableBlend()
-      RenderState.enableEntityLighting()
-
-      GlStateManager.popMatrix()
-      RenderState.popAttrib()
+      stack.popPose()
     }
 
     RenderState.checkError(getClass.getName + ".render: leaving")

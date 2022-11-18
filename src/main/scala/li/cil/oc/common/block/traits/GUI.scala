@@ -1,22 +1,28 @@
 package li.cil.oc.common.block.traits
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.SimpleBlock
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.block.BlockState
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.ServerPlayerEntity
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumHand
+import net.minecraft.util.Direction
+import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 trait GUI extends SimpleBlock {
-  def guiType: GuiType.EnumVal
+  def openGui(player: ServerPlayerEntity, world: World, pos: BlockPos)
 
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, guiType.id, world, pos.getX, pos.getY, pos.getZ)
+  // This gets forwarded to the vanilla PlayerEntity.openMenu call which doesn't support extra data.
+  override def getMenuProvider(state: BlockState, world: World, pos: BlockPos): INamedContainerProvider = null
+
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, heldItem: ItemStack, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    if (!player.isCrouching) {
+      player match {
+        case srvPlr: ServerPlayerEntity if !world.isClientSide => openGui(srvPlr, world, pos)
+        case _ =>
       }
       true
     }

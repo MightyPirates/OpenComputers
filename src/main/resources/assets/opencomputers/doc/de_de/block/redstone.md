@@ -1,6 +1,6 @@
 # Redstone-I/O
 
-![Hi Red.](oredict:oc:redstone)
+![Hi Red.](oredict:opencomputers:redstone)
 
 Der Redstone-I/O-Block kann verwendet werden, um ferngesteuert Redstonesignale auszugeben und einzulesen. Es verhält sich wie ein Hybrid einer Stufe-1- und einer Stufe-2-[Redstonekarte](../item/redstoneCard1.md). Es kann analoge und gebündelte Signale lesen wie schreiben, aber kann keine kabellosen Redstonesignale ausgeben.
 

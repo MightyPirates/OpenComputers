@@ -9,13 +9,15 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.network._
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.ImplicitConversionsToJava._
 
-class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo {
+class PowerConverter(selfType: TileEntityType[_ <: PowerConverter]) extends TileEntity(selfType) with traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable with DeviceInfo {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -30,10 +32,10 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
 
   override def getDeviceInfo: util.Map[String, String] = deviceInfo
 
-  @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = true
+  @OnlyIn(Dist.CLIENT)
+  override protected def hasConnector(side: Direction) = true
 
-  override protected def connector(side: EnumFacing) = Option(node)
+  override protected def connector(side: Direction) = Option(node)
 
   override def energyThroughput = Settings.get.powerConverterRate
 }

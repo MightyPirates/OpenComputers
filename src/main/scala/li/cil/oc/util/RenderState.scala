@@ -1,16 +1,14 @@
 package li.cil.oc.util
 
+import com.mojang.blaze3d.systems.RenderSystem
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.GlStateManager.CullFace
 import net.minecraft.client.renderer.RenderHelper
 import org.lwjgl.opengl._
-import org.lwjgl.util.glu.GLU
 
-// This class has evolved into a wrapper for GlStateManager that basically does
-// nothing but call the corresponding GlStateManager methods and then also
+// This class has evolved into a wrapper for RenderSystem that basically does
+// nothing but call the corresponding RenderSystem methods and then also
 // forcefully applies whatever that call *should* do. This way the state
 // manager's internal state is kept up-to-date but we also avoid issues with
 // that state being incorrect causing wrong behavior (I've had too many render
@@ -18,12 +16,21 @@ import org.lwjgl.util.glu.GLU
 // because the state manager thought it already was in the state to change to,
 // so I frankly don't care if this is less performant anymore).
 object RenderState {
-  val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
+  def getErrorString(errorCode: Int): String = errorCode match {
+    case GL11.GL_NO_ERROR => "No error"
+    case GL11.GL_INVALID_ENUM => "Enum argument out of range"
+    case GL11.GL_INVALID_VALUE => "Numeric argument out of range"
+    case GL11.GL_INVALID_OPERATION => "Operation illegal in current state"
+    case GL11.GL_STACK_OVERFLOW => "Command would cause a stack overflow"
+    case GL11.GL_STACK_UNDERFLOW => "Command would cause a stack underflow"
+    case GL11.GL_OUT_OF_MEMORY => "Not enough memory left to execute command"
+    case _ => f"Unknown [0x$errorCode%X]"
+  }
 
   def checkError(where: String) {
     val error = GL11.glGetError
     if (error != 0 && Settings.get.logOpenGLErrors) {
-      OpenComputers.log.warn("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
+      OpenComputers.log.warn("GL ERROR @ " + where + ": " + getErrorString(error))
     }
   }
 
@@ -35,52 +42,46 @@ object RenderState {
     else false
   }
 
-  // pushAttrib/popAttrib currently breaks the GlStateManager because it doesn't
+  // pushAttrib/popAttrib currently breaks the RenderSystem because it doesn't
   // accordingly pushes/pops its cache, so it gets into an illegal state...
   // See https://gist.github.com/fnuecke/9a5b2499835fca9b52419277dc6239ca
   def pushAttrib(): Unit = {
-//    GlStateManager.glPushAttrib(mask)
+//    RenderSystem.glPushAttrib(mask)
   }
 
   def popAttrib(): Unit = {
-//    GlStateManager.popAttrib()
+//    RenderSystem.popAttrib()
   }
 
   def disableEntityLighting() {
-    Minecraft.getMinecraft.entityRenderer.disableLightmap()
-    GlStateManager.disableLighting()
-    GlStateManager.disableLight(0)
-    GlStateManager.disableLight(1)
-    GlStateManager.disableColorMaterial()
+    RenderSystem.disableLighting()
+    RenderSystem.disableColorMaterial()
   }
 
   def enableEntityLighting() {
-    Minecraft.getMinecraft.entityRenderer.enableLightmap()
-    GlStateManager.enableLighting()
-    GlStateManager.enableLight(0)
-    GlStateManager.enableLight(1)
-    GlStateManager.enableColorMaterial()
+    RenderSystem.enableLighting()
+    RenderSystem.enableColorMaterial()
   }
 
   def makeItBlend() {
-    GlStateManager.enableBlend()
+    RenderSystem.enableBlend()
     GL11.glEnable(GL11.GL_BLEND)
-    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+    RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
   }
 
   def disableBlend() {
-    GlStateManager.blendFunc(GL11.GL_ONE, GL11.GL_ZERO)
-    GlStateManager.disableBlend()
+    RenderSystem.blendFunc(GL11.GL_ONE, GL11.GL_ZERO)
+    RenderSystem.disableBlend()
     GL11.glDisable(GL11.GL_BLEND)
   }
 
   def setBlendAlpha(alpha: Float) = {
-    GlStateManager.color(1, 1, 1, alpha)
-    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    RenderSystem.color4f(1, 1, 1, alpha)
+    RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
   }
 
   def bindTexture(id: Int): Unit = {
-    GlStateManager.bindTexture(id)
+    RenderSystem.bindTexture(id)
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
   }
 }

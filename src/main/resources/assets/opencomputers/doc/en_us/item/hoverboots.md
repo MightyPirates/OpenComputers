@@ -1,6 +1,6 @@
 # Hover Boots
 
-![Step on it.](oredict:oc:hoverBoots)
+![Step on it.](oredict:opencomputers:hoverBoots)
 
 If you can't be bothered to program [drones](drone.md), here's an alternative use for them: stepping stones! Or glorified inline skates. Something like that.
 

@@ -3,37 +3,40 @@ package li.cil.oc.common.block
 import java.util.Random
 
 import li.cil.oc.common.tileentity
+import net.minecraft.block.AbstractBlock.Properties
 import net.minecraft.block.Block
-import net.minecraft.block.state.IBlockState
+import net.minecraft.block.BlockState
 import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockReader
 import net.minecraft.world.World
+import net.minecraft.world.server.ServerWorld
 
-class Capacitor extends SimpleBlock {
-  setTickRandomly(true)
-
-  // ----------------------------------------------------------------------- //
-
-  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Capacitor()
+class Capacitor(props: Properties) extends SimpleBlock(props) {
+  @Deprecated
+  override def isRandomlyTicking(state: BlockState) = true
 
   // ----------------------------------------------------------------------- //
 
-  override def hasComparatorInputOverride(state: IBlockState): Boolean = true
+  override def newBlockEntity(world: IBlockReader) = new tileentity.Capacitor(tileentity.TileEntityTypes.CAPACITOR)
 
-  override def getComparatorInputOverride(state: IBlockState, world: World, pos: BlockPos): Int =
-    world.getTileEntity(pos) match {
-      case capacitor: tileentity.Capacitor if !world.isRemote =>
+  // ----------------------------------------------------------------------- //
+
+  override def hasAnalogOutputSignal(state: BlockState): Boolean = true
+
+  override def getAnalogOutputSignal(state: BlockState, world: World, pos: BlockPos): Int =
+    world.getBlockEntity(pos) match {
+      case capacitor: tileentity.Capacitor if !world.isClientSide =>
         math.round(15 * capacitor.node.localBuffer / capacitor.node.localBufferSize).toInt
       case _ => 0
     }
 
-  override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random): Unit = {
-    world.notifyNeighborsOfStateChange(pos, this, false)
+  override def tick(state: BlockState, world: ServerWorld, pos: BlockPos, rand: Random): Unit = {
+    world.updateNeighborsAt(pos, this)
   }
 
-  override def tickRate(world: World) = 1
-
-  override def neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos): Unit =
-    world.getTileEntity(pos) match {
+  @Deprecated
+  override def neighborChanged(state: BlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos, b: Boolean): Unit =
+    world.getBlockEntity(pos) match {
       case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
       case _ =>
     }

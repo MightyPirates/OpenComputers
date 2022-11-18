@@ -24,21 +24,29 @@ import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.container
+import li.cil.oc.common.container.ContainerTypes
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverLinkedCard
 import li.cil.oc.server.network.QuantumNetwork
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.inventory.container.INamedContainerProvider
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
+import net.minecraft.nbt.CompoundNBT
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntityType
+import net.minecraft.util.Direction
+import net.minecraft.util.Util
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode {
+class Relay(selfType: TileEntityType[_ <: Relay]) extends TileEntity(selfType) with traits.Hub with traits.ComponentInventory
+  with traits.PowerAcceptor with Analyzable with WirelessEndpoint with QuantumNetwork.QuantumNode with INamedContainerProvider {
+
   lazy final val WirelessNetworkCardTier1: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier1)
   lazy final val WirelessNetworkCardTier2: ItemInfo = api.Items.get(Constants.ItemName.WirelessNetworkCardTier2)
   lazy final val LinkedCard: ItemInfo = api.Items.get(Constants.ItemName.LinkedCard)
@@ -79,10 +87,10 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: EnumFacing) = true
+  @OnlyIn(Dist.CLIENT)
+  override protected def hasConnector(side: Direction) = true
 
-  override protected def connector(side: EnumFacing): Option[Connector] = sidedNode(side) match {
+  override protected def connector(side: Direction): Option[Connector] = sidedNode(side) match {
     case connector: Connector => Option(connector)
     case _ => None
   }
@@ -91,10 +99,10 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+  override def onAnalyze(player: PlayerEntity, side: Direction, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     if (isWirelessEnabled) {
-      player.sendMessage(Localization.Analyzer.WirelessStrength(strength))
-      Array(componentNodes(side.getIndex))
+      player.sendMessage(Localization.Analyzer.WirelessStrength(strength), Util.NIL_UUID)
+      Array(componentNodes(side.get3DDataValue))
     }
     else null
   }
@@ -121,14 +129,20 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   // ----------------------------------------------------------------------- //
 
-  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, Charsets.UTF_8)
-          case x => x
-        }: _*))
+  // Isolated from parent class so automatic callbacks don't depend on optional mods.
+  protected object RelayCCAdapter {
+    def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
+      for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+        val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+        if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port)) {
+          val header = Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort))
+          val payload = args.map {
+            case x: Array[Byte] => new String(x, Charsets.UTF_8)
+            case x => x
+          }
+          computer.queueEvent("modem_message", Array((header :+ (if (payload.length > 1) payload else payload(0))): _*): _*)
+        }
+      }
     }
   }
 
@@ -148,17 +162,17 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   val computers = mutable.Buffer.empty[AnyRef]
 
-  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
+  override def tryEnqueuePacket(sourceSide: Option[Direction], packet: Packet): Boolean = {
     if (Mods.ComputerCraft.isModAvailable) {
       packet.data.headOption match {
-        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+        case Some(answerPort: java.lang.Double) => RelayCCAdapter.queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => RelayCCAdapter.queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
       }
     }
     super.tryEnqueuePacket(sourceSide, packet)
   }
 
-  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet): Unit = {
+  override protected def relayPacket(sourceSide: Option[Direction], packet: Packet): Unit = {
     super.relayPacket(sourceSide, packet)
 
     val tryChangeBuffer = sourceSide match {
@@ -228,8 +242,8 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
       case Some(driver) if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade).toInt)
       case Some(driver) if driver.slot(stack) == Slot.Memory =>
-        relayAmount = math.max(1, relayBaseAmount + (Delegator.subItem(stack) match {
-          case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
+        relayAmount = math.max(1, relayBaseAmount + (stack.getItem match {
+          case ram: item.Memory => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
       case Some(driver) if driver.slot(stack) == Slot.HDD =>
@@ -240,7 +254,7 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
           wirelessTier = if (descriptor == WirelessNetworkCardTier1) Tier.One else Tier.Two
         if (descriptor == LinkedCard) {
           val data = DriverLinkedCard.dataTag(stack)
-          if (data.hasKey(Settings.namespace + "tunnel")) {
+          if (data.contains(Settings.namespace + "tunnel")) {
             tunnel = data.getString(Settings.namespace + "tunnel")
             isLinkedEnabled = true
             QuantumNetwork.add(this)
@@ -263,9 +277,9 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
     }
   }
 
-  override def getSizeInventory: Int = InventorySlots.relay.length
+  override def getContainerSize: Int = InventorySlots.relay.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean =
+  override def canPlaceItem(slot: Int, stack: ItemStack): Boolean =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.relay(slot)
       val tierSatisfied = driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
@@ -276,38 +290,43 @@ class Relay extends traits.Hub with traits.ComponentInventory with traits.PowerA
 
   // ----------------------------------------------------------------------- //
 
+  override def createMenu(id: Int, playerInventory: PlayerInventory, player: PlayerEntity) =
+    new container.Relay(ContainerTypes.RELAY, id, playerInventory, this)
+
+  // ----------------------------------------------------------------------- //
+
   private final val StrengthTag = Settings.namespace + "strength"
   private final val IsRepeaterTag = Settings.namespace + "isRepeater"
   private final val ComponentNodesTag = Settings.namespace + "componentNodes"
 
-  override def readFromNBTForServer(nbt: NBTTagCompound) {
-    super.readFromNBTForServer(nbt)
+  override def loadForServer(nbt: CompoundNBT) {
+    super.loadForServer(nbt)
     for (slot <- items.indices) if (!items(slot).isEmpty) {
       updateLimits(slot, items(slot))
     }
 
-    if (nbt.hasKey(StrengthTag)) {
+    if (nbt.contains(StrengthTag)) {
       strength = nbt.getDouble(StrengthTag) max 0 min maxWirelessRange
     }
-    if (nbt.hasKey(IsRepeaterTag)) {
+    if (nbt.contains(IsRepeaterTag)) {
       isRepeater = nbt.getBoolean(IsRepeaterTag)
     }
-    nbt.getTagList(ComponentNodesTag, NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+    nbt.getList(ComponentNodesTag, NBT.TAG_COMPOUND).toTagArray[CompoundNBT].
       zipWithIndex.foreach {
-      case (tag, index) => componentNodes(index).load(tag)
+      case (tag, index) => componentNodes(index).loadData(tag)
     }
   }
 
-  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
-    super.writeToNBTForServer(nbt)
-    nbt.setDouble(StrengthTag, strength)
-    nbt.setBoolean(IsRepeaterTag, isRepeater)
+  override def saveForServer(nbt: CompoundNBT): Unit = {
+    super.saveForServer(nbt)
+    nbt.putDouble(StrengthTag, strength)
+    nbt.putBoolean(IsRepeaterTag, isRepeater)
     nbt.setNewTagList(ComponentNodesTag, componentNodes.map {
       case node: Node =>
-        val tag = new NBTTagCompound()
-        node.save(tag)
+        val tag = new CompoundNBT()
+        node.saveData(tag)
         tag
-      case _ => new NBTTagCompound()
+      case _ => new CompoundNBT()
     })
   }
 }

@@ -1,6 +1,6 @@
 # Amélioration de base de données
 
-![Je suis dans la matrice!](oredict:oc:databaseUpgrade1)
+![Je suis dans la matrice!](oredict:opencomputers:databaseUpgrade1)
 
 L'amélioration de base de données peut être configurée pour stocker une liste de représentations de groupes d'objets, qui peuvent ensuite être utilisés par d'autres composants. C'est particulièrement utile pour les objets qui sont uniquement distinguables par leurs données NBT, ce qui ne fait pas partie des données affichées de base pour un groupe d'objets.
 

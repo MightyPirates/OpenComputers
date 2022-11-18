@@ -1,6 +1,6 @@
 # Mémoire
 
-![Do you remember, dancing in September~](oredict:oc:ram1)
+![Do you remember, dancing in September~](oredict:opencomputers:ram1)
 
 La mémoire est, au même titre que le [processeur](cpu1.md), un composant essentiel à chaque [ordinateur](../general/computer.md). En fonction de l'architecture du [processeur](cpu1.md), la mémoire a un effet important sur ce que l'[ordinateur](../general/computer.md) peut ou ne peut pas faire. Pour l'architecture Lua standard, par exemple, elle contrôle la quantité réelle de mémoire que les scripts Lua peuvent utiliser. Cela signifie que pour exécuter des programmes demandant plus de ressources, vous aurez besoin de plus de mémoire.
 
