@@ -165,10 +165,10 @@ function on.key_down(_, source, ascii, keycode, user)
     if ascii ~= 0 and ascii ~= 127 then 
         io.stdout:write(unicode.char(ascii))
     else
-        if keycode == keyboard.keys.up then io.stdout:write("\x1b[A")
-        elseif keycode == keyboard.keys.down then io.stdout:write("\x1b[B")
-        elseif keycode == keyboard.keys.right then io.stdout:write("\x1b[C")
-        elseif keycode == keyboard.keys.left then io.stdout:write("\x1b[D")
+        if keycode == 200 then io.stdout:write("\x1b[A")
+        elseif keycode == 208 then io.stdout:write("\x1b[B")
+        elseif keycode == 205 then io.stdout:write("\x1b[C")
+        elseif keycode == 203 then io.stdout:write("\x1b[D")
             
         elseif keycode == keyboard.keys.f1 then io.stdout:write("\x1bOP")
         elseif keycode == keyboard.keys.f2 then io.stdout:write("\x1bOQ")

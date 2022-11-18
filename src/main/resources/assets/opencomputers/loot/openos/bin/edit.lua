@@ -628,7 +628,7 @@ local function onKeyDown(char, code)
   elseif not readonly then
     if not keyboard.isControl(char) then
       insert(unicode.char(char))
-    elseif code == keyboard.keys.tab then
+    elseif unicode.char(char) == "\t" then
       insert("  ")
     end
   end

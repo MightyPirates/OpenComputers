@@ -38,7 +38,7 @@ local function handleTcp()
                 elseif e[2] == "message" then
                     term.write(e[4])
                 end
-            elseif e[1] == "key_up" and channel and e[3] ~= 0 then
+            elseif e[1] == "key_up" and channel then
                 network.tcp.send(channel, string.char(e[3]))
                 term.write(string.char(e[3]))
             end
