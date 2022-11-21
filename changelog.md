@@ -10,14 +10,22 @@
   * Lua 5.3 has been updated from 5.3.2 to 5.3.6.
   * 64-bit integers in calls should now be handled properly.
 * Added: Official support for AArch64 on Linux and macOS.
+* Added: Source tank parameter for Transposer transferFluid(). (repo-alt)
 * Added: Subtle indentations to Redstone I/O texture.
   * The amount of darkened dots on each side marks the ordinal number of the side it responds to.
 * Added: Support for non-BMP Unicode codepoints!
   * To clarify, Unicode characters >= 0x10000 should now be fully supported - as long as they're provided in the font.
+* Added: Support for partial font overrides in resource packs.
+  * If a resource pack's font.hex file only contains some glyphs, missing glyphs present in parent resource packs won't disappear.
+* Added: Support for the "PATCH" HTTP method. (hohserg1)
+* Added: New config option: "transposerFluidTransferRate". (repo-alt)
 * Changed: New limitFlightHeight configuration definition.
   * This allows values above 256 to be used, which may be useful for Cubic Chunks users.
+* Changed: Replaced the forceNativeLibWithName config option with two new ones: forceNativeLibPlatform and forceNativeLibPathFirst. (TheCodex6824)
+  * forceNativeLibPlatform allows overriding the normally auto-detected platform string to a custom value, in case the user is on an unsupported platform.
+  * forceNativeLibPathFirst allows choosing a directory to check for natives in, instead of always searching in the jar for one. This allows custom natives to be used without packing them into the mod jar first, which should be much easier for end users.
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
-* Removed: Native Lua library support for FreeBSD and x86 macOS.
+* Removed: Native Lua library support for x86 macOS.
 * (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
 ## OpenOS fixes/improvements
@@ -26,4 +34,4 @@
 
 ## List of contributors
 
-asie, payonel, Smok1e
+asie, hohserg1, payonel, repo-alt, Smok1e, TheCodex6824
