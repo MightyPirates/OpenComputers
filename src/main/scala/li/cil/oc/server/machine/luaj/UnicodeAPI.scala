@@ -33,6 +33,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       val sLength = ExtendedUnicodeHelper.length(string)
       val start = args.checkint(2) match {
         case i if i < 0 => string.offsetByCodePoints(string.length, math.max(i, -sLength))
+        case i if i == 0 => 0
         case i => string.offsetByCodePoints(0, math.min(i - 1, sLength))
       }
       val end =
