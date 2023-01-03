@@ -70,9 +70,11 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
           if (Settings.get.inputUsername) {
             signal(p, "key_down", char, code, p.getCommandSenderName)
+            signal(p, "text_input", char.toString, p.getCommandSenderName)
           }
           else {
             signal(p, "key_down", char, code)
+            signal(p, "text_input", char.toString)
           }
         }
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
