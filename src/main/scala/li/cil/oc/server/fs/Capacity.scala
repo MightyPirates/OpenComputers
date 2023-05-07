@@ -32,6 +32,19 @@ trait Capacity extends OutputStreamFileSystem {
     else false
   }
 
+  override def rename(from: String, to: String): Boolean = {
+    if (exists(to)) {
+      val freed = Settings.get.fileCost + size(to)
+      if (super.rename(from, to)) {
+        used = math.max(0, used - freed)
+        true
+      }
+      else false
+    } else {
+      super.rename(from, to)
+    }
+  }
+
   override def makeDirectory(path: String) = {
     if (capacity - used < Settings.get.fileCost && !ignoreCapacity) {
       throw new io.IOException("not enough space")

@@ -2,9 +2,10 @@ package li.cil.oc.server.fs
 
 import java.io
 import java.io.RandomAccessFile
-
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.NBTTagCompound
+
+import java.nio.file.{Files, StandardCopyOption}
 
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {
   override def spaceTotal = -1
@@ -20,7 +21,14 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   override def makeDirectory(path: String) = new io.File(root, FileSystem.validatePath(path)).mkdir()
 
-  override def rename(from: String, to: String) = new io.File(root, FileSystem.validatePath(from)).renameTo(new io.File(root, FileSystem.validatePath(to)))
+  override def rename(from: String, to: String) = {
+    try {
+      Files.move(new io.File(root, FileSystem.validatePath(from)).toPath, new io.File(root, FileSystem.validatePath(to)).toPath, StandardCopyOption.REPLACE_EXISTING)
+      true
+    } catch {
+      case e: Exception => false
+    }
+  }
 
   override def setLastModified(path: String, time: Long) = new io.File(root, FileSystem.validatePath(path)).setLastModified(time)
 

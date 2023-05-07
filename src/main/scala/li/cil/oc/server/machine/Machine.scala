@@ -460,7 +460,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
     null
   }
 
-  @Callback(direct = true, doc = """function():table -- Collect information on all connected devices.""")
+  @Callback(doc = """function():table -- Collect information on all connected devices.""")
   def getDeviceInfo(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(1) // Iterating all nodes is potentially expensive, and I see no practical reason for having to call this frequently.
     Array[AnyRef](node.network.nodes.map(n => (n, n.host)).collect {

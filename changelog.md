@@ -9,6 +9,7 @@
   * Lua 5.2 has been updated with gamax92's backported bugfixes.
   * Lua 5.3 has been updated from 5.3.2 to 5.3.6.
   * 64-bit integers in calls should now be handled properly.
+* Added: New robot names.
 * Added: Official support for AArch64 on Linux and macOS.
 * Added: Source tank parameter for Transposer transferFluid(). (repo-alt)
 * Added: Subtle indentations to Redstone I/O texture.
@@ -25,7 +26,11 @@
   * forceNativeLibPlatform allows overriding the normally auto-detected platform string to a custom value, in case the user is on an unsupported platform.
   * forceNativeLibPathFirst allows choosing a directory to check for natives in, instead of always searching in the jar for one. This allows custom natives to be used without packing them into the mod jar first, which should be much easier for end users.
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
-* Removed: Native Lua library support for x86 macOS.
+* Fixed: [#3588] Renaming over other files does not properly free space.
+* Fixed: [#3591] Memory leak with wrapped worlds from other mods.
+* Fixed: [#3603] computer.getDeviceInfo doesn't pause the computer immediately (AR2000AR)
+* Fixed: [#3609] Swapped arguments in a graphics card "bitblt()" edge case. (Kosmos-Prime)
+* Removed: Native Lua library support for x86 (32-bit) macOS.
 * (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
 ## OpenOS fixes/improvements
@@ -34,4 +39,4 @@
 
 ## List of contributors
 
-asie, hohserg1, payonel, repo-alt, Smok1e, TheCodex6824
+AR2000AR, asie, hohserg1, Kosmos-Prime, payonel, repo-alt, Smok1e, TheCodex6824

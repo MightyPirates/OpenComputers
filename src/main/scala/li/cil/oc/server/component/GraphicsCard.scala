@@ -259,7 +259,7 @@ class GraphicsCard(val tier: Int) extends AbstractManagedEnvironment with Device
             result(true)
           } else {
             // at least one of the two buffers is a gpu buffer
-            component.GpuTextBuffer.bitblt(dst, col, row, w, h, src, fromRow, fromCol)
+            component.GpuTextBuffer.bitblt(dst, col, row, w, h, src, fromCol, fromRow)
             result(true)
           }
         } else result(Unit, "not enough energy")

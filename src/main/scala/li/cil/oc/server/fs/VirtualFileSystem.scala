@@ -68,7 +68,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   override def rename(from: String, to: String) =
     if (from == "" || !exists(from)) throw new FileNotFoundException(from)
-    else if (!exists(to)) {
+    else {
       val segmentsTo = segments(to)
       root.get(segmentsTo.dropRight(1)) match {
         case Some(toParent: VirtualDirectory) =>
@@ -77,6 +77,10 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
           val fromParent = root.get(segmentsFrom.dropRight(1)).get.asInstanceOf[VirtualDirectory]
           val fromName = segmentsFrom.last
           val obj = fromParent.children(fromName)
+
+          if (toParent.get(List(toName)).isDefined) {
+            toParent.delete(toName)
+          }
 
           fromParent.children -= fromName
           fromParent.lastModified = System.currentTimeMillis()
@@ -89,7 +93,6 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
         case _ => false
       }
     }
-    else false
 
   override def setLastModified(path: String, time: Long) =
     root.get(segments(path)) match {
