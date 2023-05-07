@@ -9,6 +9,7 @@
   * Lua 5.2 has been updated with gamax92's backported bugfixes.
   * Lua 5.3 has been updated from 5.3.2 to 5.3.6.
   * 64-bit integers in calls should now be handled properly.
+* Added: New robot names.
 * Added: Official support for AArch64 on Linux and macOS.
 * Added: Source tank parameter for Transposer transferFluid(). (repo-alt)
 * Added: Subtle indentations to Redstone I/O texture.
