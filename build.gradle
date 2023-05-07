@@ -10,7 +10,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.+'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.64'
         classpath group: 'wtf.gofancy.fancygradle', name: 'wtf.gofancy.fancygradle.gradle.plugin', version: '1.1.+'
     }
 }
