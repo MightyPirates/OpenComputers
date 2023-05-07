@@ -27,7 +27,8 @@
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
 * Fixed: [#3588] Renaming over other files does not properly free space.
 * Fixed: [#3591] Memory leak with wrapped worlds from other mods.
-* Fixed: [#3609] Swapped arguments in a graphics card "bitblt()" edge case.
+* Fixed: [#3603] computer.getDeviceInfo doesn't pause the computer immediately (AR2000AR)
+* Fixed: [#3609] Swapped arguments in a graphics card "bitblt()" edge case. (Kosmos-Prime)
 * Removed: Native Lua library support for x86 (32-bit) macOS.
 * (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
@@ -37,4 +38,4 @@
 
 ## List of contributors
 
-asie, hohserg1, payonel, repo-alt, Smok1e, TheCodex6824
+AR2000AR, asie, hohserg1, Kosmos-Prime, payonel, repo-alt, Smok1e, TheCodex6824
