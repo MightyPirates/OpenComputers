@@ -28,6 +28,7 @@
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
 * Fixed: [#3588] Renaming over other files does not properly free space.
 * Fixed: [#3591] Memory leak with wrapped worlds from other mods.
+* Fixed: [#3596] Freeze when connecting a ComputerCraft peripheral via an Adapter (Kosmos-Prime)
 * Fixed: [#3603] computer.getDeviceInfo doesn't pause the computer immediately (AR2000AR)
 * Fixed: [#3609] Swapped arguments in a graphics card "bitblt()" edge case. (Kosmos-Prime)
 * Removed: Native Lua library support for x86 (32-bit) macOS.

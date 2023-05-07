@@ -123,7 +123,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.DriverBlock 
         @Override
         public void onConnect(final Node node) {
             super.onConnect(node);
-            if (node.host() instanceof Context) {
+            if (node.host() instanceof Context && !accesses.containsKey(node.address())) {
                 final FakeComputerAccess access = new FakeComputerAccess(this, (Context) node.host());
                 accesses.put(node.address(), access);
                 peripheral.attach(access);
