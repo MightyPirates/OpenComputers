@@ -25,6 +25,7 @@
   * forceNativeLibPlatform allows overriding the normally auto-detected platform string to a custom value, in case the user is on an unsupported platform.
   * forceNativeLibPathFirst allows choosing a directory to check for natives in, instead of always searching in the jar for one. This allows custom natives to be used without packing them into the mod jar first, which should be much easier for end users.
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
+* Fixed: [#3588] Renaming over other files does not properly free space.
 * Removed: Native Lua library support for x86 macOS.
 * (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
