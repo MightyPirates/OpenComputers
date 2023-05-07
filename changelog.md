@@ -27,6 +27,7 @@
 * Changed: The game now crashes instead of reloading defaults if a config file is present but invalid.
 * Fixed: [#3588] Renaming over other files does not properly free space.
 * Fixed: [#3591] Memory leak with wrapped worlds from other mods.
+* Fixed: [#3609] Swapped arguments in a graphics card "bitblt()" edge case.
 * Removed: Native Lua library support for x86 (32-bit) macOS.
 * (1.7.10) Fixed: [#3239] Inconsistencies in Robot block clicking.
 
