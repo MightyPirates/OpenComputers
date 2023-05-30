@@ -162,7 +162,7 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
     embedded name: 'OC-LuaJ', version: '20220907.1', ext: 'jar'
-    embedded name: 'OC-JNLua', version: '20220928.1', ext: 'jar'
+    embedded name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     embedded name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
     testCompile "org.mockito:mockito-all:1.10.19"
