@@ -4,7 +4,7 @@ do
     local handle = assert(invoke(addr, "open", file))
     local buffer = ""
     repeat
-      local data = invoke(addr, "read", handle, math.huge)
+      local data = invoke(addr, "read", handle, math.maxinteger or math.huge)
       buffer = buffer .. (data or "")
     until not data
     invoke(addr, "close", handle)

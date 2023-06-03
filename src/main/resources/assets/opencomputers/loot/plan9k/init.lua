@@ -68,7 +68,7 @@ local function loadfile(fs, file)
     end
     local buffer = ""
     repeat
-        local data, reason = component.invoke(fs,"read",handle,math.huge)
+        local data, reason = component.invoke(fs,"read",handle,math.maxinteger or math.huge)
         if not data and reason then
             error(reason)
         end
