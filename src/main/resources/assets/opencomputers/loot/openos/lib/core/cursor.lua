@@ -80,7 +80,7 @@ function core_cursor.vertical:echo(arg, num)
     return
   end
   local out = io.stdin.stream
-  
+
   if not gpu then return end
   win.nowrap = self.nowrap
   if arg == "" then -- special scroll request
@@ -215,7 +215,7 @@ function core_cursor.read(cursor)
   if #last > 0 then
     cursor:handle("clipboard", last)
   end
-  
+
   -- address checks
   local address_check =
   {

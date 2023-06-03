@@ -63,7 +63,7 @@ function text.split(input, delimiters, dropDelims, di)
       i=add(next, i, di+1, 1, #next)
     end
   end
-  
+
   return result
 end
 

@@ -38,7 +38,7 @@ function core_cursor.tab(cursor)
   end
 
   local cache = cursor.cache
-  
+
   if #cache == 1 and cache.i == 0 then
     -- there was only one solution, and the user is asking for the next
     cursor.cache = hints(cache[1], cursor.index + 1)

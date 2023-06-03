@@ -60,7 +60,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def checkInteger(index: Int) = {
     checkIndex(index, "integer")
     args(index) match {
-      case value: java.lang.Double =>
+      // TODO: The below is correct behaviour, but breaks existing OC1 code (f.e. file:read(math.huge))
+      /* case value: java.lang.Double =>
         if (!java.lang.Double.isFinite(value) || value < java.lang.Integer.MIN_VALUE || value > java.lang.Integer.MAX_VALUE) {
           throw intError(index, value)
         } else {
@@ -77,7 +78,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
           throw intError(index, value)
         } else {
           value.intValue
-        }
+        } */
       case value: java.lang.Number => value.intValue
       case value => throw typeError(index, value, "integer")
     }
@@ -91,7 +92,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def checkLong(index: Int) = {
     checkIndex(index, "integer")
     args(index) match {
-      case value: java.lang.Double =>
+      // TODO: The below is correct behaviour, but breaks existing OC1 code (f.e. file:read(math.huge))
+      /* case value: java.lang.Double =>
         if (!java.lang.Double.isFinite(value) || value < java.lang.Long.MIN_VALUE || value > java.lang.Long.MAX_VALUE) {
           throw intError(index, value)
         } else {
@@ -102,7 +104,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
           throw intError(index, value)
         } else {
           value.longValue
-        }
+        } */
       case value: java.lang.Number => value.longValue
       case value => throw typeError(index, value, "integer")
     }
@@ -193,22 +195,24 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
 
   def isInteger(index: Int) =
     index >= 0 && index < count && (args(index) match {
-      case value: java.lang.Double =>
+      // TODO: The below is correct behaviour, but may break existing OC1 code
+      /* case value: java.lang.Double =>
         java.lang.Double.isFinite(value) && value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE
       case value: java.lang.Float =>
         java.lang.Float.isFinite(value) && value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE
       case value: java.lang.Long =>
-        value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE
+        value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE */
       case value: java.lang.Number => true
       case _ => false
     })
 
   def isLong(index: Int) =
     index >= 0 && index < count && (args(index) match {
-      case value: java.lang.Double =>
+      // TODO: The below is correct behaviour, but may break existing OC1 code
+      /* case value: java.lang.Double =>
         java.lang.Double.isFinite(value) && value >= java.lang.Long.MIN_VALUE && value <= java.lang.Long.MAX_VALUE
       case value: java.lang.Float =>
-        java.lang.Float.isFinite(value) && value >= java.lang.Long.MIN_VALUE && value <= java.lang.Long.MAX_VALUE
+        java.lang.Float.isFinite(value) && value >= java.lang.Long.MIN_VALUE && value <= java.lang.Long.MAX_VALUE */
       case value: java.lang.Number => true
       case _ => false
     })

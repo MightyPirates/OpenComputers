@@ -16,11 +16,11 @@ OPTIONS
 
   -f, --force
          ignore nonexistent files and arguments, never prompt
-  
+
   -i     prompt before every removal
-  
+
   -I     prompt once before removing more than three files, or when removing recursively; less intrusive than -i, while still giving protection against most mistakes
-  
+
   --one-file-system
          when removing a hierarchy recursively, skip any directory that is on a file system different from that of the corresponding command line argument
 

@@ -26,7 +26,7 @@ function kernel.initd.invoke(method, ...)
     return component.invoke(computer.getBootAddress(), method, ...)
 end
 function kernel.initd.open(file) return kernel.initd.invoke("open", file) end
-function kernel.initd.read(handle) return kernel.initd.invoke("read", handle, math.huge) end
+function kernel.initd.read(handle) return kernel.initd.invoke("read", handle, math.maxinteger or math.huge) end
 function kernel.initd.close(handle) return kernel.initd.invoke("close", handle) end
 function kernel.initd.isDirectory(path) return kernel.initd.invoke("isDirectory", path) end
 

@@ -4,6 +4,9 @@
 
 ## OpenOS fixes/improvements
 
+* [#3371] Fix minor bug in rm.lua.
+* General minor improvements to the codebase.
+
 ## List of contributors
 
-asie
+asie, Possseidon

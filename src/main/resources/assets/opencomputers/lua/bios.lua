@@ -33,7 +33,7 @@ do
     end
     local buffer = ""
     repeat
-      local data, reason = boot_invoke(address, "read", handle, math.huge)
+      local data, reason = boot_invoke(address, "read", handle, math.maxinteger or math.huge)
       if not data and reason then
         return nil, reason
       end

@@ -185,7 +185,7 @@ function sh.internal.executePipes(pipe_parts, eargs, env)
     commands[#commands + 1] = table.pack(table.remove(args, 1), args, redirects)
   end
 
-  local threads, reason = sh.internal.createThreads(commands, env, {[#commands]=eargs})  
+  local threads, reason = sh.internal.createThreads(commands, env, {[#commands]=eargs})
   if not threads then return false, reason end
   return process.internal.continue(threads[1])
 end

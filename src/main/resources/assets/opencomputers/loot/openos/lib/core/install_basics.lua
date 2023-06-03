@@ -116,7 +116,7 @@ for dev, path in pairs(devices) do
     local prop_path = install_path .. "/.prop"
     local prop_file = fs.open(prop_path)
     if prop_file then
-      local prop_data = prop_file:read(math.huge)
+      local prop_data = prop_file:read(math.maxinteger or math.huge)
       prop_file:close()
       local prop_load = load("return " .. prop_data)
       prop = prop_load and prop_load()

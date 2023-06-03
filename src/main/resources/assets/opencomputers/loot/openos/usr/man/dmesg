@@ -1,6 +1,6 @@
 NAME
   dmesg - display messages(events)
-    
+
 SYNOPIS
   dmesg [EVENT]...
 

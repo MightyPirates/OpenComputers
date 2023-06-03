@@ -95,7 +95,7 @@ local function create_cursor(history, ops)
       pwchar = function(text)
         return text:gsub(".", pwchar_text)
       end
-    end  
+    end
     function cursor:echo(arg, ...)
       if pwchar and type(arg) == "string" and #arg > 0 and not arg:match("^\27") then -- "" is used for scrolling
         arg = pwchar(arg)

@@ -72,6 +72,8 @@ local function confirm()
   return r == 'y' or r == 'yes'
 end
 
+local remove
+
 local function remove_all(parent)
   if parent == nil or not _dir(parent) or _empty(parent) then
     return true
@@ -93,7 +95,7 @@ local function remove_all(parent)
   return all_ok
 end
 
-local function remove(meta)
+remove = function(meta)
   if not remove_all(meta) then
     return false
   end
