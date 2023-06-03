@@ -78,7 +78,30 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
           throw intError(index, value)
         } else {
           value.intValue
-        } */
+        }
+      case value: java.lang.Number => value.intValue
+      */
+      case value: java.lang.Double =>
+        if (value > java.lang.Integer.MAX_VALUE)
+          java.lang.Integer.MAX_VALUE
+        else if (value < java.lang.Integer.MIN_VALUE)
+          java.lang.Integer.MIN_VALUE
+        else
+          value.intValue
+      case value: java.lang.Float =>
+        if (value > java.lang.Integer.MAX_VALUE)
+          java.lang.Integer.MAX_VALUE
+        else if (value < java.lang.Integer.MIN_VALUE)
+          java.lang.Integer.MIN_VALUE
+        else
+          value.intValue
+      case value: java.lang.Long =>
+        if (value > java.lang.Integer.MAX_VALUE)
+          java.lang.Integer.MAX_VALUE
+        else if (value < java.lang.Integer.MIN_VALUE)
+          java.lang.Integer.MIN_VALUE
+        else
+          value.intValue
       case value: java.lang.Number => value.intValue
       case value => throw typeError(index, value, "integer")
     }
@@ -104,7 +127,23 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
           throw intError(index, value)
         } else {
           value.longValue
-        } */
+        }
+      case value: java.lang.Number => value.longValue
+      */
+      case value: java.lang.Double =>
+        if (value > java.lang.Long.MAX_VALUE)
+          java.lang.Long.MAX_VALUE
+        else if (value < java.lang.Long.MIN_VALUE)
+          java.lang.Long.MIN_VALUE
+        else
+          value.longValue
+      case value: java.lang.Float =>
+        if (value > java.lang.Long.MAX_VALUE)
+          java.lang.Long.MAX_VALUE
+        else if (value < java.lang.Long.MIN_VALUE)
+          java.lang.Long.MIN_VALUE
+        else
+          value.longValue
       case value: java.lang.Number => value.longValue
       case value => throw typeError(index, value, "integer")
     }
