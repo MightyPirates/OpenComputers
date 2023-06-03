@@ -482,6 +482,10 @@ class Settings(val config: Config) {
   }
 
   val bitbltCost: Double = if (config.hasPath("gpu.bitbltCost")) config.getDouble("gpu.bitbltCost") else 0.5
+
+  // >= 1.8.2
+  val diskActivityPacketDelay: Int = config.getInt("misc.diskActivityPacketDelay") max -1
+  val diskActivityPacketMaxDistance: Double = config.getDouble("misc.diskActivityPacketMaxDistance") max 0
 }
 
 object Settings {

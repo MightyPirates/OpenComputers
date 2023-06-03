@@ -1,6 +1,7 @@
 ## Fixes/improvements
 
 * [#3620] Fixed OC 1.8.0+ regression involving API arguments and numbers.
+* [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
 
 ## OpenOS fixes/improvements
 
@@ -9,4 +10,4 @@
 
 ## List of contributors
 
-asie, Possseidon
+asie, ds84182, Possseidon

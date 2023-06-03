@@ -1,8 +1,8 @@
 package li.cil.oc.server
 
-import li.cil.oc.api
-import li.cil.oc.api.event.FileSystemAccessEvent
-import li.cil.oc.api.event.NetworkActivityEvent
+import com.google.common.cache.{Cache, CacheBuilder}
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.event.{FileSystemAccessEvent, NetworkActivityEvent}
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -25,6 +25,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.collection.mutable
 
 object PacketSender {
@@ -130,19 +131,25 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts: mutable.WeakHashMap[Node, mutable.Map[String, Long]] = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
+  private val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, Cache[String, java.lang.Long]]
 
-  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String): Unit = fileSystemAccessTimeouts.synchronized {
-    fileSystemAccessTimeouts.get(node) match {
-      case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
-      case _ =>
+  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = {
+    val diskActivityPacketDelay = Settings.get.diskActivityPacketDelay
+    val diskActivityPacketMaxDistance = Settings.get.diskActivityPacketMaxDistance
+
+    if (diskActivityPacketDelay >= 0 && diskActivityPacketMaxDistance > 0) {
+      val hostTimeouts = fileSystemAccessTimeouts.synchronized {
+        fileSystemAccessTimeouts.getOrElseUpdate(node, CacheBuilder.newBuilder().concurrencyLevel(Settings.get.threads).maximumSize(250).expireAfterWrite(diskActivityPacketDelay, TimeUnit.MILLISECONDS).build[String, java.lang.Long]())
+      }
+      val lastHostTimeout = hostTimeouts.getIfPresent(name)
+      if (lastHostTimeout == null || lastHostTimeout <= System.currentTimeMillis()) {
         val event = host match {
           case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
           case _ => new FileSystemAccessEvent.Server(name, host.world, host.xPosition, host.yPosition, host.zPosition, node)
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
-          fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+          hostTimeouts.put(name, System.currentTimeMillis() + diskActivityPacketDelay)
 
           val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
 
@@ -160,10 +167,11 @@ object PacketSender {
               pb.writeDouble(event.getZ)
           }
 
-          pb.sendToPlayersNearHost(host, Option(64))
+          pb.sendToPlayersNearHost(host, Option(diskActivityPacketMaxDistance))
         }
+      }
     }
-  }
+}
 
   def sendNetworkActivity(node: Node, host: EnvironmentHost): Unit = {
 
