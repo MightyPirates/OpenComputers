@@ -1,5 +1,6 @@
 package li.cil.oc.server
 
+import com.google.common.cache.{Cache, CacheBuilder}
 import li.cil.oc.{Settings, api}
 import li.cil.oc.api.event.{FileSystemAccessEvent, NetworkActivityEvent}
 import li.cil.oc.api.network.EnvironmentHost
@@ -20,7 +21,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.collection.mutable
 
 object PacketSender {
@@ -126,15 +127,18 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  private val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, ConcurrentHashMap[String, Long]]
+  private val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, Cache[String, java.lang.Long]]
 
   def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = {
     val diskActivityPacketDelay = Settings.get.diskActivityPacketDelay
-    if (diskActivityPacketDelay >= 0) {
+    val diskActivityPacketMaxDistance = Settings.get.diskActivityPacketMaxDistance
+
+    if (diskActivityPacketDelay >= 0 && diskActivityPacketMaxDistance > 0) {
       val hostTimeouts = fileSystemAccessTimeouts.synchronized {
-        fileSystemAccessTimeouts.getOrElseUpdate(node, new ConcurrentHashMap[String, Long](16, 0.75f, Settings.get.threads))
+        fileSystemAccessTimeouts.getOrElseUpdate(node, CacheBuilder.newBuilder().concurrencyLevel(Settings.get.threads).maximumSize(250).expireAfterWrite(diskActivityPacketDelay, TimeUnit.MILLISECONDS).build[String, java.lang.Long]())
       }
-      if (hostTimeouts.getOrDefault(name, 0L) <= System.currentTimeMillis()) {
+      val lastHostTimeout = hostTimeouts.getIfPresent(name)
+      if (lastHostTimeout == null || lastHostTimeout <= System.currentTimeMillis()) {
         val event = host match {
           case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
           case _ => new FileSystemAccessEvent.Server(name, host.world, host.xPosition, host.yPosition, host.zPosition, node)
@@ -159,7 +163,7 @@ object PacketSender {
               pb.writeDouble(event.getZ)
           }
 
-          pb.sendToPlayersNearHost(host, Option(64))
+          pb.sendToPlayersNearHost(host, Option(diskActivityPacketMaxDistance))
         }
       }
     }
