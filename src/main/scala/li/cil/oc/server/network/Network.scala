@@ -758,7 +758,7 @@ object Network extends api.detail.NetworkAPI {
       for (i <- data.indices) data(i) match {
         case null | Unit | None =>
         case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
-        case value: java.lang.Byte => nbt.setShort("data" + i, value)
+        case value: java.lang.Byte => nbt.setShort("data" + i, value.shortValue)
         case value: java.lang.Short => nbt.setShort("data" + i, value)
         case value: java.lang.Integer => nbt.setInteger("data" + i, value)
         case value: java.lang.Long => nbt.setLong("data" + i, value)
