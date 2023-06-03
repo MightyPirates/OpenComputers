@@ -597,8 +597,10 @@ object Network extends api.detail.NetworkAPI {
       if (nbt.hasKey("data" + i)) {
         nbt.getTag("data" + i) match {
           case boolean: NBTTagByte => Boolean.box(boolean.func_150290_f == 1)
+          case short: NBTTagShort => Short.box(short.func_150289_e)
           case integer: NBTTagInt => Int.box(integer.func_150287_d)
           case long: NBTTagLong => Long.box(long.func_150291_c)
+          case float: NBTTagFloat => Float.box(float.func_150288_h)
           case double: NBTTagDouble => Double.box(double.func_150286_g)
           case string: NBTTagString => string.func_150285_a_(): AnyRef
           case array: NBTTagByteArray => array.func_150292_c
@@ -728,13 +730,13 @@ object Network extends api.detail.NetworkAPI {
       }
       values.length * 2 + values.foldLeft(0)((acc, arg) => {
         acc + (arg match {
-          case null | Unit | None => 4
-          case _: java.lang.Boolean => 4
-          case _: java.lang.Byte => 4
-          case _: java.lang.Short => 4
+          case null | Unit | None => 1
+          case _: java.lang.Boolean => 1
+          case _: java.lang.Byte => 2 /* FIXME: Bytes are currently sent as shorts */
+          case _: java.lang.Short => 2
           case _: java.lang.Integer => 4
           case _: java.lang.Long => 8
-          case _: java.lang.Float => 8
+          case _: java.lang.Float => 4
           case _: java.lang.Double => 8
           case value: java.lang.String => value.length max 1
           case value: Array[Byte] => value.length max 1
@@ -756,8 +758,11 @@ object Network extends api.detail.NetworkAPI {
       for (i <- data.indices) data(i) match {
         case null | Unit | None =>
         case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
+        case value: java.lang.Byte => nbt.setShort("data" + i, value)
+        case value: java.lang.Short => nbt.setShort("data" + i, value)
         case value: java.lang.Integer => nbt.setInteger("data" + i, value)
         case value: java.lang.Long => nbt.setLong("data" + i, value)
+        case value: java.lang.Float => nbt.setFloat("data" + i, value)
         case value: java.lang.Double => nbt.setDouble("data" + i, value)
         case value: java.lang.String => nbt.setString("data" + i, value)
         case value: Array[Byte] => nbt.setByteArray("data" + i, value)
