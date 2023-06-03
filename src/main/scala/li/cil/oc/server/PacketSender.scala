@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
-import li.cil.oc.api
-import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.event.{FileSystemAccessEvent, NetworkActivityEvent}
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -20,6 +20,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 
 object PacketSender {
@@ -125,19 +126,22 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
+  private val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, ConcurrentHashMap[String, Long]]
 
-  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
-    fileSystemAccessTimeouts.get(node) match {
-      case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
-      case _ =>
+  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = {
+    val diskActivityPacketDelay = Settings.get.diskActivityPacketDelay
+    if (diskActivityPacketDelay >= 0) {
+      val hostTimeouts = fileSystemAccessTimeouts.synchronized {
+        fileSystemAccessTimeouts.getOrElseUpdate(node, new ConcurrentHashMap[String, Long](16, 0.75f, Settings.get.threads))
+      }
+      if (hostTimeouts.getOrDefault(name, 0L) <= System.currentTimeMillis()) {
         val event = host match {
           case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
           case _ => new FileSystemAccessEvent.Server(name, host.world, host.xPosition, host.yPosition, host.zPosition, node)
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
-          fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+          hostTimeouts.put(name, System.currentTimeMillis() + diskActivityPacketDelay)
 
           val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
 
@@ -157,8 +161,9 @@ object PacketSender {
 
           pb.sendToPlayersNearHost(host, Option(64))
         }
+      }
     }
-  }
+}
 
   def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
 
