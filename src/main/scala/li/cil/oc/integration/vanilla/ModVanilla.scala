@@ -43,6 +43,7 @@ object ModVanilla extends ModProxy with RedstoneProvider {
       Driver.add(DriverCommandBlock)
     }
 
+    Driver.add(ConverterFluidContainerItem)
     Driver.add(ConverterFluidStack)
     Driver.add(ConverterFluidTankInfo)
     Driver.add(ConverterItemStack)

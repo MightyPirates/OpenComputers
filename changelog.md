@@ -1,5 +1,6 @@
 ## Fixes/improvements
 
+* [#3533] Added support for observing the contents of fluid container items.
 * [#3620] Fixed OC 1.8.0+ regression involving API arguments and numbers.
 * [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
 
@@ -10,4 +11,4 @@
 
 ## List of contributors
 
-asie, ds84182, Possseidon
+asie, ds84182, Possseidon, repo-alt
