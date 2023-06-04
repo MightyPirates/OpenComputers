@@ -139,7 +139,7 @@ local function formatDate(epochms)
   if ops["full-time"] then
     return string.format("%s-%s-%s %s:%s:%s ", d.year, pad(nod(d.month)), pad(day), hour, min, sec)
   else
-    return string.format("%s %+2s %+2s:%+2s ", month_names[d.month]:sub(1,3), day, hour, pad(min))
+    return string.format("%s %2s %2s:%2s ", month_names[d.month]:sub(1,3), day, hour, pad(min))
   end
 end
 
@@ -222,7 +222,7 @@ local function display(names)
       local write_mode = info.fs.isReadOnly() and '-' or 'w'
       local size = formatSize(info.size)
       local modDate = formatDate(info.time)
-      local format = "%s-r%s %+"..tostring(max_size_width).."s %"..tostring(max_date_width).."s"
+      local format = "%s-r%s %"..tostring(max_size_width).."s %"..tostring(max_date_width).."s"
       local meta = string.format(format, file_type, write_mode, size, modDate)
       local item = info.name..link_target
       return {{name = meta}, {color = colorize(info), name = item}}

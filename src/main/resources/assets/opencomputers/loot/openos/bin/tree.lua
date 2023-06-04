@@ -231,7 +231,7 @@ local function formatTime(epochms)  -- from /lib/core/full_ls.lua
   if opts["full-time"] then
     return string.format("%s-%s-%s %s:%s:%s ", d.year, pad(nod(d.month)), pad(day), hour, min, sec)
   else
-    return string.format("%s %+2s %+2s:%+2s ", month_names[d.month]:sub(1,3), day, hour, pad(min))
+    return string.format("%s %2s %2s:%2s ", month_names[d.month]:sub(1,3), day, hour, pad(min))
   end
 end
 
