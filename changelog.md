@@ -3,6 +3,7 @@
 * [#3533] Added support for observing the contents of fluid container items.
 * [#3620] Fixed OC 1.8.0+ regression involving API arguments and numbers.
 * [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
+* Added Railcraft anchor driver.
 * Added Spanish translation.
 * Fixed bugs in internal wcwidth() implementation and updated it to cover Unicode 12.
 * Fixed server->client synchronization for some types of GPU bitblt operations.

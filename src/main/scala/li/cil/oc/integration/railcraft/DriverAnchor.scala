@@ -11,6 +11,8 @@ import mods.railcraft.common.blocks.machine.alpha.{EnumMachineAlpha, TileAnchorW
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
+import java.util.Objects
+
 object DriverAnchor extends DriverSidedTileEntity {
   def getTileEntityClass: Class[_] = classOf[TileAnchorWorld]
 
@@ -21,24 +23,29 @@ object DriverAnchor extends DriverSidedTileEntity {
     override def preferredName = "anchor"
     override def priority = 5
 
-    @Callback(doc = "function():int -- Get remaining anchor time in ticks.")
+    @Callback(doc = "function():int -- Get the remaining anchor time, in ticks.")
     def getFuel(context: Context, args: Arguments): Array[AnyRef] = result(tile.getAnchorFuel)
 
-    @Callback(doc = "function():string -- Get the  anchor owner name.")
-    def getOwner(context: Context, args: Arguments): Array[AnyRef] = result(tile.getOwner.getName)
+    @Callback(doc = "function():string -- Get the anchor owner name.")
+    def getOwner(context: Context, args: Arguments): Array[AnyRef] =
+      if (tile.getOwner == null || tile.getOwner.getName == null || Objects.equals(tile.getOwner.getName, "[Railcraft]"))
+        result()
+      else
+        result(tile.getOwner.getName)
 
     @Callback(doc = "function():string -- Get the anchor type.")
     def getType(context: Context, args: Arguments): Array[AnyRef] = tile.getMachineType match {
       case EnumMachineAlpha.WORLD_ANCHOR => result("world")
       case EnumMachineAlpha.ADMIN_ANCHOR => result("admin")
       case EnumMachineAlpha.PERSONAL_ANCHOR => result("personal")
-      case _ => result("passive")
+      case EnumMachineAlpha.PASSIVE_ANCHOR => result("passive")
+      case _ => result("missing")
     }
 
-    @Callback(doc = "function():table -- Get the anchor input slot contents.")
+    @Callback(doc = "function():table -- Get the anchor fuel slot's contents.")
     def getFuelSlotContents(context: Context, args: Arguments): Array[AnyRef] = result(tile.getStackInSlot(0))
 
-    @Callback(doc = "function():boolean -- If the anchor is disabled with redstone.")
+    @Callback(doc = "function():boolean -- If the anchor is disabled (powered by redstone).")
     def isDisabled(context: Context, args: Arguments): Array[AnyRef] = result(tile.isPowered)
   }
 }
