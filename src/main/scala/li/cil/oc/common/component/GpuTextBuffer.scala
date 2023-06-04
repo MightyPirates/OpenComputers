@@ -172,6 +172,9 @@ object GpuTextBuffer {
   }
 
   def write_to_vram(dstRam: GpuTextBuffer, x: Int, y: Int, w: Int, h: Int, src: TextBufferProxy, fx: Int, fy: Int): Boolean = {
-    dstRam.data.rawcopy(x + 1, y + 1, w, h, src.data, fx + 1, fy + 1)
+    if (dstRam.data.rawcopy(x + 1, y + 1, w, h, src.data, fx + 1, fy + 1)) {
+      dstRam.dirty = true
+      true
+    } else false
   }
 }

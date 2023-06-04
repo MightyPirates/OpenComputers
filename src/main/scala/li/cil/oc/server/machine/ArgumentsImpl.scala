@@ -82,14 +82,18 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
       case value: java.lang.Number => value.intValue
       */
       case value: java.lang.Double =>
-        if (value > java.lang.Integer.MAX_VALUE)
+        if (value.isNaN)
+          throw intError(index, value)
+        else if (value > java.lang.Integer.MAX_VALUE)
           java.lang.Integer.MAX_VALUE
         else if (value < java.lang.Integer.MIN_VALUE)
           java.lang.Integer.MIN_VALUE
         else
           value.intValue
       case value: java.lang.Float =>
-        if (value > java.lang.Integer.MAX_VALUE)
+        if (value.isNaN)
+          throw intError(index, value)
+        else if (value > java.lang.Integer.MAX_VALUE)
           java.lang.Integer.MAX_VALUE
         else if (value < java.lang.Integer.MIN_VALUE)
           java.lang.Integer.MIN_VALUE
@@ -131,14 +135,18 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
       case value: java.lang.Number => value.longValue
       */
       case value: java.lang.Double =>
-        if (value > java.lang.Long.MAX_VALUE)
+        if (value.isNaN)
+          throw intError(index, value)
+        else if (value > java.lang.Long.MAX_VALUE)
           java.lang.Long.MAX_VALUE
         else if (value < java.lang.Long.MIN_VALUE)
           java.lang.Long.MIN_VALUE
         else
           value.longValue
       case value: java.lang.Float =>
-        if (value > java.lang.Long.MAX_VALUE)
+        if (value.isNaN)
+          throw intError(index, value)
+        else if (value > java.lang.Long.MAX_VALUE)
           java.lang.Long.MAX_VALUE
         else if (value < java.lang.Long.MIN_VALUE)
           java.lang.Long.MIN_VALUE
@@ -241,6 +249,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
         java.lang.Float.isFinite(value) && value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE
       case value: java.lang.Long =>
         value >= java.lang.Integer.MIN_VALUE && value <= java.lang.Integer.MAX_VALUE */
+      case value: java.lang.Double => !value.isNaN
+      case value: java.lang.Float => !value.isNaN
       case value: java.lang.Number => true
       case _ => false
     })
@@ -252,6 +262,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
         java.lang.Double.isFinite(value) && value >= java.lang.Long.MIN_VALUE && value <= java.lang.Long.MAX_VALUE
       case value: java.lang.Float =>
         java.lang.Float.isFinite(value) && value >= java.lang.Long.MIN_VALUE && value <= java.lang.Long.MAX_VALUE */
+      case value: java.lang.Double => !value.isNaN
+      case value: java.lang.Float => !value.isNaN
       case value: java.lang.Number => true
       case _ => false
     })
