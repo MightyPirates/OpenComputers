@@ -391,7 +391,7 @@ object PacketHandler extends CommonPacketHandler {
         val velocity = p.readDouble()
         val direction = p.readDirection()
         val name = p.readUTF()
-        val count = p.readUnsignedByte()
+        val count = p.readUnsignedByte() / (1 << Minecraft.getMinecraft.gameSettings.particleSetting)
 
         for (i <- 0 until count) {
           def rv(f: ForgeDirection => Int) = direction match {
