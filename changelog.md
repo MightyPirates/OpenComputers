@@ -3,6 +3,7 @@
 * [#3533] Added support for observing the contents of fluid container items.
 * [#3620] Fixed OC 1.8.0+ regression involving API arguments and numbers.
 * [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
+* Added Spanish translation.
 * Fixed string.gmatch not supporting the "init" argument on Lua 5.4.
 * Update GNU Unifont to 15.0.04.
 
@@ -13,4 +14,4 @@
 
 ## List of contributors
 
-asie, ds84182, Possseidon, repo-alt
+asie, ds84182, Possseidon, repo-alt, sanmofe

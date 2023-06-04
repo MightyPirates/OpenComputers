@@ -16,8 +16,12 @@ object ConverterFluidContainerItem extends api.driver.Converter {
           output += "capacity" -> Int.box(fc.getCapacity(stack))
           val fluidStack = fc.getFluid(stack)
           if (fluidStack != null) {
-            output += "fluid" -> Registry.convert(Array[AnyRef](fluidStack))(0)
-          } else {
+            val fluidData = Registry.convert(Array[AnyRef](fluidStack))
+            if (fluidData.nonEmpty) {
+              output += "fluid" -> fluidData(0)
+            }
+          }
+          if (!output.containsKey("fluid")) {
             val fluidMap = new util.HashMap[AnyRef, AnyRef]()
             fluidMap += "amount" -> Int.box(0)
             output += "fluid" -> fluidMap
