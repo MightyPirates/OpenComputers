@@ -6,6 +6,7 @@
 * Added Railcraft anchor driver.
 * Added Spanish translation.
 * Fixed bugs in internal wcwidth() implementation and updated it to cover Unicode 12.
+* [1.7.10] Fixed the Database upgrade's documentation not showing up in NEI.
 * Fixed server->client synchronization for some types of GPU bitblt operations.
 * Fixed string.gmatch not supporting the "init" argument on Lua 5.4.
 * Tweaks to server->client networking code:
