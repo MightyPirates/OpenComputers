@@ -6,6 +6,7 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
+import li.cil.oc.integration.vanilla.ConverterFluidContainerItem
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.BlockRedstoneWire
@@ -44,6 +45,7 @@ object ModMinecraft extends ModProxy with RedstoneProvider {
       Driver.add(DriverCommandBlock)
     }
 
+    Driver.add(ConverterFluidContainerItem)
     Driver.add(ConverterFluidStack)
     Driver.add(ConverterFluidTankInfo)
     Driver.add(ConverterFluidTankProperties)

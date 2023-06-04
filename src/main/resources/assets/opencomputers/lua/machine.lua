@@ -62,6 +62,9 @@ end
 
 -------------------------------------------------------------------------------
 
+local isLuaOver54 = _VERSION:match("5.4")
+local isLuaOver53 = isLuaOver54 or _VERSION:match("5.3")
+
 local function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
@@ -548,17 +551,27 @@ do
     return str_find_aux(s, pattern, init, false, false)
   end
 
-  local function str_gmatch(s, pattern)
+  local function str_gmatch(s, pattern, init)
     checkArg(1, s, "string")
     checkArg(2, pattern, "string")
 
     if #s < SHORT_STRING then
-      return string_gmatch(s, pattern, repl, n)
+      return string_gmatch(s, pattern, init)
+    end
+
+    local start = 0
+    if isLuaOver54 then
+      checkArg(3, init, "number", "nil")
+      if init ~= nil then
+        start = posrelat(init, #s)
+        if start < 1 then start = 0
+        elseif start > #s + 1 then start = #s + 1
+        else start = start - 1 end
+      end
     end
 
     local s = strptr(s)
     local p = strptr(pattern)
-    local start = 0
     return function()
       ms = {
         src_init = s,

@@ -6,9 +6,8 @@ import java.io.DataOutputStream
 import java.io.OutputStream
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
-
 import io.netty.buffer.Unpooled
-import li.cil.oc.OpenComputers
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayerMP
@@ -18,7 +17,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.PacketBuffer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
-import net.minecraft.world.World
+import net.minecraft.world.{World, WorldServer}
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.network.internal.FMLProxyPacket
 
@@ -70,18 +69,52 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 
   def sendToPlayersNearEntity(e: Entity, range: Option[Double] = None): Unit = sendToNearbyPlayers(e.getEntityWorld, e.posX, e.posY, e.posZ, range)
 
-  def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None): Unit = sendToNearbyPlayers(t.getWorld, t.getPos.getX + 0.5, t.getPos.getY + 0.5, t.getPos.getZ + 0.5, range)
+  def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = {
+    host match {
+      case t: TileEntity => sendToPlayersNearTileEntity(t, range)
+      case _ => sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
+    }
+  }
 
-  def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
+  def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None) {
+    t.getWorld match {
+      case w: WorldServer =>
+        val chunkX = t.getPos.getX >> 4
+        val chunkZ = t.getPos.getZ >> 4
+
+        val manager = FMLCommonHandler.instance.getMinecraftServerInstance.getPlayerList
+        var maxPacketRange = range.getOrElse((manager.getViewDistance + 1) * 16.0)
+        val maxPacketRangeConfig = Settings.get.maxNetworkClientPacketDistance
+        if (maxPacketRangeConfig > 0.0D) {
+          maxPacketRange = maxPacketRange min maxPacketRangeConfig
+        }
+        val maxPacketRangeSq = maxPacketRange * maxPacketRange
+
+        for (e <- w.playerEntities) e match {
+          case player: EntityPlayerMP =>
+            if (w.getPlayerChunkMap.isPlayerWatchingChunk(player, chunkX, chunkZ)) {
+              if (player.getDistanceSq(t.getPos.getX + 0.5D, t.getPos.getY + 0.5D, t.getPos.getZ + 0.5D) <= maxPacketRangeSq)
+                sendToPlayer(player)
+            }
+        }
+      case _ => sendToNearbyPlayers(t.getWorld, t.getPos.getX + 0.5D, t.getPos.getY + 0.5D, t.getPos.getZ + 0.5D, range)
+    }
+  }
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Option[Double]) {
     val dimension = world.provider.getDimension
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getPlayerList
+
+    var maxPacketRange = range.getOrElse((manager.getViewDistance + 1) * 16.0)
+    val maxPacketRangeConfig = Settings.get.maxNetworkClientPacketDistance
+    if (maxPacketRangeConfig > 0.0D) {
+      maxPacketRange = maxPacketRange min maxPacketRangeConfig
+    }
+    val maxPacketRangeSq = maxPacketRange * maxPacketRange
+
     for (player <- manager.getPlayers if player.dimension == dimension) {
-      val playerRenderDistance = 16 // OCObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
-      val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
-      if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
+      if (player.getDistanceSq(x, y, z) <= maxPacketRangeSq) {
         sendToPlayer(player)
       }
     }
