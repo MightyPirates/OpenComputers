@@ -1,10 +1,16 @@
-## Fixes/improvements
+## New features
 
 * [#3533] Added support for observing the contents of fluid container items.
+* [1.12.2] Ported some CoFH Core, Ender IO and Railcraft drivers and wrench support.
+* Added Railcraft Anchor/Worldspike driver (repo-alt).
+* Added Spanish translation (sanmofe).
+
+## Fixes/improvements
+
 * [#3620] Fixed OC 1.8.0+ regression involving API arguments and numbers.
 * [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
-* Added Spanish translation.
 * Fixed bugs in internal wcwidth() implementation and updated it to cover Unicode 12.
+* [1.7.10] Fixed the Database upgrade's documentation not showing up in NEI.
 * Fixed server->client synchronization for some types of GPU bitblt operations.
 * Fixed string.gmatch not supporting the "init" argument on Lua 5.4.
 * Tweaks to server->client networking code:
