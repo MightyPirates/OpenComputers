@@ -21,6 +21,7 @@ object Mods {
   val AppliedEnergistics2 = new ClassBasedMod(IDs.AppliedEnergistics2, "appeng.api.storage.channels.IItemStorageChannel")
   val CoFHCore = new SimpleMod(IDs.CoFHCore)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
+  val EnderIO = new SimpleMod(IDs.EnderIO)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.5.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
@@ -30,6 +31,7 @@ object Mods {
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
+  val Railcraft = new SimpleMod(IDs.Railcraft)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.9,)")
   val Waila = new SimpleMod(IDs.Waila)
   val ProjectRedBase = new SimpleMod((IDs.ProjectRedCore))
@@ -47,9 +49,11 @@ object Mods {
     integration.cofh.item.ModCoFHItem,
     integration.cofh.tileentity.ModCoFHTileEntity,
     integration.ec.ModExtraCells,
+    integration.enderio.ModEnderIO,
     integration.forestry.ModForestry,
     integration.ic2.ModIndustrialCraft2,
     integration.minecraftforge.ModMinecraftForge,
+    integration.railcraft.ModRailcraft,
     integration.tis3d.ModTIS3D,
     integration.mekanism.ModMekanism,
     integration.mekanism.gas.ModMekanismGas,
@@ -91,6 +95,7 @@ object Mods {
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val CoFHCore = "cofhcore"
     final val ComputerCraft = "computercraft"
+    final val EnderIO = "enderio"
     final val ExtraCells = "extracells"
     final val Forestry = "forestry"
     final val Forge = "forge"
@@ -100,6 +105,7 @@ object Mods {
     final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "minecraft"
     final val OpenComputers = "opencomputers"
+    final val Railcraft = "railcraft"
     final val TIS3D = "tis3d"
     final val Waila = "waila"
     final val ProjectRedCore = "projectred-core"

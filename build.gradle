@@ -184,6 +184,8 @@ dependencies {
     compileOnly fg.deobf("org.squiddev:cc-tweaked-1.12.2:${config.cctweaked.version}")
     compileOnly fg.deobf("charset:Charset:${config.charset.version}:api")
     compileOnly fg.deobf("curse.maven:cofh-core-69162:2920433") /* CoFHCore */
+    compileOnly fg.deobf("curse.maven:ender-io-64578:3328811") /* Ender IO */
+    compileOnly fg.deobf("curse.maven:railcraft-51195:2687757") /* Railcraft */
 
     provided fg.deobf("appeng:appliedenergistics2:${config.ae2.version}") {
         transitive = false
