@@ -5,6 +5,7 @@
 * [#3013] Fixed rare server-side deadlock when sending disk activity update packets.
 * Added Spanish translation.
 * Fixed bugs in internal wcwidth() implementation and updated it to cover Unicode 12.
+* Fixed server->client synchronization for some types of GPU bitblt operations.
 * Fixed string.gmatch not supporting the "init" argument on Lua 5.4.
 * Tweaks to server->client networking code:
   * Added support for configuring the maximum packet distance for effects, sounds, and all client packets.
