@@ -19,6 +19,7 @@ object Mods {
 
   def All: ArrayBuffer[ModBase] = knownMods.clone()
   val AppliedEnergistics2 = new ClassBasedMod(IDs.AppliedEnergistics2, "appeng.api.storage.channels.IItemStorageChannel")
+  val CoFHCore = new SimpleMod(IDs.CoFHCore)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.5.2,)")
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[5.2,)")
@@ -43,6 +44,8 @@ object Mods {
 
   val Proxies = Array(
     integration.appeng.ModAppEng,
+    integration.cofh.item.ModCoFHItem,
+    integration.cofh.tileentity.ModCoFHTileEntity,
     integration.ec.ModExtraCells,
     integration.forestry.ModForestry,
     integration.ic2.ModIndustrialCraft2,
@@ -86,6 +89,7 @@ object Mods {
 
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
+    final val CoFHCore = "cofhcore"
     final val ComputerCraft = "computercraft"
     final val ExtraCells = "extracells"
     final val Forestry = "forestry"

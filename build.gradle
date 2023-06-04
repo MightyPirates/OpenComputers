@@ -145,6 +145,12 @@ repositories {
             artifact()
         }
     }
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
     ivy {
         name 'asie dependency mirror'
         artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
@@ -177,6 +183,7 @@ dependencies {
     /* compileOnly fg.deobf("dan200.computercraft:ComputerCraft:${config.cc.version}") */
     compileOnly fg.deobf("org.squiddev:cc-tweaked-1.12.2:${config.cctweaked.version}")
     compileOnly fg.deobf("charset:Charset:${config.charset.version}:api")
+    compileOnly fg.deobf("curse.maven:cofh-core-69162:2920433") /* CoFHCore */
 
     provided fg.deobf("appeng:appliedenergistics2:${config.ae2.version}") {
         transitive = false
