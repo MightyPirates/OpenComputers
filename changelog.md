@@ -9,7 +9,7 @@
   * Added support for configuring the maximum packet distance for effects, sounds, and all client packets.
   * Improved the method of synchronizing tile entity updates with the client.
   * Robot light colors are now sent to all observers of the tile entity, preventing a potential (rare) glitch.
-* Update GNU Unifont to 15.0.04.
+* Update GNU Unifont to 15.0.05.
 
 ## OpenOS fixes/improvements
 
