@@ -1,6 +1,6 @@
 This package contains code use to integrate with other mods. This is usually done by implementing block drivers for other mods' blocks, or by implementing (item stack) converters.
 
-###General Structure
+### General Structure
 The general structure for mod integration is as follows:
 - All mods' IDs are defined in `Mods.IDs` (`Mods.scala` file).
 - For most mods, a `SimpleMod` instance suffices, some may require a specialized implementation. These instances are an internal way of checking for mod availablity.
@@ -9,7 +9,7 @@ The general structure for mod integration is as follows:
 
 Have a look at the existing modules for examples if that description was too abstract for you.
 
-###On pull requests
+### On pull requests
 The basic guidelines from the main readme still apply, but I'd like to stress again that all integration must be *optional*. Make sure you properly test OC still works with and without the mod you added support for.
 
 An additional guideline is on what drivers should actually *do*. Drivers built into OC should, in general, err on the side of being limited. This way addons can still add more "powerful" functionality, if so desired, while the other way around would not work (addons would not be able to limit existing functionality). Here's a few rules-of-thumb:
