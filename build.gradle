@@ -153,7 +153,7 @@ repositories {
     }
     ivy {
         name 'asie dependency mirror'
-        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+        artifactPattern "https://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
         metadataSources {
             artifact()
         }
