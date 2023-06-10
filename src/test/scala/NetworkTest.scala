@@ -5,11 +5,14 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.server.network.Network
 import li.cil.oc.server.network.{Node => MutableNode}
+import org.junit.runner.RunWith
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
 import scala.collection.convert.WrapAsScala._
 
+@RunWith(classOf[JUnitRunner])
 class NetworkTest extends FlatSpec with MockitoSugar {
   Network.isServer = () => true
   api.API.network = Network

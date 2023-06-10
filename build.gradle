@@ -165,6 +165,7 @@ dependencies {
     embedded name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     embedded name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
+    testCompile "junit:junit:4.13"
     testCompile "org.mockito:mockito-all:1.10.19"
     testCompile "org.scalactic:scalactic_2.11:2.2.6"
     testCompile "org.scalatest:scalatest_2.11:2.2.6"
