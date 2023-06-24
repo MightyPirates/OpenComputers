@@ -60,6 +60,20 @@ object OpenComputers {
   def serverStart(e: FMLServerStartingEvent): Unit = {
     CommandHandler.register(e)
     ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+
+    if (e.getServer.isDedicatedServer) {
+      if ((Settings.get.httpEnabled || Settings.get.tcpEnabled) && !Settings.get.internetFilteringRulesObserved) {
+        OpenComputers.log.warn("####################################################")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("#    It appears that you're running a dedicated    #")
+        OpenComputers.log.warn("#  server with OpenComputers installed! Make sure  #")
+        OpenComputers.log.warn("#  to review the Internet Card address filtering   #")
+        OpenComputers.log.warn("#  list to ensure it is appropriately configured.  #")
+        OpenComputers.log.warn("#   (config/OpenComputers.cfg => filteringRules)   #")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("####################################################")
+      }
+    }
   }
 
   @EventHandler

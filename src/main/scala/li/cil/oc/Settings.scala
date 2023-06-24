@@ -1,28 +1,28 @@
 package li.cil.oc
 
-import java.io._
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.nio.charset.StandardCharsets
-import java.security.SecureRandom
-import java.util.UUID
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
+import com.typesafe.config.impl.OpenComputersConfigCommentManipulationHook
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.Tier
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
+import li.cil.oc.util.{InetAddressRange, InternetFilteringRule}
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.lang3.StringEscapeUtils
 
+import java.io._
+import java.net.{Inet4Address, Inet6Address, InetAddress}
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.UUID
+import scala.collection.JavaConverters._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.io.Codec
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.util.matching.Regex
 
 class Settings(val config: Config) {
@@ -299,8 +299,11 @@ class Settings(val config: Config) {
   val httpEnabled = config.getBoolean("internet.enableHttp")
   val httpHeadersEnabled = config.getBoolean("internet.enableHttpHeaders")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
-  val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
-  val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
+  val internetFilteringRules = Array(config.getStringList("internet.filteringRules")
+    .filter(p => !p.equals("removeme"))
+    .map(new InternetFilteringRule(_)): _*)
+  val internetFilteringRulesObserved = !config.getStringList("internet.filteringRules")
+    .contains("removeme")
   val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
   val maxConnections = config.getInt("internet.maxTcpConnections") max 0
   val internetThreads = config.getInt("internet.threads") max 1
@@ -581,6 +584,7 @@ object Settings {
       "computer.robot.limitFlightHeight"
     )
   )
+  private val fileringRulesPatchVersion = VersionRange.createFromVersionSpec("[0.0, 1.8.3)")
 
   // Checks the config version (i.e. the version of the mod the config was
   // created by) against the current version to see if some hard changes
@@ -596,7 +600,7 @@ object Settings {
       for ((version, paths) <- configPatches if version.containsVersion(configVersion)) {
         for (path <- paths) {
           val fullPath = prefix + path
-          OpenComputers.log.info(s"Updating setting '$fullPath'. ")
+          OpenComputers.log.info(s"=> Updating setting '$fullPath'. ")
           if (defaults.hasPath(fullPath)) {
             patched = patched.withValue(fullPath, defaults.getValue(fullPath))
           }
@@ -605,35 +609,53 @@ object Settings {
           }
         }
       }
+
+      // Migrate filtering rules to 1.8.3+
+      if (fileringRulesPatchVersion.containsVersion(configVersion)) {
+        OpenComputers.log.info(s"=> Migrating Internet Card filtering rules. ")
+        val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
+        val httpHostWhitelist = patched.getStringList(prefix + "internet.whitelist")
+        val httpHostBlacklist = patched.getStringList(prefix + "internet.blacklist")
+        val internetFilteringRules = mutable.MutableList[String]()
+        for (blockedAddress <- httpHostBlacklist) {
+          if (cidrPattern.findFirstIn(blockedAddress).isDefined) {
+            internetFilteringRules += "deny ip:" + blockedAddress
+          } else {
+            internetFilteringRules += "deny domain:" + blockedAddress
+          }
+        }
+        for (allowedAddress <- httpHostWhitelist) {
+          if (cidrPattern.findFirstIn(allowedAddress).isDefined) {
+            internetFilteringRules += "allow ip:" + allowedAddress
+          } else {
+            internetFilteringRules += "allow domain:" + allowedAddress
+          }
+        }
+        if (!httpHostWhitelist.isEmpty) {
+          internetFilteringRules += "deny all"
+        }
+        for (defaultRule <- defaults.getStringList(prefix + "internet.filteringRules")) {
+          internetFilteringRules += defaultRule
+        }
+        var patchedRules: ConfigValue = ConfigValueFactory.fromIterable(internetFilteringRules.asJava)
+        // We need to use the private API here, unfortunately.
+        try {
+          patched = OpenComputersConfigCommentManipulationHook.setComments(
+            patched, prefix + "internet.whitelist", List("No longer used! See internet.filteringRules.").asJava
+          )
+          patched = OpenComputersConfigCommentManipulationHook.setComments(
+            patched, prefix + "internet.blacklist", List("No longer used! See internet.filteringRules.").asJava
+          )
+          patchedRules = OpenComputersConfigCommentManipulationHook.setComments(
+            patchedRules, defaults.getValue(prefix + "internet.filteringRules").origin().comments()
+          )
+        } catch {
+          case _: Throwable => /* pass */
+        }
+        patched = patched.withValue(prefix + "internet.filteringRules", patchedRules)
+      }
     }
     patched
-  }
-
-  val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
-
-  class AddressValidator(val value: String) {
-    val validator: (InetAddress, String) => Option[Boolean] = try cidrPattern.findFirstIn(value) match {
-      case Some(cidrPattern(address, prefix)) =>
-        val addr = InetAddresses.coerceToInteger(InetAddresses.forString(address))
-        val mask = 0xFFFFFFFF << (32 - prefix.toInt)
-        val min = addr & mask
-        val max = min | ~mask
-        (inetAddress: InetAddress, host: String) => Some(inetAddress match {
-          case v4: Inet4Address =>
-            val numeric = InetAddresses.coerceToInteger(v4)
-            min <= numeric && numeric <= max
-          case _ => true // Can't check IPv6 addresses so we pass them.
-        })
-      case _ =>
-        val address = InetAddress.getByName(value)
-        (inetAddress: InetAddress, host: String) => Some(host == value || inetAddress == address)
-    } catch {
-      case t: Throwable =>
-        OpenComputers.log.warn("Invalid entry in internet blacklist / whitelist: " + value, t)
-        (inetAddress: InetAddress, host: String) => None
-    }
-
-    def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
 
   sealed trait DebugCardAccess {
