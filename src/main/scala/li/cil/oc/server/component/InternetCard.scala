@@ -209,7 +209,7 @@ object InternetCard {
 
           if(readableKeys.nonEmpty) {
             val newSelector = Selector.open()
-            selectedKeys.filter(!readableKeys.contains(_)).foreach(key => {
+            selector.keys.filter(!readableKeys.contains(_)).foreach(key => {
               key.channel.register(newSelector, SelectionKey.OP_READ, key.attachment)
             })
             selector.close()
