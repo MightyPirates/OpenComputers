@@ -7,7 +7,8 @@ import java.net.{Inet4Address, Inet6Address, InetAddress}
 import scala.collection.mutable
 
 class InternetFilteringRule(val ruleString: String) {
-  val validator: (InetAddress, String) => Option[Boolean] = {
+  private var _invalid: Boolean = false
+  private val validator: (InetAddress, String) => Option[Boolean] = {
     try {
       val ruleParts = ruleString.split(' ')
       ruleParts.head match {
@@ -52,7 +53,7 @@ class InternetFilteringRule(val ruleString: String) {
                   host == domain || addresses.exists(a => a.equals(inetAddress))
                 })
               case "ip" =>
-                val ipStringParts = f.split("/", 2)
+                val ipStringParts = filter(1).split("/", 2)
                 if (ipStringParts.length == 2) {
                   val ipRange = InetAddressRange.parse(ipStringParts(0), ipStringParts(1))
                   predicates += ((inetAddress: InetAddress, _: String) => ipRange.matches(inetAddress))
@@ -78,10 +79,13 @@ class InternetFilteringRule(val ruleString: String) {
       }
     } catch {
       case t: Throwable =>
-        OpenComputers.log.warn("Invalid internet filtering rule in configuration: " + ruleString, t)
-        (_: InetAddress, _: String) => None
+        OpenComputers.log.error("Invalid Internet filteringRules rule in configuration: \"" + ruleString + "\".", t)
+        _invalid = true
+        (_: InetAddress, _: String) => Some(false)
     }
   }
+
+  def invalid(): Boolean = _invalid
 
   def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
 }

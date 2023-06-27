@@ -487,6 +487,18 @@ class Settings(val config: Config) {
   val maxNetworkClientPacketDistance: Double = config.getDouble("misc.maxNetworkClientPacketDistance") max 0
   val maxNetworkClientEffectPacketDistance: Double = config.getDouble("misc.maxNetworkClientEffectPacketDistance") max 0
   val maxNetworkClientSoundPacketDistance: Double = config.getDouble("misc.maxNetworkClientSoundPacketDistance") max 0
+
+  def internetFilteringRulesInvalid(): Boolean = {
+    internetFilteringRules.exists(p => p.invalid())
+  }
+
+  def internetAccessConfigured(): Boolean = {
+    httpEnabled || tcpEnabled
+  }
+
+  def internetAccessAllowed(): Boolean = {
+    internetAccessConfigured() && !internetFilteringRulesInvalid()
+  }
 }
 
 object Settings {

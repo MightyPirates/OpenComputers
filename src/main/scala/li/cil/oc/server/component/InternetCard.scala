@@ -64,6 +64,9 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
+    if (!Settings.get.internetAccessAllowed()) {
+      return result(Unit, "internet access is unavailable")
+    }
     if (!Settings.get.httpEnabled) {
       return result(Unit, "http requests are unavailable")
     }
@@ -92,6 +95,9 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
     checkOwner(context)
     val address = args.checkString(0)
     val port = args.optInteger(1, -1)
+    if (!Settings.get.internetAccessAllowed()) {
+      return result(Unit, "internet access is unavailable")
+    }
     if (!Settings.get.tcpEnabled) {
       return result(Unit, "tcp connections are unavailable")
     }
@@ -361,29 +367,33 @@ object InternetCard {
   }
 
   def isRequestAllowed(settings: Settings, inetAddress: InetAddress, host: String): Boolean = {
-    val rules = settings.internetFilteringRules
-    inetAddress match {
-      // IPv6 handling
-      case inet6Address: Inet6Address =>
-        // If the IP address is an IPv6 address with an embedded IPv4 address, and the IPv4 address is blocked,
-        // block this request.
-        if (InetAddresses.hasEmbeddedIPv4ClientAddress(inet6Address)) {
-          val inet4in6Address = InetAddresses.getEmbeddedIPv4ClientAddress(inet6Address)
-          if (!rules.map(r => r.apply(inet4in6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(true)) {
-            return false
+    if (!settings.internetAccessAllowed()) {
+      false
+    } else {
+      val rules = settings.internetFilteringRules
+      inetAddress match {
+        // IPv6 handling
+        case inet6Address: Inet6Address =>
+          // If the IP address is an IPv6 address with an embedded IPv4 address, and the IPv4 address is blocked,
+          // block this request.
+          if (InetAddresses.hasEmbeddedIPv4ClientAddress(inet6Address)) {
+            val inet4in6Address = InetAddresses.getEmbeddedIPv4ClientAddress(inet6Address)
+            if (!rules.map(r => r.apply(inet4in6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(true)) {
+              return false
+            }
           }
-        }
 
-        // Process address as an IPv6 address.
-        rules.map(r => r.apply(inet6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
-      // IPv4 handling
-      case inet4Address: Inet4Address =>
-        // Process address as an IPv4 address.
-        rules.map(r => r.apply(inet4Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
-      case _ =>
-        // Unrecognized address type - block.
-        OpenComputers.log.warn("Internet Card blocked unrecognized address type: " + inetAddress.toString)
-        false
+          // Process address as an IPv6 address.
+          rules.map(r => r.apply(inet6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
+        // IPv4 handling
+        case inet4Address: Inet4Address =>
+          // Process address as an IPv4 address.
+          rules.map(r => r.apply(inet4Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
+        case _ =>
+          // Unrecognized address type - block.
+          OpenComputers.log.warn("Internet Card blocked unrecognized address type: " + inetAddress.toString)
+          false
+      }
     }
   }
 

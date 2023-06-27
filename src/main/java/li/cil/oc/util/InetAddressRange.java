@@ -41,7 +41,7 @@ public final class InetAddressRange {
             address = InetAddresses.forString(addressStr);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(String.format("Malformed address range entry '%s': Cannot extract IP address from '%s'.",
-                    addressStr + '/' + prefixSizeStr, prefixSizeStr));
+                    addressStr + '/' + prefixSizeStr, addressStr));
         }
 
         // Mask the bytes of the IP address.
