@@ -27,7 +27,7 @@ function os.sleep(timeout)
   local deadline = computer.uptime() + (timeout or 0)
   repeat
     event.pull(deadline - computer.uptime())
-  until computer.uptime() >= deadline
+  until (computer.uptime() - deadline) >= -0.001
 end
 
 os.setenv("PATH", "/bin:/usr/bin:/home/bin:.")
