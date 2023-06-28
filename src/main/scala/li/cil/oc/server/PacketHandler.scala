@@ -252,7 +252,7 @@ object PacketHandler extends CommonPacketHandler {
     entity match {
       case Some(t) => p.player match {
         case player: EntityPlayerMP if t.isUseableByPlayer(player) =>
-          t.connect(mountableIndex, nodeIndex, side)
+          t.connect(mountableIndex, nodeIndex - 1, side)
         case _ =>
       }
       case _ => // Invalid packet.
