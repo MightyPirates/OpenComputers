@@ -511,6 +511,11 @@ object Settings {
   val deviceComplexityByTier: Array[Int] = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId: Int = -1
+  private val forbiddenConfigLists: List[String] = List(
+    /* 1.8.3+ filtering rules migration */
+    "internet.blacklist", "internet.whitelist"
+  )
+  private val prefix = "opencomputers."
 
   def basicScreenPixels: Int = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
@@ -546,6 +551,13 @@ object Settings {
           settings = new Settings(defaults.getConfig("opencomputers"))
           defaults
       }
+    for (key <- forbiddenConfigLists) {
+      if (config.hasPath(prefix + key)) {
+        if (!config.getStringList(prefix + key).isEmpty) {
+          throw new RuntimeException("Error parsing configuration file: removed configuration option '" + key + "' is not empty. This option should no longer be used.")
+        }
+      }
+    }
     try {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val nl = sys.props("line.separator")
@@ -603,7 +615,6 @@ object Settings {
   // were made. If so, the new default values are copied over.
   private def patchConfig(config: Config, defaults: Config) = {
     val mod = Loader.instance.activeModContainer
-    val prefix = "opencomputers."
     val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
     var patched = config
     if (configVersion.compareTo(mod.getProcessedVersion) != 0) {
@@ -650,14 +661,20 @@ object Settings {
           internetFilteringRules += defaultRule
         }
         var patchedRules: ConfigValue = ConfigValueFactory.fromIterable(internetFilteringRules.asJava)
-        // We need to use the private API here, unfortunately.
+        // We need to use the private APIs here, unfortunately.
         try {
-          patched = OpenComputersConfigCommentManipulationHook.setComments(
-            patched, prefix + "internet.whitelist", List("No longer used! See internet.filteringRules.").asJava
-          )
-          patched = OpenComputersConfigCommentManipulationHook.setComments(
-            patched, prefix + "internet.blacklist", List("No longer used! See internet.filteringRules.").asJava
-          )
+          for (key <- List("internet.whitelist", "internet.blacklist")) {
+            if (patched.hasPath(prefix + key)) {
+              val originalValue = patched.getValue(prefix + key)
+              var deprecatedValue: ConfigValue = ConfigValueFactory.fromIterable(new java.util.ArrayList[String](), originalValue.origin().description())
+              val comments = mutable.MutableList("No longer used! See internet.filteringRules.", "", "Previous contents:")
+              for (value <- patched.getStringList(prefix + key)) {
+                comments += "\"" + value + "\""
+              }
+              deprecatedValue = OpenComputersConfigCommentManipulationHook.setComments(deprecatedValue, comments.asJava)
+              patched = patched.withValue(prefix + key, deprecatedValue)
+            }
+          }
           patchedRules = OpenComputersConfigCommentManipulationHook.setComments(
             patchedRules, defaults.getValue(prefix + "internet.filteringRules").origin().comments()
           )
