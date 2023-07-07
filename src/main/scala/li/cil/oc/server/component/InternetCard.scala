@@ -1,5 +1,7 @@
 package li.cil.oc.server.component
 
+import com.google.common.net.InetAddresses
+
 import java.io.BufferedWriter
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -66,6 +68,9 @@ class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
+    if (!Settings.get.internetAccessAllowed()) {
+      return result(Unit, "internet access is unavailable")
+    }
     if (!Settings.get.httpEnabled) {
       return result(Unit, "http requests are unavailable")
     }
@@ -94,6 +99,9 @@ class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
     checkOwner(context)
     val address = args.checkString(0)
     val port = args.optInteger(1, -1)
+    if (!Settings.get.internetAccessAllowed()) {
+      return result(Unit, "internet access is unavailable")
+    }
     if (!Settings.get.tcpEnabled) {
       return result(Unit, "tcp connections are unavailable")
     }
@@ -182,7 +190,11 @@ class InternetCard extends AbstractManagedEnvironment with DeviceInfo {
 }
 
 object InternetCard {
-  private val threadPool = ThreadPoolFactory.create("Internet", Settings.get.internetThreads)
+  // For InternetFilteringRuleTest, where Settings.get is not provided.
+  private val threadPool = ThreadPoolFactory.create("Internet", Option(Settings.get) match {
+    case None => 1
+    case Some(settings) => settings.internetThreads
+  })
 
   trait Closable {
     def close(): Unit
@@ -212,7 +224,7 @@ object InternetCard {
 
           if(readableKeys.nonEmpty) {
             val newSelector = Selector.open()
-            selectedKeys.filter(!readableKeys.contains(_)).foreach(key => {
+            selector.keys.filter(!readableKeys.contains(_)).foreach(key => {
               key.channel.register(newSelector, SelectionKey.OP_READ, key.attachment)
             })
             selector.close()
@@ -358,12 +370,40 @@ object InternetCard {
 
   }
 
-  def checkLists(inetAddress: InetAddress, host: String) {
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(i => i.apply(inetAddress, host).getOrElse(false))) {
-      throw new FileNotFoundException("address is not whitelisted")
+  def isRequestAllowed(settings: Settings, inetAddress: InetAddress, host: String): Boolean = {
+    if (!settings.internetAccessAllowed()) {
+      false
+    } else {
+      val rules = settings.internetFilteringRules
+      inetAddress match {
+        // IPv6 handling
+        case inet6Address: Inet6Address =>
+          // If the IP address is an IPv6 address with an embedded IPv4 address, and the IPv4 address is blocked,
+          // block this request.
+          if (InetAddresses.hasEmbeddedIPv4ClientAddress(inet6Address)) {
+            val inet4in6Address = InetAddresses.getEmbeddedIPv4ClientAddress(inet6Address)
+            if (!rules.map(r => r.apply(inet4in6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(true)) {
+              return false
+            }
+          }
+
+          // Process address as an IPv6 address.
+          rules.map(r => r.apply(inet6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
+        // IPv4 handling
+        case inet4Address: Inet4Address =>
+          // Process address as an IPv4 address.
+          rules.map(r => r.apply(inet4Address, host)).collectFirst({ case Some(r) => r }).getOrElse(false)
+        case _ =>
+          // Unrecognized address type - block.
+          OpenComputers.log.warn("Internet Card blocked unrecognized address type: " + inetAddress.toString)
+          false
+      }
     }
-    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(i => i.apply(inetAddress, host).getOrElse(true))) {
-      throw new FileNotFoundException("address is blacklisted")
+  }
+
+  def checkLists(inetAddress: InetAddress, host: String): Unit = {
+    if (!isRequestAllowed(Settings.get, inetAddress, host)) {
+      throw new FileNotFoundException("address is not allowed")
     }
   }
 

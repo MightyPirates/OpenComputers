@@ -41,7 +41,6 @@ public final class DriverRedstoneControl extends DriverSidedTileEntity {
         @Callback(doc = "function():string --  Returns the control status.")
         public Object[] getControlSettingName(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getControl().name()};
-
         }
 
         @Callback(doc = "function(int):string --  Returns the name of the given control")
