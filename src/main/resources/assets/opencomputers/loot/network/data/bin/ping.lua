@@ -51,7 +51,7 @@ local function doSleep()
     local deadline = computer.uptime() + (tonumber(options.i) or tonumber(options.interval) or 1)
     repeat
         event.pull(deadline - computer.uptime())
-    until (computer.uptime() - deadline) >= -0.001
+    until computer.uptime() >= deadline
 end
 
 local function doPing()
@@ -66,9 +66,9 @@ local function doPing()
     local e, replier, id, inpayload
     repeat
         e, replier, id, inpayload = event.pull(deadline - computer.uptime(), "ping_reply")
-    until ((computer.uptime() - deadline) >= -0.001) or (e == "ping_reply" and id == icmp_seq)
+    until computer.uptime() >= deadline or (e == "ping_reply" and id == icmp_seq)
     
-    if ((computer.uptime() - deadline) >= -0.001) and e ~= "ping_reply" then
+    if computer.uptime() >= deadline and e ~= "ping_reply" then
         verbose(tostring(len).." bytes lost: icmp_seq="..tostring(icmp_seq))
     elseif inpayload == payload then
         stats.received = stats.received + 1

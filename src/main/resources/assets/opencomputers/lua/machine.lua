@@ -1405,7 +1405,7 @@ local libcomputer = {
       if signal.n > 0 then
         return table.unpack(signal, 1, signal.n)
       end
-    until (computer.uptime() - deadline) >= -0.001
+    until computer.uptime() >= deadline
   end,
 
   beep = function(...)
