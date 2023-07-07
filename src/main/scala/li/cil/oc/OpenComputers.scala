@@ -60,6 +60,32 @@ object OpenComputers {
   def serverStart(e: FMLServerStartingEvent): Unit = {
     CommandHandler.register(e)
     ThreadPoolFactory.safePools.foreach(_.newThreadPool())
+
+    if (Settings.get.internetAccessConfigured()) {
+      if (Settings.get.internetFilteringRulesInvalid()) {
+        OpenComputers.log.warn("####################################################")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("#  Could not parse Internet Card filtering rules!  #")
+        OpenComputers.log.warn("#  Review the server log and adjust the filtering  #")
+        OpenComputers.log.warn("#  list to ensure it is appropriately configured.  #")
+        OpenComputers.log.warn("#   (config/OpenComputers.cfg => filteringRules)   #")
+        OpenComputers.log.warn("# Internet access has been automatically disabled. #")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("####################################################")
+      } else if (!Settings.get.internetFilteringRulesObserved && e.getServer.isDedicatedServer) {
+        OpenComputers.log.warn("####################################################")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("#    It appears that you're running a dedicated    #")
+        OpenComputers.log.warn("#  server with OpenComputers installed! Make sure  #")
+        OpenComputers.log.warn("#  to review the Internet Card address filtering   #")
+        OpenComputers.log.warn("#  list to ensure it is appropriately configured.  #")
+        OpenComputers.log.warn("#   (config/OpenComputers.cfg => filteringRules)   #")
+        OpenComputers.log.warn("#                                                  #")
+        OpenComputers.log.warn("####################################################")
+      } else {
+        OpenComputers.log.info(f"Successfully applied ${Settings.get.internetFilteringRules.length} Internet Card filtering rules.")
+      }
+    }
   }
 
   @EventHandler
