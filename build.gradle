@@ -1,24 +1,29 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.0-SNAPSHOT'
-    }
+	repositories {
+		mavenCentral()
+		maven { url "https://maven.fabricmc.net" }
+		maven { url "https://repo.sleeping.town" }
+	}
+	dependencies {
+		classpath "agency.highlysuspect:voldeloom:2.4-SNAPSHOT"
+	}
 }
 
-apply plugin: 'forge'
+plugins {
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+apply plugin: 'agency.highlysuspect.voldeloom'
 apply plugin: 'scala'
-apply plugin: 'maven-publish'
+
+// Forge doesn't understand classes compiled to versions of the class-file format newer than Java 6's.
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
 
 file "build.properties" withReader {
-    def prop = new Properties()
-    prop.load(it)
-    ext.config = new ConfigSlurper().parse prop
+	def prop = new Properties()
+	prop.load(it)
+	ext.config = new ConfigSlurper().parse prop
 }
 
 version = "${config.oc.version}"
@@ -34,75 +39,83 @@ if (config.oc.subversion != null && config.oc.subversion != "")
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
+// TODO: Why is this necessary for compileScala?
+sourceSets.main.java.srcDirs += ['src/api/java']
+
 repositories {
-    ivy {
-        name "minecraftforge"
-        artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
-    }
-    maven {
-        name = "chickenbones"
-        url = "http://chickenbones.net/maven/"
-    }
+	maven {
+		url "https://cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
+	ivy {
+		name 'asie dependency mirror'
+		artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+		metadataSources {
+			artifact()
+		}
+	}
 }
 
 configurations {
-    provided
-    shade
-    compile.extendsFrom provided, shade
+	shade
+	implementation.extendsFrom shade
 }
 
 dependencies {
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
-    compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
-    shade 'com.typesafe:config:1.2.1'
-    shade files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
-}
+	minecraft "com.mojang:minecraft:${config.minecraft.version}"
+	forge "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}:universal"
+	mappings "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}:src@zip"
 
-idea.module.scopes.PROVIDED.plus += configurations.provided
-eclipse.classpath.plusConfigurations += configurations.provided
+	implementation 'org.scala-lang:scala-library:2.10.2'
+	implementation 'org.scala-lang:scala-compiler:2.10.2'
 
-minecraft {
-    version = "${config.minecraft.version}-${config.forge.version}"
+	modCompileOnly name: "CodeChickenLib", version: "universal-1.6.4-1.0.0.62"
+	modCompileOnly "curse.maven:codechickencore-222213:2207571"
+	modCompileOnly "curse.maven:notenoughitems-222211:2207574"
+	modCompileOnly "curse.maven:forge-multi-part-229323:2233279"
+	modCompileOnly "curse.maven:wr-cbe-universal-229314:2233234"
+	modCompileOnly files('libs/factorization-api.jar')
+	modCompileOnly files('libs/ic2classic-api.jar')
+	implementation 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
-    replaceIn "li/cil/oc/OpenComputers.scala"
-    replace "@VERSION@", project.simpleVersion
+	shade 'com.typesafe:config:1.2.1'
+	shade files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 }
 
 processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        include 'application.conf'
-        filter { line ->
-            line.replaceAll("@VERSION@", project.simpleVersion)
-        }
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-        exclude 'application.conf'
-    }
+	from(sourceSets.main.resources.srcDirs) {
+		include 'mcmod.info'
+		expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+	}
+	from(sourceSets.main.resources.srcDirs) {
+		include 'application.conf'
+		filter { line ->
+			line.replaceAll("@VERSION@", project.simpleVersion)
+		}
+	}
+	from(sourceSets.main.resources.srcDirs) {
+		exclude 'mcmod.info'
+		exclude 'application.conf'
+	}
 }
 
 jar {
-    configurations.shade.each { dep ->
-        from(project.zipTree(dep)){
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
-    classifier = 'universal'
-    manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-    }
+	configurations.shade.each { dep ->
+		from(project.zipTree(dep)) {
+			exclude 'META-INF', 'META-INF/**'
+		}
+	}
+	classifier = 'universal'
+	manifest {
+		attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+		attributes FMLCorePluginContainsFMLMod: "true"
+	}
 }
 
 javadoc {
-    include 'li/cil/oc/api/**'
+	include 'li/cil/oc/api/**'
 }
 
 // because the normal default jar task has been modified to be obfuscated
@@ -136,20 +149,4 @@ artifacts {
     archives deobfJar
     archives apiJar
     archives javadocJar
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-            artifact apiJar
-            artifact javadocJar
-            artifact deobfJar { classifier 'dev' }
-        }
-    }
-    repositories {
-        maven {
-            url "${config.maven.url}"
-        }
-    }
 }
