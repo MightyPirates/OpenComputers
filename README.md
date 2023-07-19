@@ -39,7 +39,7 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
 4. **Core Scripts**  
    If you would like to contribute scripts to the "core" Lua code (which basically defines 'OpenOS'), please have a look at the [code conventions][] for Lua to save us all some time. Bug fixes are always welcome. Additional programs and features should be kept small. Bigger programs (rule of thumb: larger than 3KiB) should go onto loot disks.
 5. **Drivers**  
-   As of OC 1.4, mod interaction that was previously provided by OpenComponents it now fully integrated into OC itself. If you wish to contribute a driver for blocks from other mods, cool! Have a look at the [integration][] package to get an idea of how to structure modules and read the readme in that package for more information (in particular on additional criteria to get your PR merged).
+   As of OC 1.4, mod interaction that was previously provided by OpenComponents is now fully integrated into OC itself. If you wish to contribute a driver for blocks from other mods, cool! Have a look at the [integration][] package to get an idea of how to structure modules and read the readme in that package for more information (in particular on additional criteria to get your PR merged).
 
 #### Pull requests
 The following are a few quick guidelines on pull requests. That is to say they are not necessarily *rules*, so there may be exceptions and all that. Just try to stick to those points as a baseline.
