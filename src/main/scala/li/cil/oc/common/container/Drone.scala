@@ -8,7 +8,7 @@ import li.cil.oc.common.entity
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.IInventory
 
-class Drone(playerInventory: InventoryPlayer, drone: entity.Drone) extends Player(playerInventory, drone.mainInventory) {
+class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends Player(playerInventory, drone.mainInventory) {
   val deltaY = 0
 
   for (i <- 0 to 1) {
