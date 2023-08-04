@@ -265,6 +265,7 @@ function thread.create(fp, ...)
     local old_status = t:status()
     mt.__status = "dead"
     process.removeHandle(t, mt.attached)
+    process.removeHandle(mt.process, t)
     if old_status ~= "dead" then
       event.push("thread_exit")
     end
