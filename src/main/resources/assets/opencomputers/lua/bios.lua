@@ -59,6 +59,6 @@ do
   if not init then
     error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
   end
-  computer.beep(1000, 0.2)
+  computer.beep(".")
 end
 return init()
