@@ -15,7 +15,7 @@ buildscript {
         }
         maven {
             url = "https://jitpack.io"
-        }
+    }
     }
     dependencies {
         classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.11'
@@ -89,6 +89,10 @@ repositories {
     maven {
         name 'Overmind forge repo mirror'
         url 'https://gregtech.overminddl1.com/'
+    }
+    maven {
+        name = "ic2, forestry"
+        url = "http://maven.ic2.player.to/"
     }
     // These are necessary because some parts of the maven repo is weirdly structured, this needs to be fixed.
     ivy {
