@@ -142,6 +142,20 @@ class Settings(val config: Config) {
   val harvestRatio = config.getDouble("robot.delays.harvestRatio") max 0
 
   // ----------------------------------------------------------------------- //
+  // temperature
+  val ignoreTemperature = config.getBoolean("temperature.ignoreTemperature")
+  val disableThrottling = config.getBoolean("temperature.disableThrottling")
+  val minThrottle = config.getDouble("temperature.minThrottle") max 1 min 0.25
+  val maxThrottle = config.getDouble("temperature.maxThrottle") max 1.5 min 1
+  val crashChances = config.getDouble("temperature.crashChances") max 1
+  val temperatureMultiplier = config.getDouble("temperature.Multiplier")
+  val maxSafeTemperature = config.getDouble("temperature.maxSafeTemperature")
+
+  // temperature.fan
+  val fanEfficiency = config.getDouble("temperature.fan.fanEfficiency") max 5
+  val maxFanThrottle = config.getDouble("temperature.fan.maxThrottle") max 1
+  
+  // ----------------------------------------------------------------------- //
   // power
   val ignorePower = config.getBoolean("power.ignorePower")
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
