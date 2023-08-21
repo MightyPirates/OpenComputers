@@ -1,8 +1,8 @@
-# Adapter
+# Перехідник
 
-![Now with 100% more everything.](oredict:oc:adapter)
+![Тепер на 100% більше всього.*](oredict:oc:adapter)
 
-The adapter allows [computers](../general/computer.md) to interact with blocks from vanilla Minecraft or other mods. Supported blocks adjacent to the adapter will show up as components in [computers](../general/computer.md) connected to the adapter.
+Перехідник дозволяє [комп'ютерам](../general/computer.md) взаємодіяти з ванільними блоками або блоками з інших модів. Підтримувані блоки, що знаходяться поруч з перехідником, відображатимуться як компоненти у [комп'ютері](../general/computer.md), підключеному до перехідника.
 
-In addition to this, the adapter provides a slot for a few select upgrades. For example, the [inventory controller upgrade](../item/inventoryControllerUpgrade.md) allows computers to query more information from an inventory adjacent to the adapter, similar to when the upgrade is installed in a device (such as a [robot](robot.md) or [drone](../item/drone.md)), and a [tank controller upgrade](../item/tankControllerUpgrade.md) provides similar functionality for fluid tanks next to the adapter.
-Furthermore, you can insert a bound [MFU](../item/mfu.md) to interact with blocks a few spaces away.
+Крім того, перехідник має слот для декількох покращень. Наприклад, [контролер інвентарю](../item/inventoryControllerUpgrade.md) дозволяє комп'ютерам запитувати більше інформації з інвентарю, розташованого поруч з перехідником, подібно до того, як покращення встановлюється у пристрої (наприклад, у [робота](robot.md) чи [дрона](../item/drone.md)), а [контролер резервуару](../item/tankControllerUpgrade.md) забезпечує аналогічну функціональність для резервуарів з рідиною, розташованих поруч з перехідником.
+Крім того, ви можете вставити зв'язаний [БФП](../item/mfu.md) для взаємодії з блоками, розташованими на відстані кількох блоків.

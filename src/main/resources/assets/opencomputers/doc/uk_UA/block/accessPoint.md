@@ -1,13 +1,13 @@
-# Access Point
+# Точка Доступу
 
 ![AAA](oredict:oc:accessPoint)
 
-*This block is deprecated and will be removed in a future version.* Craft it into a [relay](relay.md) to avoid losing it.
+*Цей блок застарілий і буде видалений у наступній версії.* Щоб не втратити його, перетворіть його на [relay](relay.md).
 
-The access point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see [components](../general/computer.md) in other networks, while still allowing to send network messages to the machines in other networks.
+Точка доступу це бездротова версія [комутатора](switch.md). Її можна використовувати для розділення підмереж так, щоб комп'ютери у них не бачили [компоненти](../general/computer.md) в інших мережах, але при цьому можна надсилати повідомлення до комп'ютерів у інших мережах.
 
-In addition to that, this block can act as a repeater: it can re-send wired messages as wired messages to other devices; or wireless messages as wired or wireless messages. 
+Крім того, цей блок може діяти як ретранслятор: він може повторно надсилати дротові повідомлення як дротові повідомлення на інші пристрої; або бездротові повідомлення як дротові, або бездротові повідомлення.
 
-[Switches](switch.md) and access point do *not* keep track of which packets they relayed recently, so avoid cycles in your network or you may receive the same packet multiple times. Due to the limited buffer size of switches, packet loss can occur when trying to send network messages too frequently. You can upgrade your switches and access points to increase the speed at which they relay messages, as well as their internal message queue size.
+[Комутатори](switch.md) і точка доступу *не* відстежують, які пакети вони передавали останнім часом, тому уникайте циклів у мережі, інакше ви можете отримати один і той самий пакет кілька разів. Через обмежений розмір буфера комутаторів, при занадто частому надсиланні мережевих повідомлень може статися втрата пакетів. Ви можете модернізувати комутатори і точки доступу, щоб збільшити швидкість, з якою вони передають повідомлення, а також розмір їхньої внутрішнього буферу повідомлень.
 
-Packets are only re-sent a certain number of times, so chaining an arbitrary number of [switches](switch.md) or access points is not possible. By default, a packet will be re-sent up to five times.
+Пакети повторно надсилаються лише певну кількість разів, тому з'єднати у ланцюжок довільну кількість [комутаторів](switch.md) або точок доступу неможливо. За замовчуванням, пакет буде повторно надіслано до п'яти разів.

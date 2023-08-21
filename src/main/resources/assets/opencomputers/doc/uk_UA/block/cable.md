@@ -1,9 +1,9 @@
-# Cable
+# Кабель
 
-![Salad.](oredict:oc:cable)
+![Салатик.](oredict:oc:cable)
 
-The cable serves as a way of connecting [computers](../general/computer.md) and machines that are far apart. If you have a compact build where all components touch each other (directly or indirectly, most blocks also behave the same way as cables) you will usually not need cables.
+Кабель слугує для з'єднання [комп'ютерів](../general/computer.md) і машин, які знаходяться далеко один від одного. Якщо у вас компактна збірка, де всі компоненти торкаються один одного (прямо чи опосередковано, більшість блоків також поводяться так само, як і кабелі), вам зазвичай не потрібні кабелі.
 
-Cables can be colored using any kind of dye. Colored cables will only connect to cables of the same color and to light gray colored cables - the default color. This can be useful for running cables for multiple subnetworks in parallel, without using covers.
+Кабелі можуть бути пофарбовані будь-якими барвниками. Кольорові кабелі підключаються лише до кабелів того ж кольору і до світло-сірих кабелів - кольору за замовчуванням. Це може бути корисно для паралельної прокладки кабелів для декількох підмереж без використання заглушок.
 
-If necessary, cables can be covered using Forge MultiPart covers, or Immibis Microblocks covers. Keep in mind that [3D prints](print.md) are Forge MultiPart compatible, so it is possible to print custom covers, if desired.
+За необхідності кабелі можна накрити кришками з Forge MultiPart або кришками з Immibis Microblocks. Майте на увазі, що [3D-друк](print.md) сумісний з Forge MultiPart, тому за бажанням можна надрукувати власні кришки.

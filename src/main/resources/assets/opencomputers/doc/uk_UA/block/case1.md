@@ -8,9 +8,9 @@ The maximum tier of the component that can be inserted into any slot of a comput
 
 The tier 1 case can house up to and including the following components:
 - 2x tier 1 expansion cards (such as [graphics cards](../item/graphicsCard1.md), [network cards](../item/lanCard.md), etc)
-- 1x tier 1 [CPU](../item/cpu1.md)
-- 2x tier 1 [RAM](../item/ram1.md)
-- 1x tier 1 [HDD](../item/hdd1.md)
+- 1x [ЦП](../item/cpu1.md) першого рівня
+- 2x [ОЗП](../item/ram1.md) першого рівня
+- 1x [HDD](../item/hdd1.md) першого рівня
 
 The tier 2 case can house up to and including the following components:
 - 1x tier 1 Expansion card (such as [graphics cards](../item/graphicsCard1.md), [network cards](../item/lanCard.md), etc)

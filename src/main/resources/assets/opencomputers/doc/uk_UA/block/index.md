@@ -1,48 +1,48 @@
-# Blocks
+# Блоки
 
-This index lists all of the documented blocks in OpenComputers. If you're looking for an item, check out the [item index](../item/index.md) instead.
+На цій домашній сторінці перелічено всі задокументовані блоки у OpenComputers. Якщо ви шукаєте якийсь предмет, скористайтеся [домашньою сторінкою предметів](../item/index.md).
 
-Keep in mind that some of these may not be available, depending on the recipe set used.
+Майте на увазі, що деякі з них можуть бути недоступні, залежно від використовуваного набору рецептів.
 
-## Computers
-* [Computer Case](case1.md)
-* [Microcontroller](microcontroller.md)
-* [Rack](rack.md)
-* [Robot](robot.md)
+## Комп'ютери
+* [Комп'ютерний Корпус](case1.md)
+* [Мікроконтролер](microcontroller.md)
+* [Серверна Стійка](rack.md)
+* [Робот](robot.md)
 
-## Components
+## Компоненти
 
-### Input / Output
-* [Hologram Projector](hologram1.md)
-* [Keyboard](keyboard.md)
-* [Screen](screen1.md)
+### Ввід / Вивід
+* [Проектор Голограм](hologram1.md)
+* [Клавіатура](keyboard.md)
+* [Екран](screen1.md)
 
-### Storage
-* [Disk Drive](diskDrive.md)
-* [RAID](raid.md)
+### Сховище
+* [Дисковод](diskDrive.md)
+* [Серверна Стійка](raid.md)
 
-### Extensions
-* [Adapter](adapter.md)
-* [Geolyzer](geolyzer.md)
-* [Motion Sensor](motionSensor.md)
-* [Redstone I/O](redstone.md)
-* [Transposer](transposer.md)
-* [Waypoint](waypoint.md)
+### Розширення
+* [Перехідник](adapter.md)
+* [Геолізатор](geolyzer.md)
+* [Сенсор Руху](motionSensor.md)
+* [Редстоун Ввід/Вивід](redstone.md)
+* [Транспозитор](transposer.md)
+* [Маршрутна Точка](waypoint.md)
 
-## Assembly / Printing
-* [3D Print](print.md)
-* [3D Printer](printer.md)
-* [Assembler](assembler.md)
-* [Block of Chamelium](chameliumBlock.md)
-* [Disassembler](disassembler.md)
+## Збірка / Друк
+* [3D-Друк](print.md)
+* [3D-Принтер](printer.md)
+* [Конструктор Електротехніки](assembler.md)
+* [Хамелієвий Блок](chameliumBlock.md)
+* [Деконструктор Електроніки](disassembler.md)
 
-## Networking
-* [Cable](cable.md)
-* [Net Splitter](netSplitter.md)
-* [Relay](relay.md)
+## Мережа
+* [Кабель](cable.md)
+* [Розгалуджувач Мережі](netSplitter.md)
+* [Реле](relay.md)
 
-## Power management
-* [Capacitor](capacitor.md)
-* [Charger](charger.md)
-* [Power Converter](powerConverter.md)
-* [Power Distributor](powerDistributor.md)
+## Керування живленням
+* [Конденсатор](capacitor.md)
+* [Зарядний Пристрій](charger.md)
+* [Перетворювач Енергії](powerConverter.md)
+* [Розподілювач Енергії](powerDistributor.md)
