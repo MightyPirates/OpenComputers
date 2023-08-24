@@ -155,6 +155,7 @@ item.oc.UpgradeTank.name=Улучшение "Бак для жидкостей"
 item.oc.UpgradeTankController.name=Улучшение "Контроллер бака"
 item.oc.UpgradeTractorBeam.name=Улучшение "Притягивающий луч"
 item.oc.UpgradeTrading.name=Улучшение "Торговля"
+item.oc.UpgradeBeekeeper.name=Улучшение "Пчеловод"
 item.oc.WirelessNetworkCard0.name=Плата беспроводной сети (1-ый уровень)
 item.oc.WirelessNetworkCard1.name=Плата беспроводной сети (2-ой уровень)
 item.oc.WorldSensorCard.name=Карта-мировой сенсор
