@@ -142,6 +142,7 @@ dependencies {
     compileOnly ("mrtjp:ProjectRed:${config.projred.version}:dev") {
         exclude module: 'CoFHCore'
     }
+	compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
     // compileOnly "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
     compileOnly name: 'buildcraft', version: config.bc.version, classifier: 'dev', ext: 'jar'
