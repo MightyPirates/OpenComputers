@@ -1,0 +1,24 @@
+{
+    "display": {
+        "title": {
+            "text": "OpenComputers"
+        },
+        "description": {
+            "text": "Modular and programmable computers"
+        },
+        "icon": {
+            "item": "opencomputers:tool",
+            "data": "4"
+        },
+        "frame": "task",
+        "show_toast": false,
+        "announce_to_chat": false,
+        "hidden": false,
+        "background": "minecraft:textures/gui/advancements/backgrounds/stone.png"
+    },
+    "criteria": {
+        "onTick": {
+            "trigger": "minecraft:tick"
+        }
+    }
+}
