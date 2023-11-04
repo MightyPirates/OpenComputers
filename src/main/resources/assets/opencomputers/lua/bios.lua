@@ -28,6 +28,7 @@ do
   end
   local function tryLoadFrom(address)
     local handle, reason = boot_invoke(address, "open", "/init.lua")
+    local handle, reason = boot_invoke(address, "open", "/OS.lua")
     if not handle then
       return nil, reason
     end
