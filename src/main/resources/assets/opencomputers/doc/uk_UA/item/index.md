@@ -1,97 +1,96 @@
 # Items
+На цій домашній сторінці перелічено всі задокументовані предмети у OpenComputers. Якщо ви шукаєте якийсь блок, скористайтеся [домашньою сторінкою блоків](../block/index.md).
 
-This index lists all of the documented items in OpenComputers. If you're looking for a block, check out the [block index](../block/index.md) instead.
+Майте на увазі, що деякі з предметів можуть бути недоступні, залежно від використовуваного набору рецептів.
 
-Keep in mind that some of these may not be available, depending on the recipe set used.
+## Інструменти
+* [Аналізатор](analyzer.md)
+* [Посібник](manual.md)
+* [Дистанційний Термінал](terminal.md)
+* [Обирач Текстур](texturePicker.md)
+* [Сключ](wrench.md)
 
-## Tools
-* [Analyzer](analyzer.md)
-* [Manual](manual.md)
-* [Remote Terminal](terminal.md)
-* [Texture Picker](texturePicker.md)
-* [Scrench](wrench.md)
+## Пристрої
+* [Дрон](drone.md)
+* [Сервер](server1.md)
+* [Планшет](tablet.md)
 
-## Devices
-* [Drone](drone.md)
-* [Server](server1.md)
-* [Tablet](tablet.md)
+## Компоненти
 
-## Components
+### Карти
+* [Карта Абстрактної Шини](abstractBusCard.md)
+* [Карта Даних](dataCard1.md)
+* [Карта Налагодження](debugCard.md) (aka AMI)
+* [Відеокарта](graphicsCard1.md)
+* [Інтернет-Карта](internetCard.md)
+* [Зв'язана Карта](linkedCard.md)
+* [Мережева Карта](lanCard.md)
+* [Редстоун-Карта](redstoneCard1.md)
+* [Безпровідна Мережева Карта](wlanCard1.md)
+* [Карта Світового Сенсору](worldSensorCard.md)
 
-### Cards
-* [AbstractBus Card](abstractBusCard.md)
-* [Data Card](dataCard1.md)
-* [Debug Card](debugCard.md) (aka AMI)
-* [Graphics Card](graphicsCard1.md)
-* [Internet Card](internetCard.md)
-* [Linked Card](linkedCard.md)
-* [Network Card](lanCard.md)
-* [Redstone Card](redstoneCard1.md)
-* [Wireless Network Card](wlanCard1.md)
-* [World Sensor Card](worldSensorCard.md)
+### Покращення
+* [Янголське Покращення](angelUpgrade.md)
+* [Покращена Батарея](batteryUpgrade1.md)
+* [Контейнер для Карти](cardContainer1.md)
+* [Провантажувач Чанків](chunkloaderUpgrade.md)
+* [Покращення Майстрування](craftingUpgrade.md)
+* [База Даних](databaseUpgrade1.md)
+* [Бак для Досвіду](experienceUpgrade.md)
+* [Генератор](generatorUpgrade.md)
+* [Покращення Зависання](hoverUpgrade1.md)
+* [Контролер Інвентарю](inventoryControllerUpgrade.md)
+* [Інвентар](inventoryUpgrade.md)
+* [Покращення Повідок](leashUpgrade.md)
+* [БФП](mfu.md)
+* [Навігаційне Покращення](navigationUpgrade.md)
+* [Поршневе Покращення](pistonUpgrade.md)
+* [Запис/Читання Табличок](signUpgrade.md)
+* [Сонячна Панель](solarGeneratorUpgrade.md)
+* [Контролер Резервуару](tankControllerUpgrade.md)
+* [Резервуар](tankUpgrade.md)
+* [Магніт](tractorBeamUpgrade.md)
+* [Торгівельне Покращення](tradingUpgrade.md)
+* [Контейнер для Покращення](upgradeContainer1.md)
 
-### Upgrades
-* [Angel Upgrade](angelUpgrade.md)
-* [Battery Upgrade](batteryUpgrade1.md)
-* [Card Container](cardContainer1.md)
-* [Chunk Loader Upgrade](chunkloaderUpgrade.md)
-* [Crafting Upgrade](craftingUpgrade.md)
-* [Database Upgrade](databaseUpgrade1.md)
-* [Experience Upgrade](experienceUpgrade.md)
-* [Generator Upgrade](generatorUpgrade.md)
-* [Hover Upgrade](hoverUpgrade1.md)
-* [Inventory Controller](inventoryControllerUpgrade.md)
-* [Inventory Upgrade](inventoryUpgrade.md)
-* [Leash Upgrade](leashUpgrade.md)
-* [MFU](mfu.md)
-* [Navigation Upgrade](navigationUpgrade.md)
-* [Piston Upgrade](pistonUpgrade.md)
-* [Sign Upgrade](signUpgrade.md)
-* [Solar Generator Upgrade](solarGeneratorUpgrade.md)
-* [Tank Controller](tankControllerUpgrade.md)
-* [Tank Upgrade](tankUpgrade.md)
-* [Tractor Beam Upgrade](tractorBeamUpgrade.md)
-* [Trading Upgrade](tradingUpgrade.md)
-* [Upgrade Container](upgradeContainer1.md)
+### Модулі Серверної Стійки
+* [Дисковод](diskDriveMountable.md)
+* [Сервер](server1.md)
+* [Термінал-Сервер](terminalServer.md)
 
-### Rack Mountables
-* [Disk Drive](diskDriveMountable.md)
-* [Server](server1.md)
-* [Terminal Server](terminalServer.md)
-
-### Other
-* [APU](apu1.md)
-* [Component Bus](componentBus1.md)
-* [CPU](cpu1.md)
+### Інше
+* [ПОП](apu1.md)
+* [Компонентна Шина](componentBus1.md)
+* [ЦП](cpu1.md)
 * [EEPROM](eeprom.md)
-* [Floppy](floppy.md)
-* [Hard Disk Drive](hdd1.md)
-* [Memory (RAM)](ram1.md)
+* [Дискета](floppy.md)
+* [Жорсткий Диск](hdd1.md)
+* [Оперативна Пам'ять](ram1.md)
 
 ## Crafting
-* [Acid](acid.md)
-* [ALU](alu.md)
-* [Arrow Keys](arrowKeys.md)
-* [Button Group](buttonGroup.md)
-* [Card](card.md)
-* [Circuit Board](circuitBoard.md)
-* [Control Unit](controlUnit.md)
-* [Cutting Wire](cuttingWire.md)
-* [Disk](disk.md)
-* [Interweb](interweb.md)
-* [Microchip](chip1.md)
-* [Numeric Keypad](numPad.md)
-* [Printed Circuit Board](printedCircuitBoard.md)
-* [Raw Circuit Board](rawCircuitBoard.md)
-* [Transistor](transistor.md)
+* [Грог](acid.md)
+* [АЛП](alu.md)
+* [Стрілки](arrowKeys.md)
+* [Клавіші](buttonGroup.md)
+* [Карта](card.md)
+* [Плата](circuitBoard.md)
+* [Блок Управління (БУ)](controlUnit.md)
+* [Ріжучий Дріт](cuttingWire.md)
+* [Диск](disk.md)
+* [Тенета](interweb.md)
+* [Мікрочип](chip1.md)
+* [Цифровий Блок](numPad.md)
+* [Друкована Плата](printedCircuitBoard.md)
+* [Сира ПЛата](rawCircuitBoard.md)
+* [Транзистор](transistor.md)
 
-## Assembling / Printing
-* [Chamelium](chamelium.md)
-* [Ink Cartridge](inkCartridge.md)
-* [Drone Case](droneCase1.md)
-* [Microcontroller Case](microcontrollerCase1.md)
-* [Tablet Case](tabletCase1.md)
+## Конструювання / Друкування
+* [Хамелій](chamelium.md)
+* [Чорнильний Картридж](inkCartridge.md)
+* [Корпус Дрона](droneCase1.md)
+* [Корпус Мікроконтролера](microcontrollerCase1.md)
+* [Корпус Планшета](tabletCase1.md)
 
-## Other
-* [Hover Boots](hoverBoots.md)
-* [Nanomachines](nanomachines.md)
+## Інше
+* [Говербутс](hoverBoots.md)
+* [Наномашини](nanomachines.md)
