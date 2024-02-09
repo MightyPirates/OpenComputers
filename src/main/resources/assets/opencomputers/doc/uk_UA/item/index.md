@@ -84,7 +84,7 @@
 * [Сира ПЛата](rawCircuitBoard.md)
 * [Транзистор](transistor.md)
 
-## Конструювання / Друкування
+## Конструювання / Друк
 * [Хамелій](chamelium.md)
 * [Чорнильний Картридж](inkCartridge.md)
 * [Корпус Дрона](droneCase1.md)
