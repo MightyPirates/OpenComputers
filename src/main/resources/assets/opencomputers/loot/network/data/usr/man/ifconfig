@@ -12,5 +12,5 @@ EXAMPLES
     Output network status information
     
   ifconfig bind [address]
-    Binds addnitional address to this device. Address should match [A-Za-z0-9%-]+ and be max 64 characters length
+    Binds additional address to this device. Address should match [A-Za-z0-9%-]+ and be max 64 characters length
 
