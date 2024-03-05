@@ -1,0 +1,15 @@
+NAME
+  nc - Connect STDIN and STDOUT to the network
+  
+SYNOPSIS
+  nc [-l] port [addr]
+  
+DESCRIPTION
+  Connect STDIN and STDOUT to a network socket so that data can be received from and sent to that socket via STDIN and STDOUT
+  
+EXAMPLES
+  nc -l 1337
+    Open a socket on port 1337. If another program connects, it can receive from STDIN and send to STDOUT.
+    
+  nc 1337 host1
+    Connect to an open socket at address 'host1' on port 1337. The running program can send to STDOUT and receive from STDIN
