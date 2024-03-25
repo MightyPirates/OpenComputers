@@ -519,6 +519,7 @@ object PacketHandler extends CommonPacketHandler {
         val stack = p.readItemStack()
         if (slot >= robot.getSizeInventory - robot.componentCount) {
           robot.info.components(slot - (robot.getSizeInventory - robot.componentCount)) = stack
+          robot.cacheSkinComponentsForRendering(stack)
         }
         else t.robot.setInventorySlotContents(slot, stack)
       case _ => // Invalid packet.
