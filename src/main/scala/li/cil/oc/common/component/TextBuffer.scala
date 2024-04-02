@@ -174,14 +174,14 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   @Callback(direct = true, doc = """function():boolean -- Returns whether the screen is currently on.""")
   def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(isDisplaying)
 
-  @Callback(doc = """function():boolean -- Turns the screen on. Returns true if it was off.""")
+  @Callback(doc = """function():boolean, boolean -- Turns the screen on. Returns whether it was off and the new power state.""")
   def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
     val oldPowerState = isDisplaying
     setPowerState(value = true)
     result(isDisplaying != oldPowerState, isDisplaying)
   }
 
-  @Callback(doc = """function():boolean -- Turns off the screen. Returns true if it was on.""")
+  @Callback(doc = """function():boolean, boolean -- Turns off the screen. Returns whether it was on and the new power state.""")
   def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
     val oldPowerState = isDisplaying
     setPowerState(value = false)
