@@ -2,7 +2,6 @@ package li.cil.oc.server.component
 
 import java.util
 import java.util.UUID
-
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -22,6 +21,8 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving
+import net.minecraft.init.Items
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
@@ -58,13 +59,24 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.getXOffset * 2.0, side.getYOffset * 2.0, side.getZOffset * 2.0)
     val bounds = nearBounds.union(farBounds)
-    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
-      case Some(entity) =>
-        entity.setLeashHolder(host, true)
-        leashedEntities += entity.getUniqueID
-        context.pause(0.1)
-        result(true)
-      case _ => result(Unit, "no unleashed entity")
+    val drone = host.asInstanceOf[Drone]
+    var hasLeash = false
+    for (index <- 0 to drone.inventory.getSizeInventory) {
+      val stack = drone.inventory.getStackInSlot(index)
+      if (stack.getItem == Items.LEAD) {
+        stack.shrink(1)
+        hasLeash = true
+      }
+    }
+    if (hasLeash) {
+      entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
+        case Some(entity) =>
+          entity.setLeashHolder(host, true)
+          leashedEntities += entity.getUniqueID
+          context.pause(0.1)
+          result(true)
+        case _ => result(Unit, "no unleashed entity")
+      }
     }
   }
 
@@ -82,9 +94,18 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
   }
 
   private def unleashAll() {
+    var drone = host.asInstanceOf[Drone]
     entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
       if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashHolder == host) {
         entity.clearLeashed(true, false)
+        for (index <- 0 to drone.inventory.getSizeInventory) {
+          val itemStack = drone.inventory.getStackInSlot(index)
+          if (itemStack == ItemStack.EMPTY) {
+            drone.inventory.setInventorySlotContents(index, new ItemStack(Items.LEAD))
+          } else {
+            itemStack.grow(1)
+          }
+        }
       }
     })
     leashedEntities.clear()
