@@ -2,6 +2,6 @@
 
 ![猫片播放倒数，3，2，……](oredict:oc:internetCard)
 
-装了这个[电脑](../general/computer.md)就能联网了。它能承载简单的 HTTP 请求以及读写普通的 TCP 客户端套接字。
+因特网卡为[电脑](../general/computer.md)提供了连接现实中因特网的能力。此扩展卡提供了进行简单HTTP请求的方法，还能打开简单TCP客户端套接字以供读写。
 
-给[电脑](../general/computer.md)装网卡后，还会附带一批网络应用，比如往 pastebin 上上传或从那里下载代码的程序，以及一个 `wget` 的翻版，可用来从指定 URL 下载文件。
+将因特网卡连接到[电脑](../general/computer.md)后，电脑还会连接一个自定义文件系统，其中包含数个与因特网相关的应用。例如，其中的一个可以从pastebin中下载或向其上传文本片段。还有一个翻版`wget`，可从任意HTTP URL中下载数据。

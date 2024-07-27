@@ -1,50 +1,52 @@
-# 快速入门
+# 入门
 
-这篇文章又叫《如何组装第一台电脑》。为了让你的[电脑](computer.md)能跑起来，你首先要正确配置它。我们有多个档次的电脑，但让我们从基础的标准档开始做起。
+此教程又名《如何组装你的第一台电脑》。为了让你的[电脑](computer.md)开始运行，你首先需要将它正确搭建起来。OC模组中有很多种电脑，但我们从基础的开始：标准电脑。
 
-**免责声明**：这是手把手的教程，还会告诉你后面出现问题要怎么处理，因此这教程比较长。如果现实中你没有装机经历，并且你是第一次接触这 Mod，那么请务必耐心读完。
+**声明**：这是手把手的教程，还会告诉你后续如何查找问题，因此教程比较长。如果现实中你没有装机经历，并且/或者你是第一次接触此模组，那么推荐你通读全文。
 
-首先你需要一个[机箱](../block/case1.md)。你所有的电脑配件都要装这里面，它将决定你电脑的行为。
+首先，你需要一个[电脑机箱](../block/case1.md)。这个方块会容纳所有组件，也决定了你所搭建电脑的行为。
 
-![一个 T2 机箱](oredict:oc:case2)
+![一个T2机箱](oredict:oc:case2)
 
-比如你要挑一个适合你的[显卡](../item/graphicsCard1.md)，还可能需要一个[网卡](../item/lanCard.md)、一块[红石卡](../item/redstoneCard1.md)、甚至是创造模式下调试时需要的[调试卡](../item/debugCard.md)。
+举例而言，你还需要决定使用什么等级的[显卡](../item/graphicsCard1.md)，是否要安装[网卡](../item/lanCard.md)、[红石卡](../item/redstoneCard1.md)，或者你只是想在创造模式中随便游玩的话，可能还要装一张[调试卡](../item/debugCard.md)。
 
-打开[机箱](../block/case1.md)的 GUI 后你会看到右边有一系列槽位。槽位数以及可支持的配件等级（槽位小字有写）等取决于机箱档次。  
-![T2 机箱的 GUI](opencomputers:doc/img/configuration_case1.png)  
-空[机箱](../block/case1.md)基本没什么用。如果你在这时试图启动[电脑](computer.md)，它只会立刻在你的聊天框输出一条错误，然后用滴滴声告诉你它现在很不满。幸运的是他提醒了你正确的修复方式：电脑需要能源。只需要给你的电脑接通电源或是[能量转换器](../block/powerConverter.md)就可以了。
+打开[机箱](../block/case1.md)的GUI后你会看到右边若干槽位。槽位数以及支持的组件等级（在槽位中用小号罗马数字标出）取决于机箱等级。  
+![T2机箱的GUI](opencomputers:doc/img/configuration_case1.png)  
+空[机箱](../block/case1.md)基本没什么用。你可以尝试现在启动[电脑](computer.md)，但它会立刻向你的聊天框输出一条报错信息，然后用滴声表达它的不满。好消息是报错信息告诉了你修复方式：电脑需要能量。只需要给你的电脑接通电源，无论直接连接或是通过[能量转换器](../block/powerConverter.md)连接均可。
 
-这个时候再尝试启动，它会告诉你电脑需要安装 [CPU](../item/cpu1.md)。CPU 分不同级别，级别越高，能搭配使用的配件就越多，执行速度也越快。此后你会注意到 OpenComputer 中的很多东西都分级别。就现在来说，你现在应该选一块合适的 CPU 装进你的[机箱](../block/case1.md)里。
+这个时候再尝试启动，它会告诉你电脑需要安装[CPU](../item/cpu1.md)。CPU分不同等级，你会注意到等级这一概念在OC模组中普遍存在。对[CPU](../item/cpu1.md)而言，等级越高，同时连接的组件就越多，执行速度也越快。所以请挑一个等级，然后把它装进你的[电脑机箱](../block/case1.md)里。
 
-好的，然后它要你装[内存条](../item/ram1.md)了。你会注意到警报音变了：长-短。越高级的[内存](../item/ram1.md)容量越大，在上面跑的程序也就能越复杂。为达到这篇教程的目标——运行 [OpenOS](openOS.md)——需要至少 2 条 T1 [内存](../item/ram1.md)。
+接下来会要求你安装一些[内存条（RAM）](../item/ram1.md)。你会发现报警音发生了变化：变成了长-短。[内存条（RAM）](../item/ram1.md)等级越高，能提供给你[computer](computer.md)上所运行程序的内存就越大。要运行[OpenOS](openOS.md)，即本教程的目标，你需要至少两根1级[内存条（RAM）](../item/ram1.md)。
 
-干得不错，现在你的[机箱](../block/case1.md)应该长这样：  
-![这是台配置好了一半的电脑。](opencomputers:doc/img/configuration_case2.png)  
-看，现在虽然不会打印错误提示了，但它还是什么都做不了。除了两声警报。这意味着电脑未能成功启动。但实际上，从技术角度来看：电脑能启动了！下面有请超级好用的工具：[调试器](../item/analyzer.md)。它可用来调试各种 OpenComputers 的方块及一部分其他 Mod 的方块。只需潜行时对着[电脑](computer.md)的机箱使用[调试器](../item/analyzer.md)就好。
+我们已经取得很大进展了。现在你的[电脑机箱](../block/case1.md)看上去应该类似这样：  
+![部分完工的电脑。](opencomputers:doc/img/configuration_case2.png)  
+看啊，现在将它打开已经不会输出报错信息了！但是，哎呀，它还是干不了什么事情。至少它现在会滴两次了。这代表[电脑](computer.md)的实际运行失败了。换句话说：理论上它已经运行了！此时一个非常实用的工具该上场表演了：[分析器](../item/analyzer.md)。它可用来检查OC模组的很多方块，也支持其他模组的一些方块。要对[电脑](computer.md)进行使用，只需手持[分析器](../item/analyzer.md)潜行与机箱交互。
 
-你会在聊天框看到[电脑](computer.md)遇到的错误：  
+你会看到导致[电脑](computer.md)发生崩溃的错误：
 `no bios found; install configured EEPROM`
+（未找到BIOS；请安装配置过的EEPROM）
 
-注意那个“configured”。合成 [EEPROM](../item/eeprom.md) 很简单，但要配置 EEPROM 则需要[电脑](computer.md)。是不是难了点？"Lua BIOS" [EEPROM](../item/eeprom.md)，使用 EEPROM 和你的[手册](../item/manual.md)合成，然后丢进机箱，开机！
+注意其中的**configured（配置过的）**。合成 [EEPROM](../item/eeprom.md)很简单，但配置它通常需要[电脑](computer.md)，这就现在而言略有困难，因此我们要用合成配方来合成一个配置过的"Lua BIOS" [EEPROM](../item/eeprom.md)。基础配方是一个[EEPROM](../item/eeprom.md)加上一本[手册](../item/manual.md)。把配置过的[EEPROM](../item/eeprom.md)放进你的[电脑](computer.md)，然后——
 
-——还是啥都没有。但是我们有[调试器](../item/analyzer.md)，调试器告诉我们：  
+不行。还是啥也没有。但我们知道要干什么：玩家可以使用[调试器](../item/analyzer.md)，太高效了！现在我们得到了一条不一样的报错信息：  
 `no bootable medium found; file not found`
+（未找到引导媒介；未找到文件）
 
-这说明 BIOS 运行正常，但并没有任何可启动的东西，比如[软盘](../item/floppy.md)或[硬盘](../item/hdd1.md)什么的。对于 Lua BIOS 来说，它还要在文件系统的根目录中寻找名为 `init.lua` 的文件。你或许已经猜到了：要合成系统安装盘了。用空[软盘](../item/floppy.md)和[手册](../item/manual.md)在工作台中合成即可得到 [OpenOS](openOS.md) 安装盘。
+好吧，这说明BIOS开始工作了。但它没找到用来启动的文件系统，例如[软盘](../item/floppy.md)或[硬盘](../item/hdd1.md)。具体而言，Lua BIOS需要一个这样的文件系统，其根目录还需有一个名为`init.lua`的文件。你可能猜到了：我们现在需要合成操作系统软盘。取一张空[软盘](../item/floppy.md)和一本[手册](../item/manual.md)，将它们合成在一起，然后你就得到了[OpenOS](openOS.md)软盘。
 
-如果你用了 [T2 机箱](../block/case2.md)，那么你还要做一个[软盘驱动器](../block/diskDrive.md)来放软盘，软驱可以直接连在机箱一侧，或是通过[线缆](../block/cable.md)相连。如果是 T3 或更高级的机箱，那么直接放到机箱就行了。现在，插入软盘，启动。
+现在的话，如果你用的是和上面截图一样的T2[电脑机箱](../block/case2.md)，那么你还没有放入软盘的地方。如果你有T3或创造模式[电脑机箱](../block/case2.md)，那么你可以直接将软盘放进[机箱](../block/case2.md)里。不然你需要在机箱旁边放置一个[软盘驱动器](../block/diskDrive.md)（或通过[线缆](../block/cable.md)连接）。放入软盘后，你知道该干什么。按下电源键吧。
 
-好的，它启动了。如果还有什么问题的话，可以使用[分析仪](../item/analyzer.md)排查。不过我们的电脑应该跑起来了。最难的部分已经过去了，剩下就是如何让电脑输出信息，并且让电脑接受输入。
+它活了！或者说应该是。如果它没能启动的话，代表有什么东西出错了，你可以用[分析器](../item/analyzer.md)排查。不过我们先假设它现在已经开始运行了，你已经接近完工了，最困难的部分已经结束了。剩下要做的就是让它接收输入并显示输出。
 
-你需要给电脑配[屏幕](../block/screen1.md)和[显卡](../item/graphicsCard1.md)。
-![不是平板屏幕哦](oredict:oc:screen2)
+要让[电脑](computer.md)显示输出，你需要取一块[显示屏](../block/screen1.md)和一张[显卡](../item/graphicsCard1.md)。
+![这不是纯平显示器。](oredict:oc:screen2)
 
-[屏幕](../block/screen1.md)可以直接放在机箱一侧，或是通过[线缆](../block/cable.md)相连。[显卡](../item/graphicsCard1.md)自然是要装机箱里。现在你应该能看到[屏幕](../block/screen1.md)上闪烁的光标了。最后，[键盘](../block/keyboard.md)应安装在[屏幕](../block/screen1.md)上，或直接冲着[屏幕](../block/screen1.md)放置。
+请将[显示屏](../block/screen1.md)放置于直接相邻机箱的位置，或者再次通过[线缆](../block/cable.md)连接。然后将你选好的[显卡](../item/graphicsCard1.md)装进[电脑机箱](../block/case2.md)里。你应该会在[显示屏](../block/screen1.md)上看到闪烁的光标。最后，将[键盘](../block/keyboard.md)放置在[显示屏](../block/screen1.md)身上，或将其面对[显示屏](../block/screen1.md)放置，以启用[键盘](../block/keyboard.md)输入。
 
-就是这样了。此时[电脑](computer.md)应已经启动，并等待你的操作。尝试一下吧！敲入 `lua` 并按下回车，你会得到 Lua 解释器的使用说明（英文的），在这里你可以测试基本 Lua 指令。更多信息见[这里](lua.md)。
+做完这一步，你就完工了。此时[电脑](computer.md)已经启动，正在运行且准备好执行操作了。现在试试用电脑吧！在shell中输入`lua`并按回车键，然后你会看到欢迎界面，其中有一些关于如何使用Lua解释器的信息。在这里你可以尝试基础的Lua命令。有关这方面的更多信息见[Lua页面](lua.md)。
 
 ![它活了！](opencomputers:doc/img/configuration_done.png)
 
-之后你还可以建造更复杂的[电脑](computer.md)和[服务器](../item/server1.md)，用[组装机](../block/assembler.md)组装[机器人](../block/robot.md)、[无人机](../item/drone.md)、[单片机](../block/microcontroller.md)和[平板电脑](../item/tablet.md)。
+请享受搭建更复杂的[电脑](computer.md)，折腾[服务器](../item/server1.md)以及用[电子装配机](../block/assembler.md)组装[机器人](../block/robot.md)、[无人机](../item/drone.md)、[微控制器](../block/microcontroller.md)和[平板电脑](../item/tablet.md)。
 
-最后：Happy coding!
+祝编程愉快！

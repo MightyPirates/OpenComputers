@@ -1,5 +1,5 @@
-# 基板
+# 扩展卡基板
 
-![不可读。](oredict:oc:materialCard)
+![不可读取。](oredict:oc:materialCard)
 
-用于合成 OpenComputers 中诸如[显卡](graphicsCard1.md)、[网卡](lanCard.md)这样的卡状组件的基础材料。
+用OC模组中扩展卡组件（例如[显卡](graphicsCard1.md)、[网卡](lanCard.md)）的通用合成材料。

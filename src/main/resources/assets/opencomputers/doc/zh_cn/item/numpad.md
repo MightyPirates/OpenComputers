@@ -1,5 +1,5 @@
-# 数字键
+# 数字键盘
 
-![指纹检查。](oredict:oc:materialNumPad)
+![检测指纹。](oredict:oc:materialNumPad)
 
-数字键是每块[键盘](../block/keyboard.md)都有的东西，用来输入数字用的。
+数字键盘是每块[键盘](../block/keyboard.md)都有的部分。它可用于输入数字。

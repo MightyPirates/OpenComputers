@@ -1,5 +1,5 @@
 # 切割线
 
-![真的，不是上吊绳。](oredict:oc:materialCuttingWire)
+![不是绞杀线。真的。](oredict:oc:materialCuttingWire)
 
-在困难模式合成中会用到的东西，用于合成[未加工电路板](rawCircuitBoard.md)。很低效。
+使用困难模式合成表时会用到的物品，此物品用于合成[未加工电路板](rawCircuitBoard.md)。效率极低。

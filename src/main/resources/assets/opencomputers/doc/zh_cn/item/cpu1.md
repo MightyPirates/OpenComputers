@@ -2,13 +2,13 @@
 
 ![脑——子——](oredict:oc:cpu1)
 
-中央处理器是[电脑](../general/computer.md)和[服务器](server1.md)的核心，定义了[电脑](../general/computer.md)的架构，并决定了可连接组件的数量。级别越高，每 tick 可以进行的函数调用越多。一言以蔽之，级别越高跑得越快。
+中央处理器是[电脑](../general/computer.md)和[服务器](server1.md)的核心部件，决定了[电脑](../general/computer.md)的架构，以及[电脑](../general/computer.md)在不停止工作的前提下可连接的组件数。CPU的等级越高，[电脑](../general/computer.md)的每tick直接调用进行次数上限也就越高。简而言之：CPU越好运行越快。
 
-CPU 可控制的组件上限：
-- T1：至多 8 组件。
-- T2：至多 12 组件。
-- T3：至多 16 组件。
+CPU可控制的组件数上限如下：
+- T1：8个组件。
+- T2：12个组件。
+- T3：16个组件。
 
-对[服务器](server1.md)来说，还可以用[组件总线](componentBus1.md)来连接更多的组件。
+对[服务器](server1.md)来说，还可以用[组件总线](componentBus1.md)来进一步提升所支持的组件数。
 
-如果连接的组件数量超过上限，会令机器无法开机，对于运行中的机器来说则是宕机。
+如果[电脑](../general/computer.md)连接的组件数量超过上限，会无法开机。如果它正在运行，那么会崩溃。

@@ -1,9 +1,9 @@
 # 机器人
 
-![他叫 Tobor。](block:OpenComputers:robot)
+![他的名字叫Tobor。](block:OpenComputers:robot)
 
-和[电脑](../general/computer.md)不一样，机器人可以像玩家一样与这个世界互动。它们不能直接和其他设备交互，但是！如果你需要让机器人和[电脑](../general/computer.md)或是其他机器人通讯，那么你需要使用[无线网卡](../item/wlanCard1.md)，或者通过更底层的[红石卡](../item/redstoneCard1.md)，通过红石信号来通讯。
+不像[电脑](../general/computer.md)，机器人可以像玩家一样进行移动并与世界互动。但是它们**不能**与外部组件交互！如果你需要让机器人与[电脑](../general/computer.md)或其他机器人通信，那么需要使用[无线网卡](../item/wlanCard1.md)。或者使用[红石卡](../item/redstoneCard1.md)并通过红石信号创建一些低级的通讯协议。
 
-把[任意机箱](case1.md)放进[组装机](assembler.md)就可以制作机器人。[机箱](case1.md)的等级越高，能使用的 CPU 等级就越高，可以做出的机器人也就越复杂。机器人的复杂度会显示在[组装机](assembler.md)的 GUI 中，具体数值由安装的组件和升级决定；级别越高，数量越多，越复杂，超过一定程度时组装机会拒绝组装机器人。
+将任意等级的[电脑机箱](case1.md)放入[电子装配机](assembler.md)即可构建机器人。[机箱](case1.md)的等级越高，能构建的机器人就越复杂，因为能安装的[CPU](../item/cpu1.md)等级更高。机器人的复杂度（在[电子装配机](assembler.md)的GUI中显示）由放入机器人槽位中组件与升级的等级决定；高等级的组件会比低等级的组件增加更多复杂度。若机器人的复杂度过高，[电子装配机](assembler.md)就无法构建机器人了。
 
-机器人的能力可用各种升级来扩展。这些升级包括包括[物品栏升级](../item/inventoryUpgrade.md)及[物品栏控制器](../item/inventoryControllerUpgrade.md)、[储罐升级](../item/tankUpgrade.md)、[导航升级](../item/navigationUpgrade.md)等。[升级槽](../item/upgradeContainer1.md)和[卡槽](../item/cardContainer1.md)都可以让机器人运行时热替换其组件。机器人也可以安装[软驱](diskDrive.md)，使其可以支持[软盘](../item/floppy.md)读写，这样就可以在机器人上安装 [OpenOS](../general/openOS.md)。你也可以在组装机器人时安装一块预装有 OpenOS 的硬盘以在机器人上使用 OpenOS。
+机器人可安装多种升级以增强其功能。可用升级包括[物品栏升级](../item/inventoryUpgrade.md)、[物品栏交互升级](../item/inventoryControllerUpgrade.md)、[储罐升级](../item/tankUpgrade.md)、[导航升级](../item/navigationUpgrade.md)等等。机器人还可安装[升级容器](../item/upgradeContainer1.md)和[扩展卡容器](../item/cardContainer1.md)，安装后机器人能在运行中热插拔升级与扩展卡。机器人也可安装[软盘驱动器](diskDrive.md)，安装后机器人可以插入[软盘](../item/floppy.md)，然后你就可以给机器人安装[OpenOS](../general/openOS.md)了（另一种方法是先用[电脑](../general/computer.md)将[OpenOS](../general/openOS.md)安装到空[硬盘](../item/hdd1.md)里，然后在组装机器人时使用这块预装系统的[硬盘](../item/hdd1.md)）。

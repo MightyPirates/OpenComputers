@@ -1,9 +1,9 @@
 # 调试卡
 
-![等等，如果…… 哦。](item:OpenComputers:item@73)
+![等等，如果我…… 啊——](item:OpenComputers:item@73)
 
-调试卡本身是一种仅用于在创造模式下对设备进行快速调试的卡片。有鉴于其丰富的功能，它对于地图制作也很有用处。
+调试卡是仅限创造模式的物品，最初目的仅是为了通过自动化进行某些处理来为调试提供便利。此后它有了更多的功能，让它能在地图制作领域发挥很大作用。
 
-你可以潜行时使用这张卡来将其与你绑定或解绑，绑定后 `runCommand` 将会使用你的权限等级，而非默认的 OpenComputers 使用的权限。
+你可以手持此卡并潜行使用，来将它与你绑定或解绑，绑定后`runCommand`函数会使用你的权限等级，不使用OC模组默认的权限等级。
 
-调试卡也可以像[连接卡](linkedCard.md)一样接受消息，此时它会触发 `debug_message` 事件。这样的消息可以通过其他调试卡上的 `sendDebugMessage` 方法发送，或者使用 Minecraft 命令 `/oc_sendDebugMessage`（或 `/oc_sdbg`）发送。
+调试卡也可以像[连接卡](linkedCard.md)一样接收报文，接收后会触发`debug_message`事件。你可以通过调用其他调式卡的`sendDebugMessage`方法，或者执行Minecraft命令`/oc_sendDebugMessage`（或`/oc_sdbg`）发送此类报文。

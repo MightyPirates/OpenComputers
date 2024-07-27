@@ -2,4 +2,4 @@
 
 ![不是寿司。](oredict:oc:materialCircuitBoardRaw)
 
-未加工电路板是合成[电路板](circuitBoard.md)及[印刷电路板](printedCircuitBoard.md)的中间材料（以游戏内使用的合成表为准）。
+一种合成中间体，用于合成[电路板](circuitBoard.md)（或[印刷电路板](printedCircuitBoard.md)，取决于所用配方组）。
