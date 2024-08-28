@@ -1,0 +1,23 @@
+{
+    "display": {
+        "title": {
+            "text": "Cable advancement"
+        },
+        "description": {
+            "text": "Description"
+        },
+        "icon": {
+            "item": "opencomputers:cable"
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": true
+    },
+    "criteria": {
+        "notImplemented": {
+            "trigger": "minecraft:impossible"
+        }
+    },
+    "parent": "opencomputers:root"
+}
