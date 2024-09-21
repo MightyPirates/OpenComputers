@@ -8,6 +8,13 @@ if tty.isAvailable() then
     tty.clear()
   end
 end
+
+if fs.exists("/etc/hostname") then
+  local hostfile = io.open("/etc/hostname")
+  os.setenv("HOSTNAME",  hostfile:read("*l"))
+  os.setenv("HOSTNAME_SEPARATOR", ": ")
+end
+
 dofile("/etc/motd")
 
 shell.setAlias("dir", "ls")
