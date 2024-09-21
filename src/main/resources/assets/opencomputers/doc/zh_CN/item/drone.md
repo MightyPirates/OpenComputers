@@ -1,5 +1,5 @@
 # 无人机
 
-![Big brother is trying to watch you.](item:OpenComputers:item@84)
+![老大哥正试图观察你。](item:OpenComputers:item@84)
 
-通过 [无人机箱](droneCase1.md) 在 [装配机](../block/assembler.md)制造. 他们是实体的[机器人](../block/robot.md), 便宜但功能也受限.移动比 [机器人](../block/robot.md)快些, 通常由[电脑](../general/computer.md)的程序控制. 需要烧写过的 [E2PROM](eeprom.md) 启动
+无人机是利用[无人机外壳](droneCase1.md)在[电子装配机](../block/assembler.md)中构建出来的。他它们是基于实体的[机器人](../block/robot.md)，制造成本略低且功能有限。它们与[机器人](../block/robot.md)相比移动方式不同，移速更快；且通常由运行于[电脑](../general/computer.md)上的客户端软件控制，而不是独立运作。无人机需要一块配置好的[EEPROM](eeprom.md)来支持听取行动指令或独立运作。

@@ -1,5 +1,5 @@
-# Raw Circuit Board
+# 未加工电路板
 
-![Not sushi.](oredict:oc:materialCircuitBoardRaw)
+![不是寿司。](oredict:oc:materialCircuitBoardRaw)
 
-粗电路板，中间合成材料, 用来合成 [电路板](circuitBoard.md) (或者是 [印刷电路板](printedCircuitBoard.md)).
+一种合成中间体，用于合成[电路板](circuitBoard.md)（或[印刷电路板](printedCircuitBoard.md)，取决于所用配方组）。

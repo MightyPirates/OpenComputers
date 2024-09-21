@@ -1,9 +1,9 @@
-# 酸液
+# 腐蚀液
 
-![Reflux?](oredict:oc:materialAcid)
+![胃酸反流了？](oredict:oc:materialAcid)
 
-可口的[citation needed] 遥指， 如果你想找点乐子的话就喝下去吧www。 当然这可能烧了你的食管. 也可以作为多种物资的原料
+如果你想找点……乐子，或者是摧毁你的消化道，又或者二者兼有。那么你可以喝一些这种美味[来源请求]的混合物。这种液体也能作为其他更有用物品的制作材料。
 
-一个主要用处是从系统移除[纳米机器](nanomachines.md)
+然而，它的主要用途之一其实是清除你体内的[纳米机器](nanomachines.md)（假设你不再需要它们了的话）。饮用这种液体是清除纳米机器的唯一方法！
 
-在困难模式下它用来把[电路板](circuitBoard.md) 刻蚀为 [印刷电路板](printedCircuitBoard.md).
+如果启用了困难模式的合成配方，在合成[印刷电路板](printedCircuitBoard.md)前还需要用此液体蚀刻[电路板](circuitBoard.md)。

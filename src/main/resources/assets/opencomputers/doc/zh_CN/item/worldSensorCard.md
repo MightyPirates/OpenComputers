@@ -1,5 +1,5 @@
-# World Sensor Card
+# 世界传感器卡
 
-![To boldly go...](oredict:oc:worldSensorCard)
+![闭眼向前冲……](oredict:oc:worldSensorCard)
 
-世界传感器卡允许读取大气，重力等世界信息，通常用于加入了星系mod的情况，用于调节在空间内工作的机器人
+世界传感器卡能读取GalactiCraft所添加各星球的大气、重力等信息。对于在太空中工作的[机器人](../block/robot.md)和[无人机](drone.md)来说很有用。

@@ -1,5 +1,5 @@
-#方向键
+# 方向键
 
-![Just be grateful it's not made from arrows.](oredict:oc:materialArrowKey)
+![幸亏不是用真箭头做出来的。](oredict:oc:materialArrowKey)
 
-At the risk of repeating myself: 制造 [键盘](../block/keyboard.md)的配件.
+虽然可能重复了，但我还是要说：键盘就像一个按键池子一样，因为按键经济近年来出现了严重通胀，按键数越来越多了。它是用来组装[键盘](../block/keyboard.md)的配件之一。

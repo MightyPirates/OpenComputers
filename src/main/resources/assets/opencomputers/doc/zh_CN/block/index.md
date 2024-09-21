@@ -1,48 +1,48 @@
 # 方块
 
-本索引列出了OC全部的的方块 如果要找物品点[这里](../item/index.md).
+本索引列出了OC模组的全部方块。要寻找物品，请查看[物品索引](../item/index.md)。
 
-注意有些方块由于合成表的原因,可能不可用.
+注意：根据所用合成表组合不同，有些方块可能不可用。
 
 ## 电脑
 * [机箱](case1.md)
-* [单片机](microcontroller.md)
+* [微控制器](microcontroller.md)
 * [机架](rack.md)
 * [机器人](robot.md)
 
 ## 组件
 
 ### 输入 / 输出
-* [全息投影机](hologram1.md)
+* [全息投影仪](hologram1.md)
 * [键盘](keyboard.md)
 * [屏幕](screen1.md)
 
 ### 存储
-* [硬盘](diskDrive.md)
-* [磁盘阵列](raid.md)
+* [软盘驱动器](diskDrive.md)
+* [硬盘阵列柜](raid.md)
 
 ### 扩展
 * [适配器](adapter.md)
-* [扫描器](geolyzer.md)
-* [运动探测器](motionSensor.md)
-* [红石IO接口](redstone.md)
-* [转置器（注：直译）](transposer.md)
+* [地质分析仪](geolyzer.md)
+* [运动传感器](motionSensor.md)
+* [红石I/O端口](redstone.md)
+* [转运器](transposer.md)
 * [路径点](waypoint.md)
 
 ## 组装 / 打印
-* [3D打印](print.md)
+* [3D打印件](print.md)
 * [3D打印机](printer.md)
-* [组装器](assembler.md)
-* [染色方块](chameliumBlock.md)
-* [拆解器](disassembler.md)
+* [电子装配机](assembler.md)
+* [变色材料块](chameliumBlock.md)
+* [分解机](disassembler.md)
 
-## 网络
+## 组网
 * [线缆](cable.md)
-* [VLAN分割器](netSplitter.md)
+* [网络分断器](netSplitter.md)
 * [中继器](relay.md)
 
 ## 电源管理
-* [电容](capacitor.md)
-* [充电器](charger.md)
-* [能源转换](powerConverter.md)
-* [能源分发](powerDistributor.md)
+* [电容器](capacitor.md)
+* [充电机](charger.md)
+* [能量转换器](powerConverter.md)
+* [能量分配器](powerDistributor.md)

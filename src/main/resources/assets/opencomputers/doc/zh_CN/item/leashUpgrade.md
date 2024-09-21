@@ -1,5 +1,5 @@
-# Leash Upgrade
+# 拴绳升级
 
-![-redacted- ~ Vexatos 2015](oredict:oc:leashUpgrade)
+![-已修订- ~ Vexatos于2015年](oredict:oc:leashUpgrade)
 
-拴绳升级允许无人机和机器人去牵引生物。
+拴绳升级可以将动物拴到拴绳上，再连接到承载了升级所在设备的实体上，例如[无人机](drone.md)。可以使用此升级同时拴住多只动物，这样对迁移畜群很有帮助。

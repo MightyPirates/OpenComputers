@@ -1,5 +1,5 @@
-# Linked Card
+# 直连卡
 
-![I feel we some kind of connection.](oredict:oc:linkedCard)
+![我觉得我们心连心了。](oredict:oc:linkedCard)
 
-链接卡是特化的[网卡](lanCard.md). 只能成对使用，用来提供P2P通讯. 可以跨维度无限制距离通讯（只要能创造环境的话）. 
+直连卡是特化且高级版本的[网卡](lanCard.md)。只能成对工作，可在提供点到点（P2P）的通讯。连接卡可进行长距离（无限距离）通信，还可跨维度通信。

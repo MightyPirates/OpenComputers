@@ -1,9 +1,7 @@
-# Net Splitter
+# 网络分断器
 
 ![*.net *.split](oredict:oc:netSplitter)
 
-VLAN分割器能够让你控制子网的连接. 它不像 [中继器](relay.md) 或者 [能源转换](powerConverter.md) 那样直接连接相邻的子网.
-每个边的连接都可以用扳手控制 (e.g. the [scrench](../item/wrench.md)).
-接入红石信号之后, 所有连接反相.
+网络分断器是用于控制子网间连通性的设备。和[中继器](relay.md)以及[能量转换器](powerConverter.md)不同，网络分断器会将相邻子网络直接连通，也就是可以直接访问组件。各方向上的连通性可通过扳手（例如[螺丝刀扳手](../item/wrench.md)）来反转。当有红石信号输入进网络分断器时，所有方向上的连通性都会反转。
 
-这个方块可以控制特定子网的连接. 使用[红石IO方块](redstone.md) 和 [红石卡](../item/redstoneCard1.md) 可以实现对他的自动化控制
+因此，该方块可控制组件网络中某些部分的通断。可使用[红石I/O端口](redstone.md)或[红石卡](../item/redstoneCard1.md)对网络分断器进行自动化控制。

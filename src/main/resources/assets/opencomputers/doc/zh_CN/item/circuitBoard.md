@@ -1,5 +1,5 @@
 # 电路板
 
-![Needs more gold.](oredict:oc:materialCircuitBoard)
+![还要加点黄金。](oredict:oc:materialCircuitBoard)
 
-从粗电路板合出来的东西 [raw circuit boards](rawCircuitBoard.md) 用于制作 [印刷电路板](printedCircuitBoard.md).
+用[未加工电路板](rawCircuitBoard.md)制造的中间体，可用于制造[印刷电路板](printedCircuitBoard.md)。

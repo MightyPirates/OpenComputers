@@ -1,39 +1,39 @@
-# Server
+# 服务器
 
-![Serves u right.](oredict:oc:server1)
+![为您服务。](oredict:oc:server1)
 
-服务器是高级 [电脑](../general/computer.md). 可以通过把物品拿在手上并使用来配置， 就像打开背包和箱子一样，也可以放在[机架](../block/rack.md)里面，通过站在机架的“正面”并激活它来配置. 参见[机架](../block/rack.md) entry.
+服务器是高级形式的[电脑](../general/computer.md)。手持他们使用即可进行配置，就像打开背包或末影袋一样。服务器在安装进[机架](../block/rack.md)后也能进行配置，方式为与它们互动（瞄准[机架](../block/rack.md)正面的对应位置点击）。要让服务器开始工作，需要将其装进[机架](../block/rack.md)中。详细信息请参见[机架](../block/rack.md)条目。
 
-T1服务器配置: 
-- 1x T2 [CPU](cpu2.md)
-- 2x T2 [内存](ram3.md)
-- 2x T2 [硬盘](hdd2.md)
-- 1x T2 [组件总线](componentBus2.md)
-- 2x T2 扩展卡
-- 1x [E2PROM](eeprom.md)
+T1服务器可安装如下组件：
+- 1x T2[CPU](cpu2.md)
+- 2x T2[内存条](ram3.md)
+- 2x T2[硬盘](hdd2.md)
+- 1x T2[组件总线](componentBus2.md)
+- 2x T2扩展卡
+- 1x [EEPROM](eeprom.md)
 
-T2服务器配置: 
-- 1x T3 [CPU](cpu3.md)
-- 3x T3 [内存](ram5.md)
-- 3x T3 [硬盘](hdd3.md)
-- 2x T3 [组件总线](componentBus3.md)
-- 2x T2扩展卡 
-- 1x T3扩展卡 
-- 1x [E2PROM](eeprom.md)
+T2服务器可安装如下组件：
+- 1x T3[CPU](cpu3.md)
+- 3x T3[内存条](ram5.md)
+- 3x T3[硬盘](hdd3.md)
+- 2x T3[组件总线](componentBus3.md)
+- 2x T2扩展卡
+- 1x T3扩展卡
+- 1x [EEPROM](eeprom.md)
 
-T3服务器配置: 
-- 1x T3 [CPU](cpu3.md)
-- 4x T3 [内存](ram5.md)
-- 4x T3 [硬盘](hdd3.md)
-- 3x T3 [组件总线](componentBus3.md)
+T3服务器可安装如下组件：
+- 1x T3[CPU](cpu3.md)
+- 4x T3[内存条](ram5.md)
+- 4x T3[硬盘](hdd3.md)
+- 3x T3[组件总线](componentBus3.md)
 - 2x T2扩展卡
 - 2x T3扩展卡
-- 1x [E2PROM](eeprom.md)
+- 1x [EEPROM](eeprom.md)
 
-T4服务器配置: 
-- 1x T3 [CPU](cpu3.md)
-- 4x T3 [内存](ram5.md)
-- 4x T3 [硬盘](hdd3.md)
-- 3x T3 [组件总线](componentBus3.md)
+T4（创造模式）服务器可安装如下组件：
+- 1x T3[CPU](cpu3.md)
+- 4x T3[内存条](ram5.md)
+- 4x T3[硬盘](hdd3.md)
+- 3x T3[组件总线](componentBus3.md)
 - 4x T3扩展卡
-- 1x [E2PROM](eeprom.md)
+- 1x [EEPROM](eeprom.md)

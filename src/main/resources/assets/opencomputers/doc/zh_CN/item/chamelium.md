@@ -1,9 +1,9 @@
-# 油墨
+# 变色材料
 
-![From Chameleon, in case you were wondering.](oredict:oc:chamelium)
+![以防你好奇，它的名字来源于变色龙。](oredict:oc:chamelium)
 
-油墨是用于3D打印的有序合成物品. 它本身没什么特色，只能拿来盖盖单色的墙.
+变色材料是一种可塑材料，可用于在[3D打印机](../block/printer.md)中打印[3D打印件](../block/print.md)。它本身没什么特性，可用于建造简单、平整且单色的建筑。
 
-你可以把它做成 [油墨块](../block/chameliumBlock.md).
+你可以将它们组合为[变色材料块](../block/chameliumBlock.md)。
 
-正如tip所说, 吃下去的后果不可描述，小心使用，或者最好就别吃他
+正如它的提示文本所言，食用此物质会导致不良反应，因此请谨慎食用。或者最好就不要食用，

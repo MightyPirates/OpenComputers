@@ -1,5 +1,5 @@
-# Trading Upgrade
+# 交易升级
 
-![Equivalent Exchange](oredict:oc:tradingUpgrade)
+![等价交换](oredict:oc:tradingUpgrade)
 
-交易升级允许自动和商人交易,可以被放在[机器人](../block/robot.md)和[无人机](drone.md)里面，能够探测附近商人的存在，知道自己可以卖什么并完成交易。
+交易升级能让设备能自动与村民等的商人交易。它可以装在[机器人](../block/robot.md)和[无人机](drone.md)等硬件实体中，并能识别周围商人的可用交易项目，检索每条交易项目的信息，最终进行交易。

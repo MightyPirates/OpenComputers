@@ -1,6 +1,5 @@
-# Power Distributor
+# 能量分配器
 
-![Power to the masses.](oredict:oc:powerDistributor)
+![供电千万家。](oredict:oc:powerDistributor)
 
-能源分配器能够将一个共享能源池(如[电容](capacitor.md))的能源分配出去, 使得子网络能够在不暴露元件的情况下分享能源
-它的作用是负载均衡，因此你会发现每个子网的能量供应都“差不多”
+能量分配器能将一个共用的电源（例如[电容器](capacitor.md)）进行分配，让多个子网络共享能源，同时不将组件暴露给其他网络中的电脑。它的工作原理是定期“平衡”所有子网络中的能量，以保证它们中能量的**相对**数量相同。

@@ -1,5 +1,5 @@
 # 微芯片
 
-![Not the edible ones.](oredict:oc:circuitChip1)
+![芯片不是薯片。](oredict:oc:circuitChip1)
 
-微芯片在合成中很重要.他们有不同的型号，对应不同型号的产物 
+微芯片对电子组件的合成就像黄油与面包一样不可或缺。它们有不同等级，用于合成不同等级的组件。

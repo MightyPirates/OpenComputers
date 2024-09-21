@@ -1,5 +1,5 @@
-# 卡包
+# 扩展卡容器
 
-![Can haz cards!](oredict:oc:cardContainer1)
+![能插卡！](oredict:oc:cardContainer1)
 
-[机器人](../block/robot.md) 的物品栏升级之一,允许热插拔卡.单个槽最大卡数等于这个升级的等级.这个容器的复杂度是一般的两倍.参见[机器人复杂度](../block/robot.md)
+扩展卡容器是[机器人](../block/robot.md)的容器类升级之一，能让[机器人](../block/robot.md)获得热插拔更换扩展卡的能力。它提供的槽位所支持的最高等级与此升级的等级相同。和一般的升级不同，容器类升级所需的复杂度是其等级的二倍。请查看[此页面](../block/robot.md)获取有关机器人复杂度的细节。

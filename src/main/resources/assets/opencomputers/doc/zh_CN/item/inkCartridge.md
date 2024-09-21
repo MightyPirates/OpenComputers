@@ -1,5 +1,5 @@
-# Ink Cartridge
+# 墨盒
 
-![The colors of the rainbow.](oredict:oc:inkCartridge)
+![赤橙黄绿青蓝紫。](oredict:oc:inkCartridge)
 
-墨盒为 [3D printers](../block/printer.md)供墨. 可以用染料来加满, 不过不是太方便. 
+墨盒可以很方便地给[3D打印机](../block/printer.md)充墨。当然也可以直接手动用染料充墨，但这样既麻烦又低效。我们强烈推荐您今天就购买正品OC牌™墨盒！（免责声明：墨盒的价格有可能比打印机还高。）

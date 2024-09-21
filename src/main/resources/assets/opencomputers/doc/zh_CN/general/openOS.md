@@ -1,11 +1,12 @@
 # OpenOS
 
-OpenOS 是OpenComputers里面的基本操作系统. 必须用它来进行[电脑](computer.md)的第一次启动, 可以通过用空的 [软盘](../item/floppy.md) 和 [手册](../item/manual.md) 合成.
+OpenOS是OC模组的基本操作系统。首次启动[电脑](computer.md)时必须有OpenOS软盘，它可以通过空[软盘](../item/floppy.md)和开放式电脑[手册](../item/manual.md)在工作台中合成获得。
 
-合成后, [此软盘](../item/floppy.md) 就可以放进连接电脑的 [软驱](../block/diskDrive.md)来启动电脑，OpenOS的软盘是只读的，所以推荐将系统安到硬盘里面。如果要安装到硬盘，请在启动完成后在shell敲入install，选择OpenOS的编号
+完成了合成后，可将此[软盘](../item/floppy.md)插入[软盘驱动器](../block/diskDrive.md)，[软盘驱动器](../block/diskDrive.md)需要连接到[正确配置的](quickstart.md)[电脑](computer.md)系统上。这样[电脑](computer.md)就能启动OpenOS了。 
+启动后，推荐将系统安装到空[硬盘](../item/hdd1.md)中，以摆脱对[软盘](../item/floppy.md)的依赖，并获得可读写的文件系统（包括OpenOS软盘在内的所有“战利品”[软盘](../item/floppy.md)都是只读的）。T3的[机箱](../block/case3.md)无需外置[软盘驱动器](../block/diskDrive.md)，因为它内置了一个[软盘](../item/floppy.md)槽位。
 
-OpenOS可以在除了单片机和无人机外的任何设备安装，安装好了以后，软盘可以被拔出
+OpenOS的安装很简单：运行`install`命令，并按照屏幕上的提示语完成安装即可。[软盘](../item/floppy.md)在系统完成了重启后即可取出。OpenOS可安装于所有设备，除了[无人机](../item/drone.md)与[微控制器](../block/microcontroller.md)（二者均需要手动在[EEPROM](../item/eeprom.md)中编写程序才能实现功能，因为它们没有内置文件系统）。
 
-OpenOS拥有大量内建命令, 最有用的是lua，将打开lua解释器，这里可以测试命令, 在将命令写入lua文件脚本前试验组件api.注意解释器启动时的信息，会告诉你如何显示命令结果，如何退出。
+OpenOS有大量内置功能，其中最有用的是`lua`命令，运行后会打开一个Lua解释器。这里很适合在向.lua文件写入命令前测试各种命令，以及进行组件API实验。注意解释器启动时显示的信息，它会告诉你如何显示命令结果，以及如何退出。
 
-要得到编程的信息请转到[Lua Programming](lua.md) . 运行脚本的话敲入文件名回车就行了(比如, 通过在shell敲下script，就可以运行`script.lua`).
+要获取更多有关编程的信息，请参考[Lua编程](lua.md)页面。要运行Lua脚本的话，只需输入文件名并按下回车即可（例如，在终端中输入`script`并按回车键即可运行名为`script.lua`的脚本）。

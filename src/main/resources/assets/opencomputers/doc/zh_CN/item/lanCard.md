@@ -1,5 +1,5 @@
-# Network Card
+# 网卡
 
-![Enter the network.](oredict:oc:lanCard)
+![接入网络。](oredict:oc:lanCard)
 
-网卡允许 [电脑](../general/computer.md) 在本地网络内收发消息. 消息(或者封包) 可向子网广播, 或者是投送至特定的网络地址. [中继器](../block/relay.md) 可以用来桥接不同的子网，使之互相通信.
+网卡让[电脑](../general/computer.md)得以收发网络报文。报文（或称数据包）可以被广播给子网中的所有接收节点，也可以发送给有特定地址的特定节点。[中继器](../block/relay.md)可以通过中继报文的方式桥接多个子网。只要目标子网与发送者间有一或多个[中继器](../block/relay.md)相连，也可以向处于另一个子网的接收者发送报文。

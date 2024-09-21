@@ -1,13 +1,13 @@
-# 接入点
+# 无线接入点
 
 ![AAA](oredict:oc:accessPoint)
 
-*本方块是过时的，将会在未来版本被移除 请换用 [中继器](relay.md) 避免丢失
+*本方块已废弃，将会在未来版本移除* 请将其合成为[中继器](relay.md)以避免丢失。
 
-The access point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see [components](../general/computer.md) in other networks, while still allowing to send network messages to the machines in other networks.
+无线接入点是无线版本的[交换机](switch.md)。它可用于分隔子网，这样子网中的机器就不可见其他子网中的[组件](../general/computer.md)了，但还能向其他子网中的机器发送网络报文。
 
-In addition to that, this block can act as a repeater: it can re-send wired messages as wired messages to other devices; or wireless messages as wired or wireless messages. 
+此外，该方块还能作为中继器使用：它能以有线形式转发有线报文给其他设备；或者以有线或无线形式转发无线报文。
 
-[Switches](switch.md) and access point do *not* keep track of which packets they relayed recently, so avoid cycles in your network or you may receive the same packet multiple times. Due to the limited buffer size of switches, packet loss can occur when trying to send network messages too frequently. You can upgrade your switches and access points to increase the speed at which they relay messages, as well as their internal message queue size.
+[交换机](switch.md)与无线接入点**不会**追踪它们所中继的数据包，因此请避免在你的网络中出现环路，否则你可能会多次收到同一数据包。因为交换机的缓存大小有限，以太高的频率发送网络报文时可能出现丢包。你可以升级交换机与无线接入点，以提升其中继报文的速度以及其内部报文队列大小。
 
-Packets are only re-sent a certain number of times, so chaining an arbitrary number of [switches](switch.md) or access points is not possible. By default, a packet will be re-sent up to five times.
+数据包只会被转发有限次，因此不能串接任意多的[交换机](switch.md)或无线接入点。默认情况下，数据包可以被转发至多五次。

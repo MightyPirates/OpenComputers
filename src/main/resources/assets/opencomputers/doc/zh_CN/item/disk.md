@@ -1,5 +1,5 @@
-# 磁盘
+# 盘片
 
-![World. RIP Terry Pratchett.](oredict:oc:materialDisk)
+![《碟形世界》。安息吧特里·普拉切特。](oredict:oc:materialDisk)
 
-基础组件，用于合成软盘和硬盘
+基础合成材料，用于合成[软盘](floppy.md)和[硬盘](hdd1.md)等存储媒介。

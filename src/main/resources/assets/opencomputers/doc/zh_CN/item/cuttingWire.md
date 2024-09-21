@@ -1,5 +1,5 @@
-# 剥过的线
+# 切割线
 
-![Not a garrote. Honest.](oredict:oc:materialCuttingWire)
+![不是绞杀线。真的。](oredict:oc:materialCuttingWire)
 
-在困难合成会用到的东西,用于合成 [原始电路板](rawCircuitBoard.md). 很蛋疼
+使用困难模式合成表时会用到的物品，此物品用于合成[未加工电路板](rawCircuitBoard.md)。效率极低。

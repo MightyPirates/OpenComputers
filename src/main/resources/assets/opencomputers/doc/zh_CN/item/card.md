@@ -1,5 +1,5 @@
-# 卡
+# 扩展卡基板
 
-![Can't be read.](oredict:oc:materialCard)
+![不可读取。](oredict:oc:materialCard)
 
-通用合成组件 ( [显卡](graphicsCard1.md) [网卡](lanCard.md)等等).
+用OC模组中扩展卡组件（例如[显卡](graphicsCard1.md)、[网卡](lanCard.md)）的通用合成材料。

@@ -1,8 +1,7 @@
-# 染色方块
+# 变色材料块
 
-![So... blank.](oredict:oc:chameliumBlock)
+![太……空白了。](oredict:oc:chameliumBlock)
 
-几篇[印刷电路板](../item/chamelium.md) 可以被变成特殊装饰用途的有色方块. 
+将数块[变色材料](../item/chamelium.md)进行结合即可得到一种用于装饰的彩色方块。变色材料块可以用16种Minecraft颜色中任意一种的染料进行染色。
 
-可以被原版任意染色
-
+将[3D打印件](print.md)的材质设定为变色材料块能获得纯白色调的表面。

@@ -1,5 +1,5 @@
-# 可挂载的磁盘
+# 机架式软驱
 
-![Snuggly](oredict:oc:diskDriveMountable)
+![这下舒服了](oredict:oc:diskDriveMountable)
 
-大体相当于[软盘驱动器](../block/diskDrive.md),只是被安装到 [机架](../block/rack.md).
+此设备在功能上与[软盘驱动器](../block/diskDrive.md)等价，但它需要被安装到[机架](../block/rack.md)里。

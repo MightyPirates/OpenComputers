@@ -1,39 +1,39 @@
-# Tablet Case
+# 平板电脑外壳
 
-![Doesn't bend.](oredict:oc:tabletCase1)
+![掰不弯。](oredict:oc:tabletCase1)
 
-在[装配机](../block/assembler.md)制作 [平板](tablet.md) 的基本物件. [平板](tablet.md)是袖珍的 [电脑](../general/computer.md). 可以享受少量升级, 但无法像 [机箱](../block/case1.md) 那样简单的使用红石卡和网卡和世界交互
+平板电脑外壳是在[电子装配机](../block/assembler.md)中组装[平板电脑](tablet.md)时所需的基础部件。[平板电脑](tablet.md)是非常紧凑的移动式[电脑](../general/computer.md)，只能安装少量升级，但无法像[电脑机箱](../block/case1.md)那样与世界交互（例如不能使用T1[网卡](lanCard.md)或T1[红石卡](redstoneCard1.md)）。
 
-不能被平板使用的升级和卡[tablets](tablet.md)都放不进 [组装机](../block/assembler.md). 如果能放进 [组装机](../block/assembler.md), 他就能通过组件api使用. 
+不能用于[平板电脑](tablet.md)的升级和扩展卡都放不进[电子装配机](../block/assembler.md)中。只要升级能放进[电子装配机](../block/assembler.md)，那它就能通过组件API使用。
 
-在玩家物品栏的平板会保持允许. 丢下或者放到其他地方, 会在一段时间后关闭.
+它们必须在玩家的物品栏中才能运作。平板电脑在丢到地上或放进其他物品容器后，过一小段时间就会关机。
 
-T1配件:
-- 1x [CPU (T 2)](cpu2.md)
-- 2x [内存 (T 2)](ram3.md)
-- 1x [硬盘 (T 2)](hdd2.md)
-- 2x 扩展卡 (T 2)
+T1平板电脑外壳可安装以下组件：
+- 1x T2[CPU](cpu2.md)
+- 2x T2[内存条](ram3.md)
+- 1x T2[硬盘](hdd2.md)
+- 2x T2扩展卡
 - 1x [EEPROM](eeprom.md)
-- 1x 升级 (T 1)
-- 1x 升级 (T 2)
-- 1x 升级 (T 3)
+- 1x T1升级
+- 1x T2升级
+- 1x T3升级
 
-T2配件:
-- 1x [CPU (T 3)](cpu3.md)
-- 2x [内存 (T 2)](ram3.md)
-- 1x [硬盘 (T 2)](hdd2.md)
-- 1x Expansion card (T 2)
-- 1x Expansion card (T 3)
+T2平板电脑外壳可安装以下组件：
+- 1x T3[CPU](cpu3.md)
+- 2x T2[内存条](ram3.md)
+- 1x T2[硬盘](hdd2.md)
+- 1x T2扩展卡
+- 1x T3扩展卡
 - 1x [EEPROM](eeprom.md)
-- 2x 升级 (T 2)
-- 1x 升级 (T 3)
-- 1x [升级](upgradeContainer2.md) or [卡槽](cardContainer2.md) (T 2)
+- 2x T2升级
+- 1x T3升级
+- 1x T2[升级容器](upgradeContainer2.md)或[扩展卡容器](cardContainer2.md)
 
-T4配件:
-- 1x [CPU (T 3)](cpu3.md)
-- 2x [内存 (T 3)](ram5.md)
-- 1x [硬盘 (T 3)](hdd3.md)
-- 3x 扩展卡 (T 3)
+T3（创造模式）平板电脑外壳可安装以下组件：
+- 1x T3[CPU](cpu3.md)
+- 2x T3[内存条](ram5.md)
+- 1x T3[硬盘](hdd3.md)
+- 3x T3扩展卡
 - 1x [EEPROM](eeprom.md)
-- 9x 升级 (T 3)
-- 1x [升级](upgradeContainer3.md) or [卡槽](cardContainer3.md) (T 3)
+- 9x T3升级
+- 1x T3[升级容器](upgradeContainer3.md)或[扩展卡容器](cardContainer3.md)

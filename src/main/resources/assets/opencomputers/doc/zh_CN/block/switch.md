@@ -1,13 +1,13 @@
-# Switch
+# 交换机
 
-![Building bridges.](oredict:oc:switch)
+![构建信息之桥。](oredict:oc:switch)
 
-*本方块过期了，请换用中继器
+*本方块已废弃，将会在未来版本被移除* 请将其合成为[中继器](relay.md)以避免丢失。
 
-The switch can be used to allow different subnetworks to send network messages to each other, without exposing components to [computers](../general/computer.md) in other networks. Keeping components local is usually a good idea, to avoid [computers](../general/computer.md) using the wrong [screen](screen1.md) or to avoid component overflows to happen (causing [computers](../general/computer.md) to crash and refuse to boot up).
+交换机可以让不同子网互相发送网络报文，但不会将组件暴露给其他子网中的[电脑](../general/computer.md)。通常而言，最好保证组件只对本地设备可见，这样可以避免[电脑](../general/computer.md)连接错误的[显示屏](screen1.md)，还能避免组件数溢出（导致[电脑](../general/computer.md)崩溃并拒绝启动）。
 
-There is also a wireless variation of this block, called the [access point](accessPoint.md), which will also relay messages wirelessly. Wireless messages can be received and relayed by other [access points](accessPoint.md), or by [computers](../general/computer.md) with a [wireless network card](../item/wlanCard1.md).
+此方块还有一个无线版本，称为[无线接入点](accessPoint.md)，它还能以无线形式中继报文。无线报文可以被其他[无线接入点](accessPoint.md)或带有[无线网卡](../item/wlanCard1.md)的[电脑](../general/computer.md)接收并中继。
 
-Switches and [access points](accessPoint.md) do *not* keep track of which packets they relayed recently, so avoid cycles in your network or you may receive the same packet multiple times. Due to the limited buffer size of switches, sending messages too frequently will result in packet loss. You can upgrade your switches and [access points](accessPoint.md) to increase the speed with which they relay messages, as well as their internal message queue size.
+交换机与[无线接入点](accessPoint.md)**不会**追踪它们所中继的数据包，因此请避免在你的网络中出现环路，否则你可能会多次收到同一数据包。因为交换机的缓存大小有限，以太高的频率发送网络报文时可能出现丢包。你可以升级交换机与[无线接入点](accessPoint.md)，以提升其中继报文的速度以及其内部报文缓存队列的大小。
 
-Packets are only re-sent a certain number of times, so chaining an arbitrary number of switches or access points is not possible. By default, a packet will be re-sent up to five times.
+数据包只会被转发有限次，因此不能串接任意多的[交换机](switch.md)或无线接入点。默认情况下，数据包可以被转发至多五次。
