@@ -1,5 +1,5 @@
-# 磁碟
+# 盘片
 
-![这个世界。愿特里·普拉切特安息。（特里·普拉切特的代表作“Discworld”（《碟形世界》）标题亦可理解成“磁碟的世界”）](oredict:oc:materialDisk)
+![《碟形世界》。安息吧特里·普拉切特。](oredict:oc:materialDisk)
 
-用于合成[软盘](floppy.md)和[硬盘](hdd1.md)的基础零件。
+基础合成材料，用于合成[软盘](floppy.md)和[硬盘](hdd1.md)等存储媒介。

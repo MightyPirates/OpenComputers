@@ -1,5 +1,5 @@
 # 软盘
 
-![Many inches.](oredict:oc:floppy)
+![好多英寸。](oredict:oc:floppy)
 
-是 OpenComputers 中最便宜的存储设备，用于游戏初期在[电脑](../general/computer.md)和[机器人](../block/robot.md)间交换数据。你还可以在地牢中找到一些实用程序的安装软盘（比如 OpenPrograms Package Manager，一个能让你轻松从某个 GitHub 仓库中下载并安装程序的包管理器）。
+软盘是OC模组中制造成本最低且容量最小的存储媒介。在游戏初期它很适合用来存储数据，以及进行在[电脑](../general/computer.md)和[机器人](../block/robot.md)之间的数据交换。你还可能在地牢箱子中发现一些装有实用程序的软盘（例如开放式软件包管理器，你可以用它安装来自Github总仓库的程序）。

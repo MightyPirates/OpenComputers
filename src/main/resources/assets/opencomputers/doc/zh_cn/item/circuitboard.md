@@ -1,5 +1,5 @@
 # 电路板
 
-![需要更多黄金。](oredict:oc:materialCircuitBoard)
+![还要加点黄金。](oredict:oc:materialCircuitBoard)
 
-这是从[未加工电路板](rawCircuitBoard.md)到[印刷电路板](printedCircuitBoard.md)的中间体。
+用[未加工电路板](rawCircuitBoard.md)制造的中间体，可用于制造[印刷电路板](printedCircuitBoard.md)。

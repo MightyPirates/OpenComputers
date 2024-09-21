@@ -1,16 +1,16 @@
 # Lua
 
-[《Lua 编程手册》](https://www.lua.org/manual/5.2/manual.html)和[《Lua 编程》](https://www.lua.org/pil/) 是学习基本功能并熟悉 Lua 标准库的好帮手（译注：两本书原文均为英文）。虽然 [OpenOS](openOS.md) 尽可能准确地模拟标准库，但它相比于标准的 Lua 仍然有所不同，比如大部分 debug 库的内容出于安全考虑去掉了。所有不同之处都可以在[这里](https://ocdoc.cil.li/api:non-standard-lua-libs)找到。
+Lua[参考手册](https://www.lua.org/manual/5.2/manual.html)和[《Lua 编程》](https://www.lua.org/pil/)图书（第一版在网上免费）是入门Lua基础并熟悉基本语法和标准库的好选择。 [OpenOS](openOS.md)致力于尽量模拟标准库功能，但有少量差别，比如debug库基本缺失（因为沙盒环境的原因）。这些区别已在[官方wiki](https://ocdoc.cil.li/api:non-standard-lua-libs:zh)中列出。
 
-非标准库的内容需要使用 `require` 方能引用。比如：
+非标准库需要先`require`才能在脚本中使用。例如：
 
 `local component = require("component")`  
 `local rs = component.redstone`
 
-这样你就能使用[红石卡](../item/redstoneCard1.md)相关的组件功能了。就像这样：
+这样你就能调用[redstone](../item/redstoneCard1.md)组件提供的一切函数了。例如：
 
 `rs.setOutput(require("sides").front, 15)`
 
-**重要**：在 Lua 解释器的环境下请**不要**用 `local` 修饰符，因为这样会让变量的有效范围只有那一行代码。换句话说，把上面三行代码依次复制进去执行时，第三行代码会报错，提示你 `rs` 变量的值是 `nil`。你也许会问：为什么是第三行而非第二行？因为解释器试图从未知变量中加载库。虽然第一行的赋值操作不会立刻有效果，但第二行对 `component` 的引用会加载对应的库。毕竟，内存是有限的，所以 Lua 不会自动就把库加载好。
+**注意**：在Lua解释器中操作时，**不要**使用`local`，因为这样会让变量的作用域限定为输入的那一行代码。意味着如果你逐条向解释器输入上面的代码，第三条就会报错，告诉你`rs`变量的值为`nil`。你也许会问：为什么只有第三行呢？因为出于方便测试的目的，解释器会试图将未知变量当作库名，并将其加载。所以尽管第一行对`component`的赋值没有效果，但是第二行调用`component`时运行库就会被加载并使用。为了降低内存使用量，运行Lua脚本时并不会自动加载运行库，因为资源有限。
 
-OpenOS 提供了大量第三方库，从控制与[电脑](computer.md)连接的组件，到控制捆绑红石线所用的颜色及[键盘](../block/keyboard.md)键位，不一而足。使用第三方库需要像前文中提到的那样用 `require` 导入。有些库只有在安装对应的组件后才能使用，比如 `internet` 就需要一块[网卡](../item/internetCard.md)。对于网卡这样的例子来说，实际上这个库只有在安装了对应组件后才能使用，从技术角度来说这些组件包含了一个小型的只读文件系统。
+OpenOS提供了大量自定义库，它们可用于多种用途，从操控与[电脑](computer.md)连接的组件，到包含控制集束红石线时所用颜色或[键盘](../block/keyboard.md)按键编号的引用库。通过像上面那样使用`require()`函数即可在Lua脚本中使用自定义库。某些自定义库需要有特定组件才能工作，例如`internet`库需要有[网卡](../item/internetCard.md)才能使用。对此例而言，这个库甚至是由硬件提供的，即这个运行库在你安装了网卡后才会出现——从技术细节上讲，这个运行库存储在网卡上的一个小的，只读的文件系统中。

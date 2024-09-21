@@ -1,7 +1,7 @@
-# 变色块
+# 变色材料块
 
-![So... blank.](oredict:oc:chameliumBlock)
+![太……空白了。](oredict:oc:chameliumBlock)
 
-几块[变色材料](../item/chamelium.md)合成出装饰用的单色方块。可用染料染成原版的十六种颜色。
+将数块[变色材料](../item/chamelium.md)进行结合即可得到一种用于装饰的彩色方块。变色材料块可以用16种Minecraft颜色中任意一种的染料进行染色。
 
-变色块还可用作 [3D 打印](print.md)的基础。
+将[3D打印件](print.md)的材质设定为变色材料块能获得纯白色调的表面。

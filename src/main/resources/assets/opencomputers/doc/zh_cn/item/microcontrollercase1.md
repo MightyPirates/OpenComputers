@@ -1,31 +1,31 @@
-# 微控制器盒
+# 微控制器外壳
 
 ![超可爱的。](oredict:oc:microcontrollerCase1)
 
-微控制器盒是在[装配机](../block/assembler.md)中制造[微控制器](../block/microcontroller.md)的基础。 [微控制器](../block/microcontroller.md)是种极其简化的[电脑](../general/computer.md)，只有少量组件，通常设计为特定用途，比如转发或者处理红石信号以及处理网路消息。
+微控制器外壳是用于在[电子装配机](../block/assembler.md)中构建[微控制器](../block/microcontroller.md)的基础部件。[微控制器](../block/microcontroller.md)是一种极其简化的[电脑](../general/computer.md)，只能安装少量组件，且适用于高度特化的应用场景，例如转换或响应红石信号，又或者处理网络信息。
 
-它没有文件系统。所有程序都必须写进 [EEPROM](eeprom.md)。这个芯片可以通过与[微控制器](../block/microcontroller.md)在工作台合成的方式替换，原有的 [EEPROM](../item/eeprom.md) 会返还。
+微控制器中并没有文件系统。所有程序都必须写进内置的[EEPROM](eeprom.md)中。可以将[微控制器](../block/microcontroller.md)与其他芯片一起合成以替换其中的EEPROM芯片。原有[EEPROM](../item/eeprom.md)会返还到你的物品栏中。
 
-微控制器的功耗低。
+尽管微控制器仍需耗能，但它的能耗很低。
 
-T1 微控制器最高可安装：
-- 1x T1 [CPU](cpu1.md)
-- 1x T1 [内存](ram1.md)
+T1微控制器最高可安装：
+- 1x T1[CPU](cpu1.md)
+- 1x T1[内存条](ram1.md)
 - 1x [EEPROM](eeprom.md)
-- 2x T1 扩展卡
-- 1x T2 升级
+- 2x T1扩展卡
+- 1x T2升级
 
-T2 微控制器最高可安装：
-- 1x T1 [CPU](cpu1.md)
-- 2x T1 [RAM](ram1.md)
+T2微控制器最高可安装：
+- 1x T1[CPU](cpu1.md)
+- 2x T1[内存条](ram1.md)
 - 1x [EEPROM](eeprom.md)
-- 1x T2 扩展卡
-- 1x T1 扩展卡
-- 1x T2 升级
+- 1x T2扩展卡
+- 1x T1扩展卡
+- 1x T2升级
 
-T3 微控制器最高可安装：
-- 1x T3 [CPU](cpu3.md)
-- 2x T3 [内存](ram5.md)
+T3微控制器最高可安装：
+- 1x T3[CPU](cpu3.md)
+- 2x T3[内存条](ram5.md)
 - 1x [EEPROM](eeprom.md)
-- 3x T3 扩展卡
-- 9x T3 升级
+- 3x T3扩展卡
+- 9x T3升级

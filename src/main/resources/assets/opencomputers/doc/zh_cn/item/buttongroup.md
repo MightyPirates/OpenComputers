@@ -1,5 +1,5 @@
-# 按钮组
+# 按键组
 
-![需要更多的按钮。](oredict:oc:materialButtonGroup)
+![还要更多按键。](oredict:oc:materialButtonGroup)
 
-你总是把按钮弄得到处都是，我们已经不知 Shift 点击那个按钮配方多少次了。言归正传，按钮组用于制造[键盘](../block/keyboard.md)。
+之所以有此物品是因为你**经常**需要大量按键，放的到处都是。不许撒谎。我们都按住shift键合成单个按键的配方无数次了。它是用作组装[键盘](../block/keyboard.md)的配件之一。
