@@ -22,7 +22,10 @@ local function get(pasteId, filename)
 
   io.write("Downloading from pastebin.com... ")
   local url = "https://pastebin.com/raw/" .. pasteId
-  local result, response = pcall(internet.request, url)
+
+  -- User agent added to impersonate real browsers and bypass anti-scraping protection
+  local result, response = pcall(internet.request, url, nil, {["User-Agent"]="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"})
+
   if result then
     io.write("success.\n")
     for chunk in response do
