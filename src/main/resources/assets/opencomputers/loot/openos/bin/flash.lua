@@ -1,8 +1,14 @@
 local component = require("component")
 local shell = require("shell")
 local fs = require("filesystem")
+local eeprom = component.eeprom
 
 local args, options = shell.parse(...)
+
+-- No funtion available to check if the EEPROM is read-only
+if not eeprom.setLabel(eeprom.getLabel()) then
+  io.write("WARNING : read-only EEPROM, BIOS can't be flashed to it.\n\n")
+end
 
 if #args < 1 and not options.l then
   io.write("Usage: flash [-qlr] [<bios.lua>] [label]\n")
@@ -13,12 +19,10 @@ if #args < 1 and not options.l then
 end
 
 local function printRom()
-  local eeprom = component.eeprom
   io.write(eeprom.get())
 end
 
 local function readRom()
-  local eeprom = component.eeprom
   local fileName = shell.resolve(args[1])
   if not options.q then
     if fs.exists(fileName) then
@@ -52,8 +56,6 @@ local function writeRom()
     until response and response:lower():sub(1, 1) == "y"
     io.write("Beginning to flash EEPROM.\n")
   end
-
-  local eeprom = component.eeprom
 
   if not options.q then
     io.write("Flashing EEPROM " .. eeprom.address .. ".\n")
