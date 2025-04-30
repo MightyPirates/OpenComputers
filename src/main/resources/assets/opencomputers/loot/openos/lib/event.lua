@@ -143,7 +143,7 @@ function event.pullFiltered(...)
   local deadline = computer.uptime() + (seconds or math.huge)
   repeat
     local waitTime = deadline - computer.uptime()
-    if waitTime <= 0 then
+    if waitTime < 0 then
       break
     end
     local signal = table.pack(computer.pullSignal(waitTime))
