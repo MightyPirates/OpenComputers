@@ -5,11 +5,6 @@ local eeprom = component.eeprom
 
 local args, options = shell.parse(...)
 
--- No funtion available to check if the EEPROM is read-only
-if not eeprom.setLabel(eeprom.getLabel()) then
-  io.write("WARNING : read-only EEPROM, BIOS can't be flashed to it.\n\n")
-end
-
 if #args < 1 and not options.l then
   io.write("Usage: flash [-qlr] [<bios.lua>] [label]\n")
   io.write(" q: quiet mode, don't ask questions.\n")
@@ -44,6 +39,11 @@ local function readRom()
 end
 
 local function writeRom()
+  -- No funtion available to check if the EEPROM is read-only
+  if not eeprom.setLabel(eeprom.getLabel()) then
+    io.write("WARNING : read-only EEPROM, the BIOS can't be flashed to it.\n\n")
+  end
+
   local file = assert(io.open(args[1], "rb"))
   local bios = file:read("*a")
   file:close()
@@ -54,6 +54,8 @@ local function writeRom()
     repeat
       local response = io.read()
     until response and response:lower():sub(1, 1) == "y"
+    -- Reset the EEPROM component in case it has been replaced.
+    eeprom = component.getPrimary("eeprom")
     io.write("Beginning to flash EEPROM.\n")
   end
 
