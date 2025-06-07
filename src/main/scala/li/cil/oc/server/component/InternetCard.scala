@@ -525,21 +525,25 @@ object InternetCard {
               out.close()
             }
 
-            // Finish the connection. Call getInputStream a second time below to re-throw any exception.
-            // This avoids getResponseCode() waiting for the connection to end in the synchronized block.
-            try {
-              http.getInputStream
-            } catch {
-              case _: Exception =>
-            }
-
             HTTPRequest.this.synchronized {
               response = Some((http.getResponseCode, http.getResponseMessage, http.getHeaderFields))
             }
 
-            // TODO: This should allow accessing getErrorStream() for reading unsuccessful HTTP responses' output,
-            // but this would be a breaking change for existing OC code.
-            http.getInputStream
+            // For successful responses (2xx), use getInputStream()
+            // For error responses (4xx, 5xx), use getErrorStream() if available, otherwise return empty stream
+            val responseCode = http.getResponseCode
+            if (responseCode >= 200 && responseCode < 300) {
+              http.getInputStream
+            } else {
+              // For HTTP error responses, try to get the error stream
+              val errorStream = http.getErrorStream
+              if (errorStream != null) {
+                errorStream
+              } else {
+                // If no error stream is available, return an empty stream
+                new java.io.ByteArrayInputStream(Array.empty[Byte])
+              }
+            }
           }
           catch {
             case t: Throwable =>
