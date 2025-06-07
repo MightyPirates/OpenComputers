@@ -125,6 +125,72 @@ function internet.open(address, port)
   return buffer.new("rwb", stream)
 end
 
+function internet.websocket(url, headers)
+  checkArg(1, url, "string")
+  checkArg(2, headers, "table", "nil")
+
+  if not component.isAvailable("internet") then
+    error("no primary internet card found", 2)
+  end
+  local inet = component.internet
+
+  local ws, reason = inet.websocket(url, headers)
+  if not ws then
+    error(reason, 2)
+  end
+
+  return setmetatable(
+  {
+    ["()"] = "function():string -- Tries to receive a message from the WebSocket.",
+    send = setmetatable({},
+    {
+      __call = function(_, message)
+        return ws.send(message)
+      end,
+      __tostring = function() return "function(message:string):boolean -- Sends a text message over the WebSocket" end
+    }),
+    sendBinary = setmetatable({},
+    {
+      __call = function(_, data)
+        return ws.sendBinary(data)
+      end,
+      __tostring = function() return "function(data:string):boolean -- Sends binary data over the WebSocket" end
+    }),
+    receive = setmetatable({},
+    {
+      __call = function()
+        return ws.receive()
+      end,
+      __tostring = function() return "function():string -- Receives a text message from the WebSocket" end
+    }),
+    receiveBinary = setmetatable({},
+    {
+      __call = function()
+        return ws.receiveBinary()
+      end,
+      __tostring = function() return "function():string -- Receives binary data from the WebSocket" end
+    }),
+    isConnected = setmetatable({},
+    {
+      __call = function()
+        return ws.isConnected()
+      end,
+      __tostring = function() return "function():boolean -- Returns whether the WebSocket is connected" end
+    }),
+    close = setmetatable({},
+    {
+      __call = ws.close,
+      __tostring = function() return "function() -- Closes the WebSocket connection" end
+    })
+  },
+  {
+    __call = function()
+      return ws.receive()
+    end,
+    __index = ws,
+  })
+end
+
 -------------------------------------------------------------------------------
 
 return internet

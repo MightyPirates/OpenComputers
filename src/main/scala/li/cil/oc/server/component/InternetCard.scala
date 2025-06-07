@@ -15,6 +15,10 @@ import java.nio.channels.SocketChannel
 import java.util
 import java.util.UUID
 import java.util.concurrent._
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLEngineResult
+import javax.net.ssl.SSLException
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -90,6 +94,9 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
   def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.tcpEnabled)
 
+  @Callback(direct = true, doc = """function():boolean -- Returns whether WebSocket connections can be made (config setting).""")
+  def isWebSocketEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.webSocketEnabled)
+
   @Callback(doc = """function(address:string[, port:number]):userdata -- Opens a new TCP connection. Returns the handle of the connection.""")
   def connect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
@@ -108,6 +115,32 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
     val socket = new InternetCard.TCPSocket(this, uri, port)
     connections += socket
     result(socket)
+  }
+
+  @Callback(doc = """function(url:string[, headers:table]):userdata -- Opens a new WebSocket connection. Returns the handle of the connection.""")
+  def websocket(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
+    val url = args.checkString(0)
+    if (!Settings.get.internetAccessAllowed()) {
+      return result(Unit, "internet access is unavailable")
+    }
+    if (!Settings.get.webSocketEnabled) {
+      return result(Unit, "websocket connections are unavailable")
+    }
+    if (connections.size >= Settings.get.maxConnections) {
+      throw new IOException("too many open connections")
+    }
+    val headers = if (args.isTable(1)) args.checkTable(1).collect {
+      case (key: String, value: AnyRef) => (key, value.toString)
+    }.toMap
+    else Map.empty[String, String]
+    if (!Settings.get.httpHeadersEnabled && headers.nonEmpty) {
+      return result(Unit, "websocket request headers are unavailable")
+    }
+    val wsUrl = checkWebSocketAddress(url)
+    val websocket = new InternetCard.WebSocketConnection(this, wsUrl, headers)
+    connections += websocket
+    result(websocket)
   }
 
   private def checkOwner(context: Context) {
@@ -182,6 +215,18 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
       throw new FileNotFoundException("unsupported protocol")
     }
     url
+  }
+
+  private def checkWebSocketAddress(address: String) = {
+    val url = try new URL(address.replaceFirst("^ws", "http"))
+    catch {
+      case e: Throwable => throw new FileNotFoundException("invalid websocket address")
+    }
+    val originalProtocol = address.split("://", 2)(0).toLowerCase
+    if (!originalProtocol.matches("^wss?$")) {
+      throw new FileNotFoundException("unsupported websocket protocol")
+    }
+    (url, originalProtocol == "wss")
   }
 }
 
@@ -561,6 +606,395 @@ object InternetCard {
       }
     }
 
+  }
+
+  class WebSocketConnection extends AbstractValue with Closable {
+    def this(owner: InternetCard, urlAndSecure: (URL, Boolean), headers: Map[String, String]) {
+      this()
+      this.owner = Some(owner)
+      this.url = urlAndSecure._1
+      this.isSecure = urlAndSecure._2
+      this.headers = headers
+      this.connector = threadPool.submit(new WebSocketConnector())
+    }
+
+    private var owner: Option[InternetCard] = None
+    private var url: URL = null
+    private var isSecure: Boolean = false
+    private var headers: Map[String, String] = Map.empty
+    private val id = UUID.randomUUID()
+    private var connector: Future[SocketChannel] = null
+    private var channel: SocketChannel = null
+    private var sslEngine: SSLEngine = null
+    private var sslInbound: ByteBuffer = null
+    private var sslOutbound: ByteBuffer = null
+    private var connected = false
+    private val messageQueue = new ConcurrentLinkedQueue[String]()
+    private val binaryQueue = new ConcurrentLinkedQueue[Array[Byte]]()
+    private var reader: Future[_] = null
+    private var handshakeComplete = false
+
+    @Callback(doc = """function():boolean -- Ensures WebSocket connection is established. Errors if the connection failed.""")
+    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      result(checkConnected())
+    }
+
+    @Callback(doc = """function():string -- Returns connection ID.""")
+    def id(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      result(id.toString)
+    }
+
+    @Callback(doc = """function():boolean -- Returns whether the WebSocket is connected.""")
+    def isConnected(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      result(connected && handshakeComplete)
+    }
+
+    @Callback(doc = """function(message:string) -- Sends a text message over the WebSocket.""")
+    def send(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      if (!connected || !handshakeComplete) {
+        return result(false, "websocket not connected")
+      }
+      val message = args.checkString(0)
+      try {
+        sendWebSocketFrame(message, isText = true)
+        result(true)
+      } catch {
+        case e: Exception =>
+          result(false, e.getMessage)
+      }
+    }
+
+    @Callback(doc = """function(data:string) -- Sends binary data over the WebSocket.""")
+    def sendBinary(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      if (!connected || !handshakeComplete) {
+        return result(false, "websocket not connected")
+      }
+      val data = args.checkByteArray(0)
+      try {
+        sendWebSocketFrame(data, isText = false)
+        result(true)
+      } catch {
+        case e: Exception =>
+          result(false, e.getMessage)
+      }
+    }
+
+    @Callback(doc = """function():string -- Receives a text message from the WebSocket.""")
+    def receive(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      val message = messageQueue.poll()
+      if (message != null) {
+        result(message)
+      } else {
+        result(Unit)
+      }
+    }
+
+    @Callback(doc = """function():string -- Receives binary data from the WebSocket.""")
+    def receiveBinary(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      val data = binaryQueue.poll()
+      if (data != null) {
+        result(data)
+      } else {
+        result(Unit)
+      }
+    }
+
+    @Callback(direct = true, doc = """function() -- Closes the WebSocket connection.""")
+    def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      close()
+      null
+    }
+
+    override def dispose(context: Context): Unit = {
+      super.dispose(context)
+      close()
+    }
+
+    override def close(): Unit = {
+      owner.foreach(card => {
+        card.connections.remove(this)
+        if (connector != null) connector.cancel(true)
+        if (reader != null) reader.cancel(true)
+
+        // Clean up SSL resources safely
+        try {
+          if (sslEngine != null) {
+            sslEngine.closeOutbound()
+          }
+        } catch {
+          case _: Throwable => // Ignore all cleanup errors
+        }
+
+        if (channel != null) channel.close()
+
+        // Reset state variables
+        connected = false
+        handshakeComplete = false
+        owner = None
+        connector = null
+        channel = null
+        reader = null
+        // Don't reset SSL variables to avoid setter issues
+      })
+    }
+
+
+
+    private def checkConnected(): Boolean = {
+      if (owner.isEmpty) throw new IOException("connection lost")
+      if (connector != null && connector.isDone && !connected) {
+        try {
+          channel = connector.get()
+          if (isSecure) {
+            initializeSSL()
+            performSSLHandshake()
+          }
+          connected = true
+          performHandshake()
+          startReading()
+        } catch {
+          case e: ExecutionException =>
+            close()
+            throw e.getCause
+          case e: Exception =>
+            close()
+            throw e
+        }
+      }
+      connected && handshakeComplete
+    }
+
+    private def initializeSSL(): Unit = {
+      val sslContext = SSLContext.getDefault
+      sslEngine = sslContext.createSSLEngine(url.getHost, if (url.getPort != -1) url.getPort else 443)
+      sslEngine.setUseClientMode(true)
+
+      val session = sslEngine.getSession
+      val bufferSize = session.getPacketBufferSize
+      sslInbound = ByteBuffer.allocate(bufferSize)
+      sslOutbound = ByteBuffer.allocate(bufferSize)
+    }
+
+    private def performSSLHandshake(): Unit = {
+      if (sslEngine == null || sslInbound == null || sslOutbound == null) {
+        throw new SSLException("SSL not properly initialized")
+      }
+
+      sslEngine.beginHandshake()
+
+      var handshakeStatus = sslEngine.getHandshakeStatus
+      val appBuffer = ByteBuffer.allocate(sslEngine.getSession.getApplicationBufferSize)
+
+      while (handshakeStatus != SSLEngineResult.HandshakeStatus.FINISHED &&
+             handshakeStatus != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+
+        handshakeStatus match {
+          case SSLEngineResult.HandshakeStatus.NEED_WRAP =>
+            sslOutbound.clear()
+            val result = sslEngine.wrap(ByteBuffer.allocate(0), sslOutbound)
+            handshakeStatus = result.getHandshakeStatus
+            sslOutbound.flip()
+            if (sslOutbound.hasRemaining) {
+              channel.write(sslOutbound)
+            }
+
+          case SSLEngineResult.HandshakeStatus.NEED_UNWRAP =>
+            if (channel.read(sslInbound) < 0) {
+              throw new SSLException("SSL handshake failed: connection closed")
+            }
+            sslInbound.flip()
+            val result = sslEngine.unwrap(sslInbound, appBuffer)
+            handshakeStatus = result.getHandshakeStatus
+            sslInbound.compact()
+
+          case SSLEngineResult.HandshakeStatus.NEED_TASK =>
+            var task = sslEngine.getDelegatedTask
+            while (task != null) {
+              task.run()
+              task = sslEngine.getDelegatedTask
+            }
+            handshakeStatus = sslEngine.getHandshakeStatus
+
+          case _ =>
+            throw new SSLException("Unknown handshake status: " + handshakeStatus)
+        }
+      }
+    }
+
+    private def sslWrite(data: ByteBuffer): Unit = {
+      if (isSecure && sslEngine != null && sslOutbound != null) {
+        sslOutbound.clear()
+        val result = sslEngine.wrap(data, sslOutbound)
+        if (result.getStatus != SSLEngineResult.Status.OK) {
+          throw new SSLException("SSL wrap failed: " + result.getStatus)
+        }
+        sslOutbound.flip()
+        while (sslOutbound.hasRemaining) {
+          channel.write(sslOutbound)
+        }
+      } else {
+        channel.write(data)
+      }
+    }
+
+    private def sslRead(buffer: ByteBuffer): Int = {
+      if (isSecure && sslEngine != null) {
+        val netData = ByteBuffer.allocate(sslEngine.getSession.getPacketBufferSize)
+        val bytesRead = channel.read(netData)
+        if (bytesRead > 0) {
+          netData.flip()
+          val result = sslEngine.unwrap(netData, buffer)
+          if (result.getStatus != SSLEngineResult.Status.OK) {
+            throw new SSLException("SSL unwrap failed: " + result.getStatus)
+          }
+          result.bytesProduced()
+        } else {
+          bytesRead
+        }
+      } else {
+        channel.read(buffer)
+      }
+    }
+
+    private def performHandshake(): Unit = {
+      // Simplified WebSocket handshake implementation
+      val key = java.util.Base64.getEncoder.encodeToString(java.security.SecureRandom.getInstanceStrong.generateSeed(16))
+      val request = new StringBuilder()
+      request.append(s"GET ${url.getPath}${if (url.getQuery != null) "?" + url.getQuery else ""} HTTP/1.1\r\n")
+      request.append(s"Host: ${url.getHost}${if (url.getPort != -1) ":" + url.getPort else ""}\r\n")
+      request.append("Upgrade: websocket\r\n")
+      request.append("Connection: Upgrade\r\n")
+      request.append(s"Sec-WebSocket-Key: $key\r\n")
+      request.append("Sec-WebSocket-Version: 13\r\n")
+      headers.foreach { case (k, v) => request.append(s"$k: $v\r\n") }
+      request.append("\r\n")
+
+      sslWrite(ByteBuffer.wrap(request.toString.getBytes("UTF-8")))
+
+      // Read response (simplified)
+      val buffer = ByteBuffer.allocate(4096)
+      sslRead(buffer)
+      val response = new String(buffer.array(), 0, buffer.position(), "UTF-8")
+
+      if (response.contains("HTTP/1.1 101") && response.contains("Upgrade: websocket")) {
+        handshakeComplete = true
+        owner.foreach(_.node.sendToVisible("computer.signal", "websocket_success", id.toString))
+      } else {
+        throw new IOException("WebSocket handshake failed")
+      }
+    }
+
+    private def startReading(): Unit = {
+      reader = threadPool.submit(new Runnable {
+        override def run(): Unit = {
+          try {
+            while (connected && !Thread.currentThread().isInterrupted) {
+              readWebSocketFrame()
+            }
+          } catch {
+            case _: InterruptedException => // Expected when closing
+            case e: Exception =>
+              owner.foreach(_.node.sendToVisible("computer.signal", "websocket_error", id.toString, e.getMessage))
+              close()
+          }
+        }
+      })
+    }
+
+    private def readWebSocketFrame(): Unit = {
+      // Simplified WebSocket frame reading
+      val headerBuffer = ByteBuffer.allocate(2)
+      if (sslRead(headerBuffer) < 2) return
+
+      headerBuffer.flip()
+      val firstByte = headerBuffer.get() & 0xFF
+      val secondByte = headerBuffer.get() & 0xFF
+
+      val fin = (firstByte & 0x80) != 0
+      val opcode = firstByte & 0x0F
+      val masked = (secondByte & 0x80) != 0
+      var payloadLength = secondByte & 0x7F
+
+      // Handle extended payload length
+      if (payloadLength == 126) {
+        val lengthBuffer = ByteBuffer.allocate(2)
+        sslRead(lengthBuffer)
+        lengthBuffer.flip()
+        payloadLength = lengthBuffer.getShort() & 0xFFFF
+      } else if (payloadLength == 127) {
+        val lengthBuffer = ByteBuffer.allocate(8)
+        sslRead(lengthBuffer)
+        lengthBuffer.flip()
+        payloadLength = lengthBuffer.getLong().toInt // Simplified, should handle long properly
+      }
+
+      // Read payload
+      val payloadBuffer = ByteBuffer.allocate(payloadLength)
+      sslRead(payloadBuffer)
+      val payload = payloadBuffer.array()
+
+      opcode match {
+        case 0x1 => // Text frame
+          val message = new String(payload, "UTF-8")
+          messageQueue.offer(message)
+          owner.foreach(_.node.sendToVisible("computer.signal", "websocket_message", id.toString))
+        case 0x2 => // Binary frame
+          binaryQueue.offer(payload)
+          owner.foreach(_.node.sendToVisible("computer.signal", "websocket_binary", id.toString))
+        case 0x8 => // Close frame
+          close()
+        case 0x9 => // Ping frame
+          sendWebSocketFrame(payload, isText = false, opcode = 0xA) // Send pong
+        case 0xA => // Pong frame
+          // Handle pong if needed
+        case _ => // Unknown frame type, ignore
+      }
+    }
+
+    private def sendWebSocketFrame(data: Any, isText: Boolean, opcode: Int = -1): Unit = {
+      val payload = data match {
+        case s: String => s.getBytes("UTF-8")
+        case b: Array[Byte] => b
+        case _ => throw new IllegalArgumentException("Invalid data type")
+      }
+
+      val actualOpcode = if (opcode != -1) opcode else if (isText) 0x1 else 0x2
+      val frame = ByteBuffer.allocate(payload.length + 10) // Max header size
+
+      // First byte: FIN + opcode
+      frame.put((0x80 | actualOpcode).toByte)
+
+      // Payload length
+      if (payload.length < 126) {
+        frame.put(payload.length.toByte)
+      } else if (payload.length < 65536) {
+        frame.put(126.toByte)
+        frame.putShort(payload.length.toShort)
+      } else {
+        frame.put(127.toByte)
+        frame.putLong(payload.length.toLong)
+      }
+
+      // Payload
+      frame.put(payload)
+      frame.flip()
+
+      sslWrite(frame)
+    }
+
+    private class WebSocketConnector extends Callable[SocketChannel] {
+      override def call(): SocketChannel = {
+        checkLists(InetAddress.getByName(url.getHost), url.getHost)
+        val port = if (url.getPort != -1) url.getPort else if (isSecure) 443 else 80
+        val address = new InetSocketAddress(url.getHost, port)
+
+        val socketChannel = SocketChannel.open()
+        socketChannel.configureBlocking(true) // Use blocking for simplicity
+        socketChannel.connect(address)
+
+        socketChannel
+      }
+    }
   }
 
 }

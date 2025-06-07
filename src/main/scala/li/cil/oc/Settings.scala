@@ -299,6 +299,7 @@ class Settings(val config: Config) {
   val httpEnabled = config.getBoolean("internet.enableHttp")
   val httpHeadersEnabled = config.getBoolean("internet.enableHttpHeaders")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
+  val webSocketEnabled = config.getBoolean("internet.enableWebSocket")
   val internetFilteringRules = Array(config.getStringList("internet.filteringRules")
     .filter(p => !p.equals("removeme"))
     .map(new InternetFilteringRule(_)): _*)
@@ -494,7 +495,7 @@ class Settings(val config: Config) {
   }
 
   def internetAccessConfigured(): Boolean = {
-    httpEnabled || tcpEnabled
+    httpEnabled || tcpEnabled || webSocketEnabled
   }
 
   def internetAccessAllowed(): Boolean = {
