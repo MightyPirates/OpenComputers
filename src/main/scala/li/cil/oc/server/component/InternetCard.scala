@@ -393,7 +393,7 @@ object InternetCard {
       catch {
         case t: Throwable =>
           close()
-          false
+          throw t  // Пробрасываем исключение вместо возврата false
       }
     }
 
