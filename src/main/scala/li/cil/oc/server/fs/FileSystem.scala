@@ -160,14 +160,18 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
 
-  class ReadOnlyLabel(val label: String) extends Label {
+  class ReadOnlyLabel(private var label: String) extends Label {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")
 
     def getLabel = label
 
     private final val LabelTag = Settings.namespace + "fs.label"
 
-    override def load(nbt: NBTTagCompound) {}
+    override def load(nbt: NBTTagCompound): Unit = {
+      if (nbt.hasKey(LabelTag)) {
+        label = nbt.getString(LabelTag)
+      }
+    }
 
     override def save(nbt: NBTTagCompound) {
       if (label != null) {
