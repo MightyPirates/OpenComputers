@@ -167,7 +167,7 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     private final val LabelTag = Settings.namespace + "fs.label"
 
-    override def load(nbt: NBTTagCompound): Unit = {
+    override def load(nbt: NBTTagCompound) {
       if (nbt.hasKey(LabelTag)) {
         label = nbt.getString(LabelTag)
       }
