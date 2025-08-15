@@ -6,6 +6,7 @@
         "north": "opencomputers:blocks/redstone_north",
         "south": "opencomputers:blocks/redstone_south",
         "west": "opencomputers:blocks/redstone_west",
-        "east": "opencomputers:blocks/redstone_east"
+        "east": "opencomputers:blocks/redstone_east",
+        "particle": "opencomputers:blocks/redstone_top"
     }
 }
