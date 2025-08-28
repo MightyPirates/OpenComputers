@@ -49,7 +49,7 @@ class UpgradeLeash(val host: Entity with li.cil.oc.api.internal.Drone) extends A
 
   val leashedEntities = mutable.Set.empty[UUID]
 
-  override def position = BlockPosition(host.asInstanceOf[Entity])
+  override def position = BlockPosition(host.posX, host.posY, host.posZ)
 
   @Callback(doc = """function(side:number):boolean, string -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
