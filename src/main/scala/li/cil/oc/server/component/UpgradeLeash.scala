@@ -51,7 +51,7 @@ class UpgradeLeash(val host: Entity with li.cil.oc.api.internal.Drone) extends A
 
   override def position = BlockPosition(host.posX, host.posY, host.posZ, host.world)
 
-  @Callback(doc = """function(side:number):boolean, string -- Tries to put an entity on the specified side of the device onto a leash.""")
+  @Callback(doc = """function(side:number):boolean, [string] -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
     if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
     val side = args.checkSideAny(0)
