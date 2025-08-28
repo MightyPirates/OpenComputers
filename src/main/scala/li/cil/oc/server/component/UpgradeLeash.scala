@@ -53,7 +53,7 @@ class UpgradeLeash(val host: Entity with li.cil.oc.api.internal.Drone) extends A
 
   @Callback(doc = """function(side:number):boolean[, string] -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
-    if (leashedEntities.size >= MaxLeashedEntities) return result(Unit, "too many leashed entities")
+    if (leashedEntities.size >= MaxLeashedEntities) return result(false, "too many leashed entities")
     val side = args.checkSideAny(0)
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.getXOffset * 2.0, side.getYOffset * 2.0, side.getZOffset * 2.0)
