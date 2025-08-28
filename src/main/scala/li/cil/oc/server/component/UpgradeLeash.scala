@@ -2,7 +2,6 @@ package li.cil.oc.server.component
 
 import java.util
 import java.util.UUID
-
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -14,7 +13,6 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractManagedEnvironment
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.BlockPosition
@@ -22,6 +20,8 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving
+import net.minecraft.init.Items
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
@@ -30,7 +30,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
+class UpgradeLeash(val host: Entity with li.cil.oc.api.internal.Drone) extends AbstractManagedEnvironment with traits.WorldAware with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("leash").
     create()
@@ -49,7 +49,7 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
 
   val leashedEntities = mutable.Set.empty[UUID]
 
-  override def position = BlockPosition(host)
+  override def position = BlockPosition(host.asInstanceOf[Entity])
 
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
@@ -60,11 +60,16 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
     val bounds = nearBounds.union(farBounds)
     entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.canBeLeashedTo(fakePlayer)) match {
       case Some(entity) =>
-        entity.setLeashHolder(host, true)
-        leashedEntities += entity.getUniqueID
-        context.pause(0.1)
-        result(true)
-      case _ => result(Unit, "no unleashed entity")
+        if (shrinkLeash()) {
+          entity.setLeashHolder(host, true)
+          leashedEntities += entity.getUniqueID
+          context.pause(0.1)
+          result(true)
+        }
+        else {
+          result(false, "don't has leash to be shrink")
+        }
+      case _ => result(false, "no unleashed entity")
     }
   }
 
@@ -84,10 +89,54 @@ class UpgradeLeash(val host: Entity) extends AbstractManagedEnvironment with tra
   private def unleashAll() {
     entitiesInBounds(classOf[EntityLiving], position.bounds.grow(5, 5, 5)).foreach(entity => {
       if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashHolder == host) {
-        entity.clearLeashed(true, false)
+        if (returnLeash()) {
+          entity.clearLeashed(true, false)
+          leashedEntities -= entity.getUniqueID
+        }
       }
     })
-    leashedEntities.clear()
+  }
+
+  private def shrinkLeash(): Boolean = {
+    var hasLeash = false
+    val size = host.mainInventory().getSizeInventory
+    for (index <- 0 until size if !hasLeash) {
+      val stack = host.mainInventory().getStackInSlot(index)
+      if (stack != null && !stack.isEmpty && stack.getItem == Items.LEAD) {
+        stack.shrink(1)
+        hasLeash = true
+        if (stack.getCount == 0) {
+          host.mainInventory().setInventorySlotContents(index, ItemStack.EMPTY)
+        }
+      }
+    }
+
+    hasLeash
+  }
+
+  private def returnLeash(): Boolean = {
+    val size = host.mainInventory().getSizeInventory
+    var added = false
+
+    for (index <- 0 until size if !added) {
+      val stack = host.mainInventory().getStackInSlot(index)
+      if (stack != null && !stack.isEmpty && stack.getItem == Items.LEAD && stack.getCount < stack.getMaxStackSize) {
+        stack.grow(1)
+        added = true
+      }
+    }
+
+    if (!added) {
+      for (index <- 0 until size if !added) {
+        val stack = host.mainInventory().getStackInSlot(index)
+        if (stack == null || stack.isEmpty) {
+          host.mainInventory().setInventorySlotContents(index, new ItemStack(Items.LEAD))
+          added = true
+        }
+      }
+    }
+
+    added
   }
 
   private final val LeashedEntitiesTag = "leashedEntities"
