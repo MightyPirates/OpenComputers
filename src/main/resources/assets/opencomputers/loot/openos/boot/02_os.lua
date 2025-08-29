@@ -25,9 +25,13 @@ end
 function os.sleep(timeout)
   checkArg(1, timeout, "number", "nil")
   local deadline = computer.uptime() + (timeout or 0)
+  local epsilon = 1e-6
   repeat
-    event.pull(deadline - computer.uptime())
-  until computer.uptime() >= deadline
+      local remaining = deadline - computer.uptime()
+      if remaining <= epsilon then break end
+
+      event.pull(math.max(remaining, 0.001))
+  until computer.uptime() >= deadline - epsilon
 end
 
 os.setenv("PATH", "/bin:/usr/bin:/home/bin:.")

@@ -47,11 +47,14 @@ local stats = {
 }
 
 local function doSleep()
-    
+    local epsilon = 1e-6
     local deadline = computer.uptime() + (tonumber(options.i) or tonumber(options.interval) or 1)
     repeat
-        event.pull(deadline - computer.uptime())
-    until computer.uptime() >= deadline
+        local remaining = deadline - computer.uptime()
+        if remaining <= epsilon then break end
+
+        event.pull(math.max(remaining, 0.001))
+    until computer.uptime() >= deadline - epsilon
 end
 
 local function doPing()
