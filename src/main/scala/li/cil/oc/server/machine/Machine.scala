@@ -443,7 +443,7 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
-  @Callback(doc = """function([frequency:string or number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
+  @Callback(doc = """function([frequency:string or number[, duration:number[, async:boolean]]]) -- Plays a tone, useful to alert users via audible feedback.""")
   def beep(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 1 && args.isString(0)) {
       beep(args.checkString(0))
@@ -454,7 +454,10 @@ class Machine(val host: MachineHost) extends AbstractManagedEnvironment with mac
       }
       val duration = args.optDouble(1, 0.1)
       val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
-      context.pause(durationInMilliseconds / 1000.0)
+      val async = args.optBoolean(2, false)
+      if (!async) {
+        context.pause(durationInMilliseconds / 1000.0)
+      }
       beep(frequency.toShort, durationInMilliseconds.toShort)
     }
     null
