@@ -366,6 +366,19 @@ object InternetCard {
 
   }
 
+  private def isNAT64Address(addr: Inet6Address): Boolean = {
+    val b = addr.getAddress
+    // 64:ff9b::/96 — NAT64 well-known prefix (RFC 6052)
+    b(0) == 0x00 && b(1) == 0x64 && b(2) == 0xff.toByte && b(3) == 0x9b.toByte &&
+      b(4) == 0 && b(5) == 0 && b(6) == 0 && b(7) == 0 &&
+      b(8) == 0 && b(9) == 0 && b(10) == 0 && b(11) == 0
+  }
+
+  private def extractNAT64EmbeddedAddress(addr: Inet6Address): InetAddress = {
+    val b = addr.getAddress
+    InetAddress.getByAddress(Array(b(12), b(13), b(14), b(15)))
+  }
+
   def isRequestAllowed(settings: Settings, inetAddress: InetAddress, host: String): Boolean = {
     if (!settings.internetAccessAllowed()) {
       false
@@ -378,6 +391,14 @@ object InternetCard {
           // block this request.
           if (InetAddresses.hasEmbeddedIPv4ClientAddress(inet6Address)) {
             val inet4in6Address = InetAddresses.getEmbeddedIPv4ClientAddress(inet6Address)
+            if (!rules.map(r => r.apply(inet4in6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(true)) {
+              return false
+            }
+          }
+
+          // As above, but with NAT64 addresses.
+          if (isNAT64Address(inet6Address)) {
+            val inet4in6Address = extractNAT64EmbeddedAddress(inet6Address)
             if (!rules.map(r => r.apply(inet4in6Address, host)).collectFirst({ case Some(r) => r }).getOrElse(true)) {
               return false
             }
