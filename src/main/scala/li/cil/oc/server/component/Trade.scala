@@ -78,7 +78,7 @@ class Trade(val info: TradeInfo) extends AbstractValue {
                     if (!hasRoomForRecipe(inventory, recipe)) {
                       result(false, "not enough inventory space to trade")
                     } else {
-                      if (completeTrade(inventory, recipe, exact = true) || completeTrade(inventory, recipe, exact = false)) {
+                      if (completeTrade(inventory, recipe, exact = true)) {
                         result(true)
                       } else {
                         result(false, "not enough items to trade")
