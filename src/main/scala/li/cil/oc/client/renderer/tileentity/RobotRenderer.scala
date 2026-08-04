@@ -1,23 +1,25 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.{Constants, OpenComputers, Settings, api}
 import li.cil.oc.api.driver.item.UpgradeRenderer
 import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.block.BlockRenderer.patchedRenderer
+import li.cil.oc.client.renderer.block.{BlockRenderer, Print}
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.component.UpgradeSkinComponent
+import li.cil.oc.common.item.UpgradeSkin
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.RenderBlocks
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.entity.RenderManager
-import net.minecraft.client.renderer.entity.RendererLivingEntity
+import net.minecraft.client.renderer.{GLAllocation, OpenGlHelper, RenderBlocks, Tessellator}
+import net.minecraft.client.renderer.entity.{RenderItem, RenderManager, RendererLivingEntity}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
@@ -283,8 +285,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f
 
-    GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -330,7 +332,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
     val offset = timeJitter + worldTime / 20.0
-    renderChassis(robot, offset)
+
+    val pass = MinecraftForgeClient.getRenderPass
+    val renderedBodySkin = renderSkins(robot, f)
+
+    if((!renderedBodySkin || !robot.hideBody) && pass == 0) {
+      renderChassis(robot, offset)
+    }
 
     if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       Option(robot.getStackInSlot(0)) match {
@@ -434,7 +442,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         case _ =>
       }
 
-      if (MinecraftForgeClient.getRenderPass == 0) {
+      if (MinecraftForgeClient.getRenderPass == 0 && !robot.hideUpgrades) {
         lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
         lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
         lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
@@ -475,7 +483,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glPopMatrix()
 
     val name = robot.name
-    if (Settings.get.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+    if (!robot.hideNameTag && Settings.get.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
       GL11.glPushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
@@ -520,5 +528,110 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  def renderSkins(robot: Robot, f: Float): Boolean = {
+    val pass = MinecraftForgeClient.getRenderPass
+
+    if(robot.skins(0).skin.isDefined || robot.skins(1).skin.isDefined || robot.skins(4).skin.isDefined) { // if(skinUpgrade.isDefined) {
+      val bodySkin = robot.skins(0)
+      val leftJ1Skin = robot.skins(1)
+      val leftJ2Skin = robot.skins(2)
+      val leftJ3Skin = robot.skins(3)
+      val rightJ1Skin = robot.skins(4)
+      val rightJ2Skin = robot.skins(5)
+      val rightJ3Skin = robot.skins(6)
+      GL11.glPushMatrix()
+      GL11.glTranslatef(0.5f, 0.53f, 0.5f)
+      GL11.glScalef(0.8f, 0.8f, 0.8f)
+
+      if(bodySkin.skin.isDefined) {
+        renderSkin(bodySkin, robot, f, pass)
+      }
+
+      if(leftJ1Skin.skin.isDefined) {
+        GL11.glPushMatrix()
+        GL11.glTranslatef(0.5f, 0f, 0f)
+        renderSkin(leftJ1Skin, robot, f, pass, 0.5f, 0, 0, false)
+        if(leftJ2Skin.skin.isDefined) {
+          GL11.glTranslatef(0.5f, 0f, 0f)
+          renderSkin(leftJ2Skin, robot, f, pass, 0.5f, 0, 0, false)
+          if(leftJ3Skin.skin.isDefined) {
+            GL11.glTranslatef(0.5f, 0f, 0f)
+            renderSkin(leftJ3Skin, robot, f, pass, 0.5f, 0, 0, false)
+          }
+        }
+        GL11.glPopMatrix()
+      }
+
+      if(rightJ1Skin.skin.isDefined) {
+        GL11.glPushMatrix()
+        GL11.glTranslatef(-0.5f, 0f, 0f)
+        renderSkin(rightJ1Skin, robot, f, pass, -0.5f, 0, 0, true)
+        if(rightJ2Skin.skin.isDefined) {
+          GL11.glTranslatef(-0.5f, 0f, 0f)
+          renderSkin(rightJ2Skin, robot, f, pass, -0.5f, 0, 0, true)
+          if(rightJ3Skin.skin.isDefined) {
+            GL11.glTranslatef(-0.5f, 0f, 0f)
+            renderSkin(rightJ3Skin, robot, f, pass, -0.5f, 0, 0, true)
+          }
+        }
+        GL11.glPopMatrix()
+      }
+
+      GL11.glPopMatrix()
+    }
+    robot.skins(0).skin.isDefined
+  }
+
+  def renderSkin(skinComponent: UpgradeSkinComponent, robot: Robot, f: Float, pass: Int): Unit = {
+    renderSkin(skinComponent, robot, f, pass, 0, 0, 0, false)
+  }
+
+  def renderSkin(skinComponent: UpgradeSkinComponent, robot: Robot, f: Float, pass: Int, offsetX: Float, offsetY: Float, offsetZ: Float, invertRot: Boolean): Unit = {
+    // val rotDir = if (invertRot) -1 else 1
+    val rotDir = 1
+    if(skinComponent.animationTicksTotal > 0) {
+      val remaining = (skinComponent.animationTicksLeft - f) / skinComponent.animationTicksTotal.toFloat
+      GL11.glRotatef(skinComponent.rotX - (skinComponent.rotX - skinComponent.oldRotX) * remaining, rotDir, 0, 0)
+      GL11.glRotatef(skinComponent.rotY - (skinComponent.rotY - skinComponent.oldRotY) * remaining, 0, rotDir, 0)
+      GL11.glRotatef(skinComponent.rotZ - (skinComponent.rotZ - skinComponent.oldRotZ) * remaining, 0, 0, rotDir)
+    } else {
+      GL11.glRotatef(skinComponent.rotX, rotDir, 0, 0)
+      GL11.glRotatef(skinComponent.rotY, 0, rotDir, 0)
+      GL11.glRotatef(skinComponent.rotZ, 0, 0, rotDir)
+    }
+    GL11.glTranslatef(offsetX, offsetY, offsetZ)
+
+    val brightness = robot.world.getLightBrightnessForSkyBlocks(robot.x, robot.y, robot.z, 0)
+    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
+
+    val stack = skinComponent.skin.get
+    val itemRenderer = RenderManager.instance.itemRenderer
+    def renderPass(): Unit = {
+      val tint = stack.getItem.getColorFromItemStack(stack, pass)
+      val r = ((tint >> 16) & 0xFF) / 255f
+      val g = ((tint >> 8) & 0xFF) / 255f
+      val b = ((tint >> 0) & 0xFF) / 255f
+      GL11.glColor4f(r, g, b, 1)
+      itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
+    }
+
+    if (stack.getItem.requiresMultipleRenderPasses()) {
+      val passes = stack.getItem.getRenderPasses(stack.getItemDamage)
+      if (pass < passes) {
+        renderPass()
+      }
+      // Tile entities only get two render passes, so if items need
+      // more, we have to fake them.
+      if (pass == 1 && passes > 2) {
+        for (fakePass <- 2 until passes) {
+          renderPass()
+        }
+      }
+    }
+    else if (pass == 0) {
+      renderPass()
+    }
   }
 }

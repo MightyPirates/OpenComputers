@@ -1,7 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import java.util.UUID
-
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
@@ -16,6 +15,7 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.component.UpgradeSkinComponent
 import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
@@ -87,6 +87,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   var inventorySize = -1
 
   var selectedSlot = 0
+
+  // Cache for rendering skin upgrade
+  var skins = Array(new UpgradeSkinComponent("body"), new UpgradeSkinComponent("leftJoint1"), new UpgradeSkinComponent("leftJoint2"),
+    new UpgradeSkinComponent("leftJoint3"), new UpgradeSkinComponent("rightJoint1"), new UpgradeSkinComponent("rightJoint2"), new UpgradeSkinComponent("rightJoint3"))
+  var hideBody = false
+  var hideNameTag = false
+  var hideUpgrades = false
 
   override def setSelectedSlot(index: Int): Unit = {
     selectedSlot = index max 0 min mainInventory.getSizeInventory - 1
@@ -309,7 +316,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def shouldRenderInPass(pass: Int) = true
 
   override def getRenderBoundingBox =
-    getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(0.5, 0.5, 0.5)
+    getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(2.5, 2.5, 2.5)
 
   // ----------------------------------------------------------------------- //
 
@@ -323,6 +330,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         swingingTool = false
         turnAxis = 0
       }
+    }
+    for(skin <- skins) {
+      skin.updateClient()
     }
     super.updateEntity()
     if (isServer) {
@@ -463,6 +473,15 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       turnAxis = nbt.getByte("turnAxis")
     }
     connectComponents()
+
+    var hasSkinComponent = false
+    (this.componentSlots ++ this.containerSlots).map(this.getStackInSlot).foreach(s => {
+      cacheSkinComponentsForRendering(s)
+      hasSkinComponent = true
+    })
+    if(!hasSkinComponent) {
+      clearSkinComponentCache()
+    }
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
@@ -690,6 +709,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
+    val wasSkinUpgrade = isComponentSlot(slot, stack) && isSkinUpgrade(getStackInSlot(slot))
     if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot, stack)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
@@ -698,9 +718,61 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
           spawnStackInWorld(stack, Option(facing))
         }
       }
-      else super.setInventorySlotContents(slot, stack)
+      else {
+        super.setInventorySlotContents(slot, stack)
+        if(isComponentSlot(slot, stack)) {
+          cacheSkinComponentsForRendering(stack)
+        }
+      }
     }
     else if (stack != null && stack.stackSize > 0 && !world.isRemote) spawnStackInWorld(stack, Option(ForgeDirection.UP))
+
+    if(!isSkinUpgrade(getStackInSlot(slot)) && wasSkinUpgrade) {
+      clearSkinComponentCache()
+    }
+  }
+
+  def cacheSkinComponentsForRendering(stack: ItemStack): Unit = {
+    if(isSkinUpgrade(stack)) {
+      val compound = stack.getTagCompound
+      if(compound != null && compound.hasKey(Settings.namespace + "data")) {
+        val data = compound.getCompoundTag(Settings.namespace + "data")
+        skins(0).load(data)
+        skins(1).load(data)
+        skins(2).load(data)
+        skins(3).load(data)
+        skins(4).load(data)
+        skins(5).load(data)
+        skins(6).load(data)
+        if(data.hasKey("hideBody")) {
+          hideBody = data.getBoolean("hideBody")
+        }
+        if(data.hasKey("hideNameTag")) {
+          hideNameTag = data.getBoolean("hideNameTag")
+        }
+        if(data.hasKey("hideUpgrades")) {
+          hideUpgrades = data.getBoolean("hideUpgrades")
+        }
+        return
+      }
+    }
+  }
+
+  def clearSkinComponentCache(): Unit = {
+    skins(0).skin = None
+    skins(1).skin = None
+    skins(2).skin = None
+    skins(3).skin = None
+    skins(4).skin = None
+    skins(5).skin = None
+    skins(6).skin = None
+    hideBody = true
+    hideNameTag = false
+    hideUpgrades = false
+  }
+
+  private def isSkinUpgrade(stack: ItemStack): Boolean = {
+    stack != null && ((api.Items.get(stack) == api.Items.get(Constants.ItemName.SkinUpgradeTier1)) || (api.Items.get(stack) == api.Items.get(Constants.ItemName.SkinUpgradeTier2)) || (api.Items.get(stack) == api.Items.get(Constants.ItemName.SkinUpgradeTier3)))
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =

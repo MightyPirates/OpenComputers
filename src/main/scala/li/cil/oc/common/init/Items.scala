@@ -1,7 +1,6 @@
 package li.cil.oc.common.init
 
 import java.util.concurrent.Callable
-
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
@@ -14,8 +13,7 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.UpgradeLeash
+import li.cil.oc.common.item.{Delegator, UpgradeLeash, UpgradeSkin}
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -550,6 +548,11 @@ object Items extends ItemAPI {
     // 1.7.2
     Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
     registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
+
+    // 1.8.4
+    Recipes.addSubItem(new UpgradeSkin(multi, Tier.One), Constants.ItemName.SkinUpgradeTier1, "oc:skinUpgrade1")
+    Recipes.addSubItem(new item.UpgradeSkin(multi, Tier.Two), Constants.ItemName.SkinUpgradeTier2, "oc:skinUpgrade2")
+    Recipes.addSubItem(new item.UpgradeSkin(multi, Tier.Three), Constants.ItemName.SkinUpgradeTier3, "oc:skinUpgrade3")
 
     // Register aliases.
     for ((k, v) <- aliases) {

@@ -324,6 +324,21 @@ signUpgrade {
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [ingotIron, pistonStickyBase, ingotIron]]
 }
+skinUpgrade1 {
+  input: [["oc:circuitChip1", leather, "oc:circuitChip1"]
+          [leather, chest, leather]
+          ["oc:circuitChip1", leather, "oc:circuitChip1"]]
+}
+skinUpgrade2 {
+  input: [["oc:circuitChip2", leather, "oc:circuitChip2"]
+          [leather, chest, leather]
+          ["oc:circuitChip2", leather, "oc:circuitChip2"]]
+}
+skinUpgrade3 {
+  input: [["oc:circuitChip3", leather, "oc:circuitChip3"]
+          [leather, chest, leather]
+          ["oc:circuitChip3", leather, "oc:circuitChip3"]]
+}
 solarGeneratorUpgrade {
   input: [[blockGlass, blockGlass, blockGlass]
           ["oc:circuitChip3", blockLapis, "oc:circuitChip3"]
