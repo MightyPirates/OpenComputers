@@ -329,7 +329,9 @@ object InternetCard {
     private def checkConnected() = {
       if (owner.isEmpty) throw new IOException("connection lost")
       try {
-        if (isAddressResolved) channel.finishConnect()
+        if (isAddressResolved) {
+          channel.finishConnect()
+        }
         else if (address.isCancelled) {
           // I don't think this can ever happen, Justin Case.
           channel.close()
@@ -341,14 +343,15 @@ object InternetCard {
             case e: ExecutionException => throw e.getCause
           }
           isAddressResolved = true
-          false
+          // After address resolution, immediately attempt connection
+          channel.finishConnect()
         }
         else false
       }
       catch {
         case t: Throwable =>
           close()
-          false
+          throw t  // Propagate exception instead of returning false
       }
     }
 
