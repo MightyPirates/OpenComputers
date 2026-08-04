@@ -52,7 +52,9 @@ end
 _coroutine.wrap = function(f)
   local thread = coroutine.create(f)
   return function(...)
-    return select(2, coroutine.resume(thread, ...))
+      local result_pack = table.pack(coroutine.resume(thread, ...))
+      if not result_pack[1] then error(result_pack[2], 2) end
+      return table.unpack(result_pack, 2, result_pack.n)
   end
 end
 
