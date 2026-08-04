@@ -48,7 +48,7 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
     val sinkSide = checkSideForAction(args, 1)
     val sinkPos = position.offset(sinkSide)
     val count = args.optFluidCount(2)
-    val sourceTank = args.optInteger(3, -1)
+    val sourceTank = args.optInteger(3, -1) - 1
 
     onTransferContents() match {
       case Some(reason) =>
