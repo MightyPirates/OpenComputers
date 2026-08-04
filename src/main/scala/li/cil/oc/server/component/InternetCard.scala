@@ -60,7 +60,7 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
   @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback(doc = """function(url:string[, postData:string[, headers:table[, method:string]]]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
+  @Callback(doc = """function(url:string[, postData:string[, headers:table[, method:string[, allowErrorBody:boolean]]]]):userdata -- Starts an HTTP request. If allowErrorBody is true, HTTP error responses will return their body instead of throwing an exception.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
@@ -82,7 +82,8 @@ class InternetCard extends prefab.ManagedEnvironment with DeviceInfo {
       return result(Unit, "http request headers are unavailable")
     }
     val method = if (args.isString(3)) Option(args.checkString(3)) else None
-    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers, method)
+    val allowErrorBody = args.optBoolean(4, false)
+    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers, method, allowErrorBody)
     connections += request
     result(request)
   }
@@ -404,10 +405,14 @@ object InternetCard {
   }
 
   class HTTPRequest extends AbstractValue with Closable {
-    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String], method: Option[String]) {
+    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String], method: Option[String], allowErrorBody: Boolean) {
       this()
       this.owner = Some(owner)
-      this.stream = threadPool.submit(new RequestSender(url, post, headers, method))
+      this.stream = threadPool.submit(new RequestSender(url, post, headers, method, allowErrorBody))
+    }
+
+    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String], method: Option[String]) {
+      this(owner, url, post, headers, method, false)
     }
 
     private var owner: Option[InternetCard] = None
@@ -506,7 +511,7 @@ object InternetCard {
     }
 
     // This one doesn't (see comment in TCP socket), but I like to keep it consistent.
-    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String], val method: Option[String]) extends Callable[InputStream] {
+    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String], val method: Option[String], val allowErrorBody: Boolean) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
@@ -525,21 +530,27 @@ object InternetCard {
               out.close()
             }
 
-            // Finish the connection. Call getInputStream a second time below to re-throw any exception.
-            // This avoids getResponseCode() waiting for the connection to end in the synchronized block.
-            try {
-              http.getInputStream
-            } catch {
-              case _: Exception =>
-            }
-
             HTTPRequest.this.synchronized {
               response = Some((http.getResponseCode, http.getResponseMessage, http.getHeaderFields))
             }
 
-            // TODO: This should allow accessing getErrorStream() for reading unsuccessful HTTP responses' output,
-            // but this would be a breaking change for existing OC code.
-            http.getInputStream
+            val responseCode = http.getResponseCode
+            if (responseCode >= 200 && responseCode < 300) {
+              // Successful responses (2xx) - always use getInputStream()
+              http.getInputStream
+            } else if (allowErrorBody) {
+              // HTTP error responses (4xx, 5xx) with allowErrorBody=true - try to get error stream
+              val errorStream = http.getErrorStream
+              if (errorStream != null) {
+                errorStream
+              } else {
+                // If no error stream is available, return an empty stream
+                new java.io.ByteArrayInputStream(Array.empty[Byte])
+              }
+            } else {
+              // HTTP error responses (4xx, 5xx) with allowErrorBody=false - throw exception (old behavior)
+              http.getInputStream // This will throw an exception for HTTP error responses
+            }
           }
           catch {
             case t: Throwable =>
